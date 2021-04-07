@@ -8,8 +8,10 @@ package codedriver.module.autoexec.api;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.dto.FieldValidResultVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
+import codedriver.framework.restful.core.IValid;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.auth.AUTOEXEC_TYPE_MODIFY;
 import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
@@ -67,6 +69,16 @@ public class AutoexecTypeSaveApi extends PrivateApiComponentBase {
             autoexecTypeMapper.updateType(typeVo);
         }
         return null;
+    }
+
+    public IValid name() {
+        return value -> {
+            AutoexecTypeVo typeVo = JSON.toJavaObject(value, AutoexecTypeVo.class);
+            if (autoexecTypeMapper.checkTypeNameIsExists(typeVo) > 0) {
+                return new FieldValidResultVo(new AutoexecTypeNameRepeatException(typeVo.getName()));
+            }
+            return new FieldValidResultVo();
+        };
     }
 
 
