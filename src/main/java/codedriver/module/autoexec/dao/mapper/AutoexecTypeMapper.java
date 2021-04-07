@@ -5,6 +5,33 @@
 
 package codedriver.module.autoexec.dao.mapper;
 
+import codedriver.module.autoexec.dto.AutoexecTypeVo;
+
+import java.util.List;
+
 public interface AutoexecTypeMapper {
 
+    public AutoexecTypeVo getTypeById(Long id);
+
+    public int checkTypeNameIsExists(AutoexecTypeVo vo);
+
+    public int searchTypeCount(AutoexecTypeVo vo);
+
+    public List<AutoexecTypeVo> searchType(AutoexecTypeVo vo);
+
+    public int checkTypeIsExistsById(Long id);
+
+    /**
+     * 检查插件类型是否被工具或脚本引用
+     *
+     * @param id 类型ID
+     * @return 引用次数
+     */
+    public int checkTypeHasBeenReferredById(Long id);
+
+    public int insertType(AutoexecTypeVo vo);
+
+    public int updateType(AutoexecTypeVo vo);
+
+    public int deleteTypeById(Long id);
 }

@@ -12,6 +12,9 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.auth.AUTOEXEC_TYPE_MODIFY;
 import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
+import codedriver.module.autoexec.dto.AutoexecTypeVo;
+import codedriver.module.autoexec.exception.AutoexecTypeHasBeenReferredException;
+import codedriver.module.autoexec.exception.AutoexecTypeNotFoundException;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +48,16 @@ public class AutoexecTypeDeleteApi extends PrivateApiComponentBase {
     @Description(desc = "删除插件类型")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
+        Long id = jsonObj.getLong("id");
+        if (autoexecTypeMapper.checkTypeIsExistsById(id) == 0) {
+            throw new AutoexecTypeNotFoundException(id);
+        }
+        AutoexecTypeVo type = autoexecTypeMapper.getTypeById(id);
+        // 已经被工具或脚本引用的分类不可删除
+        if (autoexecTypeMapper.checkTypeHasBeenReferredById(id) > 0) {
+            throw new AutoexecTypeHasBeenReferredException(type.getName());
+        }
+        autoexecTypeMapper.deleteTypeById(id);
         return null;
     }
 

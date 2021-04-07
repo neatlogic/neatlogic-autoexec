@@ -9,15 +9,18 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.auth.label.NO_AUTH;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
+import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.module.autoexec.dto.AutoexecTypeVo;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 @Service
 @AuthAction(action = NO_AUTH.class)
@@ -55,7 +58,19 @@ public class AutoexecTypeSearchApi extends PrivateApiComponentBase {
     @Description(desc = "查询插件类型")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        return null;
+        JSONObject result = new JSONObject();
+        AutoexecTypeVo typeVo = JSON.toJavaObject(jsonObj, AutoexecTypeVo.class);
+        List<AutoexecTypeVo> typeList = autoexecTypeMapper.searchType(typeVo);
+        result.put("tbodyList", typeList);
+        if (typeVo.getNeedPage()) {
+            int rowNum = autoexecTypeMapper.searchTypeCount(typeVo);
+            typeVo.setRowNum(rowNum);
+            result.put("currentPage", typeVo.getCurrentPage());
+            result.put("pageSize", typeVo.getPageSize());
+            result.put("pageCount", PageUtil.getPageCount(rowNum, typeVo.getPageSize()));
+            result.put("rowNum", typeVo.getRowNum());
+        }
+        return result;
     }
 
 
