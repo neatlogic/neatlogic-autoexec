@@ -34,7 +34,7 @@ public class AutoexecScriptVersionActiveStatusUpdateApi extends PrivateApiCompon
 
     @Override
     public String getName() {
-        return "激活或禁用版本";
+        return "激活或禁用脚本版本";
     }
 
     @Override
@@ -48,7 +48,7 @@ public class AutoexecScriptVersionActiveStatusUpdateApi extends PrivateApiCompon
     })
     @Output({
     })
-    @Description(desc = "激活或禁用版本")
+    @Description(desc = "激活或禁用脚本版本")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         /**

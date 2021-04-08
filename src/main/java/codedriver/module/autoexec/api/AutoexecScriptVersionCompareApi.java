@@ -53,7 +53,7 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
             @Param(name = "currentScript", explode = AutoexecScriptVo[].class, desc = "当前版本脚本"),
             @Param(name = "targetScript", explode = AutoexecScriptVo[].class, desc = "目标版本脚本"),
     })
-    @Description(desc = "校验脚本内容")
+    @Description(desc = "脚本版本对比")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         return null;

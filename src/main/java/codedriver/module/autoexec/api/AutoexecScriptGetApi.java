@@ -52,7 +52,7 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
     @Output({
             @Param(explode = AutoexecScriptVo[].class, desc = "脚本内容"),
     })
-    @Description(desc = "查询脚本")
+    @Description(desc = "查看脚本")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         return null;
