@@ -22,6 +22,8 @@ public class AutoexecScriptVersionVo extends BaseEditorVo {
     private String status;
     @EntityField(name = "审批人", type = ApiParamType.STRING)
     private String reviewer;
+    @EntityField(name = "脚本解析器", type = ApiParamType.STRING)
+    private String parser;
     @EntityField(name = "脚本配置信息", type = ApiParamType.STRING)
     private String config;
     @EntityField(name = "是否激活", type = ApiParamType.INTEGER)
@@ -71,6 +73,14 @@ public class AutoexecScriptVersionVo extends BaseEditorVo {
 
     public void setReviewer(String reviewer) {
         this.reviewer = reviewer;
+    }
+
+    public String getParser() {
+        return parser;
+    }
+
+    public void setParser(String parser) {
+        this.parser = parser;
     }
 
     public String getConfig() {

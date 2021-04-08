@@ -23,7 +23,7 @@ import javax.annotation.Resource;
 @Transactional
 @AuthAction(action = AUTOEXEC_SCRIPT_MODIFY.class)
 @AuthAction(action = AUTOEXEC_SCRIPT_REVIEW.class)
-@OperationType(type = OperationTypeEnum.SEARCH)
+@OperationType(type = OperationTypeEnum.CREATE)
 public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
 
     @Resource

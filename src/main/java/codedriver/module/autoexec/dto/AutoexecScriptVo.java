@@ -10,6 +10,8 @@ import codedriver.framework.common.dto.BaseEditorVo;
 import codedriver.framework.restful.annotation.EntityField;
 import codedriver.framework.util.SnowflakeUtil;
 
+import java.util.List;
+
 public class AutoexecScriptVo extends BaseEditorVo {
 
     @EntityField(name = "id", type = ApiParamType.LONG)
@@ -37,6 +39,15 @@ public class AutoexecScriptVo extends BaseEditorVo {
     private Integer reviewingVersionCount;
     @EntityField(name = "已通过版本数", type = ApiParamType.INTEGER)
     private Integer reviewedVersionCount;
+
+    @EntityField(name = "版本ID", type = ApiParamType.LONG)
+    private Long versionId;
+    @EntityField(name = "脚本解析器", type = ApiParamType.STRING)
+    private String parser;
+    @EntityField(name = "脚本配置信息", type = ApiParamType.STRING)
+    private String config;
+    @EntityField(name = "脚本内容行", type = ApiParamType.JSONARRAY)
+    private List<AutoexecScriptLineVo> lineList;
 
 
     public AutoexecScriptVo() {
@@ -139,5 +150,37 @@ public class AutoexecScriptVo extends BaseEditorVo {
 
     public void setReviewedVersionCount(Integer reviewedVersionCount) {
         this.reviewedVersionCount = reviewedVersionCount;
+    }
+
+    public Long getVersionId() {
+        return versionId;
+    }
+
+    public void setVersionId(Long versionId) {
+        this.versionId = versionId;
+    }
+
+    public String getParser() {
+        return parser;
+    }
+
+    public void setParser(String parser) {
+        this.parser = parser;
+    }
+
+    public String getConfig() {
+        return config;
+    }
+
+    public void setConfig(String config) {
+        this.config = config;
+    }
+
+    public List<AutoexecScriptLineVo> getLineList() {
+        return lineList;
+    }
+
+    public void setLineList(List<AutoexecScriptLineVo> lineList) {
+        this.lineList = lineList;
     }
 }
