@@ -10,7 +10,7 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.module.autoexec.auth.AUTOEXEC_TYPE_MODIFY;
+import codedriver.module.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.module.autoexec.dto.AutoexecTypeVo;
 import codedriver.module.autoexec.exception.AutoexecTypeHasBeenReferredException;
@@ -21,7 +21,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 
 @Service
-@AuthAction(action = AUTOEXEC_TYPE_MODIFY.class)
+@AuthAction(action = AUTOEXEC_SCRIPT_MODIFY.class)
 @OperationType(type = OperationTypeEnum.DELETE)
 public class AutoexecTypeDeleteApi extends PrivateApiComponentBase {
 
