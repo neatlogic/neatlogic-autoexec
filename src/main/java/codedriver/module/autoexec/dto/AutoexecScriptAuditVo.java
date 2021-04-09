@@ -9,6 +9,7 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BaseEditorVo;
 import codedriver.framework.restful.annotation.EntityField;
 import codedriver.framework.util.SnowflakeUtil;
+import com.alibaba.fastjson.annotation.JSONField;
 
 public class AutoexecScriptAuditVo extends BaseEditorVo {
 
@@ -20,8 +21,9 @@ public class AutoexecScriptAuditVo extends BaseEditorVo {
     private Long scriptVersionId;
     @EntityField(name = "操作类型", type = ApiParamType.STRING)
     private String operate;
+    @JSONField(serialize = false)
     @EntityField(name = "内容hash", type = ApiParamType.STRING)
-    private String contentHash;
+    private transient String contentHash;
     @EntityField(name = "内容", type = ApiParamType.STRING)
     private String content;
 
