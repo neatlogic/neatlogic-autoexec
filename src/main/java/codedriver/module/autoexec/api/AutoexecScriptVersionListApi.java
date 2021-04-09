@@ -49,7 +49,7 @@ public class AutoexecScriptVersionListApi extends PrivateApiComponentBase {
             @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "脚本ID"),
     })
     @Output({
-            @Param(name = "Return", type = ApiParamType.JSONARRAY, explode = AutoexecScriptVersionVo[].class, desc = "版本列表"),
+            @Param(type = ApiParamType.JSONARRAY, explode = AutoexecScriptVersionVo[].class, desc = "版本列表"),
     })
     @Description(desc = "获取脚本版本列表")
     @Override
