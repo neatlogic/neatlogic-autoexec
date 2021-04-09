@@ -16,10 +16,14 @@ public class AutoexecScriptVersionParamVo {
     private String key;
     @EntityField(name = "参数默认值", type = ApiParamType.STRING)
     private String defaultValue;
-    @EntityField(name = "参数类型(出参、常量、流水线参数)", type = ApiParamType.STRING)
-    private String inputType;
-    @EntityField(name = "配置", type = ApiParamType.STRING)
-    private String config;
+    @EntityField(name = "参数类型(出参、入参)", type = ApiParamType.STRING)
+    private String type;
+    @EntityField(name = "表单类型", type = ApiParamType.STRING)
+    private String handler;
+    @EntityField(name = "是否必填(1:是;0:否)", type = ApiParamType.INTEGER)
+    private Integer isRequired;
+    @EntityField(name = "说明", type = ApiParamType.STRING)
+    private String description;
 
     public AutoexecScriptVersionParamVo() {
     }
@@ -48,19 +52,35 @@ public class AutoexecScriptVersionParamVo {
         this.defaultValue = defaultValue;
     }
 
-    public String getInputType() {
-        return inputType;
+    public String getType() {
+        return type;
     }
 
-    public void setInputType(String inputType) {
-        this.inputType = inputType;
+    public void setType(String type) {
+        this.type = type;
     }
 
-    public String getConfig() {
-        return config;
+    public String getHandler() {
+        return handler;
     }
 
-    public void setConfig(String config) {
-        this.config = config;
+    public void setHandler(String handler) {
+        this.handler = handler;
+    }
+
+    public Integer getIsRequired() {
+        return isRequired;
+    }
+
+    public void setIsRequired(Integer isRequired) {
+        this.isRequired = isRequired;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 }

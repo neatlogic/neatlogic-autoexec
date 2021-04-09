@@ -73,7 +73,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
          * 没有versionId，表示首次创建脚本
          * 有versionId，表示编辑某个版本
          */
-        if(scriptVo.getVersionId() == null){
+        if (scriptVo.getVersionId() == null) {
             /**
              * 鉴权，看当前用户是否有权限新增脚本
              */
@@ -85,7 +85,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             /**
              * 生成脚本与版本
              */
-        }else{
+        } else {
             /**
              * 根据用户和版本状态，判断是否可以编辑
              */
@@ -101,7 +101,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
         /**
          *根据needSave判断是否需要保存脚本内容
          */
-        if(needSave){
+        if (needSave) {
 
         }
         return result;
