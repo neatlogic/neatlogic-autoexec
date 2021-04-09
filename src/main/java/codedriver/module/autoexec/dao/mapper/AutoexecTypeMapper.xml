@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper">
+
+    <select id="getTypeById" parameterType="java.lang.Long" resultType="codedriver.module.autoexec.dto.AutoexecTypeVo">
+        select
+        `id`,
+        `name`
+        from
+        `autoexec_type`
+        where `id` = #{value}
+    </select>
+
+    <select id="checkTypeNameIsExists" parameterType="codedriver.module.autoexec.dto.AutoexecTypeVo" resultType="int">
+        select
+        count(1)
+        from `autoexec_type`
+        where `name` = #{name} and `id` != #{id}
+    </select>
+
+    <select id="searchTypeCount" parameterType="codedriver.module.autoexec.dto.AutoexecTypeVo" resultType="int">
+        select
+        count(1)
+        from `autoexec_type`
+        <where>
+            <if test="keyword != null and keyword != ''">
+                `name` LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="searchType" parameterType="codedriver.module.autoexec.dto.AutoexecTypeVo"
+            resultType="codedriver.module.autoexec.dto.AutoexecTypeVo">
+        select
+        `id`,
+        `name`,
+        `lcu`,
+        `lcd`
+        from `autoexec_type`
+        <where>
+            <if test="keyword != null and keyword != ''">
+                `name` LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+        </where>
+        order by `lcd` desc
+        <if test="needPage == true">
+            LIMIT #{startNum}, #{pageSize}
+        </if>
+    </select>
+
+    <select id="checkTypeIsExistsById" parameterType="java.lang.Long" resultType="int">
+        select
+        count(1)
+        from `autoexec_type`
+        where `id` = #{value}
+    </select>
+
+    <select id="checkTypeHasBeenReferredById" parameterType="java.lang.Long" resultType="int">
+        select sum(refCount)
+		from
+		(
+		select
+        count(`id`) as refCount
+        from `autoexec_tool`
+        where `type_id` = #{value}
+        union all
+        select
+        count(`id`) as refCount
+        from `autoexec_script`
+        where `type_id` = #{value}
+		) a
+    </select>
+
+    <insert id="insertType" parameterType="codedriver.module.autoexec.dto.AutoexecTypeVo">
+        insert into `autoexec_type`(
+        `id`,
+        `name`,
+        `lcu`,
+        `lcd`
+        )
+        values (
+        #{id},
+        #{name},
+        #{lcu},
+        now(3)
+        )
+    </insert>
+
+    <update id="updateType" parameterType="codedriver.module.autoexec.dto.AutoexecTypeVo">
+        update `autoexec_type`
+        set `name` = #{name},
+        `lcu` = #{lcu},
+        `lcd` = now(3)
+        where `id` = #{id}
+    </update>
+
+    <delete id="deleteTypeById" parameterType="java.lang.Long">
+        delete
+        from `autoexec_type`
+        where `id` = #{value}
+    </delete>
+</mapper>
+
