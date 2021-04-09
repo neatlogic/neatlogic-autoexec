@@ -13,6 +13,8 @@ import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.module.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.module.autoexec.dto.AutoexecScriptVo;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -62,13 +64,52 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
     @Description(desc = "保存脚本")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        /**
-         * 1、没有versionId，表示首次创建脚本
-         * 2、有versionId，表示编辑某个版本
-         */
+
         JSONObject result = new JSONObject();
+        AutoexecScriptVo scriptVo = JSON.toJavaObject(jsonObj, AutoexecScriptVo.class);
+        boolean needSave = true;
+
+        /**
+         * 没有versionId，表示首次创建脚本
+         * 有versionId，表示编辑某个版本
+         */
+        if(scriptVo.getVersionId() == null){
+            /**
+             * 鉴权，看当前用户是否有权限新增脚本
+             */
+
+            /**
+             * 校验name和label
+             */
+
+            /**
+             * 生成脚本与版本
+             */
+        }else{
+            /**
+             * 根据用户和版本状态，判断是否可以编辑
+             */
+
+            /**
+             * 校验name和label
+             */
+
+            /**
+             * 检查当前版本内容与待保存内容是否一致，据此决定是否需要保存
+             */
+        }
+        /**
+         *根据needSave判断是否需要保存脚本内容
+         */
+        if(needSave){
+
+        }
         return result;
     }
+
+    /**
+     * 校验name和label
+     */
 
 
 }
