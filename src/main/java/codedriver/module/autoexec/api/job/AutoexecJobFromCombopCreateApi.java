@@ -9,20 +9,28 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.module.autoexec.service.AutoexecService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.Resource;
 
 /**
  * @author lvzk
  * @since 2021/4/12 11:20
  **/
 
+@Transactional
 @Service
 @OperationType(type = OperationTypeEnum.CREATE)
-public class AutoexecJobFromCombopCreate extends PrivateApiComponentBase {
+public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
+    @Resource
+    AutoexecService autoexecService;
+
     @Override
     public String getName() {
-        return null;
+        return "作业创建（来自操作组）";
     }
 
     @Override
@@ -39,11 +47,12 @@ public class AutoexecJobFromCombopCreate extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
 
+        autoexecService.saveAutoexecJob();
         return null;
     }
 
     @Override
     public String getToken() {
-        return null;
+        return "/autoexec/job/from/combop/create";
     }
 }
