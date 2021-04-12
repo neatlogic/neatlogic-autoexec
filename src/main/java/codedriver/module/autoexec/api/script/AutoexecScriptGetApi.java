@@ -3,38 +3,41 @@
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  */
 
-package codedriver.module.autoexec.api;
+package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_USE;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.framework.autoexec.dto.AutoexecScriptVo;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 
 @Service
-@Transactional
+@AuthAction(action = AUTOEXEC_SCRIPT_USE.class)
+@AuthAction(action = AUTOEXEC_SCRIPT_MODIFY.class)
 @AuthAction(action = AUTOEXEC_SCRIPT_REVIEW.class)
-@OperationType(type = OperationTypeEnum.OPERATE)
-public class AutoexecScriptReviewApi extends PrivateApiComponentBase {
+@OperationType(type = OperationTypeEnum.SEARCH)
+public class AutoexecScriptGetApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
 
     @Override
     public String getToken() {
-        return "autoexec/script/review";
+        return "autoexec/script/get";
     }
 
     @Override
     public String getName() {
-        return "审核脚本";
+        return "查看脚本";
     }
 
     @Override
@@ -43,13 +46,13 @@ public class AutoexecScriptReviewApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "versionId", type = ApiParamType.LONG, isRequired = true, desc = "脚本版本ID"),
-            @Param(name = "action", type = ApiParamType.ENUM, rule = "pass,reject", isRequired = true, desc = "通过，驳回"),
-            @Param(name = "content", type = ApiParamType.STRING, desc = "描述")
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "脚本ID"),
+            @Param(name = "versionId", type = ApiParamType.LONG, desc = "脚本版本ID"),
     })
     @Output({
+            @Param(explode = AutoexecScriptVo[].class, desc = "脚本内容"),
     })
-    @Description(desc = "审核脚本")
+    @Description(desc = "查看脚本")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         return null;

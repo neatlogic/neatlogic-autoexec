@@ -2,6 +2,11 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper">
 
+    <select id="checkScriptIsExistsById" parameterType="java.lang.Long" resultType="int">
+        select `id`
+        from `autoexec_script` where `id` = #{value}
+    </select>
+
     <select id="checkScriptNameIsExists" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptVo"
             resultType="int">
         select count(`id`) from `autoexec_script` where `name` = #{name} and `id` != #{id}
@@ -17,6 +22,66 @@
         from `autoexec_script_line_content`
         where `hash` = #{value}
     </select>
+
+    <select id="getVersionByVersionId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.AutoexecScriptVersionVo">
+        select
+        `id`,
+        `script_id` as scriptId,
+        `version`,
+        `parser`,
+        `status`,
+        `reviewer`,
+        `is_active` as isActive,
+        `config`,
+        `lcu`,
+        `lcd`
+        from `autoexec_script_version`
+        where `id` = #{value}
+    </select>
+
+    <select id="getMaxVersionByScriptId" parameterType="java.lang.Long" resultType="int">
+        select
+        max(`version`)
+        from `autoexec_script_version`
+        where `script_id` = #{value}
+    </select>
+
+    <select id="getParamListByVersionId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.AutoexecScriptVersionParamVo">
+        select
+        `script_version_id` as scriptVersionId,
+        `key`,
+        `default_value` as defaultValue,
+        `type`,
+        `handler`,
+        `is_required` as isRequired,
+        `description`
+        from `autoexec_script_version_param`
+        where `script_version_id` = #{value}
+    </select>
+
+    <select id="getLineListByVersionId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.AutoexecScriptLineVo">
+        select
+        a.`id`,
+        a.`script_id` as scriptId,
+        a.`script_version_id` as scriptVersionId,
+        a.`content_hash` as contentHash,
+        a.`line_number` as lineNumber,
+        b.`content`
+        from `autoexec_script_line` a
+        left join `autoexec_script_line_content` b
+        on a.`content_hash` = b.`hash`
+        where a.`script_version_id` = #{value}
+        order by a.`line_number`
+    </select>
+
+    <update id="updateScriptVersion" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptVersionVo">
+        update `autoexec_script_version` set
+        `parser` = #{parser},
+        `status` = #{status},
+        `lcu` = #{lcu},
+        `lcd` = now(3)
+        where `id` = #{id}
+    </update>
 
     <insert id="insertScript" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptVo">
         insert into `autoexec_script` (
@@ -113,6 +178,18 @@
         #{content}
         )
     </insert>
+
+    <delete id="deleteParamByVersionId" parameterType="java.lang.Long">
+        delete
+        from `autoexec_script_version_param`
+        where `script_version_id` = #{value}
+    </delete>
+
+    <delete id="deleteScriptLineByVersionId" parameterType="java.lang.Long">
+        delete
+        from `autoexec_script_line`
+        where `script_version_id` = #{value}
+    </delete>
 
 </mapper>
 

@@ -3,7 +3,7 @@
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  */
 
-package codedriver.module.autoexec.api;
+package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -21,20 +21,20 @@ import javax.annotation.Resource;
 @Service
 @Transactional
 @AuthAction(action = AUTOEXEC_SCRIPT_REVIEW.class)
-@OperationType(type = OperationTypeEnum.UPDATE)
-public class AutoexecScriptVersionActiveStatusUpdateApi extends PrivateApiComponentBase {
+@OperationType(type = OperationTypeEnum.DELETE)
+public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
 
     @Override
     public String getToken() {
-        return "autoexec/script/version/activestatus/update";
+        return "autoexec/script/delete";
     }
 
     @Override
     public String getName() {
-        return "激活或禁用脚本版本";
+        return "删除脚本";
     }
 
     @Override
@@ -44,16 +44,12 @@ public class AutoexecScriptVersionActiveStatusUpdateApi extends PrivateApiCompon
 
     @Input({
             @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "脚本ID"),
-            @Param(name = "versionId", type = ApiParamType.LONG, isRequired = true, desc = "脚本版本ID"),
     })
     @Output({
     })
-    @Description(desc = "激活或禁用脚本版本")
+    @Description(desc = "删除脚本")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        /**
-         * 激活某个版本，则把当前激活版本设为禁用，保证至多只有一个激活版本
-         */
         return null;
     }
 

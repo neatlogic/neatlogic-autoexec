@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecRiskMapper">
+
+    <select id="checkRiskIsExistsById" parameterType="java.lang.Long" resultType="int">
+        select
+        count(1)
+        from `autoexec_risk`
+        where `id` = #{value}
+    </select>
+</mapper>
+
