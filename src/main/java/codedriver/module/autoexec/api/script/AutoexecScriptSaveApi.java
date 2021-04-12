@@ -140,9 +140,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             // 保存参数
             List<AutoexecScriptVersionParamVo> paramList = scriptVo.getParamList();
             if (CollectionUtils.isNotEmpty(paramList)) {
-                if (CollectionUtils.isNotEmpty(paramList)) {
-                    paramList.stream().forEach(o -> o.setScriptVersionId(versionVo.getId()));
-                }
+                paramList.stream().forEach(o -> o.setScriptVersionId(versionVo.getId()));
                 autoexecScriptMapper.insertScriptVersionParamList(paramList);
             }
             // 保存脚本内容
