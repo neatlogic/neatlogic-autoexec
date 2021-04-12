@@ -2,5 +2,117 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper">
 
+    <select id="checkScriptNameIsExists" parameterType="codedriver.module.autoexec.dto.AutoexecScriptVo"
+            resultType="int">
+        select count(`id`) from `autoexec_script` where `name` = #{name} and `id` != #{id}
+    </select>
+
+    <select id="checkScriptLabelIsExists" parameterType="codedriver.module.autoexec.dto.AutoexecScriptVo"
+            resultType="int">
+        select count(`id`) from `autoexec_script` where `label` = #{label} and `id` != #{id}
+    </select>
+
+    <select id="checkScriptLineContentHashIsExists" parameterType="java.lang.String" resultType="int">
+        select count(`hash`)
+        from `autoexec_script_line_content`
+        where `hash` = #{value}
+    </select>
+
+    <insert id="insertScript" parameterType="codedriver.module.autoexec.dto.AutoexecScriptVo">
+        insert into `autoexec_script` (
+        `id`,
+        `name`,
+        `label`,
+        `type_id`,
+        `risk_id`,
+        `exec_mode`,
+        `fcu`,
+        `fcd`
+        )values (
+        #{id},
+        #{name},
+        #{label},
+        #{typeId},
+        #{riskId},
+        #{execMode},
+        #{fcu},
+        now(3)
+        )
+    </insert>
+
+    <insert id="insertScriptVersion" parameterType="codedriver.module.autoexec.dto.AutoexecScriptVersionVo">
+        insert into `autoexec_script_version` (
+        `id`,
+        `script_id`,
+        `version`,
+        `parser`,
+        `status`,
+        `is_active`,
+        `lcu`,
+        `lcd`
+        )values (
+        #{id},
+        #{scriptId},
+        #{version},
+        #{parser},
+        #{status},
+        #{isActive},
+        #{lcu},
+        now(3)
+        )
+    </insert>
+
+    <insert id="insertScriptVersionParamList" parameterType="java.util.List">
+        insert into `autoexec_script_version_param` (
+        `script_version_id`,
+        `key`,
+        `default_value`,
+        `type`,
+        `handler`,
+        `is_required`,
+        `description`
+        ) values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.scriptVersionId},
+            #{item.key},
+            #{item.defaultValue},
+            #{item.type},
+            #{item.handler},
+            #{item.isRequired},
+            #{item.description}
+            )
+        </foreach>
+    </insert>
+
+    <insert id="insertScriptLineList" parameterType="codedriver.module.autoexec.dto.AutoexecScriptLineVo">
+        insert into `autoexec_script_line` (
+        `id`,
+        `script_id`,
+        `script_version_id`,
+        `content_hash`,
+        `line_number`
+        ) values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.id},
+            #{item.scriptId},
+            #{item.scriptVersionId},
+            #{item.contentHash},
+            #{item.lineNumber}
+            )
+        </foreach>
+    </insert>
+
+    <insert id="insertScriptLineContent" parameterType="codedriver.module.autoexec.dto.AutoexecScriptLineContentVo">
+        insert ignore into `autoexec_script_line_content` (
+        `hash`,
+        `content`
+        ) values (
+        #{hash},
+        #{content}
+        )
+    </insert>
+
 </mapper>
 

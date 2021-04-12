@@ -7,6 +7,8 @@ package codedriver.module.autoexec.dto;
 
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.EntityField;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.util.DigestUtils;
 
 public class AutoexecScriptLineContentVo {
 
@@ -18,7 +20,14 @@ public class AutoexecScriptLineContentVo {
     public AutoexecScriptLineContentVo() {
     }
 
+    public AutoexecScriptLineContentVo(String content) {
+        this.content = content;
+    }
+
     public String getHash() {
+        if (StringUtils.isBlank(hash) && StringUtils.isNotBlank(content)) {
+            hash = DigestUtils.md5DigestAsHex(content.getBytes());
+        }
         return hash;
     }
 

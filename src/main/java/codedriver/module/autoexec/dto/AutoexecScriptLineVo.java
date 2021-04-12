@@ -22,6 +22,9 @@ public class AutoexecScriptLineVo {
     @EntityField(name = "脚本内容行号", type = ApiParamType.INTEGER)
     private Integer lineNumber;
 
+    @EntityField(name = "脚本内容", type = ApiParamType.STRING)
+    private String content;
+
     public AutoexecScriptLineVo() {
     }
 
@@ -66,5 +69,13 @@ public class AutoexecScriptLineVo {
 
     public void setLineNumber(Integer lineNumber) {
         this.lineNumber = lineNumber;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public void setContent(String content) {
+        this.content = content;
     }
 }
