@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.constvalue.ScriptParser;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -15,6 +16,9 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_USE;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 @AuthAction(action = AUTOEXEC_SCRIPT_USE.class)
@@ -46,7 +50,11 @@ public class AutoexecScriptParserListApi extends PrivateApiComponentBase {
     @Description(desc = "获取脚本解析器列表")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        return null;
+        List<String> parserList = new ArrayList<>();
+        for (ScriptParser parser : ScriptParser.values()) {
+            parserList.add(parser.getValue());
+        }
+        return parserList;
     }
 
 

@@ -90,7 +90,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
         /**
          * 没有id和versionId，表示首次创建脚本
          * 有id没有versionId，表示新增一个版本，脚本基本信息不作修改
-         * 没有Id有versionId，表示编辑某个版本，脚本基本信息不作修改
+         * 没有id有versionId，表示编辑某个版本，脚本基本信息不作修改
          */
         AutoexecScriptVersionVo versionVo = new AutoexecScriptVersionVo();
         versionVo.setParser(scriptVo.getParser());
