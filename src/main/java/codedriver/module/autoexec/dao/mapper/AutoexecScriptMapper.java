@@ -27,6 +27,8 @@ public interface AutoexecScriptMapper {
 
     public List<AutoexecScriptLineVo> getLineListByVersionId(Long versionId);
 
+    public int updateScriptBaseInfo(AutoexecScriptVo scriptVo);
+
     public int updateScriptVersion(AutoexecScriptVersionVo versionVo);
 
     public int insertScript(AutoexecScriptVo vo);

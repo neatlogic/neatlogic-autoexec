@@ -74,6 +74,16 @@
         order by a.`line_number`
     </select>
 
+    <update id="updateScriptBaseInfo" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptVo">
+        update `autoexec_script` set
+        `name` = #{name},
+        `label` = #{label},
+        `exec_mode` = #{execMode},
+        `type_id` = #{typeId},
+        `risk_id` = #{riskId}
+        where `id` = #{id}
+    </update>
+
     <update id="updateScriptVersion" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptVersionVo">
         update `autoexec_script_version` set
         `parser` = #{parser},

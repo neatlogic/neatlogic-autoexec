@@ -6,8 +6,14 @@
 package codedriver.module.autoexec.servcie;
 
 import codedriver.framework.autoexec.dto.AutoexecScriptVersionVo;
+import codedriver.framework.autoexec.dto.AutoexecScriptVo;
+import codedriver.framework.autoexec.exception.AutoexecRiskNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecScriptNameOrLabelRepeatException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
+import codedriver.module.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -17,6 +23,12 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
+
+    @Resource
+    private AutoexecTypeMapper autoexecTypeMapper;
+
+    @Resource
+    private AutoexecRiskMapper autoexecRiskMapper;
 
     /**
      * 获取脚本版本详细信息，包括参数与脚本内容
@@ -32,5 +44,26 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
         version.setParamList(autoexecScriptMapper.getParamListByVersionId(versionId));
         version.setLineList(autoexecScriptMapper.getLineListByVersionId(versionId));
         return version;
+    }
+
+    /**
+     * 校验脚本的基本信息，包括name、label、分类、操作级别
+     * @param scriptVo 脚本VO
+     */
+    @Override
+    public void validateScriptBaseInfo(AutoexecScriptVo scriptVo) {
+        if (autoexecScriptMapper.checkScriptNameIsExists(scriptVo) > 0) {
+            throw new AutoexecScriptNameOrLabelRepeatException(scriptVo.getName());
+        }
+        if (autoexecScriptMapper.checkScriptLabelIsExists(scriptVo) > 0) {
+            throw new AutoexecScriptNameOrLabelRepeatException(scriptVo.getName());
+        }
+        if (autoexecTypeMapper.checkTypeIsExistsById(scriptVo.getTypeId()) == 0) {
+            throw new AutoexecTypeNotFoundException(scriptVo.getTypeId());
+        }
+        if (autoexecRiskMapper.checkRiskIsExistsById(scriptVo.getRiskId()) == 0) {
+            throw new AutoexecRiskNotFoundException(scriptVo.getRiskId());
+        }
+
     }
 }

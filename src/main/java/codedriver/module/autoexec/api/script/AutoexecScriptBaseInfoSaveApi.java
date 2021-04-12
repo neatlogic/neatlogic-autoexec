@@ -6,13 +6,17 @@
 package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
+import codedriver.framework.autoexec.dto.AutoexecScriptVo;
+import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.module.autoexec.servcie.AutoexecScriptService;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
@@ -26,6 +30,9 @@ public class AutoexecScriptBaseInfoSaveApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
+
+    @Resource
+    private AutoexecScriptService autoexecScriptService;
 
     @Override
     public String getToken() {
@@ -54,8 +61,13 @@ public class AutoexecScriptBaseInfoSaveApi extends PrivateApiComponentBase {
     @Description(desc = "保存脚本基本信息")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
+        AutoexecScriptVo scriptVo = JSON.toJavaObject(jsonObj, AutoexecScriptVo.class);
+        if (autoexecScriptMapper.checkScriptIsExistsById(scriptVo.getId()) == 0) {
+            throw new AutoexecScriptNotFoundException(scriptVo.getId());
+        }
+        autoexecScriptService.validateScriptBaseInfo(scriptVo);
+        autoexecScriptMapper.updateScriptBaseInfo(scriptVo);
         return null;
     }
-
 
 }

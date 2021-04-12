@@ -9,18 +9,18 @@ import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
+import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dto.*;
-import codedriver.framework.autoexec.exception.*;
+import codedriver.framework.autoexec.exception.AutoexecScriptNameOrLabelRepeatException;
+import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecScriptVersionCannotEditException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.dto.FieldValidResultVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.IValid;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
-import codedriver.module.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
-import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.module.autoexec.servcie.AutoexecScriptService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -44,12 +44,6 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
-
-    @Resource
-    private AutoexecTypeMapper autoexecTypeMapper;
-
-    @Resource
-    private AutoexecRiskMapper autoexecRiskMapper;
 
     @Resource
     private AutoexecScriptService autoexecScriptService;
@@ -107,18 +101,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
 
         if (jsonObj.getLong("id") == null) {
             if (scriptVo.getVersionId() == null) { // 首次创建脚本
-                if (autoexecScriptMapper.checkScriptNameIsExists(scriptVo) > 0) {
-                    throw new AutoexecScriptNameOrLabelRepeatException(scriptVo.getName());
-                }
-                if (autoexecScriptMapper.checkScriptLabelIsExists(scriptVo) > 0) {
-                    throw new AutoexecScriptNameOrLabelRepeatException(scriptVo.getName());
-                }
-                if (autoexecTypeMapper.checkTypeIsExistsById(scriptVo.getTypeId()) == 0) {
-                    throw new AutoexecTypeNotFoundException(scriptVo.getTypeId());
-                }
-                if (autoexecRiskMapper.checkRiskIsExistsById(scriptVo.getRiskId()) == 0) {
-                    throw new AutoexecRiskNotFoundException(scriptVo.getRiskId());
-                }
+                autoexecScriptService.validateScriptBaseInfo(scriptVo);
                 scriptVo.setFcu(UserContext.get().getUserUuid());
                 autoexecScriptMapper.insertScript(scriptVo);
                 versionVo.setScriptId(scriptVo.getId());
