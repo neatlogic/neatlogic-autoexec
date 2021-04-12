@@ -7,16 +7,16 @@ package codedriver.module.autoexec.api;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
+import codedriver.framework.autoexec.dto.*;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.module.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
-import codedriver.module.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
-import codedriver.module.autoexec.constvalue.ScriptVersionStatus;
+import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
-import codedriver.module.autoexec.dto.*;
-import codedriver.module.autoexec.exception.AutoexecScriptNameOrLabelRepeatException;
+import codedriver.framework.autoexec.exception.AutoexecScriptNameOrLabelRepeatException;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -30,8 +30,8 @@ import java.util.List;
 
 @Service
 @Transactional
-//@AuthAction(action = AUTOEXEC_SCRIPT_MODIFY.class)
-//@AuthAction(action = AUTOEXEC_SCRIPT_REVIEW.class)
+@AuthAction(action = AUTOEXEC_SCRIPT_MODIFY.class)
+@AuthAction(action = AUTOEXEC_SCRIPT_REVIEW.class)
 @OperationType(type = OperationTypeEnum.CREATE)
 public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
 

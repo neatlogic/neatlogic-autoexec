@@ -2,12 +2,12 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper">
 
-    <select id="checkScriptNameIsExists" parameterType="codedriver.module.autoexec.dto.AutoexecScriptVo"
+    <select id="checkScriptNameIsExists" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptVo"
             resultType="int">
         select count(`id`) from `autoexec_script` where `name` = #{name} and `id` != #{id}
     </select>
 
-    <select id="checkScriptLabelIsExists" parameterType="codedriver.module.autoexec.dto.AutoexecScriptVo"
+    <select id="checkScriptLabelIsExists" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptVo"
             resultType="int">
         select count(`id`) from `autoexec_script` where `label` = #{label} and `id` != #{id}
     </select>
@@ -18,7 +18,7 @@
         where `hash` = #{value}
     </select>
 
-    <insert id="insertScript" parameterType="codedriver.module.autoexec.dto.AutoexecScriptVo">
+    <insert id="insertScript" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptVo">
         insert into `autoexec_script` (
         `id`,
         `name`,
@@ -40,7 +40,7 @@
         )
     </insert>
 
-    <insert id="insertScriptVersion" parameterType="codedriver.module.autoexec.dto.AutoexecScriptVersionVo">
+    <insert id="insertScriptVersion" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptVersionVo">
         insert into `autoexec_script_version` (
         `id`,
         `script_id`,
@@ -85,7 +85,7 @@
         </foreach>
     </insert>
 
-    <insert id="insertScriptLineList" parameterType="codedriver.module.autoexec.dto.AutoexecScriptLineVo">
+    <insert id="insertScriptLineList" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptLineVo">
         insert into `autoexec_script_line` (
         `id`,
         `script_id`,
@@ -104,7 +104,7 @@
         </foreach>
     </insert>
 
-    <insert id="insertScriptLineContent" parameterType="codedriver.module.autoexec.dto.AutoexecScriptLineContentVo">
+    <insert id="insertScriptLineContent" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptLineContentVo">
         insert ignore into `autoexec_script_line_content` (
         `hash`,
         `content`

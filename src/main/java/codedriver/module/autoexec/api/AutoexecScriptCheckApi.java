@@ -10,10 +10,10 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.module.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
-import codedriver.module.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
-import codedriver.module.autoexec.dto.AutoexecScriptLineVo;
+import codedriver.framework.autoexec.dto.AutoexecScriptLineVo;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
