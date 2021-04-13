@@ -70,7 +70,7 @@
         `parser`,
         `status`,
         `reviewer`,
-        `is_active`,
+        `is_active` as isActive,
         `lcd`,
         `lcu`
         from `autoexec_script_version`
@@ -86,7 +86,7 @@
         `parser`,
         `status`,
         `reviewer`,
-        `is_active`,
+        `is_active` as isActive,
         `lcd`,
         `lcu`
         from `autoexec_script_version`

@@ -9,6 +9,7 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.dto.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.exception.AutoexecScriptNotAnyVersionException;
 import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -18,7 +19,6 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_USE;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dto.AutoexecScriptVo;
-import codedriver.module.autoexec.service.AutoexecScriptService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
@@ -33,9 +33,6 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
-
-    @Resource
-    private AutoexecScriptService autoexecScriptService;
 
     @Override
     public String getToken() {
@@ -63,6 +60,7 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecScriptVo script = null;
+        AutoexecScriptVersionVo version = null;
         Long id = jsonObj.getLong("id");
         Long versionId = jsonObj.getLong("versionId");
         if (id != null) {
@@ -72,30 +70,32 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
             script = autoexecScriptMapper.getScriptBaseInfoById(id);
             AutoexecScriptVersionVo activeVersion = autoexecScriptMapper.getActiveVersionByScriptId(id);
             if (activeVersion != null) { // 有激活版本
-                script.setVersionVo(activeVersion);
-                activeVersion.setParamList(autoexecScriptMapper.getParamListByVersionId(activeVersion.getId()));
-                activeVersion.setLineList(autoexecScriptMapper.getLineListByVersionId(activeVersion.getId()));
-                // todo 关联的流水线
+                version = activeVersion;
             } else { // 没有激活版本，拿最新的版本
-                // todo 如果是已驳回状态，要查询驳回原因
                 AutoexecScriptVersionVo latestVersion = autoexecScriptMapper.getLatestVersionByScriptId(id);
                 if (latestVersion == null) {
                     throw new AutoexecScriptNotAnyVersionException();
                 }
-                script.setVersionVo(latestVersion);
-                latestVersion.setParamList(autoexecScriptMapper.getParamListByVersionId(latestVersion.getId()));
-                latestVersion.setLineList(autoexecScriptMapper.getLineListByVersionId(latestVersion.getId()));
-                // todo 关联的流水线
+                version = latestVersion;
             }
         } else if (versionId != null) {
-            AutoexecScriptVersionVo currentVersion = autoexecScriptService.getScriptVersionDetailByVersionId(versionId);
+            AutoexecScriptVersionVo currentVersion = autoexecScriptMapper.getVersionByVersionId(versionId);
+            if (currentVersion == null) {
+                throw new AutoexecScriptVersionNotFoundException(versionId);
+            }
+            version = currentVersion;
             script = autoexecScriptMapper.getScriptBaseInfoById(currentVersion.getScriptId());
             if (script == null) {
                 throw new AutoexecScriptNotFoundException(currentVersion.getScriptId());
             }
-            script.setVersionVo(currentVersion);
+        }
+        if (script != null) {
+            script.setVersionVo(version);
+            version.setParamList(autoexecScriptMapper.getParamListByVersionId(version.getId()));
+            version.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
             // todo 如果是已驳回状态，要查询驳回原因
             // todo 关联的流水线
+
         }
         return script;
     }
