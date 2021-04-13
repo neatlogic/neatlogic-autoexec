@@ -106,7 +106,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
                 autoexecScriptMapper.insertScript(scriptVo);
                 versionVo.setScriptId(scriptVo.getId());
                 versionVo.setVersion(0);
-                versionVo.setIsActive(1);
+                versionVo.setIsActive(0);
                 autoexecScriptMapper.insertScriptVersion(versionVo);
                 scriptVo.setVersionId(versionVo.getId());
             } else {  // 编辑版本
@@ -125,14 +125,14 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
                     autoexecScriptMapper.updateScriptVersion(versionVo);
                 }
             }
-        } else { //新增版本
+        } else { // 新增版本
             if (autoexecScriptMapper.checkScriptIsExistsById(scriptVo.getId()) == 0) {
                 throw new AutoexecScriptNotFoundException(scriptVo.getId());
             }
             Integer maxVersion = autoexecScriptMapper.getMaxVersionByScriptId(scriptVo.getId());
             versionVo.setVersion(maxVersion != null ? maxVersion + 1 : 0);
             versionVo.setScriptId(scriptVo.getId());
-            versionVo.setIsActive(1);
+            versionVo.setIsActive(0);
             autoexecScriptMapper.insertScriptVersion(versionVo);
             scriptVo.setVersionId(versionVo.getId());
         }
