@@ -11,6 +11,8 @@ import java.util.List;
 
 public interface AutoexecScriptMapper {
 
+    public AutoexecScriptVo getScriptBaseInfoById(Long id);
+
     public int checkScriptIsExistsById(Long id);
 
     public int checkScriptNameIsExists(AutoexecScriptVo vo);
@@ -22,6 +24,10 @@ public interface AutoexecScriptMapper {
     public AutoexecScriptVersionVo getVersionByVersionId(Long versionId);
 
     public Integer getMaxVersionByScriptId(Long id);
+
+    public AutoexecScriptVersionVo getActiveVersionByScriptId(Long scriptId);
+
+    public AutoexecScriptVersionVo getLatestVersionByScriptId(Long scriptId);
 
     public List<AutoexecScriptVersionParamVo> getParamListByVersionId(Long versionId);
 

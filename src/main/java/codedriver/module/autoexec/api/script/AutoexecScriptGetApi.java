@@ -6,6 +6,9 @@
 package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.dto.AutoexecScriptVersionVo;
+import codedriver.framework.autoexec.exception.AutoexecScriptNotAnyVersionException;
+import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -55,7 +58,29 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
     @Description(desc = "查看脚本")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        return null;
+        Long id = jsonObj.getLong("id");
+        if (autoexecScriptMapper.checkScriptIsExistsById(id) == 0) {
+            throw new AutoexecScriptNotFoundException(id);
+        }
+        AutoexecScriptVo script = autoexecScriptMapper.getScriptBaseInfoById(id);
+        AutoexecScriptVersionVo activeVersion = autoexecScriptMapper.getActiveVersionByScriptId(id);
+        if (activeVersion != null) { // 有激活版本
+            script.setVersionVo(activeVersion);
+            activeVersion.setParamList(autoexecScriptMapper.getParamListByVersionId(activeVersion.getId()));
+            activeVersion.setLineList(autoexecScriptMapper.getLineListByVersionId(activeVersion.getId()));
+            // todo 关联的流水线
+        } else { // 没有激活版本，拿最新的版本
+            AutoexecScriptVersionVo latestVersion = autoexecScriptMapper.getLatestVersionByScriptId(id);
+            if (latestVersion == null) {
+                throw new AutoexecScriptNotAnyVersionException();
+            }
+            script.setVersionVo(latestVersion);
+            latestVersion.setParamList(autoexecScriptMapper.getParamListByVersionId(latestVersion.getId()));
+            latestVersion.setLineList(autoexecScriptMapper.getLineListByVersionId(latestVersion.getId()));
+            // todo 关联的流水线
+        }
+
+        return script;
     }
 
 
