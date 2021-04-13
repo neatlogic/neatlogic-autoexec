@@ -16,15 +16,15 @@ import org.springframework.stereotype.Service;
 
 /**
  * @author lvzk
- * @since 2021/4/12 11:20
+ * @since 2021/4/13 10:20
  **/
 
 @Service
 @OperationType(type = OperationTypeEnum.CREATE)
-public class AutoexecJobSearchApi extends PrivateApiComponentBase {
+public class AutoexecJobCombopSearchApi extends PrivateApiComponentBase {
     @Override
     public String getName() {
-        return "作业搜索（作业执行列表）";
+        return "作业搜索（组合工具视图）";
     }
 
     @Override
@@ -33,7 +33,7 @@ public class AutoexecJobSearchApi extends PrivateApiComponentBase {
     }
 
     @Input({
-
+            
             @Param(name = "tbody", type = ApiParamType.JSONARRAY, explode = AutoexecJobVo[].class, desc = "版本列表"),
             @Param(name = "startTime", type = ApiParamType.JSONOBJECT, desc = "时间过滤"),
             @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
@@ -45,15 +45,16 @@ public class AutoexecJobSearchApi extends PrivateApiComponentBase {
             @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecJobVo[].class, desc = "列表"),
             @Param(explode = BasePageVo.class)
     })
-    @Description(desc = "作业搜索（作业执行视图）")
+    @Description(desc = "作业搜索（组合工具视图）")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-
+        JSONObject startTimeJson = jsonObj.getJSONObject("startTime");
+        jsonObj.remove("startTime");
         return null;
     }
 
     @Override
     public String getToken() {
-        return "autoexec/job/search";
+        return "autoexec/job/combop/search";
     }
 }
