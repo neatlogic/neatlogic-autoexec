@@ -18,6 +18,7 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_USE;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dto.AutoexecScriptVo;
+import codedriver.module.autoexec.service.AutoexecScriptService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +33,9 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
+
+    @Resource
+    private AutoexecScriptService autoexecScriptService;
 
     @Override
     public String getToken() {
@@ -49,7 +53,7 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "脚本ID"),
+            @Param(name = "id", type = ApiParamType.LONG, desc = "脚本ID"),
             @Param(name = "versionId", type = ApiParamType.LONG, desc = "脚本版本ID"),
     })
     @Output({
@@ -58,28 +62,41 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
     @Description(desc = "查看脚本")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
+        AutoexecScriptVo script = null;
         Long id = jsonObj.getLong("id");
-        if (autoexecScriptMapper.checkScriptIsExistsById(id) == 0) {
-            throw new AutoexecScriptNotFoundException(id);
-        }
-        AutoexecScriptVo script = autoexecScriptMapper.getScriptBaseInfoById(id);
-        AutoexecScriptVersionVo activeVersion = autoexecScriptMapper.getActiveVersionByScriptId(id);
-        if (activeVersion != null) { // 有激活版本
-            script.setVersionVo(activeVersion);
-            activeVersion.setParamList(autoexecScriptMapper.getParamListByVersionId(activeVersion.getId()));
-            activeVersion.setLineList(autoexecScriptMapper.getLineListByVersionId(activeVersion.getId()));
-            // todo 关联的流水线
-        } else { // 没有激活版本，拿最新的版本
-            AutoexecScriptVersionVo latestVersion = autoexecScriptMapper.getLatestVersionByScriptId(id);
-            if (latestVersion == null) {
-                throw new AutoexecScriptNotAnyVersionException();
+        Long versionId = jsonObj.getLong("versionId");
+        if (id != null) {
+            if (autoexecScriptMapper.checkScriptIsExistsById(id) == 0) {
+                throw new AutoexecScriptNotFoundException(id);
             }
-            script.setVersionVo(latestVersion);
-            latestVersion.setParamList(autoexecScriptMapper.getParamListByVersionId(latestVersion.getId()));
-            latestVersion.setLineList(autoexecScriptMapper.getLineListByVersionId(latestVersion.getId()));
+            script = autoexecScriptMapper.getScriptBaseInfoById(id);
+            AutoexecScriptVersionVo activeVersion = autoexecScriptMapper.getActiveVersionByScriptId(id);
+            if (activeVersion != null) { // 有激活版本
+                script.setVersionVo(activeVersion);
+                activeVersion.setParamList(autoexecScriptMapper.getParamListByVersionId(activeVersion.getId()));
+                activeVersion.setLineList(autoexecScriptMapper.getLineListByVersionId(activeVersion.getId()));
+                // todo 关联的流水线
+            } else { // 没有激活版本，拿最新的版本
+                // todo 如果是已驳回状态，要查询驳回原因
+                AutoexecScriptVersionVo latestVersion = autoexecScriptMapper.getLatestVersionByScriptId(id);
+                if (latestVersion == null) {
+                    throw new AutoexecScriptNotAnyVersionException();
+                }
+                script.setVersionVo(latestVersion);
+                latestVersion.setParamList(autoexecScriptMapper.getParamListByVersionId(latestVersion.getId()));
+                latestVersion.setLineList(autoexecScriptMapper.getLineListByVersionId(latestVersion.getId()));
+                // todo 关联的流水线
+            }
+        } else if (versionId != null) {
+            AutoexecScriptVersionVo currentVersion = autoexecScriptService.getScriptVersionDetailByVersionId(versionId);
+            script = autoexecScriptMapper.getScriptBaseInfoById(currentVersion.getScriptId());
+            if (script == null) {
+                throw new AutoexecScriptNotFoundException(currentVersion.getScriptId());
+            }
+            script.setVersionVo(currentVersion);
+            // todo 如果是已驳回状态，要查询驳回原因
             // todo 关联的流水线
         }
-
         return script;
     }
 
