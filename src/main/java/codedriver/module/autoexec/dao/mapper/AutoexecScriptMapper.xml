@@ -160,7 +160,7 @@
         </foreach>
     </insert>
 
-    <insert id="insertScriptLineList" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptLineVo">
+    <insert id="insertScriptLineList" parameterType="java.util.List">
         insert into `autoexec_script_line` (
         `id`,
         `script_id`,
