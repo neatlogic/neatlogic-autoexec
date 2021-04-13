@@ -8,7 +8,7 @@ package codedriver.module.autoexec.api.script;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.dto.AutoexecScriptVersionVo;
-import codedriver.framework.autoexec.exception.AutoexecScriptNotAnyVersionException;
+import codedriver.framework.autoexec.exception.AutoexecScriptHasNotAnyVersionException;
 import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -88,7 +88,7 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
             } else { // 没有激活版本，拿最新的版本
                 AutoexecScriptVersionVo latestVersion = autoexecScriptMapper.getLatestVersionByScriptId(id);
                 if (latestVersion == null) {
-                    throw new AutoexecScriptNotAnyVersionException();
+                    throw new AutoexecScriptHasNotAnyVersionException();
                 }
                 version = latestVersion;
             }
