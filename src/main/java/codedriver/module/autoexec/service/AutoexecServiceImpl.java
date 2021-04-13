@@ -5,12 +5,17 @@
 
 package codedriver.module.autoexec.service;
 
+import org.springframework.stereotype.Service;
+
 /**
  * @since 2021/4/12 18:44
  **/
-public interface AutoexecServiceImpl {
-    /**
-     * 通过combopVo保存作业配置
-     */
-    void saveAutoexecJob();
+@Service
+public class AutoexecServiceImpl implements AutoexecService{
+
+    @Override
+    public void saveAutoexecJob(){
+
+    }
+
 }
