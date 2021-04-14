@@ -168,6 +168,6 @@
     </delete>
 
     <delete id="deleteAutoexecCombopAuthorityByCombopId" parameterType="java.lang.Long">
-        DELETE FROM `autoexec_combop_authority` WHERE `combopId` = #{value}
+        DELETE FROM `autoexec_combop_authority` WHERE `combop_id` = #{value}
     </delete>
 </mapper>

@@ -89,7 +89,7 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             @Param(name = "uk", type = ApiParamType.STRING, isRequired = true, minLength = 1, maxLength = 70, desc = "唯一名"),
             @Param(name = "name", type = ApiParamType.STRING, isRequired = true, minLength = 1, maxLength = 70, desc = "显示名"),
             @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
-            @Param(name = "typeId", type = ApiParamType.LONG, desc = "类型id"),
+            @Param(name = "typeId", type = ApiParamType.LONG, isRequired = true, desc = "类型id"),
             @Param(name = "notifyPolicyId", type = ApiParamType.LONG, desc = "通知策略id")
     })
     @Output({
@@ -99,10 +99,8 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecCombopVo autoexecCombopVo = JSON.toJavaObject(jsonObj, AutoexecCombopVo.class);
-        if (autoexecCombopVo.getTypeId() != null) {
-            if (autoexecTypeMapper.checkTypeIsExistsById(autoexecCombopVo.getTypeId()) == 0) {
-                throw new AutoexecTypeNotFoundException(autoexecCombopVo.getTypeId());
-            }
+        if (autoexecTypeMapper.checkTypeIsExistsById(autoexecCombopVo.getTypeId()) == 0) {
+            throw new AutoexecTypeNotFoundException(autoexecCombopVo.getTypeId());
         }
         if (autoexecCombopVo.getNotifyPolicyId() != null) {
             if (notifyMapper.checkNotifyPolicyIsExists(autoexecCombopVo.getNotifyPolicyId()) == 0) {
