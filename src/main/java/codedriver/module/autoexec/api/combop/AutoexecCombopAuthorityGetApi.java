@@ -11,21 +11,11 @@ import codedriver.framework.autoexec.constvalue.CombopAuthorityAction;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopAuthorityVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
-import codedriver.framework.common.constvalue.GroupSearch;
-import codedriver.framework.dao.mapper.RoleMapper;
-import codedriver.framework.dao.mapper.TeamMapper;
-import codedriver.framework.dao.mapper.UserMapper;
-import codedriver.framework.exception.role.RoleNotFoundException;
-import codedriver.framework.exception.team.TeamNotFoundException;
-import codedriver.framework.exception.user.UserNotFoundException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -41,18 +31,12 @@ import java.util.List;
  **/
 @Service
 @Transactional
-@AuthAction(action= AUTOEXEC_COMBOP_MODIFY.class)
+@AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecCombopAuthorityGetApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
-    @Resource
-    private UserMapper userMapper;
-    @Resource
-    private TeamMapper teamMapper;
-    @Resource
-    private RoleMapper roleMapper;
 
     /**
      * @return String
@@ -98,17 +82,17 @@ public class AutoexecCombopAuthorityGetApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long combopId = jsonObj.getLong("combopId");
-        if(autoexecCombopMapper.checkAutoexecCombopIsExists(combopId) == 0){
+        if (autoexecCombopMapper.checkAutoexecCombopIsExists(combopId) == 0) {
             throw new AutoexecCombopNotFoundException(combopId);
         }
         List<String> editAuthorityList = new ArrayList<>();
         List<AutoexecCombopAuthorityVo> editAuthorityVoList = autoexecCombopMapper.getAutoexecCombopAuthorityListByCombopIdAndAction(combopId, CombopAuthorityAction.EDIT.getValue());
-        for(AutoexecCombopAuthorityVo autoexecCombopAuthorityVo : editAuthorityVoList){
+        for (AutoexecCombopAuthorityVo autoexecCombopAuthorityVo : editAuthorityVoList) {
             editAuthorityList.add(autoexecCombopAuthorityVo.getType() + "#" + autoexecCombopAuthorityVo.getUuid());
         }
         List<String> executeAuthorityList = new ArrayList<>();
         List<AutoexecCombopAuthorityVo> executeAuthorityVoList = autoexecCombopMapper.getAutoexecCombopAuthorityListByCombopIdAndAction(combopId, CombopAuthorityAction.EXECUTE.getValue());
-        for(AutoexecCombopAuthorityVo autoexecCombopAuthorityVo : executeAuthorityVoList){
+        for (AutoexecCombopAuthorityVo autoexecCombopAuthorityVo : executeAuthorityVoList) {
             executeAuthorityList.add(autoexecCombopAuthorityVo.getType() + "#" + autoexecCombopAuthorityVo.getUuid());
         }
         JSONObject resultObj = new JSONObject();

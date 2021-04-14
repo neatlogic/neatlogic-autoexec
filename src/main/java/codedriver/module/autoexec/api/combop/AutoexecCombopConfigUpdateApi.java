@@ -23,12 +23,13 @@ import javax.annotation.Resource;
 
 /**
  * 更新组合工具配置信息接口
+ *
  * @author: linbq
  * @since: 2021/4/13 15:29
  **/
 @Service
 @Transactional
-@AuthAction(action= AUTOEXEC_COMBOP_MODIFY.class)
+@AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class AutoexecCombopConfigUpdateApi extends PrivateApiComponentBase {
 
@@ -45,6 +46,7 @@ public class AutoexecCombopConfigUpdateApi extends PrivateApiComponentBase {
     public String getToken() {
         return "autoexec/combop/config/update";
     }
+
     /**
      * @return String
      * @Author: chenqiwei
@@ -75,7 +77,7 @@ public class AutoexecCombopConfigUpdateApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecCombopVo autoexecCombopVo = JSON.toJavaObject(jsonObj, AutoexecCombopVo.class);
-        if(autoexecCombopMapper.checkAutoexecCombopIsExists(autoexecCombopVo.getId()) == 0){
+        if (autoexecCombopMapper.checkAutoexecCombopIsExists(autoexecCombopVo.getId()) == 0) {
             throw new AutoexecCombopNotFoundException(autoexecCombopVo.getId());
         }
         autoexecCombopMapper.updateAutoexecCombopConfigById(autoexecCombopVo);
