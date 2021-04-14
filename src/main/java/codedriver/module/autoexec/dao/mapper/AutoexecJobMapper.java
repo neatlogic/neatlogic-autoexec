@@ -27,7 +27,9 @@ public interface AutoexecJobMapper {
 
     List<AutoexecJobPhaseNodeStatusCountVo> getJobPhaseNodeStatusCount(Long jobId);
 
-    int checkIsAutoexecJobUser(@Param("jobId")Long jobId,@Param("user") String user);
+    AutoexecJobPhaseVo getJobPhaseLockByPhaseId(Long jobPhaseId);
+
+    int checkIsAutoexecJobUser(@Param("jobId")Long jobId,@Param("userList") List<String> userList);
 
     int insertAutoexecJob(AutoexecJobVo jobVo);
 
@@ -39,4 +41,5 @@ public interface AutoexecJobMapper {
 
     int insertAutoexecJobParamContent(AutoexecJobParamContentVo contentVo);
 
+    int updateJobPhaseStatus(AutoexecJobPhaseVo autoexecJobPhaseVo);
 }

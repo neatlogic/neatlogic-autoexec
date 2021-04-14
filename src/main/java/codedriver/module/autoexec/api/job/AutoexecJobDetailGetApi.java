@@ -5,7 +5,6 @@
 
 package codedriver.module.autoexec.api.job;
 
-import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeStatusCountVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
@@ -13,15 +12,13 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.module.autoexec.core.AutoexecJobAuthActionManager;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.PostConstruct;
 import javax.annotation.Resource;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author lvzk
@@ -31,9 +28,11 @@ import java.util.Map;
 @Service
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
-    private final Map<String, Action<AutoexecJobVo>> actionMap = new HashMap<>();
     @Resource
     AutoexecJobMapper autoexecJobMapper;
+
+    @Resource
+    AutoexecJobAuthActionManager autoexecJobAuthActionManager;
 
     @Override
     public String getName() {
@@ -67,49 +66,14 @@ public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
                 }
             }
         }
-        jobVo.setJobPhaseVoList(jobPhaseVoList);
+        jobVo.setJobPhaseList(jobPhaseVoList);
         //操作按钮
-
+        autoexecJobAuthActionManager.setAutoexecJobAction(jobVo);
         return jobVo;
     }
 
     @Override
     public String getToken() {
         return "autoexec/job/detail/get";
-    }
-
-    @PostConstruct
-    public void actionDispatcherInit() {
-        actionMap.put("pauseJob", (jobVo) -> {
-            if(JobStatus.RUNNING.getValue().equalsIgnoreCase(jobVo.getStatus())){
-
-            }
-        });
-
-        actionMap.put("stopJob", (jobVo) -> {
-
-        });
-
-        actionMap.put("goonJob", (jobVo) -> {
-
-        });
-
-        actionMap.put("redoJob", (jobVo) -> {
-
-        });
-
-        actionMap.put("resetJobNode", (jobVo) -> {
-
-        });
-
-        actionMap.put("ignoreJobNode", (jobVo) -> {
-
-        });
-    }
-
-
-    @FunctionalInterface
-    public interface Action<T> {
-        void execute(T t) throws Exception;
     }
 }

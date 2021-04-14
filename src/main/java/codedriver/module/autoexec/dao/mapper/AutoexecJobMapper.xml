@@ -186,7 +186,19 @@
         select count(1)
         from `autoexec_job_user`
         where `job_id` = #{jobId}
-          and `user` = #{user}
+        and `user` in
+        <foreach collection="userList" item="user" open="(" close=")" separator=",">
+            #{user}
+        </foreach>
+    </select>
+    <select id="getJobPhaseLockByPhaseId" parameterType="java.lang.Long"
+            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
+        SELECT id,
+               job_id as jobId,
+               `status`
+        FROM `autoexec_job_phase`
+        WHERE id = #{value} FOR
+        UPDATE
     </select>
 
     <insert id="insertAutoexecJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
@@ -262,5 +274,11 @@
         INSERT INTO `autoexec_job_param_content` (`hash`, `content`)
         VALUES (#{hash}, #{content});
     </insert>
+
+    <update id="updateJobPhaseStatus" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
+        UPDATE `autoexec_job_phase`
+        SET `status` = #{status} AND `error_msg` = #{errorMsg}
+        WHERE id = #{id}
+    </update>
 </mapper>
 
