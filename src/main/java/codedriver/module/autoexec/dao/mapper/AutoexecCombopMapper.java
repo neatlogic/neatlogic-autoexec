@@ -33,6 +33,10 @@ public interface AutoexecCombopMapper {
 
     public List<AutoexecCombopAuthorityVo> getAutoexecCombopAuthorityListByCombopIdAndAction(@Param("combopId") Long combopId, @Param("action") String action);
 
+    public int getAutoexecCombopParamCountByCombopId(AutoexecCombopParamVo searchVo);
+
+    public List<AutoexecCombopParamVo> getAutoexecCombopParamListByCombopId(AutoexecCombopParamVo searchVo);
+
     public int insertAutoexecCombop(AutoexecCombopVo autoexecCombopVo);
 
     public int insertAutoexecCombopAuthorityVoList(List<AutoexecCombopAuthorityVo> autoexecCombopAuthorityVoList);
