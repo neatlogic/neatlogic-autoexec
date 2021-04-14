@@ -5,8 +5,8 @@
 
 package codedriver.module.autoexec.service;
 
-import codedriver.framework.autoexec.dto.AutoexecScriptVersionVo;
-import codedriver.framework.autoexec.dto.AutoexecScriptVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 
 public interface AutoexecScriptService {
 

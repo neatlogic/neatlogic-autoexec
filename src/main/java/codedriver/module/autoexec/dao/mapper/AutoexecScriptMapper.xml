@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper">
 
-    <select id="getScriptBaseInfoById" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.AutoexecScriptVo">
+    <select id="getScriptBaseInfoById" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
         select
         `id`,
         `name`,
@@ -23,12 +23,12 @@
         from `autoexec_script` where `id` = #{value}
     </select>
 
-    <select id="checkScriptNameIsExists" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptVo"
+    <select id="checkScriptNameIsExists" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo"
             resultType="int">
         select count(`id`) from `autoexec_script` where `name` = #{name} and `id` != #{id}
     </select>
 
-    <select id="checkScriptLabelIsExists" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptVo"
+    <select id="checkScriptLabelIsExists" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo"
             resultType="int">
         select count(`id`) from `autoexec_script` where `label` = #{label} and `id` != #{id}
     </select>
@@ -39,7 +39,7 @@
         where `hash` = #{value}
     </select>
 
-    <select id="getVersionByVersionId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.AutoexecScriptVersionVo">
+    <select id="getVersionByVersionId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
         select
         `id`,
         `script_id` as scriptId,
@@ -62,7 +62,7 @@
         where `script_id` = #{value}
     </select>
 
-    <select id="getActiveVersionByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.AutoexecScriptVersionVo">
+    <select id="getActiveVersionByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
         select
         `id`,
         `script_id` as scriptId,
@@ -95,7 +95,7 @@
         limit 1
     </select>
 
-    <select id="getParamListByVersionId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.AutoexecScriptVersionParamVo">
+    <select id="getParamListByVersionId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo">
         select
         `script_version_id` as scriptVersionId,
         `key`,
@@ -108,7 +108,7 @@
         where `script_version_id` = #{value}
     </select>
 
-    <select id="getLineListByVersionId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.AutoexecScriptLineVo">
+    <select id="getLineListByVersionId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo">
         select
         a.`id`,
         a.`script_id` as scriptId,
@@ -123,7 +123,7 @@
         order by a.`line_number`
     </select>
 
-    <update id="updateScriptBaseInfo" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptVo">
+    <update id="updateScriptBaseInfo" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
         update `autoexec_script` set
         `name` = #{name},
         `label` = #{label},
@@ -133,7 +133,7 @@
         where `id` = #{id}
     </update>
 
-    <update id="updateScriptVersion" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptVersionVo">
+    <update id="updateScriptVersion" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
         update `autoexec_script_version` set
         `parser` = #{parser},
         `status` = #{status},
@@ -142,7 +142,7 @@
         where `id` = #{id}
     </update>
 
-    <insert id="insertScript" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptVo">
+    <insert id="insertScript" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
         insert into `autoexec_script` (
         `id`,
         `name`,
@@ -164,7 +164,7 @@
         )
     </insert>
 
-    <insert id="insertScriptVersion" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptVersionVo">
+    <insert id="insertScriptVersion" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
         insert into `autoexec_script_version` (
         `id`,
         `script_id`,
@@ -228,7 +228,7 @@
         </foreach>
     </insert>
 
-    <insert id="insertScriptLineContent" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptLineContentVo">
+    <insert id="insertScriptLineContent" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptLineContentVo">
         insert ignore into `autoexec_script_line_content` (
         `hash`,
         `content`

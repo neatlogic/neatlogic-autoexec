@@ -5,7 +5,7 @@
 
 package codedriver.module.autoexec.api.job;
 
-import codedriver.framework.autoexec.dto.AutoexecJobVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
 import codedriver.framework.restful.annotation.*;
@@ -20,7 +20,7 @@ import org.springframework.stereotype.Service;
  **/
 
 @Service
-@OperationType(type = OperationTypeEnum.CREATE)
+@OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecJobCombopSearchApi extends PrivateApiComponentBase {
     @Override
     public String getName() {
@@ -33,9 +33,12 @@ public class AutoexecJobCombopSearchApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            
-            @Param(name = "tbody", type = ApiParamType.JSONARRAY, explode = AutoexecJobVo[].class, desc = "版本列表"),
+            @Param(name = "statusList", type = ApiParamType.JSONARRAY, desc = "作业状态"),
+            @Param(name = "sourceList", type = ApiParamType.JSONARRAY, desc = "作业来源"),
+            @Param(name = "combopOperationTypeList", type = ApiParamType.JSONARRAY, desc = "组合工具类型"),
+            @Param(name = "combopName", type = ApiParamType.STRING, desc = "组合工具"),
             @Param(name = "startTime", type = ApiParamType.JSONOBJECT, desc = "时间过滤"),
+            @Param(name = "execUser", type = ApiParamType.STRING, desc = "操作人"),
             @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
             @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
             @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
@@ -48,8 +51,9 @@ public class AutoexecJobCombopSearchApi extends PrivateApiComponentBase {
     @Description(desc = "作业搜索（组合工具视图）")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        JSONObject startTimeJson = jsonObj.getJSONObject("startTime");
-        jsonObj.remove("startTime");
+        JSONObject result = new JSONObject();
+        AutoexecJobVo jobVo = new AutoexecJobVo(jsonObj);
+
         return null;
     }
 
