@@ -10,7 +10,7 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
-import codedriver.framework.autoexec.dto.*;
+import codedriver.framework.autoexec.dto.script.*;
 import codedriver.framework.autoexec.exception.AutoexecScriptNameOrLabelRepeatException;
 import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionCannotEditException;

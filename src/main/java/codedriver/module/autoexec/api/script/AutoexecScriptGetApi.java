@@ -14,7 +14,7 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_USE;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
-import codedriver.framework.autoexec.dto.AutoexecScriptVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
