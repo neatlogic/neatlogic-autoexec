@@ -91,8 +91,8 @@ public class AutoexecCombopAuthorityGetApi extends PrivateApiComponentBase {
             @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "主键id")
     })
     @Output({
-            @Param(name = "editAuthorityList", type = ApiParamType.JSONARRAY, desc = "编辑授权数组"),
-            @Param(name = "executeAuthorityList", type = ApiParamType.JSONARRAY, desc = "执行授权数组")
+            @Param(name = "editAuthorityList", type = ApiParamType.JSONARRAY, desc = "编辑授权列表"),
+            @Param(name = "executeAuthorityList", type = ApiParamType.JSONARRAY, desc = "执行授权列表")
     })
     @Description(desc = "查询组合工具授权信息")
     @Override
