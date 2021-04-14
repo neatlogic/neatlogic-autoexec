@@ -68,7 +68,6 @@ public class AutoexecScriptSubmitApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
-        int isReviewable = 0;
         Long versionId = jsonObj.getLong("versionId");
         AutoexecScriptVersionVo version = autoexecScriptService.getScriptVersionDetailByVersionId(versionId);
         AutoexecScriptVo script = autoexecScriptMapper.getScriptBaseInfoById(version.getScriptId());
@@ -80,7 +79,6 @@ public class AutoexecScriptSubmitApi extends PrivateApiComponentBase {
                 && !Objects.equals(ScriptVersionStatus.REJECTED.getValue(), version.getStatus())) {
             throw new AutoexecScriptVersionCannotSubmitException();
         }
-
 
         // todo 校验脚本内容
 
@@ -94,6 +92,8 @@ public class AutoexecScriptSubmitApi extends PrivateApiComponentBase {
         auditContent.put("version", version.getVersion());
         AutoexecScriptAuditVo auditVo = new AutoexecScriptAuditVo(script.getId(), version.getId(), ScriptOperate.SUBMIT.getValue(), auditContent);
         autoexecScriptService.audit(auditVo);
+
+        int isReviewable = 0;
         if (AuthActionChecker.check(AUTOEXEC_SCRIPT_REVIEW.class.getSimpleName())) {
             isReviewable = 1;
         }
