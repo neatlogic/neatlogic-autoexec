@@ -88,7 +88,7 @@ public class AutoexecCombopAuthoritySaveApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "combopId", type = ApiParamType.LONG, desc = "主键id"),
+            @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "主键id"),
             @Param(name = "edit", type = ApiParamType.JSONARRAY, isRequired = true, desc = "编辑授权数组"),
             @Param(name = "execute", type = ApiParamType.JSONARRAY, isRequired = true, desc = "执行授权数组")
     })
