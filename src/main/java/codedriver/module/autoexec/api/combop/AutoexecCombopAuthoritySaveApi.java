@@ -108,6 +108,10 @@ public class AutoexecCombopAuthoritySaveApi extends PrivateApiComponentBase {
                     autoexecCombopAuthorityVo.setCombopId(combopId);
                     autoexecCombopAuthorityVo.setAction(CombopAuthorityAction.EDIT.getValue());
                     autoexecCombopAuthorityVoList.add(autoexecCombopAuthorityVo);
+                    if(autoexecCombopAuthorityVoList.size() == 1000){
+                        autoexecCombopMapper.insertAutoexecCombopAuthorityVoList(autoexecCombopAuthorityVoList);
+                        autoexecCombopAuthorityVoList.clear();
+                    }
                 }
             }
         }
@@ -119,6 +123,10 @@ public class AutoexecCombopAuthoritySaveApi extends PrivateApiComponentBase {
                     autoexecCombopAuthorityVo.setCombopId(combopId);
                     autoexecCombopAuthorityVo.setAction(CombopAuthorityAction.EXECUTE.getValue());
                     autoexecCombopAuthorityVoList.add(autoexecCombopAuthorityVo);
+                    if(autoexecCombopAuthorityVoList.size() == 1000){
+                        autoexecCombopMapper.insertAutoexecCombopAuthorityVoList(autoexecCombopAuthorityVoList);
+                        autoexecCombopAuthorityVoList.clear();
+                    }
                 }
             }
         }
