@@ -20,12 +20,13 @@ import javax.annotation.Resource;
 
 /**
  * 删除组合工具接口
+ *
  * @author: linbq
  * @since: 2021/4/13 15:29
  **/
 @Service
 @Transactional
-@AuthAction(action= AUTOEXEC_COMBOP_MODIFY.class)
+@AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class AutoexecCombopDeleteApi extends PrivateApiComponentBase {
 
@@ -42,6 +43,7 @@ public class AutoexecCombopDeleteApi extends PrivateApiComponentBase {
     public String getToken() {
         return "autoexec/combop/delete";
     }
+
     /**
      * @return String
      * @Author: chenqiwei
@@ -71,7 +73,7 @@ public class AutoexecCombopDeleteApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");
-        if(autoexecCombopMapper.checkAutoexecCombopIsExists(id) > 0){
+        if (autoexecCombopMapper.checkAutoexecCombopIsExists(id) > 0) {
             autoexecCombopMapper.deleteAutoexecCombopById(id);
         }
         return null;

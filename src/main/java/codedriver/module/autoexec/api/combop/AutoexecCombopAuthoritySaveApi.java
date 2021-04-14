@@ -41,7 +41,7 @@ import java.util.List;
  **/
 @Service
 @Transactional
-@AuthAction(action= AUTOEXEC_COMBOP_MODIFY.class)
+@AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class AutoexecCombopAuthoritySaveApi extends PrivateApiComponentBase {
 
@@ -96,19 +96,19 @@ public class AutoexecCombopAuthoritySaveApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long combopId = jsonObj.getLong("combopId");
-        if(autoexecCombopMapper.checkAutoexecCombopIsExists(combopId) == 0){
+        if (autoexecCombopMapper.checkAutoexecCombopIsExists(combopId) == 0) {
             throw new AutoexecCombopNotFoundException(combopId);
         }
         List<AutoexecCombopAuthorityVo> autoexecCombopAuthorityVoList = new ArrayList<>();
         JSONArray editAuthorityList = jsonObj.getJSONArray("editAuthorityList");
-        if(CollectionUtils.isNotEmpty(editAuthorityList)){
+        if (CollectionUtils.isNotEmpty(editAuthorityList)) {
             for (int i = 0; i < editAuthorityList.size(); i++) {
                 AutoexecCombopAuthorityVo autoexecCombopAuthorityVo = getAutoexecCombopAuthorityVo(editAuthorityList.getString(i));
-                if(autoexecCombopAuthorityVo != null){
+                if (autoexecCombopAuthorityVo != null) {
                     autoexecCombopAuthorityVo.setCombopId(combopId);
                     autoexecCombopAuthorityVo.setAction(CombopAuthorityAction.EDIT.getValue());
                     autoexecCombopAuthorityVoList.add(autoexecCombopAuthorityVo);
-                    if(autoexecCombopAuthorityVoList.size() == 1000){
+                    if (autoexecCombopAuthorityVoList.size() == 1000) {
                         autoexecCombopMapper.insertAutoexecCombopAuthorityVoList(autoexecCombopAuthorityVoList);
                         autoexecCombopAuthorityVoList.clear();
                     }
@@ -116,14 +116,14 @@ public class AutoexecCombopAuthoritySaveApi extends PrivateApiComponentBase {
             }
         }
         JSONArray executeAuthorityList = jsonObj.getJSONArray("executeAuthorityList");
-        if(CollectionUtils.isNotEmpty(executeAuthorityList)){
+        if (CollectionUtils.isNotEmpty(executeAuthorityList)) {
             for (int i = 0; i < executeAuthorityList.size(); i++) {
                 AutoexecCombopAuthorityVo autoexecCombopAuthorityVo = getAutoexecCombopAuthorityVo(executeAuthorityList.getString(i));
-                if(autoexecCombopAuthorityVo != null){
+                if (autoexecCombopAuthorityVo != null) {
                     autoexecCombopAuthorityVo.setCombopId(combopId);
                     autoexecCombopAuthorityVo.setAction(CombopAuthorityAction.EXECUTE.getValue());
                     autoexecCombopAuthorityVoList.add(autoexecCombopAuthorityVo);
-                    if(autoexecCombopAuthorityVoList.size() == 1000){
+                    if (autoexecCombopAuthorityVoList.size() == 1000) {
                         autoexecCombopMapper.insertAutoexecCombopAuthorityVoList(autoexecCombopAuthorityVoList);
                         autoexecCombopAuthorityVoList.clear();
                     }
@@ -131,30 +131,30 @@ public class AutoexecCombopAuthoritySaveApi extends PrivateApiComponentBase {
             }
         }
         autoexecCombopMapper.deleteAutoexecCombopAuthorityByCombopId(combopId);
-        if(CollectionUtils.isNotEmpty(autoexecCombopAuthorityVoList)){
+        if (CollectionUtils.isNotEmpty(autoexecCombopAuthorityVoList)) {
             autoexecCombopMapper.insertAutoexecCombopAuthorityVoList(autoexecCombopAuthorityVoList);
         }
         return null;
     }
 
-    private AutoexecCombopAuthorityVo getAutoexecCombopAuthorityVo(String authority){
-        if(StringUtils.isNotBlank(authority) && authority.contains("#")){
+    private AutoexecCombopAuthorityVo getAutoexecCombopAuthorityVo(String authority) {
+        if (StringUtils.isNotBlank(authority) && authority.contains("#")) {
             String[] split = authority.split("#");
-            if(GroupSearch.USER.getValue().equals(split[0])) {
-                if(userMapper.checkUserIsExists(split[1]) == 0) {
+            if (GroupSearch.USER.getValue().equals(split[0])) {
+                if (userMapper.checkUserIsExists(split[1]) == 0) {
                     throw new UserNotFoundException(split[1]);
                 }
-            }else if(GroupSearch.TEAM.getValue().equals(split[0])) {
-                if(teamMapper.checkTeamIsExists(split[1]) == 0) {
+            } else if (GroupSearch.TEAM.getValue().equals(split[0])) {
+                if (teamMapper.checkTeamIsExists(split[1]) == 0) {
                     throw new TeamNotFoundException(split[1]);
                 }
-            }else if(GroupSearch.ROLE.getValue().equals(split[0])) {
-                if(roleMapper.checkRoleIsExists(split[1]) == 0) {
+            } else if (GroupSearch.ROLE.getValue().equals(split[0])) {
+                if (roleMapper.checkRoleIsExists(split[1]) == 0) {
                     throw new RoleNotFoundException(split[1]);
                 }
-            }else if(GroupSearch.COMMON.getValue().equals(split[0])){
+            } else if (GroupSearch.COMMON.getValue().equals(split[0])) {
                 //TODO linbq
-            }else {
+            } else {
                 return null;
             }
             AutoexecCombopAuthorityVo autoexecCombopAuthorityVo = new AutoexecCombopAuthorityVo();

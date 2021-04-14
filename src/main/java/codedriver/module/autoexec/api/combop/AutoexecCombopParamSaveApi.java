@@ -7,19 +7,9 @@ package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
-import codedriver.framework.autoexec.constvalue.CombopAuthorityAction;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopAuthorityVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
-import codedriver.framework.common.constvalue.GroupSearch;
-import codedriver.framework.dao.mapper.RoleMapper;
-import codedriver.framework.dao.mapper.TeamMapper;
-import codedriver.framework.dao.mapper.UserMapper;
-import codedriver.framework.exception.role.RoleNotFoundException;
-import codedriver.framework.exception.team.TeamNotFoundException;
-import codedriver.framework.exception.user.UserNotFoundException;
 import codedriver.framework.restful.annotation.Description;
 import codedriver.framework.restful.annotation.Input;
 import codedriver.framework.restful.annotation.OperationType;
@@ -30,7 +20,6 @@ import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -46,18 +35,12 @@ import java.util.List;
  **/
 @Service
 @Transactional
-@AuthAction(action= AUTOEXEC_COMBOP_MODIFY.class)
+@AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
-    @Resource
-    private UserMapper userMapper;
-    @Resource
-    private TeamMapper teamMapper;
-    @Resource
-    private RoleMapper roleMapper;
 
     /**
      * @return String
@@ -100,18 +83,18 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long combopId = jsonObj.getLong("combopId");
-        if(autoexecCombopMapper.checkAutoexecCombopIsExists(combopId) == 0){
+        if (autoexecCombopMapper.checkAutoexecCombopIsExists(combopId) == 0) {
             throw new AutoexecCombopNotFoundException(combopId);
         }
         List<AutoexecCombopParamVo> autoexecCombopParamVoList = new ArrayList<>();
         JSONArray paramList = jsonObj.getJSONArray("paramList");
-        if(CollectionUtils.isNotEmpty(paramList)){
+        if (CollectionUtils.isNotEmpty(paramList)) {
             for (int i = 0; i < paramList.size(); i++) {
                 AutoexecCombopParamVo autoexecCombopParamVo = paramList.getObject(i, AutoexecCombopParamVo.class);
-                if(autoexecCombopParamVo != null){
+                if (autoexecCombopParamVo != null) {
                     autoexecCombopParamVo.setCombopId(combopId);
                     autoexecCombopParamVoList.add(autoexecCombopParamVo);
-                    if(autoexecCombopParamVoList.size() == 1000){
+                    if (autoexecCombopParamVoList.size() == 1000) {
                         autoexecCombopMapper.insertAutoexecCombopParamVoList(autoexecCombopParamVoList);
                         autoexecCombopParamVoList.clear();
                     }
@@ -119,7 +102,7 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
             }
         }
         autoexecCombopMapper.deleteAutoexecCombopAuthorityByCombopId(combopId);
-        if(CollectionUtils.isNotEmpty(autoexecCombopParamVoList)){
+        if (CollectionUtils.isNotEmpty(autoexecCombopParamVoList)) {
             autoexecCombopMapper.insertAutoexecCombopParamVoList(autoexecCombopParamVoList);
         }
         return null;

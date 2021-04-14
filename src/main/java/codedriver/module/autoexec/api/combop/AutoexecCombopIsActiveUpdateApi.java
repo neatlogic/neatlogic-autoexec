@@ -23,12 +23,13 @@ import javax.annotation.Resource;
 
 /**
  * 更新组合工具状态接口
+ *
  * @author: linbq
  * @since: 2021/4/13 15:29
  **/
 @Service
 @Transactional
-@AuthAction(action= AUTOEXEC_COMBOP_MODIFY.class)
+@AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class AutoexecCombopIsActiveUpdateApi extends PrivateApiComponentBase {
 
@@ -45,6 +46,7 @@ public class AutoexecCombopIsActiveUpdateApi extends PrivateApiComponentBase {
     public String getToken() {
         return "autoexec/combop/isactive/update";
     }
+
     /**
      * @return String
      * @Author: chenqiwei
@@ -78,11 +80,11 @@ public class AutoexecCombopIsActiveUpdateApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");
         Integer isActive = autoexecCombopMapper.getAutoexecCombopIsActiveByIdForUpdate(id);
-        if(isActive == null){
+        if (isActive == null) {
             throw new AutoexecCombopNotFoundException(id);
         }
         /** 如果是激活组合工具，则需要校验该组合工具配置正确 **/
-        if(isActive == 0){
+        if (isActive == 0) {
             //TODO linbq 0423
         }
         AutoexecCombopVo autoexecCombopVo = new AutoexecCombopVo();
