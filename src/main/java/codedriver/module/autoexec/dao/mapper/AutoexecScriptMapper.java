@@ -53,6 +53,10 @@ public interface AutoexecScriptMapper {
 
     public int insertScriptLineContent(AutoexecScriptLineContentVo contentVo);
 
+    public int insertScriptAudit(AutoexecScriptAuditVo auditVo);
+
+    public int insertScriptAuditDetail(AutoexecScriptAuditContentVo auditContentVo);
+
     public int insertScriptLineList(List<AutoexecScriptLineVo> lineList);
 
     public int deleteParamByVersionId(Long versionId);

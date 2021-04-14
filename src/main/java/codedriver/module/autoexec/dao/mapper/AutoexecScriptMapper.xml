@@ -223,8 +223,15 @@
 
     <update id="updateScriptVersion" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
         update `autoexec_script_version` set
-        `parser` = #{parser},
-        `status` = #{status},
+        <if test="parser != null">
+            `parser` = #{parser},
+        </if>
+        <if test="status != null">
+            `status` = #{status},
+        </if>
+        <if test="reviewer != null">
+            `reviewer` = #{reviewer},
+        </if>
         `lcu` = #{lcu},
         `lcd` = now(3)
         where `id` = #{id}
@@ -318,6 +325,36 @@
 
     <insert id="insertScriptLineContent" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptLineContentVo">
         insert ignore into `autoexec_script_line_content` (
+        `hash`,
+        `content`
+        ) values (
+        #{hash},
+        #{content}
+        )
+    </insert>
+
+    <insert id="insertScriptAudit" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo">
+        insert into `autoexec_script_audit`(
+        `id`,
+        `script_id`,
+        `script_version_id`,
+        `operate`,
+        `content_hash`,
+        `fcu`,
+        `fcd`
+        ) values (
+        #{id},
+        #{scriptId},
+        #{scriptVersionId},
+        #{operate},
+        #{contentHash},
+        #{fcu},
+        now(3)
+        )
+    </insert>
+
+    <insert id="insertScriptAuditDetail" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptAuditContentVo">
+        insert ignore into `autoexec_script_audit_detail`(
         `hash`,
         `content`
         ) values (
