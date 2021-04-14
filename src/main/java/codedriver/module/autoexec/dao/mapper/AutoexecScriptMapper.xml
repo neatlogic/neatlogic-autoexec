@@ -78,7 +78,7 @@
         and `is_active` = 1
     </select>
 
-    <select id="getLatestVersionByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.AutoexecScriptVersionVo">
+    <select id="getLatestVersionByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
         select
         `id`,
         `script_id` as scriptId,

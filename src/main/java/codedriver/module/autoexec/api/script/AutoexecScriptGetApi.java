@@ -115,8 +115,7 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
                 ScriptOperateBuilder builder = new ScriptOperateBuilder(authList.stream()
                         .map(UserAuthVo::getAuth)
                         .collect(Collectors.toList()), version.getStatus());
-                builder.setDelete().setCopy().setCompare().setTest().setValidate().setSave().setSubmit().setPass().setReject();
-                operateList = builder.build();
+                operateList = builder.setAll().build();
             }
         }
         result.put("script", script);

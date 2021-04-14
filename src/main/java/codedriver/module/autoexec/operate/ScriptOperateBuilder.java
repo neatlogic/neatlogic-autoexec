@@ -122,5 +122,10 @@ public class ScriptOperateBuilder {
         return this;
     }
 
+    public ScriptOperateBuilder setAll() {
+        setDelete().setCopy().setCompare().setTest().setValidate().setSave().setSubmit().setPass().setReject();
+        return this;
+    }
+
 
 }
