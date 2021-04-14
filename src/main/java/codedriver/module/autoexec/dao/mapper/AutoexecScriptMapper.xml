@@ -6,7 +6,7 @@
         select
         `id`,
         `name`,
-        `label`,
+        `uk`,
         `exec_mode` as execMode,
         `type_id` as typeId,
         `risk_id` as riskId,
