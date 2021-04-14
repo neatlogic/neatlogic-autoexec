@@ -82,6 +82,9 @@
         count(`id`)
         from `autoexec_script`
         <where>
+            <if test="keyword != null and keyword != ''">
+                and (`name` like CONCAT('%', #{keyword}, '%') or `label` like CONCAT('%', #{keyword}, '%'))
+            </if>
             <if test="execMode != null and execMode != ''">
                 and `exec_mode` = #{execMode}
             </if>
