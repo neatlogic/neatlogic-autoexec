@@ -114,6 +114,24 @@
         )
     </insert>
 
+    <insert id="insertAutoexecCombopAuthorityVoList" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopAuthorityVo">
+        INSERT INTO `autoexec_combop_authority` (
+            `combop_id`,
+            `type`,
+            `uuid`,
+            `action`
+        )
+        VALUES
+        <foreach collection="list" item="authorityVo" separator=",">
+        (
+            #{authorityVo.combopId},
+            #{authorityVo.type},
+            #{authorityVo.uuid},
+            #{authorityVo.action}
+        )
+        </foreach>
+    </insert>
+
     <update id="updateAutoexecCombop" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
         UPDATE `autoexec_combop`
         SET
@@ -147,5 +165,9 @@
 
     <delete id="deleteAutoexecCombopById" parameterType="java.lang.Long">
         DELETE FROM `autoexec_combop` WHERE `id` = #{value}
+    </delete>
+
+    <delete id="deleteAutoexecCombopAuthorityByCombopId" parameterType="java.lang.Long">
+        DELETE FROM `autoexec_combop_authority` WHERE `combopId` = #{value}
     </delete>
 </mapper>

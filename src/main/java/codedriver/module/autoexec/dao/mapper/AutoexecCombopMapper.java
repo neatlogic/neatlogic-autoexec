@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.dao.mapper;
 
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopAuthorityVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import org.apache.ibatis.annotations.Param;
 
@@ -31,6 +32,8 @@ public interface AutoexecCombopMapper {
 
     public int insertAutoexecCombop(AutoexecCombopVo autoexecCombopVo);
 
+    public int insertAutoexecCombopAuthorityVoList(List<AutoexecCombopAuthorityVo> autoexecCombopAuthorityVoList);
+
     public int updateAutoexecCombop(AutoexecCombopVo autoexecCombopVo);
 
     public int updateAutoexecCombopIsActiveById(AutoexecCombopVo autoexecCombopVo);
@@ -38,4 +41,6 @@ public interface AutoexecCombopMapper {
     public int updateAutoexecCombopConfigById(AutoexecCombopVo autoexecCombopVo);
 
     public int deleteAutoexecCombopById(Long id);
+
+    public int deleteAutoexecCombopAuthorityByCombopId(Long combopId);
 }
