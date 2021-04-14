@@ -8,7 +8,7 @@ package codedriver.module.autoexec.service;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.exception.AutoexecRiskNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecScriptNameOrLabelRepeatException;
+import codedriver.framework.autoexec.exception.AutoexecScriptNameOrUkRepeatException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
 import codedriver.module.autoexec.dao.mapper.AutoexecRiskMapper;
@@ -47,16 +47,16 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
     }
 
     /**
-     * 校验脚本的基本信息，包括name、label、分类、操作级别
+     * 校验脚本的基本信息，包括name、uk、分类、操作级别
      * @param scriptVo 脚本VO
      */
     @Override
     public void validateScriptBaseInfo(AutoexecScriptVo scriptVo) {
         if (autoexecScriptMapper.checkScriptNameIsExists(scriptVo) > 0) {
-            throw new AutoexecScriptNameOrLabelRepeatException(scriptVo.getName());
+            throw new AutoexecScriptNameOrUkRepeatException(scriptVo.getName());
         }
-        if (autoexecScriptMapper.checkScriptLabelIsExists(scriptVo) > 0) {
-            throw new AutoexecScriptNameOrLabelRepeatException(scriptVo.getName());
+        if (autoexecScriptMapper.checkScriptUkIsExists(scriptVo) > 0) {
+            throw new AutoexecScriptNameOrUkRepeatException(scriptVo.getName());
         }
         if (autoexecTypeMapper.checkTypeIsExistsById(scriptVo.getTypeId()) == 0) {
             throw new AutoexecTypeNotFoundException(scriptVo.getTypeId());
