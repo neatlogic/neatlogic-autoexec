@@ -53,7 +53,7 @@
         where `script_id` = #{value}
     </select>
 
-    <select id="getVersionList" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptVersionVo" resultType="codedriver.framework.autoexec.dto.AutoexecScriptVersionVo">
+    <select id="getVersionList" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
         select
         `id`,
         `version`,
