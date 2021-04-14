@@ -28,9 +28,9 @@
         select count(`id`) from `autoexec_script` where `name` = #{name} and `id` != #{id}
     </select>
 
-    <select id="checkScriptLabelIsExists" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo"
+    <select id="checkScriptUkIsExists" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo"
             resultType="int">
-        select count(`id`) from `autoexec_script` where `label` = #{label} and `id` != #{id}
+        select count(`id`) from `autoexec_script` where `uk` = #{uk} and `id` != #{id}
     </select>
 
     <select id="checkScriptLineContentHashIsExists" parameterType="java.lang.String" resultType="int">
@@ -126,7 +126,7 @@
     <update id="updateScriptBaseInfo" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
         update `autoexec_script` set
         `name` = #{name},
-        `label` = #{label},
+        `uk` = #{uk},
         `exec_mode` = #{execMode},
         `type_id` = #{typeId},
         `risk_id` = #{riskId}
@@ -146,7 +146,7 @@
         insert into `autoexec_script` (
         `id`,
         `name`,
-        `label`,
+        `uk`,
         `type_id`,
         `risk_id`,
         `exec_mode`,
@@ -155,7 +155,7 @@
         )values (
         #{id},
         #{name},
-        #{label},
+        #{uk},
         #{typeId},
         #{riskId},
         #{execMode},

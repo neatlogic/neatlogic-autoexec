@@ -17,7 +17,7 @@ public interface AutoexecScriptMapper {
 
     public int checkScriptNameIsExists(AutoexecScriptVo vo);
 
-    public int checkScriptLabelIsExists(AutoexecScriptVo vo);
+    public int checkScriptUkIsExists(AutoexecScriptVo vo);
 
     public int checkScriptLineContentHashIsExists(String hash);
 
