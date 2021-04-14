@@ -30,6 +30,8 @@ public interface AutoexecCombopMapper {
 
     public List<AutoexecCombopVo> getAutoexecCombopList(AutoexecCombopVo searchVo);
 
+    public List<AutoexecCombopAuthorityVo> getAutoexecCombopAuthorityListByCombopIdAndAction(@Param("combopId") Long combopId, @Param("action") String action);
+
     public int insertAutoexecCombop(AutoexecCombopVo autoexecCombopVo);
 
     public int insertAutoexecCombopAuthorityVoList(List<AutoexecCombopAuthorityVo> autoexecCombopAuthorityVoList);

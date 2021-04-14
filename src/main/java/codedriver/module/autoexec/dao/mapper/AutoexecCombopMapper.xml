@@ -88,6 +88,15 @@
         LIMIT #{startNum}, #{pageSize}
     </select>
 
+    <select id="getAutoexecCombopAuthorityListByCombopIdAndAction" resultType="codedriver.framework.autoexec.dto.combop.AutoexecCombopAuthorityVo">
+        SELECT
+            `type`,
+            `uuid`
+        FROM `autoexec_combop_authority`
+        WHERE `combop_id` = #{combopId}
+          AND `action` = #{action}
+    </select>
+
     <insert id="insertAutoexecCombop" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
         INSERT INTO `autoexec_combop` (
             `id`,
