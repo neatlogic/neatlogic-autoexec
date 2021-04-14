@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper">
 
-    <select id="getTypeById" parameterType="java.lang.Long" resultType="codedriver.module.autoexec.dto.AutoexecTypeVo">
+    <select id="getTypeById" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.AutoexecTypeVo">
         select
         `id`,
         `name`
@@ -11,14 +11,14 @@
         where `id` = #{value}
     </select>
 
-    <select id="checkTypeNameIsExists" parameterType="codedriver.module.autoexec.dto.AutoexecTypeVo" resultType="int">
+    <select id="checkTypeNameIsExists" parameterType="codedriver.framework.autoexec.dto.AutoexecTypeVo" resultType="int">
         select
         count(1)
         from `autoexec_type`
         where `name` = #{name} and `id` != #{id}
     </select>
 
-    <select id="searchTypeCount" parameterType="codedriver.module.autoexec.dto.AutoexecTypeVo" resultType="int">
+    <select id="searchTypeCount" parameterType="codedriver.framework.autoexec.dto.AutoexecTypeVo" resultType="int">
         select
         count(1)
         from `autoexec_type`
@@ -29,8 +29,8 @@
         </where>
     </select>
 
-    <select id="searchType" parameterType="codedriver.module.autoexec.dto.AutoexecTypeVo"
-            resultType="codedriver.module.autoexec.dto.AutoexecTypeVo">
+    <select id="searchType" parameterType="codedriver.framework.autoexec.dto.AutoexecTypeVo"
+            resultType="codedriver.framework.autoexec.dto.AutoexecTypeVo">
         select
         `id`,
         `name`,
@@ -71,7 +71,7 @@
 		) a
     </select>
 
-    <insert id="insertType" parameterType="codedriver.module.autoexec.dto.AutoexecTypeVo">
+    <insert id="insertType" parameterType="codedriver.framework.autoexec.dto.AutoexecTypeVo">
         insert into `autoexec_type`(
         `id`,
         `name`,
@@ -86,7 +86,7 @@
         )
     </insert>
 
-    <update id="updateType" parameterType="codedriver.module.autoexec.dto.AutoexecTypeVo">
+    <update id="updateType" parameterType="codedriver.framework.autoexec.dto.AutoexecTypeVo">
         update `autoexec_type`
         set `name` = #{name},
         `lcu` = #{lcu},

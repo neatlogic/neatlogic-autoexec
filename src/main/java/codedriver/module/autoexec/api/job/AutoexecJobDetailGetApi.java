@@ -75,7 +75,7 @@ public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
 
     @Override
     public String getToken() {
-        return "autoexec/job/phase/node/search";
+        return "autoexec/job/detail/get";
     }
 
     @PostConstruct

@@ -5,7 +5,7 @@
 
 package codedriver.module.autoexec.dao.mapper;
 
-import codedriver.module.autoexec.dto.AutoexecTypeVo;
+import codedriver.framework.autoexec.dto.AutoexecTypeVo;
 
 import java.util.List;
 
