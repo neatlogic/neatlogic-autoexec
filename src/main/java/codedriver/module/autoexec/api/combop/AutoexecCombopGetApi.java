@@ -5,7 +5,6 @@
 
 package codedriver.module.autoexec.api.combop;
 
-import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
@@ -20,6 +19,7 @@ import javax.annotation.Resource;
 
 /**
  * 查询组合工具详情接口
+ *
  * @author: linbq
  * @since: 2021/4/13 15:29
  **/
@@ -40,6 +40,7 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
     public String getToken() {
         return "autoexec/combop/get";
     }
+
     /**
      * @return String
      * @Author: chenqiwei
@@ -73,7 +74,7 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");
         AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
-        if(autoexecCombopVo == null){
+        if (autoexecCombopVo == null) {
             throw new AutoexecCombopNotFoundException(id);
         }
         return autoexecCombopVo;

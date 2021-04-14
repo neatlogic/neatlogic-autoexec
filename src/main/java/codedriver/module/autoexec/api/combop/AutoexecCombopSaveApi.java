@@ -16,7 +16,7 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.IValid;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
-import codedriver.module.autoexec.constvalue.CombopOperationType;
+import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.module.autoexec.exception.AutoexecCombopNameRepeatException;
@@ -99,13 +99,13 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecCombopVo autoexecCombopVo = JSON.toJavaObject(jsonObj, AutoexecCombopVo.class);
-        if(autoexecCombopVo.getTypeId() != null){
-            if(autoexecTypeMapper.checkTypeIsExistsById(autoexecCombopVo.getTypeId()) == 0){
+        if (autoexecCombopVo.getTypeId() != null) {
+            if (autoexecTypeMapper.checkTypeIsExistsById(autoexecCombopVo.getTypeId()) == 0) {
                 throw new AutoexecTypeNotFoundException(autoexecCombopVo.getTypeId());
             }
         }
-        if(autoexecCombopVo.getNotifyPolicyId() != null){
-            if(notifyMapper.checkNotifyPolicyIsExists(autoexecCombopVo.getNotifyPolicyId()) == 0){
+        if (autoexecCombopVo.getNotifyPolicyId() != null) {
+            if (notifyMapper.checkNotifyPolicyIsExists(autoexecCombopVo.getNotifyPolicyId()) == 0) {
                 throw new NotifyPolicyNotFoundException(autoexecCombopVo.getNotifyPolicyId().toString());
             }
         }

@@ -13,7 +13,9 @@ import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
-import codedriver.module.autoexec.exception.AutoexecCombopNotFoundException;
+import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
+import codedriver.module.autoexec.dto.AutoexecTypeVo;
+import codedriver.module.autoexec.exception.AutoexecTypeNotFoundException;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
@@ -24,6 +26,7 @@ import java.util.List;
 
 /**
  * 查询组合工具列表接口
+ *
  * @author: linbq
  * @since: 2021/4/13 15:29
  **/
@@ -33,6 +36,9 @@ public class AutoexecCombopListApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
+
+    @Resource
+    private AutoexecTypeMapper autoexecTypeMapper;
 
     /**
      * @return String
@@ -44,6 +50,7 @@ public class AutoexecCombopListApi extends PrivateApiComponentBase {
     public String getToken() {
         return "autoexec/combop/list";
     }
+
     /**
      * @return String
      * @Author: chenqiwei
@@ -84,11 +91,20 @@ public class AutoexecCombopListApi extends PrivateApiComponentBase {
         int pageCount = 0;
         AutoexecCombopVo searchVo = JSON.toJavaObject(jsonObj, AutoexecCombopVo.class);
         int rowNum = autoexecCombopMapper.getAutoexecCombopCount(searchVo);
-        if(rowNum > 0){
+        if (rowNum > 0) {
             pageCount = PageUtil.getPageCount(rowNum, searchVo.getPageSize());
             List<AutoexecCombopVo> autoexecCombopList = autoexecCombopMapper.getAutoexecCombopList(searchVo);
+            for (AutoexecCombopVo autoexecCombopVo : autoexecCombopList) {
+                if (autoexecCombopVo.getTypeId() != null) {
+                    AutoexecTypeVo autoexecTypeVo = autoexecTypeMapper.getTypeById(autoexecCombopVo.getTypeId());
+                    if (autoexecTypeVo == null) {
+                        throw new AutoexecTypeNotFoundException(autoexecCombopVo.getTypeId());
+                    }
+                    autoexecCombopVo.setTypeName(autoexecTypeVo.getName());
+                }
+            }
             resultObj.put("tbodyList", autoexecCombopList);
-        }else {
+        } else {
             resultObj.put("tbodyList", new ArrayList<>());
         }
         resultObj.put("rowNum", rowNum);
