@@ -98,7 +98,7 @@
     </select>
 
     <select id="searchScript" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo"
-            resultType="codedriver.framework.autoexec.dto.AutoexecScriptVo">
+            resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
         select
         `id`,
         `name`,
