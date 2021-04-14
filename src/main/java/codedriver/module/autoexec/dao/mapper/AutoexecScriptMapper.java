@@ -5,7 +5,7 @@
 
 package codedriver.module.autoexec.dao.mapper;
 
-import codedriver.framework.autoexec.dto.*;
+import codedriver.framework.autoexec.dto.script.*;
 
 import java.util.List;
 

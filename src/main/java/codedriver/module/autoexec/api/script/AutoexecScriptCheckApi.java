@@ -13,7 +13,7 @@ import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
-import codedriver.framework.autoexec.dto.AutoexecScriptLineVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
