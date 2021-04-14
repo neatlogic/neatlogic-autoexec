@@ -100,7 +100,7 @@ public class AutoexecJobAuthActionManager {
         userList.add(UserContext.get().getUserUuid());
         userList.addAll(UserContext.get().getRoleUuidList());
         userList.addAll(teamMapper.getTeamUuidListByUserUuid(UserContext.get().getUserUuid()));
-        if (autoexecJobMapper.checkIsAutoexecJobUser(autoexecJobVo.getId(), userList) > 0) {
+        if (autoexecJobMapper.checkIsJobUser(autoexecJobVo.getId(), userList) > 0) {
             if(CollectionUtils.isNotEmpty(actionList)) {
                 for (String action : actionList) {
                     actionMap.get(action).execute(autoexecJobVo);

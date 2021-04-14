@@ -36,7 +36,8 @@ public class AutoexecJobConfigGetApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true)
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
+            @Param(name = "jobPhaseId", type = ApiParamType.LONG, desc = "作业剧本Id")
     })
     @Output({
 
@@ -45,8 +46,8 @@ public class AutoexecJobConfigGetApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
-
-        return null;
+        Long jobPhaseId = jsonObj.getLong("jobPhaseId");
+        return autoexecJobMapper.getJobDetailByJobId(jobId, jobPhaseId);
     }
 
     @Override

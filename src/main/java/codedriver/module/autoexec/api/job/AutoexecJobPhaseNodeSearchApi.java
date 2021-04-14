@@ -57,10 +57,10 @@ public class AutoexecJobPhaseNodeSearchApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
         AutoexecJobPhaseNodeVo jobPhaseNodeVo = JSONObject.toJavaObject(jsonObj, AutoexecJobPhaseNodeVo.class);
-        List<AutoexecJobPhaseNodeVo> jobPhaseNodeVoList = autoexecJobMapper.searchAutoexecJobPhaseNode(jobPhaseNodeVo);
+        List<AutoexecJobPhaseNodeVo> jobPhaseNodeVoList = autoexecJobMapper.searchJobPhaseNode(jobPhaseNodeVo);
         result.put("tbodyList", jobPhaseNodeVoList);
         if (jobPhaseNodeVo.getNeedPage()) {
-            int rowNum = autoexecJobMapper.searchAutoexecJobPhaseNodeCount(jobPhaseNodeVo);
+            int rowNum = autoexecJobMapper.searchJobPhaseNodeCount(jobPhaseNodeVo);
             jobPhaseNodeVo.setRowNum(rowNum);
             result.put("currentPage", jobPhaseNodeVo.getCurrentPage());
             result.put("pageSize", jobPhaseNodeVo.getPageSize());

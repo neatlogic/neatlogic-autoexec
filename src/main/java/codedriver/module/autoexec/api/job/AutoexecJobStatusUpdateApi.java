@@ -26,7 +26,7 @@ import javax.annotation.Resource;
 @Service
 @Transactional
 @OperationType(type = OperationTypeEnum.UPDATE)
-public class AutoexecJobProcessStatusUpdateApi extends PrivateApiComponentBase {
+public class AutoexecJobStatusUpdateApi extends PrivateApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
 
@@ -43,6 +43,7 @@ public class AutoexecJobProcessStatusUpdateApi extends PrivateApiComponentBase {
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
             @Param(name = "jobPhaseUk", type = ApiParamType.STRING, desc = "作业剧本Uk", isRequired = true),
+            @Param(name = "node", type = ApiParamType.JSONOBJECT, desc = "执行完的节点"),
             @Param(name = "status", type = ApiParamType.INTEGER, desc = "创建进程状态，1:创建成功 0:创建失败", isRequired = true),
             @Param(name = "errorMsg", type = ApiParamType.STRING, desc = "失败原因，如果失败则需要传改字段"),
     })
@@ -53,26 +54,25 @@ public class AutoexecJobProcessStatusUpdateApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
         String jobPhaseUk = jsonObj.getString("jobPhaseUk");
-        Integer status = jsonObj.getInteger("status");
+        JSONObject node = jsonObj.getJSONObject("node");
+        String status = jsonObj.getInteger("status") == 1 ? JobStatus.SUCCEED.getValue() : JobStatus.FAILED.getValue();
         String errorMsg = jsonObj.getString("errorMsg");
-        AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseLockByJobIdAndPhaseUk(jobId, jobPhaseUk);
-        if (jobPhaseVo == null) {
-            throw new AutoexecJobPhaseNotFoundException(jobPhaseUk);
-        }
-        if (JobStatus.LINING.getValue().equalsIgnoreCase(jobPhaseVo.getStatus())) {
-            String phaseStatus;
-            if (status != null && status == 1) {
-                phaseStatus = JobStatus.RUNNING.getValue();
-            } else {
-                phaseStatus = JobStatus.FAILED.getValue();
+
+        if (node == null) {//跟新剧本状态
+            AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseLockByJobIdAndPhaseUk(jobId, jobPhaseUk);
+            if (jobPhaseVo == null) {
+                throw new AutoexecJobPhaseNotFoundException(jobPhaseUk);
             }
-            autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), phaseStatus, errorMsg));
+            autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), status, errorMsg));
+        } else {//跟新节点状态
+            //TODO
         }
+
         return null;
     }
 
     @Override
     public String getToken() {
-        return "autoexec/job/process/status/update";
+        return "autoexec/job/status/update";
     }
 }

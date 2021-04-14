@@ -55,7 +55,7 @@ public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
         //作业基本信息
-        AutoexecJobVo jobVo = autoexecJobMapper.getAutoexecJobInfo(jobId);
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
         //剧本列表
         List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobId);
         List<AutoexecJobPhaseNodeStatusCountVo> statusCountVoList = autoexecJobMapper.getJobPhaseNodeStatusCount(jobId);
@@ -66,7 +66,7 @@ public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
                 }
             }
         }
-        jobVo.setJobPhaseList(jobPhaseVoList);
+        jobVo.setPhaseList(jobPhaseVoList);
         //操作按钮
         autoexecJobAuthActionManager.setAutoexecJobAction(jobVo);
         return jobVo;
