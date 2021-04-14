@@ -89,8 +89,8 @@ public class AutoexecCombopAuthoritySaveApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "主键id"),
-            @Param(name = "edit", type = ApiParamType.JSONARRAY, isRequired = true, desc = "编辑授权数组"),
-            @Param(name = "execute", type = ApiParamType.JSONARRAY, isRequired = true, desc = "执行授权数组")
+            @Param(name = "editAuthorityList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "编辑授权数组"),
+            @Param(name = "executeAuthorityList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "执行授权数组")
     })
     @Description(desc = "保存组合工具授权信息")
     @Override
@@ -100,10 +100,10 @@ public class AutoexecCombopAuthoritySaveApi extends PrivateApiComponentBase {
             throw new AutoexecCombopNotFoundException(combopId);
         }
         List<AutoexecCombopAuthorityVo> autoexecCombopAuthorityVoList = new ArrayList<>();
-        JSONArray edit = jsonObj.getJSONArray("edit");
-        if(CollectionUtils.isNotEmpty(edit)){
-            for (int i = 0; i < edit.size(); i++) {
-                AutoexecCombopAuthorityVo autoexecCombopAuthorityVo = getAutoexecCombopAuthorityVo(edit.getString(i));
+        JSONArray editAuthorityList = jsonObj.getJSONArray("editAuthorityList");
+        if(CollectionUtils.isNotEmpty(editAuthorityList)){
+            for (int i = 0; i < editAuthorityList.size(); i++) {
+                AutoexecCombopAuthorityVo autoexecCombopAuthorityVo = getAutoexecCombopAuthorityVo(editAuthorityList.getString(i));
                 if(autoexecCombopAuthorityVo != null){
                     autoexecCombopAuthorityVo.setCombopId(combopId);
                     autoexecCombopAuthorityVo.setAction(CombopAuthorityAction.EDIT.getValue());
@@ -115,10 +115,10 @@ public class AutoexecCombopAuthoritySaveApi extends PrivateApiComponentBase {
                 }
             }
         }
-        JSONArray execute = jsonObj.getJSONArray("execute");
-        if(CollectionUtils.isNotEmpty(execute)){
-            for (int i = 0; i < execute.size(); i++) {
-                AutoexecCombopAuthorityVo autoexecCombopAuthorityVo = getAutoexecCombopAuthorityVo(execute.getString(i));
+        JSONArray executeAuthorityList = jsonObj.getJSONArray("executeAuthorityList");
+        if(CollectionUtils.isNotEmpty(executeAuthorityList)){
+            for (int i = 0; i < executeAuthorityList.size(); i++) {
+                AutoexecCombopAuthorityVo autoexecCombopAuthorityVo = getAutoexecCombopAuthorityVo(executeAuthorityList.getString(i));
                 if(autoexecCombopAuthorityVo != null){
                     autoexecCombopAuthorityVo.setCombopId(combopId);
                     autoexecCombopAuthorityVo.setAction(CombopAuthorityAction.EXECUTE.getValue());
