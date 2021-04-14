@@ -141,6 +141,26 @@
         </foreach>
     </insert>
 
+    <insert id="insertAutoexecCombopParamVoList" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo">
+        INSERT INTO `autoexec_combop_param` (
+            `combop_id`,
+            `key`,
+            `description`,
+            `is_required`,
+            `type`
+        )
+        VALUES
+        <foreach collection="list" item="paramVo" separator=",">
+        (
+            #{paramVo.combopId},
+            #{paramVo.key},
+            #{paramVo.description},
+            #{paramVo.isRequired},
+            #{paramVo.type}
+        )
+        </foreach>
+    </insert>
+
     <update id="updateAutoexecCombop" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
         UPDATE `autoexec_combop`
         SET
