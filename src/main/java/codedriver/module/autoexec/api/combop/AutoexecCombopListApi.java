@@ -95,13 +95,11 @@ public class AutoexecCombopListApi extends PrivateApiComponentBase {
             pageCount = PageUtil.getPageCount(rowNum, searchVo.getPageSize());
             List<AutoexecCombopVo> autoexecCombopList = autoexecCombopMapper.getAutoexecCombopList(searchVo);
             for (AutoexecCombopVo autoexecCombopVo : autoexecCombopList) {
-                if (autoexecCombopVo.getTypeId() != null) {
-                    AutoexecTypeVo autoexecTypeVo = autoexecTypeMapper.getTypeById(autoexecCombopVo.getTypeId());
-                    if (autoexecTypeVo == null) {
-                        throw new AutoexecTypeNotFoundException(autoexecCombopVo.getTypeId());
-                    }
-                    autoexecCombopVo.setTypeName(autoexecTypeVo.getName());
+                AutoexecTypeVo autoexecTypeVo = autoexecTypeMapper.getTypeById(autoexecCombopVo.getTypeId());
+                if (autoexecTypeVo == null) {
+                    throw new AutoexecTypeNotFoundException(autoexecCombopVo.getTypeId());
                 }
+                autoexecCombopVo.setTypeName(autoexecTypeVo.getName());
             }
             resultObj.put("tbodyList", autoexecCombopList);
         } else {
