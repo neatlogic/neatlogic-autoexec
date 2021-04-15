@@ -236,6 +236,13 @@
         where `hash` = #{value}
     </select>
 
+    <select id="getVersionIdListByScriptId" parameterType="java.lang.Long" resultType="java.lang.Long">
+        select
+        `id`
+        from `autoexec_script_version`
+        where `script_id` = #{value}
+    </select>
+
     <update id="updateScriptBaseInfo" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
         update `autoexec_script` set
         `name` = #{name},
@@ -401,6 +408,48 @@
         delete
         from `autoexec_script_line`
         where `script_version_id` = #{value}
+    </delete>
+
+    <delete id="deleteScriptLineByScriptId" parameterType="java.lang.Long">
+        delete
+        from `autoexec_script_line`
+        where `script_id` = #{value}
+    </delete>
+
+    <delete id="deleteParamByVersionIdList" parameterType="java.util.List">
+        delete
+        from `autoexec_script_version_param`
+        where `script_version_id` in
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <delete id="deleteVersionByVersionIdList" parameterType="java.util.List">
+        delete
+        from `autoexec_script_version`
+        where `id` in
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <delete id="deleteScriptById" parameterType="java.lang.Long">
+        delete
+        from `autoexec_script`
+        where `id` = #{value}
+    </delete>
+
+    <delete id="deleteVersionByVersionId" parameterType="java.lang.Long">
+        delete
+        from `autoexec_script_version`
+        where `id` = #{value}
+    </delete>
+
+    <delete id="deleteScriptAuditByScriptId" parameterType="java.lang.Long">
+        delete
+        from `autoexec_script_audit`
+        where `script_id` = #{value}
     </delete>
 
 </mapper>
