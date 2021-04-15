@@ -81,7 +81,6 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
             if (autoexecScriptMapper.checkScriptIsExistsById(id) == 0) {
                 throw new AutoexecScriptNotFoundException(id);
             }
-            script = autoexecScriptMapper.getScriptBaseInfoById(id);
             AutoexecScriptVersionVo activeVersion = autoexecScriptMapper.getActiveVersionByScriptId(id);
             if (activeVersion != null) { // 有激活版本
                 version = activeVersion;
@@ -98,25 +97,23 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
                 throw new AutoexecScriptVersionNotFoundException(versionId);
             }
             version = currentVersion;
-            script = autoexecScriptMapper.getScriptBaseInfoById(currentVersion.getScriptId());
-            if (script == null) {
-                throw new AutoexecScriptNotFoundException(currentVersion.getScriptId());
-            }
+            id = version.getScriptId();
         }
-        if (script != null) {
-            script.setVersionVo(version);
-            version.setParamList(autoexecScriptMapper.getParamListByVersionId(version.getId()));
-            version.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
-            // todo 如果是已驳回状态，要查询驳回原因
-            // todo 关联的流水线
-            // 获取操作按钮
-            List<UserAuthVo> authList = userMapper.searchUserAllAuthByUserAuth(new UserAuthVo(UserContext.get().getUserUuid()));
-            if (CollectionUtils.isNotEmpty(authList)) {
-                ScriptOperateBuilder builder = new ScriptOperateBuilder(authList.stream()
-                        .map(UserAuthVo::getAuth)
-                        .collect(Collectors.toList()), version.getStatus());
-                operateList = builder.setAll().build();
-            }
+        script = autoexecScriptMapper.getScriptBaseInfoById(id);
+        if (script == null) {
+            throw new AutoexecScriptNotFoundException(id);
+        }
+        script.setVersionVo(version);
+        version.setParamList(autoexecScriptMapper.getParamListByVersionId(version.getId()));
+        version.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
+        // todo 如果是已驳回状态，要查询驳回原因
+        // todo 关联的流水线
+        // 获取操作按钮
+        List<UserAuthVo> authList = userMapper.searchUserAllAuthByUserAuth(new UserAuthVo(UserContext.get().getUserUuid()));
+        if (CollectionUtils.isNotEmpty(authList)) {
+            ScriptOperateBuilder builder = new ScriptOperateBuilder(authList.stream()
+                    .map(UserAuthVo::getAuth).collect(Collectors.toList()), version.getStatus());
+            operateList = builder.setAll().build();
         }
         result.put("script", script);
         result.put("operateList", operateList);
