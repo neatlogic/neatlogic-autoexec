@@ -7,14 +7,14 @@
         from `autoexec_script` where `id` = #{value}
     </select>
 
-    <select id="checkScriptNameIsExists" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptVo"
+    <select id="checkScriptNameIsExists" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo"
             resultType="int">
         select count(`id`) from `autoexec_script` where `name` = #{name} and `id` != #{id}
     </select>
 
-    <select id="checkScriptLabelIsExists" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptVo"
+    <select id="checkScriptUkIsExists" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo"
             resultType="int">
-        select count(`id`) from `autoexec_script` where `label` = #{label} and `id` != #{id}
+        select count(`id`) from `autoexec_script` where `uk` = #{uk} and `id` != #{id}
     </select>
 
     <select id="checkScriptLineContentHashIsExists" parameterType="java.lang.String" resultType="int">
@@ -23,7 +23,7 @@
         where `hash` = #{value}
     </select>
 
-    <select id="getVersionByVersionId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.AutoexecScriptVersionVo">
+    <select id="getVersionByVersionId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
         select
         `id`,
         `script_id` as scriptId,
@@ -45,8 +45,32 @@
         from `autoexec_script_version`
         where `script_id` = #{value}
     </select>
+    
+    <select id="getVersionCountByScriptId" parameterType="java.lang.Long" resultType="int">
+        select
+        count(`id`)
+        from `autoexec_script_version`
+        where `script_id` = #{value}
+    </select>
 
-    <select id="getParamListByVersionId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.AutoexecScriptVersionParamVo">
+    <select id="getVersionList" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
+        select
+        `id`,
+        `version`,
+        `status`,
+        `reviewer`,
+        `is_active` as isActive,
+        `lcu`,
+        `lcd`
+        from `autoexec_script_version`
+        where `script_id` = #{scriptId}
+        order by `id` desc
+        <if test="needPage == true">
+            limit #{startNum}, #{pageSize}
+        </if>
+    </select>
+
+    <select id="getParamListByVersionId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo">
         select
         `script_version_id` as scriptVersionId,
         `key`,
@@ -59,7 +83,7 @@
         where `script_version_id` = #{value}
     </select>
 
-    <select id="getLineListByVersionId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.AutoexecScriptLineVo">
+    <select id="getLineListByVersionId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo">
         select
         a.`id`,
         a.`script_id` as scriptId,
@@ -74,17 +98,81 @@
         order by a.`line_number`
     </select>
 
-    <update id="updateScriptBaseInfo" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptVo">
+    <select id="searchScriptCount" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo" resultType="int">
+        select
+        count(`id`)
+        from `autoexec_script`
+        <where>
+            <if test="keyword != null and keyword != ''">
+                and (`name` like CONCAT('%', #{keyword}, '%') or `uk` like CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="execMode != null and execMode != ''">
+                and `exec_mode` = #{execMode}
+            </if>
+            <if test="typeId != null">
+                and `type_id` = #{typeId}
+            </if>
+            <if test="riskId != null">
+                and `risk_id` = #{riskId}
+            </if>
+            <if test="isReviewing == 1">
+                and `status` = 'submitted'
+            </if>
+        </where>
+    </select>
+
+    <select id="searchScript" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo"
+            resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
+        select
+        `id`,
+        `name`,
+        `uk`,
+        `exec_mode` as execMode,
+        (select `name` from `autoexec_type` where a.`type_id` = `id`) as type,
+        (select `name` from `autoexec_risk` where a.`risk_id` = `id`) as risk,
+        (select `color` from `autoexec_risk` where a.`risk_id` = `id`) as riskColor,
+        (select `version` from `autoexec_script_version` where a.`id` = `script_id` and `is_active` = 1)
+        as currentVersion,
+        (select count(`id`) from `autoexec_script_version` where a.`id` = `script_id`) as versionCount,
+        (select count(`id`) from `autoexec_script_version` where a.`id` = `script_id` and `status` = 'submitted')
+        as submittedVersionCount,
+        (select count(`id`) from `autoexec_script_version` where a.`id` = `script_id` and `status` = 'passed')
+        as passedVersionCount
+        from `autoexec_script` a
+        <where>
+            <if test="keyword != null and keyword != ''">
+                and (`name` like CONCAT('%', #{keyword}, '%') or `uk` like CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="execMode != null and execMode != ''">
+                and `exec_mode` = #{execMode}
+            </if>
+            <if test="typeId != null">
+                and `type_id` = #{typeId}
+            </if>
+            <if test="riskId != null">
+                and `risk_id` = #{riskId}
+            </if>
+            <if test="isReviewing == 1">
+                and `status` = 'submitted'
+            </if>
+        </where>
+        order by `id` desc
+        <if test="needPage == true">
+            limit #{startNum}, #{pageSize}
+        </if>
+    </select>
+
+    <update id="updateScriptBaseInfo" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
         update `autoexec_script` set
         `name` = #{name},
-        `label` = #{label},
+        `uk` = #{uk},
         `exec_mode` = #{execMode},
         `type_id` = #{typeId},
         `risk_id` = #{riskId}
         where `id` = #{id}
     </update>
 
-    <update id="updateScriptVersion" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptVersionVo">
+    <update id="updateScriptVersion" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
         update `autoexec_script_version` set
         `parser` = #{parser},
         `status` = #{status},
@@ -93,11 +181,11 @@
         where `id` = #{id}
     </update>
 
-    <insert id="insertScript" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptVo">
+    <insert id="insertScript" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
         insert into `autoexec_script` (
         `id`,
         `name`,
-        `label`,
+        `uk`,
         `type_id`,
         `risk_id`,
         `exec_mode`,
@@ -106,7 +194,7 @@
         )values (
         #{id},
         #{name},
-        #{label},
+        #{uk},
         #{typeId},
         #{riskId},
         #{execMode},
@@ -115,7 +203,7 @@
         )
     </insert>
 
-    <insert id="insertScriptVersion" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptVersionVo">
+    <insert id="insertScriptVersion" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
         insert into `autoexec_script_version` (
         `id`,
         `script_id`,
@@ -179,7 +267,7 @@
         </foreach>
     </insert>
 
-    <insert id="insertScriptLineContent" parameterType="codedriver.framework.autoexec.dto.AutoexecScriptLineContentVo">
+    <insert id="insertScriptLineContent" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptLineContentVo">
         insert ignore into `autoexec_script_line_content` (
         `hash`,
         `content`

@@ -10,8 +10,8 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
-import codedriver.framework.autoexec.dto.*;
-import codedriver.framework.autoexec.exception.AutoexecScriptNameOrLabelRepeatException;
+import codedriver.framework.autoexec.dto.script.*;
+import codedriver.framework.autoexec.exception.AutoexecScriptNameOrUkRepeatException;
 import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionCannotEditException;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -66,8 +66,8 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
     @Input({
             @Param(name = "id", type = ApiParamType.LONG, desc = "脚本ID(没有id和versionId,表示首次创建脚本;有id没有versionId,表示新增一个版本;没有id有versionId,表示编辑某个版本)"),
             @Param(name = "versionId", type = ApiParamType.LONG, desc = "脚本版本ID"),
-            @Param(name = "name", type = ApiParamType.REGEX, rule = "^[A-Za-z]+$", isRequired = true, xss = true, desc = "唯一标识"),
-            @Param(name = "label", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", isRequired = true, xss = true, desc = "名称"),
+            @Param(name = "uk", type = ApiParamType.REGEX, rule = "^[A-Za-z]+$", isRequired = true, xss = true, desc = "唯一标识"),
+            @Param(name = "name", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", isRequired = true, xss = true, desc = "名称"),
             @Param(name = "execMode", type = ApiParamType.ENUM, rule = "local,remote,localremote", desc = "执行方式", isRequired = true),
             @Param(name = "typeId", type = ApiParamType.LONG, desc = "脚本分类ID", isRequired = true),
             @Param(name = "riskId", type = ApiParamType.LONG, desc = "操作级别ID", isRequired = true),
@@ -247,17 +247,17 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
         return value -> {
             AutoexecScriptVo scriptVo = JSON.toJavaObject(value, AutoexecScriptVo.class);
             if (autoexecScriptMapper.checkScriptNameIsExists(scriptVo) > 0) {
-                return new FieldValidResultVo(new AutoexecScriptNameOrLabelRepeatException(scriptVo.getName()));
+                return new FieldValidResultVo(new AutoexecScriptNameOrUkRepeatException(scriptVo.getName()));
             }
             return new FieldValidResultVo();
         };
     }
 
-    public IValid label() {
+    public IValid uk() {
         return value -> {
             AutoexecScriptVo scriptVo = JSON.toJavaObject(value, AutoexecScriptVo.class);
-            if (autoexecScriptMapper.checkScriptLabelIsExists(scriptVo) > 0) {
-                return new FieldValidResultVo(new AutoexecScriptNameOrLabelRepeatException(scriptVo.getLabel()));
+            if (autoexecScriptMapper.checkScriptUkIsExists(scriptVo) > 0) {
+                return new FieldValidResultVo(new AutoexecScriptNameOrUkRepeatException(scriptVo.getUk()));
             }
             return new FieldValidResultVo();
         };
