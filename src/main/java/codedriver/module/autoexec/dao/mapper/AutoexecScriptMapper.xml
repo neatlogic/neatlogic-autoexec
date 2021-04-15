@@ -53,7 +53,20 @@
         where `script_id` = #{value}
     </select>
 
-    <select id="getVersionList" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
+    <resultMap id="scriptVersionMap" type="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
+        <result column="id" property="id"/>
+        <result column="version" property="version"/>
+        <result column="status" property="status"/>
+        <result column="reviewer" property="reviewer"/>
+        <result column="isActive" property="isActive"/>
+        <result column="lcd" property="lcd"/>
+        <association property="lcuVo" javaType="codedriver.framework.dto.UserVo">
+            <result property="uuid" column="lcu"/>
+            <result property="userName" column="userName"/>
+        </association>
+    </resultMap>
+
+    <select id="getVersionList" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo" resultMap="scriptVersionMap">
         select
         `id`,
         `version`,
@@ -61,6 +74,7 @@
         `reviewer`,
         `is_active` as isActive,
         `lcu`,
+        (select `user_name` from `user` where `uuid` = `lcu`) as userName,
         `lcd`
         from `autoexec_script_version`
         where `script_id` = #{scriptId}
