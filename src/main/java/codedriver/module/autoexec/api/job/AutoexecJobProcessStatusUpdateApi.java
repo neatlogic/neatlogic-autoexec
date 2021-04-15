@@ -5,9 +5,6 @@
 
 package codedriver.module.autoexec.api.job;
 
-import codedriver.framework.autoexec.constvalue.JobStatus;
-import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
-import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -51,7 +48,7 @@ public class AutoexecJobProcessStatusUpdateApi extends PrivateApiComponentBase {
     @Description(desc = "回调创建作业剧本进程状态,更新作业状态")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        Long jobId = jsonObj.getLong("jobId");
+       /* Long jobId = jsonObj.getLong("jobId");
         String jobPhaseUk = jsonObj.getString("jobPhaseUk");
         Integer status = jsonObj.getInteger("status");
         String errorMsg = jsonObj.getString("errorMsg");
@@ -67,7 +64,7 @@ public class AutoexecJobProcessStatusUpdateApi extends PrivateApiComponentBase {
                 phaseStatus = JobStatus.FAILED.getValue();
             }
             autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), phaseStatus, errorMsg));
-        }
+        }*/
         return null;
     }
 

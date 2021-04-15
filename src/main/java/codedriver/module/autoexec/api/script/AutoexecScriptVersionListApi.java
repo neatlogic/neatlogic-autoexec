@@ -6,7 +6,10 @@
 package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.common.dto.BasePageVo;
+import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -14,11 +17,13 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_USE;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
-import codedriver.framework.autoexec.dto.AutoexecScriptVersionVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 @Service
 @AuthAction(action = AUTOEXEC_SCRIPT_USE.class)
@@ -46,15 +51,35 @@ public class AutoexecScriptVersionListApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "脚本ID"),
+            @Param(name = "scriptId", type = ApiParamType.LONG, isRequired = true, desc = "脚本ID"),
+            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
+            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
+            @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true")
     })
     @Output({
-            @Param(type = ApiParamType.JSONARRAY, explode = AutoexecScriptVersionVo[].class, desc = "版本列表"),
+            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecScriptVersionVo[].class, desc = "版本列表"),
+            @Param(explode = BasePageVo.class)
     })
     @Description(desc = "获取脚本版本列表")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        return null;
+        JSONObject result = new JSONObject();
+        AutoexecScriptVersionVo versionVo = JSON.toJavaObject(jsonObj, AutoexecScriptVersionVo.class);
+        if (autoexecScriptMapper.checkScriptIsExistsById(versionVo.getScriptId()) == 0) {
+            throw new AutoexecScriptNotFoundException(versionVo.getScriptId());
+        }
+        List<AutoexecScriptVersionVo> versionList = autoexecScriptMapper.getVersionList(versionVo);
+        result.put("tbodyList", versionList);
+        if (versionVo.getNeedPage()) {
+            int rowNum = autoexecScriptMapper.getVersionCountByScriptId(versionVo.getScriptId());
+            versionVo.setRowNum(rowNum);
+            result.put("currentPage", versionVo.getCurrentPage());
+            result.put("pageSize", versionVo.getPageSize());
+            result.put("pageCount", PageUtil.getPageCount(rowNum, versionVo.getPageSize()));
+            result.put("rowNum", versionVo.getRowNum());
+        }
+
+        return result;
     }
 
 
