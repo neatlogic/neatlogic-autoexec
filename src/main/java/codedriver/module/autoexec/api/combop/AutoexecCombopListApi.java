@@ -5,24 +5,27 @@
 
 package codedriver.module.autoexec.api.combop;
 
+import codedriver.framework.asynchronization.threadlocal.UserContext;
+import codedriver.framework.autoexec.constvalue.CombopAuthorityAction;
 import codedriver.framework.autoexec.dto.AutoexecTypeVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
 import codedriver.framework.common.util.PageUtil;
+import codedriver.framework.dao.mapper.TeamMapper;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
+import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * 查询组合工具列表接口
@@ -39,6 +42,9 @@ public class AutoexecCombopListApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecTypeMapper autoexecTypeMapper;
+
+    @Resource
+    private AutoexecCombopService autoexecCombopService;
 
     /**
      * @return String
@@ -100,6 +106,7 @@ public class AutoexecCombopListApi extends PrivateApiComponentBase {
                     throw new AutoexecTypeNotFoundException(autoexecCombopVo.getTypeId());
                 }
                 autoexecCombopVo.setTypeName(autoexecTypeVo.getName());
+                autoexecCombopService.setOperableButtonList(autoexecCombopVo);
             }
             resultObj.put("tbodyList", autoexecCombopList);
         } else {

@@ -37,6 +37,13 @@ public interface AutoexecCombopMapper {
 
     public List<AutoexecCombopParamVo> getAutoexecCombopParamListByCombopId(AutoexecCombopParamVo searchVo);
 
+    public List<String> getAutoexecCombopAuthorityListByCombopIdAndUserUuidAndTeamUuidListAndRoleUuidList(
+            @Param("combopId") Long combopId,
+            @Param("userUuid") String userUuid,
+            @Param("teamUuidList") List<String> teamUuidList,
+            @Param("roleUuidList") List<String> roleUuidList
+    );
+
     public int insertAutoexecCombop(AutoexecCombopVo autoexecCombopVo);
 
     public int insertAutoexecCombopAuthorityVoList(List<AutoexecCombopAuthorityVo> autoexecCombopAuthorityVoList);

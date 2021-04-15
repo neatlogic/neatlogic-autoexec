@@ -86,6 +86,7 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
         if (autoexecCombopMapper.checkAutoexecCombopIsExists(combopId) == 0) {
             throw new AutoexecCombopNotFoundException(combopId);
         }
+        autoexecCombopMapper.deleteAutoexecCombopAuthorityByCombopId(combopId);
         List<AutoexecCombopParamVo> autoexecCombopParamVoList = new ArrayList<>();
         JSONArray paramList = jsonObj.getJSONArray("paramList");
         if (CollectionUtils.isNotEmpty(paramList)) {
@@ -101,7 +102,6 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
                 }
             }
         }
-        autoexecCombopMapper.deleteAutoexecCombopAuthorityByCombopId(combopId);
         if (CollectionUtils.isNotEmpty(autoexecCombopParamVoList)) {
             autoexecCombopMapper.insertAutoexecCombopParamVoList(autoexecCombopParamVoList);
         }
