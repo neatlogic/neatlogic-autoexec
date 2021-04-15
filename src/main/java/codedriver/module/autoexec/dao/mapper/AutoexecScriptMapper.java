@@ -5,7 +5,7 @@
 
 package codedriver.module.autoexec.dao.mapper;
 
-import codedriver.framework.autoexec.dto.*;
+import codedriver.framework.autoexec.dto.script.*;
 
 import java.util.List;
 
@@ -15,7 +15,7 @@ public interface AutoexecScriptMapper {
 
     public int checkScriptNameIsExists(AutoexecScriptVo vo);
 
-    public int checkScriptLabelIsExists(AutoexecScriptVo vo);
+    public int checkScriptUkIsExists(AutoexecScriptVo vo);
 
     public int checkScriptLineContentHashIsExists(String hash);
 
@@ -23,9 +23,17 @@ public interface AutoexecScriptMapper {
 
     public Integer getMaxVersionByScriptId(Long id);
 
+    public int getVersionCountByScriptId(Long scriptId);
+
+    public List<AutoexecScriptVersionVo> getVersionList(AutoexecScriptVersionVo versionVo);
+
     public List<AutoexecScriptVersionParamVo> getParamListByVersionId(Long versionId);
 
     public List<AutoexecScriptLineVo> getLineListByVersionId(Long versionId);
+
+    public int searchScriptCount(AutoexecScriptVo scriptVo);
+
+    public List<AutoexecScriptVo> searchScript(AutoexecScriptVo scriptVo);
 
     public int updateScriptBaseInfo(AutoexecScriptVo scriptVo);
 

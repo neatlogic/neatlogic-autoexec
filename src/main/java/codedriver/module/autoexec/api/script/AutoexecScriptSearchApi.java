@@ -8,6 +8,7 @@ package codedriver.module.autoexec.api.script;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
+import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -15,11 +16,13 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_USE;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
-import codedriver.framework.autoexec.dto.AutoexecScriptVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 @Service
 @AuthAction(action = AUTOEXEC_SCRIPT_USE.class)
@@ -64,6 +67,17 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
+        AutoexecScriptVo scriptVo = JSON.toJavaObject(jsonObj, AutoexecScriptVo.class);
+        List<AutoexecScriptVo> scriptVoList = autoexecScriptMapper.searchScript(scriptVo);
+        result.put("tbodyList", scriptVoList);
+        if (scriptVo.getNeedPage()) {
+            int rowNum = autoexecScriptMapper.searchScriptCount(scriptVo);
+            scriptVo.setRowNum(rowNum);
+            result.put("currentPage", scriptVo.getCurrentPage());
+            result.put("pageSize", scriptVo.getPageSize());
+            result.put("pageCount", PageUtil.getPageCount(rowNum, scriptVo.getPageSize()));
+            result.put("rowNum", scriptVo.getRowNum());
+        }
         return result;
     }
 
