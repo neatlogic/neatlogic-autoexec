@@ -213,6 +213,29 @@
         </if>
     </select>
 
+    <select id="getScriptAuditByScriptVersionIdAndOperate" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo">
+        select
+        `id`,
+        `script_id` as scriptId,
+        `script_version_id` as scriptVersionId,
+        `operate`,
+        `content_hash` as contentHash,
+        `fcu`,
+        `fcd`
+        from `autoexec_script_audit`
+        where `script_version_id` = #{versionId}
+        and `operate` = #{operate}
+        order by `fcd` desc
+        limit 1
+    </select>
+
+    <select id="getScriptAuditDetailByHash" parameterType="java.lang.String" resultType="java.lang.String">
+        select
+        `content`
+        from `autoexec_script_audit_detail`
+        where `hash` = #{value}
+    </select>
+
     <update id="updateScriptBaseInfo" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
         update `autoexec_script` set
         `name` = #{name},
