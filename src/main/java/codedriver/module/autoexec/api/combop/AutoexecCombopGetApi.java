@@ -12,6 +12,7 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
+import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
@@ -29,6 +30,9 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
+
+    @Resource
+    private AutoexecCombopService autoexecCombopService;
 
     /**
      * @return String
@@ -77,6 +81,7 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
         if (autoexecCombopVo == null) {
             throw new AutoexecCombopNotFoundException(id);
         }
+        autoexecCombopService.setOperableButtonList(autoexecCombopVo);
         return autoexecCombopVo;
     }
 }

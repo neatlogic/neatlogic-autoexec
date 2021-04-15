@@ -134,7 +134,7 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
         return jsonObj -> {
             AutoexecCombopVo autoexecCombopVo = JSON.toJavaObject(jsonObj, AutoexecCombopVo.class);
             if (autoexecCombopMapper.checkAutoexecCombopUkIsRepeat(autoexecCombopVo) != null) {
-                return new FieldValidResultVo(new AutoexecCombopUkRepeatException(autoexecCombopVo.getName()));
+                return new FieldValidResultVo(new AutoexecCombopUkRepeatException(autoexecCombopVo.getUk()));
             }
             return new FieldValidResultVo();
         };

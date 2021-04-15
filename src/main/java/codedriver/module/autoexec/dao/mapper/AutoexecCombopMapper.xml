@@ -114,6 +114,31 @@
         LIMIT #{startNum}, #{pageSize}
     </select>
 
+    <select id="getAutoexecCombopAuthorityListByCombopIdAndUserUuidAndTeamUuidListAndRoleUuidList" resultType="java.lang.String">
+        SELECT
+            `action`
+        FROM `autoexec_combop_authority`
+        WHERE `combop_id` = #{combopId}
+        AND (
+            (type = 'common' AND `uuid` = 'alluser')
+            OR (type = 'user' AND `uuid` = #{userUuid})
+            <if test="teamUuidList != null and teamUuidList.size() > 0">
+                OR (type = 'team' AND `uuid` IN
+                <foreach collection="teamUuidList" item="teamUuid" open="(" separator="," close=")">
+                    #{teamUuid}
+                </foreach>
+                )
+            </if>
+            <if test="roleUuidList != null and roleUuidList.size() > 0">
+                OR (type = 'role' AND `uuid` IN
+                <foreach collection="roleUuidList" item="roleUuid" open="(" separator="," close=")">
+                    #{roleUuid}
+                </foreach>
+                )
+            </if>
+            )
+    </select>
+
     <insert id="insertAutoexecCombop" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
         INSERT INTO `autoexec_combop` (
             `id`,

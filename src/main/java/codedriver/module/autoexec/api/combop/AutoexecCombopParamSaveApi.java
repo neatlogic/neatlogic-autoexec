@@ -77,7 +77,7 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "主键id"),
-            @Param(name = "paramList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "参数列表")
+            @Param(name = "paramList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "参数列表[{\"key\": \"参数名\", \"value\": \"参数值\", \"description\": \"描述\", \"isRequired\": \"是否必填\", \"type\": \"参数类型\"}]")
     })
     @Description(desc = "保存组合工具全局参数")
     @Override
@@ -86,6 +86,7 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
         if (autoexecCombopMapper.checkAutoexecCombopIsExists(combopId) == 0) {
             throw new AutoexecCombopNotFoundException(combopId);
         }
+        autoexecCombopMapper.deleteAutoexecCombopAuthorityByCombopId(combopId);
         List<AutoexecCombopParamVo> autoexecCombopParamVoList = new ArrayList<>();
         JSONArray paramList = jsonObj.getJSONArray("paramList");
         if (CollectionUtils.isNotEmpty(paramList)) {
@@ -101,7 +102,6 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
                 }
             }
         }
-        autoexecCombopMapper.deleteAutoexecCombopAuthorityByCombopId(combopId);
         if (CollectionUtils.isNotEmpty(autoexecCombopParamVoList)) {
             autoexecCombopMapper.insertAutoexecCombopParamVoList(autoexecCombopParamVoList);
         }
