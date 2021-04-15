@@ -15,6 +15,7 @@ import codedriver.framework.notify.dto.NotifyTriggerVo;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -44,22 +45,22 @@ public class AutoexecCombopNotifyPolicyHandler extends NotifyPolicyHandlerBase {
 
     @Override
     protected List<NotifyTriggerVo> myNotifyTriggerList() {
-        return null;
+        return new ArrayList<>();
     }
 
     @Override
     protected List<NotifyTriggerTemplateVo> myNotifyTriggerTemplateList(NotifyHandlerType type) {
-        return null;
+        return new ArrayList<>();
     }
 
     @Override
     protected List<ConditionParamVo> mySystemParamList() {
-        return null;
+        return new ArrayList<>();
     }
 
     @Override
     protected List<ConditionParamVo> mySystemConditionOptionList() {
-        return null;
+        return new ArrayList<>();
     }
 
     @Override
