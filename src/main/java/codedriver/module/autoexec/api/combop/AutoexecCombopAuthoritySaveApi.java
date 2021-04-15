@@ -99,6 +99,7 @@ public class AutoexecCombopAuthoritySaveApi extends PrivateApiComponentBase {
         if (autoexecCombopMapper.checkAutoexecCombopIsExists(combopId) == 0) {
             throw new AutoexecCombopNotFoundException(combopId);
         }
+        autoexecCombopMapper.deleteAutoexecCombopAuthorityByCombopId(combopId);
         List<AutoexecCombopAuthorityVo> autoexecCombopAuthorityVoList = new ArrayList<>();
         JSONArray editAuthorityList = jsonObj.getJSONArray("editAuthorityList");
         if (CollectionUtils.isNotEmpty(editAuthorityList)) {
@@ -130,7 +131,6 @@ public class AutoexecCombopAuthoritySaveApi extends PrivateApiComponentBase {
                 }
             }
         }
-        autoexecCombopMapper.deleteAutoexecCombopAuthorityByCombopId(combopId);
         if (CollectionUtils.isNotEmpty(autoexecCombopAuthorityVoList)) {
             autoexecCombopMapper.insertAutoexecCombopAuthorityVoList(autoexecCombopAuthorityVoList);
         }

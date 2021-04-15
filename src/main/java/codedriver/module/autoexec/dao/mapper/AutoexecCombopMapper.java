@@ -5,9 +5,7 @@
 
 package codedriver.module.autoexec.dao.mapper;
 
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopAuthorityVo;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
+import codedriver.framework.autoexec.dto.combop.*;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -44,11 +42,17 @@ public interface AutoexecCombopMapper {
             @Param("roleUuidList") List<String> roleUuidList
     );
 
+    public List<Long> getCombopPhaseIdListByCombopId(Long combopId);
+
     public int insertAutoexecCombop(AutoexecCombopVo autoexecCombopVo);
 
     public int insertAutoexecCombopAuthorityVoList(List<AutoexecCombopAuthorityVo> autoexecCombopAuthorityVoList);
 
     public int insertAutoexecCombopParamVoList(List<AutoexecCombopParamVo> autoexecCombopParamVoList);
+
+    public int insertAutoexecCombopPhase(AutoexecCombopPhaseVo autoexecCombopPhaseVo);
+
+    public int insertAutoexecCombopPhaseOperation(AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo);
 
     public int updateAutoexecCombop(AutoexecCombopVo autoexecCombopVo);
 
@@ -59,4 +63,10 @@ public interface AutoexecCombopMapper {
     public int deleteAutoexecCombopById(Long id);
 
     public int deleteAutoexecCombopAuthorityByCombopId(Long combopId);
+
+    public int deleteAutoexecCombopParamByCombopId(Long combopId);
+
+    public int deleteAutoexecCombopPhaseByCombopId(Long combopId);
+
+    public int deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(List<Long> combopPhaseIdList);
 }
