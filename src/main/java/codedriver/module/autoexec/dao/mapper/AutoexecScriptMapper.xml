@@ -213,6 +213,30 @@
         </if>
     </select>
 
+    <sql id="getScriptReference">
+        from `autoexec_combop` a
+        join `autoexec_combop_phase` b
+        on a.`id` = b.`combop_id`
+        join `autoexec_combop_phase_operation` c
+        on b.`id` = c.`combop_phase_id`
+        where c.`operation_id` = #{value}
+        and c.`operation_type` = 'script'
+    </sql>
+
+    <select id="getReferenceCountByScriptId" parameterType="java.lang.Long" resultType="int">
+        select
+        count(a.`id`)
+        <include refid="getScriptReference"/>
+    </select>
+
+    <select id="getReferenceListByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
+        select
+        a.`id`,
+        a.`uk`,
+        a.`name`
+        <include refid="getScriptReference"/>
+    </select>
+
     <update id="updateScriptBaseInfo" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
         update `autoexec_script` set
         `name` = #{name},
