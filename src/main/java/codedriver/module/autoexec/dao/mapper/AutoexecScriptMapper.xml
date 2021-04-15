@@ -164,6 +164,25 @@
         </if>
     </select>
 
+    <select id="getOutputParamListByScriptIdList" parameterType="java.util.List" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo">
+        select
+        a.`script_version_id` as scriptVersionId,
+        a.`key`,
+        a.`default_value` as defaultValue,
+        a.`type`,
+        a.`handler`
+        from `autoexec_script_version_param` a
+        join `autoexec_script_version` b
+        on a.`script_version_id` = b.`id`
+        where
+        a.`type` = 'output'
+        and b.`script_id` in
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        group by a.`script_version_id`,a.`key`
+    </select>
+
     <update id="updateScriptBaseInfo" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
         update `autoexec_script` set
         `name` = #{name},

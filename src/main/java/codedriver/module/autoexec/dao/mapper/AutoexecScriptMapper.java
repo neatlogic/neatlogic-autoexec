@@ -35,6 +35,8 @@ public interface AutoexecScriptMapper {
 
     public List<AutoexecScriptVo> searchScript(AutoexecScriptVo scriptVo);
 
+    public List<AutoexecScriptVersionParamVo> getOutputParamListByScriptIdList(List<Long> scriptIdList);
+
     public int updateScriptBaseInfo(AutoexecScriptVo scriptVo);
 
     public int updateScriptVersion(AutoexecScriptVersionVo versionVo);
