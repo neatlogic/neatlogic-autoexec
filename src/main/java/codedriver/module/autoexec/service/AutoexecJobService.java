@@ -8,7 +8,7 @@ package codedriver.module.autoexec.service;
 /**
  * @since 2021/4/12 18:44
  **/
-public interface AutoexecService {
+public interface AutoexecJobService {
     /**
      * 通过combopVo保存作业配置
      */

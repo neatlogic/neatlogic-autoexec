@@ -6,37 +6,45 @@
 package codedriver.module.autoexec.dao.mapper;
 
 import codedriver.framework.autoexec.dto.job.*;
-import org.apache.ibatis.annotations.Param;
-
-import java.util.List;
 
 public interface AutoexecJobMapper {
-    List<Long> searchAutoexecJobId(AutoexecJobVo jobVo);
+    //job
+   /* List<Long> searchJobId(AutoexecJobVo jobVo);
 
-    List<AutoexecJobVo> searchAutoexecJob(List<Long> jobIdList);
+    List<AutoexecJobVo> searchJob(List<Long> jobIdList);
 
-    AutoexecJobVo getAutoexecJobInfo(Long jobId);
+    AutoexecJobVo getJobInfo(Long jobId);
 
-    List<AutoexecJobPhaseNodeVo> searchAutoexecJobPhaseNode(AutoexecJobPhaseNodeVo jobPhaseNodeVo);
+    AutoexecJobVo getJobDetailByJobId(Long jobId, Long jobPhaseId);
 
-    int searchAutoexecJobPhaseNodeCount(AutoexecJobPhaseNodeVo jobPhaseNodeVo);
+    int searchJobCount(AutoexecJobVo jobVo);
 
-    int searchAutoexecJobCount(AutoexecJobVo jobVo);
+    int checkIsJobUser(@Param("jobId") Long jobId, @Param("userList") List<String> userList);
 
+    //jobPhase
     List<AutoexecJobPhaseVo> getJobPhaseListByJobId(Long jobId);
 
-    List<AutoexecJobPhaseNodeStatusCountVo> getJobPhaseNodeStatusCount(Long jobId);
+    AutoexecJobPhaseVo getJobPhaseLockByPhaseId(Long jobPhaseId);
 
-    int checkIsAutoexecJobUser(@Param("jobId")Long jobId,@Param("user") String user);
+    AutoexecJobPhaseVo getJobPhaseLockByJobIdAndPhaseUk(@Param("jobId") Long jobId,@Param("jobPhaseUk") String jobPhaseUk);
 
-    int insertAutoexecJob(AutoexecJobVo jobVo);
+    //jobPhaseNode
+    List<AutoexecJobPhaseNodeVo> searchJobPhaseNode(AutoexecJobPhaseNodeVo jobPhaseNodeVo);
 
-    int insertAutoexecJobPhase(AutoexecJobPhaseVo jobVo);
+    int searchJobPhaseNodeCount(AutoexecJobPhaseNodeVo jobPhaseNodeVo);
 
-    int insertAutoexecJobPhaseNode(AutoexecJobPhaseNodeVo jobVo);
+    List<AutoexecJobPhaseNodeStatusCountVo> getJobPhaseNodeStatusCount(Long jobId);*/
 
-    int insertAutoexecJobPhaseOperation(AutoexecJobPhaseOperationVo operationVo);
 
-    int insertAutoexecJobParamContent(AutoexecJobParamContentVo contentVo);
+    int insertJob(AutoexecJobVo jobVo);
 
+    int insertJobPhase(AutoexecJobPhaseVo jobVo);
+
+    int insertJobPhaseNode(AutoexecJobPhaseNodeVo jobVo);
+
+    int insertJobPhaseOperation(AutoexecJobPhaseOperationVo operationVo);
+
+    int insertJobParamContent(AutoexecJobParamContentVo contentVo);
+
+    int updateJobPhaseStatus(AutoexecJobPhaseVo autoexecJobPhaseVo);
 }

@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright(c) 2021 TechSureCo.,Ltd.AllRightsReserved.
+  ~ 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper">
+    <select id="checkAutoexecCombopIsExists" parameterType="java.lang.Long" resultType="int">
+        SELECT COUNT(`id`) FROM `autoexec_combop` WHERE `id` = #{value}
+    </select>
+
+    <select id="checkAutoexecCombopNameIsRepeat" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo" resultType="java.lang.Long">
+        SELECT `id` FROM `autoexec_combop` WHERE `name` = #{name} AND `id` != #{id} LIMIT 1
+    </select>
+
+    <select id="checkAutoexecCombopUkIsRepeat" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo" resultType="java.lang.Long">
+        SELECT `id` FROM `autoexec_combop` WHERE `uk` = #{uk} AND `id` != #{id} LIMIT 1
+    </select>
+
+    <select id="getAutoexecCombopIsActiveByIdForUpdate" parameterType="java.lang.Long" resultType="java.lang.Integer">
+        SELECT `is_active` FROM `autoexec_combop` WHERE `id` = #{value} FOR UPDATE
+    </select>
+
+    <select id="getAutoexecCombopById" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
+        SELECT
+            `id`,
+            `uk`,
+            `name`,
+            `description`,
+            `type_id` AS typeId,
+            `is_active` AS isActive,
+            `operation_type` AS operationType,
+            `notify_policy_id` AS notifyPolicyId,
+            `config`,
+            `fcd`,
+            `fcu`,
+            `lcd`,
+            `lcu`
+        FROM `autoexec_combop`
+        WHERE `id` = #{value}
+    </select>
+
+    <select id="getAutoexecCombopCount" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo" resultType="int">
+        SELECT
+            COUNT(`id`)
+        FROM `autoexec_combop`
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (`name` LIKE concat('%', #{keyword}, '%') OR `uk` LIKE concat('%', #{keyword}, '%'))
+            </if>
+            <if test="typeId != null">
+                AND `type_id` = #{typeId}
+            </if>
+            <if test="isActive != null">
+                AND `is_active` = #{isActive}
+            </if>
+        </where>
+    </select>
+
+    <select id="getAutoexecCombopList" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo" resultType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
+        SELECT
+            `id`,
+            `uk`,
+            `name`,
+            `description`,
+            `type_id` AS typeId,
+            `is_active` AS isActive,
+            `operation_type` AS operationType,
+            `notify_policy_id` AS notifyPolicyId,
+            `fcd`,
+            `fcu`,
+            `lcd`,
+            `lcu`
+        FROM `autoexec_combop`
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (`name` LIKE concat('%', #{keyword}, '%') OR `uk` LIKE concat('%', #{keyword}, '%'))
+            </if>
+            <if test="typeId != null">
+                AND `type_id` = #{typeId}
+            </if>
+            <if test="isActive != null">
+                AND `is_active` = #{isActive}
+            </if>
+        </where>
+        ORDER BY `id` DESC
+        LIMIT #{startNum}, #{pageSize}
+    </select>
+
+    <select id="getAutoexecCombopAuthorityListByCombopIdAndAction" resultType="codedriver.framework.autoexec.dto.combop.AutoexecCombopAuthorityVo">
+        SELECT
+            `type`,
+            `uuid`
+        FROM `autoexec_combop_authority`
+        WHERE `combop_id` = #{combopId}
+          AND `action` = #{action}
+    </select>
+
+    <select id="getAutoexecCombopParamCountByCombopId" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo" resultType="int">
+        SELECT COUNT(`combop_id`) FROM `autoexec_combop_param` WHERE `combop_id` = #{combopId}
+    </select>
+
+    <select id="getAutoexecCombopParamListByCombopId" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo" resultType="codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo">
+        SELECT
+            `combop_id` AS combopId,
+            `key`,
+            `value`,
+            `description`,
+            `is_required` AS isRequired,
+            `type`
+        FROM `autoexec_combop_param`
+        WHERE `combop_id` = #{combopId}
+        LIMIT #{startNum}, #{pageSize}
+    </select>
+
+    <select id="getAutoexecCombopAuthorityListByCombopIdAndUserUuidAndTeamUuidListAndRoleUuidList" resultType="java.lang.String">
+        SELECT
+            `action`
+        FROM `autoexec_combop_authority`
+        WHERE `combop_id` = #{combopId}
+        AND (
+            (type = 'common' AND `uuid` = 'alluser')
+            OR (type = 'user' AND `uuid` = #{userUuid})
+            <if test="teamUuidList != null and teamUuidList.size() > 0">
+                OR (type = 'team' AND `uuid` IN
+                <foreach collection="teamUuidList" item="teamUuid" open="(" separator="," close=")">
+                    #{teamUuid}
+                </foreach>
+                )
+            </if>
+            <if test="roleUuidList != null and roleUuidList.size() > 0">
+                OR (type = 'role' AND `uuid` IN
+                <foreach collection="roleUuidList" item="roleUuid" open="(" separator="," close=")">
+                    #{roleUuid}
+                </foreach>
+                )
+            </if>
+            )
+    </select>
+
+    <insert id="insertAutoexecCombop" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
+        INSERT INTO `autoexec_combop` (
+            `id`,
+            `uk`,
+            `name`,
+            `description`,
+            `type_id`,
+            `operation_type`,
+            `notify_policy_id`,
+            `fcd`,
+            `fcu`
+        )
+        VALUES
+        (
+            #{id},
+            #{uk},
+            #{name},
+            #{description},
+            #{typeId},
+            #{operationType},
+            #{notifyPolicyId},
+            NOW(3),
+            #{fcu}
+        )
+    </insert>
+
+    <insert id="insertAutoexecCombopAuthorityVoList" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopAuthorityVo">
+        INSERT INTO `autoexec_combop_authority` (
+            `combop_id`,
+            `type`,
+            `uuid`,
+            `action`
+        )
+        VALUES
+        <foreach collection="list" item="authorityVo" separator=",">
+        (
+            #{authorityVo.combopId},
+            #{authorityVo.type},
+            #{authorityVo.uuid},
+            #{authorityVo.action}
+        )
+        </foreach>
+    </insert>
+
+    <insert id="insertAutoexecCombopParamVoList" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo">
+        INSERT INTO `autoexec_combop_param` (
+            `combop_id`,
+            `key`,
+            `value`,
+            `description`,
+            `is_required`,
+            `type`
+        )
+        VALUES
+        <foreach collection="list" item="paramVo" separator=",">
+        (
+            #{paramVo.combopId},
+            #{paramVo.key},
+            #{paramVo.value},
+            #{paramVo.description},
+            #{paramVo.isRequired},
+            #{paramVo.type}
+        )
+        </foreach>
+    </insert>
+
+    <update id="updateAutoexecCombop" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
+        UPDATE `autoexec_combop`
+        SET
+            `uk` = #{uk},
+            `name` = #{name},
+            `description` = #{description},
+            `type_id` = #{typeId},
+            `notify_policy_id` = #{notifyPolicyId},
+            `lcd` = NOW(3),
+            `lcu` = #{lcu}
+        WHERE `id` = #{id}
+    </update>
+
+    <update id="updateAutoexecCombopIsActiveById" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
+        UPDATE `autoexec_combop`
+        SET
+            `is_active` = !`is_active`,
+            `lcd` = NOW(3),
+            `lcu` = #{lcu}
+        WHERE `id` = #{id}
+    </update>
+
+    <update id="updateAutoexecCombopConfigById" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
+        UPDATE `autoexec_combop`
+        SET
+            `config` = #{configStr},
+            `lcd` = NOW(3),
+            `lcu` = #{lcu}
+        WHERE `id` = #{id}
+    </update>
+
+    <delete id="deleteAutoexecCombopById" parameterType="java.lang.Long">
+        DELETE FROM `autoexec_combop` WHERE `id` = #{value}
+    </delete>
+
+    <delete id="deleteAutoexecCombopAuthorityByCombopId" parameterType="java.lang.Long">
+        DELETE FROM `autoexec_combop_authority` WHERE `combop_id` = #{value}
+    </delete>
+</mapper>
