@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.dao.mapper;
 
 import codedriver.framework.autoexec.dto.script.*;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -40,6 +41,10 @@ public interface AutoexecScriptMapper {
     public int searchScriptCount(AutoexecScriptVo scriptVo);
 
     public List<AutoexecScriptVo> searchScript(AutoexecScriptVo scriptVo);
+
+    public AutoexecScriptAuditVo getScriptAuditByScriptVersionIdAndOperate(@Param("versionId") Long versionId, @Param("operate") String operate);
+
+    public String getScriptAuditDetailByHash(String hash);
 
     public int updateScriptBaseInfo(AutoexecScriptVo scriptVo);
 
