@@ -25,6 +25,10 @@ public interface AutoexecScriptMapper {
 
     public Integer getMaxVersionByScriptId(Long id);
 
+    public int getVersionCountByScriptId(Long scriptId);
+
+    public List<AutoexecScriptVersionVo> getVersionList(AutoexecScriptVersionVo versionVo);
+
     public AutoexecScriptVersionVo getActiveVersionByScriptId(Long scriptId);
 
     public AutoexecScriptVersionVo getLatestVersionByScriptId(Long scriptId);
@@ -32,6 +36,10 @@ public interface AutoexecScriptMapper {
     public List<AutoexecScriptVersionParamVo> getParamListByVersionId(Long versionId);
 
     public List<AutoexecScriptLineVo> getLineListByVersionId(Long versionId);
+
+    public int searchScriptCount(AutoexecScriptVo scriptVo);
+
+    public List<AutoexecScriptVo> searchScript(AutoexecScriptVo scriptVo);
 
     public int updateScriptBaseInfo(AutoexecScriptVo scriptVo);
 

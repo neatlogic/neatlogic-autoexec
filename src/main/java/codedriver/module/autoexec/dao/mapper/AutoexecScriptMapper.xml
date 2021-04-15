@@ -61,6 +61,30 @@
         from `autoexec_script_version`
         where `script_id` = #{value}
     </select>
+    
+    <select id="getVersionCountByScriptId" parameterType="java.lang.Long" resultType="int">
+        select
+        count(`id`)
+        from `autoexec_script_version`
+        where `script_id` = #{value}
+    </select>
+
+    <select id="getVersionList" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
+        select
+        `id`,
+        `version`,
+        `status`,
+        `reviewer`,
+        `is_active` as isActive,
+        `lcu`,
+        `lcd`
+        from `autoexec_script_version`
+        where `script_id` = #{scriptId}
+        order by `id` desc
+        <if test="needPage == true">
+            limit #{startNum}, #{pageSize}
+        </if>
+    </select>
 
     <select id="getActiveVersionByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
         select
@@ -121,6 +145,58 @@
         on a.`content_hash` = b.`hash`
         where a.`script_version_id` = #{value}
         order by a.`line_number`
+    </select>
+
+    <sql id="searchScriptCondition">
+        <where>
+            <if test="keyword != null and keyword != ''">
+                and (`name` like CONCAT('%', #{keyword}, '%') or `uk` like CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="execMode != null and execMode != ''">
+                and `exec_mode` = #{execMode}
+            </if>
+            <if test="typeId != null">
+                and `type_id` = #{typeId}
+            </if>
+            <if test="riskId != null">
+                and `risk_id` = #{riskId}
+            </if>
+            <if test="isReviewing == 1">
+                and `status` = 'submitted'
+            </if>
+        </where>
+    </sql>
+
+    <select id="searchScriptCount" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo" resultType="int">
+        select
+        count(`id`)
+        from `autoexec_script`
+        <include refid="searchScriptCondition"/>
+    </select>
+
+    <select id="searchScript" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo"
+            resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
+        select
+        `id`,
+        `name`,
+        `uk`,
+        `exec_mode` as execMode,
+        (select `name` from `autoexec_type` where a.`type_id` = `id`) as type,
+        (select `name` from `autoexec_risk` where a.`risk_id` = `id`) as risk,
+        (select `color` from `autoexec_risk` where a.`risk_id` = `id`) as riskColor,
+        (select `version` from `autoexec_script_version` where a.`id` = `script_id` and `is_active` = 1)
+        as currentVersion,
+        (select count(`id`) from `autoexec_script_version` where a.`id` = `script_id`) as versionCount,
+        (select count(`id`) from `autoexec_script_version` where a.`id` = `script_id` and `status` = 'submitted')
+        as submittedVersionCount,
+        (select count(`id`) from `autoexec_script_version` where a.`id` = `script_id` and `status` = 'passed')
+        as passedVersionCount
+        from `autoexec_script` a
+        <include refid="searchScriptCondition"/>
+        order by `id` desc
+        <if test="needPage == true">
+            limit #{startNum}, #{pageSize}
+        </if>
     </select>
 
     <update id="updateScriptBaseInfo" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
