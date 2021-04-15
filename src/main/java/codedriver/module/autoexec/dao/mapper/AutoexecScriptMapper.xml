@@ -69,7 +69,20 @@
         where `script_id` = #{value}
     </select>
 
-    <select id="getVersionList" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
+    <resultMap id="scriptVersionMap" type="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
+        <result column="id" property="id"/>
+        <result column="version" property="version"/>
+        <result column="status" property="status"/>
+        <result column="reviewer" property="reviewer"/>
+        <result column="isActive" property="isActive"/>
+        <result column="lcd" property="lcd"/>
+        <association property="lcuVo" javaType="codedriver.framework.dto.UserVo">
+            <result property="uuid" column="lcu"/>
+            <result property="userName" column="userName"/>
+        </association>
+    </resultMap>
+
+    <select id="getVersionList" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo" resultMap="scriptVersionMap">
         select
         `id`,
         `version`,
@@ -77,6 +90,7 @@
         `reviewer`,
         `is_active` as isActive,
         `lcu`,
+        (select `user_name` from `user` where `uuid` = `lcu`) as userName,
         `lcd`
         from `autoexec_script_version`
         where `script_id` = #{scriptId}
@@ -147,10 +161,7 @@
         order by a.`line_number`
     </select>
 
-    <select id="searchScriptCount" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo" resultType="int">
-        select
-        count(`id`)
-        from `autoexec_script`
+    <sql id="searchScriptCondition">
         <where>
             <if test="keyword != null and keyword != ''">
                 and (`name` like CONCAT('%', #{keyword}, '%') or `uk` like CONCAT('%', #{keyword}, '%'))
@@ -168,6 +179,13 @@
                 and `status` = 'submitted'
             </if>
         </where>
+    </sql>
+
+    <select id="searchScriptCount" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo" resultType="int">
+        select
+        count(`id`)
+        from `autoexec_script`
+        <include refid="searchScriptCondition"/>
     </select>
 
     <select id="searchScript" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo"
@@ -188,23 +206,7 @@
         (select count(`id`) from `autoexec_script_version` where a.`id` = `script_id` and `status` = 'passed')
         as passedVersionCount
         from `autoexec_script` a
-        <where>
-            <if test="keyword != null and keyword != ''">
-                and (`name` like CONCAT('%', #{keyword}, '%') or `uk` like CONCAT('%', #{keyword}, '%'))
-            </if>
-            <if test="execMode != null and execMode != ''">
-                and `exec_mode` = #{execMode}
-            </if>
-            <if test="typeId != null">
-                and `type_id` = #{typeId}
-            </if>
-            <if test="riskId != null">
-                and `risk_id` = #{riskId}
-            </if>
-            <if test="isReviewing == 1">
-                and `status` = 'submitted'
-            </if>
-        </where>
+        <include refid="searchScriptCondition"/>
         order by `id` desc
         <if test="needPage == true">
             limit #{startNum}, #{pageSize}
