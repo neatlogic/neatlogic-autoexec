@@ -232,6 +232,9 @@
         <if test="reviewer != null">
             `reviewer` = #{reviewer},
         </if>
+        <if test="isActive != null">
+            `is_active` = #{isActive},
+        </if>
         `lcu` = #{lcu},
         `lcd` = now(3)
         where `id` = #{id}
