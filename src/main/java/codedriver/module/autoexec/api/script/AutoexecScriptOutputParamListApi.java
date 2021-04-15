@@ -54,6 +54,7 @@ public class AutoexecScriptOutputParamListApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONArray scriptIdList = jsonObj.getJSONArray("scriptIdList");
+        // 根据脚本ID列表查询各自激活版本的出参列表
         return autoexecScriptMapper.getOutputParamListByScriptIdList(scriptIdList.toJavaList(Long.class));
     }
 

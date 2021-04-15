@@ -175,7 +175,7 @@
         join `autoexec_script_version` b
         on a.`script_version_id` = b.`id`
         where
-        a.`type` = 'output'
+        b.`is_active` = 1 and a.`type` = 'output'
         and b.`script_id` in
         <foreach collection="list" item="id" open="(" separator="," close=")">
             #{id}
