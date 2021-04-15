@@ -10,7 +10,6 @@ import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.dao.mapper.TeamMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -100,7 +99,7 @@ public class AutoexecJobAuthActionManager {
         userList.add(UserContext.get().getUserUuid());
         userList.addAll(UserContext.get().getRoleUuidList());
         userList.addAll(teamMapper.getTeamUuidListByUserUuid(UserContext.get().getUserUuid()));
-        if (autoexecJobMapper.checkIsJobUser(autoexecJobVo.getId(), userList) > 0) {
+        /*if (autoexecJobMapper.checkIsJobUser(autoexecJobVo.getId(), userList) > 0) {
             if(CollectionUtils.isNotEmpty(actionList)) {
                 for (String action : actionList) {
                     actionMap.get(action).execute(autoexecJobVo);
@@ -110,7 +109,7 @@ public class AutoexecJobAuthActionManager {
                     entry.getValue().execute(autoexecJobVo);
                 }
             }
-        }
+        }*/
     }
 
     /**

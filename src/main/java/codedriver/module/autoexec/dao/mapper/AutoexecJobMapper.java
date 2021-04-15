@@ -6,13 +6,10 @@
 package codedriver.module.autoexec.dao.mapper;
 
 import codedriver.framework.autoexec.dto.job.*;
-import org.apache.ibatis.annotations.Param;
-
-import java.util.List;
 
 public interface AutoexecJobMapper {
     //job
-    List<Long> searchJobId(AutoexecJobVo jobVo);
+   /* List<Long> searchJobId(AutoexecJobVo jobVo);
 
     List<AutoexecJobVo> searchJob(List<Long> jobIdList);
 
@@ -36,7 +33,7 @@ public interface AutoexecJobMapper {
 
     int searchJobPhaseNodeCount(AutoexecJobPhaseNodeVo jobPhaseNodeVo);
 
-    List<AutoexecJobPhaseNodeStatusCountVo> getJobPhaseNodeStatusCount(Long jobId);
+    List<AutoexecJobPhaseNodeStatusCountVo> getJobPhaseNodeStatusCount(Long jobId);*/
 
 
     int insertJob(AutoexecJobVo jobVo);

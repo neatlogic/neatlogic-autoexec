@@ -47,7 +47,8 @@ public class AutoexecJobConfigGetApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
         Long jobPhaseId = jsonObj.getLong("jobPhaseId");
-        return autoexecJobMapper.getJobDetailByJobId(jobId, jobPhaseId);
+        //return autoexecJobMapper.getJobDetailByJobId(jobId, jobPhaseId);
+        return null;
     }
 
     @Override

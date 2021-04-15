@@ -8,7 +8,6 @@ package codedriver.module.autoexec.api.job;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
-import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -17,7 +16,6 @@ import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.List;
 
 /**
  * @author lvzk
@@ -56,7 +54,7 @@ public class AutoexecJobPhaseNodeSearchApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
-        AutoexecJobPhaseNodeVo jobPhaseNodeVo = JSONObject.toJavaObject(jsonObj, AutoexecJobPhaseNodeVo.class);
+        /*AutoexecJobPhaseNodeVo jobPhaseNodeVo = JSONObject.toJavaObject(jsonObj, AutoexecJobPhaseNodeVo.class);
         List<AutoexecJobPhaseNodeVo> jobPhaseNodeVoList = autoexecJobMapper.searchJobPhaseNode(jobPhaseNodeVo);
         result.put("tbodyList", jobPhaseNodeVoList);
         if (jobPhaseNodeVo.getNeedPage()) {
@@ -66,7 +64,7 @@ public class AutoexecJobPhaseNodeSearchApi extends PrivateApiComponentBase {
             result.put("pageSize", jobPhaseNodeVo.getPageSize());
             result.put("pageCount", PageUtil.getPageCount(rowNum, jobPhaseNodeVo.getPageSize()));
             result.put("rowNum", jobPhaseNodeVo.getRowNum());
-        }
+        }*/
         return result;
     }
 

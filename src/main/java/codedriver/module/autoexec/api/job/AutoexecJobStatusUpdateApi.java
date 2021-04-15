@@ -6,8 +6,6 @@
 package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.autoexec.constvalue.JobStatus;
-import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
-import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -59,11 +57,11 @@ public class AutoexecJobStatusUpdateApi extends PrivateApiComponentBase {
         String errorMsg = jsonObj.getString("errorMsg");
 
         if (node == null) {//跟新剧本状态
-            AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseLockByJobIdAndPhaseUk(jobId, jobPhaseUk);
+            /*AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseLockByJobIdAndPhaseUk(jobId, jobPhaseUk);
             if (jobPhaseVo == null) {
                 throw new AutoexecJobPhaseNotFoundException(jobPhaseUk);
             }
-            autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), status, errorMsg));
+            autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), status, errorMsg));*/
         } else {//跟新节点状态
             //TODO
         }
