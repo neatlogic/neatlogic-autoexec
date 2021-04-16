@@ -223,9 +223,9 @@
         <if test="execMode != null and execMode != ''">
             and `exec_mode` = #{execMode}
         </if>
-        <if test="toolTypeIdList != null and toolTypeIdList.size() != 0">
+        <if test="typeIdList != null and typeIdList.size() != 0">
             and `type_id` in
-            <foreach collection="toolTypeIdList" item="item" open="(" separator="," close=")">
+            <foreach collection="typeIdList" item="item" open="(" separator="," close=")">
                 #{item}
             </foreach>
         </if>
@@ -249,8 +249,11 @@
         <if test="execMode != null and execMode != ''">
             and a.`exec_mode` = #{execMode}
         </if>
-        <if test="typeId != null">
-            and a.`type_id` = #{typeId}
+        <if test="typeIdList != null and typeIdList.size() != 0">
+            and a.`type_id` in
+            <foreach collection="typeIdList" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
         </if>
         <if test="riskIdList != null and riskIdList.size() != 0">
             and a.`risk_id` in
