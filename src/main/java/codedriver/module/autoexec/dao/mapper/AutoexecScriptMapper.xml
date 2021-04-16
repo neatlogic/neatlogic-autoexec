@@ -213,63 +213,71 @@
         </if>
     </select>
 
+    <sql id="searchToolAndScriptConditionForTool">
+        from
+        `autoexec_tool`
+        where `is_active` = 1
+        <if test="keyword != null and keyword != ''">
+            and (`name` like CONCAT('%', #{keyword}, '%') or `uk` like CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="execMode != null and execMode != ''">
+            and `exec_mode` = #{execMode}
+        </if>
+        <if test="toolTypeIdList != null and toolTypeIdList.size() != 0">
+            and `type_id` in
+            <foreach collection="toolTypeIdList" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        <if test="riskIdList != null and riskIdList.size() != 0">
+            and `risk_id` in
+            <foreach collection="riskIdList" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </sql>
+
+    <sql id="searchToolAndScriptConditionForScript">
+        from
+        `autoexec_script` a
+        join `autoexec_script_version` b
+        on a.`id` = b.`script_id`
+        where b.`is_active` = 1
+        <if test="keyword != null and keyword != ''">
+            and (a.`name` like CONCAT('%', #{keyword}, '%') or a.`uk` like CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="execMode != null and execMode != ''">
+            and a.`exec_mode` = #{execMode}
+        </if>
+        <if test="typeId != null">
+            and a.`type_id` = #{typeId}
+        </if>
+        <if test="riskIdList != null and riskIdList.size() != 0">
+            and a.`risk_id` in
+            <foreach collection="riskIdList" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        group by a.`id`
+    </sql>
+
     <select id="searchScriptAndToolCount" parameterType="codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo" resultType="int">
         select
         count(1)
         from
         (
-          <if test="type == null or (type != null and type != '' and type == 'tool')">
+          <if test="(type == null or type == '') or (type != null and type != '' and type == 'tool')">
               select
               `id`
-              from
-              `autoexec_tool`
-              where `is_active` = 1
-              <if test="keyword != null and keyword != ''">
-                  and (`name` like CONCAT('%', #{keyword}, '%') or `uk` like CONCAT('%', #{keyword}, '%'))
-              </if>
-              <if test="execMode != null and execMode != ''">
-                  and `exec_mode` = #{execMode}
-              </if>
-              <if test="toolTypeIdList != null and toolTypeIdList.size() != 0">
-                  and `type_id` in
-                  <foreach collection="toolTypeIdList" item="item" open="(" separator="," close=")">
-                      #{item}
-                  </foreach>
-              </if>
-              <if test="riskIdList != null and riskIdList.size() != 0">
-                  and `risk_id` in
-                  <foreach collection="riskIdList" item="item" open="(" separator="," close=")">
-                      #{item}
-                  </foreach>
-              </if>
+              <include refid="searchToolAndScriptConditionForTool"/>
           </if>
           <if test="type == null or type == ''">
               union
           </if>
-          <if test="type == null or (type != null and type != '' and type == 'script')">
+          <if test="(type == null or type == '') or (type != null and type != '' and type == 'script')">
               select
               a.`id`
-              from
-              `autoexec_script` a
-              join `autoexec_script_version` b
-              on a.`id` = b.`script_id`
-              where b.`is_active` = 1
-              <if test="keyword != null and keyword != ''">
-                  and (a.`name` like CONCAT('%', #{keyword}, '%') or a.`uk` like CONCAT('%', #{keyword}, '%'))
-              </if>
-              <if test="execMode != null and execMode != ''">
-                  and a.`exec_mode` = #{execMode}
-              </if>
-              <if test="typeId != null">
-                  and a.`type_id` = #{typeId}
-              </if>
-              <if test="riskIdList != null and riskIdList.size() != 0">
-                  and a.`risk_id` in
-                  <foreach collection="riskIdList" item="item" open="(" separator="," close=")">
-                      #{item}
-                  </foreach>
-              </if>
-              group by a.`id`
+              <include refid="searchToolAndScriptConditionForScript"/>
           </if>
         ) a
     </select>
@@ -288,7 +296,7 @@
         a.`riskColor`
         from
         (
-        <if test="type == null or (type != null and type != '' and type == 'tool')">
+        <if test="(type == null or type == '') or (type != null and type != '' and type == 'tool')">
             select
             `id`,
             `uk`,
@@ -300,32 +308,12 @@
             `risk_id` as riskId,
             (select `name` from `autoexec_risk` where `id` = `risk_id`) as riskName,
             (select `color` from `autoexec_risk` where `id` = `risk_id`) as riskColor
-            from
-            `autoexec_tool`
-            where `is_active` = 1
-            <if test="keyword != null and keyword != ''">
-                and (`name` like CONCAT('%', #{keyword}, '%') or `uk` like CONCAT('%', #{keyword}, '%'))
-            </if>
-            <if test="execMode != null and execMode != ''">
-                and `exec_mode` = #{execMode}
-            </if>
-            <if test="toolTypeIdList != null and toolTypeIdList.size() != 0">
-                and `type_id` in
-                <foreach collection="toolTypeIdList" item="item" open="(" separator="," close=")">
-                    #{item}
-                </foreach>
-            </if>
-            <if test="riskIdList != null and riskIdList.size() != 0">
-                and `risk_id` in
-                <foreach collection="riskIdList" item="item" open="(" separator="," close=")">
-                    #{item}
-                </foreach>
-            </if>
+            <include refid="searchToolAndScriptConditionForTool"/>
         </if>
-        <if test="type == null">
+        <if test="type == null or type == ''">
             union
         </if>
-        <if test="type == null or (type != null and type != '' and type == 'script')">
+        <if test="(type == null or type == '') or (type != null and type != '' and type == 'script')">
             select
             a.`id`,
             `uk`,
@@ -337,29 +325,10 @@
             `risk_id` as riskId,
             (select `name` from `autoexec_risk` where `id` = `risk_id`) as riskName,
             (select `color` from `autoexec_risk` where `id` = `risk_id`) as riskColor
-            from
-            `autoexec_script` a
-            join `autoexec_script_version` b
-            on a.`id` = b.`script_id`
-            where b.`is_active` = 1
-            <if test="keyword != null and keyword != ''">
-                and (a.`name` like CONCAT('%', #{keyword}, '%') or a.`uk` like CONCAT('%', #{keyword}, '%'))
-            </if>
-            <if test="execMode != null and execMode != ''">
-                and a.`exec_mode` = #{execMode}
-            </if>
-            <if test="typeId != null">
-                and a.`type_id` = #{typeId}
-            </if>
-            <if test="riskIdList != null and riskIdList.size() != 0">
-                and a.`risk_id` in
-                <foreach collection="riskIdList" item="item" open="(" separator="," close=")">
-                    #{item}
-                </foreach>
-            </if>
-            group by a.`id`
+            <include refid="searchToolAndScriptConditionForScript"/>
         </if>
         ) a
+        order by a.`name`
         <if test="needPage == true">
             limit #{startNum}, #{pageSize}
         </if>
