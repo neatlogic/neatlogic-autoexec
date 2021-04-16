@@ -77,11 +77,12 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
      * 1.每个阶段至少选择了一个工具
      * 2.引用上游出参或顶层参数，能找到来源（防止修改顶层参数或插件排序、或修改顶层参数带来的影响）
      *
-     * @param config
+     * @param autoexecCombopVo 组合工具Vo对象
      * @return
      */
     @Override
-    public boolean verifyAutoexecCombopConfig(JSONObject config) {
+    public boolean verifyAutoexecCombopConfig(AutoexecCombopVo autoexecCombopVo) {
+        JSONObject config = autoexecCombopVo.getConfig();
         if (MapUtils.isEmpty(config)) {
             throw new AutoexecCombopAtLeastOnePhaseException();
         }
