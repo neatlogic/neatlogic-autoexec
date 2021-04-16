@@ -2,6 +2,22 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper">
 
+    <select id="getScriptBaseInfoById" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
+        select
+        `id`,
+        `name`,
+        `uk`,
+        `exec_mode` as execMode,
+        `type_id` as typeId,
+        `risk_id` as riskId,
+        (select `name` from `autoexec_type` where a.`type_id` = `id`) as type,
+        (select `name` from `autoexec_risk` where a.`risk_id` = `id`) as risk,
+        `fcu`,
+        `fcd`
+        from `autoexec_script` a
+        where `id` = #{value}
+    </select>
+
     <select id="checkScriptIsExistsById" parameterType="java.lang.Long" resultType="int">
         select `id`
         from `autoexec_script` where `id` = #{value}
@@ -53,7 +69,20 @@
         where `script_id` = #{value}
     </select>
 
-    <select id="getVersionList" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
+    <resultMap id="scriptVersionMap" type="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
+        <result column="id" property="id"/>
+        <result column="version" property="version"/>
+        <result column="status" property="status"/>
+        <result column="reviewer" property="reviewer"/>
+        <result column="isActive" property="isActive"/>
+        <result column="lcd" property="lcd"/>
+        <association property="lcuVo" javaType="codedriver.framework.dto.UserVo">
+            <result property="uuid" column="lcu"/>
+            <result property="userName" column="userName"/>
+        </association>
+    </resultMap>
+
+    <select id="getVersionList" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo" resultMap="scriptVersionMap">
         select
         `id`,
         `version`,
@@ -61,6 +90,7 @@
         `reviewer`,
         `is_active` as isActive,
         `lcu`,
+        (select `user_name` from `user` where `uuid` = `lcu`) as userName,
         `lcd`
         from `autoexec_script_version`
         where `script_id` = #{scriptId}
@@ -68,6 +98,39 @@
         <if test="needPage == true">
             limit #{startNum}, #{pageSize}
         </if>
+    </select>
+
+    <select id="getActiveVersionByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
+        select
+        `id`,
+        `script_id` as scriptId,
+        `version`,
+        `parser`,
+        `status`,
+        `reviewer`,
+        `is_active` as isActive,
+        `lcd`,
+        `lcu`
+        from `autoexec_script_version`
+        where `script_id` = #{value}
+        and `is_active` = 1
+    </select>
+
+    <select id="getLatestVersionByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
+        select
+        `id`,
+        `script_id` as scriptId,
+        `version`,
+        `parser`,
+        `status`,
+        `reviewer`,
+        `is_active` as isActive,
+        `lcd`,
+        `lcu`
+        from `autoexec_script_version`
+        where `script_id` = #{value}
+        order by `id` desc
+        limit 1
     </select>
 
     <select id="getParamListByVersionId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo">
@@ -98,10 +161,7 @@
         order by a.`line_number`
     </select>
 
-    <select id="searchScriptCount" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo" resultType="int">
-        select
-        count(`id`)
-        from `autoexec_script`
+    <sql id="searchScriptCondition">
         <where>
             <if test="keyword != null and keyword != ''">
                 and (`name` like CONCAT('%', #{keyword}, '%') or `uk` like CONCAT('%', #{keyword}, '%'))
@@ -119,6 +179,13 @@
                 and `status` = 'submitted'
             </if>
         </where>
+    </sql>
+
+    <select id="searchScriptCount" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo" resultType="int">
+        select
+        count(`id`)
+        from `autoexec_script`
+        <include refid="searchScriptCondition"/>
     </select>
 
     <select id="searchScript" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo"
@@ -139,27 +206,54 @@
         (select count(`id`) from `autoexec_script_version` where a.`id` = `script_id` and `status` = 'passed')
         as passedVersionCount
         from `autoexec_script` a
-        <where>
-            <if test="keyword != null and keyword != ''">
-                and (`name` like CONCAT('%', #{keyword}, '%') or `uk` like CONCAT('%', #{keyword}, '%'))
-            </if>
-            <if test="execMode != null and execMode != ''">
-                and `exec_mode` = #{execMode}
-            </if>
-            <if test="typeId != null">
-                and `type_id` = #{typeId}
-            </if>
-            <if test="riskId != null">
-                and `risk_id` = #{riskId}
-            </if>
-            <if test="isReviewing == 1">
-                and `status` = 'submitted'
-            </if>
-        </where>
+        <include refid="searchScriptCondition"/>
         order by `id` desc
         <if test="needPage == true">
             limit #{startNum}, #{pageSize}
         </if>
+    </select>
+
+    <sql id="getScriptReference">
+        from `autoexec_combop` a
+        join `autoexec_combop_phase` b
+        on a.`id` = b.`combop_id`
+        join `autoexec_combop_phase_operation` c
+        on b.`id` = c.`combop_phase_id`
+        where c.`operation_id` = #{value}
+        and c.`operation_type` = 'script'
+    </sql>
+
+    <select id="getReferenceCountByScriptId" parameterType="java.lang.Long" resultType="int">
+        select
+        count(a.`id`)
+        <include refid="getScriptReference"/>
+    </select>
+
+    <select id="getReferenceListByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
+        select
+        a.`id`,
+        a.`uk`,
+        a.`name`
+        <include refid="getScriptReference"/>
+    </select>
+
+    <select id="getOutputParamListByScriptIdList" parameterType="java.util.List" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo">
+        select
+        a.`script_version_id` as scriptVersionId,
+        a.`key`,
+        a.`default_value` as defaultValue,
+        a.`type`,
+        a.`handler`
+        from `autoexec_script_version_param` a
+        join `autoexec_script_version` b
+        on a.`script_version_id` = b.`id`
+        where
+        b.`is_active` = 1 and a.`type` = 'output'
+        and b.`script_id` in
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        group by a.`script_version_id`,a.`key`
     </select>
 
     <update id="updateScriptBaseInfo" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
