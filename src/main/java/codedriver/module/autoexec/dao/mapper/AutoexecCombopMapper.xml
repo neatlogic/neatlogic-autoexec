@@ -97,11 +97,7 @@
           AND `action` = #{action}
     </select>
 
-    <select id="getAutoexecCombopParamCountByCombopId" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo" resultType="int">
-        SELECT COUNT(`combop_id`) FROM `autoexec_combop_param` WHERE `combop_id` = #{combopId}
-    </select>
-
-    <select id="getAutoexecCombopParamListByCombopId" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo" resultType="codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo">
+    <select id="getAutoexecCombopParamListByCombopId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo">
         SELECT
             `combop_id` AS combopId,
             `key`,
@@ -111,7 +107,6 @@
             `type`
         FROM `autoexec_combop_param`
         WHERE `combop_id` = #{combopId}
-        LIMIT #{startNum}, #{pageSize}
     </select>
 
     <select id="getAutoexecCombopAuthorityListByCombopIdAndUserUuidAndTeamUuidListAndRoleUuidList" resultType="java.lang.String">
