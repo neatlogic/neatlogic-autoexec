@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 2021. TechSure Co., Ltd. All Rights Reserved.
+ * Copyright (c)  2021 TechSure Co.,Ltd.  All Rights Reserved.
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  */
 
@@ -9,28 +9,25 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.module.autoexec.service.AutoexecJobService;
+import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 
 /**
  * @author lvzk
- * @since 2021/4/12 11:20
+ * @since 2021/4/14 14:15
  **/
-
-@Transactional
 @Service
-@OperationType(type = OperationTypeEnum.CREATE)
-public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
+@OperationType(type = OperationTypeEnum.UPDATE)
+public class AutoexecJobConfigGetApi extends PrivateApiComponentBase {
     @Resource
-    AutoexecJobService autoexecService;
+    AutoexecJobMapper autoexecJobMapper;
 
     @Override
     public String getName() {
-        return "作业创建（来自操作组）";
+        return "获取对应剧本的所有剧本配置信息";
     }
 
     @Override
@@ -39,20 +36,23 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "操作组ID")
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
+            @Param(name = "jobPhaseId", type = ApiParamType.LONG, desc = "作业剧本Id")
     })
     @Output({
+
     })
-    @Description(desc = "作业创建（来自操作组）")
+    @Description(desc = "获取对应剧本的所有剧本配置信息")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-
-        autoexecService.saveAutoexecJob();
+        Long jobId = jsonObj.getLong("jobId");
+        Long jobPhaseId = jsonObj.getLong("jobPhaseId");
+        //return autoexecJobMapper.getJobDetailByJobId(jobId, jobPhaseId);
         return null;
     }
 
     @Override
     public String getToken() {
-        return "/autoexec/job/from/combop/create";
+        return "autoexec/job/config/get";
     }
 }

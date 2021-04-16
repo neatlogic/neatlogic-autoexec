@@ -213,6 +213,49 @@
         </if>
     </select>
 
+    <sql id="getScriptReference">
+        from `autoexec_combop` a
+        join `autoexec_combop_phase` b
+        on a.`id` = b.`combop_id`
+        join `autoexec_combop_phase_operation` c
+        on b.`id` = c.`combop_phase_id`
+        where c.`operation_id` = #{value}
+        and c.`operation_type` = 'script'
+    </sql>
+
+    <select id="getReferenceCountByScriptId" parameterType="java.lang.Long" resultType="int">
+        select
+        count(a.`id`)
+        <include refid="getScriptReference"/>
+    </select>
+
+    <select id="getReferenceListByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
+        select
+        a.`id`,
+        a.`uk`,
+        a.`name`
+        <include refid="getScriptReference"/>
+    </select>
+
+    <select id="getOutputParamListByScriptIdList" parameterType="java.util.List" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo">
+        select
+        a.`script_version_id` as scriptVersionId,
+        a.`key`,
+        a.`default_value` as defaultValue,
+        a.`type`,
+        a.`handler`
+        from `autoexec_script_version_param` a
+        join `autoexec_script_version` b
+        on a.`script_version_id` = b.`id`
+        where
+        b.`is_active` = 1 and a.`type` = 'output'
+        and b.`script_id` in
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        group by a.`script_version_id`,a.`key`
+    </select>
+
     <select id="getScriptAuditByScriptVersionIdAndOperate" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo">
         select
         `id`,

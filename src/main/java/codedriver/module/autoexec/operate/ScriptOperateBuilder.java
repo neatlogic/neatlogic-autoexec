@@ -54,8 +54,7 @@ public class ScriptOperateBuilder {
     }
 
     public ScriptOperateBuilder setTest() {
-        // todo 尚不确定需要何种权限
-        if (authList.contains(AUTOEXEC_SCRIPT_REVIEW.class.getSimpleName())) {
+        if (authList.contains(AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
             operateList.add(new ValueTextVo("test", "测试"));
         }
         return this;
