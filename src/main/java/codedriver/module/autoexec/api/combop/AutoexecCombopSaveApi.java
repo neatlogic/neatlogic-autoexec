@@ -48,9 +48,6 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
     @Resource
     private AutoexecTypeMapper autoexecTypeMapper;
 
-    @Resource
-    private NotifyMapper notifyMapper;
-
     /**
      * @return String
      * @Author: chenqiwei
@@ -85,12 +82,10 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "主键id"),
             @Param(name = "uk", type = ApiParamType.STRING, isRequired = true, minLength = 1, maxLength = 70, desc = "唯一名"),
             @Param(name = "name", type = ApiParamType.STRING, isRequired = true, minLength = 1, maxLength = 70, desc = "显示名"),
             @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
-            @Param(name = "typeId", type = ApiParamType.LONG, isRequired = true, desc = "类型id"),
-            @Param(name = "notifyPolicyId", type = ApiParamType.LONG, desc = "通知策略id")
+            @Param(name = "typeId", type = ApiParamType.LONG, isRequired = true, desc = "类型id")
     })
     @Output({
             @Param(name = "Return", type = ApiParamType.LONG, desc = "主键id")
@@ -99,6 +94,8 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecCombopVo autoexecCombopVo = JSON.toJavaObject(jsonObj, AutoexecCombopVo.class);
+        autoexecCombopVo.setId(null);
+        autoexecCombopVo.setNotifyPolicyId(null);
         if (autoexecCombopMapper.checkAutoexecCombopNameIsRepeat(autoexecCombopVo) != null) {
             new AutoexecCombopNameRepeatException(autoexecCombopVo.getName());
         }
@@ -108,21 +105,8 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
         if (autoexecTypeMapper.checkTypeIsExistsById(autoexecCombopVo.getTypeId()) == 0) {
             throw new AutoexecTypeNotFoundException(autoexecCombopVo.getTypeId());
         }
-        if (autoexecCombopVo.getNotifyPolicyId() != null) {
-            if (notifyMapper.checkNotifyPolicyIsExists(autoexecCombopVo.getNotifyPolicyId()) == 0) {
-                throw new NotifyPolicyNotFoundException(autoexecCombopVo.getNotifyPolicyId().toString());
-            }
-        }
-        Long id = jsonObj.getLong("id");
-        if (id == null) {
-            autoexecCombopVo.setOperationType(CombopOperationType.COMBOP.getValue());
-            autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
-        } else {
-            if (autoexecCombopMapper.checkAutoexecCombopIsExists(id) == 0) {
-                throw new AutoexecCombopNotFoundException(id);
-            }
-            autoexecCombopMapper.updateAutoexecCombop(autoexecCombopVo);
-        }
+        autoexecCombopVo.setOperationType(CombopOperationType.COMBOP.getValue());
+        autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
         return autoexecCombopVo.getId();
     }
 

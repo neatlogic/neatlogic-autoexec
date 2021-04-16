@@ -15,6 +15,7 @@ import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
+import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,6 +36,9 @@ public class AutoexecCombopIsActiveUpdateApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
+
+    @Resource
+    private AutoexecCombopService autoexecCombopService;
 
     /**
      * @return String
@@ -85,7 +89,8 @@ public class AutoexecCombopIsActiveUpdateApi extends PrivateApiComponentBase {
         }
         /** 如果是激活组合工具，则需要校验该组合工具配置正确 **/
         if (isActive == 0) {
-            //TODO linbq 0423
+            AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
+            autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo.getConfig());
         }
         AutoexecCombopVo autoexecCombopVo = new AutoexecCombopVo();
         autoexecCombopVo.setId(id);

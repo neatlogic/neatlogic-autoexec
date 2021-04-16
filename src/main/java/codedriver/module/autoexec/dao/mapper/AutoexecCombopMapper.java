@@ -54,11 +54,9 @@ public interface AutoexecCombopMapper {
 
     public int insertAutoexecCombopPhaseOperation(AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo);
 
-    public int updateAutoexecCombop(AutoexecCombopVo autoexecCombopVo);
+    public int updateAutoexecCombopById(AutoexecCombopVo autoexecCombopVo);
 
     public int updateAutoexecCombopIsActiveById(AutoexecCombopVo autoexecCombopVo);
-
-    public int updateAutoexecCombopConfigById(AutoexecCombopVo autoexecCombopVo);
 
     public int deleteAutoexecCombopById(Long id);
 
