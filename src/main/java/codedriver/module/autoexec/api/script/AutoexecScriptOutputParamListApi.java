@@ -6,7 +6,6 @@
 package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.auth.label.NO_AUTH;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_USE;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -21,7 +20,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 
 @Service
-@AuthAction(action = NO_AUTH.class)
+@AuthAction(action = AUTOEXEC_SCRIPT_USE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecScriptOutputParamListApi extends PrivateApiComponentBase {
 
