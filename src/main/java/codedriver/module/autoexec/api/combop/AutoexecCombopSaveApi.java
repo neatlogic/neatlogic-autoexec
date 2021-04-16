@@ -109,8 +109,6 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecCombopVo autoexecCombopVo = JSON.toJavaObject(jsonObj, AutoexecCombopVo.class);
-//        autoexecCombopVo.setId(null);
-//        autoexecCombopVo.setNotifyPolicyId(null);
         if (autoexecCombopMapper.checkAutoexecCombopNameIsRepeat(autoexecCombopVo) != null) {
             throw new AutoexecCombopNameRepeatException(autoexecCombopVo.getName());
         }
@@ -120,8 +118,6 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
         if (autoexecTypeMapper.checkTypeIsExistsById(autoexecCombopVo.getTypeId()) == 0) {
             throw new AutoexecTypeNotFoundException(autoexecCombopVo.getTypeId());
         }
-//        autoexecCombopVo.setOperationType(CombopOperationType.COMBOP.getValue());
-//        autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
         if (autoexecCombopVo.getNotifyPolicyId() != null) {
             if (notifyMapper.checkNotifyPolicyIsExists(autoexecCombopVo.getNotifyPolicyId()) == 0) {
                 throw new NotifyPolicyNotFoundException(autoexecCombopVo.getNotifyPolicyId().toString());
