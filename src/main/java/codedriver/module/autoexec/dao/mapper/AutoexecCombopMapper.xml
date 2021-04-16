@@ -139,6 +139,10 @@
             )
     </select>
 
+    <select id="getCombopPhaseIdListByCombopId" parameterType="java.lang.Long" resultType="java.lang.Long">
+        SELECT `id` FROM `autoexec_combop_phase` WHERE `combop_id` = #{value}
+    </select>
+
     <insert id="insertAutoexecCombop" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
         INSERT INTO `autoexec_combop` (
             `id`,
@@ -205,6 +209,48 @@
         </foreach>
     </insert>
 
+    <insert id="insertAutoexecCombopPhase" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseVo">
+        INSERT INTO `autoexec_combop_phase` (
+            `id`,
+            `combop_id`,
+            `uk`,
+            `name`,
+            `exec_mode`,
+            `config`,
+            `sort`
+        )
+        VALUES
+        (
+            #{id},
+            #{combopId},
+            #{uk},
+            #{name},
+            #{execMode},
+            #{configStr},
+            #{sort}
+        )
+    </insert>
+
+    <insert id="insertAutoexecCombopPhaseOperation" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseOperationVo">
+        INSERT INTO `autoexec_combop_phase_operation` (
+            `combop_phase_id`,
+            `operation_id`,
+            `operation_type`,
+            `fail_policy`,
+            `config`,
+            `sort`
+        )
+        VALUES
+        (
+            #{combopPhaseId},
+            #{operationId},
+            #{operationType},
+            #{failPolicy},
+            #{configStr},
+            #{sort}
+        )
+    </insert>
+
     <update id="updateAutoexecCombop" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
         UPDATE `autoexec_combop`
         SET
@@ -242,5 +288,21 @@
 
     <delete id="deleteAutoexecCombopAuthorityByCombopId" parameterType="java.lang.Long">
         DELETE FROM `autoexec_combop_authority` WHERE `combop_id` = #{value}
+    </delete>
+
+    <delete id="deleteAutoexecCombopParamByCombopId" parameterType="java.lang.Long">
+        DELETE FROM `autoexec_combop_param` WHERE `combop_id` = #{value}
+    </delete>
+
+    <delete id="deleteAutoexecCombopPhaseByCombopId" parameterType="java.lang.Long">
+        DELETE FROM `autoexec_combop_phase` WHERE `combop_id` = #{value}
+    </delete>
+
+    <delete id="deleteAutoexecCombopPhaseOperationByCombopPhaseIdList" parameterType="java.lang.Long">
+        DELETE FROM `autoexec_combop_phase_operation`
+        WHERE `combop_phase_id` IN
+        <foreach collection="list" item="combopPhaseId" open="(" separator="," close=")">
+            #{combopPhaseId}
+        </foreach>
     </delete>
 </mapper>

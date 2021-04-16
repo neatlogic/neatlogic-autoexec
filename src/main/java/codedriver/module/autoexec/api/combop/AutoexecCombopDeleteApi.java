@@ -13,10 +13,12 @@ import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * 删除组合工具接口
@@ -74,7 +76,14 @@ public class AutoexecCombopDeleteApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");
         if (autoexecCombopMapper.checkAutoexecCombopIsExists(id) > 0) {
+            List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
             autoexecCombopMapper.deleteAutoexecCombopById(id);
+            autoexecCombopMapper.deleteAutoexecCombopAuthorityByCombopId(id);
+            autoexecCombopMapper.deleteAutoexecCombopParamByCombopId(id);
+            if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
+                autoexecCombopMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
+            }
+            autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
         }
         return null;
     }
