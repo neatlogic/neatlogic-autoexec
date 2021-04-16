@@ -11,7 +11,7 @@ import org.springframework.stereotype.Service;
  * @since 2021/4/12 18:44
  **/
 @Service
-public class AutoexecServiceImpl implements AutoexecService{
+public class AutoexecJobServiceImpl implements AutoexecJobService {
 
     @Override
     public void saveAutoexecJob(){
