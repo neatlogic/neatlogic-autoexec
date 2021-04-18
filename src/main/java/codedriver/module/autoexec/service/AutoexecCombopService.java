@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.service;
 
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
+import com.alibaba.fastjson.JSONObject;
 
 /**
  * @author: linbq
@@ -19,4 +20,15 @@ public interface AutoexecCombopService {
      * @param autoexecCombopVo 组合工具Vo对象
      */
     public void setOperableButtonList(AutoexecCombopVo autoexecCombopVo);
+
+    /**
+     * 校验组合工具每个阶段是否配置正确
+     * 校验规则
+     * 1.每个阶段至少选择了一个工具
+     * 2.引用上游出参或顶层参数，能找到来源（防止修改顶层参数或插件排序、或修改顶层参数带来的影响）
+     *
+     * @param autoexecCombopVo 组合工具Vo对象
+     * @return
+     */
+    public boolean verifyAutoexecCombopConfig(AutoexecCombopVo autoexecCombopVo);
 }

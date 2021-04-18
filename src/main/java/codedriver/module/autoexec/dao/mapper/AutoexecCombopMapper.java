@@ -31,9 +31,7 @@ public interface AutoexecCombopMapper {
 
     public List<AutoexecCombopAuthorityVo> getAutoexecCombopAuthorityListByCombopIdAndAction(@Param("combopId") Long combopId, @Param("action") String action);
 
-    public int getAutoexecCombopParamCountByCombopId(AutoexecCombopParamVo searchVo);
-
-    public List<AutoexecCombopParamVo> getAutoexecCombopParamListByCombopId(AutoexecCombopParamVo searchVo);
+    public List<AutoexecCombopParamVo> getAutoexecCombopParamListByCombopId(Long combopId);
 
     public List<String> getAutoexecCombopAuthorityListByCombopIdAndUserUuidAndTeamUuidListAndRoleUuidList(
             @Param("combopId") Long combopId,
@@ -54,11 +52,9 @@ public interface AutoexecCombopMapper {
 
     public int insertAutoexecCombopPhaseOperation(AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo);
 
-    public int updateAutoexecCombop(AutoexecCombopVo autoexecCombopVo);
+    public int updateAutoexecCombopById(AutoexecCombopVo autoexecCombopVo);
 
     public int updateAutoexecCombopIsActiveById(AutoexecCombopVo autoexecCombopVo);
-
-    public int updateAutoexecCombopConfigById(AutoexecCombopVo autoexecCombopVo);
 
     public int deleteAutoexecCombopById(Long id);
 
