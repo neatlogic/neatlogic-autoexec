@@ -5,12 +5,18 @@
 
 package codedriver.module.autoexec.api.job;
 
+import codedriver.framework.autoexec.constvalue.CombopOperationType;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
+import codedriver.framework.autoexec.exception.AutoexecCombopOperationNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecJobThreadCountException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.module.autoexec.service.AutoexecService;
+import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,11 +32,14 @@ import javax.annotation.Resource;
 @OperationType(type = OperationTypeEnum.CREATE)
 public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
     @Resource
-    AutoexecService autoexecService;
+    AutoexecJobService autoexecJobService;
+
+    @Resource
+    AutoexecCombopMapper autoexecCombopMapper;
 
     @Override
     public String getName() {
-        return "作业创建（来自操作组）";
+        return "作业创建（来自组合工具）";
     }
 
     @Override
@@ -39,15 +48,28 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "操作组ID")
+            @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "组合工具ID"),
+            @Param(name = "source", type = ApiParamType.STRING, desc = "来源 itsm|human   ITSM|人工发起的等，不传默认是人工发起的"),
+            @Param(name = "threadCount", type = ApiParamType.LONG,  isRequired = true, desc = "并发线程,2的n次方 ")
     })
     @Output({
     })
-    @Description(desc = "作业创建（来自操作组）")
+    @Description(desc = "作业创建（来自组合工具）")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-
-        autoexecService.saveAutoexecJob();
+        Long combopId = jsonObj.getLong("combopId");
+        //TODO 权限校验
+        String operationType = jsonObj.getString("operationType");
+        Integer threadCount = jsonObj.getInteger("threadCount");
+        if(StringUtils.isBlank(CombopOperationType.getText(operationType))){
+            throw new AutoexecCombopOperationNotFoundException(operationType);
+        }
+        //并发数必须是2的n次方
+        if ((threadCount & (threadCount - 1)) != 0) {
+            throw new AutoexecJobThreadCountException();
+        }
+        AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
+        autoexecJobService.saveAutoexecCombopJob(combopVo,jsonObj.getString("source"),threadCount);
         return null;
     }
 
