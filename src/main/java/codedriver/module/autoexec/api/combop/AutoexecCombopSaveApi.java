@@ -6,6 +6,8 @@
 package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseOperationVo;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -23,12 +25,16 @@ import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.framework.autoexec.exception.AutoexecCombopNameRepeatException;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecCombopUkRepeatException;
+import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * 保存组合工具基本信息接口
@@ -47,6 +53,9 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecTypeMapper autoexecTypeMapper;
+
+    @Resource
+    private AutoexecCombopService autoexecCombopService;
 
     @Resource
     private NotifyMapper notifyMapper;
@@ -90,7 +99,8 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             @Param(name = "name", type = ApiParamType.STRING, isRequired = true, minLength = 1, maxLength = 70, desc = "显示名"),
             @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
             @Param(name = "typeId", type = ApiParamType.LONG, isRequired = true, desc = "类型id"),
-            @Param(name = "notifyPolicyId", type = ApiParamType.LONG, desc = "通知策略id")
+            @Param(name = "notifyPolicyId", type = ApiParamType.LONG, desc = "通知策略id"),
+            @Param(name = "config", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "配置信息")
     })
     @Output({
             @Param(name = "Return", type = ApiParamType.LONG, desc = "主键id")
@@ -100,10 +110,10 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecCombopVo autoexecCombopVo = JSON.toJavaObject(jsonObj, AutoexecCombopVo.class);
         if (autoexecCombopMapper.checkAutoexecCombopNameIsRepeat(autoexecCombopVo) != null) {
-            new AutoexecCombopNameRepeatException(autoexecCombopVo.getName());
+            throw new AutoexecCombopNameRepeatException(autoexecCombopVo.getName());
         }
         if (autoexecCombopMapper.checkAutoexecCombopUkIsRepeat(autoexecCombopVo) != null) {
-            new AutoexecCombopUkRepeatException(autoexecCombopVo.getUk());
+            throw new AutoexecCombopUkRepeatException(autoexecCombopVo.getUk());
         }
         if (autoexecTypeMapper.checkTypeIsExistsById(autoexecCombopVo.getTypeId()) == 0) {
             throw new AutoexecTypeNotFoundException(autoexecCombopVo.getTypeId());
@@ -121,8 +131,47 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             if (autoexecCombopMapper.checkAutoexecCombopIsExists(id) == 0) {
                 throw new AutoexecCombopNotFoundException(id);
             }
-            autoexecCombopMapper.updateAutoexecCombop(autoexecCombopVo);
+            JSONObject config = autoexecCombopVo.getConfig();
+            /** 保存前，校验组合工具是否配置正确，不正确不可以保存 **/
+            autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo);
+            List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
+
+            if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
+                autoexecCombopMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
+            }
+            autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
+
+            JSONArray combopPhaseList = config.getJSONArray("combopPhaseList");
+            for (int i = 0; i < combopPhaseList.size(); i++) {
+                AutoexecCombopPhaseVo autoexecCombopPhaseVo = combopPhaseList.getObject(i, AutoexecCombopPhaseVo.class);
+                if (autoexecCombopPhaseVo != null) {
+                    autoexecCombopPhaseVo.setCombopId(id);
+                    autoexecCombopPhaseVo.setSort(i);
+                    JSONObject phaseConfig = autoexecCombopPhaseVo.getConfig();
+                    JSONArray phaseOperationList = phaseConfig.getJSONArray("phaseOperationList");
+                    Long combopPhaseId = autoexecCombopPhaseVo.getId();
+                    for (int j = 0; j < phaseOperationList.size(); j++) {
+                        AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo = phaseOperationList.getObject(j, AutoexecCombopPhaseOperationVo.class);
+                        if (autoexecCombopPhaseOperationVo != null) {
+                            autoexecCombopPhaseOperationVo.setSort(i);
+                            autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
+                            autoexecCombopMapper.insertAutoexecCombopPhaseOperation(autoexecCombopPhaseOperationVo);
+                        }
+                    }
+                    autoexecCombopMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);
+                    JSONArray phaseNodeList = phaseConfig.getJSONArray("phaseNodeList");
+                    if (CollectionUtils.isNotEmpty(phaseNodeList)) {
+                        //TODO linbq
+                    }
+                }
+            }
+            JSONArray combopNodeList = config.getJSONArray("combopNodeList");
+            if (CollectionUtils.isNotEmpty(combopNodeList)) {
+                //TODO linbq
+            }
+            autoexecCombopMapper.updateAutoexecCombopById(autoexecCombopVo);
         }
+
         return autoexecCombopVo.getId();
     }
 

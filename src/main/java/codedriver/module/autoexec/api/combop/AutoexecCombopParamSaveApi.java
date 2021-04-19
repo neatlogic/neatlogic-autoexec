@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 保存组合工具全局参数接口
+ * 保存组合工具顶层参数接口
  *
  * @author: linbq
  * @since: 2021/4/13 11:21
@@ -61,7 +61,7 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
      */
     @Override
     public String getName() {
-        return "保存组合工具全局参数";
+        return "保存组合工具顶层参数";
     }
 
     /**
@@ -79,7 +79,7 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
             @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "主键id"),
             @Param(name = "paramList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "参数列表[{\"key\": \"参数名\", \"value\": \"参数值\", \"description\": \"描述\", \"isRequired\": \"是否必填\", \"type\": \"参数类型\"}]")
     })
-    @Description(desc = "保存组合工具全局参数")
+    @Description(desc = "保存组合工具顶层参数")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long combopId = jsonObj.getLong("combopId");

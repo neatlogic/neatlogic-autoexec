@@ -6,10 +6,13 @@
 package codedriver.module.autoexec.dao.mapper;
 
 import codedriver.framework.autoexec.dto.job.*;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 public interface AutoexecJobMapper {
     //job
-   /* List<Long> searchJobId(AutoexecJobVo jobVo);
+    List<Long> searchJobId(AutoexecJobVo jobVo);
 
     List<AutoexecJobVo> searchJob(List<Long> jobIdList);
 
@@ -17,9 +20,9 @@ public interface AutoexecJobMapper {
 
     AutoexecJobVo getJobDetailByJobId(Long jobId, Long jobPhaseId);
 
-    int searchJobCount(AutoexecJobVo jobVo);
+    Integer searchJobCount(AutoexecJobVo jobVo);
 
-    int checkIsJobUser(@Param("jobId") Long jobId, @Param("userList") List<String> userList);
+    Integer checkIsJobUser(@Param("jobId") Long jobId, @Param("userList") List<String> userList);
 
     //jobPhase
     List<AutoexecJobPhaseVo> getJobPhaseListByJobId(Long jobId);
@@ -33,18 +36,18 @@ public interface AutoexecJobMapper {
 
     int searchJobPhaseNodeCount(AutoexecJobPhaseNodeVo jobPhaseNodeVo);
 
-    List<AutoexecJobPhaseNodeStatusCountVo> getJobPhaseNodeStatusCount(Long jobId);*/
+    List<AutoexecJobPhaseNodeStatusCountVo> getJobPhaseNodeStatusCount(Long jobId);
 
 
-    int insertJob(AutoexecJobVo jobVo);
+    Integer insertJob(AutoexecJobVo jobVo);
 
-    int insertJobPhase(AutoexecJobPhaseVo jobVo);
+    Integer insertJobPhase(AutoexecJobPhaseVo jobVo);
 
-    int insertJobPhaseNode(AutoexecJobPhaseNodeVo jobVo);
+    Integer insertJobPhaseNode(AutoexecJobPhaseNodeVo jobVo);
 
-    int insertJobPhaseOperation(AutoexecJobPhaseOperationVo operationVo);
+    Integer insertJobPhaseOperation(AutoexecJobPhaseOperationVo operationVo);
 
-    int insertJobParamContent(AutoexecJobParamContentVo contentVo);
+    Integer insertJobParamContent(AutoexecJobParamContentVo contentVo);
 
-    int updateJobPhaseStatus(AutoexecJobPhaseVo autoexecJobPhaseVo);
+    Integer updateJobPhaseStatus(AutoexecJobPhaseVo autoexecJobPhaseVo);
 }

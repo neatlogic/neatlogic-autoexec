@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright(c) 2021 TechSureCo.,Ltd.AllRightsReserved.
+  ~ 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
+  -->
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecJobMapper">
-   <!-- <select id="searchJobId" resultType="java.lang.Long">
+    <select id="searchJobId" resultType="java.lang.Long">
         SELECT
         distinct aj.`id`
         FROM
@@ -134,7 +138,7 @@
         count(ajpn.`id`)
         FROM
         `autoexec_job_phase_node` ajpn
-        LEFT JOIN `autoexec_node` an ON a.`host` = an.`host` AND a.`port` = an.`port`
+        LEFT JOIN `autoexec_node` an ON ajpn.`host` = an.`host` AND ajpn.`port` = an.`port`
         <where>
             <include refid="searchJobPhaseNodeSql"/>
         </where>
@@ -143,21 +147,21 @@
     <select id="getJobPhaseListByJobId" parameterType="java.lang.Long"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
         SELECT `id`,
-               `job_id`            as jobId,
+               `job_id`     as jobId,
                `status`,
-               `start_time`        as startTime,
-               `end_time`          as endTime,
-               `exec_user`         as execUser,
+               `start_time` as startTime,
+               `end_time`   as endTime,
+               `exec_user`  as execUser,
                `exec_mode as execMode`,
-               `combop_phase_name` as combopPhaseName,
-               `combop_phase_uk`   as combopPhaseUk
+               `name`       as name,
+               `uk`         as uk
         FROM `autoexec_job_phase`
         where `job_id` = #{value}
     </select>
 
     <select id="getJobPhaseNodeStatusCount" parameterType="java.lang.Long"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeStatusCountVo">
-        SELECT `job_phase_id`, `status`, COUNT(1) AS `count`
+        SELECT `job_phase_id` as jobPhaseId, `status`, COUNT(1) AS `count`
         FROM `autoexec_job_phase_node`
         WHERE `job_id` = #{value}
         GROUP BY `job_phase_id`, `status`
@@ -207,14 +211,15 @@
                job_id as jobId,
                `status`
         FROM `autoexec_job_phase`
-        WHERE `job_id` = #{jobId} and `uk` = #{jobPhaseUk} FOR
+        WHERE `job_id` = #{jobId}
+          and `uk` = #{jobPhaseUk} FOR
         UPDATE
     </select>
 
     <resultMap id="jobMap" type="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
         <id column="id" property="id"/>
         <result column="name" property="name"/>
-        <result column="param" property="param"/>
+        <result column="paramStr" property="paramStr"/>
         <collection property="phaseList" ofType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
             <id column="phaseId" property="id"/>
             <result column="phaseName" property="name"/>
@@ -228,15 +233,15 @@
                 <result column="parser" property="parser"/>
                 <result column="execMode" property="execMode"/>
                 <result column="failPolicy" property="failPolicy"/>
-                <result column="operationParam" property="param"/>
+                <result column="operationParam" property="paramStr"/>
             </collection>
         </collection>
     </resultMap>
 
-    <select id="getJobDetailByJobId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
+    <select id="getJobDetailByJobId" parameterType="java.lang.Long" resultMap="jobMap">
         SELECT aj.`id`,
         aj.`name`,
-        ajpc.`content` AS param,
+        ajpc.`content` AS paramStr,
         ajp.`id` AS phaseId,
         ajp.`name` AS phaseName,
         ajp.`uk` AS phaseUk,
@@ -259,7 +264,7 @@
                 and ajp.`id` = #{jobPhaseId}
             </if>
         </where>
-    </select>-->
+    </select>
 
     <insert id="insertJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
         INSERT INTO `autoexec_job` (`id`,

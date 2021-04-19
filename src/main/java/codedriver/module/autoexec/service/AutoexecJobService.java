@@ -5,12 +5,17 @@
 
 package codedriver.module.autoexec.service;
 
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
+
 /**
  * @since 2021/4/12 18:44
  **/
 public interface AutoexecJobService {
     /**
      * 通过combopVo保存作业配置
+     * @param combopVo 组合工具vo
+     * @param source 来源
+     * @param threadCount 并发线程数
      */
-    void saveAutoexecJob();
+    void saveAutoexecCombopJob(AutoexecCombopVo combopVo,String source,Integer threadCount);
 }

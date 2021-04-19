@@ -28,14 +28,14 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 查询组合工具全局参数列表接口
+ * 查询组合工具顶层参数列表接口
  *
  * @author: linbq
  * @since: 2021/4/13 11:21
  **/
 @Service
 @Transactional
-@AuthAction(action= AUTOEXEC_COMBOP_MODIFY.class)
+@AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecCombopParamListApi extends PrivateApiComponentBase {
 
@@ -61,7 +61,7 @@ public class AutoexecCombopParamListApi extends PrivateApiComponentBase {
      */
     @Override
     public String getName() {
-        return "查询组合工具全局参数列表";
+        return "查询组合工具顶层参数列表";
     }
 
     /**
@@ -76,37 +76,19 @@ public class AutoexecCombopParamListApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "主键id"),
-            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页数"),
-            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页条数")
+            @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "主键id")
     })
     @Output({
-            @Param(explode = BasePageVo.class),
-            @Param(name = "list", explode = AutoexecCombopParamVo[].class, desc = "参数列表")
+            @Param(explode = AutoexecCombopParamVo[].class, desc = "参数列表")
     })
-    @Description(desc = "查询组合工具全局参数列表")
+    @Description(desc = "查询组合工具顶层参数列表")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        AutoexecCombopParamVo searchVo = JSON.toJavaObject(jsonObj, AutoexecCombopParamVo.class);
-        Long combopId = searchVo.getCombopId();
-        if(autoexecCombopMapper.checkAutoexecCombopIsExists(combopId) == 0){
+        Long combopId = jsonObj.getLong("combopId");
+        if (autoexecCombopMapper.checkAutoexecCombopIsExists(combopId) == 0) {
             throw new AutoexecCombopNotFoundException(combopId);
         }
-        JSONObject resultObj = new JSONObject();
-        int pageCount = 0;
-        int rowNum = autoexecCombopMapper.getAutoexecCombopParamCountByCombopId(searchVo);
-        if(rowNum > 0){
-            pageCount = PageUtil.getPageCount(rowNum, searchVo.getPageSize());
-            List<AutoexecCombopParamVo> autoexecCombopParamVoList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(searchVo);
-            resultObj.put("list", autoexecCombopParamVoList);
-        }else{
-            resultObj.put("list", new ArrayList<>());
-        }
-        resultObj.put("currentPage", searchVo.getCurrentPage());
-        resultObj.put("pageSize", searchVo.getPageSize());
-        resultObj.put("pageCount", pageCount);
-        resultObj.put("rowNum", rowNum);
-        return resultObj;
+        return autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopId);
     }
 
 }

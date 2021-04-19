@@ -97,11 +97,7 @@
           AND `action` = #{action}
     </select>
 
-    <select id="getAutoexecCombopParamCountByCombopId" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo" resultType="int">
-        SELECT COUNT(`combop_id`) FROM `autoexec_combop_param` WHERE `combop_id` = #{combopId}
-    </select>
-
-    <select id="getAutoexecCombopParamListByCombopId" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo" resultType="codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo">
+    <select id="getAutoexecCombopParamListByCombopId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo">
         SELECT
             `combop_id` AS combopId,
             `key`,
@@ -111,7 +107,6 @@
             `type`
         FROM `autoexec_combop_param`
         WHERE `combop_id` = #{combopId}
-        LIMIT #{startNum}, #{pageSize}
     </select>
 
     <select id="getAutoexecCombopAuthorityListByCombopIdAndUserUuidAndTeamUuidListAndRoleUuidList" resultType="java.lang.String">
@@ -251,7 +246,7 @@
         )
     </insert>
 
-    <update id="updateAutoexecCombop" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
+    <update id="updateAutoexecCombopById" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
         UPDATE `autoexec_combop`
         SET
             `uk` = #{uk},
@@ -259,6 +254,7 @@
             `description` = #{description},
             `type_id` = #{typeId},
             `notify_policy_id` = #{notifyPolicyId},
+            `config` = #{configStr},
             `lcd` = NOW(3),
             `lcu` = #{lcu}
         WHERE `id` = #{id}
@@ -268,15 +264,6 @@
         UPDATE `autoexec_combop`
         SET
             `is_active` = !`is_active`,
-            `lcd` = NOW(3),
-            `lcu` = #{lcu}
-        WHERE `id` = #{id}
-    </update>
-
-    <update id="updateAutoexecCombopConfigById" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
-        UPDATE `autoexec_combop`
-        SET
-            `config` = #{configStr},
             `lcd` = NOW(3),
             `lcu` = #{lcu}
         WHERE `id` = #{id}
