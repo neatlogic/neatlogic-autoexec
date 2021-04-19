@@ -337,6 +337,58 @@
         </if>
     </select>
 
+    <resultMap id="autoexecToolAndScriptMap" type="codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo">
+        <id column="id" property="id"/>
+        <result column="uk" property="uk"/>
+        <result column="name" property="name"/>
+        <result column="type" property="type"/>
+        <result column="execMode" property="execMode"/>
+        <result column="typeId" property="typeId"/>
+        <result column="typeName" property="typeName"/>
+        <result column="riskId" property="riskId"/>
+        <result column="riskName" property="riskName"/>
+        <result column="riskColor" property="riskColor"/>
+        <collection property="paramList" ofType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo">
+            <result property="key" column="key"/>
+            <result property="defaultValue" column="defaultValue"/>
+            <result property="type" column="paramType"/>
+            <result property="handler" column="handler"/>
+            <result property="isRequired" column="isRequired"/>
+            <result property="description" column="description"/>
+        </collection>
+    </resultMap>
+
+    <select id="getScriptListByIdList" parameterType="java.util.List" resultMap="autoexecToolAndScriptMap">
+        select
+        a.`id`,
+        a.`uk`,
+        a.`name`,
+        'script' as `type`,
+        a.`exec_mode` as execMode,
+        a.`type_id` as typeId,
+        (select `name` from `autoexec_type` where a.`type_id` = `id`) as typeName,
+        a.`risk_id` as riskId,
+        (select `name` from `autoexec_risk` where a.`risk_id` = `id`) as riskName,
+        (select `color` from `autoexec_risk` where a.`risk_id` = `id`) as riskColor,
+        c.`key`,
+        c.`default_value` as defaultValue,
+        c.`type` as paramType,
+        c.`handler`,
+        c.`is_required` as isRequired,
+        c.`description`
+        from
+        `autoexec_script` a
+        join `autoexec_script_version` b
+        on a.`id` = b.`script_id`
+        join `autoexec_script_version_param` c
+        on b.`id` = c.`script_version_id`
+        where b.`is_active` = 1
+        and a.`id` in
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
     <sql id="getScriptReference">
         from `autoexec_combop` a
         join `autoexec_combop_phase` b

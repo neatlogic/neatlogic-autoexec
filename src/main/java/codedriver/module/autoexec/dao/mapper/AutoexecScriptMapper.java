@@ -47,6 +47,8 @@ public interface AutoexecScriptMapper {
 
     public List<AutoexecToolAndScriptVo> searchScriptAndTool(AutoexecToolAndScriptVo searchVo);
 
+    public List<AutoexecToolAndScriptVo> getScriptListByIdList(List<Long> idList);
+
     public int getReferenceCountByScriptId(Long scriptId);
 
     public List<AutoexecCombopVo> getReferenceListByScriptId(Long scriptId);

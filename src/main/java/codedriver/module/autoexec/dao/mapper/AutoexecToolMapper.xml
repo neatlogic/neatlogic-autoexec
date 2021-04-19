@@ -2,5 +2,25 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecToolMapper">
 
+    <select id="getToolListByIdList" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo">
+        select
+        `id`,
+        `uk`,
+        `name`,
+        'tool' as `type`,
+        `exec_mode` as execMode,
+        `type_id` as typeId,
+        (select `name` from `autoexec_type` where `type_id` = `id`) as typeName,
+        `risk_id` as riskId,
+        (select `name` from `autoexec_risk` where `risk_id` = `id`) as riskName,
+        (select `color` from `autoexec_risk` where `risk_id` = `id`) as riskColor
+        from `autoexec_tool`
+        where `is_active` = 1
+        and `id` in
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
 </mapper>
 
