@@ -380,7 +380,7 @@
         `autoexec_script` a
         join `autoexec_script_version` b
         on a.`id` = b.`script_id`
-        join `autoexec_script_version_param` c
+        left join `autoexec_script_version_param` c
         on b.`id` = c.`script_version_id`
         where b.`is_active` = 1
         and a.`id` in
