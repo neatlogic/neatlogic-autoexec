@@ -112,7 +112,6 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         script.setVersionVo(version);
         version.setParamList(autoexecScriptMapper.getParamListByVersionId(version.getId()));
         version.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
-        // todo 如果是已驳回状态，要查询驳回原因
         script.setReferenceCount(autoexecScriptMapper.getReferenceCountByScriptId(id));
         List<AutoexecCombopVo> combopList = autoexecScriptMapper.getReferenceListByScriptId(id);
         script.setCombopList(combopList);
@@ -126,7 +125,6 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
                 }
             }
         }
-        // todo 关联的流水线
         // 获取操作按钮
         List<UserAuthVo> authList = userMapper.searchUserAllAuthByUserAuth(new UserAuthVo(UserContext.get().getUserUuid()));
         if (CollectionUtils.isNotEmpty(authList)) {
