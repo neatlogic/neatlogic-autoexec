@@ -16,11 +16,15 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_USE;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecToolMapper;
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -32,6 +36,9 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
+
+    @Resource
+    private AutoexecToolMapper autoexecToolMapper;
 
     @Override
     public String getToken() {
@@ -50,9 +57,10 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "type", type = ApiParamType.ENUM, rule = "tool,script", desc = "类别(工具；脚本)"),
-            @Param(name = "execMode", type = ApiParamType.ENUM, rule = "local,remote,localremote", isRequired = true, desc = "执行方式"),
+            @Param(name = "execMode", type = ApiParamType.ENUM, rule = "local,remote,localremote", desc = "执行方式"),
             @Param(name = "typeIdList", type = ApiParamType.JSONARRAY, desc = "分类ID列表"),
             @Param(name = "riskIdList", type = ApiParamType.JSONARRAY, desc = "操作级别ID列表"),
+            @Param(name = "valueList", type = ApiParamType.JSONARRAY, desc = "用于回显的工具或脚本ID列表"),
             @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
             @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
             @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
@@ -66,9 +74,19 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
-        AutoexecToolAndScriptVo searchVo = JSON.toJavaObject(jsonObj, AutoexecToolAndScriptVo.class);
-        List<AutoexecToolAndScriptVo> tbodyList = autoexecScriptMapper.searchScriptAndTool(searchVo);
+        List<AutoexecToolAndScriptVo> tbodyList = new ArrayList<>();
         result.put("tbodyList", tbodyList);
+        AutoexecToolAndScriptVo searchVo = JSON.toJavaObject(jsonObj, AutoexecToolAndScriptVo.class);
+        JSONArray valueList = jsonObj.getJSONArray("valueList");
+        if (CollectionUtils.isNotEmpty(valueList)) {
+            List<Long> idList = valueList.toJavaList(Long.class);
+            List<AutoexecToolAndScriptVo> toolList = autoexecToolMapper.getToolListByIdList(idList);
+            List<AutoexecToolAndScriptVo> scriptList = autoexecScriptMapper.getScriptListByIdList(idList);
+            tbodyList.addAll(toolList);
+            tbodyList.addAll(scriptList);
+            return result;
+        }
+        tbodyList.addAll(autoexecScriptMapper.searchScriptAndTool(searchVo));
         if (searchVo.getNeedPage()) {
             int rowNum = autoexecScriptMapper.searchScriptAndToolCount(searchVo);
             searchVo.setRowNum(rowNum);
