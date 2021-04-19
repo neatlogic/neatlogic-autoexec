@@ -49,8 +49,9 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "组合工具ID"),
+            @Param(name = "jobParamList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "运行参数"),
             @Param(name = "source", type = ApiParamType.STRING, desc = "来源 itsm|human   ITSM|人工发起的等，不传默认是人工发起的"),
-            @Param(name = "threadCount", type = ApiParamType.LONG,  isRequired = true, desc = "并发线程,2的n次方 ")
+            @Param(name = "threadCount", type = ApiParamType.LONG, isRequired = true, desc = "并发线程,2的n次方 ")
     })
     @Output({
     })
@@ -61,7 +62,7 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
         //TODO 权限校验
         String operationType = jsonObj.getString("operationType");
         Integer threadCount = jsonObj.getInteger("threadCount");
-        if(StringUtils.isBlank(CombopOperationType.getText(operationType))){
+        if (StringUtils.isBlank(CombopOperationType.getText(operationType))) {
             throw new AutoexecCombopOperationNotFoundException(operationType);
         }
         //并发数必须是2的n次方
@@ -69,7 +70,7 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
             throw new AutoexecJobThreadCountException();
         }
         AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
-        autoexecJobService.saveAutoexecCombopJob(combopVo,jsonObj.getString("source"),threadCount);
+        autoexecJobService.saveAutoexecCombopJob(combopVo, jsonObj.getString("source"), threadCount, jsonObj.getJSONArray("jobParamList"));
         return null;
     }
 

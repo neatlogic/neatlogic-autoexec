@@ -5,7 +5,11 @@
 
 package codedriver.module.autoexec.dao.mapper;
 
+import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
+
+import java.util.List;
+
 public interface AutoexecToolMapper {
 
-
+    public List<AutoexecToolAndScriptVo> getToolListByIdList(List<Long> idList);
 }
