@@ -5,8 +5,14 @@
 
 package codedriver.module.autoexec.dao.mapper;
 
+import codedriver.framework.common.dto.ValueTextVo;
+
+import java.util.List;
+
 public interface AutoexecRiskMapper {
 
     public int checkRiskIsExistsById(Long id);
+
+    public List<ValueTextVo> getAllActiveRisk();
 
 }
