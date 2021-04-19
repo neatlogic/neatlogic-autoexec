@@ -1,7 +1,11 @@
 <?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright(c) 2021 TechSureCo.,Ltd.AllRightsReserved.
+  ~ 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
+  -->
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecJobMapper">
-    <select id="searchAutoexecJobId" resultType="java.lang.Long">
+    <select id="searchJobId" resultType="java.lang.Long">
         SELECT
         distinct aj.`id`
         FROM
@@ -19,7 +23,7 @@
         limit #{startNum}, #{pageSize}
     </select>
 
-    <select id="searchAutoexecJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo"
+    <select id="searchJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
         SELECT
         aj.`id`,
@@ -43,7 +47,7 @@
         order by aj.`id` desc
     </select>
 
-    <select id="searchAutoexecJobCount" resultType="java.lang.Integer"
+    <select id="searchJobCount" resultType="java.lang.Integer"
             parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
         SELECT
         count(distinct aj.`id`)
@@ -107,7 +111,7 @@
         </if>
     </sql>
 
-    <select id="searchAutoexecJobPhaseNode" resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
+    <select id="searchJobPhaseNode" resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
         SELECT
         ajpn.`id`,
         ajpn.`job_phase_id` as jobPhaseId,
@@ -129,12 +133,12 @@
         limit #{startNum}, #{pageSize}
     </select>
 
-    <select id="searchAutoexecJobPhaseNodeCount" resultType="java.lang.Integer">
+    <select id="searchJobPhaseNodeCount" resultType="java.lang.Integer">
         SELECT
         count(ajpn.`id`)
         FROM
         `autoexec_job_phase_node` ajpn
-        LEFT JOIN `autoexec_node` an ON a.`host` = an.`host` AND a.`port` = an.`port`
+        LEFT JOIN `autoexec_node` an ON ajpn.`host` = an.`host` AND ajpn.`port` = an.`port`
         <where>
             <include refid="searchJobPhaseNodeSql"/>
         </where>
@@ -143,27 +147,27 @@
     <select id="getJobPhaseListByJobId" parameterType="java.lang.Long"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
         SELECT `id`,
-               `job_id`            as jobId,
+               `job_id`     as jobId,
                `status`,
-               `start_time`        as startTime,
-               `end_time`          as endTime,
-               `exec_user`         as execUser,
+               `start_time` as startTime,
+               `end_time`   as endTime,
+               `exec_user`  as execUser,
                `exec_mode as execMode`,
-               `combop_phase_name` as combopPhaseName,
-               `combop_phase_uk`   as combopPhaseUk
+               `name`       as name,
+               `uk`         as uk
         FROM `autoexec_job_phase`
         where `job_id` = #{value}
     </select>
 
     <select id="getJobPhaseNodeStatusCount" parameterType="java.lang.Long"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeStatusCountVo">
-        SELECT `job_phase_id`, `status`, COUNT(1) AS `count`
+        SELECT `job_phase_id` as jobPhaseId, `status`, COUNT(1) AS `count`
         FROM `autoexec_job_phase_node`
         WHERE `job_id` = #{value}
         GROUP BY `job_phase_id`, `status`
     </select>
 
-    <select id="getAutoexecJobInfo" parameterType="java.lang.Long"
+    <select id="getJobInfo" parameterType="java.lang.Long"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
         SELECT aj.`id`,
                aj.`name`,
@@ -182,14 +186,87 @@
         WHERE aj.`id` = #{value}
     </select>
 
-    <select id="checkIsAutoexecJobUser" resultType="java.lang.Integer">
+    <select id="checkIsJobUser" resultType="java.lang.Integer">
         select count(1)
         from `autoexec_job_user`
         where `job_id` = #{jobId}
-          and `user` = #{user}
+        and `user` in
+        <foreach collection="userList" item="user" open="(" close=")" separator=",">
+            #{user}
+        </foreach>
+    </select>
+    <select id="getJobPhaseLockByPhaseId" parameterType="java.lang.Long"
+            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
+        SELECT id,
+               job_id as jobId,
+               `status`
+        FROM `autoexec_job_phase`
+        WHERE id = #{value} FOR
+        UPDATE
     </select>
 
-    <insert id="insertAutoexecJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
+    <select id="getJobPhaseLockByJobIdAndPhaseUk"
+            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
+        SELECT id,
+               job_id as jobId,
+               `status`
+        FROM `autoexec_job_phase`
+        WHERE `job_id` = #{jobId}
+          and `uk` = #{jobPhaseUk} FOR
+        UPDATE
+    </select>
+
+    <resultMap id="jobMap" type="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="paramStr" property="paramStr"/>
+        <collection property="phaseList" ofType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
+            <id column="phaseId" property="id"/>
+            <result column="phaseName" property="name"/>
+            <result column="phaseUk" property="uk"/>
+            <collection property="operationList"
+                        ofType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseOperationVo">
+                <id column="operationId" property="id"/>
+                <result column="operationUk" property="uk"/>
+                <result column="operationName" property="name"/>
+                <result column="operationType" property="type"/>
+                <result column="parser" property="parser"/>
+                <result column="execMode" property="execMode"/>
+                <result column="failPolicy" property="failPolicy"/>
+                <result column="operationParam" property="paramStr"/>
+            </collection>
+        </collection>
+    </resultMap>
+
+    <select id="getJobDetailByJobId" parameterType="java.lang.Long" resultMap="jobMap">
+        SELECT aj.`id`,
+        aj.`name`,
+        ajpc.`content` AS paramStr,
+        ajp.`id` AS phaseId,
+        ajp.`name` AS phaseName,
+        ajp.`uk` AS phaseUk,
+        ajpo.`id` AS operationId,
+        ajpo.`uk` AS operationUk,
+        ajpo.`name` AS operationName,
+        ajpo.type AS operationType,
+        ajpo.parser,
+        ajpo.`exec_mode` AS execMode,
+        ajpo.`fail_policy` AS failPolicy,
+        ajpc1.`content` AS operationParam
+        FROM `autoexec_job` aj
+        LEFT JOIN `autoexec_job_param_content` ajpc ON aj.`param_hash` = ajpc.`hash`
+        LEFT JOIN `autoexec_job_phase` ajp ON aj.`id` = ajp.`job_id`
+        LEFT JOIN `autoexec_job_phase_operation` ajpo ON ajp.`id` = ajpo.`job_phase_id`
+        LEFT JOIN `autoexec_job_param_content` ajpc1 ON ajpo.`param_hash` = ajpc1.`hash`
+        <where>
+            aj.`id` = #{jobId}
+            <if test="jobPhaseId != null">
+                and ajp.`id` = #{jobPhaseId}
+            </if>
+        </where>
+    </select>
+
+    <insert id="insertJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
         INSERT INTO `autoexec_job` (`id`,
                                     `name`,
                                     `status`,
@@ -212,20 +289,24 @@
                 #{config});
     </insert>
 
-    <insert id="insertAutoexecJobPhase" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
+    <insert id="insertJobPhase" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
         INSERT INTO `autoexec_job_phase` (`id`,
                                           `job_id`,
+                                          `uk`,
+                                          `name`,
                                           `status`,
                                           `exec_user`,
                                           `exec_mode`)
         VALUES (#{id},
                 #{jobId},
+                #{uk},
+                #{name},
                 #{status},
                 #{execUser},
                 #{execMode});
     </insert>
 
-    <insert id="insertAutoexecJobPhaseNode"
+    <insert id="insertJobPhaseNode"
             parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
         INSERT INTO `autoexec_job_phase_node` (`id`,
                                                `job_phase_id`,
@@ -241,26 +322,35 @@
                 #{proxyId});
     </insert>
 
-    <insert id="insertAutoexecJobPhaseOperation"
-            parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
+    <insert id="insertJobPhaseOperation"
+            parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
         INSERT INTO `autoexec_job_phase_operation` (`id`,
                                                     `job_phase_id`,
-                                                    `operation_id`,
-                                                    `operation_name`,
-                                                    `operation_type`,
+                                                    `uk`,
+                                                    `name`,
+                                                    `type`,
                                                     `param_hash`)
-        VALUES ('id',
-                'job_phase_id',
-                'operation_id',
-                'operation_name',
-                'operation_type',
-                'param_hash');
+        VALUES (#{id},
+                #{job_phase_id},
+                #{uk},
+                #{name},
+                #{type},
+                #{param_hash});
     </insert>
 
-    <insert id="insertAutoexecJobParamContent"
+    <insert id="insertJobParamContent"
             parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobParamContentVo">
         INSERT INTO `autoexec_job_param_content` (`hash`, `content`)
         VALUES (#{hash}, #{content});
     </insert>
+
+    <update id="updateJobPhaseStatus" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
+        UPDATE `autoexec_job_phase`
+        SET `status` = #{status} AND `error_msg` = #{errorMsg}
+        <if test="status == 'completed' or status == 'failed'">
+            AND `end_time` = NOW(3)
+        </if>
+        WHERE id = #{id}
+    </update>
 </mapper>
 

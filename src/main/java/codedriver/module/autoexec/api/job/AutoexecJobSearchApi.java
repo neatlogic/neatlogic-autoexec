@@ -61,11 +61,11 @@ public class AutoexecJobSearchApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
         AutoexecJobVo jobVo = new AutoexecJobVo(jsonObj);
-        List<Long> jobIdList = autoexecJobMapper.searchAutoexecJobId(jobVo);
-        List<AutoexecJobVo> jobVoList = autoexecJobMapper.searchAutoexecJob(jobIdList);
+        List<Long> jobIdList = autoexecJobMapper.searchJobId(jobVo);
+        List<AutoexecJobVo> jobVoList = autoexecJobMapper.searchJob(jobIdList);
         result.put("tbodyList", jobVoList);
         if (jobVo.getNeedPage()) {
-            int rowNum = autoexecJobMapper.searchAutoexecJobCount(jobVo);
+            int rowNum = autoexecJobMapper.searchJobCount(jobVo);
             jobVo.setRowNum(rowNum);
             result.put("currentPage", jobVo.getCurrentPage());
             result.put("pageSize", jobVo.getPageSize());

@@ -6,14 +6,14 @@
 package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_USE;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_USE;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
@@ -21,22 +21,20 @@ import javax.annotation.Resource;
 
 @Service
 @AuthAction(action = AUTOEXEC_SCRIPT_USE.class)
-@AuthAction(action = AUTOEXEC_SCRIPT_MODIFY.class)
-@AuthAction(action = AUTOEXEC_SCRIPT_REVIEW.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
-public class AutoexecScriptButtonListApi extends PrivateApiComponentBase {
+public class AutoexecScriptOutputParamListApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
 
     @Override
     public String getToken() {
-        return "autoexec/script/button/list";
+        return "autoexec/script/outputparam/list";
     }
 
     @Override
     public String getName() {
-        return "获取操作按钮";
+        return "获取脚本出参列表";
     }
 
     @Override
@@ -45,18 +43,18 @@ public class AutoexecScriptButtonListApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "versionId", type = ApiParamType.LONG, isRequired = true, desc = "脚本版本ID"),
+            @Param(name = "scriptIdList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "脚本ID列表"),
     })
     @Output({
-            @Param(type = ApiParamType.JSONARRAY, desc = "按钮列表"),
+            @Param(type = ApiParamType.JSONARRAY, desc = "出参列表"),
+            @Param(explode = AutoexecScriptVersionParamVo.class),
     })
-    @Description(desc = "获取操作按钮")
+    @Description(desc = "获取脚本出参列表")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        /**
-         * 根据脚本状态和当前用户权限返回操作按钮
-         */
-        return null;
+        JSONArray scriptIdList = jsonObj.getJSONArray("scriptIdList");
+        // 根据脚本ID列表查询各自激活版本的出参列表
+        return autoexecScriptMapper.getOutputParamListByScriptIdList(scriptIdList.toJavaList(Long.class));
     }
 
 
