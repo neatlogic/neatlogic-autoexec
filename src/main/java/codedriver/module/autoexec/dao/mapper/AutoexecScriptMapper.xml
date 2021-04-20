@@ -146,6 +146,21 @@
         where `script_version_id` = #{value}
     </select>
 
+    <select id="getParamListByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo">
+        select
+        `script_version_id` as scriptVersionId,
+        `key`,
+        `default_value` as defaultValue,
+        `type`,
+        `handler`,
+        `is_required` as isRequired,
+        `description`
+        from `autoexec_script_version_param` a
+        join `autoexec_script_version` b on a.`script_version_id` = b.`id`
+        where b.`is_active` = 1
+        and b.`script_id` = #{value}
+    </select>
+
     <select id="getLineListByVersionId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo">
         select
         a.`id`,

@@ -37,6 +37,8 @@ public interface AutoexecScriptMapper {
 
     public List<AutoexecScriptVersionParamVo> getParamListByVersionId(Long versionId);
 
+    public List<AutoexecScriptVersionParamVo> getParamListByScriptId(Long operationId);
+
     public List<AutoexecScriptLineVo> getLineListByVersionId(Long versionId);
 
     public int searchScriptCount(AutoexecScriptVo scriptVo);
@@ -72,5 +74,4 @@ public interface AutoexecScriptMapper {
     public int deleteParamByVersionId(Long versionId);
 
     public int deleteScriptLineByVersionId(Long versionId);
-
 }

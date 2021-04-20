@@ -153,7 +153,7 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
                     for (int j = 0; j < phaseOperationList.size(); j++) {
                         AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo = phaseOperationList.getObject(j, AutoexecCombopPhaseOperationVo.class);
                         if (autoexecCombopPhaseOperationVo != null) {
-                            autoexecCombopPhaseOperationVo.setSort(i);
+                            autoexecCombopPhaseOperationVo.setSort(j);
                             autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
                             autoexecCombopMapper.insertAutoexecCombopPhaseOperation(autoexecCombopPhaseOperationVo);
                         }
