@@ -104,9 +104,11 @@
             `value`,
             `description`,
             `is_required` AS isRequired,
-            `type`
+            `type`,
+            `sort`
         FROM `autoexec_combop_param`
         WHERE `combop_id` = #{combopId}
+        ORDER BY `sort`
     </select>
 
     <select id="getAutoexecCombopAuthorityListByCombopIdAndUserUuidAndTeamUuidListAndRoleUuidList" resultType="java.lang.String">
@@ -189,7 +191,8 @@
             `value`,
             `description`,
             `is_required`,
-            `type`
+            `type`,
+            `sort`
         )
         VALUES
         <foreach collection="list" item="paramVo" separator=",">
@@ -199,7 +202,8 @@
             #{paramVo.value},
             #{paramVo.description},
             #{paramVo.isRequired},
-            #{paramVo.type}
+            #{paramVo.type},
+            #{paramVo.sort}
         )
         </foreach>
     </insert>

@@ -133,7 +133,7 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             }
             JSONObject config = autoexecCombopVo.getConfig();
             /** 保存前，校验组合工具是否配置正确，不正确不可以保存 **/
-            autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo);
+            //autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo);
             List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
 
             if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
@@ -153,7 +153,7 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
                     for (int j = 0; j < phaseOperationList.size(); j++) {
                         AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo = phaseOperationList.getObject(j, AutoexecCombopPhaseOperationVo.class);
                         if (autoexecCombopPhaseOperationVo != null) {
-                            autoexecCombopPhaseOperationVo.setSort(i);
+                            autoexecCombopPhaseOperationVo.setSort(j);
                             autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
                             autoexecCombopMapper.insertAutoexecCombopPhaseOperation(autoexecCombopPhaseOperationVo);
                         }
