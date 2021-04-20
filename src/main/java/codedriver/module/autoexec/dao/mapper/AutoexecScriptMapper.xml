@@ -221,7 +221,14 @@
             and (`name` like CONCAT('%', #{keyword}, '%') or `uk` like CONCAT('%', #{keyword}, '%'))
         </if>
         <if test="execMode != null and execMode != ''">
-            and `exec_mode` = #{execMode}
+            <choose>
+                <when test="execMode == 'local'">
+                    and (`exec_mode` = 'local' or `exec_mode` = 'localremote')
+                </when>
+                <when test="execMode == 'remote'">
+                    and `exec_mode` = 'remote'
+                </when>
+            </choose>
         </if>
         <if test="typeIdList != null and typeIdList.size() != 0">
             and `type_id` in
@@ -247,7 +254,14 @@
             and (a.`name` like CONCAT('%', #{keyword}, '%') or a.`uk` like CONCAT('%', #{keyword}, '%'))
         </if>
         <if test="execMode != null and execMode != ''">
-            and a.`exec_mode` = #{execMode}
+            <choose>
+                <when test="execMode == 'local'">
+                    and (a.`exec_mode` = 'local' or a.`exec_mode` = 'localremote')
+                </when>
+                <when test="execMode == 'remote'">
+                    and a.`exec_mode` = 'remote'
+                </when>
+            </choose>
         </if>
         <if test="typeIdList != null and typeIdList.size() != 0">
             and a.`type_id` in
