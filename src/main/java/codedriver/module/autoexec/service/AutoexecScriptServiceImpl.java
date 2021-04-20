@@ -70,6 +70,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
 
     /**
      * 校验脚本的基本信息，包括name、uk、分类、操作级别
+     *
      * @param scriptVo 脚本VO
      */
     @Override
@@ -85,6 +86,44 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
         }
         if (autoexecRiskMapper.checkRiskIsExistsById(scriptVo.getRiskId()) == 0) {
             throw new AutoexecRiskNotFoundException(scriptVo.getRiskId());
+        }
+    }
+
+    /**
+     * 批量插入脚本参数
+     *
+     * @param paramList 参数列表
+     * @param batchSize 每批的数量
+     */
+    @Override
+    public void batchInsertScriptVersionParamList(List<AutoexecScriptVersionParamVo> paramList, int batchSize) {
+        if (CollectionUtils.isNotEmpty(paramList)) {
+            int begin = 0;
+            int end = begin + batchSize;
+            while (paramList.size() - 1 >= begin) {
+                autoexecScriptMapper.insertScriptVersionParamList(paramList.subList(begin, paramList.size() >= end ? end : paramList.size()));
+                begin = end;
+                end = begin + batchSize;
+            }
+        }
+    }
+
+    /**
+     * 批量插入脚本内容行
+     *
+     * @param lineList  内容行列表
+     * @param batchSize 每批的数量
+     */
+    @Override
+    public void batchInsertScriptLineList(List<AutoexecScriptLineVo> lineList, int batchSize) {
+        if (CollectionUtils.isNotEmpty(lineList)) {
+            int begin = 0;
+            int end = begin + batchSize;
+            while (lineList.size() - 1 >= begin) {
+                autoexecScriptMapper.insertScriptLineList(lineList.subList(begin, lineList.size() >= end ? end : lineList.size()));
+                begin = end;
+                end = begin + batchSize;
+            }
         }
     }
 

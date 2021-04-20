@@ -65,14 +65,12 @@ public class AutoexecScriptCopyApi extends PrivateApiComponentBase {
             @Param(name = "name", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", isRequired = true, xss = true, desc = "名称"),
     })
     @Output({
+            @Param(type = ApiParamType.LONG, desc = "复制生成的脚本ID"),
     })
     @Description(desc = "复制脚本")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        /**
-         * 复制所有版本，版本状态也一并复制
-         */
-        JSONObject result = new JSONObject();
+
         Long id = jsonObj.getLong("id");
         String uk = jsonObj.getString("uk");
         String name = jsonObj.getString("name");
@@ -95,6 +93,7 @@ public class AutoexecScriptCopyApi extends PrivateApiComponentBase {
         targetScript.setFcu(UserContext.get().getUserUuid());
         autoexecScriptMapper.insertScript(targetScript);
 
+        // 复制所有版本
         List<AutoexecScriptVersionVo> sourceVersionList = autoexecScriptService.getScriptVersionDetailListByScriptId(sourceScript.getId());
         if (CollectionUtils.isNotEmpty(sourceVersionList)) {
             List<AutoexecScriptVersionVo> targetVersionList = new ArrayList<>();
@@ -119,29 +118,12 @@ public class AutoexecScriptCopyApi extends PrivateApiComponentBase {
                     lineList.addAll(source.getLineList());
                 }
             }
+            autoexecScriptService.batchInsertScriptVersionParamList(paramList, 100);
+            autoexecScriptService.batchInsertScriptLineList(lineList, 100);
             autoexecScriptMapper.batchInsertScriptVersion(targetVersionList);
-            if (CollectionUtils.isNotEmpty(paramList)) {
-                int begin = 0;
-                int end = begin + 100;
-                while (paramList.size() - 1 >= begin) {
-                    autoexecScriptMapper.insertScriptVersionParamList(paramList.subList(begin, paramList.size() >= end ? end : paramList.size()));
-                    begin = end;
-                    end = begin + 100;
-                }
-            }
-            if (CollectionUtils.isNotEmpty(lineList)) {
-                int begin = 0;
-                int end = begin + 100;
-                while (lineList.size() - 1 >= begin) {
-                    autoexecScriptMapper.insertScriptLineList(lineList.subList(begin, lineList.size() >= end ? end : lineList.size()));
-                    begin = end;
-                    end = begin + 100;
-                }
-            }
         }
 
-
-        return result;
+        return targetScript.getId();
     }
 
 
