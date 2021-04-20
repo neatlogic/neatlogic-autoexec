@@ -199,7 +199,7 @@
         (
             #{paramVo.combopId},
             #{paramVo.key},
-            #{paramVo.value},
+            #{paramVo.valueStr},
             #{paramVo.description},
             #{paramVo.isRequired},
             #{paramVo.type},
