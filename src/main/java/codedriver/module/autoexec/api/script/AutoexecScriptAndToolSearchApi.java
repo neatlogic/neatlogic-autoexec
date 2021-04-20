@@ -26,6 +26,8 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 @AuthAction(action = AUTOEXEC_SCRIPT_USE.class)
@@ -57,7 +59,7 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "type", type = ApiParamType.ENUM, rule = "tool,script", desc = "类别(工具；脚本)"),
-            @Param(name = "execMode", type = ApiParamType.ENUM, rule = "local,remote,localremote", desc = "执行方式"),
+            @Param(name = "execMode", type = ApiParamType.ENUM, rule = "local,remote", desc = "执行方式"),
             @Param(name = "typeIdList", type = ApiParamType.JSONARRAY, desc = "分类ID列表"),
             @Param(name = "riskIdList", type = ApiParamType.JSONARRAY, desc = "操作级别ID列表"),
             @Param(name = "valueList", type = ApiParamType.JSONARRAY, desc = "用于回显的工具或脚本ID列表"),
@@ -79,11 +81,21 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
         AutoexecToolAndScriptVo searchVo = JSON.toJavaObject(jsonObj, AutoexecToolAndScriptVo.class);
         JSONArray valueList = jsonObj.getJSONArray("valueList");
         if (CollectionUtils.isNotEmpty(valueList)) {
+            List<AutoexecToolAndScriptVo> toolAndScriptList = new ArrayList<>();
             List<Long> idList = valueList.toJavaList(Long.class);
             List<AutoexecToolAndScriptVo> toolList = autoexecToolMapper.getToolListByIdList(idList);
             List<AutoexecToolAndScriptVo> scriptList = autoexecScriptMapper.getScriptListByIdList(idList);
-            tbodyList.addAll(toolList);
-            tbodyList.addAll(scriptList);
+            toolAndScriptList.addAll(toolList);
+            toolAndScriptList.addAll(scriptList);
+            // 按传入的valueList排序
+            if (CollectionUtils.isNotEmpty(toolAndScriptList)) {
+                for (Long id : idList) {
+                    Optional<AutoexecToolAndScriptVo> first = toolAndScriptList.stream().filter(o -> Objects.equals(o.getId(), id)).findFirst();
+                    if (first != null) {
+                        tbodyList.add(first.get());
+                    }
+                }
+            }
             return result;
         }
         tbodyList.addAll(autoexecScriptMapper.searchScriptAndTool(searchVo));

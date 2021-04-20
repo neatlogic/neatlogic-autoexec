@@ -8,6 +8,9 @@ package codedriver.module.autoexec.api.script;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
+import codedriver.framework.autoexec.constvalue.ScriptOperate;
+import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.exception.AutoexecScriptHasNotAnyVersionException;
 import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
@@ -26,7 +29,9 @@ import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.module.autoexec.operate.ScriptOperateBuilder;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.JSONPath;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -107,10 +112,19 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         script.setVersionVo(version);
         version.setParamList(autoexecScriptMapper.getParamListByVersionId(version.getId()));
         version.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
-        // todo 如果是已驳回状态，要查询驳回原因
         script.setReferenceCount(autoexecScriptMapper.getReferenceCountByScriptId(id));
         List<AutoexecCombopVo> combopList = autoexecScriptMapper.getReferenceListByScriptId(id);
         script.setCombopList(combopList);
+        // 如果是已驳回状态，查询驳回原因
+        if (ScriptVersionStatus.REJECTED.getValue().equals(version.getStatus())) {
+            AutoexecScriptAuditVo audit = autoexecScriptMapper.getScriptAuditByScriptVersionIdAndOperate(version.getId(), ScriptOperate.REJECT.getValue());
+            if (audit != null) {
+                String detail = autoexecScriptMapper.getScriptAuditDetailByHash(audit.getContentHash());
+                if (StringUtils.isNotBlank(detail)) {
+                    version.setRejectReason((String) JSONPath.read(detail, "content"));
+                }
+            }
+        }
         // 获取操作按钮
         List<UserAuthVo> authList = userMapper.searchUserAllAuthByUserAuth(new UserAuthVo(UserContext.get().getUserUuid()));
         if (CollectionUtils.isNotEmpty(authList)) {
