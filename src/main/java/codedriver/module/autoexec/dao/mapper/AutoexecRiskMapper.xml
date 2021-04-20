@@ -8,5 +8,14 @@
         from `autoexec_risk`
         where `id` = #{value}
     </select>
+
+    <select id="getAllActiveRisk" resultType="codedriver.framework.common.dto.ValueTextVo">
+        select
+        `id` as `value`,
+        `name` as `text`
+        from
+        `autoexec_risk`
+        where `is_active` = 1
+    </select>
 </mapper>
 
