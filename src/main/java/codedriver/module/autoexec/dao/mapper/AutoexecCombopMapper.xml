@@ -45,17 +45,38 @@
         SELECT
             COUNT(`id`)
         FROM `autoexec_combop`
-        <where>
-            <if test="keyword != null and keyword != ''">
-                AND (`name` LIKE concat('%', #{keyword}, '%') OR `uk` LIKE concat('%', #{keyword}, '%'))
-            </if>
-            <if test="typeId != null">
-                AND `type_id` = #{typeId}
-            </if>
-            <if test="isActive != null">
-                AND `is_active` = #{isActive}
-            </if>
-        </where>
+        WHERE (`fcu` = #{userUuid}
+        OR `id` IN (
+                SELECT
+                    `combop_id`
+                FROM `autoexec_combop_authority`
+                WHERE  (type = 'common' AND `uuid` = 'alluser')
+                OR (type = 'user' AND `uuid` = #{userUuid})
+                <if test="teamUuidList != null and teamUuidList.size() > 0">
+                    OR (type = 'team' AND `uuid` IN
+                    <foreach collection="teamUuidList" item="teamUuid" open="(" separator="," close=")">
+                        #{teamUuid}
+                    </foreach>
+                    )
+                </if>
+                <if test="roleUuidList != null and roleUuidList.size() > 0">
+                    OR (type = 'role' AND `uuid` IN
+                    <foreach collection="roleUuidList" item="roleUuid" open="(" separator="," close=")">
+                        #{roleUuid}
+                    </foreach>
+                    )
+                </if>
+            )
+        )
+        <if test="keyword != null and keyword != ''">
+            AND (`name` LIKE concat('%', #{keyword}, '%') OR `uk` LIKE concat('%', #{keyword}, '%'))
+        </if>
+        <if test="typeId != null">
+            AND `type_id` = #{typeId}
+        </if>
+        <if test="isActive != null">
+            AND `is_active` = #{isActive}
+        </if>
     </select>
 
     <select id="getAutoexecCombopList" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo" resultType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
@@ -73,17 +94,38 @@
             `lcd`,
             `lcu`
         FROM `autoexec_combop`
-        <where>
-            <if test="keyword != null and keyword != ''">
-                AND (`name` LIKE concat('%', #{keyword}, '%') OR `uk` LIKE concat('%', #{keyword}, '%'))
-            </if>
-            <if test="typeId != null">
-                AND `type_id` = #{typeId}
-            </if>
-            <if test="isActive != null">
-                AND `is_active` = #{isActive}
-            </if>
-        </where>
+        WHERE (`fcu` = #{userUuid}
+        OR `id` IN (
+                SELECT
+                    `combop_id`
+                FROM `autoexec_combop_authority`
+                WHERE  (type = 'common' AND `uuid` = 'alluser')
+                OR (type = 'user' AND `uuid` = #{userUuid})
+                <if test="teamUuidList != null and teamUuidList.size() > 0">
+                    OR (type = 'team' AND `uuid` IN
+                    <foreach collection="teamUuidList" item="teamUuid" open="(" separator="," close=")">
+                        #{teamUuid}
+                    </foreach>
+                    )
+                </if>
+                <if test="roleUuidList != null and roleUuidList.size() > 0">
+                    OR (type = 'role' AND `uuid` IN
+                    <foreach collection="roleUuidList" item="roleUuid" open="(" separator="," close=")">
+                        #{roleUuid}
+                    </foreach>
+                    )
+                </if>
+            )
+        )
+        <if test="keyword != null and keyword != ''">
+            AND (`name` LIKE concat('%', #{keyword}, '%') OR `uk` LIKE concat('%', #{keyword}, '%'))
+        </if>
+        <if test="typeId != null">
+            AND `type_id` = #{typeId}
+        </if>
+        <if test="isActive != null">
+            AND `is_active` = #{isActive}
+        </if>
         ORDER BY `id` DESC
         LIMIT #{startNum}, #{pageSize}
     </select>
