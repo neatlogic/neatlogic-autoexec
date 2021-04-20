@@ -5,6 +5,8 @@
 
 package codedriver.module.autoexec.service;
 
+import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.exception.AutoexecRiskNotFoundException;
@@ -14,9 +16,12 @@ import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
 import codedriver.module.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class AutoexecScriptServiceImpl implements AutoexecScriptService {
@@ -32,6 +37,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
 
     /**
      * 获取脚本版本详细信息，包括参数与脚本内容
+     *
      * @param versionId 版本ID
      * @return 脚本版本VO
      */
@@ -46,8 +52,21 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
         return version;
     }
 
+    @Override
+    public List<AutoexecScriptVersionVo> getScriptVersionDetailListByScriptId(Long scriptId) {
+        List<AutoexecScriptVersionVo> versionList = autoexecScriptMapper.getVersionListByScriptId(scriptId);
+        if (CollectionUtils.isNotEmpty(versionList)) {
+            for (AutoexecScriptVersionVo vo : versionList) {
+                vo.setParamList(autoexecScriptMapper.getParamListByVersionId(vo.getId()));
+                vo.setLineList(autoexecScriptMapper.getLineListByVersionId(vo.getId()));
+            }
+        }
+        return versionList;
+    }
+
     /**
      * 校验脚本的基本信息，包括name、uk、分类、操作级别
+     *
      * @param scriptVo 脚本VO
      */
     @Override

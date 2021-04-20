@@ -100,6 +100,21 @@
         </if>
     </select>
 
+    <select id="getVersionListByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
+        select
+        `id`,
+        `script_id` as scriptId,
+        `version`,
+        `parser`,
+        `status`,
+        `reviewer`,
+        `is_active` as isActive,
+        `lcu`,
+        `lcd`
+        from `autoexec_script_version`
+        where `script_id` = #{scriptId}
+    </select>
+
     <select id="getActiveVersionByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
         select
         `id`,
@@ -545,6 +560,31 @@
         #{hash},
         #{content}
         )
+    </insert>
+
+    <insert id="batchInsertScriptVersion" parameterType="java.util.List">
+        insert into insert into `autoexec_script_version` (
+        `id`,
+        `script_id`,
+        `version`,
+        `parser`,
+        `status`,
+        `is_active`,
+        `lcu`,
+        `lcd`
+        ) values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.id},
+            #{item.scriptId},
+            #{item.version},
+            #{item.parser},
+            #{item.status},
+            #{item.isActive},
+            #{item.lcu},
+            #{item.lcd}
+            )
+        </foreach>
     </insert>
 
     <delete id="deleteParamByVersionId" parameterType="java.lang.Long">

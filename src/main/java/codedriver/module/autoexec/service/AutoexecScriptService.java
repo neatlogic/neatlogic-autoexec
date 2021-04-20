@@ -8,6 +8,8 @@ package codedriver.module.autoexec.service;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 
+import java.util.List;
+
 public interface AutoexecScriptService {
 
     /**
@@ -19,7 +21,16 @@ public interface AutoexecScriptService {
     public AutoexecScriptVersionVo getScriptVersionDetailByVersionId(Long versionId);
 
     /**
+     * 根据脚本ID获取所有版本的详细信息，包括参数、脚本内容
+     *
+     * @param scriptId
+     * @return
+     */
+    public List<AutoexecScriptVersionVo> getScriptVersionDetailListByScriptId(Long scriptId);
+
+    /**
      * 校验脚本的基本信息，包括name、uk、分类、操作级别
+     *
      * @param scriptVo 脚本VO
      */
     public void validateScriptBaseInfo(AutoexecScriptVo scriptVo);
