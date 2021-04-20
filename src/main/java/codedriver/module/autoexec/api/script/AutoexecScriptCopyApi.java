@@ -112,6 +112,7 @@ public class AutoexecScriptCopyApi extends PrivateApiComponentBase {
                 }
                 if (CollectionUtils.isNotEmpty(source.getLineList())) {
                     source.getLineList().stream().forEach(o -> {
+                        o.setId(null);
                         o.setScriptId(targetScript.getId());
                         o.setScriptVersionId(target.getId());
                     });
@@ -120,15 +121,21 @@ public class AutoexecScriptCopyApi extends PrivateApiComponentBase {
             }
             autoexecScriptMapper.batchInsertScriptVersion(targetVersionList);
             if (CollectionUtils.isNotEmpty(paramList)) {
-                int count = paramList.size() / 100;
-                for (int i = 0; i < count; i++) {
-                    autoexecScriptMapper.insertScriptVersionParamList(paramList.subList(i * count, i * count + 100));
+                int begin = 0;
+                int end = begin + 100;
+                while (paramList.size() - 1 >= begin) {
+                    autoexecScriptMapper.insertScriptVersionParamList(paramList.subList(begin, paramList.size() >= end ? end : paramList.size()));
+                    begin = end;
+                    end = begin + 100;
                 }
             }
             if (CollectionUtils.isNotEmpty(lineList)) {
-                int count = lineList.size() / 100;
-                for (int i = 0; i < count; i++) {
-                    autoexecScriptMapper.insertScriptLineList(lineList.subList(i * count, i * count + 100));
+                int begin = 0;
+                int end = begin + 100;
+                while (lineList.size() - 1 >= begin) {
+                    autoexecScriptMapper.insertScriptLineList(lineList.subList(begin, lineList.size() >= end ? end : lineList.size()));
+                    begin = end;
+                    end = begin + 100;
                 }
             }
         }

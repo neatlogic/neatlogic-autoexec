@@ -652,13 +652,14 @@
     </insert>
 
     <insert id="batchInsertScriptVersion" parameterType="java.util.List">
-        insert into insert into `autoexec_script_version` (
+        insert into `autoexec_script_version` (
         `id`,
         `script_id`,
         `version`,
         `parser`,
         `status`,
         `is_active`,
+        `reviewer`,
         `lcu`,
         `lcd`
         ) values
@@ -670,6 +671,7 @@
             #{item.parser},
             #{item.status},
             #{item.isActive},
+            #{item.reviewer},
             #{item.lcu},
             #{item.lcd}
             )
