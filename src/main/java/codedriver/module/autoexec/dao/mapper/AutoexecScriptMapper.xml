@@ -161,6 +161,21 @@
         where `script_version_id` = #{value}
     </select>
 
+    <select id="getParamListByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo">
+        select
+        `script_version_id` as scriptVersionId,
+        `key`,
+        `default_value` as defaultValue,
+        `type`,
+        `handler`,
+        `is_required` as isRequired,
+        `description`
+        from `autoexec_script_version_param` a
+        join `autoexec_script_version` b on a.`script_version_id` = b.`id`
+        where b.`is_active` = 1
+        and b.`script_id` = #{value}
+    </select>
+
     <select id="getLineListByVersionId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo">
         select
         a.`id`,
@@ -236,7 +251,14 @@
             and (`name` like CONCAT('%', #{keyword}, '%') or `uk` like CONCAT('%', #{keyword}, '%'))
         </if>
         <if test="execMode != null and execMode != ''">
-            and `exec_mode` = #{execMode}
+            <choose>
+                <when test="execMode == 'local'">
+                    and (`exec_mode` = 'local' or `exec_mode` = 'localremote')
+                </when>
+                <when test="execMode == 'remote'">
+                    and `exec_mode` = 'remote'
+                </when>
+            </choose>
         </if>
         <if test="typeIdList != null and typeIdList.size() != 0">
             and `type_id` in
@@ -262,7 +284,14 @@
             and (a.`name` like CONCAT('%', #{keyword}, '%') or a.`uk` like CONCAT('%', #{keyword}, '%'))
         </if>
         <if test="execMode != null and execMode != ''">
-            and a.`exec_mode` = #{execMode}
+            <choose>
+                <when test="execMode == 'local'">
+                    and (a.`exec_mode` = 'local' or a.`exec_mode` = 'localremote')
+                </when>
+                <when test="execMode == 'remote'">
+                    and a.`exec_mode` = 'remote'
+                </when>
+            </choose>
         </if>
         <if test="typeIdList != null and typeIdList.size() != 0">
             and a.`type_id` in
@@ -447,6 +476,29 @@
         group by a.`script_version_id`,a.`key`
     </select>
 
+    <select id="getScriptAuditByScriptVersionIdAndOperate" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo">
+        select
+        `id`,
+        `script_id` as scriptId,
+        `script_version_id` as scriptVersionId,
+        `operate`,
+        `content_hash` as contentHash,
+        `fcu`,
+        `fcd`
+        from `autoexec_script_audit`
+        where `script_version_id` = #{versionId}
+        and `operate` = #{operate}
+        order by `fcd` desc
+        limit 1
+    </select>
+
+    <select id="getScriptAuditDetailByHash" parameterType="java.lang.String" resultType="java.lang.String">
+        select
+        `content`
+        from `autoexec_script_audit_detail`
+        where `hash` = #{value}
+    </select>
+
     <update id="updateScriptBaseInfo" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
         update `autoexec_script` set
         `name` = #{name},
@@ -459,8 +511,15 @@
 
     <update id="updateScriptVersion" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
         update `autoexec_script_version` set
-        `parser` = #{parser},
-        `status` = #{status},
+        <if test="parser != null">
+            `parser` = #{parser},
+        </if>
+        <if test="status != null">
+            `status` = #{status},
+        </if>
+        <if test="reviewer != null">
+            `reviewer` = #{reviewer},
+        </if>
         `lcu` = #{lcu},
         `lcd` = now(3)
         where `id` = #{id}
@@ -554,6 +613,36 @@
 
     <insert id="insertScriptLineContent" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptLineContentVo">
         insert ignore into `autoexec_script_line_content` (
+        `hash`,
+        `content`
+        ) values (
+        #{hash},
+        #{content}
+        )
+    </insert>
+
+    <insert id="insertScriptAudit" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo">
+        insert into `autoexec_script_audit`(
+        `id`,
+        `script_id`,
+        `script_version_id`,
+        `operate`,
+        `content_hash`,
+        `fcu`,
+        `fcd`
+        ) values (
+        #{id},
+        #{scriptId},
+        #{scriptVersionId},
+        #{operate},
+        #{contentHash},
+        #{fcu},
+        now(3)
+        )
+    </insert>
+
+    <insert id="insertScriptAuditDetail" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptAuditContentVo">
+        insert ignore into `autoexec_script_audit_detail`(
         `hash`,
         `content`
         ) values (

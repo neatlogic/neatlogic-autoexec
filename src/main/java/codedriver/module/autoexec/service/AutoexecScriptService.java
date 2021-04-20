@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.service;
 
+import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 
@@ -34,5 +35,12 @@ public interface AutoexecScriptService {
      * @param scriptVo 脚本VO
      */
     public void validateScriptBaseInfo(AutoexecScriptVo scriptVo);
+
+    /**
+     * 记录活动
+     *
+     * @param auditVo 活动VO
+     */
+    public void audit(AutoexecScriptAuditVo auditVo);
 
 }

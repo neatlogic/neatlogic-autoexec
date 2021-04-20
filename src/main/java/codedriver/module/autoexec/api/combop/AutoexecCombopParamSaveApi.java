@@ -94,6 +94,7 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
                 AutoexecCombopParamVo autoexecCombopParamVo = paramList.getObject(i, AutoexecCombopParamVo.class);
                 if (autoexecCombopParamVo != null) {
                     autoexecCombopParamVo.setCombopId(combopId);
+                    autoexecCombopParamVo.setSort(i);
                     autoexecCombopParamVoList.add(autoexecCombopParamVo);
                     if (autoexecCombopParamVoList.size() == 1000) {
                         autoexecCombopMapper.insertAutoexecCombopParamVoList(autoexecCombopParamVoList);

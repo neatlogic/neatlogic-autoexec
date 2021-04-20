@@ -8,6 +8,7 @@ package codedriver.module.autoexec.dao.mapper;
 import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.script.*;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -39,6 +40,8 @@ public interface AutoexecScriptMapper {
 
     public List<AutoexecScriptVersionParamVo> getParamListByVersionId(Long versionId);
 
+    public List<AutoexecScriptVersionParamVo> getParamListByScriptId(Long operationId);
+
     public List<AutoexecScriptLineVo> getLineListByVersionId(Long versionId);
 
     public int searchScriptCount(AutoexecScriptVo scriptVo);
@@ -57,6 +60,10 @@ public interface AutoexecScriptMapper {
 
     public List<AutoexecScriptVersionParamVo> getOutputParamListByScriptIdList(List<Long> scriptIdList);
 
+    public AutoexecScriptAuditVo getScriptAuditByScriptVersionIdAndOperate(@Param("versionId") Long versionId, @Param("operate") String operate);
+
+    public String getScriptAuditDetailByHash(String hash);
+
     public int updateScriptBaseInfo(AutoexecScriptVo scriptVo);
 
     public int updateScriptVersion(AutoexecScriptVersionVo versionVo);
@@ -69,6 +76,10 @@ public interface AutoexecScriptMapper {
 
     public int insertScriptLineContent(AutoexecScriptLineContentVo contentVo);
 
+    public int insertScriptAudit(AutoexecScriptAuditVo auditVo);
+
+    public int insertScriptAuditDetail(AutoexecScriptAuditContentVo auditContentVo);
+
     public int insertScriptLineList(List<AutoexecScriptLineVo> lineList);
 
     public int batchInsertScriptVersion(List<AutoexecScriptVersionVo> versionList);
@@ -76,5 +87,4 @@ public interface AutoexecScriptMapper {
     public int deleteParamByVersionId(Long versionId);
 
     public int deleteScriptLineByVersionId(Long versionId);
-
 }

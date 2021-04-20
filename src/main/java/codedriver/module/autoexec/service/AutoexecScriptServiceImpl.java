@@ -5,6 +5,9 @@
 
 package codedriver.module.autoexec.service;
 
+import codedriver.framework.asynchronization.threadlocal.UserContext;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditContentVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
@@ -16,6 +19,7 @@ import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
 import codedriver.module.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
@@ -66,7 +70,6 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
 
     /**
      * 校验脚本的基本信息，包括name、uk、分类、操作级别
-     *
      * @param scriptVo 脚本VO
      */
     @Override
@@ -83,6 +86,21 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
         if (autoexecRiskMapper.checkRiskIsExistsById(scriptVo.getRiskId()) == 0) {
             throw new AutoexecRiskNotFoundException(scriptVo.getRiskId());
         }
+    }
 
+    /**
+     * 记录活动
+     *
+     * @param auditVo 活动VO
+     */
+    @Override
+    public void audit(AutoexecScriptAuditVo auditVo) {
+        auditVo.setFcu(UserContext.get().getUserUuid());
+        if (MapUtils.isNotEmpty(auditVo.getConfig())) {
+            AutoexecScriptAuditContentVo contentVo = new AutoexecScriptAuditContentVo(auditVo.getConfig().toJSONString());
+            autoexecScriptMapper.insertScriptAuditDetail(contentVo);
+            auditVo.setContentHash(contentVo.getHash());
+        }
+        autoexecScriptMapper.insertScriptAudit(auditVo);
     }
 }
