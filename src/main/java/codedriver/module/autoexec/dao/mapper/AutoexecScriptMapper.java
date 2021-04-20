@@ -88,7 +88,7 @@ public interface AutoexecScriptMapper {
 
     public int deleteScriptLineByScriptId(Long scriptId);
 
-    public int deleteVersionByVersionIdList(List<Long> versionId);
+    public int deleteScriptVersionByScriptId(Long scriptId);
 
     public int deleteScriptAuditByScriptId(Long scriptId);
 

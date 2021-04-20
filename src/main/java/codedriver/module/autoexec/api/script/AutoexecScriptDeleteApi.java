@@ -7,9 +7,12 @@ package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.constvalue.ScriptOperate;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
+import codedriver.framework.autoexec.exception.AutoexecScriptHasReferenceException;
 import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecScriptVersionHasBeenActivedException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
@@ -20,11 +23,14 @@ import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.service.AutoexecScriptService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -45,7 +51,7 @@ public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "删除脚本";
+        return "删除脚本或版本";
     }
 
     @Override
@@ -59,7 +65,7 @@ public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
     })
     @Output({
     })
-    @Description(desc = "删除脚本(此接口既可以删除脚本,也可以删除版本,两个参数二选一)")
+    @Description(desc = "删除脚本或版本")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");
@@ -68,20 +74,27 @@ public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
             if (autoexecScriptMapper.checkScriptIsExistsById(id) == 0) {
                 throw new AutoexecScriptNotFoundException(id);
             }
-            // todo 不确定是否需要检查脚本是否已被引用
+            List<AutoexecCombopVo> referenceList = autoexecScriptMapper.getReferenceListByScriptId(id);
+            if (CollectionUtils.isNotEmpty(referenceList)) {
+                List<String> list = referenceList.stream().map(AutoexecCombopVo::getName).collect(Collectors.toList());
+                throw new AutoexecScriptHasReferenceException(StringUtils.join(list, ","));
+            }
 
             List<Long> versionIdList = autoexecScriptMapper.getVersionIdListByScriptId(id);
             if (CollectionUtils.isNotEmpty(versionIdList)) {
                 autoexecScriptMapper.deleteParamByVersionIdList(versionIdList);
-                autoexecScriptMapper.deleteVersionByVersionIdList(versionIdList);
             }
             autoexecScriptMapper.deleteScriptLineByScriptId(id);
             autoexecScriptMapper.deleteScriptAuditByScriptId(id);
+            autoexecScriptMapper.deleteScriptVersionByScriptId(id);
             autoexecScriptMapper.deleteScriptById(id);
         } else if (versionId != null) {
             AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(versionId);
             if (version == null) {
                 throw new AutoexecScriptVersionNotFoundException(versionId);
+            }
+            if (Objects.equals(version.getIsActive(), 1)) {
+                throw new AutoexecScriptVersionHasBeenActivedException();
             }
             autoexecScriptMapper.deleteParamByVersionId(versionId);
             autoexecScriptMapper.deleteScriptLineByVersionId(versionId);

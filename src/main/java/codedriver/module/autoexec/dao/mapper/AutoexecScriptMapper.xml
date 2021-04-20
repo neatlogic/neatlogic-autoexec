@@ -658,13 +658,10 @@
         </foreach>
     </delete>
 
-    <delete id="deleteVersionByVersionIdList" parameterType="java.util.List">
+    <delete id="deleteScriptVersionByScriptId" parameterType="java.lang.Long">
         delete
         from `autoexec_script_version`
-        where `id` in
-        <foreach collection="list" item="id" open="(" separator="," close=")">
-            #{id}
-        </foreach>
+        where `script_id` = #{value}
     </delete>
 
     <delete id="deleteScriptById" parameterType="java.lang.Long">
