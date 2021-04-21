@@ -9,6 +9,7 @@ import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
+import codedriver.framework.autoexec.constvalue.ParamMode;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dto.script.*;
 import codedriver.framework.autoexec.exception.AutoexecScriptNameOrUkRepeatException;
@@ -34,6 +35,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -140,8 +142,22 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             // 保存参数
             List<AutoexecScriptVersionParamVo> paramList = scriptVo.getParamList();
             if (CollectionUtils.isNotEmpty(paramList)) {
-                paramList.stream().forEach(o -> o.setScriptVersionId(versionVo.getId()));
-                autoexecScriptMapper.insertScriptVersionParamList(paramList);
+                List<AutoexecScriptVersionParamVo> inputParamList = paramList.stream().filter(o -> ParamMode.INPUT.getValue().equals(o.getMode())).collect(Collectors.toList());
+                List<AutoexecScriptVersionParamVo> outputParamList = paramList.stream().filter(o -> ParamMode.OUTPUT.getValue().equals(o.getMode())).collect(Collectors.toList());
+                if (CollectionUtils.isNotEmpty(inputParamList)) {
+                    for (int i = 0; i < inputParamList.size(); i++) {
+                        inputParamList.get(i).setScriptVersionId(versionVo.getId());
+                        inputParamList.get(i).setSort(i);
+                    }
+                    autoexecScriptMapper.insertScriptVersionParamList(inputParamList);
+                }
+                if (CollectionUtils.isNotEmpty(outputParamList)) {
+                    for (int i = 0; i < outputParamList.size(); i++) {
+                        outputParamList.get(i).setScriptVersionId(versionVo.getId());
+                        outputParamList.get(i).setSort(i);
+                    }
+                    autoexecScriptMapper.insertScriptVersionParamList(outputParamList);
+                }
             }
             // 保存脚本内容
             saveScriptLineList(scriptVo);
@@ -153,6 +169,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
 
     /**
      * 保存脚本内容行
+     *
      * @param scriptVo 脚本VO
      */
     private void saveScriptLineList(AutoexecScriptVo scriptVo) {
@@ -185,6 +202,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
 
     /**
      * 检查脚本内容是否有变更
+     *
      * @param before 当前版本
      * @param after  待更新的内容
      * @return 是否有变更
@@ -214,7 +232,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             if (!Objects.equals(beforeNextParam.getType(), afterNextParam.getType())) {
                 return true;
             }
-            if (!Objects.equals(beforeNextParam.getHandler(), afterNextParam.getHandler())) {
+            if (!Objects.equals(beforeNextParam.getMode(), afterNextParam.getMode())) {
                 return true;
             }
             if (!Objects.equals(beforeNextParam.getIsRequired(), afterNextParam.getIsRequired())) {
