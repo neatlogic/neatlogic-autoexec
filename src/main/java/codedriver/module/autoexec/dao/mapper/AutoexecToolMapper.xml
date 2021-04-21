@@ -2,7 +2,22 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecToolMapper">
 
-    <select id="getToolListByIdList" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo">
+    <resultMap id="autoexecToolAndScriptMap" type="codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo">
+        <id column="id" property="id"/>
+        <result column="uk" property="uk"/>
+        <result column="name" property="name"/>
+        <result column="type" property="type"/>
+        <result column="execMode" property="execMode"/>
+        <result column="typeId" property="typeId"/>
+        <result column="typeName" property="typeName"/>
+        <association property="riskVo" javaType="codedriver.framework.autoexec.dto.AutoexecRiskVo">
+            <result column="riskId" property="id"/>
+            <result column="riskName" property="name"/>
+            <result column="riskColor" property="color"/>
+        </association>
+    </resultMap>
+
+    <select id="getToolListByIdList" parameterType="java.lang.Long" resultMap="autoexecToolAndScriptMap">
         select
         `id`,
         `uk`,

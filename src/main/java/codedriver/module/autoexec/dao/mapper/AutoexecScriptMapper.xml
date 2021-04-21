@@ -376,9 +376,11 @@
         <result column="execMode" property="execMode"/>
         <result column="typeId" property="typeId"/>
         <result column="typeName" property="typeName"/>
-        <result column="riskId" property="riskId"/>
-        <result column="riskName" property="riskName"/>
-        <result column="riskColor" property="riskColor"/>
+        <association property="riskVo" javaType="codedriver.framework.autoexec.dto.AutoexecRiskVo">
+            <result column="riskId" property="id"/>
+            <result column="riskName" property="name"/>
+            <result column="riskColor" property="color"/>
+        </association>
         <collection property="paramList" ofType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo">
             <result property="key" column="key"/>
             <result property="defaultValue" column="defaultValue"/>
