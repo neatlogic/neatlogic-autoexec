@@ -91,6 +91,6 @@ public class AutoexecJobDeleteApi extends PrivateApiComponentBase {
 
     @Override
     public String getToken() {
-        return "autoexec/job/detail/get";
+        return "autoexec/job/delete";
     }
 }
