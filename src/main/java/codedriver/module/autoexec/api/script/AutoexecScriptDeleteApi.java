@@ -70,10 +70,11 @@ public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");
         Long versionId = jsonObj.getLong("versionId");
-        if (id != null) {
+        if (id != null) { // 删除脚本
             if (autoexecScriptMapper.checkScriptIsExistsById(id) == 0) {
                 throw new AutoexecScriptNotFoundException(id);
             }
+            // 检查脚本是否被组合工具引用
             List<AutoexecCombopVo> referenceList = autoexecScriptMapper.getReferenceListByScriptId(id);
             if (CollectionUtils.isNotEmpty(referenceList)) {
                 List<String> list = referenceList.stream().map(AutoexecCombopVo::getName).collect(Collectors.toList());
@@ -88,7 +89,7 @@ public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
             autoexecScriptMapper.deleteScriptAuditByScriptId(id);
             autoexecScriptMapper.deleteScriptVersionByScriptId(id);
             autoexecScriptMapper.deleteScriptById(id);
-        } else if (versionId != null) {
+        } else if (versionId != null) { // 删除版本
             AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(versionId);
             if (version == null) {
                 throw new AutoexecScriptVersionNotFoundException(versionId);
