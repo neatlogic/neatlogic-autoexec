@@ -71,10 +71,7 @@ public class AutoexecScriptCheckApi extends PrivateApiComponentBase {
         if (CollectionUtils.isNotEmpty(lineList)) {
             lineVoList = new ArrayList<>();
             for (int i = 0; i < lineList.size(); i++) {
-                AutoexecScriptLineVo line = new AutoexecScriptLineVo();
-                line.setContent(lineList.getString(i));
-                line.setLineNumber(i);
-                lineVoList.add(line);
+                lineVoList.add(new AutoexecScriptLineVo(lineList.getString(i),i));
             }
             handler.check(lineVoList);
         }
