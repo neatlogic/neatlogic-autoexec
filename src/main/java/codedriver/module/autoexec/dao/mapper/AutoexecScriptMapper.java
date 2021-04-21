@@ -60,6 +60,8 @@ public interface AutoexecScriptMapper {
 
     public List<AutoexecScriptVersionParamVo> getOutputParamListByScriptIdList(List<Long> scriptIdList);
 
+    public List<Long> getVersionIdListByScriptId(Long scriptId);
+
     public AutoexecScriptAuditVo getScriptAuditByScriptVersionIdAndOperate(@Param("versionId") Long versionId, @Param("operate") String operate);
 
     public String getScriptAuditDetailByHash(String hash);
@@ -87,4 +89,17 @@ public interface AutoexecScriptMapper {
     public int deleteParamByVersionId(Long versionId);
 
     public int deleteScriptLineByVersionId(Long versionId);
+
+    public int deleteParamByVersionIdList(List<Long> versionId);
+
+    public int deleteScriptLineByScriptId(Long scriptId);
+
+    public int deleteScriptVersionByScriptId(Long scriptId);
+
+    public int deleteScriptAuditByScriptId(Long scriptId);
+
+    public int deleteVersionByVersionId(Long versionId);
+
+    public int deleteScriptById(Long id);
+
 }

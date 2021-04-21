@@ -8,7 +8,6 @@ package codedriver.module.autoexec.api.job;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
-import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -69,7 +68,7 @@ public class AutoexecJobSearchApi extends PrivateApiComponentBase {
             jobVo.setRowNum(rowNum);
             result.put("currentPage", jobVo.getCurrentPage());
             result.put("pageSize", jobVo.getPageSize());
-            result.put("pageCount", PageUtil.getPageCount(rowNum, jobVo.getPageSize()));
+            result.put("pageCount", jobVo.getPageCount());
             result.put("rowNum", jobVo.getRowNum());
         }
         return result;

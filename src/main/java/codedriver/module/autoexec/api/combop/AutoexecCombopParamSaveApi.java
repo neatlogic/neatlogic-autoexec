@@ -7,9 +7,11 @@ package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
+import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.restful.annotation.Description;
 import codedriver.framework.restful.annotation.Input;
 import codedriver.framework.restful.annotation.OperationType;
@@ -26,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 保存组合工具顶层参数接口
@@ -86,20 +89,31 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
         if (autoexecCombopMapper.checkAutoexecCombopIsExists(combopId) == 0) {
             throw new AutoexecCombopNotFoundException(combopId);
         }
+        List<AutoexecCombopParamVo> autoexecCombopParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopId);
         autoexecCombopMapper.deleteAutoexecCombopParamByCombopId(combopId);
         List<AutoexecCombopParamVo> autoexecCombopParamVoList = new ArrayList<>();
         JSONArray paramList = jsonObj.getJSONArray("paramList");
-        if (CollectionUtils.isNotEmpty(paramList)) {
-            for (int i = 0; i < paramList.size(); i++) {
-                AutoexecCombopParamVo autoexecCombopParamVo = paramList.getObject(i, AutoexecCombopParamVo.class);
-                if (autoexecCombopParamVo != null) {
-                    autoexecCombopParamVo.setCombopId(combopId);
-                    autoexecCombopParamVo.setSort(i);
-                    autoexecCombopParamVoList.add(autoexecCombopParamVo);
-                    if (autoexecCombopParamVoList.size() == 1000) {
-                        autoexecCombopMapper.insertAutoexecCombopParamVoList(autoexecCombopParamVoList);
-                        autoexecCombopParamVoList.clear();
+        for (int i = 0; i < paramList.size(); i++) {
+            AutoexecCombopParamVo autoexecCombopParamVo = paramList.getObject(i, AutoexecCombopParamVo.class);
+            if (autoexecCombopParamVo != null) {
+                Object value = autoexecCombopParamVo.getValue();
+                if (value != null && Objects.equals(autoexecCombopParamVo.getType(), ParamType.PASSWORD.getValue())) {
+                    Integer sort = autoexecCombopParamVo.getSort();
+                    if (sort != null && sort < autoexecCombopParamList.size()) {
+                        AutoexecCombopParamVo oldParamVo = autoexecCombopParamList.get(sort);
+                        if (!Objects.equals(value, oldParamVo.getValue())) {
+                            autoexecCombopParamVo.setValue(RC4Util.encrypt((String) value));
+                        }
+                    } else {
+                        autoexecCombopParamVo.setValue(RC4Util.encrypt((String) value));
                     }
+                }
+                autoexecCombopParamVo.setCombopId(combopId);
+                autoexecCombopParamVo.setSort(i);
+                autoexecCombopParamVoList.add(autoexecCombopParamVo);
+                if (autoexecCombopParamVoList.size() == 1000) {
+                    autoexecCombopMapper.insertAutoexecCombopParamVoList(autoexecCombopParamVoList);
+                    autoexecCombopParamVoList.clear();
                 }
             }
         }

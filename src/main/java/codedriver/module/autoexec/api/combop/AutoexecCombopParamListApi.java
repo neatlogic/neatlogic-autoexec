@@ -7,25 +7,21 @@ package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
-import codedriver.framework.autoexec.constvalue.CombopAuthorityAction;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopAuthorityVo;
+import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
-import codedriver.framework.common.dto.BasePageVo;
-import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 查询组合工具顶层参数列表接口
@@ -88,7 +84,40 @@ public class AutoexecCombopParamListApi extends PrivateApiComponentBase {
         if (autoexecCombopMapper.checkAutoexecCombopIsExists(combopId) == 0) {
             throw new AutoexecCombopNotFoundException(combopId);
         }
-        return autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopId);
+        List<AutoexecCombopParamVo> autoexecCombopParamVoList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopId);
+        for (AutoexecCombopParamVo autoexecCombopParamVo : autoexecCombopParamVoList) {
+            ParamType paramType = ParamType.getParamType(autoexecCombopParamVo.getType());
+            if (paramType != null) {
+                JSONObject config = new JSONObject(paramType.getConfig());
+                if (Objects.equals(autoexecCombopParamVo.getIsRequired(), 0)) {
+                    config.put("isRequired", false);
+                } else {
+                    config.put("isRequired", true);
+                }
+                autoexecCombopParamVo.setConfig(config);
+                Object value = autoexecCombopParamVo.getValue();
+                if (value != null) {
+                    switch (paramType) {
+                        case TEXT:
+                            break;
+                        case PASSWORD:
+                            config.put("showPassword", false);
+                            break;
+                        case FILE:
+                            autoexecCombopParamVo.setValue(JSONObject.parseObject(value.toString()));
+                            break;
+                        case DATE:
+                            break;
+                        case JSON:
+                            autoexecCombopParamVo.setValue(JSONObject.parseObject(value.toString()));
+                            break;
+                        default:
+                            break;
+                    }
+                }
+            }
+        }
+        return autoexecCombopParamVoList;
     }
 
 }
