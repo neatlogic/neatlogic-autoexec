@@ -139,9 +139,10 @@
         `key`,
         `default_value` as defaultValue,
         `type`,
-        `handler`,
+        `mode`,
         `is_required` as isRequired,
-        `description`
+        `description`,
+        `sort`
         from `autoexec_script_version_param`
         where `script_version_id` = #{value}
     </select>
@@ -152,9 +153,10 @@
         `key`,
         `default_value` as defaultValue,
         `type`,
-        `handler`,
+        `mode`,
         `is_required` as isRequired,
-        `description`
+        `description`,
+        `sort`
         from `autoexec_script_version_param` a
         join `autoexec_script_version` b on a.`script_version_id` = b.`id`
         where b.`is_active` = 1
@@ -374,16 +376,19 @@
         <result column="execMode" property="execMode"/>
         <result column="typeId" property="typeId"/>
         <result column="typeName" property="typeName"/>
-        <result column="riskId" property="riskId"/>
-        <result column="riskName" property="riskName"/>
-        <result column="riskColor" property="riskColor"/>
+        <association property="riskVo" javaType="codedriver.framework.autoexec.dto.AutoexecRiskVo">
+            <result column="riskId" property="id"/>
+            <result column="riskName" property="name"/>
+            <result column="riskColor" property="color"/>
+        </association>
         <collection property="paramList" ofType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo">
             <result property="key" column="key"/>
             <result property="defaultValue" column="defaultValue"/>
             <result property="type" column="paramType"/>
-            <result property="handler" column="handler"/>
+            <result property="mode" column="mode"/>
             <result property="isRequired" column="isRequired"/>
             <result property="description" column="description"/>
+            <result property="sort" column="sort"/>
         </collection>
     </resultMap>
 
@@ -402,9 +407,10 @@
         c.`key`,
         c.`default_value` as defaultValue,
         c.`type` as paramType,
-        c.`handler`,
+        c.`mode`,
         c.`is_required` as isRequired,
-        c.`description`
+        c.`description`,
+        c.`sort`
         from
         `autoexec_script` a
         join `autoexec_script_version` b
@@ -448,7 +454,8 @@
         a.`key`,
         a.`default_value` as defaultValue,
         a.`type`,
-        a.`handler`
+        a.`mode`,
+        a.`sort`
         from `autoexec_script_version_param` a
         join `autoexec_script_version` b
         on a.`script_version_id` = b.`id`
@@ -570,9 +577,10 @@
         `key`,
         `default_value`,
         `type`,
-        `handler`,
+        `mode`,
         `is_required`,
-        `description`
+        `description`,
+        `sort`
         ) values
         <foreach collection="list" item="item" separator=",">
             (
@@ -580,9 +588,10 @@
             #{item.key},
             #{item.defaultValue},
             #{item.type},
-            #{item.handler},
+            #{item.mode},
             #{item.isRequired},
-            #{item.description}
+            #{item.description},
+            #{item.sort}
             )
         </foreach>
     </insert>
