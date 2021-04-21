@@ -5,9 +5,11 @@
 
 package codedriver.module.autoexec.api.script;
 
+import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
+import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
@@ -19,7 +21,6 @@ import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.service.AutoexecScriptService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,10 +68,12 @@ public class AutoexecScriptVersionCopyApi extends PrivateApiComponentBase {
         AutoexecScriptVersionVo source = autoexecScriptService.getScriptVersionDetailByVersionId(versionId);
         Integer maxVersion = autoexecScriptMapper.getMaxVersionByScriptId(source.getScriptId());
         AutoexecScriptVersionVo target = new AutoexecScriptVersionVo();
-        BeanUtils.copyProperties(source, target);
-        target.setId(null);
+        target.setScriptId(source.getScriptId());
         target.setVersion(maxVersion != null ? maxVersion + 1 : 0);
+        target.setParser(source.getParser());
+        target.setStatus(ScriptVersionStatus.DRAFT.getValue());
         target.setIsActive(0);
+        target.setLcu(UserContext.get().getUserUuid());
         List<AutoexecScriptVersionParamVo> paramList = source.getParamList();
         List<AutoexecScriptLineVo> lineList = source.getLineList();
         if (CollectionUtils.isNotEmpty(paramList)) {
