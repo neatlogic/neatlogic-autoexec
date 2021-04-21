@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.dao.mapper;
 
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.*;
 import org.apache.ibatis.annotations.Param;
 
@@ -21,6 +22,8 @@ public interface AutoexecJobMapper {
     AutoexecJobVo getJobDetailByJobId(Long jobId, Long jobPhaseId);
 
     Integer searchJobCount(AutoexecJobVo jobVo);
+
+    List<AutoexecCombopVo> searchJobWithCombopView(AutoexecJobVo jobVo);
 
     Integer checkIsJobUser(@Param("jobId") Long jobId, @Param("userList") List<String> userList);
 

@@ -64,6 +64,18 @@
         </where>
     </select>
 
+    <select id="searchJobWithCombopView" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo" resultType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
+        SELECT ac.`name`, ac.`uk`, COUNT(1) as referenceCount
+        FROM `autoexec_job` aj
+        LEFT JOIN `autoexec_combop` ac ON aj.`operation_id` = ac.`id`
+        <where>
+            <include refid="searchJobSql"/>
+        </where>
+        GROUP BY ac.id
+        order by ac.`uk` desc
+        limit #{startNum}, #{pageSize}
+    </select>
+
     <sql id="searchJobSql">
         <if test="combopName != null and combopName != ''">
             aj.name like concat('%', #{combopName}, '%')

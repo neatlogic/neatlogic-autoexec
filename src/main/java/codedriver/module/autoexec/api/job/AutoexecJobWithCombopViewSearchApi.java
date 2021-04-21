@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.api.job;
 
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
@@ -20,18 +21,18 @@ import java.util.List;
 
 /**
  * @author lvzk
- * @since 2021/4/12 11:20
+ * @since 2021/4/21 10:00
  **/
 
 @Service
 @OperationType(type = OperationTypeEnum.SEARCH)
-public class AutoexecJobSearchApi extends PrivateApiComponentBase {
+public class AutoexecJobWithCombopViewSearchApi extends PrivateApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
 
     @Override
     public String getName() {
-        return "作业搜索（作业执行列表）";
+        return "搜索作业工具分类视图";
     }
 
     @Override
@@ -52,17 +53,16 @@ public class AutoexecJobSearchApi extends PrivateApiComponentBase {
             @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true")
     })
     @Output({
-            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecJobVo[].class, desc = "列表"),
+            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecCombopVo[].class, desc = "列表"),
             @Param(explode = BasePageVo.class)
     })
-    @Description(desc = "作业搜索（作业执行视图）")
+    @Description(desc = "搜索作业工具分类视图")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
         AutoexecJobVo jobVo = new AutoexecJobVo(jsonObj);
-        List<Long> jobIdList = autoexecJobMapper.searchJobId(jobVo);
-        List<AutoexecJobVo> jobVoList = autoexecJobMapper.searchJob(jobIdList);
-        result.put("tbodyList", jobVoList);
+        List<AutoexecCombopVo> combopVoList = autoexecJobMapper.searchJobWithCombopView(jobVo);
+        result.put("tbodyList", combopVoList);
         if (jobVo.getNeedPage()) {
             int rowNum = autoexecJobMapper.searchJobCount(jobVo);
             jobVo.setRowNum(rowNum);
@@ -76,7 +76,7 @@ public class AutoexecJobSearchApi extends PrivateApiComponentBase {
 
     @Override
     public String getToken() {
-        return "autoexec/job/search";
+        return "autoexec/job/combop/search";
     }
 
 
