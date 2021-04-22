@@ -64,7 +64,8 @@
         </where>
     </select>
 
-    <select id="searchJobWithCombopView" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo" resultType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
+    <select id="searchJobWithCombopView" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo"
+            resultType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
         SELECT ac.`name`, ac.`uk`, COUNT(1) as referenceCount
         FROM `autoexec_job` aj
         LEFT JOIN `autoexec_combop` ac ON aj.`operation_id` = ac.`id`
@@ -193,6 +194,7 @@
                aj.`exec_user`       as execUser,
                aj.`source`,
                aj.`thread_count`    as threadCount,
+               aj.`param_hash`      as paramHash,
                aj.`config`
         FROM `autoexec_job` aj
         WHERE aj.`id` = #{value}
@@ -250,7 +252,7 @@
         </collection>
     </resultMap>
 
-    <select id="getJobDetailByJobId" parameterType="java.lang.Long" resultMap="jobMap">
+    <select id="getJobDetailByJobIdAndPhaseId" parameterType="java.lang.Long" resultMap="jobMap">
         SELECT aj.`id`,
         aj.`name`,
         ajpc.`content` AS paramStr,
@@ -276,6 +278,65 @@
                 and ajp.`id` = #{jobPhaseId}
             </if>
         </where>
+    </select>
+
+    <select id="getJobLockByJobId" resultType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
+        SELECT aj.`id`,
+               aj.`name`,
+               aj.`status`,
+               aj.`error`,
+               aj.`plan_start_time` as planStartTime,
+               aj.`start_time`      as startTime,
+               aj.`end_time`        as endTime,
+               aj.`operation_id`    as operationId,
+               aj.`operation_type`  as operationType,
+               aj.`exec_user`       as execUser,
+               aj.`source`,
+               aj.`thread_count`    as threadCount,
+               aj.`param_hash`      as paramHash,
+               aj.`config`
+        FROM `autoexec_job` aj
+        WHERE aj.`id` = #{value} for
+        update
+    </select>
+
+    <select id="getJobParamContentLock"
+            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobParamContentVo">
+        SELECT `hash`,
+               `content`
+        FROM `autoexec_job_param_content`
+        where `hash` = #{value} for
+        update
+    </select>
+
+    <select id="getJobPhaseOperationByJobId"
+            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseOperationVo">
+        SELECT `job_id`       as jobId,
+               `job_phase_id` as jobPhaseId,
+               `id`,
+               `name`,
+               `uk`,
+               `type`,
+               `parser`,
+               `exec_mode`    as execMode,
+               `fail_policy`  as failPolicy,
+               `param_hash`   as paramHash
+        FROM `autoexec_job_phase_operation`
+        where `job_id` = #{value}
+    </select>
+
+    <select id="checkIsJobParamReference" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM `autoexec_job` aj
+        WHERE aj.id != #{jobId}
+          AND aj.`param_hash` = #{hash}
+    </select>
+
+    <select id="checkIsJobPhaseOperationParamReference" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM `autoexec_job_phase_operation`
+        WHERE id != #{jobId}
+          AND `param_hash` = #{hash}
     </select>
 
     <insert id="insertJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
@@ -335,19 +396,21 @@
     </insert>
 
     <insert id="insertJobPhaseOperation"
-            parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
+            parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseOperationVo">
         INSERT INTO `autoexec_job_phase_operation` (`id`,
+                                                    `job_id`,
                                                     `job_phase_id`,
                                                     `uk`,
                                                     `name`,
                                                     `type`,
                                                     `param_hash`)
         VALUES (#{id},
-                #{job_phase_id},
+                #{jobId},
+                #{jobPhaseId},
                 #{uk},
                 #{name},
                 #{type},
-                #{param_hash});
+                #{paramHash});
     </insert>
 
     <insert id="insertJobParamContent"
@@ -364,5 +427,43 @@
         </if>
         WHERE id = #{id}
     </update>
+
+    <delete id="deleteJobParamContentByHash" parameterType="java.lang.String">
+        DELETE
+        FROM `autoexec_job_param_content`
+        WHERE `hash` = #{value};
+    </delete>
+
+    <delete id="deleteJobUserByJobId" parameterType="java.lang.Long">
+        DELETE
+        FROM `codedriver_develop`.`autoexec_job_user`
+        WHERE `job_id` = #{value}
+    </delete>
+
+    <delete id="deleteJobPhaseOperationByJobId" parameterType="java.lang.Long">
+        DELETE
+        FROM `autoexec_job_phase_operation`
+        WHERE `job_id` = #{value}
+    </delete>
+
+    <delete id="deleteJobPhaseNodeByJobId" parameterType="java.lang.Long">
+        DELETE
+        FROM `autoexec_job_phase_node`
+        WHERE `job_id` = #{value};
+    </delete>
+
+    <delete id="deleteJobPhaseByJobId" parameterType="java.lang.Long">
+        DELETE
+        FROM `autoexec_job_phase`
+        WHERE `job_id` = #{value};
+    </delete>
+
+    <delete id="deleteJobByJobId" parameterType="java.lang.Long">
+        DELETE
+        FROM `autoexec_job`
+        WHERE `id` = #{value};
+    </delete>
+
+
 </mapper>
 
