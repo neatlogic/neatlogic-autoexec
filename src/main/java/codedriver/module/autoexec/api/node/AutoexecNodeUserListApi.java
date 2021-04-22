@@ -103,9 +103,9 @@ public class AutoexecNodeUserListApi extends PrivateApiComponentBase {
             fromIndex = fromIndex < size ? fromIndex : size;
             int toIndex = fromIndex + pageSize;
             toIndex = toIndex < size ? toIndex : size;
-            resultObj.put("tbodyList", resultList.subList(fromIndex, toIndex));
+            resultObj.put("list", resultList.subList(fromIndex, toIndex));
         } else {
-            resultObj.put("tbodyList", new ArrayList<>());
+            resultObj.put("list", new ArrayList<>());
         }
         resultObj.put("rowNum", searchVo.getRowNum());
         resultObj.put("pageCount", searchVo.getPageCount());
