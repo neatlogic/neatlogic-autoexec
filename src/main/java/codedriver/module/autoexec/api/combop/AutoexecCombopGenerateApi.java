@@ -88,49 +88,49 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
     @Description(desc = "脚本/工具发布生成组合工具")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        Long operationId = jsonObj.getLong("operationId");
-        String operationType = jsonObj.getString("operationType");
-        if (Objects.equals(operationType, CombopOperationType.SCRIPT.getValue())) {
-            AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(operationId);
-            if (autoexecScriptVo == null) {
-                throw new AutoexecScriptNotFoundException(operationId);
-            }
-            AutoexecCombopVo autoexecCombopVo = new AutoexecCombopVo(autoexecScriptVo);
-            Long combopId = autoexecCombopVo.getId();
-            if (autoexecCombopMapper.checkAutoexecCombopUkIsRepeat(autoexecCombopVo) > 0) {
-                autoexecCombopVo.setUk(autoexecCombopVo.getUk() + "_" + combopId);
-            }
-            if (autoexecCombopMapper.checkAutoexecCombopNameIsRepeat(autoexecCombopVo) > 0) {
-                autoexecCombopVo.setName(autoexecCombopVo.getName() + "_" + combopId);
-            }
-            JSONObject config = new JSONObject();
-            JSONArray combopPhaseList = new JSONArray();
-            JSONObject combopPhaseObj = new JSONObject();
-            JSONObject combopPhaseConfig = new JSONObject();
-            combopPhaseObj.put("uk", autoexecScriptVo.getUk());
-            combopPhaseObj.put("name", autoexecScriptVo.getName());
-            combopPhaseObj.put("execMode", autoexecScriptVo.getExecMode());
-            combopPhaseObj.put("config", combopPhaseConfig);
-            combopPhaseList.add(combopPhaseObj);
-            List<AutoexecScriptVersionParamVo> autoexecScriptVersionParamVoList = autoexecScriptMapper.getParamListByScriptId(operationId);
-            if (CollectionUtils.isNotEmpty(autoexecScriptVersionParamVoList)) {
-                List<AutoexecCombopParamVo> autoexecCombopParamVoList = new ArrayList<>();
-                int sort = 0;
-                for (AutoexecScriptVersionParamVo autoexecScriptVersionParamVo : autoexecScriptVersionParamVoList) {
-                    if (Objects.equals(autoexecScriptVersionParamVo.getMode(), "input")) {
-                        AutoexecCombopParamVo autoexecCombopParamVo = new AutoexecCombopParamVo(autoexecScriptVersionParamVo);
-                        autoexecCombopParamVo.setCombopId(combopId);
-                        autoexecCombopParamVo.setSort(sort++);
-                        autoexecCombopParamVoList.add(autoexecCombopParamVo);
-                    }
-                }
-                autoexecCombopMapper.insertAutoexecCombopParamVoList(autoexecCombopParamVoList);
-            }
-            autoexecCombopVo.setConfig(config.toJSONString());
-            autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
-        } else {
-
-        }
+//        Long operationId = jsonObj.getLong("operationId");
+//        String operationType = jsonObj.getString("operationType");
+//        if (Objects.equals(operationType, CombopOperationType.SCRIPT.getValue())) {
+//            AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(operationId);
+//            if (autoexecScriptVo == null) {
+//                throw new AutoexecScriptNotFoundException(operationId);
+//            }
+//            AutoexecCombopVo autoexecCombopVo = new AutoexecCombopVo(autoexecScriptVo);
+//            Long combopId = autoexecCombopVo.getId();
+//            if (autoexecCombopMapper.checkAutoexecCombopUkIsRepeat(autoexecCombopVo) > 0) {
+//                autoexecCombopVo.setUk(autoexecCombopVo.getUk() + "_" + combopId);
+//            }
+//            if (autoexecCombopMapper.checkAutoexecCombopNameIsRepeat(autoexecCombopVo) > 0) {
+//                autoexecCombopVo.setName(autoexecCombopVo.getName() + "_" + combopId);
+//            }
+//            JSONObject config = new JSONObject();
+//            JSONArray combopPhaseList = new JSONArray();
+//            JSONObject combopPhaseObj = new JSONObject();
+//            JSONObject combopPhaseConfig = new JSONObject();
+//            combopPhaseObj.put("uk", autoexecScriptVo.getUk());
+//            combopPhaseObj.put("name", autoexecScriptVo.getName());
+//            combopPhaseObj.put("execMode", autoexecScriptVo.getExecMode());
+//            combopPhaseObj.put("config", combopPhaseConfig);
+//            combopPhaseList.add(combopPhaseObj);
+//            List<AutoexecScriptVersionParamVo> autoexecScriptVersionParamVoList = autoexecScriptMapper.getParamListByScriptId(operationId);
+//            if (CollectionUtils.isNotEmpty(autoexecScriptVersionParamVoList)) {
+//                List<AutoexecCombopParamVo> autoexecCombopParamVoList = new ArrayList<>();
+//                int sort = 0;
+//                for (AutoexecScriptVersionParamVo autoexecScriptVersionParamVo : autoexecScriptVersionParamVoList) {
+//                    if (Objects.equals(autoexecScriptVersionParamVo.getMode(), "input")) {
+//                        AutoexecCombopParamVo autoexecCombopParamVo = new AutoexecCombopParamVo(autoexecScriptVersionParamVo);
+//                        autoexecCombopParamVo.setCombopId(combopId);
+//                        autoexecCombopParamVo.setSort(sort++);
+//                        autoexecCombopParamVoList.add(autoexecCombopParamVo);
+//                    }
+//                }
+//                autoexecCombopMapper.insertAutoexecCombopParamVoList(autoexecCombopParamVoList);
+//            }
+//            autoexecCombopVo.setConfig(config.toJSONString());
+//            autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
+//        } else {
+//
+//        }
         return null;
     }
 }

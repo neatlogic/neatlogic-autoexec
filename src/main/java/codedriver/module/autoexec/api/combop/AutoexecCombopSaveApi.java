@@ -155,16 +155,17 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
                         }
                     }
                     autoexecCombopMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);
-                    List phaseNodeList = phaseConfig.getPhaseNodeList();
-                    if (CollectionUtils.isNotEmpty(phaseNodeList)) {
-                        //TODO linbq
-                    }
+                    //TODO linbq
+//                    List phaseNodeList = phaseConfig.getPhaseNodeList();
+//                    if (CollectionUtils.isNotEmpty(phaseNodeList)) {
+//
+//                    }
                 }
             }
-            List combopNodeList = config.getCombopNodeList();
-            if (CollectionUtils.isNotEmpty(combopNodeList)) {
-                //TODO linbq
-            }
+            //TODO linbq
+//            List combopNodeList = config.getCombopNodeList();
+//            if (CollectionUtils.isNotEmpty(combopNodeList)) {
+//            }
             autoexecCombopMapper.updateAutoexecCombopById(autoexecCombopVo);
         }
 
