@@ -95,7 +95,7 @@ public class AutoexecCombopParamListApi extends PrivateApiComponentBase {
                     config.put("isRequired", true);
                 }
                 autoexecCombopParamVo.setConfig(config);
-                Object value = autoexecCombopParamVo.getValue();
+                Object value = autoexecCombopParamVo.getDefaultValue();
                 if (value != null) {
                     switch (paramType) {
                         case TEXT:
@@ -104,12 +104,17 @@ public class AutoexecCombopParamListApi extends PrivateApiComponentBase {
                             config.put("showPassword", false);
                             break;
                         case FILE:
-                            autoexecCombopParamVo.setValue(JSONObject.parseObject(value.toString()));
+                            autoexecCombopParamVo.setDefaultValue(JSONObject.parseObject((String) value));
                             break;
                         case DATE:
                             break;
                         case JSON:
-                            autoexecCombopParamVo.setValue(JSONObject.parseObject(value.toString()));
+                            String valueStr = (String) value;
+                            if (valueStr.startsWith("[") && valueStr.endsWith("]")) {
+                                autoexecCombopParamVo.setDefaultValue(JSONObject.parseArray(valueStr));
+                            } else if (valueStr.startsWith("{") && valueStr.endsWith("}")) {
+                                autoexecCombopParamVo.setDefaultValue(JSONObject.parseObject(valueStr));
+                            }
                             break;
                         default:
                             break;
