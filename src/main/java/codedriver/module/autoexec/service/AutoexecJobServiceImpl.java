@@ -6,7 +6,7 @@
 package codedriver.module.autoexec.service;
 
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
+import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.job.AutoexecJobParamContentVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseOperationVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
@@ -18,7 +18,6 @@ import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecToolMapper;
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -38,26 +37,27 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
 
     @Override
     public void saveAutoexecCombopJob(AutoexecCombopVo combopVo, String source, Integer threadCount, JSONArray jobParamList) {
-        JSONObject config = combopVo.getConfig();
+        AutoexecCombopConfigVo config = combopVo.getConfig();
         AutoexecJobVo jobVo = new AutoexecJobVo(combopVo, CombopOperationType.COMBOP.getValue(), source, threadCount,jobParamList);
         autoexecJobMapper.insertJob(jobVo);
         autoexecJobMapper.insertJobParamContent(new AutoexecJobParamContentVo(jobVo.getParamHash(),jobVo.getParamStr()));
         //TODO 保存流水线执行目标
-        JSONArray combopPhaseList = config.getJSONArray("combopPhaseList");
+        List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
         for (int i = 0; i < combopPhaseList.size(); i++) {
-            AutoexecJobPhaseVo jobPhaseVo = new AutoexecJobPhaseVo(JSONObject.parseObject(combopPhaseList.get(i).toString()), i, jobVo.getId());
+            AutoexecCombopPhaseVo autoexecCombopPhaseVo = combopPhaseList.get(i);
+            AutoexecJobPhaseVo jobPhaseVo = new AutoexecJobPhaseVo(autoexecCombopPhaseVo, i, jobVo.getId());
             autoexecJobMapper.insertJobPhase(jobPhaseVo);
-            JSONArray combopPhaseOperationList = config.getJSONArray("phaseOperationList");
-            for (int j = 0; j < combopPhaseOperationList.size(); j++) {
-                JSONObject operationJson = combopPhaseOperationList.getJSONObject(j);
-                String operationType = operationJson.getString("operationType");
-                Long operationId = operationJson.getLong("operationId");
+            AutoexecCombopPhaseConfigVo phaseConfigVo = autoexecCombopPhaseVo.getConfig();
+            List<AutoexecCombopPhaseOperationVo> combopPhaseOperationList = phaseConfigVo.getPhaseOperationList();
+            for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : combopPhaseOperationList) {
+                String operationType = autoexecCombopPhaseOperationVo.getOperationType();
+                Long operationId = autoexecCombopPhaseOperationVo.getOperationId();
                 AutoexecJobPhaseOperationVo operationVo = null;
                 if (CombopOperationType.SCRIPT.getValue().equalsIgnoreCase(operationType)) {
                     AutoexecScriptVo scriptVo = autoexecScriptMapper.getScriptBaseInfoById(operationId);
                     AutoexecScriptVersionVo scriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(operationId);
                     List<AutoexecScriptLineVo> scriptLineVoList = autoexecScriptMapper.getLineListByVersionId(scriptVersionVo.getId());
-                    operationVo = new AutoexecJobPhaseOperationVo(JSONObject.parseObject(combopPhaseOperationList.get(i).toString()), i, jobPhaseVo, scriptVo, scriptVersionVo, scriptLineVoList);
+                    operationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, scriptVo, scriptVersionVo, scriptLineVoList);
                     autoexecJobMapper.insertJobPhaseOperation(operationVo);
                     autoexecJobMapper.insertJobParamContent(new AutoexecJobParamContentVo(operationVo.getScriptHash(), operationVo.getScript()));
                 }

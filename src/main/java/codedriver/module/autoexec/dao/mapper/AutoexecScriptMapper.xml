@@ -331,7 +331,7 @@
         ) a
     </select>
 
-    <select id="searchScriptAndTool" parameterType="codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo" resultType="codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo">
+    <select id="searchScriptAndTool" parameterType="codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo" resultMap="autoexecToolAndScriptMap">
         select
         a.`id`,
         a.`uk`,

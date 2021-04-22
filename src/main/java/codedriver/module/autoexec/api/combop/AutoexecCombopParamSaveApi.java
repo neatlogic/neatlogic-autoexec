@@ -96,16 +96,16 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
         for (int i = 0; i < paramList.size(); i++) {
             AutoexecCombopParamVo autoexecCombopParamVo = paramList.getObject(i, AutoexecCombopParamVo.class);
             if (autoexecCombopParamVo != null) {
-                Object value = autoexecCombopParamVo.getValue();
+                Object value = autoexecCombopParamVo.getDefaultValue();
                 if (value != null && Objects.equals(autoexecCombopParamVo.getType(), ParamType.PASSWORD.getValue())) {
                     Integer sort = autoexecCombopParamVo.getSort();
                     if (sort != null && sort < autoexecCombopParamList.size()) {
                         AutoexecCombopParamVo oldParamVo = autoexecCombopParamList.get(sort);
-                        if (!Objects.equals(value, oldParamVo.getValue())) {
-                            autoexecCombopParamVo.setValue(RC4Util.encrypt((String) value));
+                        if (!Objects.equals(value, oldParamVo.getDefaultValue())) {
+                            autoexecCombopParamVo.setDefaultValue(RC4Util.encrypt((String) value));
                         }
                     } else {
-                        autoexecCombopParamVo.setValue(RC4Util.encrypt((String) value));
+                        autoexecCombopParamVo.setDefaultValue(RC4Util.encrypt((String) value));
                     }
                 }
                 autoexecCombopParamVo.setCombopId(combopId);

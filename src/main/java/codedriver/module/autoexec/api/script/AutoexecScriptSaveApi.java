@@ -211,10 +211,8 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
         if (!Objects.equals(before.getParser(), after.getParser())) {
             return true;
         }
-        List<AutoexecScriptVersionParamVo> beforeParamList = new ArrayList<>();
-        beforeParamList.addAll(before.getParamList());
-        List<AutoexecScriptVersionParamVo> afterParamList = new ArrayList<>();
-        afterParamList.addAll(after.getParamList());
+        List<AutoexecScriptVersionParamVo> beforeParamList = before.getParamList() != null ? before.getParamList() : new ArrayList<>();
+        List<AutoexecScriptVersionParamVo> afterParamList = after.getParamList() != null ? after.getParamList() : new ArrayList<>();
         if (beforeParamList.size() != afterParamList.size()) {
             return true;
         }
