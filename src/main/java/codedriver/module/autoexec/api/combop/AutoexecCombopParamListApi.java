@@ -30,7 +30,6 @@ import java.util.Objects;
  * @since: 2021/4/13 11:21
  **/
 @Service
-@Transactional
 @AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecCombopParamListApi extends PrivateApiComponentBase {
@@ -95,7 +94,7 @@ public class AutoexecCombopParamListApi extends PrivateApiComponentBase {
                     config.put("isRequired", true);
                 }
                 autoexecCombopParamVo.setConfig(config);
-                Object value = autoexecCombopParamVo.getValue();
+                Object value = autoexecCombopParamVo.getDefaultValue();
                 if (value != null) {
                     switch (paramType) {
                         case TEXT:
@@ -104,12 +103,17 @@ public class AutoexecCombopParamListApi extends PrivateApiComponentBase {
                             config.put("showPassword", false);
                             break;
                         case FILE:
-                            autoexecCombopParamVo.setValue(JSONObject.parseObject(value.toString()));
+                            autoexecCombopParamVo.setDefaultValue(JSONObject.parseObject((String) value));
                             break;
                         case DATE:
                             break;
                         case JSON:
-                            autoexecCombopParamVo.setValue(JSONObject.parseObject(value.toString()));
+                            String valueStr = (String) value;
+                            if (valueStr.startsWith("[") && valueStr.endsWith("]")) {
+                                autoexecCombopParamVo.setDefaultValue(JSONObject.parseArray(valueStr));
+                            } else if (valueStr.startsWith("{") && valueStr.endsWith("}")) {
+                                autoexecCombopParamVo.setDefaultValue(JSONObject.parseObject(valueStr));
+                            }
                             break;
                         default:
                             break;

@@ -5,6 +5,8 @@
 
 package codedriver.module.autoexec.api.combop;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
@@ -25,6 +27,7 @@ import javax.annotation.Resource;
  * @since: 2021/4/13 15:29
  **/
 @Service
+@AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecCombopGetApi extends PrivateApiComponentBase {
 
