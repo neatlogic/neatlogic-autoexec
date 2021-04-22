@@ -125,7 +125,8 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             autoexecCombopVo.setOperationType(CombopOperationType.COMBOP.getValue());
             autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
         } else {
-            if (autoexecCombopMapper.checkAutoexecCombopIsExists(id) == 0) {
+            AutoexecCombopVo oldAutoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
+            if (oldAutoexecCombopVo == null) {
                 throw new AutoexecCombopNotFoundException(id);
             }
             AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
@@ -155,17 +156,14 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
                         }
                     }
                     autoexecCombopMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);
-                    //TODO linbq
-//                    List phaseNodeList = phaseConfig.getPhaseNodeList();
-//                    if (CollectionUtils.isNotEmpty(phaseNodeList)) {
-//
-//                    }
                 }
             }
-            //TODO linbq
-//            List combopNodeList = config.getCombopNodeList();
-//            if (CollectionUtils.isNotEmpty(combopNodeList)) {
-//            }
+            AutoexecCombopConfigVo oldConfigVo = oldAutoexecCombopVo.getConfig();
+            if (oldConfigVo != null) {
+                config.setExecuteUser(oldConfigVo.getExecuteUser());
+                config.setWhenToSpecify(oldConfigVo.getWhenToSpecify());
+                config.setExecuteNodeConfig(oldConfigVo.getExecuteNodeConfig());
+            }
             autoexecCombopMapper.updateAutoexecCombopById(autoexecCombopVo);
         }
 
