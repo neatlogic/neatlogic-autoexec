@@ -30,7 +30,6 @@ import java.util.Objects;
  * @since: 2021/4/13 11:21
  **/
 @Service
-@Transactional
 @AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecCombopParamListApi extends PrivateApiComponentBase {
