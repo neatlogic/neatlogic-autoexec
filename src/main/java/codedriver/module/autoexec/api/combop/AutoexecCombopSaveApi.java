@@ -6,9 +6,7 @@
 package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseOperationVo;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
+import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.dto.FieldValidResultVo;
@@ -27,7 +25,6 @@ import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecCombopUkRepeatException;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -131,7 +128,7 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             if (autoexecCombopMapper.checkAutoexecCombopIsExists(id) == 0) {
                 throw new AutoexecCombopNotFoundException(id);
             }
-            JSONObject config = autoexecCombopVo.getConfig();
+            AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
             /** 保存前，校验组合工具是否配置正确，不正确不可以保存 **/
             //autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo);
             List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
@@ -140,32 +137,31 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
                 autoexecCombopMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
             }
             autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
-
-            JSONArray combopPhaseList = config.getJSONArray("combopPhaseList");
-            for (int i = 0; i < combopPhaseList.size(); i++) {
-                AutoexecCombopPhaseVo autoexecCombopPhaseVo = combopPhaseList.getObject(i, AutoexecCombopPhaseVo.class);
+            int iSort = 0;
+            List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
+            for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
                 if (autoexecCombopPhaseVo != null) {
                     autoexecCombopPhaseVo.setCombopId(id);
-                    autoexecCombopPhaseVo.setSort(i);
-                    JSONObject phaseConfig = autoexecCombopPhaseVo.getConfig();
-                    JSONArray phaseOperationList = phaseConfig.getJSONArray("phaseOperationList");
+                    autoexecCombopPhaseVo.setSort(iSort++);
+                    AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
+                    List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
                     Long combopPhaseId = autoexecCombopPhaseVo.getId();
-                    for (int j = 0; j < phaseOperationList.size(); j++) {
-                        AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo = phaseOperationList.getObject(j, AutoexecCombopPhaseOperationVo.class);
+                    int jSort = 0;
+                    for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
                         if (autoexecCombopPhaseOperationVo != null) {
-                            autoexecCombopPhaseOperationVo.setSort(j);
+                            autoexecCombopPhaseOperationVo.setSort(jSort++);
                             autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
                             autoexecCombopMapper.insertAutoexecCombopPhaseOperation(autoexecCombopPhaseOperationVo);
                         }
                     }
                     autoexecCombopMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);
-                    JSONArray phaseNodeList = phaseConfig.getJSONArray("phaseNodeList");
+                    List phaseNodeList = phaseConfig.getPhaseNodeList();
                     if (CollectionUtils.isNotEmpty(phaseNodeList)) {
                         //TODO linbq
                     }
                 }
             }
-            JSONArray combopNodeList = config.getJSONArray("combopNodeList");
+            List combopNodeList = config.getCombopNodeList();
             if (CollectionUtils.isNotEmpty(combopNodeList)) {
                 //TODO linbq
             }
