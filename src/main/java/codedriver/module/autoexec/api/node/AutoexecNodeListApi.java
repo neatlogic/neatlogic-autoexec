@@ -61,34 +61,16 @@ public class AutoexecNodeListApi extends PrivateApiComponentBase {
         AUTOEXEC_NODE_VO_LIST.add(new AutoexecNodeVo(id + sort, "执行目标" + sort, "192.168.0." + sort, 8080 + sort++, "linux"));
     }
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 接口唯一标识，也是访问URI
-     */
     @Override
     public String getToken() {
         return "autoexec/node/list";
     }
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 接口中文名
-     */
     @Override
     public String getName() {
         return "查询执行目标列表";
     }
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 额外配置
-     */
     @Override
     public String getConfig() {
         return null;
