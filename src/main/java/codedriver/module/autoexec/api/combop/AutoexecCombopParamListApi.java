@@ -107,6 +107,9 @@ public class AutoexecCombopParamListApi extends PrivateApiComponentBase {
                             break;
                         case DATE:
                             break;
+                        case NODE:
+                            autoexecCombopParamVo.setDefaultValue(JSONObject.parseArray((String) value));
+                            break;
                         case JSON:
                             String valueStr = (String) value;
                             if (valueStr.startsWith("[") && valueStr.endsWith("]")) {

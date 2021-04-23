@@ -10,6 +10,7 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
 import codedriver.framework.autoexec.constvalue.CombopNodeSpecify;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteNodeConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -71,18 +72,14 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
         }
         String executeUser = jsonObj.getString("executeUser");
         String whenToSpecify = jsonObj.getString("whenToSpecify");
-        JSONObject executeNodeConfig = jsonObj.getJSONObject("executeNodeConfig");
         AutoexecCombopConfigVo autoexecCombopConfigVo = autoexecCombopVo.getConfig();
-        if (autoexecCombopConfigVo == null) {
-            autoexecCombopVo.setConfig(new JSONObject().toJSONString());
-            autoexecCombopConfigVo = autoexecCombopVo.getConfig();
-        }
         autoexecCombopConfigVo.setExecuteUser(executeUser);
         autoexecCombopConfigVo.setWhenToSpecify(whenToSpecify);
         if (Objects.equals(whenToSpecify, CombopNodeSpecify.NOW.getValue())) {
-            autoexecCombopConfigVo.setExecuteNodeConfig(executeNodeConfig);
+            JSONObject executeNodeConfig = jsonObj.getJSONObject("executeNodeConfig");
+            autoexecCombopConfigVo.setExecuteNodeConfig(JSONObject.toJavaObject(executeNodeConfig, AutoexecCombopExecuteNodeConfigVo.class));
         } else {
-            autoexecCombopConfigVo.setExecuteNodeConfig(new JSONObject());
+            autoexecCombopConfigVo.setExecuteNodeConfig(new AutoexecCombopExecuteNodeConfigVo());
         }
         autoexecCombopVo.setFcu(UserContext.get().getUserUuid(true));
         autoexecCombopMapper.updateAutoexecCombopConfigById(autoexecCombopVo);

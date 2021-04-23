@@ -20,28 +20,46 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * 查询执行目标标签列表接口
+ *
  * @author: linbq
- * @since: 2021/4/22 14:20
+ * @since: 2021/4/23 10:21
  **/
 @Service
 @OperationType(type = OperationTypeEnum.SEARCH)
-public class AutoexecNodeUserListApi extends PrivateApiComponentBase {
-
-    final static List<ValueTextVo> AUTOEXEC_NODE_USER_VO_LIST = new ArrayList<>();
+public class AutoexecNodeTagListApi extends PrivateApiComponentBase {
+    private final static List<ValueTextVo> TAG_LIST = new ArrayList<>();
 
     static {
-        AUTOEXEC_NODE_USER_VO_LIST.add(new ValueTextVo("root", "root"));
-        AUTOEXEC_NODE_USER_VO_LIST.add(new ValueTextVo("admin", "admin"));
+        int i = 1;
+        TAG_LIST.add(new ValueTextVo("标签" + i, "标签" + i++));
+        TAG_LIST.add(new ValueTextVo("标签" + i, "标签" + i++));
+        TAG_LIST.add(new ValueTextVo("标签" + i, "标签" + i++));
+        TAG_LIST.add(new ValueTextVo("标签" + i, "标签" + i++));
+        TAG_LIST.add(new ValueTextVo("标签" + i, "标签" + i++));
+        TAG_LIST.add(new ValueTextVo("标签" + i, "标签" + i++));
+        TAG_LIST.add(new ValueTextVo("标签" + i, "标签" + i++));
+        TAG_LIST.add(new ValueTextVo("标签" + i, "标签" + i++));
+        TAG_LIST.add(new ValueTextVo("标签" + i, "标签" + i++));
+        TAG_LIST.add(new ValueTextVo("标签" + i, "标签" + i++));
+        TAG_LIST.add(new ValueTextVo("标签" + i, "标签" + i++));
+        TAG_LIST.add(new ValueTextVo("标签" + i, "标签" + i++));
+        TAG_LIST.add(new ValueTextVo("标签" + i, "标签" + i++));
+        TAG_LIST.add(new ValueTextVo("标签" + i, "标签" + i++));
+        TAG_LIST.add(new ValueTextVo("标签" + i, "标签" + i++));
+        TAG_LIST.add(new ValueTextVo("标签" + i, "标签" + i++));
+        TAG_LIST.add(new ValueTextVo("标签" + i, "标签" + i++));
+        TAG_LIST.add(new ValueTextVo("标签" + i, "标签" + i++));
     }
 
     @Override
     public String getToken() {
-        return "autoexec/node/user/list";
+        return "autoexec/node/tag/list";
     }
 
     @Override
     public String getName() {
-        return "查询执行用户列表";
+        return "查询执行目标标签列表";
     }
 
     @Override
@@ -56,20 +74,20 @@ public class AutoexecNodeUserListApi extends PrivateApiComponentBase {
     })
     @Output({
             @Param(explode = BasePageVo.class),
-            @Param(name = "list", explode = ValueTextVo[].class, desc = "执行用户列表")
+            @Param(name = "list", explode = ValueTextVo[].class, desc = "执行目标标签列表")
     })
-    @Description(desc = "查询执行用户列表")
+    @Description(desc = "查询执行目标标签列表")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject resultObj = new JSONObject();
         BasePageVo searchVo = JSON.toJavaObject(jsonObj, BasePageVo.class);
         int pageSize = searchVo.getPageSize();
-        int rowNum = AUTOEXEC_NODE_USER_VO_LIST.size();
+        int rowNum = TAG_LIST.size();
         if (rowNum > 0) {
             searchVo.setRowNum(rowNum);
             String keyword = searchVo.getKeyword();
             List<ValueTextVo> resultList = new ArrayList<>();
-            for (ValueTextVo valueTextVo : AUTOEXEC_NODE_USER_VO_LIST) {
+            for (ValueTextVo valueTextVo : TAG_LIST) {
                 if (StringUtils.isNotBlank(keyword)) {
                     if (valueTextVo.getText().contains(keyword)) {
                         resultList.add(valueTextVo);

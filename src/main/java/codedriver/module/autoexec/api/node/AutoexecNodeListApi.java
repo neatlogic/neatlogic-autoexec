@@ -34,7 +34,7 @@ import java.util.List;
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecNodeListApi extends PrivateApiComponentBase {
 
-    private final static List<AutoexecNodeVo> AUTOEXEC_NODE_VO_LIST = new ArrayList<>();
+    final static List<AutoexecNodeVo> AUTOEXEC_NODE_VO_LIST = new ArrayList<>();
 
     static {
         int sort = 0;
