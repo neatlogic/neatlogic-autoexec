@@ -10,12 +10,14 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
 import codedriver.framework.autoexec.constvalue.ParamMode;
+import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dto.script.*;
 import codedriver.framework.autoexec.exception.AutoexecScriptNameOrUkRepeatException;
 import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionCannotEditException;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.dto.FieldValidResultVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -88,6 +90,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
         JSONObject result = new JSONObject();
         AutoexecScriptVo scriptVo = JSON.toJavaObject(jsonObj, AutoexecScriptVo.class);
         boolean needSave = true;
+        List<AutoexecScriptVersionParamVo> oldParamList = null;
 
         /**
          * 没有id和versionId，表示首次创建脚本
@@ -113,6 +116,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
                 scriptVo.setVersionId(versionVo.getId());
             } else {  // 编辑版本
                 AutoexecScriptVersionVo currentVersion = autoexecScriptService.getScriptVersionDetailByVersionId(scriptVo.getVersionId());
+                oldParamList = currentVersion.getParamList();
                 // 处于待审批和已通过状态的版本，任何权限都无法编辑
                 if (ScriptVersionStatus.SUBMITTED.getValue().equals(currentVersion.getStatus())
                         || ScriptVersionStatus.PASSED.getValue().equals(currentVersion.getStatus())) {
@@ -146,8 +150,21 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
                 List<AutoexecScriptVersionParamVo> outputParamList = paramList.stream().filter(o -> ParamMode.OUTPUT.getValue().equals(o.getMode())).collect(Collectors.toList());
                 if (CollectionUtils.isNotEmpty(inputParamList)) {
                     for (int i = 0; i < inputParamList.size(); i++) {
-                        inputParamList.get(i).setScriptVersionId(versionVo.getId());
-                        inputParamList.get(i).setSort(i);
+                        AutoexecScriptVersionParamVo paramVo = inputParamList.get(i);
+                        paramVo.setScriptVersionId(versionVo.getId());
+                        // 检查是否修改了原密码默认值，修改过则重新加密
+                        if (paramVo.getDefaultValue() != null && ParamType.PASSWORD.getValue().equals(paramVo.getType())) {
+                            Integer sort = paramVo.getSort();
+                            if (sort != null && oldParamList != null && sort < oldParamList.size()) {
+                                AutoexecScriptVersionParamVo oldPwd = oldParamList.get(sort);
+                                if (!Objects.equals(paramVo.getDefaultValue(), oldPwd.getDefaultValue())) {
+                                    paramVo.setDefaultValue(RC4Util.encrypt((String) paramVo.getDefaultValue()));
+                                }
+                            } else {
+                                paramVo.setDefaultValue(RC4Util.encrypt((String) paramVo.getDefaultValue()));
+                            }
+                        }
+                        paramVo.setSort(i);
                     }
                     autoexecScriptMapper.insertScriptVersionParamList(inputParamList);
                 }
@@ -211,10 +228,8 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
         if (!Objects.equals(before.getParser(), after.getParser())) {
             return true;
         }
-        List<AutoexecScriptVersionParamVo> beforeParamList = new ArrayList<>();
-        beforeParamList.addAll(before.getParamList());
-        List<AutoexecScriptVersionParamVo> afterParamList = new ArrayList<>();
-        afterParamList.addAll(after.getParamList());
+        List<AutoexecScriptVersionParamVo> beforeParamList = before.getParamList() != null ? before.getParamList() : new ArrayList<>();
+        List<AutoexecScriptVersionParamVo> afterParamList = after.getParamList() != null ? after.getParamList() : new ArrayList<>();
         if (beforeParamList.size() != afterParamList.size()) {
             return true;
         }
