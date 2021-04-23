@@ -19,7 +19,7 @@
     </select>
 
     <select id="checkScriptIsExistsById" parameterType="java.lang.Long" resultType="int">
-        select `id`
+        select count(`id`)
         from `autoexec_script` where `id` = #{value}
     </select>
 

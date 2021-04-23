@@ -57,34 +57,16 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
     @Resource
     private NotifyMapper notifyMapper;
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 接口唯一标识，也是访问URI
-     */
     @Override
     public String getToken() {
         return "autoexec/combop/save";
     }
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 接口中文名
-     */
     @Override
     public String getName() {
         return "保存组合工具基本信息";
     }
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 额外配置
-     */
     @Override
     public String getConfig() {
         return null;
@@ -125,7 +107,8 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             autoexecCombopVo.setOperationType(CombopOperationType.COMBOP.getValue());
             autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
         } else {
-            if (autoexecCombopMapper.checkAutoexecCombopIsExists(id) == 0) {
+            AutoexecCombopVo oldAutoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
+            if (oldAutoexecCombopVo == null) {
                 throw new AutoexecCombopNotFoundException(id);
             }
             AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
@@ -155,17 +138,15 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
                         }
                     }
                     autoexecCombopMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);
-                    //TODO linbq
-//                    List phaseNodeList = phaseConfig.getPhaseNodeList();
-//                    if (CollectionUtils.isNotEmpty(phaseNodeList)) {
-//
-//                    }
                 }
             }
-            //TODO linbq
-//            List combopNodeList = config.getCombopNodeList();
-//            if (CollectionUtils.isNotEmpty(combopNodeList)) {
-//            }
+            AutoexecCombopConfigVo oldConfigVo = oldAutoexecCombopVo.getConfig();
+            if (oldConfigVo != null) {
+                /** 更新组合工具阶段列表数据时，需要保留执行目标的配置信息 **/
+                config.setExecuteUser(oldConfigVo.getExecuteUser());
+                config.setWhenToSpecify(oldConfigVo.getWhenToSpecify());
+                config.setExecuteNodeConfig(oldConfigVo.getExecuteNodeConfig());
+            }
             autoexecCombopMapper.updateAutoexecCombopById(autoexecCombopVo);
         }
 

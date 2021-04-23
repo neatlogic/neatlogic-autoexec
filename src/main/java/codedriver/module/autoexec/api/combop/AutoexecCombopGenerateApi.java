@@ -5,6 +5,8 @@
 
 package codedriver.module.autoexec.api.combop;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
@@ -22,6 +24,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -35,6 +38,8 @@ import java.util.Objects;
  * @since: 2021/4/21 15:20
  **/
 @Service
+@Transactional
+@AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
 @OperationType(type = OperationTypeEnum.CREATE)
 public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
 
