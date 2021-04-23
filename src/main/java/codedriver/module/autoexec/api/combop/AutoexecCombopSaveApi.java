@@ -160,6 +160,7 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             }
             AutoexecCombopConfigVo oldConfigVo = oldAutoexecCombopVo.getConfig();
             if (oldConfigVo != null) {
+                /** 更新组合工具阶段列表数据时，需要保留执行目标的配置信息 **/
                 config.setExecuteUser(oldConfigVo.getExecuteUser());
                 config.setWhenToSpecify(oldConfigVo.getWhenToSpecify());
                 config.setExecuteNodeConfig(oldConfigVo.getExecuteNodeConfig());
