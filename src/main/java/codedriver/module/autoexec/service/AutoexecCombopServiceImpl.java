@@ -62,6 +62,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
             autoexecCombopVo.setExecutable(1);
             autoexecCombopVo.setOwnerEditable(1);
         } else {
+            autoexecCombopVo.setOwnerEditable(0);
             List<String> roleUuidList = UserContext.get().getRoleUuidList();
             List<String> teamUuidList = teamMapper.getTeamUuidListByUserUuid(userUuid);
             List<String> authorityList = autoexecCombopMapper.getAutoexecCombopAuthorityListByCombopIdAndUserUuidAndTeamUuidListAndRoleUuidList(autoexecCombopVo.getId(), userUuid, teamUuidList, roleUuidList);
