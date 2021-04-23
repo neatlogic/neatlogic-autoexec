@@ -315,6 +315,15 @@
         WHERE `id` = #{id}
     </update>
 
+    <update id="updateAutoexecCombopConfigById" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
+        UPDATE `autoexec_combop`
+        SET
+            `config` = #{configStr},
+            `lcd` = NOW(3),
+            `lcu` = #{lcu}
+        WHERE `id` = #{id}
+    </update>
+
     <delete id="deleteAutoexecCombopById" parameterType="java.lang.Long">
         DELETE FROM `autoexec_combop` WHERE `id` = #{value}
     </delete>

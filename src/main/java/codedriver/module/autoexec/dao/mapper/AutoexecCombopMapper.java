@@ -56,6 +56,8 @@ public interface AutoexecCombopMapper {
 
     public int updateAutoexecCombopIsActiveById(AutoexecCombopVo autoexecCombopVo);
 
+    public int updateAutoexecCombopConfigById(AutoexecCombopVo autoexecCombopVo);
+
     public int deleteAutoexecCombopById(Long id);
 
     public int deleteAutoexecCombopAuthorityByCombopId(Long combopId);
