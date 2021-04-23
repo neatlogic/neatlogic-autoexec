@@ -7,8 +7,10 @@ package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.common.constvalue.GroupSearch;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -19,6 +21,7 @@ import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * 查询组合工具详情接口
@@ -85,6 +88,9 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
             throw new AutoexecCombopNotFoundException(id);
         }
         autoexecCombopService.setOperableButtonList(autoexecCombopVo);
+        autoexecCombopVo.setOwner(GroupSearch.USER.getValuePlugin() + autoexecCombopVo.getOwner());
+        List<AutoexecCombopParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
+        autoexecCombopVo.setRuntimeParamList(runtimeParamList);
         return autoexecCombopVo;
     }
 }
