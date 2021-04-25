@@ -17,7 +17,6 @@ import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -26,8 +25,8 @@ import java.util.Objects;
 /**
  * 查询组合工具顶层参数列表接口
  *
- * @author: linbq
- * @since: 2021/4/13 11:21
+ * @author linbq
+ * @since 2021/4/13 11:21
  **/
 @Service
 @AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
@@ -37,34 +36,16 @@ public class AutoexecCombopParamListApi extends PrivateApiComponentBase {
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 接口唯一标识，也是访问URI
-     */
     @Override
     public String getToken() {
         return "autoexec/combop/param/list";
     }
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 接口中文名
-     */
     @Override
     public String getName() {
         return "查询组合工具顶层参数列表";
     }
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 额外配置
-     */
     @Override
     public String getConfig() {
         return null;
