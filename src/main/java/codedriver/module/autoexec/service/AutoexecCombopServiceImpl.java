@@ -10,26 +10,19 @@ import codedriver.framework.autoexec.constvalue.CombopAuthorityAction;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.ParamMappingMode;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseOperationVo;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
+import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.dao.mapper.TeamMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -90,114 +83,136 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
      */
     @Override
     public boolean verifyAutoexecCombopConfig(AutoexecCombopVo autoexecCombopVo) {
-//        JSONObject config = autoexecCombopVo.getConfig();
-//        if (MapUtils.isEmpty(config)) {
-//            throw new AutoexecCombopAtLeastOnePhaseException();
-//        }
-//        JSONArray combopPhaseList = config.getJSONArray("combopPhaseList");
-//        if (CollectionUtils.isEmpty(combopPhaseList)) {
-//            throw new AutoexecCombopAtLeastOnePhaseException();
-//        }
-//
-//        List<String> localPreNodeOutputParamList = new ArrayList<>();
-//        List<String> remotePreNodeOutputParamList = new ArrayList<>();
-//        List<String> topLevelParamList = new ArrayList<>();
-//        List<AutoexecCombopParamVo> autoexecCombopParamVoList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(autoexecCombopVo.getId());
-//        if(CollectionUtils.isNotEmpty(autoexecCombopParamVoList)){
-//            topLevelParamList = autoexecCombopParamVoList.stream().map(AutoexecCombopParamVo::getKey).collect(Collectors.toList());
-//        }
-//        for (int i = 0; i < combopPhaseList.size(); i++) {
-//            AutoexecCombopPhaseVo autoexecCombopPhaseVo = combopPhaseList.getObject(i, AutoexecCombopPhaseVo.class);
-//            if (autoexecCombopPhaseVo != null) {
-//                JSONObject phaseConfig = autoexecCombopPhaseVo.getConfig();
-//                if (MapUtils.isEmpty(phaseConfig)) {
-//                    throw new AutoexecCombopPhaseAtLeastOneOperationException();
-//                }
-//                JSONArray phaseOperationList = phaseConfig.getJSONArray("phaseOperationList");
-//                if (CollectionUtils.isEmpty(phaseOperationList)) {
-//                    throw new AutoexecCombopPhaseAtLeastOneOperationException();
-//                }
-//                String uuid = combopPhaseList.getJSONObject(i).getString("uuid");
-//                String execMode = autoexecCombopPhaseVo.getExecMode();
-//                for (int j = 0; j < phaseOperationList.size(); j++) {
-//                    AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo = phaseOperationList.getObject(j, AutoexecCombopPhaseOperationVo.class);
-//                    if (autoexecCombopPhaseOperationVo != null) {
-//                        List<String> inputParamList = new ArrayList<>();
-//                        Long operationId = autoexecCombopPhaseOperationVo.getOperationId();
-//                        if(Objects.equals(autoexecCombopPhaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())){
-//                            if(autoexecScriptMapper.checkScriptIsExistsById(operationId) == 0){
-//                                throw new AutoexecScriptNotFoundException(operationId);
-//                            }
-//                            List<AutoexecScriptVersionParamVo> autoexecScriptVersionParamVoList = autoexecScriptMapper.getParamListByScriptId(operationId);
-//                            for(AutoexecScriptVersionParamVo paramVo : autoexecScriptVersionParamVoList){
-//                                if(Objects.equals(paramVo.getType(), "input")){
-//                                    inputParamList.add(paramVo.getKey());
-//                                }else if(Objects.equals(paramVo.getType(), "output")){
-//                                    if(Objects.equals(ExecMode.LOCAL.getValue(), execMode)){
-//                                        localPreNodeOutputParamList.add(uuid + "." + operationId + "." + paramVo.getKey());
-//                                    }else if(Objects.equals(ExecMode.REMOTE.getValue(), execMode)){
-//                                        remotePreNodeOutputParamList.add(uuid + "." + operationId + "." + paramVo.getKey());
-//                                    }
-//                                }
-//                            }
-//                        }else{
-//                            //TODO linbq 工具暂时不实现
-//                        }
-//                        JSONObject operationConfig = autoexecCombopPhaseOperationVo.getConfig();
-//                        if(MapUtils.isNotEmpty(operationConfig)){
-//                            JSONArray paramList = operationConfig.getJSONArray("paramList");
-//                            if(CollectionUtils.isNotEmpty(paramList)){
-//                                for(int k = 0; k < paramList.size(); k++){
-//                                    JSONObject paramObj = paramList.getJSONObject(i);
-//                                    if(MapUtils.isNotEmpty(paramObj)){
-//                                        String key = paramObj.getString("key");
-//                                        if(!inputParamList.contains(key)){
-//                                            throw new AutoexecParamNotFoundException(key);
-//                                        }
-//                                        String value = paramObj.getString("value");
-//                                        if(StringUtils.isEmpty(value)){
-//                                            throw new AutoexecParamMappingIncorrectException(key);
-//                                        }
-//                                        String mappingMode = paramObj.getString("mappingMode");
-//                                        if(Objects.equals(mappingMode, ParamMappingMode.RUNTIME_PARAM)){
-//                                            if(!topLevelParamList.contains(value)){
-//                                                throw new AutoexecParamMappingIncorrectException(key);
-//                                            }
-//                                        }else if(Objects.equals(mappingMode, ParamMappingMode.PRE_NODE_OUTPUT_PARAM)){
-//                                            if(Objects.equals(ExecMode.LOCAL.getValue(), execMode)){
-//                                                if(!localPreNodeOutputParamList.contains(value)){
-//                                                    throw new AutoexecParamMappingIncorrectException(key);
-//                                                }
-//                                            }else if(Objects.equals(ExecMode.REMOTE.getValue(), execMode)){
-//                                                if(!localPreNodeOutputParamList.contains(value) && !remotePreNodeOutputParamList.contains(value)){
-//                                                    throw new AutoexecParamMappingIncorrectException(key);
-//                                                }
-//                                            }
-//                                        }else if(Objects.equals(mappingMode, ParamMappingMode.CONSTANT)) {
-//
-//                                        }else {
-//                                            throw new AutoexecParamMappingIncorrectException(key);
-//                                        }
-//                                        inputParamList.remove(key);
-//                                    }
-//                                }
-//                                if(CollectionUtils.isNotEmpty(inputParamList)){
-//                                    throw new AutoexecParamMappingNotMappedException(String.join("、", inputParamList));
-//                                }
-//                            }else if(CollectionUtils.isNotEmpty(inputParamList)){
-//                                throw new AutoexecParamMappingNotMappedException(String.join("、", inputParamList));
-//                            }
-//                        }
-//                    }
-//                }
-////                JSONArray phaseNodeList = phaseConfig.getJSONArray("phaseNodeList");
-////                if (CollectionUtils.isNotEmpty(phaseNodeList)) {
-////                }
-//            }
-//        }
-////        JSONArray combopNodeList = config.getJSONArray("combopNodeList");
-////        if (CollectionUtils.isNotEmpty(combopNodeList)) {
-////        }
+        AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
+        if (config == null) {
+            throw new AutoexecCombopAtLeastOnePhaseException();
+        }
+        List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
+        if (CollectionUtils.isEmpty(combopPhaseList)) {
+            throw new AutoexecCombopAtLeastOnePhaseException();
+        }
+        Map<String, AutoexecCombopParamVo> runtimeParamMap = new HashMap<>();
+        List<AutoexecCombopParamVo> autoexecCombopParamVoList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(autoexecCombopVo.getId());
+        if (CollectionUtils.isNotEmpty(autoexecCombopParamVoList)) {
+            runtimeParamMap = autoexecCombopParamVoList.stream().collect(Collectors.toMap(e -> e.getKey(), e -> e));
+        }
+        Map<String, AutoexecScriptVersionParamVo> localPreNodeOutputParamMap = new HashMap<>();
+        Map<String, AutoexecScriptVersionParamVo> remotePreNodeOutputParamMap = new HashMap<>();
+        for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
+            if (autoexecCombopPhaseVo == null) {
+                continue;
+            }
+            AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
+            if (phaseConfig == null) {
+                throw new AutoexecCombopPhaseAtLeastOneOperationException();
+            }
+            List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
+            if (CollectionUtils.isEmpty(phaseOperationList)) {
+                throw new AutoexecCombopPhaseAtLeastOneOperationException();
+            }
+            String uk = autoexecCombopPhaseVo.getUk();
+            String execMode = autoexecCombopPhaseVo.getExecMode();
+            for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
+                if (autoexecCombopPhaseOperationVo == null) {
+                    continue;
+                }
+                Map<String, AutoexecScriptVersionParamVo> inputParamMap = new HashMap<>();
+                Long operationId = autoexecCombopPhaseOperationVo.getOperationId();
+                if (Objects.equals(autoexecCombopPhaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
+                    if (autoexecScriptMapper.checkScriptIsExistsById(operationId) == 0) {
+                        throw new AutoexecScriptNotFoundException(operationId);
+                    }
+                    List<AutoexecScriptVersionParamVo> autoexecScriptVersionParamVoList = autoexecScriptMapper.getParamListByScriptId(operationId);
+                    for (AutoexecScriptVersionParamVo paramVo : autoexecScriptVersionParamVoList) {
+                        if (Objects.equals(paramVo.getMode(), "input")) {
+                            inputParamMap.put(paramVo.getKey(), paramVo);
+                        } else if (Objects.equals(paramVo.getMode(), "output")) {
+                            if (Objects.equals(ExecMode.LOCAL.getValue(), execMode)) {
+                                localPreNodeOutputParamMap.put(uk + "." + operationId + "." + paramVo.getKey(), paramVo);
+                            } else if (Objects.equals(ExecMode.REMOTE.getValue(), execMode)) {
+                                remotePreNodeOutputParamMap.put(uk + "." + operationId + "." + paramVo.getKey(), paramVo);
+                            }
+                        }
+                    }
+                } else {
+                    //TODO linbq 工具暂时不实现
+                }
+
+                AutoexecCombopPhaseOperationConfigVo operationConfig = autoexecCombopPhaseOperationVo.getConfig();
+                if (operationConfig != null) {
+                    List<ParamMappingVo> paramMappingList = operationConfig.getParamMappingList();
+                    if (CollectionUtils.isNotEmpty(paramMappingList)) {
+                        for (ParamMappingVo paramMappingVo : paramMappingList) {
+                            if (paramMappingVo == null) {
+                                continue;
+                            }
+                            String key = paramMappingVo.getKey();
+                            AutoexecScriptVersionParamVo inputParamVo = inputParamMap.remove(key);
+                            if (inputParamVo == null) {
+                                throw new AutoexecParamNotFoundException(key);
+                            }
+                            String mappingMode = paramMappingVo.getMappingMode();
+                            if (Objects.equals(mappingMode, ParamMappingMode.IS_EMPTY.getText())) {
+                                if (Objects.equals(inputParamVo.getIsRequired(), 1)) {
+                                    throw new AutoexecParamMappingIncorrectException(key);
+                                }
+                                continue;
+                            }
+                            String value = paramMappingVo.getValue();
+                            if (StringUtils.isEmpty(value)) {
+                                throw new AutoexecParamMappingIncorrectException(key);
+                            }
+                            if (Objects.equals(mappingMode, ParamMappingMode.RUNTIME_PARAM)) {
+                                AutoexecCombopParamVo runtimeParamVo = runtimeParamMap.get(value);
+                                if (runtimeParamVo == null) {
+                                    throw new AutoexecParamMappingIncorrectException(key);
+                                }
+                                if (!Objects.equals(runtimeParamVo.getType(), inputParamVo.getType())) {
+                                    throw new AutoexecParamMappingIncorrectException(key);
+                                }
+                            } else if (Objects.equals(mappingMode, ParamMappingMode.PRE_NODE_OUTPUT_PARAM)) {
+                                if (Objects.equals(ExecMode.LOCAL.getValue(), execMode)) {
+                                    AutoexecScriptVersionParamVo localPreNodeOutputParamVo = localPreNodeOutputParamMap.get(value);
+                                    if (localPreNodeOutputParamVo == null) {
+                                        throw new AutoexecParamMappingIncorrectException(key);
+                                    }
+                                    if (!Objects.equals(localPreNodeOutputParamVo.getType(), inputParamVo.getType())) {
+                                        throw new AutoexecParamMappingIncorrectException(key);
+                                    }
+                                } else if (Objects.equals(ExecMode.REMOTE.getValue(), execMode)) {
+                                    AutoexecScriptVersionParamVo preNodeOutputParamVo = remotePreNodeOutputParamMap.get(value);
+                                    if (preNodeOutputParamVo == null) {
+                                        preNodeOutputParamVo = localPreNodeOutputParamMap.get(value);
+                                        if (preNodeOutputParamVo == null) {
+                                            throw new AutoexecParamMappingIncorrectException(key);
+                                        }
+                                    }
+                                    if (!Objects.equals(preNodeOutputParamVo.getType(), inputParamVo.getType())) {
+                                        throw new AutoexecParamMappingIncorrectException(key);
+                                    }
+                                }
+                            } else if (Objects.equals(mappingMode, ParamMappingMode.CONSTANT)) {
+
+                            } else {
+                                throw new AutoexecParamMappingIncorrectException(key);
+                            }
+                        }
+                    }
+                }
+                if (MapUtils.isNotEmpty(inputParamMap)) {
+                    throw new AutoexecParamMappingNotMappedException(String.join("、", inputParamMap.keySet()));
+                }
+            }
+        }
+        AutoexecCombopExecuteConfigVo executeConfigVo = config.getExecuteConfig();
+        if (executeConfigVo == null) {
+            throw new AutoexecCombopExecuteUserCannotBeEmptyException();
+        }
+        String executeUser = executeConfigVo.getExecuteUser();
+        if (StringUtils.isBlank(executeUser)) {
+            throw new AutoexecCombopExecuteUserCannotBeEmptyException();
+        }
+        // TODO 验证执行用户是否存在
         return true;
     }
 }
