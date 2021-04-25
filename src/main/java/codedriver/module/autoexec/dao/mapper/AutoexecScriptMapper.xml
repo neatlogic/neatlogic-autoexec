@@ -463,26 +463,6 @@
         <include refid="getScriptReference"/>
     </select>
 
-    <select id="getOutputParamListByScriptIdList" parameterType="java.util.List" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo">
-        select
-        a.`script_version_id` as scriptVersionId,
-        a.`key`,
-        a.`default_value` as defaultValue,
-        a.`type`,
-        a.`mode`,
-        a.`sort`
-        from `autoexec_script_version_param` a
-        join `autoexec_script_version` b
-        on a.`script_version_id` = b.`id`
-        where
-        b.`is_active` = 1 and a.`type` = 'output'
-        and b.`script_id` in
-        <foreach collection="list" item="id" open="(" separator="," close=")">
-            #{id}
-        </foreach>
-        group by a.`script_version_id`,a.`key`
-    </select>
-
     <select id="getScriptAuditByScriptVersionIdAndOperate" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo">
         select
         `id`,
