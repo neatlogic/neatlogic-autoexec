@@ -13,7 +13,6 @@ import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
-import codedriver.framework.autoexec.exception.AutoexecScriptNameOrUkRepeatException;
 import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
@@ -63,6 +62,8 @@ public class AutoexecScriptCopyApi extends PrivateApiComponentBase {
             @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "脚本ID"),
             @Param(name = "uk", type = ApiParamType.REGEX, rule = "^[A-Za-z]+$", isRequired = true, xss = true, desc = "唯一标识"),
             @Param(name = "name", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", isRequired = true, xss = true, desc = "名称"),
+            @Param(name = "typeId", type = ApiParamType.LONG, desc = "脚本分类ID", isRequired = true),
+            @Param(name = "riskId", type = ApiParamType.LONG, desc = "操作级别ID", isRequired = true),
     })
     @Output({
             @Param(type = ApiParamType.LONG, desc = "复制生成的脚本ID"),
@@ -74,6 +75,8 @@ public class AutoexecScriptCopyApi extends PrivateApiComponentBase {
         Long id = jsonObj.getLong("id");
         String uk = jsonObj.getString("uk");
         String name = jsonObj.getString("name");
+        Long typeId = jsonObj.getLong("typeId");
+        Long riskId = jsonObj.getLong("riskId");
         AutoexecScriptVo sourceScript = autoexecScriptMapper.getScriptBaseInfoById(id);
         if (sourceScript == null) {
             throw new AutoexecScriptNotFoundException(id);
@@ -81,14 +84,9 @@ public class AutoexecScriptCopyApi extends PrivateApiComponentBase {
         AutoexecScriptVo targetScript = new AutoexecScriptVo();
         targetScript.setUk(uk);
         targetScript.setName(name);
-        if (autoexecScriptMapper.checkScriptNameIsExists(targetScript) > 0) {
-            throw new AutoexecScriptNameOrUkRepeatException(targetScript.getName());
-        }
-        if (autoexecScriptMapper.checkScriptUkIsExists(targetScript) > 0) {
-            throw new AutoexecScriptNameOrUkRepeatException(targetScript.getName());
-        }
-        targetScript.setTypeId(sourceScript.getTypeId());
-        targetScript.setRiskId(sourceScript.getRiskId());
+        targetScript.setTypeId(typeId);
+        targetScript.setRiskId(riskId);
+        autoexecScriptService.validateScriptBaseInfo(targetScript);
         targetScript.setExecMode(sourceScript.getExecMode());
         targetScript.setFcu(UserContext.get().getUserUuid());
         autoexecScriptMapper.insertScript(targetScript);
