@@ -5,11 +5,17 @@
 
 package codedriver.module.autoexec.api.combop;
 
+import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.common.constvalue.GroupSearch;
+import codedriver.framework.dao.mapper.UserMapper;
 import codedriver.framework.dto.FieldValidResultVo;
+import codedriver.framework.exception.type.ParamNotExistsException;
+import codedriver.framework.exception.type.PermissionDeniedException;
+import codedriver.framework.exception.user.UserNotFoundException;
 import codedriver.framework.notify.dao.mapper.NotifyMapper;
 import codedriver.framework.notify.exception.NotifyPolicyNotFoundException;
 import codedriver.framework.restful.annotation.*;
@@ -32,6 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 保存组合工具基本信息接口
@@ -57,34 +64,19 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
     @Resource
     private NotifyMapper notifyMapper;
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 接口唯一标识，也是访问URI
-     */
+    @Resource
+    private UserMapper userMapper;
+
     @Override
     public String getToken() {
         return "autoexec/combop/save";
     }
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 接口中文名
-     */
     @Override
     public String getName() {
         return "保存组合工具基本信息";
     }
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 额外配置
-     */
     @Override
     public String getConfig() {
         return null;
@@ -97,6 +89,7 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
             @Param(name = "typeId", type = ApiParamType.LONG, isRequired = true, desc = "类型id"),
             @Param(name = "notifyPolicyId", type = ApiParamType.LONG, desc = "通知策略id"),
+            @Param(name = "owner", type = ApiParamType.STRING, minLength = 37, maxLength = 37, desc = "维护人"),
             @Param(name = "config", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "配置信息")
     })
     @Output({
@@ -123,10 +116,31 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
         Long id = jsonObj.getLong("id");
         if (id == null) {
             autoexecCombopVo.setOperationType(CombopOperationType.COMBOP.getValue());
+            autoexecCombopVo.setOwner(UserContext.get().getUserUuid(true));
+            autoexecCombopVo.setConfig("{}");
             autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
         } else {
-            if (autoexecCombopMapper.checkAutoexecCombopIsExists(id) == 0) {
+            String owner = autoexecCombopVo.getOwner();
+            if (owner == null) {
+                throw new ParamNotExistsException("参数：“owner（维护人）”不能为空");
+            }
+            owner = owner.substring(GroupSearch.USER.getValuePlugin().length());
+            if (userMapper.checkUserIsExists(owner) == 0) {
+                throw new UserNotFoundException(owner);
+            }
+            autoexecCombopVo.setOwner(owner);
+            AutoexecCombopVo oldAutoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
+            if (oldAutoexecCombopVo == null) {
                 throw new AutoexecCombopNotFoundException(id);
+            }
+            autoexecCombopService.setOperableButtonList(oldAutoexecCombopVo);
+            if (oldAutoexecCombopVo.getEditable() == 0) {
+                throw new PermissionDeniedException();
+            }
+            if (!Objects.equals(owner, oldAutoexecCombopVo.getOwner())) {
+                if (oldAutoexecCombopVo.getOwnerEditable() == 0) {
+                    throw new PermissionDeniedException();
+                }
             }
             AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
             /** 保存前，校验组合工具是否配置正确，不正确不可以保存 **/
@@ -155,17 +169,13 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
                         }
                     }
                     autoexecCombopMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);
-                    //TODO linbq
-//                    List phaseNodeList = phaseConfig.getPhaseNodeList();
-//                    if (CollectionUtils.isNotEmpty(phaseNodeList)) {
-//
-//                    }
                 }
             }
-            //TODO linbq
-//            List combopNodeList = config.getCombopNodeList();
-//            if (CollectionUtils.isNotEmpty(combopNodeList)) {
-//            }
+            AutoexecCombopConfigVo oldConfigVo = oldAutoexecCombopVo.getConfig();
+            /** 更新组合工具阶段列表数据时，需要保留执行目标的配置信息 **/
+            config.setExecuteUser(oldConfigVo.getExecuteUser());
+            config.setWhenToSpecify(oldConfigVo.getWhenToSpecify());
+            config.setExecuteNodeConfig(oldConfigVo.getExecuteNodeConfig());
             autoexecCombopMapper.updateAutoexecCombopById(autoexecCombopVo);
         }
 

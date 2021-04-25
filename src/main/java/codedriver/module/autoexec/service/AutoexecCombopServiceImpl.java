@@ -56,24 +56,22 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
     @Override
     public void setOperableButtonList(AutoexecCombopVo autoexecCombopVo) {
         String userUuid = UserContext.get().getUserUuid(true);
-        if (Objects.equals(autoexecCombopVo.getFcu(), userUuid)) {
+        if (Objects.equals(autoexecCombopVo.getOwner(), userUuid)) {
             autoexecCombopVo.setEditable(1);
             autoexecCombopVo.setDeletable(1);
-            if (Objects.equals(autoexecCombopVo.getIsActive(), 1)) {
-                autoexecCombopVo.setExecutable(1);
-            }
+            autoexecCombopVo.setExecutable(1);
+            autoexecCombopVo.setOwnerEditable(1);
         } else {
+            autoexecCombopVo.setOwnerEditable(0);
             List<String> roleUuidList = UserContext.get().getRoleUuidList();
             List<String> teamUuidList = teamMapper.getTeamUuidListByUserUuid(userUuid);
             List<String> authorityList = autoexecCombopMapper.getAutoexecCombopAuthorityListByCombopIdAndUserUuidAndTeamUuidListAndRoleUuidList(autoexecCombopVo.getId(), userUuid, teamUuidList, roleUuidList);
             if (authorityList.contains(CombopAuthorityAction.EDIT.getValue())) {
                 autoexecCombopVo.setEditable(1);
-                autoexecCombopVo.setDeletable(1);
             } else {
                 autoexecCombopVo.setEditable(0);
-                autoexecCombopVo.setDeletable(0);
             }
-            if (Objects.equals(autoexecCombopVo.getIsActive(), 1) && authorityList.contains(CombopAuthorityAction.EXECUTE.getValue())) {
+            if (authorityList.contains(CombopAuthorityAction.EXECUTE.getValue())) {
                 autoexecCombopVo.setExecutable(1);
             } else {
                 autoexecCombopVo.setExecutable(0);

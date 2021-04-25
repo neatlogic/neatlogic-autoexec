@@ -17,7 +17,6 @@ import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -30,7 +29,6 @@ import java.util.List;
  * @since: 2021/4/13 11:21
  **/
 @Service
-@Transactional
 @AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecCombopAuthorityGetApi extends PrivateApiComponentBase {

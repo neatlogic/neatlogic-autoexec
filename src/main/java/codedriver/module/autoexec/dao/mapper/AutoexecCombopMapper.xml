@@ -32,6 +32,7 @@
             `is_active` AS isActive,
             `operation_type` AS operationType,
             `notify_policy_id` AS notifyPolicyId,
+            `owner`,
             `config`,
             `fcd`,
             `fcu`,
@@ -89,6 +90,7 @@
             `is_active` AS isActive,
             `operation_type` AS operationType,
             `notify_policy_id` AS notifyPolicyId,
+            `owner`,
             `fcd`,
             `fcu`,
             `lcd`,
@@ -191,6 +193,8 @@
             `type_id`,
             `operation_type`,
             `notify_policy_id`,
+            `owner`,
+            `config`,
             `fcd`,
             `fcu`
         )
@@ -203,6 +207,8 @@
             #{typeId},
             #{operationType},
             #{notifyPolicyId},
+            #{owner},
+            #{configStr},
             NOW(3),
             #{fcu}
         )
@@ -300,6 +306,7 @@
             `description` = #{description},
             `type_id` = #{typeId},
             `notify_policy_id` = #{notifyPolicyId},
+            `owner` = #{owner},
             `config` = #{configStr},
             `lcd` = NOW(3),
             `lcu` = #{lcu}
@@ -310,6 +317,15 @@
         UPDATE `autoexec_combop`
         SET
             `is_active` = !`is_active`,
+            `lcd` = NOW(3),
+            `lcu` = #{lcu}
+        WHERE `id` = #{id}
+    </update>
+
+    <update id="updateAutoexecCombopConfigById" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
+        UPDATE `autoexec_combop`
+        SET
+            `config` = #{configStr},
             `lcd` = NOW(3),
             `lcu` = #{lcu}
         WHERE `id` = #{id}
