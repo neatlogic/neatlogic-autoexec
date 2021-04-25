@@ -60,108 +60,109 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "currentVersionId", type = ApiParamType.LONG, isRequired = true, desc = "当前版本ID"),
+            @Param(name = "sourceVersionId", type = ApiParamType.LONG, isRequired = true, desc = "源版本ID"),
             @Param(name = "targetVersionId", type = ApiParamType.LONG, isRequired = true, desc = "目标版本ID"),
     })
     @Output({
-            @Param(name = "currentVersion", explode = AutoexecScriptVo[].class, desc = "当前版本脚本"),
+            @Param(name = "sourceVersion", explode = AutoexecScriptVo[].class, desc = "当前版本脚本"),
             @Param(name = "targetVersion", explode = AutoexecScriptVo[].class, desc = "目标版本脚本"),
     })
     @Description(desc = "脚本版本对比")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
-        Long currentVersionId = jsonObj.getLong("currentVersionId");
+        Long sourceVersionId = jsonObj.getLong("sourceVersionId");
         Long targetVersionId = jsonObj.getLong("targetVersionId");
-        AutoexecScriptVersionVo currentVersion = autoexecScriptService.getScriptVersionDetailByVersionId(currentVersionId);
+        AutoexecScriptVersionVo sourceVersion = autoexecScriptService.getScriptVersionDetailByVersionId(sourceVersionId);
         AutoexecScriptVersionVo targetVersion = autoexecScriptService.getScriptVersionDetailByVersionId(targetVersionId);
-        result.put("currentVersion", currentVersion);
+        result.put("sourceVersion", sourceVersion);
         result.put("targetVersion", targetVersion);
-        if (!Objects.equals(currentVersionId, targetVersionId)) {
-            compareScriptVersion(currentVersion, targetVersion);
+        if (!Objects.equals(sourceVersionId, targetVersionId)) {
+            compareScriptVersion(targetVersion, sourceVersion);
         }
         return result;
     }
 
     /**
      * 脚本版本对比，对比内容包括出参入参、解析器、脚本内容
-     * @param currentVersion 当前版本
-     * @param targetVersion 目标版本
+     *
+     * @param source 源版本
+     * @param target 目标版本
      */
-    private void compareScriptVersion(AutoexecScriptVersionVo currentVersion, AutoexecScriptVersionVo targetVersion) {
-        List<AutoexecScriptVersionParamVo> currentInputParamList = currentVersion.getInputParamList() != null ? currentVersion.getInputParamList() : new ArrayList<>();
-        List<AutoexecScriptVersionParamVo> currentOutputParamList = currentVersion.getOutputParamList() != null ? currentVersion.getOutputParamList() : new ArrayList<>();
-        List<AutoexecScriptVersionParamVo> targetInputParamList = targetVersion.getInputParamList() != null ? targetVersion.getInputParamList() : new ArrayList<>();
-        List<AutoexecScriptVersionParamVo> targetOutputParamList = targetVersion.getOutputParamList() != null ? targetVersion.getOutputParamList() : new ArrayList<>();
+    private void compareScriptVersion(AutoexecScriptVersionVo source, AutoexecScriptVersionVo target) {
+        List<AutoexecScriptVersionParamVo> sourceInputParamList = source.getInputParamList() != null ? source.getInputParamList() : new ArrayList<>();
+        List<AutoexecScriptVersionParamVo> sourceOutputParamList = source.getOutputParamList() != null ? source.getOutputParamList() : new ArrayList<>();
+        List<AutoexecScriptVersionParamVo> targetInputParamList = target.getInputParamList() != null ? target.getInputParamList() : new ArrayList<>();
+        List<AutoexecScriptVersionParamVo> targetOutputParamList = target.getOutputParamList() != null ? target.getOutputParamList() : new ArrayList<>();
         // todo 参数对比，是否需要精确到字段域，比如判断究竟是参数名有变化，还是类型有变化
-        /**
-         * 1、两边都为空
-         * 2、一边为空，标记另一边参数全部为insert
-         * 3、两边不为空，数量不等，相等部分对比，不等部分标记为delete或insert
-         * 4、两边不为空，数量相等
-         */
-        compareParamList(currentInputParamList, targetInputParamList);
-        compareParamList(currentOutputParamList, targetOutputParamList);
-        if (!Objects.equals(currentVersion.getParser(), targetVersion.getParser())) {
+        compareParamList(sourceInputParamList, targetInputParamList);
+        compareParamList(sourceOutputParamList, targetOutputParamList);
+        if (!Objects.equals(source.getParser(), target.getParser())) {
             // todo 是否以插入html方式标识，待定
-            currentVersion.setParser("<span class='update'>" + currentVersion.getParser() + "</span>");
-            targetVersion.setParser("<span class='update'>" + targetVersion.getParser() + "</span>");
+            source.setParser("<span class='update'>" + source.getParser() + "</span>");
+            target.setParser("<span class='update'>" + target.getParser() + "</span>");
         }
-        List<AutoexecScriptLineVo> currentLineList = currentVersion.getLineList();
-        List<AutoexecScriptLineVo> targetLineList = targetVersion.getLineList();
-        List<AutoexecScriptLineVo> currentResultList = new ArrayList<>();
+        List<AutoexecScriptLineVo> sourceLineList = source.getLineList();
+        List<AutoexecScriptLineVo> targetLineList = target.getLineList();
+        List<AutoexecScriptLineVo> sourceResultList = new ArrayList<>();
         List<AutoexecScriptLineVo> targetResultList = new ArrayList<>();
-        List<SegmentPair> segmentPairList = LCSUtil.LCSCompare(currentLineList, targetLineList);
+        List<SegmentPair> segmentPairList = LCSUtil.LCSCompare(sourceLineList, targetLineList);
         for (SegmentPair segmentPair : segmentPairList) {
-            regroupLineList(currentLineList, targetLineList, currentResultList, targetResultList, segmentPair);
+            regroupLineList(sourceLineList, targetLineList, sourceResultList, targetResultList, segmentPair);
         }
-        currentVersion.setLineList(currentResultList);
-        targetVersion.setLineList(targetResultList);
+        source.setLineList(sourceResultList);
+        target.setLineList(targetResultList);
 
     }
 
     /**
      * 参数列表对比
-     * @param current 当前参数列表
-     * @param target 目标参数列表
+     * 以source为准
+     * 如果source为空，说明target被删除
+     * 如果target为空，说明source是新增
+     * 如果source比target长，说明新增了部分参数
+     * 如果source比target短，说明删除了部分参数
+     *
+     * @param source
+     * @param target
      */
-    private void compareParamList(List<AutoexecScriptVersionParamVo> current, List<AutoexecScriptVersionParamVo> target) {
-        if (current.size() != target.size()) {
-            if (CollectionUtils.isEmpty(current)) {
-                target.stream().forEach(o -> o.setChangeType(ChangeType.INSERT.getValue()));
+    private void compareParamList(List<AutoexecScriptVersionParamVo> source, List<AutoexecScriptVersionParamVo> target) {
+        if (source.size() != target.size()) {
+            if (CollectionUtils.isEmpty(source)) {
+                target.stream().forEach(o -> o.setChangeType(ChangeType.DELETE.getValue()));
             } else if (CollectionUtils.isEmpty(target)) {
-                current.stream().forEach(o -> o.setChangeType(ChangeType.DELETE.getValue()));
+                source.stream().forEach(o -> o.setChangeType(ChangeType.INSERT.getValue()));
             } else {
-                if (current.size() > target.size()) {
-                    // 对比行数相等部分的参数
-                    markUpdateParamList(current, target);
-                    // 将多余部分的参数标记为delete
-                    for (int i = target.size(); i < current.size(); i++) {
-                        current.get(i).setChangeType(ChangeType.DELETE.getValue());
-                    }
-                } else if (current.size() < target.size()) {
-                    markUpdateParamList(target, current);
+                // 对比行数相等部分的参数
+                compareSameNumberParamList(source, target);
+                if (source.size() > target.size()) {
                     // 将多余部分的参数标记为insert
-                    for (int i = current.size(); i < target.size(); i++) {
-                        target.get(i).setChangeType(ChangeType.INSERT.getValue());
+                    for (int i = target.size(); i < source.size(); i++) {
+                        source.get(i).setChangeType(ChangeType.INSERT.getValue());
+                    }
+                } else if (source.size() < target.size()) {
+                    // 将多余部分的参数标记为delete
+                    for (int i = source.size(); i < target.size(); i++) {
+                        target.get(i).setChangeType(ChangeType.DELETE.getValue());
                     }
                 }
             }
         } else {
-            markUpdateParamList(current, target);
+            compareSameNumberParamList(source, target);
         }
     }
 
     /**
-     * 以targetInputParamList的长度为准，对比参数列表中行数相同的部分
-     * @param currentInputParamList
-     * @param targetInputParamList
+     * 以较短的参数列表的长度为准，对比行数相同的部分
+     *
+     * @param source
+     * @param target
      */
-    private void markUpdateParamList(List<AutoexecScriptVersionParamVo> currentInputParamList, List<AutoexecScriptVersionParamVo> targetInputParamList) {
-        for (int i = 0; i < targetInputParamList.size(); i++) {
-            boolean hasChange = false;
-            AutoexecScriptVersionParamVo beforeNextParam = currentInputParamList.get(i);
-            AutoexecScriptVersionParamVo afterNextParam = targetInputParamList.get(i);
+    private void compareSameNumberParamList(List<AutoexecScriptVersionParamVo> source, List<AutoexecScriptVersionParamVo> target) {
+        int size = source.size() <= target.size() ? source.size() : target.size();
+        for (int i = 0; i < size; i++) {
+            AutoexecScriptVersionParamVo beforeNextParam = source.get(i);
+            AutoexecScriptVersionParamVo afterNextParam = target.get(i);
             if ((!Objects.equals(beforeNextParam.getKey(), afterNextParam.getKey()))
                     || (!Objects.equals(beforeNextParam.getDefaultValue(), afterNextParam.getDefaultValue()))
                     || (!Objects.equals(beforeNextParam.getType(), afterNextParam.getType()))
@@ -169,9 +170,6 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
                     || (!Objects.equals(beforeNextParam.getIsRequired(), afterNextParam.getIsRequired()))
                     || (!Objects.equals(beforeNextParam.getDescription(), afterNextParam.getDescription()))
             ) {
-                hasChange = true;
-            }
-            if (hasChange) {
                 beforeNextParam.setChangeType(ChangeType.UPDATE.getValue());
                 afterNextParam.setChangeType(ChangeType.UPDATE.getValue());
             }
@@ -240,7 +238,7 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
 
     private AutoexecScriptLineVo createFillBlankLine(AutoexecScriptLineVo line) {
         AutoexecScriptLineVo fillBlankLine = new AutoexecScriptLineVo();
-        fillBlankLine.setChangeType("fillblank");
+        fillBlankLine.setChangeType(ChangeType.FILLBLANK.getValue());
         fillBlankLine.setContent(line.getContent());
         return fillBlankLine;
     }
@@ -254,13 +252,13 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
                 Node currentNode = new Node(i, j);
                 AutoexecScriptLineVo oldLine = source.get(i);
                 AutoexecScriptLineVo newLine = target.get(j);
-                String oldMainBody = oldLine.getContent();
-                String newMainBody = newLine.getContent();
-                int oldLineContentLength = StringUtils.length(oldMainBody);
-                int newLineContentLength = StringUtils.length(newMainBody);
+                String oldContent = oldLine.getContent();
+                String newContent = newLine.getContent();
+                int oldLineContentLength = StringUtils.length(oldContent);
+                int newLineContentLength = StringUtils.length(newContent);
                 int minEditDistance = 0;
                 if (oldLineContentLength > 0 && newLineContentLength > 0) {
-                    minEditDistance = LCSUtil.minEditDistance(oldMainBody, newMainBody);
+                    minEditDistance = LCSUtil.minEditDistance(oldContent, newContent);
                 } else {
                     minEditDistance = oldLineContentLength + newLineContentLength;
                 }
