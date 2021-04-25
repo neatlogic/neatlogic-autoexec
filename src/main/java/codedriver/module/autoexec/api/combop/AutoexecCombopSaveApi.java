@@ -144,7 +144,7 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             }
             AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
             /** 保存前，校验组合工具是否配置正确，不正确不可以保存 **/
-            //autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo);
+            autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo);
             List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
 
             if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
@@ -173,9 +173,7 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             }
             AutoexecCombopConfigVo oldConfigVo = oldAutoexecCombopVo.getConfig();
             /** 更新组合工具阶段列表数据时，需要保留执行目标的配置信息 **/
-            config.setExecuteUser(oldConfigVo.getExecuteUser());
-            config.setWhenToSpecify(oldConfigVo.getWhenToSpecify());
-            config.setExecuteNodeConfig(oldConfigVo.getExecuteNodeConfig());
+            config.setExecuteConfig(oldConfigVo.getExecuteConfig());
             autoexecCombopMapper.updateAutoexecCombopById(autoexecCombopVo);
         }
 

@@ -10,6 +10,7 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
 import codedriver.framework.autoexec.constvalue.CombopNodeSpecify;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteNodeConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
@@ -70,17 +71,19 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
         if (autoexecCombopVo == null) {
             throw new AutoexecCombopNotFoundException(combopId);
         }
+        AutoexecCombopExecuteConfigVo executeConfig = new AutoexecCombopExecuteConfigVo();
         String executeUser = jsonObj.getString("executeUser");
         String whenToSpecify = jsonObj.getString("whenToSpecify");
-        AutoexecCombopConfigVo autoexecCombopConfigVo = autoexecCombopVo.getConfig();
-        autoexecCombopConfigVo.setExecuteUser(executeUser);
-        autoexecCombopConfigVo.setWhenToSpecify(whenToSpecify);
+        executeConfig.setExecuteUser(executeUser);
+        executeConfig.setWhenToSpecify(whenToSpecify);
         if (Objects.equals(whenToSpecify, CombopNodeSpecify.NOW.getValue())) {
             JSONObject executeNodeConfig = jsonObj.getJSONObject("executeNodeConfig");
-            autoexecCombopConfigVo.setExecuteNodeConfig(JSONObject.toJavaObject(executeNodeConfig, AutoexecCombopExecuteNodeConfigVo.class));
+            executeConfig.setExecuteNodeConfig(JSONObject.toJavaObject(executeNodeConfig, AutoexecCombopExecuteNodeConfigVo.class));
         } else {
-            autoexecCombopConfigVo.setExecuteNodeConfig(new AutoexecCombopExecuteNodeConfigVo());
+            executeConfig.setExecuteNodeConfig(new AutoexecCombopExecuteNodeConfigVo());
         }
+        AutoexecCombopConfigVo autoexecCombopConfigVo = autoexecCombopVo.getConfig();
+        autoexecCombopConfigVo.setExecuteConfig(executeConfig);
         autoexecCombopVo.setFcu(UserContext.get().getUserUuid(true));
         autoexecCombopMapper.updateAutoexecCombopConfigById(autoexecCombopVo);
         return null;

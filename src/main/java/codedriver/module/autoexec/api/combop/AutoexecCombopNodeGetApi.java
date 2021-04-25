@@ -69,10 +69,7 @@ public class AutoexecCombopNodeGetApi extends PrivateApiComponentBase {
         if (autoexecCombopVo == null) {
             throw new AutoexecCombopNotFoundException(combopId);
         }
-        AutoexecCombopConfigVo configVo = autoexecCombopVo.getConfig();
-        /** 阶段列表数据不需要返回 **/
-        configVo.setCombopPhaseList(null);
-        return configVo;
+        return autoexecCombopVo.getConfig().getExecuteConfig();
     }
 
 }
