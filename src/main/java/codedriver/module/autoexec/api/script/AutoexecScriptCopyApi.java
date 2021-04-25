@@ -86,9 +86,9 @@ public class AutoexecScriptCopyApi extends PrivateApiComponentBase {
         targetScript.setName(name);
         targetScript.setTypeId(typeId);
         targetScript.setRiskId(riskId);
-        autoexecScriptService.validateScriptBaseInfo(targetScript);
         targetScript.setExecMode(sourceScript.getExecMode());
         targetScript.setFcu(UserContext.get().getUserUuid());
+        autoexecScriptService.validateScriptBaseInfo(targetScript);
         autoexecScriptMapper.insertScript(targetScript);
 
         // 复制所有版本
@@ -115,9 +115,21 @@ public class AutoexecScriptCopyApi extends PrivateApiComponentBase {
                     });
                     lineList.addAll(source.getLineList());
                 }
+                if (paramList.size() >= 100) {
+                    autoexecScriptService.batchInsertScriptVersionParamList(paramList,100);
+                    paramList.clear();
+                }
+                if (lineList.size() >= 100) {
+                    autoexecScriptService.batchInsertScriptLineList(lineList,100);
+                    lineList.clear();
+                }
             }
-            autoexecScriptService.batchInsertScriptVersionParamList(paramList, 100);
-            autoexecScriptService.batchInsertScriptLineList(lineList, 100);
+            if (paramList.size() > 0) {
+                autoexecScriptMapper.insertScriptVersionParamList(paramList);
+            }
+            if (lineList.size() > 0) {
+                autoexecScriptMapper.insertScriptLineList(lineList);
+            }
             autoexecScriptMapper.batchInsertScriptVersion(targetVersionList);
         }
 
