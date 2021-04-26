@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecProxyMapper">
+
+    <select id="getAllNetworkMask" resultType="codedriver.framework.autoexec.dto.AutoexecProxyGroupNetworkVo">
+        SELECT
+            `id`,
+            `group_id` as groupId,
+            `network_ip` as networkIp,
+            `mask`
+        FROM
+            `autoexec_proxygroup_network`
+    </select>
+
+    <resultMap id="proxyGroupMap" type="codedriver.framework.autoexec.dto.AutoexecProxyGroupVo">
+        <id column="id" property="id" />
+        <result column="groupName" property="name" />
+        <collection property="networkList" ofType="codedriver.framework.autoexec.dto.AutoexecProxyGroupNetworkVo">
+            <id column="networkId" property="id" />
+            <result column="proxyGroupId" property="proxyGroupId" />
+            <result column="networkIp" property="networkIp" />
+            <result column="mask" property="mask" />
+        </collection>
+        <collection property="proxyList" ofType="codedriver.framework.autoexec.dto.AutoexecProxyVo">
+            <id column="proxyId" property="id" />
+            <result column="proxyName" property="name" />
+            <result column="url" property="url" />
+            <result column="accessKey" property="accessKey" />
+            <result column="accessSecret" property="accessSecret" />
+            <result column="authMode" property="authType" />
+        </collection>
+    </resultMap>
+
+    <select id="getProxyGroupById" resultMap="proxyGroupMap">
+        SELECT
+            a.id id,
+            a.name groupName,
+            c.id AS proxyId,
+            c.`auth_type` AS authType,
+            c.`access_key` AS accessKey,
+            c.`access_secret`
+                AS accessSecret,
+            c.`url` AS url,
+            c.`name` AS proxyName,
+            b.id networkId,
+            b.group_id proxyGroupId,
+            b.network_ip networkIp,
+            b.mask mask
+        FROM
+            `autoexec_proxygroup` a
+                LEFT JOIN `autoexec_proxygroup_network` b ON a.id = b.group_id
+                LEFT JOIN `autoexec_proxy` c ON a.id = c.group_id
+        WHERE a.id = #{id}
+    </select>
+</mapper>
+
