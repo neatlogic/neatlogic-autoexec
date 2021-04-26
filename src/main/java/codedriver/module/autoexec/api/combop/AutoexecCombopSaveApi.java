@@ -102,9 +102,9 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
         if (autoexecCombopMapper.checkAutoexecCombopNameIsRepeat(autoexecCombopVo) != null) {
             throw new AutoexecCombopNameRepeatException(autoexecCombopVo.getName());
         }
-        if (autoexecCombopMapper.checkAutoexecCombopUkIsRepeat(autoexecCombopVo) != null) {
-            throw new AutoexecCombopUkRepeatException(autoexecCombopVo.getUk());
-        }
+//        if (autoexecCombopMapper.checkAutoexecCombopUkIsRepeat(autoexecCombopVo) != null) {
+//            throw new AutoexecCombopUkRepeatException(autoexecCombopVo.getUk());
+//        }
         if (autoexecTypeMapper.checkTypeIsExistsById(autoexecCombopVo.getTypeId()) == 0) {
             throw new AutoexecTypeNotFoundException(autoexecCombopVo.getTypeId());
         }
@@ -143,6 +143,9 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
                 }
             }
             AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
+            AutoexecCombopConfigVo oldConfigVo = oldAutoexecCombopVo.getConfig();
+            /** 更新组合工具阶段列表数据时，需要保留执行目标的配置信息 **/
+            config.setExecuteConfig(oldConfigVo.getExecuteConfig());
             /** 保存前，校验组合工具是否配置正确，不正确不可以保存 **/
             autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo);
             List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
@@ -171,9 +174,6 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
                     autoexecCombopMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);
                 }
             }
-            AutoexecCombopConfigVo oldConfigVo = oldAutoexecCombopVo.getConfig();
-            /** 更新组合工具阶段列表数据时，需要保留执行目标的配置信息 **/
-            config.setExecuteConfig(oldConfigVo.getExecuteConfig());
             autoexecCombopMapper.updateAutoexecCombopById(autoexecCombopVo);
         }
 
@@ -190,13 +190,13 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
         };
     }
 
-    public IValid uk() {
-        return jsonObj -> {
-            AutoexecCombopVo autoexecCombopVo = JSON.toJavaObject(jsonObj, AutoexecCombopVo.class);
-            if (autoexecCombopMapper.checkAutoexecCombopUkIsRepeat(autoexecCombopVo) != null) {
-                return new FieldValidResultVo(new AutoexecCombopUkRepeatException(autoexecCombopVo.getUk()));
-            }
-            return new FieldValidResultVo();
-        };
-    }
+//    public IValid uk() {
+//        return jsonObj -> {
+//            AutoexecCombopVo autoexecCombopVo = JSON.toJavaObject(jsonObj, AutoexecCombopVo.class);
+//            if (autoexecCombopMapper.checkAutoexecCombopUkIsRepeat(autoexecCombopVo) != null) {
+//                return new FieldValidResultVo(new AutoexecCombopUkRepeatException(autoexecCombopVo.getUk()));
+//            }
+//            return new FieldValidResultVo();
+//        };
+//    }
 }
