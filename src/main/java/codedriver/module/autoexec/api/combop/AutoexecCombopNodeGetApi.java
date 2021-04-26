@@ -27,8 +27,8 @@ import java.util.Objects;
 /**
  * 查询组合工具执行目标信息接口
  *
- * @author: linbq
- * @since: 2021/4/13 11:21
+ * @author linbq
+ * @since 2021/4/13 11:21
  **/
 @Service
 @AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)

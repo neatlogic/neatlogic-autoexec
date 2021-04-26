@@ -348,6 +348,7 @@
                                     `operation_id`,
                                     `operation_type`,
                                     `thread_count`,
+                                    `param_hash`,
                                     `source`,
                                     `config`)
         VALUES (#{id},
@@ -358,6 +359,7 @@
                 #{operationId},
                 #{operationType},
                 #{threadCount},
+                #{paramHash},
                 #{source},
                 #{config});
     </insert>

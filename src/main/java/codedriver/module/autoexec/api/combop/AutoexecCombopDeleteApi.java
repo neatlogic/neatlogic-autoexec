@@ -23,8 +23,8 @@ import java.util.List;
 /**
  * 删除组合工具接口
  *
- * @author: linbq
- * @since: 2021/4/13 15:29
+ * @author linbq
+ * @since 2021/4/13 15:29
  **/
 @Service
 @Transactional
@@ -35,34 +35,16 @@ public class AutoexecCombopDeleteApi extends PrivateApiComponentBase {
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 接口唯一标识，也是访问URI
-     */
     @Override
     public String getToken() {
         return "autoexec/combop/delete";
     }
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 接口中文名
-     */
     @Override
     public String getName() {
         return "删除组合工具";
     }
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 额外配置
-     */
     @Override
     public String getConfig() {
         return null;
