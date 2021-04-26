@@ -6,10 +6,7 @@
 package codedriver.module.autoexec.service;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
-import codedriver.framework.autoexec.constvalue.CombopAuthorityAction;
-import codedriver.framework.autoexec.constvalue.CombopOperationType;
-import codedriver.framework.autoexec.constvalue.ExecMode;
-import codedriver.framework.autoexec.constvalue.ParamMappingMode;
+import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.exception.*;
@@ -124,13 +121,13 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                     }
                     List<AutoexecScriptVersionParamVo> autoexecScriptVersionParamVoList = autoexecScriptMapper.getParamListByScriptId(operationId);
                     for (AutoexecScriptVersionParamVo paramVo : autoexecScriptVersionParamVoList) {
-                        if (Objects.equals(paramVo.getMode(), "input")) {
+                        if (Objects.equals(paramVo.getMode(), ParamMode.INPUT.getValue())) {
                             inputParamMap.put(paramVo.getKey(), paramVo);
-                        } else if (Objects.equals(paramVo.getMode(), "output")) {
+                        } else if (Objects.equals(paramVo.getMode(), ParamMode.OUTPUT.getValue())) {
                             if (Objects.equals(ExecMode.LOCAL.getValue(), execMode)) {
-                                localPreNodeOutputParamMap.put(uk + "." + operationId + "." + paramVo.getKey(), paramVo);
+                                localPreNodeOutputParamMap.put(uk + "&&" + operationId + "&&" + paramVo.getKey(), paramVo);
                             } else if (Objects.equals(ExecMode.REMOTE.getValue(), execMode)) {
-                                remotePreNodeOutputParamMap.put(uk + "." + operationId + "." + paramVo.getKey(), paramVo);
+                                remotePreNodeOutputParamMap.put(uk + "&&" + operationId + "&&" + paramVo.getKey(), paramVo);
                             }
                         }
                     }
@@ -152,7 +149,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                                 throw new AutoexecParamNotFoundException(key);
                             }
                             String mappingMode = paramMappingVo.getMappingMode();
-                            if (Objects.equals(mappingMode, ParamMappingMode.IS_EMPTY.getText())) {
+                            if (Objects.equals(mappingMode, ParamMappingMode.IS_EMPTY.getValue())) {
                                 if (Objects.equals(inputParamVo.getIsRequired(), 1)) {
                                     throw new AutoexecParamMappingIncorrectException(key);
                                 }
@@ -162,7 +159,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                             if (StringUtils.isEmpty(value)) {
                                 throw new AutoexecParamMappingIncorrectException(key);
                             }
-                            if (Objects.equals(mappingMode, ParamMappingMode.RUNTIME_PARAM)) {
+                            if (Objects.equals(mappingMode, ParamMappingMode.RUNTIME_PARAM.getValue())) {
                                 AutoexecCombopParamVo runtimeParamVo = runtimeParamMap.get(value);
                                 if (runtimeParamVo == null) {
                                     throw new AutoexecParamMappingIncorrectException(key);
@@ -170,7 +167,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                                 if (!Objects.equals(runtimeParamVo.getType(), inputParamVo.getType())) {
                                     throw new AutoexecParamMappingIncorrectException(key);
                                 }
-                            } else if (Objects.equals(mappingMode, ParamMappingMode.PRE_NODE_OUTPUT_PARAM)) {
+                            } else if (Objects.equals(mappingMode, ParamMappingMode.PRE_NODE_OUTPUT_PARAM.getValue())) {
                                 if (Objects.equals(ExecMode.LOCAL.getValue(), execMode)) {
                                     AutoexecScriptVersionParamVo localPreNodeOutputParamVo = localPreNodeOutputParamMap.get(value);
                                     if (localPreNodeOutputParamVo == null) {
@@ -191,7 +188,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                                         throw new AutoexecParamMappingIncorrectException(key);
                                     }
                                 }
-                            } else if (Objects.equals(mappingMode, ParamMappingMode.CONSTANT)) {
+                            } else if (Objects.equals(mappingMode, ParamMappingMode.CONSTANT.getValue())) {
 
                             } else {
                                 throw new AutoexecParamMappingIncorrectException(key);

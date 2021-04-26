@@ -25,8 +25,8 @@ import java.util.List;
 /**
  * 查询组合工具授权信息接口
  *
- * @author: linbq
- * @since: 2021/4/13 11:21
+ * @author linbq
+ * @since 2021/4/13 11:21
  **/
 @Service
 @AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
@@ -36,34 +36,16 @@ public class AutoexecCombopAuthorityGetApi extends PrivateApiComponentBase {
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 接口唯一标识，也是访问URI
-     */
     @Override
     public String getToken() {
         return "autoexec/combop/authority/get";
     }
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 接口中文名
-     */
     @Override
     public String getName() {
         return "查询组合工具授权信息";
     }
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 额外配置
-     */
     @Override
     public String getConfig() {
         return null;
@@ -98,6 +80,4 @@ public class AutoexecCombopAuthorityGetApi extends PrivateApiComponentBase {
         resultObj.put("executeAuthorityList", executeAuthorityList);
         return resultObj;
     }
-
-
 }
