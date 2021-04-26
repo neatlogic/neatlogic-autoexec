@@ -114,12 +114,12 @@ public class AutoexecCombopCopyApi extends PrivateApiComponentBase {
         }
         autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
 
-        List<AutoexecCombopParamVo> autoexecCombopParamVoList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
-        if (CollectionUtils.isNotEmpty(autoexecCombopParamVoList)) {
-            for (AutoexecCombopParamVo autoexecCombopParamVo : autoexecCombopParamVoList) {
+        List<AutoexecCombopParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
+        if (CollectionUtils.isNotEmpty(runtimeParamList)) {
+            for (AutoexecCombopParamVo autoexecCombopParamVo : runtimeParamList) {
                 autoexecCombopParamVo.setCombopId(combopId);
             }
-            autoexecCombopMapper.insertAutoexecCombopParamVoList(autoexecCombopParamVoList);
+            autoexecCombopMapper.insertAutoexecCombopParamVoList(runtimeParamList);
         }
         return combopId;
     }
