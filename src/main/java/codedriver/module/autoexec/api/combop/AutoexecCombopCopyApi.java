@@ -8,6 +8,7 @@ package codedriver.module.autoexec.api.combop;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
+import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.exception.AutoexecCombopNameRepeatException;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
@@ -29,7 +30,7 @@ import javax.annotation.Resource;
 import java.util.List;
 
 /**
- * 复制组合工具基本信息接口
+ * 复制组合工具接口
  *
  * @author linbq
  * @since 2021/4/13 11:21
@@ -53,7 +54,7 @@ public class AutoexecCombopCopyApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "复制组合工具基本信息";
+        return "复制组合工具";
     }
 
     @Override
@@ -68,7 +69,7 @@ public class AutoexecCombopCopyApi extends PrivateApiComponentBase {
     @Output({
             @Param(name = "Return", type = ApiParamType.LONG, desc = "主键id")
     })
-    @Description(desc = "保存组合工具基本信息")
+    @Description(desc = "复制组合工具")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");
@@ -87,6 +88,7 @@ public class AutoexecCombopCopyApi extends PrivateApiComponentBase {
             throw new AutoexecCombopNameRepeatException(autoexecCombopVo.getName());
         }
         autoexecCombopVo.setOwner(UserContext.get().getUserUuid(true));
+        autoexecCombopVo.setOperationType(CombopOperationType.COMBOP.getValue());
         AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
         Long combopId = autoexecCombopVo.getId();
         int iSort = 0;
