@@ -496,7 +496,9 @@
     <update id="updateScriptBaseInfo" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
         update `autoexec_script` set
         `name` = #{name},
-        `uk` = #{uk},
+        <if test="uk != null and uk != ''">
+            `uk` = #{uk},
+        </if>
         `exec_mode` = #{execMode},
         `type_id` = #{typeId},
         `risk_id` = #{riskId}

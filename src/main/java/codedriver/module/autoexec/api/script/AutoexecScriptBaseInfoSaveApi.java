@@ -51,7 +51,7 @@ public class AutoexecScriptBaseInfoSaveApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "脚本ID"),
-            @Param(name = "uk", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", isRequired = true, xss = true, desc = "名称"),
+            @Param(name = "name", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", isRequired = true, xss = true, desc = "名称"),
             @Param(name = "execMode", type = ApiParamType.ENUM, rule = "local,remote,localremote", desc = "执行方式", isRequired = true),
             @Param(name = "typeId", type = ApiParamType.LONG, desc = "脚本分类ID", isRequired = true),
             @Param(name = "riskId", type = ApiParamType.LONG, desc = "操作级别ID", isRequired = true),
