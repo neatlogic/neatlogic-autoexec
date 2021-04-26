@@ -13,7 +13,6 @@ import codedriver.framework.autoexec.constvalue.ChangeType;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
-import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.lcs.*;
 import codedriver.framework.restful.annotation.*;
@@ -30,6 +29,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @AuthAction(action = AUTOEXEC_SCRIPT_USE.class)
@@ -64,8 +64,8 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
             @Param(name = "targetVersionId", type = ApiParamType.LONG, isRequired = true, desc = "目标版本ID"),
     })
     @Output({
-            @Param(name = "sourceVersion", explode = AutoexecScriptVo[].class, desc = "当前版本脚本"),
-            @Param(name = "targetVersion", explode = AutoexecScriptVo[].class, desc = "目标版本脚本"),
+            @Param(name = "sourceVersion", explode = AutoexecScriptVersionVo[].class, desc = "当前版本脚本"),
+            @Param(name = "targetVersion", explode = AutoexecScriptVersionVo[].class, desc = "目标版本脚本"),
     })
     @Description(desc = "脚本版本对比")
     @Override
@@ -94,11 +94,9 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
         List<AutoexecScriptVersionParamVo> sourceOutputParamList = source.getOutputParamList() != null ? source.getOutputParamList() : new ArrayList<>();
         List<AutoexecScriptVersionParamVo> targetInputParamList = target.getInputParamList() != null ? target.getInputParamList() : new ArrayList<>();
         List<AutoexecScriptVersionParamVo> targetOutputParamList = target.getOutputParamList() != null ? target.getOutputParamList() : new ArrayList<>();
-        // todo 参数对比，是否需要精确到字段域，比如判断究竟是参数名有变化，还是类型有变化
         compareParamList(sourceInputParamList, targetInputParamList);
         compareParamList(sourceOutputParamList, targetOutputParamList);
         if (!Objects.equals(source.getParser(), target.getParser())) {
-            // todo 是否以插入html方式标识，待定
             source.setParser("<span class='update'>" + source.getParser() + "</span>");
             target.setParser("<span class='update'>" + target.getParser() + "</span>");
         }
@@ -140,7 +138,7 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
                     for (int i = target.size(); i < source.size(); i++) {
                         source.get(i).setChangeType(ChangeType.INSERT.getValue());
                     }
-                } else if (source.size() < target.size()) {
+                } else {
                     // 将多余部分的参数标记为delete
                     for (int i = source.size(); i < target.size(); i++) {
                         target.get(i).setChangeType(ChangeType.DELETE.getValue());
@@ -176,7 +174,8 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
         }
     }
 
-    private void regroupLineList(List<AutoexecScriptLineVo> oldDataList, List<AutoexecScriptLineVo> newDataList, List<AutoexecScriptLineVo> oldResultList, List<AutoexecScriptLineVo> newResultList, SegmentPair segmentPair) {
+    private void regroupLineList(List<AutoexecScriptLineVo> oldDataList, List<AutoexecScriptLineVo> newDataList
+            , List<AutoexecScriptLineVo> oldResultList, List<AutoexecScriptLineVo> newResultList, SegmentPair segmentPair) {
         List<AutoexecScriptLineVo> oldSubList = oldDataList.subList(segmentPair.getOldBeginIndex(), segmentPair.getOldEndIndex());
         List<AutoexecScriptLineVo> newSubList = newDataList.subList(segmentPair.getNewBeginIndex(), segmentPair.getNewEndIndex());
         if (segmentPair.isMatch()) {
@@ -227,7 +226,9 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
 
             } else {
                 /** 修改多行，多行间需要做最优匹配 **/
-                List<SegmentPair> segmentPairList = differenceBestMatch(oldSubList, newSubList);
+                List<String> oldSubContentList = oldSubList.stream().map(AutoexecScriptLineVo::getContent).collect(Collectors.toList());
+                List<String> newSubContentList = newSubList.stream().map(AutoexecScriptLineVo::getContent).collect(Collectors.toList());
+                List<SegmentPair> segmentPairList = LCSUtil.differenceBestMatch(oldSubContentList, newSubContentList);
                 for (SegmentPair segmentpair : segmentPairList) {
                     /** 递归 **/
                     regroupLineList(oldSubList, newSubList, oldResultList, newResultList, segmentpair);
@@ -241,108 +242,6 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
         fillBlankLine.setChangeType(ChangeType.FILLBLANK.getValue());
         fillBlankLine.setContent(line.getContent());
         return fillBlankLine;
-    }
-
-    private List<SegmentPair> differenceBestMatch(List<AutoexecScriptLineVo> source, List<AutoexecScriptLineVo> target) {
-        int sourceCount = source.size();
-        int targetCount = target.size();
-        NodePool nodePool = new NodePool(sourceCount, targetCount);
-        for (int i = sourceCount - 1; i >= 0; i--) {
-            for (int j = targetCount - 1; j >= 0; j--) {
-                Node currentNode = new Node(i, j);
-                AutoexecScriptLineVo oldLine = source.get(i);
-                AutoexecScriptLineVo newLine = target.get(j);
-                String oldContent = oldLine.getContent();
-                String newContent = newLine.getContent();
-                int oldLineContentLength = StringUtils.length(oldContent);
-                int newLineContentLength = StringUtils.length(newContent);
-                int minEditDistance = 0;
-                if (oldLineContentLength > 0 && newLineContentLength > 0) {
-                    minEditDistance = LCSUtil.minEditDistance(oldContent, newContent);
-                } else {
-                    minEditDistance = oldLineContentLength + newLineContentLength;
-                }
-                currentNode.setMinEditDistance(minEditDistance);
-                int left = 0;
-                int top = 0;
-                int upperLeft = 0;
-                Node upperLeftNode = nodePool.getOldNode(i + 1, j + 1);
-                if (upperLeftNode != null) {
-                    upperLeft = upperLeftNode.getTotalMatchLength();
-                }
-                Node leftNode = nodePool.getOldNode(i, j + 1);
-                if (leftNode != null) {
-                    left = leftNode.getTotalMatchLength();
-                }
-                Node topNode = nodePool.getOldNode(i + 1, j);
-                if (topNode != null) {
-                    top = topNode.getTotalMatchLength();
-                }
-                if (i + 1 == sourceCount && j + 1 == targetCount) {
-                    currentNode.setTotalMatchLength(minEditDistance);
-                } else if (i + 1 == sourceCount) {
-                    currentNode.setTotalMatchLength(minEditDistance + left);
-                    currentNode.setNext(leftNode);
-                } else if (j + 1 == targetCount) {
-                    currentNode.setTotalMatchLength(minEditDistance + top);
-                    currentNode.setNext(topNode);
-                } else {
-                    if (upperLeft <= left) {
-                        if (upperLeft <= top) {
-                            currentNode.setTotalMatchLength(minEditDistance + upperLeft);
-                            currentNode.setNext(upperLeftNode);
-                        } else {
-                            currentNode.setTotalMatchLength(minEditDistance + top);
-                            currentNode.setNext(topNode);
-                        }
-                    } else if (top <= left) {
-                        currentNode.setTotalMatchLength(minEditDistance + top);
-                        currentNode.setNext(topNode);
-                    } else {
-                        currentNode.setTotalMatchLength(minEditDistance + left);
-                        currentNode.setNext(leftNode);
-                    }
-                }
-
-                nodePool.addNode(currentNode);
-            }
-        }
-        List<Node> nodeList = new ArrayList<>();
-        Node previous = null;
-        Node node = nodePool.getOldNode(0, 0);
-        while (node != null) {
-            if (previous != null) {
-                if (previous.getOldIndex() == node.getOldIndex() || previous.getNewIndex() == node.getNewIndex()) {
-                    if (previous.getMinEditDistance() > node.getMinEditDistance()) {
-                        previous = node;
-                    }
-                } else {
-                    nodeList.add(previous);
-                    previous = node;
-                }
-            } else {
-                previous = node;
-            }
-            node = node.getNext();
-        }
-        if (previous != null) {
-            nodeList.add(previous);
-        }
-        List<SegmentPair> segmentPairList = new ArrayList<>();
-        int lastOldEndIndex = 0;
-        int lastNewEndIndex = 0;
-        for (Node n : nodeList) {
-            if (n.getOldIndex() != lastOldEndIndex || n.getNewIndex() != lastNewEndIndex) {
-                segmentPairList.add(new SegmentPair(lastOldEndIndex, n.getOldIndex(), lastNewEndIndex, n.getNewIndex(), false));
-            }
-            lastOldEndIndex = n.getOldIndex() + 1;
-            lastNewEndIndex = n.getNewIndex() + 1;
-            segmentPairList.add(new SegmentPair(n.getOldIndex(), lastOldEndIndex, n.getNewIndex(), lastNewEndIndex, false));
-        }
-        if (lastOldEndIndex != sourceCount || lastNewEndIndex != targetCount) {
-            segmentPairList.add(new SegmentPair(lastOldEndIndex, sourceCount, lastNewEndIndex, targetCount, false));
-        }
-        return segmentPairList;
     }
 
 
