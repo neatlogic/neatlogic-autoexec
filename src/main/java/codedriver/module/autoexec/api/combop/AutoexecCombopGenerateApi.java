@@ -123,7 +123,7 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
 
             /** 新建一个阶段 **/
             AutoexecCombopPhaseVo combopPhaseVo = new AutoexecCombopPhaseVo();
-            combopPhaseVo.setUk(autoexecScriptVo.getUk());
+//            combopPhaseVo.setUk(autoexecScriptVo.getUk());
             combopPhaseVo.setName(autoexecScriptVo.getName());
             combopPhaseVo.setExecMode(autoexecScriptVo.getExecMode());
             combopPhaseVo.setSort(0);
@@ -137,9 +137,9 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
             AutoexecCombopVo autoexecCombopVo = new AutoexecCombopVo(autoexecScriptVo);
             autoexecCombopVo.setOwner(UserContext.get().getUserUuid(true));
             Long combopId = autoexecCombopVo.getId();
-            if (autoexecCombopMapper.checkAutoexecCombopUkIsRepeat(autoexecCombopVo) != null) {
-                autoexecCombopVo.setUk(autoexecCombopVo.getUk() + "_" + combopId);
-            }
+//            if (autoexecCombopMapper.checkAutoexecCombopUkIsRepeat(autoexecCombopVo) != null) {
+//                autoexecCombopVo.setUk(autoexecCombopVo.getUk() + "_" + combopId);
+//            }
             if (autoexecCombopMapper.checkAutoexecCombopNameIsRepeat(autoexecCombopVo) != null) {
                 autoexecCombopVo.setName(autoexecCombopVo.getName() + "_" + combopId);
             }
