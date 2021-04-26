@@ -337,7 +337,7 @@
     <select id="checkIsJobPhaseOperationParamReference" resultType="java.lang.Integer">
         SELECT COUNT(1)
         FROM `autoexec_job_phase_operation`
-        WHERE id != #{jobId}
+        WHERE job_id != #{jobId}
           AND `param_hash` = #{hash}
     </select>
 
