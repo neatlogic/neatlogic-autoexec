@@ -87,7 +87,9 @@ public class AutoexecCombopCopyApi extends PrivateApiComponentBase {
         if (autoexecCombopMapper.checkAutoexecCombopNameIsRepeat(autoexecCombopVo) != null) {
             throw new AutoexecCombopNameRepeatException(autoexecCombopVo.getName());
         }
-        autoexecCombopVo.setOwner(UserContext.get().getUserUuid(true));
+        String userUuid = UserContext.get().getUserUuid(true);
+        autoexecCombopVo.setOwner(userUuid);
+        autoexecCombopVo.setFcu(userUuid);
         autoexecCombopVo.setOperationType(CombopOperationType.COMBOP.getValue());
         AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
         Long combopId = autoexecCombopVo.getId();
