@@ -71,21 +71,12 @@ public class AutoexecScriptCopyApi extends PrivateApiComponentBase {
     @Description(desc = "复制脚本")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-
-        Long id = jsonObj.getLong("id");
-        String uk = jsonObj.getString("uk");
-        String name = jsonObj.getString("name");
-        Long typeId = jsonObj.getLong("typeId");
-        Long riskId = jsonObj.getLong("riskId");
-        AutoexecScriptVo sourceScript = autoexecScriptMapper.getScriptBaseInfoById(id);
+        AutoexecScriptVo targetScript = jsonObj.toJavaObject(AutoexecScriptVo.class);
+        AutoexecScriptVo sourceScript = autoexecScriptMapper.getScriptBaseInfoById(targetScript.getId());
         if (sourceScript == null) {
-            throw new AutoexecScriptNotFoundException(id);
+            throw new AutoexecScriptNotFoundException(targetScript.getId());
         }
-        AutoexecScriptVo targetScript = new AutoexecScriptVo();
-        targetScript.setUk(uk);
-        targetScript.setName(name);
-        targetScript.setTypeId(typeId);
-        targetScript.setRiskId(riskId);
+        targetScript.setId(null);
         targetScript.setExecMode(sourceScript.getExecMode());
         targetScript.setFcu(UserContext.get().getUserUuid());
         autoexecScriptService.validateScriptBaseInfo(targetScript);
@@ -116,11 +107,11 @@ public class AutoexecScriptCopyApi extends PrivateApiComponentBase {
                     lineList.addAll(source.getLineList());
                 }
                 if (paramList.size() >= 100) {
-                    autoexecScriptService.batchInsertScriptVersionParamList(paramList,100);
+                    autoexecScriptService.batchInsertScriptVersionParamList(paramList, 100);
                     paramList.clear();
                 }
                 if (lineList.size() >= 100) {
-                    autoexecScriptService.batchInsertScriptLineList(lineList,100);
+                    autoexecScriptService.batchInsertScriptLineList(lineList, 100);
                     lineList.clear();
                 }
             }
