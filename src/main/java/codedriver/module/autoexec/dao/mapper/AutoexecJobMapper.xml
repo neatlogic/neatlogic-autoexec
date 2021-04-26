@@ -91,11 +91,11 @@
                 #{source}
             </foreach>
         </if>
-        <if test="combopOperationTypeList != null and combopOperationTypeList.size() > 0 ">
+        <if test="typeIdList != null and typeIdList.size() > 0 ">
             and ac.`type_id` in
-            <foreach collection="combopOperationTypeList" item="combopOperationType" open="(" close=")"
+            <foreach collection="typeIdList" item="typeId" open="(" close=")"
                      separator=",">
-                #{combopOperationType}
+                #{typeId}
             </foreach>
         </if>
         <if test="execUserList != null and execUserList.size() > 0 ">
@@ -105,11 +105,11 @@
                 #{execUser}
             </foreach>
         </if>
-        <if test="startTime != null and startTime != ''">
-            and aj.startTime >= #{startTime}
+        <if test="startTime != null">
+            and aj.start_time >= #{startTime}
         </if>
-        <if test="endTime != null and endTime != ''"><![CDATA[
-               and aj.startTime <= #{endTime}
+        <if test="endTime != null "><![CDATA[
+               and aj.start_time <= #{endTime}
             ]]></if>
     </sql>
 
