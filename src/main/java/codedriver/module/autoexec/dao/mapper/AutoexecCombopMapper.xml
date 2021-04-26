@@ -145,6 +145,7 @@
         SELECT
             `combop_id` AS combopId,
             `key`,
+            `name`,
             `default_value` AS defaultValue,
             `description`,
             `is_required` AS isRequired,
@@ -236,6 +237,7 @@
         INSERT INTO `autoexec_combop_param` (
             `combop_id`,
             `key`,
+            `name`,
             `default_value`,
             `description`,
             `is_required`,
@@ -247,6 +249,7 @@
         (
             #{paramVo.combopId},
             #{paramVo.key},
+            #{paramVo.name},
             #{paramVo.defaultValueStr},
             #{paramVo.description},
             #{paramVo.isRequired},
