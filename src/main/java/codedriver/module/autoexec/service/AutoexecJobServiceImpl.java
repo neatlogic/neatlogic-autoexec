@@ -42,17 +42,18 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     AutoexecProxyMapper autoexecProxyMapper;
 
     @Override
-    public void saveAutoexecCombopJob(AutoexecCombopVo combopVo, String source, Integer threadCount, JSONObject jobParam) {
+    public void saveAutoexecCombopJob(AutoexecCombopVo combopVo, String source, Integer threadCount, JSONObject paramJson) {
         AutoexecCombopConfigVo config = combopVo.getConfig();
-        AutoexecJobVo jobVo = new AutoexecJobVo(combopVo, CombopOperationType.COMBOP.getValue(), source, threadCount,jobParam);
+        combopVo.setRuntimeParamList(autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopVo.getId()));
+        AutoexecJobVo jobVo = new AutoexecJobVo(combopVo, CombopOperationType.COMBOP.getValue(), source, threadCount, paramJson);
         //保存作业基本信息
         autoexecJobMapper.insertJob(jobVo);
-        autoexecJobMapper.insertJobParamContent(new AutoexecJobParamContentVo(jobVo.getParamHash(),jobVo.getParamStr()));
+        autoexecJobMapper.insertJobParamContent(new AutoexecJobParamContentVo(jobVo.getParamHash(), jobVo.getParamStr()));
         //保存作业执行目标
         AutoexecCombopExecuteConfigVo nodeConfigVo = config.getExecuteConfig();
         List<AutoexecJobPhaseNodeVo> jobNodeVoList = null;
-        if(nodeConfigVo != null){
-            jobNodeVoList = getJobNodeList(nodeConfigVo,jobVo.getOperationId());
+        if (nodeConfigVo != null) {
+            jobNodeVoList = getJobNodeList(nodeConfigVo, jobVo.getOperationId());
         }
         //保存阶段
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
@@ -62,12 +63,15 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             autoexecJobMapper.insertJobPhase(jobPhaseVo);
             AutoexecCombopPhaseConfigVo phaseConfigVo = autoexecCombopPhaseVo.getConfig();
             //jobPhaseNode
-            AutoexecCombopExecuteConfigVo nodePhaseConfigVo = phaseConfigVo.getExecuteConfig();
-            List<AutoexecJobPhaseNodeVo> jobPhaseNodeVoList = getJobNodeList(nodePhaseConfigVo,autoexecCombopPhaseVo.getCombopId());
-            if(CollectionUtils.isEmpty(jobPhaseNodeVoList)){
+            AutoexecCombopExecuteConfigVo executeConfigVo = phaseConfigVo.getExecuteConfig();
+            List<AutoexecJobPhaseNodeVo> jobPhaseNodeVoList = null;
+            if (executeConfigVo != null) {
+                jobPhaseNodeVoList = getJobNodeList(executeConfigVo, autoexecCombopPhaseVo.getCombopId());
+            }
+            if (CollectionUtils.isEmpty(jobPhaseNodeVoList)) {
                 jobPhaseNodeVoList = jobNodeVoList;
             }
-            for(AutoexecJobPhaseNodeVo jobPhaseNodeVo : jobPhaseNodeVoList) {
+            for (AutoexecJobPhaseNodeVo jobPhaseNodeVo : jobPhaseNodeVoList) {
                 jobPhaseNodeVo.setJobId(jobVo.getId());
                 jobPhaseNodeVo.setJobPhaseId(jobPhaseVo.getId());
                 jobPhaseNodeVo.setProxyId(getProxyByIp(jobPhaseNodeVo.getHost()));
@@ -93,15 +97,16 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
 
     /**
      * 根据目标ip自动匹配proxy
+     *
      * @param ip 目标ip
      * @return proxyId
      */
-    private Long getProxyByIp(String ip){
-        List<AutoexecProxyGroupNetworkVo> networkVoList =  autoexecProxyMapper.getAllNetworkMask();
-        for(AutoexecProxyGroupNetworkVo networkVo : networkVoList){
+    private Long getProxyByIp(String ip) {
+        List<AutoexecProxyGroupNetworkVo> networkVoList = autoexecProxyMapper.getAllNetworkMask();
+        for (AutoexecProxyGroupNetworkVo networkVo : networkVoList) {
             if (IpUtil.isBelongSegment(ip, networkVo.getNetworkIp(), networkVo.getMask())) {
                 AutoexecProxyGroupVo groupVo = autoexecProxyMapper.getProxyGroupById(networkVo.getProxyGroupId());
-                int proxyIndex = (int)(Math.random() * groupVo.getProxyList().size());
+                int proxyIndex = (int) (Math.random() * groupVo.getProxyList().size());
                 AutoexecProxyVo proxyVo = groupVo.getProxyList().get(proxyIndex);
                 return proxyVo.getId();
             }
@@ -111,26 +116,29 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
 
     /**
      * 转化为node
+     *
      * @param nodeConfigVo 执行目标node配置
-     * @param combopId 组合工具id
+     * @param combopId     组合工具id
      * @return nodeList
      */
-    private List<AutoexecJobPhaseNodeVo> getJobNodeList(AutoexecCombopExecuteConfigVo nodeConfigVo,Long combopId){
+    private List<AutoexecJobPhaseNodeVo> getJobNodeList(AutoexecCombopExecuteConfigVo nodeConfigVo, Long combopId) {
         List<AutoexecJobPhaseNodeVo> jobNodeVoList = new ArrayList<AutoexecJobPhaseNodeVo>();
         AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = nodeConfigVo.getExecuteNodeConfig();
         String userName = nodeConfigVo.getExecuteUser();
         //tagList
         List<String> tagList = executeNodeConfigVo.getTagList();
-        if(CollectionUtils.isNotEmpty(tagList)) {
-            for (String tag : tagList){
+        if (CollectionUtils.isNotEmpty(tagList)) {
+            for (String tag : tagList) {
                 //TODO 待资源中心完成后，继续实现标签逻辑
             }
         }
-        //inputNodeList
-        List<AutoexecNodeVo> nodeVoList = executeNodeConfigVo.getInputNodeList();
-        //selectNodeList
-        nodeVoList.addAll(executeNodeConfigVo.getSelectNodeList());
-        if(CollectionUtils.isNotEmpty(nodeVoList)) {
+        //inputNodeList、selectNodeList
+        if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getInputNodeList()) || CollectionUtils.isNotEmpty(executeNodeConfigVo.getSelectNodeList())) {
+            List<AutoexecNodeVo> nodeVoList = executeNodeConfigVo.getInputNodeList();
+            if (CollectionUtils.isEmpty(nodeVoList)) {
+                nodeVoList = new ArrayList<>();
+            }
+            nodeVoList.addAll(executeNodeConfigVo.getSelectNodeList());
             for (AutoexecNodeVo nodeVo : nodeVoList) {
                 AutoexecJobPhaseNodeVo jobPhaseNodeVoTmp = new AutoexecJobPhaseNodeVo(nodeVo);
                 if (!jobNodeVoList.contains(jobPhaseNodeVoTmp)) {
@@ -140,11 +148,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         }
         //paramList
         List<String> paramList = executeNodeConfigVo.getParamList();
-        if(CollectionUtils.isNotEmpty(paramList)){
+        if (CollectionUtils.isNotEmpty(paramList)) {
             List<AutoexecCombopParamVo> autoexecCombopParamVoList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopId);
-            for(AutoexecCombopParamVo paramVo : autoexecCombopParamVoList){
+            for (AutoexecCombopParamVo paramVo : autoexecCombopParamVoList) {
                 AutoexecJobPhaseNodeVo jobPhaseNodeVoTmp = new AutoexecJobPhaseNodeVo(paramVo);
-                if(!jobNodeVoList.contains(jobPhaseNodeVoTmp)) {
+                if (!jobNodeVoList.contains(jobPhaseNodeVoTmp)) {
                     jobNodeVoList.add(jobPhaseNodeVoTmp);
                 }
             }
@@ -159,4 +167,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         return jobNodeVoList;
     }
 
+    public void authParam(AutoexecCombopVo combopVo, JSONObject paramJson) {
+        List<AutoexecCombopParamVo> autoexecCombopParamVoList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopVo.getId());
+    }
 }

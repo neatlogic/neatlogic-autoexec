@@ -13,9 +13,6 @@
         <if test="statusList != null and statusList.size() > 0 ">
             LEFT JOIN `autoexec_combop` ac ON aj.`operation_id` = ac.`id`
         </if>
-        <if test="execUser != null and execUser != ''">
-            LEFT JOIN `autoexec_job_user` aju ON aju.`job_id` = aj.`id`
-        </if>
         <where>
             <include refid="searchJobSql"/>
         </where>
@@ -36,6 +33,7 @@
         aj.`operation_id` as operationId,
         aj.`operation_type` as operationType,
         aj.`exec_user` as execUser,
+        aj.`exec_user_type` as execUserType,
         aj.`source`,
         aj.`thread_count` as threadCount
         FROM
@@ -100,8 +98,12 @@
                 #{combopOperationType}
             </foreach>
         </if>
-        <if test="execUser != null and execUser != ''">
-            and aju.`user` = #{execUser}
+        <if test="execUserList != null and execUserList.size() > 0 ">
+            and aj.`exec_user` in
+            <foreach collection="execUserList" item="execUser" open="(" close=")"
+                     separator=",">
+                #{execUser}
+            </foreach>
         </if>
         <if test="startTime != null and startTime != ''">
             and aj.startTime >= #{startTime}
@@ -341,27 +343,31 @@
 
     <insert id="insertJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
         INSERT INTO `autoexec_job` (`id`,
-                                    `name`,
-                                    `status`,
-                                    `error`,
-                                    `plan_start_time`,
-                                    `operation_id`,
-                                    `operation_type`,
-                                    `thread_count`,
-                                    `param_hash`,
-                                    `source`,
-                                    `config`)
+        `name`,
+        `status`,
+        <if test="planStartTime != null and planStartTime !='' ">
+            `plan_start_time`,
+        </if>
+        `operation_id`,
+        `operation_type`,
+        `thread_count`,
+        `param_hash`,
+        `exec_user`,
+        `exec_user_type`,
+        `source`)
         VALUES (#{id},
-                #{name},
-                #{status},
-                #{error},
-                #{planStartTime},
-                #{operationId},
-                #{operationType},
-                #{threadCount},
-                #{paramHash},
-                #{source},
-                #{config});
+        #{name},
+        #{status},
+        <if test="planStartTime != null and planStartTime !='' ">
+            #{planStartTime},
+        </if>
+        #{operationId},
+        #{operationType},
+        #{threadCount},
+        #{paramHash},
+        #{execUser},
+        #{execUserType},
+        #{source});
     </insert>
 
     <insert id="insertJobPhase" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
@@ -371,14 +377,16 @@
                                           `name`,
                                           `status`,
                                           `exec_user`,
-                                          `exec_mode`)
+                                          `exec_mode`,
+                                          `sort`)
         VALUES (#{id},
                 #{jobId},
                 #{uk},
                 #{name},
                 #{status},
                 #{execUser},
-                #{execMode});
+                #{execMode},
+                #{sort});
     </insert>
 
     <insert id="insertJobPhaseNode"
@@ -417,7 +425,7 @@
 
     <insert id="insertJobParamContent"
             parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobParamContentVo">
-        INSERT INTO `autoexec_job_param_content` (`hash`, `content`)
+        INSERT IGNORE INTO `autoexec_job_param_content` (`hash`, `content`)
         VALUES (#{hash}, #{content});
     </insert>
 
