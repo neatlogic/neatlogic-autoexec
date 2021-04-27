@@ -23,7 +23,7 @@
         aj.`id`,
         aj.`name`,
         aj.`status`,
-        aj.`error`,
+        aj.`error_msg` as errorMsg,
         aj.`plan_start_time` as planStartTime,
         aj.`start_time` as startTime,
         aj.`end_time` as endTime,
@@ -187,7 +187,7 @@
         SELECT aj.`id`,
                aj.`name`,
                aj.`status`,
-               aj.`error`,
+               aj.`error_msg`       as errorMsg,
                aj.`plan_start_time` as planStartTime,
                aj.`start_time`      as startTime,
                aj.`end_time`        as endTime,
@@ -204,13 +204,14 @@
 
     <select id="checkIsJobUser" resultType="java.lang.Integer">
         select count(1)
-        from `autoexec_job_user`
-        where `job_id` = #{jobId}
-        and `user` in
+        from `autoexec_job`
+        where `id` = #{jobId}
+        and `exec_user` in
         <foreach collection="userList" item="user" open="(" close=")" separator=",">
             #{user}
         </foreach>
     </select>
+
     <select id="getJobPhaseLockByPhaseId" parameterType="java.lang.Long"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
         SELECT id,
@@ -233,7 +234,7 @@
     </select>
 
     <select id="getFirstJobPhase" resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
-        select id
+        select id, job_id as jobId
         from `autoexec_job_phase`
         where job_id = #{value}
         order by `sort` asc
@@ -294,7 +295,7 @@
         SELECT aj.`id`,
                aj.`name`,
                aj.`status`,
-               aj.`error`,
+               aj.`error_msg`       as errorMsg,
                aj.`plan_start_time` as planStartTime,
                aj.`start_time`      as startTime,
                aj.`end_time`        as endTime,
@@ -440,14 +441,29 @@
     <update id="updateJobPhaseStatus" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
         UPDATE `autoexec_job_phase`
         SET `status` = #{status}
-        <if test="status == 'waiting'">
-            AND `start_time` = NOW(3)
+        <if test="status == 'running'">
+            ,`start_time` = NOW(3)
         </if>
         <if test="errorMsg != null and errorMsg != ''">
-            AND `error_msg` = #{errorMsg}
+            ,`error_msg` = #{errorMsg}
         </if>
         <if test="status == 'completed' or status == 'failed'">
-            AND `end_time` = NOW(3)
+            ,`end_time` = NOW(3)
+        </if>
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateJobStatus" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
+        UPDATE `autoexec_job`
+        SET `status` = #{status}
+        <if test="status == 'running'">
+            ,`start_time` = NOW(3)
+        </if>
+        <if test="errorMsg != null and errorMsg != ''">
+            ,`error_msg` = #{errorMsg}
+        </if>
+        <if test="status == 'completed' or status == 'failed'">
+            ,`end_time` = NOW(3)
         </if>
         WHERE id = #{id}
     </update>

@@ -91,7 +91,7 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
         Long jobId = autoexecJobService.saveAutoexecCombopJob(combopVo, jsonObj.getString("source"), threadCount, paramJson);
         //对接proxy 创建python任务
         AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getFirstJobPhase(jobId);
-        //autoexecJobActionService.fire(jobPhaseVo,null,"first");
+        autoexecJobActionService.fire(jobPhaseVo,null,"first");
         return null;
     }
 

@@ -33,6 +33,8 @@ public interface AutoexecJobMapper {
 
     int checkIsJobParamReference(@Param("jobId") Long jobId, @Param("hash") String hash);
 
+    void updateJobStatus(AutoexecJobVo jobVo);
+
     //jobPhase
     List<AutoexecJobPhaseVo> getJobPhaseListByJobId(Long jobId);
 
