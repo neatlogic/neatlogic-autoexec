@@ -58,8 +58,10 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
             List<String> authorityList = autoexecCombopMapper.getAutoexecCombopAuthorityListByCombopIdAndUserUuidAndTeamUuidListAndRoleUuidList(autoexecCombopVo.getId(), userUuid, teamUuidList, roleUuidList);
             if (authorityList.contains(CombopAuthorityAction.EDIT.getValue())) {
                 autoexecCombopVo.setEditable(1);
+                autoexecCombopVo.setDeletable(1);
             } else {
                 autoexecCombopVo.setEditable(0);
+                autoexecCombopVo.setDeletable(0);
             }
             if (authorityList.contains(CombopAuthorityAction.EXECUTE.getValue())) {
                 autoexecCombopVo.setExecutable(1);
@@ -93,8 +95,8 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
         if (CollectionUtils.isNotEmpty(autoexecCombopParamVoList)) {
             runtimeParamMap = autoexecCombopParamVoList.stream().collect(Collectors.toMap(e -> e.getKey(), e -> e));
         }
-        Map<String, AutoexecScriptVersionParamVo> localPreNodeOutputParamMap = new HashMap<>();
-        Map<String, AutoexecScriptVersionParamVo> remotePreNodeOutputParamMap = new HashMap<>();
+        Map<String, AutoexecScriptVersionParamVo> runnerPreNodeOutputParamMap = new HashMap<>();
+        Map<String, AutoexecScriptVersionParamVo> targetPreNodeOutputParamMap = new HashMap<>();
         for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
             if (autoexecCombopPhaseVo == null) {
                 continue;
@@ -124,10 +126,10 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                         if (Objects.equals(paramVo.getMode(), ParamMode.INPUT.getValue())) {
                             inputParamMap.put(paramVo.getKey(), paramVo);
                         } else if (Objects.equals(paramVo.getMode(), ParamMode.OUTPUT.getValue())) {
-                            if (Objects.equals(ExecMode.LOCAL.getValue(), execMode)) {
-                                localPreNodeOutputParamMap.put(name + "&&" + operationId + "&&" + paramVo.getKey(), paramVo);
-                            } else if (Objects.equals(ExecMode.REMOTE.getValue(), execMode)) {
-                                remotePreNodeOutputParamMap.put(name + "&&" + operationId + "&&" + paramVo.getKey(), paramVo);
+                            if (Objects.equals(ExecMode.RUNNER.getValue(), execMode)) {
+                                runnerPreNodeOutputParamMap.put(name + "&&" + operationId + "&&" + paramVo.getKey(), paramVo);
+                            } else if (Objects.equals(ExecMode.TARGET.getValue(), execMode)) {
+                                targetPreNodeOutputParamMap.put(name + "&&" + operationId + "&&" + paramVo.getKey(), paramVo);
                             }
                         }
                     }
@@ -155,7 +157,14 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                                 }
                                 continue;
                             }
-                            String value = paramMappingVo.getValue();
+                            Object valueObj = paramMappingVo.getValue();
+                            if(Objects.equals(mappingMode, ParamMappingMode.CONSTANT.getValue())){
+                                if (valueObj == null && Objects.equals(inputParamVo.getIsRequired(), 1)) {
+                                    throw new AutoexecParamMappingIncorrectException(key);
+                                }
+                                continue;
+                            }
+                            String value = (String) valueObj;
                             if (StringUtils.isEmpty(value)) {
                                 throw new AutoexecParamMappingIncorrectException(key);
                             }
@@ -168,18 +177,18 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                                     throw new AutoexecParamMappingIncorrectException(key);
                                 }
                             } else if (Objects.equals(mappingMode, ParamMappingMode.PRE_NODE_OUTPUT_PARAM.getValue())) {
-                                if (Objects.equals(ExecMode.LOCAL.getValue(), execMode)) {
-                                    AutoexecScriptVersionParamVo localPreNodeOutputParamVo = localPreNodeOutputParamMap.get(value);
-                                    if (localPreNodeOutputParamVo == null) {
+                                if (Objects.equals(ExecMode.RUNNER.getValue(), execMode)) {
+                                    AutoexecScriptVersionParamVo runnerPreNodeOutputParamVo = runnerPreNodeOutputParamMap.get(value);
+                                    if (runnerPreNodeOutputParamVo == null) {
                                         throw new AutoexecParamMappingIncorrectException(key);
                                     }
-                                    if (!Objects.equals(localPreNodeOutputParamVo.getType(), inputParamVo.getType())) {
+                                    if (!Objects.equals(runnerPreNodeOutputParamVo.getType(), inputParamVo.getType())) {
                                         throw new AutoexecParamMappingIncorrectException(key);
                                     }
-                                } else if (Objects.equals(ExecMode.REMOTE.getValue(), execMode)) {
-                                    AutoexecScriptVersionParamVo preNodeOutputParamVo = remotePreNodeOutputParamMap.get(value);
+                                } else if (Objects.equals(ExecMode.RUNNER_TARGET.getValue(), execMode)) {
+                                    AutoexecScriptVersionParamVo preNodeOutputParamVo = targetPreNodeOutputParamMap.get(value);
                                     if (preNodeOutputParamVo == null) {
-                                        preNodeOutputParamVo = localPreNodeOutputParamMap.get(value);
+                                        preNodeOutputParamVo = runnerPreNodeOutputParamMap.get(value);
                                         if (preNodeOutputParamVo == null) {
                                             throw new AutoexecParamMappingIncorrectException(key);
                                         }
@@ -188,8 +197,6 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                                         throw new AutoexecParamMappingIncorrectException(key);
                                     }
                                 }
-                            } else if (Objects.equals(mappingMode, ParamMappingMode.CONSTANT.getValue())) {
-
                             } else {
                                 throw new AutoexecParamMappingIncorrectException(key);
                             }
