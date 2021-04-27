@@ -13,9 +13,11 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -42,14 +44,13 @@ public class AutoexecJobSearchApi extends PrivateApiComponentBase {
     @Input({
             @Param(name = "statusList", type = ApiParamType.JSONARRAY, desc = "作业状态"),
             @Param(name = "sourceList", type = ApiParamType.JSONARRAY, desc = "作业来源"),
-            @Param(name = "combopOperationTypeList", type = ApiParamType.JSONARRAY, desc = "组合工具类型"),
+            @Param(name = "typeIdList", type = ApiParamType.JSONARRAY, desc = "组合工具类型"),
             @Param(name = "combopName", type = ApiParamType.STRING, desc = "组合工具"),
             @Param(name = "startTime", type = ApiParamType.JSONOBJECT, desc = "时间过滤"),
-            @Param(name = "execUser", type = ApiParamType.STRING, desc = "操作人"),
+            @Param(name = "execUserList", type = ApiParamType.JSONARRAY, desc = "操作人"),
             @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
             @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
             @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
-            @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true")
     })
     @Output({
             @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecJobVo[].class, desc = "列表"),
@@ -61,7 +62,10 @@ public class AutoexecJobSearchApi extends PrivateApiComponentBase {
         JSONObject result = new JSONObject();
         AutoexecJobVo jobVo = new AutoexecJobVo(jsonObj);
         List<Long> jobIdList = autoexecJobMapper.searchJobId(jobVo);
-        List<AutoexecJobVo> jobVoList = autoexecJobMapper.searchJob(jobIdList);
+        List<AutoexecJobVo> jobVoList = new ArrayList<>();
+        if(CollectionUtils.isNotEmpty(jobIdList)) {
+            jobVoList = autoexecJobMapper.searchJob(jobIdList);
+        }
         result.put("tbodyList", jobVoList);
         if (jobVo.getNeedPage()) {
             int rowNum = autoexecJobMapper.searchJobCount(jobVo);

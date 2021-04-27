@@ -76,7 +76,7 @@ public class AutoexecJobDeleteApi extends PrivateApiComponentBase {
                 int jobParamReferenceCount = autoexecJobMapper.checkIsJobParamReference(jobId, hash);
                 int jobPhaseOperationParamReferenceCount = autoexecJobMapper.checkIsJobPhaseOperationParamReference(jobId, hash);
                 if (jobParamReferenceCount == 0 && jobPhaseOperationParamReferenceCount == 0) {
-                    autoexecJobMapper.deleteJobParamContentByHash(jobVo.getParamHash());
+                    autoexecJobMapper.deleteJobParamContentByHash(hash);
                 }
             }
         }
