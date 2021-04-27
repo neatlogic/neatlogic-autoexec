@@ -151,13 +151,20 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                                 throw new AutoexecParamNotFoundException(key);
                             }
                             String mappingMode = paramMappingVo.getMappingMode();
-                            if (Objects.equals(mappingMode, ParamMappingMode.IS_EMPTY.getValue()) || Objects.equals(mappingMode, ParamMappingMode.CONSTANT.getValue())) {
+                            if (Objects.equals(mappingMode, ParamMappingMode.IS_EMPTY.getValue())) {
                                 if (Objects.equals(inputParamVo.getIsRequired(), 1)) {
                                     throw new AutoexecParamMappingIncorrectException(key);
                                 }
                                 continue;
                             }
-                            String value = (String) paramMappingVo.getValue();
+                            Object valueObj = paramMappingVo.getValue();
+                            if(Objects.equals(mappingMode, ParamMappingMode.CONSTANT.getValue())){
+                                if (valueObj == null && Objects.equals(inputParamVo.getIsRequired(), 1)) {
+                                    throw new AutoexecParamMappingIncorrectException(key);
+                                }
+                                continue;
+                            }
+                            String value = (String) valueObj;
                             if (StringUtils.isEmpty(value)) {
                                 throw new AutoexecParamMappingIncorrectException(key);
                             }
@@ -171,11 +178,11 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                                 }
                             } else if (Objects.equals(mappingMode, ParamMappingMode.PRE_NODE_OUTPUT_PARAM.getValue())) {
                                 if (Objects.equals(ExecMode.RUNNER.getValue(), execMode)) {
-                                    AutoexecScriptVersionParamVo localPreNodeOutputParamVo = runnerPreNodeOutputParamMap.get(value);
-                                    if (localPreNodeOutputParamVo == null) {
+                                    AutoexecScriptVersionParamVo runnerPreNodeOutputParamVo = runnerPreNodeOutputParamMap.get(value);
+                                    if (runnerPreNodeOutputParamVo == null) {
                                         throw new AutoexecParamMappingIncorrectException(key);
                                     }
-                                    if (!Objects.equals(localPreNodeOutputParamVo.getType(), inputParamVo.getType())) {
+                                    if (!Objects.equals(runnerPreNodeOutputParamVo.getType(), inputParamVo.getType())) {
                                         throw new AutoexecParamMappingIncorrectException(key);
                                     }
                                 } else if (Objects.equals(ExecMode.RUNNER_TARGET.getValue(), execMode)) {
