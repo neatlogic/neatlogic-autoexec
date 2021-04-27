@@ -18,7 +18,6 @@ import codedriver.framework.lcs.*;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.service.AutoexecScriptService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -37,9 +36,6 @@ import java.util.stream.Collectors;
 @AuthAction(action = AUTOEXEC_SCRIPT_REVIEW.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
-
-    @Resource
-    private AutoexecScriptMapper autoexecScriptMapper;
 
     @Resource
     private AutoexecScriptService autoexecScriptService;
@@ -100,17 +96,7 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
             source.setParser("<span class='update'>" + source.getParser() + "</span>");
             target.setParser("<span class='update'>" + target.getParser() + "</span>");
         }
-        List<AutoexecScriptLineVo> sourceLineList = source.getLineList();
-        List<AutoexecScriptLineVo> targetLineList = target.getLineList();
-        List<AutoexecScriptLineVo> sourceResultList = new ArrayList<>();
-        List<AutoexecScriptLineVo> targetResultList = new ArrayList<>();
-        List<SegmentPair> segmentPairList = LCSUtil.LCSCompare(sourceLineList, targetLineList);
-        for (SegmentPair segmentPair : segmentPairList) {
-            regroupLineList(sourceLineList, targetLineList, sourceResultList, targetResultList, segmentPair);
-        }
-        source.setLineList(sourceResultList);
-        target.setLineList(targetResultList);
-
+        compareLineList(source, target);
     }
 
     /**
@@ -174,6 +160,25 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
         }
     }
 
+    /**
+     * 对比脚本每行内容
+     *
+     * @param source
+     * @param target
+     */
+    private void compareLineList(AutoexecScriptVersionVo source, AutoexecScriptVersionVo target) {
+        List<AutoexecScriptLineVo> sourceLineList = source.getLineList();
+        List<AutoexecScriptLineVo> targetLineList = target.getLineList();
+        List<AutoexecScriptLineVo> sourceResultList = new ArrayList<>();
+        List<AutoexecScriptLineVo> targetResultList = new ArrayList<>();
+        List<SegmentPair> segmentPairList = LCSUtil.LCSCompare(sourceLineList, targetLineList);
+        for (SegmentPair segmentPair : segmentPairList) {
+            regroupLineList(sourceLineList, targetLineList, sourceResultList, targetResultList, segmentPair);
+        }
+        source.setLineList(sourceResultList);
+        target.setLineList(targetResultList);
+    }
+
     private void regroupLineList(List<AutoexecScriptLineVo> oldDataList, List<AutoexecScriptLineVo> newDataList
             , List<AutoexecScriptLineVo> oldResultList, List<AutoexecScriptLineVo> newResultList, SegmentPair segmentPair) {
         List<AutoexecScriptLineVo> oldSubList = oldDataList.subList(segmentPair.getOldBeginIndex(), segmentPair.getOldEndIndex());
@@ -223,7 +228,6 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
                 }
                 oldResultList.add(oldLine);
                 newResultList.add(newLine);
-
             } else {
                 /** 修改多行，多行间需要做最优匹配 **/
                 List<String> oldSubContentList = oldSubList.stream().map(AutoexecScriptLineVo::getContent).collect(Collectors.toList());
