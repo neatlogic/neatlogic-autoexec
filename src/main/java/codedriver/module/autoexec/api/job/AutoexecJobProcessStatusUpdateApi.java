@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.api.job;
 
+import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
@@ -54,20 +55,21 @@ public class AutoexecJobProcessStatusUpdateApi extends PrivateApiComponentBase {
         Long jobId = jsonObj.getLong("jobId");
         String jobPhaseUk = jsonObj.getString("jobPhaseUk");
         Integer status = jsonObj.getInteger("status");
+        String jobAction = jsonObj.getString("jobAction");
         String errorMsg = jsonObj.getString("errorMsg");
+        String phaseStatus = null;
         AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseLockByJobIdAndPhaseUk(jobId, jobPhaseUk);
         if (jobPhaseVo == null) {
             throw new AutoexecJobPhaseNotFoundException(jobPhaseUk);
         }
-        if (JobStatus.LINING.getValue().equalsIgnoreCase(jobPhaseVo.getStatus())) {
-            String phaseStatus;
-            if (status != null && status == 1) {
+        if (status != null && status == 1) {
+            if (JobAction.EXEC.getValue().equalsIgnoreCase(jobAction)) {
                 phaseStatus = JobStatus.RUNNING.getValue();
-            } else {
-                phaseStatus = JobStatus.FAILED.getValue();
             }
-            autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), phaseStatus, errorMsg));
+        }else {
+            phaseStatus = JobStatus.FAILED.getValue();
         }
+        autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), phaseStatus, errorMsg));
         return null;
     }
 

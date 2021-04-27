@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopCannotExecuteException;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobThreadCountException;
@@ -14,7 +15,9 @@ import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.module.autoexec.service.AutoexecCombopService;
+import codedriver.module.autoexec.service.AutoexecJobActionService;
 import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
@@ -39,6 +42,12 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
 
     @Resource
     AutoexecCombopService autoexecCombopService;
+
+    @Resource
+    AutoexecJobActionService autoexecJobActionService;
+
+    @Resource
+    AutoexecJobMapper autoexecJobMapper;
 
     @Override
     public String getName() {
@@ -79,7 +88,10 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
         if ((threadCount & (threadCount - 1)) != 0) {
             throw new AutoexecJobThreadCountException();
         }
-        autoexecJobService.saveAutoexecCombopJob(combopVo, jsonObj.getString("source"), threadCount, paramJson);
+        Long jobId = autoexecJobService.saveAutoexecCombopJob(combopVo, jsonObj.getString("source"), threadCount, paramJson);
+        //对接proxy 创建python任务
+        AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getFirstJobPhase(jobId);
+        //autoexecJobActionService.fire(jobPhaseVo,null,"first");
         return null;
     }
 

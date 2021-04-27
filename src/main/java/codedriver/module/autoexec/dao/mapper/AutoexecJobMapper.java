@@ -40,6 +40,8 @@ public interface AutoexecJobMapper {
 
     AutoexecJobPhaseVo getJobPhaseLockByJobIdAndPhaseUk(@Param("jobId") Long jobId,@Param("jobPhaseUk") String jobPhaseUk);
 
+    AutoexecJobPhaseVo getFirstJobPhase(Long jobId);
+
     //jobPhaseNode
     List<AutoexecJobPhaseNodeVo> searchJobPhaseNode(AutoexecJobPhaseNodeVo jobPhaseNodeVo);
 
@@ -80,4 +82,5 @@ public interface AutoexecJobMapper {
     void deleteJobPhaseByJobId(Long jobId);
 
     void deleteJobByJobId(Long jobId);
+
 }

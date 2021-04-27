@@ -10,9 +10,6 @@
         distinct aj.`id`
         FROM
         `autoexec_job` aj
-        <if test="statusList != null and statusList.size() > 0 ">
-            LEFT JOIN `autoexec_combop` ac ON aj.`operation_id` = ac.`id`
-        </if>
         <where>
             <include refid="searchJobSql"/>
         </where>
@@ -78,6 +75,9 @@
     <sql id="searchJobSql">
         <if test="combopName != null and combopName != ''">
             aj.name like concat('%', #{combopName}, '%')
+        </if>
+        <if test="operationId != null">
+            aj.operation_id = #{operationId}
         </if>
         <if test="statusList != null and statusList.size() > 0 ">
             and aj.`status` in
@@ -230,6 +230,14 @@
         WHERE `job_id` = #{jobId}
           and `uk` = #{jobPhaseUk} FOR
         UPDATE
+    </select>
+
+    <select id="getFirstJobPhase" resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
+        select id
+        from `autoexec_job_phase`
+        where job_id = #{value}
+        order by `sort` asc
+        limit 1
     </select>
 
     <resultMap id="jobMap" type="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
@@ -431,7 +439,13 @@
 
     <update id="updateJobPhaseStatus" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
         UPDATE `autoexec_job_phase`
-        SET `status` = #{status} AND `error_msg` = #{errorMsg}
+        SET `status` = #{status}
+        <if test="status == 'waiting'">
+            AND `start_time` = NOW(3)
+        </if>
+        <if test="errorMsg != null and errorMsg != ''">
+            AND `error_msg` = #{errorMsg}
+        </if>
         <if test="status == 'completed' or status == 'failed'">
             AND `end_time` = NOW(3)
         </if>
