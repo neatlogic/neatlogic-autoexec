@@ -90,15 +90,12 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
         List<AutoexecScriptVersionParamVo> sourceOutputParamList = source.getOutputParamList() != null ? source.getOutputParamList() : new ArrayList<>();
         List<AutoexecScriptVersionParamVo> targetInputParamList = target.getInputParamList() != null ? target.getInputParamList() : new ArrayList<>();
         List<AutoexecScriptVersionParamVo> targetOutputParamList = target.getOutputParamList() != null ? target.getOutputParamList() : new ArrayList<>();
-        // 对比出参入参
-        compareParamList(sourceInputParamList, targetInputParamList);
-        compareParamList(sourceOutputParamList, targetOutputParamList);
-        // 对比解析器
+        compareParamList(targetInputParamList, sourceInputParamList);
+        compareParamList(targetOutputParamList, sourceOutputParamList);
         if (!Objects.equals(source.getParser(), target.getParser())) {
             source.setParser("<span class='update'>" + source.getParser() + "</span>");
             target.setParser("<span class='update'>" + target.getParser() + "</span>");
         }
-        // 对比内容
         compareLineList(source, target);
     }
 
