@@ -151,13 +151,13 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                                 throw new AutoexecParamNotFoundException(key);
                             }
                             String mappingMode = paramMappingVo.getMappingMode();
-                            if (Objects.equals(mappingMode, ParamMappingMode.IS_EMPTY.getValue())) {
+                            if (Objects.equals(mappingMode, ParamMappingMode.IS_EMPTY.getValue()) || Objects.equals(mappingMode, ParamMappingMode.CONSTANT.getValue())) {
                                 if (Objects.equals(inputParamVo.getIsRequired(), 1)) {
                                     throw new AutoexecParamMappingIncorrectException(key);
                                 }
                                 continue;
                             }
-                            String value = paramMappingVo.getValue();
+                            String value = (String) paramMappingVo.getValue();
                             if (StringUtils.isEmpty(value)) {
                                 throw new AutoexecParamMappingIncorrectException(key);
                             }
@@ -190,8 +190,6 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                                         throw new AutoexecParamMappingIncorrectException(key);
                                     }
                                 }
-                            } else if (Objects.equals(mappingMode, ParamMappingMode.CONSTANT.getValue())) {
-
                             } else {
                                 throw new AutoexecParamMappingIncorrectException(key);
                             }
