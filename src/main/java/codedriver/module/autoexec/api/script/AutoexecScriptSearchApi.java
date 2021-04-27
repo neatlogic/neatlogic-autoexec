@@ -50,7 +50,7 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "execMode", type = ApiParamType.ENUM, rule = "local,remote,localremote", desc = "执行方式"),
+            @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target", desc = "执行方式"),
             @Param(name = "typeId", type = ApiParamType.LONG, desc = "脚本分类ID"),
             @Param(name = "riskId", type = ApiParamType.LONG, desc = "操作级别ID"),
             @Param(name = "isReviewing", type = ApiParamType.ENUM, rule = "0,1", desc = "是否待审批"),

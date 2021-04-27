@@ -19,5 +19,5 @@ public interface AutoexecJobService {
      * @param source      来源
      * @param threadCount 并发线程数
      */
-    void saveAutoexecCombopJob(AutoexecCombopVo combopVo, String source, Integer threadCount, JSONObject jobParam);
+    void saveAutoexecCombopJob(AutoexecCombopVo combopVo, String source, Integer threadCount, JSONObject paramJson);
 }
