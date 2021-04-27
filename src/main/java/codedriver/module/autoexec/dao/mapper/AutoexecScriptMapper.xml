@@ -254,11 +254,11 @@
         </if>
         <if test="execMode != null and execMode != ''">
             <choose>
-                <when test="execMode == 'local'">
-                    and (`exec_mode` = 'local' or `exec_mode` = 'localremote')
+                <when test="execMode == 'runner'">
+                    and (`exec_mode` = 'runner' or `exec_mode` = 'runner_target')
                 </when>
-                <when test="execMode == 'remote'">
-                    and `exec_mode` = 'remote'
+                <when test="execMode == 'target'">
+                    and `exec_mode` = 'target'
                 </when>
             </choose>
         </if>
@@ -287,11 +287,11 @@
         </if>
         <if test="execMode != null and execMode != ''">
             <choose>
-                <when test="execMode == 'local'">
-                    and (a.`exec_mode` = 'local' or a.`exec_mode` = 'localremote')
+                <when test="execMode == 'runner'">
+                    and (a.`exec_mode` = 'runner' or a.`exec_mode` = 'runner_target')
                 </when>
-                <when test="execMode == 'remote'">
-                    and a.`exec_mode` = 'remote'
+                <when test="execMode == 'target'">
+                    and a.`exec_mode` = 'target'
                 </when>
             </choose>
         </if>
