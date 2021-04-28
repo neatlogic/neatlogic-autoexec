@@ -10,12 +10,6 @@
         distinct aj.`id`
         FROM
         `autoexec_job` aj
-        <if test="statusList != null and statusList.size() > 0 ">
-            LEFT JOIN `autoexec_combop` ac ON aj.`operation_id` = ac.`id`
-        </if>
-        <if test="execUser != null and execUser != ''">
-            LEFT JOIN `autoexec_job_user` aju ON aju.`job_id` = aj.`id`
-        </if>
         <where>
             <include refid="searchJobSql"/>
         </where>
@@ -29,13 +23,14 @@
         aj.`id`,
         aj.`name`,
         aj.`status`,
-        aj.`error`,
+        aj.`error_msg` as errorMsg,
         aj.`plan_start_time` as planStartTime,
         aj.`start_time` as startTime,
         aj.`end_time` as endTime,
         aj.`operation_id` as operationId,
         aj.`operation_type` as operationType,
         aj.`exec_user` as execUser,
+        aj.`exec_user_type` as execUserType,
         aj.`source`,
         aj.`thread_count` as threadCount
         FROM
@@ -64,7 +59,8 @@
         </where>
     </select>
 
-    <select id="searchJobWithCombopView" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo" resultType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
+    <select id="searchJobWithCombopView" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo"
+            resultType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
         SELECT ac.`name`, ac.`uk`, COUNT(1) as referenceCount
         FROM `autoexec_job` aj
         LEFT JOIN `autoexec_combop` ac ON aj.`operation_id` = ac.`id`
@@ -80,6 +76,9 @@
         <if test="combopName != null and combopName != ''">
             aj.name like concat('%', #{combopName}, '%')
         </if>
+        <if test="operationId != null">
+            aj.operation_id = #{operationId}
+        </if>
         <if test="statusList != null and statusList.size() > 0 ">
             and aj.`status` in
             <foreach collection="statusList" item="status" open="(" close=")" separator=",">
@@ -92,21 +91,25 @@
                 #{source}
             </foreach>
         </if>
-        <if test="combopOperationTypeList != null and combopOperationTypeList.size() > 0 ">
+        <if test="typeIdList != null and typeIdList.size() > 0 ">
             and ac.`type_id` in
-            <foreach collection="combopOperationTypeList" item="combopOperationType" open="(" close=")"
+            <foreach collection="typeIdList" item="typeId" open="(" close=")"
                      separator=",">
-                #{combopOperationType}
+                #{typeId}
             </foreach>
         </if>
-        <if test="execUser != null and execUser != ''">
-            and aju.`user` = #{execUser}
+        <if test="execUserList != null and execUserList.size() > 0 ">
+            and aj.`exec_user` in
+            <foreach collection="execUserList" item="execUser" open="(" close=")"
+                     separator=",">
+                #{execUser}
+            </foreach>
         </if>
-        <if test="startTime != null and startTime != ''">
-            and aj.startTime >= #{startTime}
+        <if test="startTime != null">
+            and aj.start_time >= #{startTime}
         </if>
-        <if test="endTime != null and endTime != ''"><![CDATA[
-               and aj.startTime <= #{endTime}
+        <if test="endTime != null "><![CDATA[
+               and aj.start_time <= #{endTime}
             ]]></if>
     </sql>
 
@@ -184,7 +187,7 @@
         SELECT aj.`id`,
                aj.`name`,
                aj.`status`,
-               aj.`error`,
+               aj.`error_msg`       as errorMsg,
                aj.`plan_start_time` as planStartTime,
                aj.`start_time`      as startTime,
                aj.`end_time`        as endTime,
@@ -193,6 +196,7 @@
                aj.`exec_user`       as execUser,
                aj.`source`,
                aj.`thread_count`    as threadCount,
+               aj.`param_hash`      as paramHash,
                aj.`config`
         FROM `autoexec_job` aj
         WHERE aj.`id` = #{value}
@@ -200,13 +204,14 @@
 
     <select id="checkIsJobUser" resultType="java.lang.Integer">
         select count(1)
-        from `autoexec_job_user`
-        where `job_id` = #{jobId}
-        and `user` in
+        from `autoexec_job`
+        where `id` = #{jobId}
+        and `exec_user` in
         <foreach collection="userList" item="user" open="(" close=")" separator=",">
             #{user}
         </foreach>
     </select>
+
     <select id="getJobPhaseLockByPhaseId" parameterType="java.lang.Long"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
         SELECT id,
@@ -226,6 +231,14 @@
         WHERE `job_id` = #{jobId}
           and `uk` = #{jobPhaseUk} FOR
         UPDATE
+    </select>
+
+    <select id="getFirstJobPhase" resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
+        select id, job_id as jobId
+        from `autoexec_job_phase`
+        where job_id = #{value}
+        order by `sort` asc
+        limit 1
     </select>
 
     <resultMap id="jobMap" type="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
@@ -250,7 +263,7 @@
         </collection>
     </resultMap>
 
-    <select id="getJobDetailByJobId" parameterType="java.lang.Long" resultMap="jobMap">
+    <select id="getJobDetailByJobIdAndPhaseId" parameterType="java.lang.Long" resultMap="jobMap">
         SELECT aj.`id`,
         aj.`name`,
         ajpc.`content` AS paramStr,
@@ -278,27 +291,92 @@
         </where>
     </select>
 
+    <select id="getJobLockByJobId" resultType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
+        SELECT aj.`id`,
+               aj.`name`,
+               aj.`status`,
+               aj.`error_msg`       as errorMsg,
+               aj.`plan_start_time` as planStartTime,
+               aj.`start_time`      as startTime,
+               aj.`end_time`        as endTime,
+               aj.`operation_id`    as operationId,
+               aj.`operation_type`  as operationType,
+               aj.`exec_user`       as execUser,
+               aj.`source`,
+               aj.`thread_count`    as threadCount,
+               aj.`param_hash`      as paramHash,
+               aj.`config`
+        FROM `autoexec_job` aj
+        WHERE aj.`id` = #{value} for
+        update
+    </select>
+
+    <select id="getJobParamContentLock"
+            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobParamContentVo">
+        SELECT `hash`,
+               `content`
+        FROM `autoexec_job_param_content`
+        where `hash` = #{value} for
+        update
+    </select>
+
+    <select id="getJobPhaseOperationByJobId"
+            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseOperationVo">
+        SELECT `job_id`       as jobId,
+               `job_phase_id` as jobPhaseId,
+               `id`,
+               `name`,
+               `uk`,
+               `type`,
+               `parser`,
+               `exec_mode`    as execMode,
+               `fail_policy`  as failPolicy,
+               `param_hash`   as paramHash
+        FROM `autoexec_job_phase_operation`
+        where `job_id` = #{value}
+    </select>
+
+    <select id="checkIsJobParamReference" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM `autoexec_job` aj
+        WHERE aj.id != #{jobId}
+          AND aj.`param_hash` = #{hash}
+    </select>
+
+    <select id="checkIsJobPhaseOperationParamReference" resultType="java.lang.Integer">
+        SELECT COUNT(1)
+        FROM `autoexec_job_phase_operation`
+        WHERE job_id != #{jobId}
+          AND `param_hash` = #{hash}
+    </select>
+
     <insert id="insertJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
         INSERT INTO `autoexec_job` (`id`,
-                                    `name`,
-                                    `status`,
-                                    `error`,
-                                    `plan_start_time`,
-                                    `operation_id`,
-                                    `operation_type`,
-                                    `thread_count`,
-                                    `source`,
-                                    `config`)
+        `name`,
+        `status`,
+        <if test="planStartTime != null and planStartTime !='' ">
+            `plan_start_time`,
+        </if>
+        `operation_id`,
+        `operation_type`,
+        `thread_count`,
+        `param_hash`,
+        `exec_user`,
+        `exec_user_type`,
+        `source`)
         VALUES (#{id},
-                #{name},
-                #{status},
-                #{error},
-                #{planStartTime},
-                #{operationId},
-                #{operationType},
-                #{threadCount},
-                #{source},
-                #{config});
+        #{name},
+        #{status},
+        <if test="planStartTime != null and planStartTime !='' ">
+            #{planStartTime},
+        </if>
+        #{operationId},
+        #{operationType},
+        #{threadCount},
+        #{paramHash},
+        #{execUser},
+        #{execUserType},
+        #{source});
     </insert>
 
     <insert id="insertJobPhase" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
@@ -308,14 +386,16 @@
                                           `name`,
                                           `status`,
                                           `exec_user`,
-                                          `exec_mode`)
+                                          `exec_mode`,
+                                          `sort`)
         VALUES (#{id},
                 #{jobId},
                 #{uk},
                 #{name},
                 #{status},
                 #{execUser},
-                #{execMode});
+                #{execMode},
+                #{sort});
     </insert>
 
     <insert id="insertJobPhaseNode"
@@ -335,34 +415,95 @@
     </insert>
 
     <insert id="insertJobPhaseOperation"
-            parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
+            parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseOperationVo">
         INSERT INTO `autoexec_job_phase_operation` (`id`,
+                                                    `job_id`,
                                                     `job_phase_id`,
                                                     `uk`,
                                                     `name`,
                                                     `type`,
                                                     `param_hash`)
         VALUES (#{id},
-                #{job_phase_id},
+                #{jobId},
+                #{jobPhaseId},
                 #{uk},
                 #{name},
                 #{type},
-                #{param_hash});
+                #{paramHash});
     </insert>
 
     <insert id="insertJobParamContent"
             parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobParamContentVo">
-        INSERT INTO `autoexec_job_param_content` (`hash`, `content`)
+        INSERT IGNORE INTO `autoexec_job_param_content` (`hash`, `content`)
         VALUES (#{hash}, #{content});
     </insert>
 
     <update id="updateJobPhaseStatus" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
         UPDATE `autoexec_job_phase`
-        SET `status` = #{status} AND `error_msg` = #{errorMsg}
+        SET `status` = #{status}
+        <if test="status == 'running'">
+            ,`start_time` = NOW(3)
+        </if>
+        <if test="errorMsg != null and errorMsg != ''">
+            ,`error_msg` = #{errorMsg}
+        </if>
         <if test="status == 'completed' or status == 'failed'">
-            AND `end_time` = NOW(3)
+            ,`end_time` = NOW(3)
         </if>
         WHERE id = #{id}
     </update>
+
+    <update id="updateJobStatus" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
+        UPDATE `autoexec_job`
+        SET `status` = #{status}
+        <if test="status == 'running'">
+            ,`start_time` = NOW(3)
+        </if>
+        <if test="errorMsg != null and errorMsg != ''">
+            ,`error_msg` = #{errorMsg}
+        </if>
+        <if test="status == 'completed' or status == 'failed'">
+            ,`end_time` = NOW(3)
+        </if>
+        WHERE id = #{id}
+    </update>
+
+    <delete id="deleteJobParamContentByHash" parameterType="java.lang.String">
+        DELETE
+        FROM `autoexec_job_param_content`
+        WHERE `hash` = #{value};
+    </delete>
+
+    <delete id="deleteJobUserByJobId" parameterType="java.lang.Long">
+        DELETE
+        FROM `codedriver_develop`.`autoexec_job_user`
+        WHERE `job_id` = #{value}
+    </delete>
+
+    <delete id="deleteJobPhaseOperationByJobId" parameterType="java.lang.Long">
+        DELETE
+        FROM `autoexec_job_phase_operation`
+        WHERE `job_id` = #{value}
+    </delete>
+
+    <delete id="deleteJobPhaseNodeByJobId" parameterType="java.lang.Long">
+        DELETE
+        FROM `autoexec_job_phase_node`
+        WHERE `job_id` = #{value};
+    </delete>
+
+    <delete id="deleteJobPhaseByJobId" parameterType="java.lang.Long">
+        DELETE
+        FROM `autoexec_job_phase`
+        WHERE `job_id` = #{value};
+    </delete>
+
+    <delete id="deleteJobByJobId" parameterType="java.lang.Long">
+        DELETE
+        FROM `autoexec_job`
+        WHERE `id` = #{value};
+    </delete>
+
+
 </mapper>
 

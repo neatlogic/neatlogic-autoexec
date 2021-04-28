@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.dao.mapper;
 
+import codedriver.framework.autoexec.dto.AutoexecRiskVo;
 import codedriver.framework.common.dto.ValueTextVo;
 
 import java.util.List;
@@ -15,4 +16,5 @@ public interface AutoexecRiskMapper {
 
     public List<ValueTextVo> getAllActiveRisk();
 
+    public AutoexecRiskVo getAutoexecRiskById(Long riskId);
 }

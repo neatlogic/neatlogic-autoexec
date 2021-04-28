@@ -5,26 +5,41 @@
 
 package codedriver.module.autoexec.api.combop;
 
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_EXECUTE;
+import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
+import codedriver.framework.autoexec.constvalue.CombopOperationType;
+import codedriver.framework.autoexec.dto.AutoexecRiskVo;
+import codedriver.framework.autoexec.dto.combop.*;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.common.constvalue.GroupSearch;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
+import codedriver.module.autoexec.dao.mapper.AutoexecRiskMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * 查询组合工具详情接口
  *
- * @author: linbq
- * @since: 2021/4/13 15:29
+ * @author linbq
+ * @since 2021/4/13 15:29
  **/
 @Service
+@AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
+@AuthAction(action = AUTOEXEC_COMBOP_EXECUTE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecCombopGetApi extends PrivateApiComponentBase {
 
@@ -32,36 +47,24 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
     private AutoexecCombopMapper autoexecCombopMapper;
 
     @Resource
+    private AutoexecScriptMapper autoexecScriptMapper;
+
+    @Resource
+    private AutoexecRiskMapper autoexecRiskMapper;
+
+    @Resource
     private AutoexecCombopService autoexecCombopService;
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 接口唯一标识，也是访问URI
-     */
     @Override
     public String getToken() {
         return "autoexec/combop/get";
     }
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 接口中文名
-     */
     @Override
     public String getName() {
         return "查询组合工具详情";
     }
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 额外配置
-     */
     @Override
     public String getConfig() {
         return null;
@@ -82,6 +85,42 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
             throw new AutoexecCombopNotFoundException(id);
         }
         autoexecCombopService.setOperableButtonList(autoexecCombopVo);
+        autoexecCombopVo.setOwner(GroupSearch.USER.getValuePlugin() + autoexecCombopVo.getOwner());
+        List<AutoexecCombopParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
+        autoexecCombopVo.setRuntimeParamList(runtimeParamList);
+        AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
+        List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
+        if(CollectionUtils.isNotEmpty(combopPhaseList)){
+            for(AutoexecCombopPhaseVo combopPhaseVo : combopPhaseList){
+                AutoexecCombopPhaseConfigVo phaseConfigVo = combopPhaseVo.getConfig();
+                if(phaseConfigVo != null){
+                    List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfigVo.getPhaseOperationList();
+                    if(CollectionUtils.isNotEmpty(phaseOperationList)){
+                        for(AutoexecCombopPhaseOperationVo phaseOperationVo : phaseOperationList){
+                            if(Objects.equals(phaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())){
+                                AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(phaseOperationVo.getOperationId());
+                                if(autoexecScriptVo != null){
+                                    phaseOperationVo.setId(autoexecScriptVo.getId());
+                                    phaseOperationVo.setUk(autoexecScriptVo.getUk());
+                                    phaseOperationVo.setName(autoexecScriptVo.getName());
+                                    phaseOperationVo.setType(autoexecScriptVo.getType());
+                                    phaseOperationVo.setExecMode(autoexecScriptVo.getExecMode());
+                                    phaseOperationVo.setTypeId(autoexecScriptVo.getTypeId());
+                                    phaseOperationVo.setTypeName(autoexecScriptVo.getName());
+                                    phaseOperationVo.setRiskId(autoexecScriptVo.getRiskId());
+                                    AutoexecRiskVo riskVo = autoexecRiskMapper.getAutoexecRiskById(autoexecScriptVo.getRiskId());
+                                    phaseOperationVo.setRiskVo(riskVo);
+                                    List<AutoexecScriptVersionParamVo> autoexecScriptVersionParamVoList = autoexecScriptMapper.getParamListByScriptId(phaseOperationVo.getOperationId());
+                                    phaseOperationVo.setParamList(autoexecScriptVersionParamVoList);
+                                }
+                            }else if(Objects.equals(phaseOperationVo.getOperationType(), CombopOperationType.TOOL.getValue())){
+                                // TODO linbq 工具的暂时不实现
+                            }
+                        }
+                    }
+                }
+            }
+        }
         return autoexecCombopVo;
     }
 }

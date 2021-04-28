@@ -6,7 +6,7 @@
 package codedriver.module.autoexec.service;
 
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
-import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 
 /**
  * @since 2021/4/12 18:44
@@ -18,6 +18,7 @@ public interface AutoexecJobService {
      * @param combopVo    组合工具vo
      * @param source      来源
      * @param threadCount 并发线程数
+     * @return jobId
      */
-    void saveAutoexecCombopJob(AutoexecCombopVo combopVo, String source, Integer threadCount, JSONArray jobParamList);
+    Long saveAutoexecCombopJob(AutoexecCombopVo combopVo, String source, Integer threadCount, JSONObject paramJson);
 }

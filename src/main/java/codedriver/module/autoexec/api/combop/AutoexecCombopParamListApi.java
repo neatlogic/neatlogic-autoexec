@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_EXECUTE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
 import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
@@ -17,7 +18,6 @@ import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -26,46 +26,28 @@ import java.util.Objects;
 /**
  * 查询组合工具顶层参数列表接口
  *
- * @author: linbq
- * @since: 2021/4/13 11:21
+ * @author linbq
+ * @since 2021/4/13 11:21
  **/
 @Service
-@Transactional
 @AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
+@AuthAction(action = AUTOEXEC_COMBOP_EXECUTE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecCombopParamListApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 接口唯一标识，也是访问URI
-     */
     @Override
     public String getToken() {
         return "autoexec/combop/param/list";
     }
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 接口中文名
-     */
     @Override
     public String getName() {
         return "查询组合工具顶层参数列表";
     }
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 额外配置
-     */
     @Override
     public String getConfig() {
         return null;
@@ -95,7 +77,7 @@ public class AutoexecCombopParamListApi extends PrivateApiComponentBase {
                     config.put("isRequired", true);
                 }
                 autoexecCombopParamVo.setConfig(config);
-                Object value = autoexecCombopParamVo.getValue();
+                Object value = autoexecCombopParamVo.getDefaultValue();
                 if (value != null) {
                     switch (paramType) {
                         case TEXT:
@@ -104,12 +86,20 @@ public class AutoexecCombopParamListApi extends PrivateApiComponentBase {
                             config.put("showPassword", false);
                             break;
                         case FILE:
-                            autoexecCombopParamVo.setValue(JSONObject.parseObject(value.toString()));
+                            autoexecCombopParamVo.setDefaultValue(JSONObject.parseObject((String) value));
                             break;
                         case DATE:
                             break;
+                        case NODE:
+                            autoexecCombopParamVo.setDefaultValue(JSONObject.parseArray((String) value));
+                            break;
                         case JSON:
-                            autoexecCombopParamVo.setValue(JSONObject.parseObject(value.toString()));
+                            String valueStr = (String) value;
+                            if (valueStr.startsWith("[") && valueStr.endsWith("]")) {
+                                autoexecCombopParamVo.setDefaultValue(JSONObject.parseArray(valueStr));
+                            } else if (valueStr.startsWith("{") && valueStr.endsWith("}")) {
+                                autoexecCombopParamVo.setDefaultValue(JSONObject.parseObject(valueStr));
+                            }
                             break;
                         default:
                             break;

@@ -19,7 +19,7 @@
     </select>
 
     <select id="checkScriptIsExistsById" parameterType="java.lang.Long" resultType="int">
-        select `id`
+        select count(`id`)
         from `autoexec_script` where `id` = #{value}
     </select>
 
@@ -100,6 +100,21 @@
         </if>
     </select>
 
+    <select id="getVersionListByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
+        select
+        `id`,
+        `script_id` as scriptId,
+        `version`,
+        `parser`,
+        `status`,
+        `reviewer`,
+        `is_active` as isActive,
+        `lcu`,
+        `lcd`
+        from `autoexec_script_version`
+        where `script_id` = #{scriptId}
+    </select>
+
     <select id="getActiveVersionByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
         select
         `id`,
@@ -139,9 +154,10 @@
         `key`,
         `default_value` as defaultValue,
         `type`,
-        `handler`,
+        `mode`,
         `is_required` as isRequired,
-        `description`
+        `description`,
+        `sort`
         from `autoexec_script_version_param`
         where `script_version_id` = #{value}
     </select>
@@ -152,9 +168,10 @@
         `key`,
         `default_value` as defaultValue,
         `type`,
-        `handler`,
+        `mode`,
         `is_required` as isRequired,
-        `description`
+        `description`,
+        `sort`
         from `autoexec_script_version_param` a
         join `autoexec_script_version` b on a.`script_version_id` = b.`id`
         where b.`is_active` = 1
@@ -236,14 +253,7 @@
             and (`name` like CONCAT('%', #{keyword}, '%') or `uk` like CONCAT('%', #{keyword}, '%'))
         </if>
         <if test="execMode != null and execMode != ''">
-            <choose>
-                <when test="execMode == 'local'">
-                    and (`exec_mode` = 'local' or `exec_mode` = 'localremote')
-                </when>
-                <when test="execMode == 'remote'">
-                    and `exec_mode` = 'remote'
-                </when>
-            </choose>
+            and `exec_mode` = #{execMode}
         </if>
         <if test="typeIdList != null and typeIdList.size() != 0">
             and `type_id` in
@@ -269,14 +279,7 @@
             and (a.`name` like CONCAT('%', #{keyword}, '%') or a.`uk` like CONCAT('%', #{keyword}, '%'))
         </if>
         <if test="execMode != null and execMode != ''">
-            <choose>
-                <when test="execMode == 'local'">
-                    and (a.`exec_mode` = 'local' or a.`exec_mode` = 'localremote')
-                </when>
-                <when test="execMode == 'remote'">
-                    and a.`exec_mode` = 'remote'
-                </when>
-            </choose>
+            and a.`exec_mode` = #{execMode}
         </if>
         <if test="typeIdList != null and typeIdList.size() != 0">
             and a.`type_id` in
@@ -314,7 +317,7 @@
         ) a
     </select>
 
-    <select id="searchScriptAndTool" parameterType="codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo" resultType="codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo">
+    <select id="searchScriptAndTool" parameterType="codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo" resultMap="autoexecToolAndScriptMap">
         select
         a.`id`,
         a.`uk`,
@@ -374,16 +377,19 @@
         <result column="execMode" property="execMode"/>
         <result column="typeId" property="typeId"/>
         <result column="typeName" property="typeName"/>
-        <result column="riskId" property="riskId"/>
-        <result column="riskName" property="riskName"/>
-        <result column="riskColor" property="riskColor"/>
+        <association property="riskVo" javaType="codedriver.framework.autoexec.dto.AutoexecRiskVo">
+            <result column="riskId" property="id"/>
+            <result column="riskName" property="name"/>
+            <result column="riskColor" property="color"/>
+        </association>
         <collection property="paramList" ofType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo">
             <result property="key" column="key"/>
             <result property="defaultValue" column="defaultValue"/>
             <result property="type" column="paramType"/>
-            <result property="handler" column="handler"/>
+            <result property="mode" column="mode"/>
             <result property="isRequired" column="isRequired"/>
             <result property="description" column="description"/>
+            <result property="sort" column="sort"/>
         </collection>
     </resultMap>
 
@@ -402,9 +408,10 @@
         c.`key`,
         c.`default_value` as defaultValue,
         c.`type` as paramType,
-        c.`handler`,
+        c.`mode`,
         c.`is_required` as isRequired,
-        c.`description`
+        c.`description`,
+        c.`sort`
         from
         `autoexec_script` a
         join `autoexec_script_version` b
@@ -442,25 +449,6 @@
         <include refid="getScriptReference"/>
     </select>
 
-    <select id="getOutputParamListByScriptIdList" parameterType="java.util.List" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo">
-        select
-        a.`script_version_id` as scriptVersionId,
-        a.`key`,
-        a.`default_value` as defaultValue,
-        a.`type`,
-        a.`handler`
-        from `autoexec_script_version_param` a
-        join `autoexec_script_version` b
-        on a.`script_version_id` = b.`id`
-        where
-        b.`is_active` = 1 and a.`type` = 'output'
-        and b.`script_id` in
-        <foreach collection="list" item="id" open="(" separator="," close=")">
-            #{id}
-        </foreach>
-        group by a.`script_version_id`,a.`key`
-    </select>
-
     <select id="getScriptAuditByScriptVersionIdAndOperate" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo">
         select
         `id`,
@@ -494,7 +482,9 @@
     <update id="updateScriptBaseInfo" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
         update `autoexec_script` set
         `name` = #{name},
-        `uk` = #{uk},
+        <if test="uk != null and uk != ''">
+            `uk` = #{uk},
+        </if>
         `exec_mode` = #{execMode},
         `type_id` = #{typeId},
         `risk_id` = #{riskId}
@@ -570,9 +560,10 @@
         `key`,
         `default_value`,
         `type`,
-        `handler`,
+        `mode`,
         `is_required`,
-        `description`
+        `description`,
+        `sort`
         ) values
         <foreach collection="list" item="item" separator=",">
             (
@@ -580,9 +571,10 @@
             #{item.key},
             #{item.defaultValue},
             #{item.type},
-            #{item.handler},
+            #{item.mode},
             #{item.isRequired},
-            #{item.description}
+            #{item.description},
+            #{item.sort}
             )
         </foreach>
     </insert>
@@ -644,6 +636,33 @@
         #{hash},
         #{content}
         )
+    </insert>
+
+    <insert id="batchInsertScriptVersion" parameterType="java.util.List">
+        insert into `autoexec_script_version` (
+        `id`,
+        `script_id`,
+        `version`,
+        `parser`,
+        `status`,
+        `is_active`,
+        `reviewer`,
+        `lcu`,
+        `lcd`
+        ) values
+        <foreach collection="list" item="item" separator=",">
+            (
+            #{item.id},
+            #{item.scriptId},
+            #{item.version},
+            #{item.parser},
+            #{item.status},
+            #{item.isActive},
+            #{item.reviewer},
+            #{item.lcu},
+            #{item.lcd}
+            )
+        </foreach>
     </insert>
 
     <delete id="deleteParamByVersionId" parameterType="java.lang.Long">

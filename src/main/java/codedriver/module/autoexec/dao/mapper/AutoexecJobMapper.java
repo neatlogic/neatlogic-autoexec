@@ -19,13 +19,21 @@ public interface AutoexecJobMapper {
 
     AutoexecJobVo getJobInfo(Long jobId);
 
-    AutoexecJobVo getJobDetailByJobId(Long jobId, Long jobPhaseId);
+    AutoexecJobVo getJobDetailByJobIdAndPhaseId(Long jobId, Long jobPhaseId);
 
     Integer searchJobCount(AutoexecJobVo jobVo);
 
     List<AutoexecCombopVo> searchJobWithCombopView(AutoexecJobVo jobVo);
 
     Integer checkIsJobUser(@Param("jobId") Long jobId, @Param("userList") List<String> userList);
+
+    AutoexecJobVo getJobLockByJobId(Long jobId);
+
+    AutoexecJobParamContentVo getJobParamContentLock(String hash);
+
+    int checkIsJobParamReference(@Param("jobId") Long jobId, @Param("hash") String hash);
+
+    void updateJobStatus(AutoexecJobVo jobVo);
 
     //jobPhase
     List<AutoexecJobPhaseVo> getJobPhaseListByJobId(Long jobId);
@@ -34,12 +42,22 @@ public interface AutoexecJobMapper {
 
     AutoexecJobPhaseVo getJobPhaseLockByJobIdAndPhaseUk(@Param("jobId") Long jobId,@Param("jobPhaseUk") String jobPhaseUk);
 
+    AutoexecJobPhaseVo getFirstJobPhase(Long jobId);
+
     //jobPhaseNode
     List<AutoexecJobPhaseNodeVo> searchJobPhaseNode(AutoexecJobPhaseNodeVo jobPhaseNodeVo);
 
     int searchJobPhaseNodeCount(AutoexecJobPhaseNodeVo jobPhaseNodeVo);
 
     List<AutoexecJobPhaseNodeStatusCountVo> getJobPhaseNodeStatusCount(Long jobId);
+
+    //jobPhaseOperation
+    List<AutoexecJobPhaseOperationVo> getJobPhaseOperationByJobId(Long jobId);
+
+    int checkIsJobPhaseOperationParamReference(@Param("jobId") Long jobId, @Param("hash") String hash);
+
+    //jobParamContent
+
 
 
     Integer insertJob(AutoexecJobVo jobVo);
@@ -53,4 +71,18 @@ public interface AutoexecJobMapper {
     Integer insertJobParamContent(AutoexecJobParamContentVo contentVo);
 
     Integer updateJobPhaseStatus(AutoexecJobPhaseVo autoexecJobPhaseVo);
+
+
+    void deleteJobParamContentByHash(String paramHash);
+
+    void deleteJobUserByJobId(Long jobId);
+
+    void deleteJobPhaseOperationByJobId(Long jobId);
+
+    void deleteJobPhaseNodeByJobId(Long jobId);
+
+    void deleteJobPhaseByJobId(Long jobId);
+
+    void deleteJobByJobId(Long jobId);
+
 }

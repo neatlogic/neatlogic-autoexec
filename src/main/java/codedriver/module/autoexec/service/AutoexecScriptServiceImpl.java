@@ -8,6 +8,8 @@ package codedriver.module.autoexec.service;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditContentVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.exception.AutoexecRiskNotFoundException;
@@ -18,9 +20,11 @@ import codedriver.module.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 @Service
 public class AutoexecScriptServiceImpl implements AutoexecScriptService {
@@ -51,8 +55,21 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
         return version;
     }
 
+    @Override
+    public List<AutoexecScriptVersionVo> getScriptVersionDetailListByScriptId(Long scriptId) {
+        List<AutoexecScriptVersionVo> versionList = autoexecScriptMapper.getVersionListByScriptId(scriptId);
+        if (CollectionUtils.isNotEmpty(versionList)) {
+            for (AutoexecScriptVersionVo vo : versionList) {
+                vo.setParamList(autoexecScriptMapper.getParamListByVersionId(vo.getId()));
+                vo.setLineList(autoexecScriptMapper.getLineListByVersionId(vo.getId()));
+            }
+        }
+        return versionList;
+    }
+
     /**
      * 校验脚本的基本信息，包括name、uk、分类、操作级别
+     *
      * @param scriptVo 脚本VO
      */
     @Override
@@ -60,14 +77,52 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
         if (autoexecScriptMapper.checkScriptNameIsExists(scriptVo) > 0) {
             throw new AutoexecScriptNameOrUkRepeatException(scriptVo.getName());
         }
-        if (autoexecScriptMapper.checkScriptUkIsExists(scriptVo) > 0) {
-            throw new AutoexecScriptNameOrUkRepeatException(scriptVo.getName());
-        }
+//        if (autoexecScriptMapper.checkScriptUkIsExists(scriptVo) > 0) {
+//            throw new AutoexecScriptNameOrUkRepeatException(scriptVo.getName());
+//        }
         if (autoexecTypeMapper.checkTypeIsExistsById(scriptVo.getTypeId()) == 0) {
             throw new AutoexecTypeNotFoundException(scriptVo.getTypeId());
         }
         if (autoexecRiskMapper.checkRiskIsExistsById(scriptVo.getRiskId()) == 0) {
             throw new AutoexecRiskNotFoundException(scriptVo.getRiskId());
+        }
+    }
+
+    /**
+     * 批量插入脚本参数
+     *
+     * @param paramList 参数列表
+     * @param batchSize 每批的数量
+     */
+    @Override
+    public void batchInsertScriptVersionParamList(List<AutoexecScriptVersionParamVo> paramList, int batchSize) {
+        if (CollectionUtils.isNotEmpty(paramList)) {
+            int begin = 0;
+            int end = begin + batchSize;
+            while (paramList.size() - 1 >= begin) {
+                autoexecScriptMapper.insertScriptVersionParamList(paramList.subList(begin, paramList.size() >= end ? end : paramList.size()));
+                begin = end;
+                end = begin + batchSize;
+            }
+        }
+    }
+
+    /**
+     * 批量插入脚本内容行
+     *
+     * @param lineList  内容行列表
+     * @param batchSize 每批的数量
+     */
+    @Override
+    public void batchInsertScriptLineList(List<AutoexecScriptLineVo> lineList, int batchSize) {
+        if (CollectionUtils.isNotEmpty(lineList)) {
+            int begin = 0;
+            int end = begin + batchSize;
+            while (lineList.size() - 1 >= begin) {
+                autoexecScriptMapper.insertScriptLineList(lineList.subList(begin, lineList.size() >= end ? end : lineList.size()));
+                begin = end;
+                end = begin + batchSize;
+            }
         }
     }
 

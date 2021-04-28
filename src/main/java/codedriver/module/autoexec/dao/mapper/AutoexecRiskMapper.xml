@@ -17,5 +17,21 @@
         `autoexec_risk`
         where `is_active` = 1
     </select>
+
+    <select id="getAutoexecRiskById" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.AutoexecRiskVo">
+        SELECT
+            `id`,
+            `name`,
+            `color`,
+            `is_active` AS isActive,
+            `description`,
+            `sort`,
+            `fcd`,
+            `fcu`,
+            `lcd`,
+            `lcu`
+        FROM `autoexec_risk`
+        WHERE `id` = #{value}
+    </select>
 </mapper>
 

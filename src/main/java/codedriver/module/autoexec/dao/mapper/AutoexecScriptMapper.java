@@ -32,6 +32,8 @@ public interface AutoexecScriptMapper {
 
     public List<AutoexecScriptVersionVo> getVersionList(AutoexecScriptVersionVo versionVo);
 
+    public List<AutoexecScriptVersionVo> getVersionListByScriptId(Long id);
+
     public AutoexecScriptVersionVo getActiveVersionByScriptId(Long scriptId);
 
     public AutoexecScriptVersionVo getLatestVersionByScriptId(Long scriptId);
@@ -56,8 +58,6 @@ public interface AutoexecScriptMapper {
 
     public List<AutoexecCombopVo> getReferenceListByScriptId(Long scriptId);
 
-    public List<AutoexecScriptVersionParamVo> getOutputParamListByScriptIdList(List<Long> scriptIdList);
-
     public List<Long> getVersionIdListByScriptId(Long scriptId);
 
     public AutoexecScriptAuditVo getScriptAuditByScriptVersionIdAndOperate(@Param("versionId") Long versionId, @Param("operate") String operate);
@@ -81,6 +81,8 @@ public interface AutoexecScriptMapper {
     public int insertScriptAuditDetail(AutoexecScriptAuditContentVo auditContentVo);
 
     public int insertScriptLineList(List<AutoexecScriptLineVo> lineList);
+
+    public int batchInsertScriptVersion(List<AutoexecScriptVersionVo> versionList);
 
     public int deleteParamByVersionId(Long versionId);
 

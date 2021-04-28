@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_EXECUTE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
 import codedriver.framework.autoexec.constvalue.CombopAuthorityAction;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopAuthorityVo;
@@ -17,7 +18,6 @@ import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -26,46 +26,28 @@ import java.util.List;
 /**
  * 查询组合工具授权信息接口
  *
- * @author: linbq
- * @since: 2021/4/13 11:21
+ * @author linbq
+ * @since 2021/4/13 11:21
  **/
 @Service
-@Transactional
 @AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
+@AuthAction(action = AUTOEXEC_COMBOP_EXECUTE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecCombopAuthorityGetApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 接口唯一标识，也是访问URI
-     */
     @Override
     public String getToken() {
         return "autoexec/combop/authority/get";
     }
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 接口中文名
-     */
     @Override
     public String getName() {
         return "查询组合工具授权信息";
     }
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 额外配置
-     */
     @Override
     public String getConfig() {
         return null;
@@ -100,6 +82,4 @@ public class AutoexecCombopAuthorityGetApi extends PrivateApiComponentBase {
         resultObj.put("executeAuthorityList", executeAuthorityList);
         return resultObj;
     }
-
-
 }

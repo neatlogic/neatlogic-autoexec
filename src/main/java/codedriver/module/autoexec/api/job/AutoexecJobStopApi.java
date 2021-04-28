@@ -9,25 +9,32 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.module.autoexec.core.AutoexecJobAuthActionManager;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 
 /**
  * @author lvzk
- * @since 2021/4/14 14:15
+ * @since 2021/4/21 15:20
  **/
+
 @Service
-@OperationType(type = OperationTypeEnum.UPDATE)
-public class AutoexecJobConfigGetApi extends PrivateApiComponentBase {
+@Transactional
+@OperationType(type = OperationTypeEnum.OPERATE)
+public class AutoexecJobStopApi extends PrivateApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
 
+    @Resource
+    AutoexecJobAuthActionManager autoexecJobAuthActionManager;
+
     @Override
     public String getName() {
-        return "获取对应剧本的所有剧本配置信息";
+        return "删除作业";
     }
 
     @Override
@@ -36,22 +43,19 @@ public class AutoexecJobConfigGetApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
-            @Param(name = "jobPhaseId", type = ApiParamType.LONG, desc = "作业剧本Id")
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
     })
     @Output({
-
     })
-    @Description(desc = "获取对应剧本的所有剧本配置信息")
+    @Description(desc = "删除作业")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        Long jobId = jsonObj.getLong("jobId");
-        Long jobPhaseId = jsonObj.getLong("jobPhaseId");
-        return autoexecJobMapper.getJobDetailByJobIdAndPhaseId(jobId, jobPhaseId);
+        //autoexecJobMapper.getJobLockByJobId();
+        return null;
     }
 
     @Override
     public String getToken() {
-        return "autoexec/job/config/get";
+        return "autoexec/job/stop";
     }
 }

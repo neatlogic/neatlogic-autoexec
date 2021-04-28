@@ -25,8 +25,8 @@ import javax.annotation.Resource;
 /**
  * 更新组合工具状态接口
  *
- * @author: linbq
- * @since: 2021/4/13 15:29
+ * @author linbq
+ * @since 2021/4/13 15:29
  **/
 @Service
 @Transactional
@@ -40,34 +40,16 @@ public class AutoexecCombopIsActiveUpdateApi extends PrivateApiComponentBase {
     @Resource
     private AutoexecCombopService autoexecCombopService;
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 接口唯一标识，也是访问URI
-     */
     @Override
     public String getToken() {
         return "autoexec/combop/isactive/update";
     }
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 接口中文名
-     */
     @Override
     public String getName() {
         return "更新组合工具状态";
     }
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 额外配置
-     */
     @Override
     public String getConfig() {
         return null;
@@ -89,8 +71,8 @@ public class AutoexecCombopIsActiveUpdateApi extends PrivateApiComponentBase {
         }
         /** 如果是激活组合工具，则需要校验该组合工具配置正确 **/
         if (isActive == 0) {
-            //AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
-            //autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo);
+            AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
+            autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo);
         }
         AutoexecCombopVo autoexecCombopVo = new AutoexecCombopVo();
         autoexecCombopVo.setId(id);

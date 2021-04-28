@@ -9,12 +9,15 @@ import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
+import codedriver.framework.autoexec.constvalue.ParamMode;
+import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dto.script.*;
 import codedriver.framework.autoexec.exception.AutoexecScriptNameOrUkRepeatException;
 import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionCannotEditException;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.dto.FieldValidResultVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -34,6 +37,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -66,9 +70,9 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
     @Input({
             @Param(name = "id", type = ApiParamType.LONG, desc = "脚本ID(没有id和versionId,表示首次创建脚本;有id没有versionId,表示新增一个版本;没有id有versionId,表示编辑某个版本)"),
             @Param(name = "versionId", type = ApiParamType.LONG, desc = "脚本版本ID"),
-            @Param(name = "uk", type = ApiParamType.REGEX, rule = "^[A-Za-z]+$", isRequired = true, xss = true, desc = "唯一标识"),
+//            @Param(name = "uk", type = ApiParamType.REGEX, rule = "^[A-Za-z]+$", isRequired = true, xss = true, desc = "唯一标识"),
             @Param(name = "name", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", isRequired = true, xss = true, desc = "名称"),
-            @Param(name = "execMode", type = ApiParamType.ENUM, rule = "local,remote,localremote", desc = "执行方式", isRequired = true),
+            @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target", desc = "执行方式", isRequired = true),
             @Param(name = "typeId", type = ApiParamType.LONG, desc = "脚本分类ID", isRequired = true),
             @Param(name = "riskId", type = ApiParamType.LONG, desc = "操作级别ID", isRequired = true),
             @Param(name = "paramList", type = ApiParamType.JSONARRAY, desc = "参数列表"),
@@ -86,6 +90,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
         JSONObject result = new JSONObject();
         AutoexecScriptVo scriptVo = JSON.toJavaObject(jsonObj, AutoexecScriptVo.class);
         boolean needSave = true;
+        List<AutoexecScriptVersionParamVo> oldParamList = null;
 
         /**
          * 没有id和versionId，表示首次创建脚本
@@ -111,6 +116,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
                 scriptVo.setVersionId(versionVo.getId());
             } else {  // 编辑版本
                 AutoexecScriptVersionVo currentVersion = autoexecScriptService.getScriptVersionDetailByVersionId(scriptVo.getVersionId());
+                oldParamList = currentVersion.getParamList();
                 // 处于待审批和已通过状态的版本，任何权限都无法编辑
                 if (ScriptVersionStatus.SUBMITTED.getValue().equals(currentVersion.getStatus())
                         || ScriptVersionStatus.PASSED.getValue().equals(currentVersion.getStatus())) {
@@ -140,8 +146,35 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             // 保存参数
             List<AutoexecScriptVersionParamVo> paramList = scriptVo.getParamList();
             if (CollectionUtils.isNotEmpty(paramList)) {
-                paramList.stream().forEach(o -> o.setScriptVersionId(versionVo.getId()));
-                autoexecScriptMapper.insertScriptVersionParamList(paramList);
+                List<AutoexecScriptVersionParamVo> inputParamList = paramList.stream().filter(o -> ParamMode.INPUT.getValue().equals(o.getMode())).collect(Collectors.toList());
+                List<AutoexecScriptVersionParamVo> outputParamList = paramList.stream().filter(o -> ParamMode.OUTPUT.getValue().equals(o.getMode())).collect(Collectors.toList());
+                if (CollectionUtils.isNotEmpty(inputParamList)) {
+                    for (int i = 0; i < inputParamList.size(); i++) {
+                        AutoexecScriptVersionParamVo paramVo = inputParamList.get(i);
+                        paramVo.setScriptVersionId(versionVo.getId());
+                        // 检查是否修改了原密码默认值，修改过则重新加密
+                        if (paramVo.getDefaultValue() != null && ParamType.PASSWORD.getValue().equals(paramVo.getType())) {
+                            Integer sort = paramVo.getSort();
+                            if (sort != null && oldParamList != null && sort < oldParamList.size()) {
+                                AutoexecScriptVersionParamVo oldPwd = oldParamList.get(sort);
+                                if (!Objects.equals(paramVo.getDefaultValue(), oldPwd.getDefaultValue())) {
+                                    paramVo.setDefaultValue(RC4Util.encrypt((String) paramVo.getDefaultValue()));
+                                }
+                            } else {
+                                paramVo.setDefaultValue(RC4Util.encrypt((String) paramVo.getDefaultValue()));
+                            }
+                        }
+                        paramVo.setSort(i);
+                    }
+                    autoexecScriptMapper.insertScriptVersionParamList(inputParamList);
+                }
+                if (CollectionUtils.isNotEmpty(outputParamList)) {
+                    for (int i = 0; i < outputParamList.size(); i++) {
+                        outputParamList.get(i).setScriptVersionId(versionVo.getId());
+                        outputParamList.get(i).setSort(i);
+                    }
+                    autoexecScriptMapper.insertScriptVersionParamList(outputParamList);
+                }
             }
             // 保存脚本内容
             saveScriptLineList(scriptVo);
@@ -153,6 +186,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
 
     /**
      * 保存脚本内容行
+     *
      * @param scriptVo 脚本VO
      */
     private void saveScriptLineList(AutoexecScriptVo scriptVo) {
@@ -185,6 +219,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
 
     /**
      * 检查脚本内容是否有变更
+     *
      * @param before 当前版本
      * @param after  待更新的内容
      * @return 是否有变更
@@ -193,10 +228,8 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
         if (!Objects.equals(before.getParser(), after.getParser())) {
             return true;
         }
-        List<AutoexecScriptVersionParamVo> beforeParamList = new ArrayList<>();
-        beforeParamList.addAll(before.getParamList());
-        List<AutoexecScriptVersionParamVo> afterParamList = new ArrayList<>();
-        afterParamList.addAll(after.getParamList());
+        List<AutoexecScriptVersionParamVo> beforeParamList = before.getParamList() != null ? before.getParamList() : new ArrayList<>();
+        List<AutoexecScriptVersionParamVo> afterParamList = after.getParamList() != null ? after.getParamList() : new ArrayList<>();
         if (beforeParamList.size() != afterParamList.size()) {
             return true;
         }
@@ -214,7 +247,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             if (!Objects.equals(beforeNextParam.getType(), afterNextParam.getType())) {
                 return true;
             }
-            if (!Objects.equals(beforeNextParam.getHandler(), afterNextParam.getHandler())) {
+            if (!Objects.equals(beforeNextParam.getMode(), afterNextParam.getMode())) {
                 return true;
             }
             if (!Objects.equals(beforeNextParam.getIsRequired(), afterNextParam.getIsRequired())) {
@@ -253,15 +286,15 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
         };
     }
 
-    public IValid uk() {
-        return value -> {
-            AutoexecScriptVo scriptVo = JSON.toJavaObject(value, AutoexecScriptVo.class);
-            if (autoexecScriptMapper.checkScriptUkIsExists(scriptVo) > 0) {
-                return new FieldValidResultVo(new AutoexecScriptNameOrUkRepeatException(scriptVo.getUk()));
-            }
-            return new FieldValidResultVo();
-        };
-    }
+//    public IValid uk() {
+//        return value -> {
+//            AutoexecScriptVo scriptVo = JSON.toJavaObject(value, AutoexecScriptVo.class);
+//            if (autoexecScriptMapper.checkScriptUkIsExists(scriptVo) > 0) {
+//                return new FieldValidResultVo(new AutoexecScriptNameOrUkRepeatException(scriptVo.getUk()));
+//            }
+//            return new FieldValidResultVo();
+//        };
+//    }
 
 
 }
