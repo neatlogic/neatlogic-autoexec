@@ -77,9 +77,9 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
         if (autoexecScriptMapper.checkScriptNameIsExists(scriptVo) > 0) {
             throw new AutoexecScriptNameOrUkRepeatException(scriptVo.getName());
         }
-        if (autoexecScriptMapper.checkScriptUkIsExists(scriptVo) > 0) {
-            throw new AutoexecScriptNameOrUkRepeatException(scriptVo.getName());
-        }
+//        if (autoexecScriptMapper.checkScriptUkIsExists(scriptVo) > 0) {
+//            throw new AutoexecScriptNameOrUkRepeatException(scriptVo.getName());
+//        }
         if (autoexecTypeMapper.checkTypeIsExistsById(scriptVo.getTypeId()) == 0) {
             throw new AutoexecTypeNotFoundException(scriptVo.getTypeId());
         }

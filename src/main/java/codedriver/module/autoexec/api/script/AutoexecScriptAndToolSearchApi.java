@@ -59,7 +59,7 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "type", type = ApiParamType.ENUM, rule = "tool,script", desc = "类别(工具；脚本)"),
-            @Param(name = "execMode", type = ApiParamType.ENUM, rule = "local,remote", desc = "执行方式"),
+            @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target", desc = "执行方式"),
             @Param(name = "typeIdList", type = ApiParamType.JSONARRAY, desc = "分类ID列表"),
             @Param(name = "riskIdList", type = ApiParamType.JSONARRAY, desc = "操作级别ID列表"),
             @Param(name = "valueList", type = ApiParamType.JSONARRAY, desc = "用于回显的工具或脚本ID列表"),

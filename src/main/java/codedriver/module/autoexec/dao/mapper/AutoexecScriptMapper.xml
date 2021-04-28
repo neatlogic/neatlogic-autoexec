@@ -253,14 +253,7 @@
             and (`name` like CONCAT('%', #{keyword}, '%') or `uk` like CONCAT('%', #{keyword}, '%'))
         </if>
         <if test="execMode != null and execMode != ''">
-            <choose>
-                <when test="execMode == 'local'">
-                    and (`exec_mode` = 'local' or `exec_mode` = 'localremote')
-                </when>
-                <when test="execMode == 'remote'">
-                    and `exec_mode` = 'remote'
-                </when>
-            </choose>
+            and `exec_mode` = #{execMode}
         </if>
         <if test="typeIdList != null and typeIdList.size() != 0">
             and `type_id` in
@@ -286,14 +279,7 @@
             and (a.`name` like CONCAT('%', #{keyword}, '%') or a.`uk` like CONCAT('%', #{keyword}, '%'))
         </if>
         <if test="execMode != null and execMode != ''">
-            <choose>
-                <when test="execMode == 'local'">
-                    and (a.`exec_mode` = 'local' or a.`exec_mode` = 'localremote')
-                </when>
-                <when test="execMode == 'remote'">
-                    and a.`exec_mode` = 'remote'
-                </when>
-            </choose>
+            and a.`exec_mode` = #{execMode}
         </if>
         <if test="typeIdList != null and typeIdList.size() != 0">
             and a.`type_id` in
@@ -496,7 +482,9 @@
     <update id="updateScriptBaseInfo" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
         update `autoexec_script` set
         `name` = #{name},
-        `uk` = #{uk},
+        <if test="uk != null and uk != ''">
+            `uk` = #{uk},
+        </if>
         `exec_mode` = #{execMode},
         `type_id` = #{typeId},
         `risk_id` = #{riskId}
