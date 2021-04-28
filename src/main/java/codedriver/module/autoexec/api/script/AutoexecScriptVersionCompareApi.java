@@ -118,7 +118,7 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
                 source.stream().forEach(o -> o.setChangeType(ChangeType.INSERT.getValue()));
             } else {
                 // 对比行数相等部分的参数
-                compareSameNumberParamList(source, target);
+                compareSameOrderParamList(source, target);
                 if (source.size() > target.size()) {
                     // 将多余部分的参数标记为insert
                     for (int i = target.size(); i < source.size(); i++) {
@@ -132,7 +132,7 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
                 }
             }
         } else {
-            compareSameNumberParamList(source, target);
+            compareSameOrderParamList(source, target);
         }
     }
 
@@ -142,7 +142,7 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
      * @param source
      * @param target
      */
-    private void compareSameNumberParamList(List<AutoexecScriptVersionParamVo> source, List<AutoexecScriptVersionParamVo> target) {
+    private void compareSameOrderParamList(List<AutoexecScriptVersionParamVo> source, List<AutoexecScriptVersionParamVo> target) {
         int size = source.size() <= target.size() ? source.size() : target.size();
         for (int i = 0; i < size; i++) {
             AutoexecScriptVersionParamVo beforeNextParam = source.get(i);
