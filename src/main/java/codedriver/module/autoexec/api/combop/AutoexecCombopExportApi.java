@@ -95,7 +95,7 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
         } else {
             fileNameEncode = new String(fileNameEncode.replace(" ", "").getBytes(StandardCharsets.UTF_8), "ISO8859-1");
         }
-        response.setContentType("aplication/x-pak");
+        response.setContentType("aplication/zip");
         response.setHeader("Content-Disposition", "attachment;fileName=\"" + fileNameEncode + "\"");
 
         try (ZipOutputStream zipos = new ZipOutputStream(response.getOutputStream())) {
