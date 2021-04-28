@@ -15,56 +15,58 @@ import java.util.List;
  * @since: 2021/4/13 11:05
  **/
 public interface AutoexecCombopMapper {
-    public int checkAutoexecCombopIsExists(Long id);
+    int checkAutoexecCombopIsExists(Long id);
 
-    public Long checkAutoexecCombopNameIsRepeat(AutoexecCombopVo autoexecCombopVo);
+    Long checkAutoexecCombopNameIsRepeat(AutoexecCombopVo autoexecCombopVo);
 
-    public Long checkAutoexecCombopUkIsRepeat(AutoexecCombopVo autoexecCombopVo);
+    Long checkAutoexecCombopUkIsRepeat(AutoexecCombopVo autoexecCombopVo);
 
-    public Integer getAutoexecCombopIsActiveByIdForUpdate(Long id);
+    Integer getAutoexecCombopIsActiveByIdForUpdate(Long id);
 
-    public AutoexecCombopVo getAutoexecCombopById(Long id);
+    AutoexecCombopVo getAutoexecCombopById(Long id);
 
-    public int getAutoexecCombopCount(AutoexecCombopVo searchVo);
+    int getAutoexecCombopCount(AutoexecCombopVo searchVo);
 
-    public List<AutoexecCombopVo> getAutoexecCombopList(AutoexecCombopVo searchVo);
+    List<AutoexecCombopVo> getAutoexecCombopList(AutoexecCombopVo searchVo);
 
-    public List<AutoexecCombopAuthorityVo> getAutoexecCombopAuthorityListByCombopIdAndAction(@Param("combopId") Long combopId, @Param("action") String action);
+    List<AutoexecCombopAuthorityVo> getAutoexecCombopAuthorityListByCombopIdAndAction(@Param("combopId") Long combopId, @Param("action") String action);
 
-    public List<AutoexecCombopParamVo> getAutoexecCombopParamListByCombopId(Long combopId);
+    List<AutoexecCombopParamVo> getAutoexecCombopParamListByCombopId(Long combopId);
 
-    public List<String> getAutoexecCombopAuthorityListByCombopIdAndUserUuidAndTeamUuidListAndRoleUuidList(
+    List<String> getAutoexecCombopAuthorityListByCombopIdAndUserUuidAndTeamUuidListAndRoleUuidList(
             @Param("combopId") Long combopId,
             @Param("userUuid") String userUuid,
             @Param("teamUuidList") List<String> teamUuidList,
             @Param("roleUuidList") List<String> roleUuidList
     );
 
-    public List<Long> getCombopPhaseIdListByCombopId(Long combopId);
+    List<Long> getCombopPhaseIdListByCombopId(Long combopId);
 
-    public int insertAutoexecCombop(AutoexecCombopVo autoexecCombopVo);
+    List<Long> checkAutoexecCombopIdListIsExists(List<Long> idList);
 
-    public int insertAutoexecCombopAuthorityVoList(List<AutoexecCombopAuthorityVo> autoexecCombopAuthorityVoList);
+    int insertAutoexecCombop(AutoexecCombopVo autoexecCombopVo);
 
-    public int insertAutoexecCombopParamVoList(List<AutoexecCombopParamVo> autoexecCombopParamVoList);
+    int insertAutoexecCombopAuthorityVoList(List<AutoexecCombopAuthorityVo> autoexecCombopAuthorityVoList);
 
-    public int insertAutoexecCombopPhase(AutoexecCombopPhaseVo autoexecCombopPhaseVo);
+    int insertAutoexecCombopParamVoList(List<AutoexecCombopParamVo> autoexecCombopParamVoList);
 
-    public int insertAutoexecCombopPhaseOperation(AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo);
+    int insertAutoexecCombopPhase(AutoexecCombopPhaseVo autoexecCombopPhaseVo);
 
-    public int updateAutoexecCombopById(AutoexecCombopVo autoexecCombopVo);
+    int insertAutoexecCombopPhaseOperation(AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo);
 
-    public int updateAutoexecCombopIsActiveById(AutoexecCombopVo autoexecCombopVo);
+    int updateAutoexecCombopById(AutoexecCombopVo autoexecCombopVo);
 
-    public int updateAutoexecCombopConfigById(AutoexecCombopVo autoexecCombopVo);
+    int updateAutoexecCombopIsActiveById(AutoexecCombopVo autoexecCombopVo);
 
-    public int deleteAutoexecCombopById(Long id);
+    int updateAutoexecCombopConfigById(AutoexecCombopVo autoexecCombopVo);
 
-    public int deleteAutoexecCombopAuthorityByCombopId(Long combopId);
+    int deleteAutoexecCombopById(Long id);
 
-    public int deleteAutoexecCombopParamByCombopId(Long combopId);
+    int deleteAutoexecCombopAuthorityByCombopId(Long combopId);
 
-    public int deleteAutoexecCombopPhaseByCombopId(Long combopId);
+    int deleteAutoexecCombopParamByCombopId(Long combopId);
 
-    public int deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(List<Long> combopPhaseIdList);
+    int deleteAutoexecCombopPhaseByCombopId(Long combopId);
+
+    int deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(List<Long> combopPhaseIdList);
 }
