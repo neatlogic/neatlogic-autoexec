@@ -42,7 +42,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     AutoexecProxyMapper autoexecProxyMapper;
 
     @Override
-    public void saveAutoexecCombopJob(AutoexecCombopVo combopVo, String source, Integer threadCount, JSONObject paramJson) {
+    public Long saveAutoexecCombopJob(AutoexecCombopVo combopVo, String source, Integer threadCount, JSONObject paramJson) {
         AutoexecCombopConfigVo config = combopVo.getConfig();
         combopVo.setRuntimeParamList(autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopVo.getId()));
         AutoexecJobVo jobVo = new AutoexecJobVo(combopVo, CombopOperationType.COMBOP.getValue(), source, threadCount, paramJson);
@@ -93,6 +93,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 }
             }
         }
+        return jobVo.getId();
     }
 
     /**

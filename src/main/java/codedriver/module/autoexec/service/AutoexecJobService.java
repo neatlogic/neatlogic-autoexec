@@ -18,6 +18,7 @@ public interface AutoexecJobService {
      * @param combopVo    组合工具vo
      * @param source      来源
      * @param threadCount 并发线程数
+     * @return jobId
      */
-    void saveAutoexecCombopJob(AutoexecCombopVo combopVo, String source, Integer threadCount, JSONObject paramJson);
+    Long saveAutoexecCombopJob(AutoexecCombopVo combopVo, String source, Integer threadCount, JSONObject paramJson);
 }
