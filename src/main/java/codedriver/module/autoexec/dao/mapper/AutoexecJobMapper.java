@@ -33,12 +33,16 @@ public interface AutoexecJobMapper {
 
     int checkIsJobParamReference(@Param("jobId") Long jobId, @Param("hash") String hash);
 
+    void updateJobStatus(AutoexecJobVo jobVo);
+
     //jobPhase
     List<AutoexecJobPhaseVo> getJobPhaseListByJobId(Long jobId);
 
     AutoexecJobPhaseVo getJobPhaseLockByPhaseId(Long jobPhaseId);
 
     AutoexecJobPhaseVo getJobPhaseLockByJobIdAndPhaseUk(@Param("jobId") Long jobId,@Param("jobPhaseUk") String jobPhaseUk);
+
+    AutoexecJobPhaseVo getFirstJobPhase(Long jobId);
 
     //jobPhaseNode
     List<AutoexecJobPhaseNodeVo> searchJobPhaseNode(AutoexecJobPhaseNodeVo jobPhaseNodeVo);
@@ -80,4 +84,5 @@ public interface AutoexecJobMapper {
     void deleteJobPhaseByJobId(Long jobId);
 
     void deleteJobByJobId(Long jobId);
+
 }
