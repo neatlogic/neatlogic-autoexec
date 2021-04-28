@@ -146,6 +146,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             // 保存参数
             List<AutoexecScriptVersionParamVo> paramList = scriptVo.getParamList();
             if (CollectionUtils.isNotEmpty(paramList)) {
+                autoexecScriptService.validateParamList(paramList);
                 List<AutoexecScriptVersionParamVo> inputParamList = paramList.stream().filter(o -> ParamMode.INPUT.getValue().equals(o.getMode())).collect(Collectors.toList());
                 List<AutoexecScriptVersionParamVo> outputParamList = paramList.stream().filter(o -> ParamMode.OUTPUT.getValue().equals(o.getMode())).collect(Collectors.toList());
                 if (CollectionUtils.isNotEmpty(inputParamList)) {
