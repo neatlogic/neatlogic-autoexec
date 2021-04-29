@@ -185,6 +185,13 @@
         SELECT `id` FROM `autoexec_combop_phase` WHERE `combop_id` = #{value}
     </select>
 
+    <select id="checkAutoexecCombopIdListIsExists" parameterType="java.util.List" resultType="java.lang.Long">
+        SELECT `id` FROM `autoexec_combop` WHERE `id` IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
     <insert id="insertAutoexecCombop" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
         INSERT INTO `autoexec_combop` (
             `id`,

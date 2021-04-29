@@ -43,9 +43,10 @@ public class AutoexecJobProcessStatusUpdateApi extends PublicApiComponentBase {
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
-            @Param(name = "jobPhaseUk", type = ApiParamType.STRING, desc = "作业剧本Uk", isRequired = true),
+            @Param(name = "jobPhaseName", type = ApiParamType.STRING, desc = "作业剧本Uk", isRequired = true),
             @Param(name = "status", type = ApiParamType.INTEGER, desc = "创建进程状态，1:创建成功 0:创建失败", isRequired = true),
             @Param(name = "errorMsg", type = ApiParamType.STRING, desc = "失败原因，如果失败则需要传改字段"),
+            @Param(name = "command", type = ApiParamType.JSONOBJECT, desc = "失败原因，如果失败则需要传改字段"),
     })
     @Output({
     })
@@ -55,7 +56,7 @@ public class AutoexecJobProcessStatusUpdateApi extends PublicApiComponentBase {
         Long jobId = jsonObj.getLong("jobId");
         String jobPhaseUk = jsonObj.getString("jobPhaseUk");
         Integer status = jsonObj.getInteger("status");
-        String jobAction = jsonObj.getString("jobAction");
+        String jobAction = jsonObj.getJSONObject("command").getString("action");
         String errorMsg = jsonObj.getString("errorMsg");
         String phaseStatus = null;
         AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseLockByJobIdAndPhaseUk(jobId, jobPhaseUk);

@@ -12,6 +12,7 @@ import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.exception.AutoexecCombopNameRepeatException;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.dto.FieldValidResultVo;
 import codedriver.framework.exception.type.PermissionDeniedException;
@@ -20,6 +21,7 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.IValid;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -45,6 +47,9 @@ public class AutoexecCombopCopyApi extends PrivateApiComponentBase {
     private AutoexecCombopMapper autoexecCombopMapper;
 
     @Resource
+    private AutoexecTypeMapper autoexecTypeMapper;
+
+    @Resource
     private AutoexecCombopService autoexecCombopService;
 
     @Override
@@ -64,7 +69,9 @@ public class AutoexecCombopCopyApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "被复制的组合工具id"),
-            @Param(name = "name", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", isRequired = true, minLength = 1, maxLength = 70, desc = "新组合工具名")
+            @Param(name = "name", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", isRequired = true, minLength = 1, maxLength = 70, desc = "新组合工具名"),
+            @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
+            @Param(name = "typeId", type = ApiParamType.LONG, isRequired = true, desc = "类型id")
     })
     @Output({
             @Param(name = "Return", type = ApiParamType.LONG, desc = "主键id")
@@ -77,6 +84,11 @@ public class AutoexecCombopCopyApi extends PrivateApiComponentBase {
         if (autoexecCombopVo == null) {
             throw new AutoexecCombopNotFoundException(id);
         }
+        Long typeId = jsonObj.getLong("typeId");
+        if (autoexecTypeMapper.checkTypeIsExistsById(typeId) == 0) {
+            throw new AutoexecTypeNotFoundException(typeId);
+        }
+        autoexecCombopVo.setTypeId(typeId);
         autoexecCombopService.setOperableButtonList(autoexecCombopVo);
         if (autoexecCombopVo.getEditable() == 0) {
             throw new PermissionDeniedException();
@@ -91,6 +103,7 @@ public class AutoexecCombopCopyApi extends PrivateApiComponentBase {
         autoexecCombopVo.setOwner(userUuid);
         autoexecCombopVo.setFcu(userUuid);
         autoexecCombopVo.setOperationType(CombopOperationType.COMBOP.getValue());
+        autoexecCombopVo.setDescription(jsonObj.getString("description"));
         AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
         Long combopId = autoexecCombopVo.getId();
         int iSort = 0;
