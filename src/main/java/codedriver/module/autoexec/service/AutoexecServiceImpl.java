@@ -40,9 +40,7 @@ public class AutoexecServiceImpl implements AutoexecService {
                 if (param instanceof AutoexecScriptVersionParamVo && StringUtils.isBlank(mode)) {
                     throw new ParamNotExistsException("参数：“paramList.[" + i + "].mode”不能为空");
                 }
-                if (StringUtils.isNotBlank(mode)
-                        && !Objects.equals(ParamMode.INPUT.getValue(), mode)
-                        && !Objects.equals(ParamMode.OUTPUT.getValue(), mode)) {
+                if (StringUtils.isNotBlank(mode) && ParamMode.getParamMode(mode) == null) {
                     throw new ParamIrregularException("参数：“paramList.[" + i + "].mode”不符合格式要求");
                 }
                 if (StringUtils.isBlank(key)) {
