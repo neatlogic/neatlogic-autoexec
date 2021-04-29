@@ -16,13 +16,11 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,9 +29,6 @@ import java.util.List;
 @AuthAction(action = AUTOEXEC_SCRIPT_REVIEW.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecScriptCheckApi extends PrivateApiComponentBase {
-
-    @Resource
-    private AutoexecScriptMapper autoexecScriptMapper;
 
     @Override
     public String getToken() {
@@ -71,7 +66,7 @@ public class AutoexecScriptCheckApi extends PrivateApiComponentBase {
         if (CollectionUtils.isNotEmpty(lineList)) {
             lineVoList = new ArrayList<>();
             for (int i = 0; i < lineList.size(); i++) {
-                lineVoList.add(new AutoexecScriptLineVo(lineList.getString(i),i));
+                lineVoList.add(new AutoexecScriptLineVo(lineList.getString(i), i));
             }
             handler.check(lineVoList);
         }

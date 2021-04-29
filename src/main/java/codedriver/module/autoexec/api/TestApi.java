@@ -300,31 +300,27 @@ public class TestApi extends PrivateApiComponentBase {
 		List<Map<String, String>> shellTk = ArgumentTokenizer.tokenize(shell2);
 		List<Map<String, String>> shellTk2 = ArgumentTokenizer.tokenize(shell2);
 		List<Map<String, String>> perlTk = ArgumentTokenizer.tokenize(perl);
-		List<AutoexecScriptLineVo> testVos = markAnnotationLine(getScriptLineList());
-		return testVos;
+//		List<AutoexecScriptLineVo> testVos = markAnnotationLine(getScriptLineList());
+		return null;
 	}
 
-	private List<AutoexecScriptLineVo> markAnnotationLine(List<AutoexecScriptLineVo> lines) {
-		for (int i = 0; i < lines.size(); i++) {
-			if (lines.get(i).getContent().startsWith("#")) {
-				lines.get(i).setIsAnnotation(1);
-			} else if (lines.get(i).getContent().startsWith(":<<!")) {
-				lines.get(i).setIsAnnotation(1);
-				i++;
-				if(lines.get(i).getContent().endsWith("!")){
-					lines.get(i).setIsAnnotation(1);
-				}
-				while (!lines.get(i).getContent().endsWith("!")) {
-					lines.get(i).setIsAnnotation(1);
-					i++;
-					if (lines.get(i).getContent().endsWith("!")) {
-						lines.get(i).setIsAnnotation(1);
-					}
-				}
-			}
-		}
-		return lines;
-	}
+//	private List<AutoexecScriptLineVo> markAnnotationLine(List<AutoexecScriptLineVo> lines) {
+//		for (int i = 0; i < lines.size(); i++) {
+//			if (lines.get(i).getContent().startsWith("#")) {
+//				lines.get(i).setIsAnnotation(1);
+//			} else if (lines.get(i).getContent().startsWith(":<<!")) {
+//				while (lines.get(i).getContent().startsWith(":<<!")
+//                        || !lines.get(i).getContent().endsWith("!")) {
+//					lines.get(i).setIsAnnotation(1);
+//					i++;
+//					if (lines.get(i).getContent().endsWith("!")) {
+//						lines.get(i).setIsAnnotation(1);
+//					}
+//				}
+//			}
+//		}
+//		return lines;
+//	}
 
 	private List<AutoexecScriptLineVo> getScriptLineList() {
 		List<AutoexecScriptLineVo> script = new ArrayList<>();
