@@ -35,12 +35,6 @@ public interface AutoexecScriptService {
     public void validateScriptBaseInfo(AutoexecScriptVo scriptVo);
 
     /**
-     * 校验参数列表
-     * @param paramList
-     */
-    public void validateParamList(List<AutoexecScriptVersionParamVo> paramList);
-
-    /**
      * 批量插入脚本参数
      *
      * @param paramList 参数列表

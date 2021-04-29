@@ -6,8 +6,6 @@
 package codedriver.module.autoexec.service;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
-import codedriver.framework.autoexec.constvalue.ParamMode;
-import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditContentVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
@@ -18,14 +16,11 @@ import codedriver.framework.autoexec.exception.AutoexecRiskNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScriptNameOrUkRepeatException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
-import codedriver.framework.exception.type.ParamIrregularException;
-import codedriver.framework.exception.type.ParamNotExistsException;
 import codedriver.module.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -94,43 +89,6 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
         if (autoexecRiskMapper.checkRiskIsExistsById(scriptVo.getRiskId()) == 0) {
             throw new AutoexecRiskNotFoundException(scriptVo.getRiskId());
         }
-    }
-
-    /**
-     * 校验参数列表
-     *
-     * @param paramList
-     */
-    @Override
-    public void validateParamList(List<AutoexecScriptVersionParamVo> paramList) {
-        for (int i = 0; i < paramList.size(); i++) {
-            AutoexecScriptVersionParamVo param = paramList.get(i);
-            if (param != null) {
-                String key = param.getKey();
-                if (StringUtils.isBlank(key)) {
-                    throw new ParamNotExistsException("参数：“paramList.[" + i + "].key”不能为空");
-                }
-                if (!paramKeyPattern.matcher(key).matches()) {
-                    throw new ParamIrregularException("参数：“paramList.[" + i + "].key”不符合格式要求");
-                }
-                Integer isRequired = param.getIsRequired();
-                if (isRequired == null && ParamMode.INPUT.getValue().equals(param.getMode())) {
-                    throw new ParamNotExistsException("参数：“paramList.[" + i + "].isRequired”不能为空");
-                }
-                String type = param.getType();
-                if (StringUtils.isBlank(type)) {
-                    throw new ParamNotExistsException("参数：“paramList.[" + i + "].type”不能为空");
-                }
-                ParamType paramType = ParamType.getParamType(type);
-                if (paramType == null) {
-                    throw new ParamIrregularException("参数：“paramList.[" + i + "].type”不符合格式要求");
-                }
-                if (ParamType.TEXT != paramType && ParamMode.OUTPUT.getValue().equals(param.getMode())) {
-                    throw new ParamIrregularException("输出参数：“paramList.[" + i + "].type”必须是文本类型");
-                }
-            }
-        }
-
     }
 
     /**

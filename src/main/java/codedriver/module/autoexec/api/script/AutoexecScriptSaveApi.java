@@ -25,6 +25,7 @@ import codedriver.framework.restful.core.IValid;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.service.AutoexecScriptService;
+import codedriver.module.autoexec.service.AutoexecService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -51,6 +52,9 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptService autoexecScriptService;
+
+    @Resource
+    private AutoexecService autoexecService;
 
     @Override
     public String getToken() {
@@ -146,7 +150,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             // 保存参数
             List<AutoexecScriptVersionParamVo> paramList = scriptVo.getParamList();
             if (CollectionUtils.isNotEmpty(paramList)) {
-                autoexecScriptService.validateParamList(paramList);
+                autoexecService.validateParamList(paramList);
                 List<AutoexecScriptVersionParamVo> inputParamList = paramList.stream().filter(o -> ParamMode.INPUT.getValue().equals(o.getMode())).collect(Collectors.toList());
                 List<AutoexecScriptVersionParamVo> outputParamList = paramList.stream().filter(o -> ParamMode.OUTPUT.getValue().equals(o.getMode())).collect(Collectors.toList());
                 if (CollectionUtils.isNotEmpty(inputParamList)) {
