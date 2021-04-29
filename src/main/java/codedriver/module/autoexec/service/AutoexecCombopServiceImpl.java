@@ -108,7 +108,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
             if (CollectionUtils.isEmpty(phaseOperationList)) {
                 throw new AutoexecCombopPhaseAtLeastOneOperationException();
             }
-            String name = autoexecCombopPhaseVo.getName();
+            String uuid = autoexecCombopPhaseVo.getUuid();
             for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
                 if (autoexecCombopPhaseOperationVo == null) {
                     continue;
@@ -124,7 +124,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                         if (Objects.equals(paramVo.getMode(), ParamMode.INPUT.getValue())) {
                             inputParamMap.put(paramVo.getKey(), paramVo);
                         } else if (Objects.equals(paramVo.getMode(), ParamMode.OUTPUT.getValue())) {
-                            preNodeOutputParamMap.put(name + "&&" + operationId + "&&" + paramVo.getKey(), paramVo);
+                            preNodeOutputParamMap.put(uuid + "&&" + operationId + "&&" + paramVo.getKey(), paramVo);
                         }
                     }
                 } else {
