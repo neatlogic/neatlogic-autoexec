@@ -3,7 +3,7 @@
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  */
 
-package codedriver.module.autoexec.api.job;
+package codedriver.module.autoexec.api.job.callback;
 
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.constvalue.JobStatus;
@@ -12,7 +12,7 @@ import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
-import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
@@ -27,7 +27,7 @@ import javax.annotation.Resource;
 @Service
 @Transactional
 @OperationType(type = OperationTypeEnum.UPDATE)
-public class AutoexecJobProcessStatusUpdateApi extends PrivateApiComponentBase {
+public class AutoexecJobProcessStatusUpdateApi extends PublicApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
 
