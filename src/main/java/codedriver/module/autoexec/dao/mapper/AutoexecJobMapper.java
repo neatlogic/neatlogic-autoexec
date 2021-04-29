@@ -40,7 +40,7 @@ public interface AutoexecJobMapper {
 
     AutoexecJobPhaseVo getJobPhaseLockByPhaseId(Long jobPhaseId);
 
-    AutoexecJobPhaseVo getJobPhaseLockByJobIdAndPhaseUk(@Param("jobId") Long jobId,@Param("jobPhaseUk") String jobPhaseUk);
+    AutoexecJobPhaseVo getJobPhaseLockByJobIdAndPhaseName(@Param("jobId") Long jobId,@Param("jobPhaseName") String jobPhaseName);
 
     AutoexecJobPhaseVo getFirstJobPhase(Long jobId);
 

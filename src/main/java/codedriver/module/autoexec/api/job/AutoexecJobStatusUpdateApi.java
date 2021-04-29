@@ -53,15 +53,15 @@ public class AutoexecJobStatusUpdateApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
-        String jobPhaseUk = jsonObj.getString("jobPhaseUk");
+        String jobPhaseName = jsonObj.getString("jobPhaseName");
         JSONObject node = jsonObj.getJSONObject("node");
         String status = jsonObj.getInteger("status") == 1 ? JobStatus.SUCCEED.getValue() : JobStatus.FAILED.getValue();
         String errorMsg = jsonObj.getString("errorMsg");
 
         if (node == null) {//跟新剧本状态
-            AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseLockByJobIdAndPhaseUk(jobId, jobPhaseUk);
+            AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseLockByJobIdAndPhaseName(jobId, jobPhaseName);
             if (jobPhaseVo == null) {
-                throw new AutoexecJobPhaseNotFoundException(jobPhaseUk);
+                throw new AutoexecJobPhaseNotFoundException(jobPhaseName);
             }
             autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), status, errorMsg));
         } else {//跟新节点状态
