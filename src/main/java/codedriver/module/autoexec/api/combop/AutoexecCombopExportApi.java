@@ -13,6 +13,7 @@ import codedriver.framework.restful.annotation.OperationType;
 import codedriver.framework.restful.annotation.Param;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
+import codedriver.framework.util.FileUtil;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSON;
@@ -88,15 +89,22 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
             throw new AutoexecCombopNotFoundException(stringBuilder.toString());
         }
         //设置导出文件名
-        String fileNameEncode = "组合工具." + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak";
-        Boolean flag = request.getHeader("User-Agent").indexOf("Gecko") > 0;
-        if (request.getHeader("User-Agent").toLowerCase().indexOf("msie") > 0 || flag) {
-            fileNameEncode = URLEncoder.encode(fileNameEncode, "UTF-8");// IE浏览器
+        String fileName = "组合工具." + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak";
+        String userAgent = request.getHeader("User-Agent");
+        /**
+         * Firefox浏览器userAgent：Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:88.0) Gecko/20100101 Firefox/88.0
+         * Chrome浏览器userAgent：Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.85 Safari/537.36
+         * Edg浏览器userAgent：Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.85 Safari/537.36 Edg/90.0.818.46
+         */
+        if (userAgent.indexOf("Gecko") > 0) {
+            //chrome、firefox、edge浏览器下载文件
+            fileName = URLEncoder.encode(fileName, "UTF-8");
+            fileName = FileUtil.fileNameSpecialCharacterHandling(fileName);
         } else {
-            fileNameEncode = new String(fileNameEncode.replace(" ", "").getBytes(StandardCharsets.UTF_8), "ISO8859-1");
+            fileName = new String(fileName.replace(" ", "").getBytes(StandardCharsets.UTF_8), "ISO8859-1");
         }
         response.setContentType("aplication/zip");
-        response.setHeader("Content-Disposition", "attachment;fileName=\"" + fileNameEncode + "\"");
+        response.setHeader("Content-Disposition", "attachment;fileName=\"" + fileName + "\"");
 
         try (ZipOutputStream zipos = new ZipOutputStream(response.getOutputStream())) {
             for (Long id : existIdList) {
@@ -104,7 +112,6 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
                 autoexecCombopService.setOperableButtonList(autoexecCombopVo);
                 if (autoexecCombopVo.getEditable() == 0) {
                     continue;
-//					throw new PermissionDeniedException();
                 }
                 List<AutoexecCombopParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
                 autoexecCombopVo.setRuntimeParamList(runtimeParamList);
