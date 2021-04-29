@@ -17,7 +17,7 @@ public interface AutoexecScriptService {
      * @param versionId 版本ID
      * @return 脚本版本VO
      */
-    public AutoexecScriptVersionVo getScriptVersionDetailByVersionId(Long versionId);
+    AutoexecScriptVersionVo getScriptVersionDetailByVersionId(Long versionId);
 
     /**
      * 根据脚本ID获取所有版本的详细信息，包括参数、脚本内容
@@ -25,14 +25,14 @@ public interface AutoexecScriptService {
      * @param scriptId
      * @return
      */
-    public List<AutoexecScriptVersionVo> getScriptVersionDetailListByScriptId(Long scriptId);
+    List<AutoexecScriptVersionVo> getScriptVersionDetailListByScriptId(Long scriptId);
 
     /**
      * 校验脚本的基本信息，包括name、uk、分类、操作级别
      *
      * @param scriptVo 脚本VO
      */
-    public void validateScriptBaseInfo(AutoexecScriptVo scriptVo);
+    void validateScriptBaseInfo(AutoexecScriptVo scriptVo);
 
     /**
      * 批量插入脚本参数
@@ -40,7 +40,7 @@ public interface AutoexecScriptService {
      * @param paramList 参数列表
      * @param batchSize 每批的数量
      */
-    public void batchInsertScriptVersionParamList(List<AutoexecScriptVersionParamVo> paramList, int batchSize);
+    void batchInsertScriptVersionParamList(List<AutoexecScriptVersionParamVo> paramList, int batchSize);
 
     /**
      * 批量插入脚本内容行
@@ -48,13 +48,13 @@ public interface AutoexecScriptService {
      * @param lineList  内容行列表
      * @param batchSize 每批的数量
      */
-    public void batchInsertScriptLineList(List<AutoexecScriptLineVo> lineList, int batchSize);
+    void batchInsertScriptLineList(List<AutoexecScriptLineVo> lineList, int batchSize);
 
     /**
      * 记录活动
      *
      * @param auditVo 活动VO
      */
-    public void audit(AutoexecScriptAuditVo auditVo);
+    void audit(AutoexecScriptAuditVo auditVo);
 
 }
