@@ -25,12 +25,9 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.regex.Pattern;
 
 @Service
 public class AutoexecScriptServiceImpl implements AutoexecScriptService {
-
-    static Pattern paramKeyPattern = Pattern.compile("^[A-Za-z_\\d\\u4e00-\\u9fa5]+$");
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
