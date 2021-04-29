@@ -9,8 +9,8 @@ import codedriver.framework.autoexec.constvalue.ParamMode;
 import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.dto.IParam;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
-import codedriver.framework.exception.type.ParamIrregularException;
-import codedriver.framework.exception.type.ParamNotExistsException;
+import codedriver.framework.autoexec.exception.AutoexecParamFieldNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecParamIrregularException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -38,29 +38,29 @@ public class AutoexecServiceImpl implements AutoexecService {
                 String type = param.getType();
                 Integer isRequired = param.getIsRequired();
                 if (param instanceof AutoexecScriptVersionParamVo && StringUtils.isBlank(mode)) {
-                    throw new ParamNotExistsException("参数：“paramList.[" + i + "].mode”不能为空");
+                    throw new AutoexecParamFieldNotFoundException(i + 1, "mode");
                 }
                 if (StringUtils.isNotBlank(mode) && ParamMode.getParamMode(mode) == null) {
-                    throw new ParamIrregularException("参数：“paramList.[" + i + "].mode”不符合格式要求");
+                    throw new AutoexecParamIrregularException(i + 1, "mode");
                 }
                 if (StringUtils.isBlank(key)) {
-                    throw new ParamNotExistsException("参数：“paramList.[" + i + "].key”不能为空");
+                    throw new AutoexecParamFieldNotFoundException(i + 1, "key");
                 }
                 if (!paramKeyPattern.matcher(key).matches()) {
-                    throw new ParamIrregularException("参数：“paramList.[" + i + "].key”不符合格式要求");
+                    throw new AutoexecParamIrregularException(i + 1, "key");
                 }
                 if (isRequired == null && !Objects.equals(ParamMode.OUTPUT.getValue(), mode)) {
-                    throw new ParamNotExistsException("参数：“paramList.[" + i + "].isRequired”不能为空");
+                    throw new AutoexecParamFieldNotFoundException(i + 1, "isRequired");
                 }
                 if (StringUtils.isBlank(type)) {
-                    throw new ParamNotExistsException("参数：“paramList.[" + i + "].type”不能为空");
+                    throw new AutoexecParamFieldNotFoundException(i + 1, "type");
                 }
                 ParamType paramType = ParamType.getParamType(type);
                 if (paramType == null) {
-                    throw new ParamIrregularException("参数：“paramList.[" + i + "].type”不符合格式要求");
+                    throw new AutoexecParamIrregularException(i + 1, "type");
                 }
                 if (ParamType.TEXT != paramType && ParamMode.OUTPUT.getValue().equals(param.getMode())) {
-                    throw new ParamIrregularException("输出参数：“paramList.[" + i + "].type”必须是文本类型");
+                    throw new AutoexecParamIrregularException(i + 1, "type");
                 }
             }
         }
