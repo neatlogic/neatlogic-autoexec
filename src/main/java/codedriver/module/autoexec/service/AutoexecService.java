@@ -5,7 +5,7 @@
 
 package codedriver.module.autoexec.service;
 
-import codedriver.framework.autoexec.dto.IParam;
+import codedriver.framework.autoexec.dto.AutoexecParamVo;
 
 import java.util.List;
 
@@ -16,7 +16,7 @@ public interface AutoexecService {
      *
      * @param paramList
      */
-    void validateParamList(List<? extends IParam> paramList);
+    void validateParamList(List<? extends AutoexecParamVo> paramList);
 
 
 }

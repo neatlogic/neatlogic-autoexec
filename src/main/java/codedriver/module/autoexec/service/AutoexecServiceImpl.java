@@ -7,7 +7,7 @@ package codedriver.module.autoexec.service;
 
 import codedriver.framework.autoexec.constvalue.ParamMode;
 import codedriver.framework.autoexec.constvalue.ParamType;
-import codedriver.framework.autoexec.dto.IParam;
+import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.exception.AutoexecParamFieldNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecParamIrregularException;
@@ -29,9 +29,9 @@ public class AutoexecServiceImpl implements AutoexecService {
      * @param paramList
      */
     @Override
-    public void validateParamList(List<? extends IParam> paramList) {
+    public void validateParamList(List<? extends AutoexecParamVo> paramList) {
         for (int i = 0; i < paramList.size(); i++) {
-            IParam param = paramList.get(i);
+            AutoexecParamVo param = paramList.get(i);
             if (param != null) {
                 String mode = param.getMode();
                 String key = param.getKey();
