@@ -46,7 +46,7 @@
         SELECT
             COUNT(`id`)
         FROM `autoexec_combop`
-        WHERE (`fcu` = #{userUuid}
+        WHERE (`owner` = #{userUuid}
         OR `id` IN (
                 SELECT
                     `combop_id`
@@ -96,7 +96,7 @@
             `lcd`,
             `lcu`
         FROM `autoexec_combop`
-        WHERE (`fcu` = #{userUuid}
+        WHERE (`owner` = #{userUuid}
         OR `id` IN (
                 SELECT
                     `combop_id`

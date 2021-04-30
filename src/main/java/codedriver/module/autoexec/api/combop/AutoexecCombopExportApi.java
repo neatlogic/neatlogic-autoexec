@@ -65,14 +65,16 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
     }
 
     @Input({
-            @Param(name = "idList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "组合工具id列表")
+            @Param(name = "ids", type = ApiParamType.STRING, isRequired = true, minLength = 1, desc = "组合工具id列表")
     })
     @Description(desc = "导出组合工具")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
-        List<Long> idList = JSON.parseArray(paramObj.getJSONArray("idList").toJSONString(), Long.class);
-        if (CollectionUtils.isEmpty(idList)) {
-            throw new ParamNotExistsException("参数：“idList”不能为空");
+        String ids = paramObj.getString("ids");
+        String[] split = ids.split(",");
+        List<Long> idList = new ArrayList<>(split.length);
+        for(String id : split){
+            idList.add(new Long(id));
         }
         List<Long> existIdList = autoexecCombopMapper.checkAutoexecCombopIdListIsExists(idList);
         idList.removeAll(existIdList);
@@ -122,5 +124,4 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
         }
         return null;
     }
-
 }

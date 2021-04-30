@@ -9,6 +9,8 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_EXECUTE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
+import codedriver.framework.autoexec.constvalue.ParamMode;
+import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.dto.AutoexecRiskVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
@@ -28,6 +30,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -90,16 +93,16 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
         autoexecCombopVo.setRuntimeParamList(runtimeParamList);
         AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
-        if(CollectionUtils.isNotEmpty(combopPhaseList)){
-            for(AutoexecCombopPhaseVo combopPhaseVo : combopPhaseList){
+        if (CollectionUtils.isNotEmpty(combopPhaseList)) {
+            for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseList) {
                 AutoexecCombopPhaseConfigVo phaseConfigVo = combopPhaseVo.getConfig();
-                if(phaseConfigVo != null){
+                if (phaseConfigVo != null) {
                     List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfigVo.getPhaseOperationList();
-                    if(CollectionUtils.isNotEmpty(phaseOperationList)){
-                        for(AutoexecCombopPhaseOperationVo phaseOperationVo : phaseOperationList){
-                            if(Objects.equals(phaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())){
+                    if (CollectionUtils.isNotEmpty(phaseOperationList)) {
+                        for (AutoexecCombopPhaseOperationVo phaseOperationVo : phaseOperationList) {
+                            if (Objects.equals(phaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
                                 AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(phaseOperationVo.getOperationId());
-                                if(autoexecScriptVo != null){
+                                if (autoexecScriptVo != null) {
                                     phaseOperationVo.setId(autoexecScriptVo.getId());
                                     phaseOperationVo.setUk(autoexecScriptVo.getUk());
                                     phaseOperationVo.setName(autoexecScriptVo.getName());
@@ -110,10 +113,24 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
                                     phaseOperationVo.setRiskId(autoexecScriptVo.getRiskId());
                                     AutoexecRiskVo riskVo = autoexecRiskMapper.getAutoexecRiskById(autoexecScriptVo.getRiskId());
                                     phaseOperationVo.setRiskVo(riskVo);
+
+                                    List<AutoexecScriptVersionParamVo> inputParamList = new ArrayList<>();
+                                    List<AutoexecScriptVersionParamVo> outputParamList = new ArrayList<>();
                                     List<AutoexecScriptVersionParamVo> autoexecScriptVersionParamVoList = autoexecScriptMapper.getParamListByScriptId(phaseOperationVo.getOperationId());
-                                    phaseOperationVo.setParamList(autoexecScriptVersionParamVoList);
+                                    if (CollectionUtils.isNotEmpty(autoexecScriptVersionParamVoList)) {
+                                        for (AutoexecScriptVersionParamVo paramVo : autoexecScriptVersionParamVoList) {
+                                            String mode = paramVo.getMode();
+                                            if (Objects.equals(mode, ParamMode.INPUT.getValue())) {
+                                                inputParamList.add(paramVo);
+                                            } else if (Objects.equals(mode, ParamMode.OUTPUT.getValue())) {
+                                                outputParamList.add(paramVo);
+                                            }
+                                        }
+                                    }
+                                    phaseOperationVo.setInputParamList(inputParamList);
+                                    phaseOperationVo.setOutputParamList(outputParamList);
                                 }
-                            }else if(Objects.equals(phaseOperationVo.getOperationType(), CombopOperationType.TOOL.getValue())){
+                            } else if (Objects.equals(phaseOperationVo.getOperationType(), CombopOperationType.TOOL.getValue())) {
                                 // TODO linbq 工具的暂时不实现
                             }
                         }
