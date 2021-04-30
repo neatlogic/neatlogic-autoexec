@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.service;
 
+import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dto.job.AutoexecJobLogVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
@@ -54,7 +55,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobPhase.getJobId());
         autoexecJobAuthActionManager.setAutoexecJobAction(jobVo);
         if (jobVo.getIsCanJobExec() == 1) {
-            jobPhase.setStatus(JobStatus.WAITING.getValue());
+            jobPhase.setStatus(JobPhaseStatus.WAITING.getValue());
             jobVo.setStatus(JobStatus.RUNNING.getValue());
             autoexecJobMapper.updateJobStatus(jobVo);
             autoexecJobMapper.updateJobPhaseStatus(jobPhase);
