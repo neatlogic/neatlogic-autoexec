@@ -60,7 +60,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             autoexecJobMapper.updateJobPhaseStatus(jobPhase);
             JSONObject paramJson = new JSONObject();
             paramJson.put("jobId", jobPhase.getJobId());
-            paramJson.put("phaseName", jobPhase.getName());
+            paramJson.put("jobPhaseName", jobPhase.getName());
             paramJson.put("nodeList", nodeList);
             paramJson.put("type", type);
             String url = PROXY_HOST + "/job/exec";
@@ -71,7 +71,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                 resultJson = JSONObject.parseObject(result);
             }catch (Exception ex){
                 logger.error(ex.getMessage(),ex);
-                throw new AutoexecJobProxyConnectRefusedException(restVo.getUrl());
+                throw new AutoexecJobProxyConnectRefusedException(restVo.getUrl() + " " + result);
             }
         }
     }

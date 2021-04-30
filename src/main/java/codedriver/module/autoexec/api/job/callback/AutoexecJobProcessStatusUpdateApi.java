@@ -54,14 +54,14 @@ public class AutoexecJobProcessStatusUpdateApi extends PublicApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
-        String jobPhaseUk = jsonObj.getString("jobPhaseUk");
+        String jobPhaseName = jsonObj.getString("jobPhaseName");
         Integer status = jsonObj.getInteger("status");
         String jobAction = jsonObj.getJSONObject("command").getString("action");
         String errorMsg = jsonObj.getString("errorMsg");
         String phaseStatus = null;
-        AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseLockByJobIdAndPhaseUk(jobId, jobPhaseUk);
+        AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseLockByJobIdAndPhaseName(jobId, jobPhaseName);
         if (jobPhaseVo == null) {
-            throw new AutoexecJobPhaseNotFoundException(jobPhaseUk);
+            throw new AutoexecJobPhaseNotFoundException(jobPhaseName);
         }
         if (status != null && status == 1) {
             if (JobAction.EXEC.getValue().equalsIgnoreCase(jobAction)) {

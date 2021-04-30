@@ -222,19 +222,19 @@
         UPDATE
     </select>
 
-    <select id="getJobPhaseLockByJobIdAndPhaseUk"
+    <select id="getJobPhaseLockByJobIdAndPhaseName"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
         SELECT id,
                job_id as jobId,
                `status`
         FROM `autoexec_job_phase`
         WHERE `job_id` = #{jobId}
-          and `uk` = #{jobPhaseUk} FOR
+          and `name` = #{jobPhaseName} FOR
         UPDATE
     </select>
 
     <select id="getFirstJobPhase" resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
-        select id, job_id as jobId
+        select id, job_id as jobId,`name`
         from `autoexec_job_phase`
         where job_id = #{value}
         order by `sort` asc
@@ -382,7 +382,6 @@
     <insert id="insertJobPhase" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
         INSERT INTO `autoexec_job_phase` (`id`,
                                           `job_id`,
-                                          `uk`,
                                           `name`,
                                           `status`,
                                           `exec_user`,
@@ -390,7 +389,6 @@
                                           `sort`)
         VALUES (#{id},
                 #{jobId},
-                #{uk},
                 #{name},
                 #{status},
                 #{execUser},
