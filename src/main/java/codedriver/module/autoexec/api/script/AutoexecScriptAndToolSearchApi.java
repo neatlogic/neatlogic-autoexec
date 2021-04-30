@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.auth.label.NO_AUTH;
 import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.util.PageUtil;
@@ -30,9 +31,10 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Service
-@AuthAction(action = AUTOEXEC_SCRIPT_USE.class)
-@AuthAction(action = AUTOEXEC_SCRIPT_MODIFY.class)
-@AuthAction(action = AUTOEXEC_SCRIPT_REVIEW.class)
+@AuthAction(action = NO_AUTH.class)
+//@AuthAction(action = AUTOEXEC_SCRIPT_USE.class)
+//@AuthAction(action = AUTOEXEC_SCRIPT_MODIFY.class)
+//@AuthAction(action = AUTOEXEC_SCRIPT_REVIEW.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
 
