@@ -119,34 +119,6 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
                                     List<AutoexecScriptVersionParamVo> autoexecScriptVersionParamVoList = autoexecScriptMapper.getParamListByScriptId(phaseOperationVo.getOperationId());
                                     if (CollectionUtils.isNotEmpty(autoexecScriptVersionParamVoList)) {
                                         for (AutoexecScriptVersionParamVo paramVo : autoexecScriptVersionParamVoList) {
-                                            Object value = paramVo.getDefaultValue();
-                                            if (value != null) {
-                                                ParamType paramType = ParamType.getParamType(paramVo.getType());
-                                                switch (paramType) {
-                                                    case TEXT:
-                                                        break;
-                                                    case PASSWORD:
-                                                        break;
-                                                    case FILE:
-                                                        paramVo.setDefaultValue(JSONObject.parseObject((String) value));
-                                                        break;
-                                                    case DATE:
-                                                        break;
-                                                    case NODE:
-                                                        paramVo.setDefaultValue(JSONObject.parseArray((String) value));
-                                                        break;
-                                                    case JSON:
-                                                        String valueStr = (String) value;
-                                                        if (valueStr.startsWith("[") && valueStr.endsWith("]")) {
-                                                            paramVo.setDefaultValue(JSONObject.parseArray(valueStr));
-                                                        } else if (valueStr.startsWith("{") && valueStr.endsWith("}")) {
-                                                            paramVo.setDefaultValue(JSONObject.parseObject(valueStr));
-                                                        }
-                                                        break;
-                                                    default:
-                                                        break;
-                                                }
-                                            }
                                             String mode = paramVo.getMode();
                                             if (Objects.equals(mode, ParamMode.INPUT.getValue())) {
                                                 inputParamList.add(paramVo);
