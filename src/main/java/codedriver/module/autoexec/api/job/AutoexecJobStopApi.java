@@ -5,6 +5,8 @@
 
 package codedriver.module.autoexec.api.job;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_JOB_MODIFY;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -24,6 +26,7 @@ import javax.annotation.Resource;
 
 @Service
 @Transactional
+@AuthAction(action = AUTOEXEC_JOB_MODIFY.class)
 @OperationType(type = OperationTypeEnum.OPERATE)
 public class AutoexecJobStopApi extends PrivateApiComponentBase {
     @Resource

@@ -6,7 +6,7 @@
 package codedriver.module.autoexec.api.risk;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.auth.label.NO_AUTH;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.ValueTextVo;
 import codedriver.framework.restful.annotation.*;
@@ -20,7 +20,7 @@ import javax.annotation.Resource;
 import java.util.List;
 
 @Service
-@AuthAction(action = NO_AUTH.class)
+@AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecRiskListApi extends PrivateApiComponentBase {
 

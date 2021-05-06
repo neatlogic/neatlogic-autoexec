@@ -5,6 +5,8 @@
 
 package codedriver.module.autoexec.api.job;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_JOB_MODIFY;
 import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
@@ -25,6 +27,7 @@ import javax.annotation.Resource;
  **/
 @Service
 @Transactional
+@AuthAction(action = AUTOEXEC_JOB_MODIFY.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class AutoexecJobStatusUpdateApi extends PrivateApiComponentBase {
     @Resource
