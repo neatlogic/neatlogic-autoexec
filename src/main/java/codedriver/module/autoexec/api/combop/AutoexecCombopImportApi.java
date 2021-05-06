@@ -76,9 +76,6 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         return null;
     }
 
-//    @Input({
-//            @Param(name = "fileNameList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "需要导入的文件名列表")
-//    })
     @Output({
             @Param(name = "Return", type = ApiParamType.JSONARRAY, desc = "导入结果")
     })
@@ -105,8 +102,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                     while ((len = zipis.read(buf)) != -1) {
                         out.write(buf, 0, len);
                     }
-                    AutoexecCombopVo autoexecCombopVo = JSONObject.parseObject(new String(out.toByteArray(), StandardCharsets.UTF_8), new TypeReference<AutoexecCombopVo>() {
-                    });
+                    AutoexecCombopVo autoexecCombopVo = JSONObject.parseObject(new String(out.toByteArray(), StandardCharsets.UTF_8), new TypeReference<AutoexecCombopVo>() {});
                     resultList.add(save(autoexecCombopVo));
                     out.reset();
                 }
