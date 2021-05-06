@@ -160,6 +160,7 @@
         `sort`
         from `autoexec_script_version_param`
         where `script_version_id` = #{value}
+        order by `sort`
     </select>
 
     <select id="getParamListByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo">
@@ -176,6 +177,7 @@
         join `autoexec_script_version` b on a.`script_version_id` = b.`id`
         where b.`is_active` = 1
         and b.`script_id` = #{value}
+        order by a.`sort`
     </select>
 
     <select id="getLineListByVersionId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo">
