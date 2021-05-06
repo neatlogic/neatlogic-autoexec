@@ -5,6 +5,8 @@
 
 package codedriver.module.autoexec.api.node;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
 import codedriver.framework.common.dto.ValueTextVo;
@@ -25,6 +27,7 @@ import java.util.List;
  **/
 @Service
 @OperationType(type = OperationTypeEnum.SEARCH)
+@AuthAction(action = AUTOEXEC_BASE.class)
 public class AutoexecNodeUserListApi extends PrivateApiComponentBase {
 
     final static List<ValueTextVo> AUTOEXEC_NODE_USER_VO_LIST = new ArrayList<>();

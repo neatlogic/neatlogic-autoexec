@@ -6,16 +6,13 @@
 package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.auth.label.NO_AUTH;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_USE;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecToolMapper;
 import com.alibaba.fastjson.JSON;
@@ -31,7 +28,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Service
-@AuthAction(action = NO_AUTH.class)
+@AuthAction(action = AUTOEXEC_BASE.class)
 //@AuthAction(action = AUTOEXEC_SCRIPT_USE.class)
 //@AuthAction(action = AUTOEXEC_SCRIPT_MODIFY.class)
 //@AuthAction(action = AUTOEXEC_SCRIPT_REVIEW.class)

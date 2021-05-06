@@ -5,6 +5,8 @@
 
 package codedriver.module.autoexec.api.job;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -20,6 +22,7 @@ import javax.annotation.Resource;
  * @since 2021/4/14 14:15
  **/
 @Service
+@AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class AutoexecJobConfigGetApi extends PrivateApiComponentBase {
     @Resource
