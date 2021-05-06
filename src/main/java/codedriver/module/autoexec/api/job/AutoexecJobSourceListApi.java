@@ -5,6 +5,8 @@
 
 package codedriver.module.autoexec.api.job;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.source.AutoexecJobSourceFactory;
 import codedriver.framework.restful.annotation.Description;
 import codedriver.framework.restful.annotation.Input;
@@ -24,6 +26,7 @@ import java.util.Map;
  **/
 
 @Service
+@AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecJobSourceListApi extends PrivateApiComponentBase {
 

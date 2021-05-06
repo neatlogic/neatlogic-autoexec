@@ -5,6 +5,9 @@
 
 package codedriver.module.autoexec.api.job;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.auth.AUTOEXEC_JOB_MODIFY;
 import codedriver.framework.autoexec.dto.job.AutoexecJobParamContentVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseOperationVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
@@ -31,6 +34,7 @@ import java.util.Set;
 
 @Service
 @Transactional
+@AuthAction(action = AUTOEXEC_JOB_MODIFY.class)
 @OperationType(type = OperationTypeEnum.DELETE)
 public class AutoexecJobDeleteApi extends PrivateApiComponentBase {
     @Resource

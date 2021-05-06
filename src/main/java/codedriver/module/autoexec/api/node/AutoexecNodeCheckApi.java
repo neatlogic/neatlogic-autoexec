@@ -5,6 +5,8 @@
 
 package codedriver.module.autoexec.api.node;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.NodeStatus;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteNodeConfigVo;
 import codedriver.framework.autoexec.dto.node.AutoexecNodeStatusVo;
@@ -28,6 +30,7 @@ import java.util.Objects;
  * @since: 2021/4/23 10:21
  **/
 @Service
+@AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecNodeCheckApi extends PrivateApiComponentBase {
 
