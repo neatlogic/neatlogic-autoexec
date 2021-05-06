@@ -76,20 +76,15 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         return null;
     }
 
-    @Input({
-            @Param(name = "fileNameList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "需要导入的文件名列表")
-    })
+//    @Input({
+//            @Param(name = "fileNameList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "需要导入的文件名列表")
+//    })
     @Output({
             @Param(name = "Return", type = ApiParamType.JSONARRAY, desc = "导入结果")
     })
     @Description(desc = "导入组合工具")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
-        List<String> resultList = new ArrayList<>();
-        List<String> fileNameList = JSONObject.parseArray(paramObj.getJSONArray("fileNameList").toJSONString(), String.class);
-        if (CollectionUtils.isEmpty(fileNameList)) {
-            return resultList;
-        }
         MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
         //获取所有导入文件
         Map<String, MultipartFile> multipartFileMap = multipartRequest.getFileMap();
@@ -97,6 +92,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         if (multipartFileMap == null || multipartFileMap.isEmpty()) {
             throw new FileNotUploadException();
         }
+        List<String> resultList = new ArrayList<>();
         byte[] buf = new byte[1024];
         //遍历导入文件
         for (Entry<String, MultipartFile> entry : multipartFileMap.entrySet()) {
@@ -104,11 +100,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
             //反序列化获取对象
             try (ZipInputStream zipis = new ZipInputStream(multipartFile.getInputStream());
                  ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-                ZipEntry zipEntry = null;
-                while ((zipEntry = zipis.getNextEntry()) != null) {
-                    if (!fileNameList.contains(zipEntry.getName())) {
-                        continue;
-                    }
+                while (zipis.getNextEntry() != null) {
                     int len = 0;
                     while ((len = zipis.read(buf)) != -1) {
                         out.write(buf, 0, len);
