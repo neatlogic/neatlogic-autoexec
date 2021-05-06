@@ -5,6 +5,8 @@
 
 package codedriver.module.autoexec.api.job;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -25,6 +27,7 @@ import java.util.List;
  **/
 
 @Service
+@AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecJobCombopSearchApi extends PrivateApiComponentBase {
     @Resource

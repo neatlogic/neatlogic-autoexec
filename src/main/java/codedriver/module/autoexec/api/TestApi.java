@@ -1,5 +1,7 @@
 package codedriver.module.autoexec.api;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.restful.annotation.Description;
 import codedriver.framework.restful.annotation.OperationType;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -8,6 +10,8 @@ import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
 @Service
+
+@AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class TestApi extends PrivateApiComponentBase{
 

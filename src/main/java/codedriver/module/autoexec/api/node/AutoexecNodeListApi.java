@@ -6,6 +6,8 @@
 package codedriver.module.autoexec.api.node;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dto.AutoexecTypeVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
@@ -32,6 +34,7 @@ import java.util.List;
  **/
 @Service
 @OperationType(type = OperationTypeEnum.SEARCH)
+@AuthAction(action = AUTOEXEC_BASE.class)
 public class AutoexecNodeListApi extends PrivateApiComponentBase {
 
     final static List<AutoexecNodeVo> AUTOEXEC_NODE_VO_LIST = new ArrayList<>();
