@@ -46,11 +46,11 @@ public class AutoexecJobAuthActionManager {
 
     @PostConstruct
     public void actionDispatcherInit() {
-        actionMap.put("execJob", (jobVo) -> {
+/*        actionMap.put("execJob", (jobVo) -> {
             if (JobStatus.PENDING.getValue().equalsIgnoreCase(jobVo.getStatus())) {
                 jobVo.setIsCanJobExec(1);
             }
-        });
+        });*/
 
         actionMap.put("pauseJob", (jobVo) -> {
             if (JobStatus.RUNNING.getValue().equalsIgnoreCase(jobVo.getStatus())) {

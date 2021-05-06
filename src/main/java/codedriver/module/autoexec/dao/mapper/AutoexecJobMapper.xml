@@ -170,7 +170,7 @@
                `start_time` as startTime,
                `end_time`   as endTime,
                `exec_user`  as execUser,
-               `exec_mode as execMode`,
+               `exec_mode` as execMode,
                `name`       as name,
                `uk`         as uk
         FROM `autoexec_job_phase`
