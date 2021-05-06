@@ -6,13 +6,13 @@
 package codedriver.module.autoexec.core.validate;
 
 import codedriver.framework.autoexec.constvalue.ScriptParser;
+import codedriver.framework.autoexec.constvalue.ScriptRiskCodeLevel;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptValidateVo;
 import codedriver.framework.autoexec.scriptcheck.ScriptCheckHandlerBase;
 import codedriver.framework.autoexec.util.ArgumentTokenizer;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptValidateMapper;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -35,14 +35,28 @@ public class ShellScriptCheckHandler extends ScriptCheckHandlerBase {
                     String content = lineVo.getContent();
                     List<Map<String, String>> tokenize = ArgumentTokenizer.tokenize(content);
                     if (CollectionUtils.isNotEmpty(tokenize)) {
+                        int hasContainsRiskCode = 0;
+                        String riskCodeLevel = null;
                         for (Map<String, String> map : tokenize) {
                             if (Objects.equals(map.get("type"), "command")) {
                                 String value = map.get("value");
-                                if (StringUtils.isNotBlank(value)) {
-                                    // 可能存在多个等级的危险代码，取等级高的
+                                if (codeList.stream().anyMatch(o -> o.getCode().equals(value)
+                                        && ScriptRiskCodeLevel.WARNING.getValue().equals(o.getLevel()))) {
+                                    hasContainsRiskCode = 1;
+                                    riskCodeLevel = ScriptRiskCodeLevel.WARNING.getValue();
+                                } else if (codeList.stream().anyMatch(o -> o.getCode().equals(value)
+                                        && ScriptRiskCodeLevel.CRITICAL.getValue().equals(o.getLevel()))) {
+                                    hasContainsRiskCode = 1;
+                                    riskCodeLevel = ScriptRiskCodeLevel.CRITICAL.getValue();
                                 }
                             }
+                            // 可能存在多个等级的危险代码，取等级最高的
+                            if (ScriptRiskCodeLevel.CRITICAL.getValue().equals(riskCodeLevel)) {
+                                break;
+                            }
                         }
+                        lineVo.setHasContainsRiskCode(hasContainsRiskCode);
+                        lineVo.setRiskCodeLevel(riskCodeLevel);
                     }
                 }
             }

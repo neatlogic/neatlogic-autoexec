@@ -13,7 +13,7 @@
         from `autoexec_script_validate` a
         join `autoexec_script_validate_type` b
         on a.`id` = b.`validate_id`
-        where b.`type` = #{value}
+        where b.`script_type` = #{value}
     </select>
 
 </mapper>

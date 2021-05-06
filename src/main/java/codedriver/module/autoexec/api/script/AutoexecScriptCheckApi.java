@@ -68,7 +68,12 @@ public class AutoexecScriptCheckApi extends PrivateApiComponentBase {
             for (int i = 0; i < lineList.size(); i++) {
                 lineVoList.add(new AutoexecScriptLineVo(lineList.getString(i), i));
             }
+            long before = System.currentTimeMillis();
+            System.out.println("校验前：" + before);
             handler.check(lineVoList);
+            long after = System.currentTimeMillis();
+            System.out.println("校验后：" + after);
+            System.out.println("时间差：" + (after - before));
         }
         return lineVoList;
     }
