@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 2021 TechSureCo.,Ltd.AllRightsReserved.
+ * Copyright(c) 2021 TechSure Co., Ltd. All Rights Reserved.
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  */
 
@@ -18,14 +18,8 @@ import org.springframework.stereotype.Component;
  **/
 @Component
 public class AutoexecFileHandler extends FileTypeHandlerBase {
-    /**
-     * 文件权限校验的方法区，校验的参数可用reqMap来传递，reqMap的参数值来自httprequest对象。
-     *
-     * @param userUuid
-     * @param jsonObj
-     */
     @Override
-    public boolean valid(String userUuid, JSONObject jsonObj) {
+    public boolean valid(String userUuid, FileVo fileVo, JSONObject jsonObj) {
         return true;
     }
 
@@ -41,6 +35,11 @@ public class AutoexecFileHandler extends FileTypeHandlerBase {
 
     @Override
     public void afterUpload(FileVo fileVo, JSONObject jsonObj) {
+
+    }
+
+    @Override
+    protected void myDeleteFile(Long fileId) {
 
     }
 }

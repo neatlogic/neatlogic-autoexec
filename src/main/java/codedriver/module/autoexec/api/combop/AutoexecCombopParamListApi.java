@@ -77,34 +77,6 @@ public class AutoexecCombopParamListApi extends PrivateApiComponentBase {
                     config.put("isRequired", true);
                 }
                 autoexecCombopParamVo.setConfig(config);
-                Object value = autoexecCombopParamVo.getDefaultValue();
-                if (value != null) {
-                    switch (paramType) {
-                        case TEXT:
-                            break;
-                        case PASSWORD:
-                            config.put("showPassword", false);
-                            break;
-                        case FILE:
-                            autoexecCombopParamVo.setDefaultValue(JSONObject.parseObject((String) value));
-                            break;
-                        case DATE:
-                            break;
-                        case NODE:
-                            autoexecCombopParamVo.setDefaultValue(JSONObject.parseArray((String) value));
-                            break;
-                        case JSON:
-                            String valueStr = (String) value;
-                            if (valueStr.startsWith("[") && valueStr.endsWith("]")) {
-                                autoexecCombopParamVo.setDefaultValue(JSONObject.parseArray(valueStr));
-                            } else if (valueStr.startsWith("{") && valueStr.endsWith("}")) {
-                                autoexecCombopParamVo.setDefaultValue(JSONObject.parseObject(valueStr));
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                }
             }
         }
         return autoexecCombopParamVoList;

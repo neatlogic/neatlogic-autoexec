@@ -10,6 +10,9 @@
         distinct aj.`id`
         FROM
         `autoexec_job` aj
+        <if test="typeIdList != null and typeIdList.size() > 0 ">
+            LEFT JOIN `autoexec_combop` ac ON aj.`operation_id` = ac.`id`
+        </if>
         <where>
             <include refid="searchJobSql"/>
         </where>
@@ -48,11 +51,8 @@
         count(distinct aj.`id`)
         FROM
         `autoexec_job` aj
-        <if test="statusList != null and statusList.size() > 0 ">
+        <if test="typeIdList != null and typeIdList.size() > 0 ">
             LEFT JOIN `autoexec_combop` ac ON aj.`operation_id` = ac.`id`
-        </if>
-        <if test="execUser != null and execUser != ''">
-            LEFT JOIN `autoexec_job_user` aju ON aju.`job_id` = aj.`id`
         </if>
         <where>
             <include refid="searchJobSql"/>
@@ -76,8 +76,11 @@
         <if test="combopName != null and combopName != ''">
             aj.name like concat('%', #{combopName}, '%')
         </if>
+        <if test="keyword != null and keyword != ''">
+            and aj.name like concat('%', #{keyword}, '%')
+        </if>
         <if test="operationId != null">
-            aj.operation_id = #{operationId}
+            and aj.operation_id = #{operationId}
         </if>
         <if test="statusList != null and statusList.size() > 0 ">
             and aj.`status` in
