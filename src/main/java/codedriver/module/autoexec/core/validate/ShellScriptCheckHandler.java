@@ -13,6 +13,7 @@ import codedriver.framework.autoexec.scriptcheck.ScriptCheckHandlerBase;
 import codedriver.framework.autoexec.util.ArgumentTokenizer;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptValidateMapper;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -26,27 +27,29 @@ public class ShellScriptCheckHandler extends ScriptCheckHandlerBase {
     @Resource
     private AutoexecScriptValidateMapper validateMapper;
 
+    /**
+     * 对每个非注释行进行分词，与词库对比，看是否存在危险代码
+     *
+     * @param lineList
+     */
     @Override
     protected void myCheck(List<AutoexecScriptLineVo> lineList) {
         List<AutoexecScriptValidateVo> codeList = validateMapper.getCodeListByType(getType());
         if (CollectionUtils.isNotEmpty(codeList)) {
             for (AutoexecScriptLineVo lineVo : lineList) {
-                if (!Objects.equals(lineVo.getIsAnnotation(), 1)) {
-                    String content = lineVo.getContent();
+                String content = lineVo.getContent();
+                if (StringUtils.isNotBlank(content) && !content.trim().startsWith("#")) {
                     List<Map<String, String>> tokenize = ArgumentTokenizer.tokenize(content);
                     if (CollectionUtils.isNotEmpty(tokenize)) {
-                        int hasContainsRiskCode = 0;
                         String riskCodeLevel = null;
                         for (Map<String, String> map : tokenize) {
                             if (Objects.equals(map.get("type"), "command")) {
                                 String value = map.get("value");
                                 if (codeList.stream().anyMatch(o -> o.getCode().equals(value)
                                         && ScriptRiskCodeLevel.WARNING.getValue().equals(o.getLevel()))) {
-                                    hasContainsRiskCode = 1;
                                     riskCodeLevel = ScriptRiskCodeLevel.WARNING.getValue();
                                 } else if (codeList.stream().anyMatch(o -> o.getCode().equals(value)
                                         && ScriptRiskCodeLevel.CRITICAL.getValue().equals(o.getLevel()))) {
-                                    hasContainsRiskCode = 1;
                                     riskCodeLevel = ScriptRiskCodeLevel.CRITICAL.getValue();
                                 }
                             }
@@ -55,7 +58,6 @@ public class ShellScriptCheckHandler extends ScriptCheckHandlerBase {
                                 break;
                             }
                         }
-                        lineVo.setHasContainsRiskCode(hasContainsRiskCode);
                         lineVo.setRiskCodeLevel(riskCodeLevel);
                     }
                 }
