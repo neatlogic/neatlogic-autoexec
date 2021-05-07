@@ -38,11 +38,12 @@ public class ShellScriptCheckHandler extends ScriptCheckHandlerBase {
         if (CollectionUtils.isNotEmpty(codeList)) {
             for (AutoexecScriptLineVo lineVo : lineList) {
                 String content = lineVo.getContent();
-                if (StringUtils.isNotBlank(content) && !content.trim().startsWith("#")) {
+                if (StringUtils.isNotBlank(content) && !content.trim().startsWith("#")) { // 跳过注释行
                     List<Map<String, String>> tokenize = ArgumentTokenizer.tokenize(content);
                     if (CollectionUtils.isNotEmpty(tokenize)) {
                         String riskCodeLevel = null;
                         for (Map<String, String> map : tokenize) {
+                            // 只匹配command
                             if (Objects.equals(map.get("type"), "command")) {
                                 String value = map.get("value");
                                 if (codeList.stream().anyMatch(o -> o.getCode().equals(value)

@@ -21,7 +21,6 @@ import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -47,8 +46,7 @@ public class AutoexecScriptCheckApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "parser", type = ApiParamType.STRING, isRequired = true, desc = "脚本解析器"),
-            @Param(name = "lineList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "脚本内容行数据列表"),
-
+            @Param(name = "lineList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "脚本内容行数据列表,e.g:[{\"content\":\"#!/usr/bin/env bash\"},{\"content\":\"show_ascii_berry()\"}]"),
     })
     @Output({
             @Param(type = ApiParamType.JSONARRAY, explode = AutoexecScriptLineVo[].class, desc = "经过校验后的行数据列表"),
@@ -64,16 +62,8 @@ public class AutoexecScriptCheckApi extends PrivateApiComponentBase {
         }
         List<AutoexecScriptLineVo> lineVoList = null;
         if (CollectionUtils.isNotEmpty(lineList)) {
-            lineVoList = new ArrayList<>();
-            for (int i = 0; i < lineList.size(); i++) {
-                lineVoList.add(new AutoexecScriptLineVo(lineList.getString(i), i));
-            }
-            long before = System.currentTimeMillis();
-            System.out.println("校验前：" + before);
+            lineVoList = lineList.toJavaList(AutoexecScriptLineVo.class);
             handler.check(lineVoList);
-            long after = System.currentTimeMillis();
-            System.out.println("校验后：" + after);
-            System.out.println("时间差：" + (after - before));
         }
         return lineVoList;
     }
