@@ -117,7 +117,7 @@
     </sql>
 
     <sql id="searchJobPhaseNodeSql">
-        jobPhaseId = #{jobPhaseId}
+        ajpn.`job_phase_id` = #{jobPhaseId}
         <if test="statusList != null and statusList.size() > 0 ">
             and ajpn.`status` in
             <foreach collection="statusList" item="status" open="(" close=")" separator=",">
