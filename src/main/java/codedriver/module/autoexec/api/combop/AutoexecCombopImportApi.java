@@ -3,19 +3,18 @@ package codedriver.module.autoexec.api.combop;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
+import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.dto.combop.*;
-import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.exception.file.FileExtNotAllowedException;
 import codedriver.framework.exception.file.FileNotUploadException;
 import codedriver.framework.notify.dao.mapper.NotifyMapper;
-import codedriver.framework.notify.exception.NotifyPolicyNotFoundException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
-import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import org.apache.commons.collections4.CollectionUtils;
@@ -34,7 +33,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
-import java.util.zip.ZipEntry;
+import java.util.Objects;
 import java.util.zip.ZipInputStream;
 
 /**
@@ -51,12 +50,11 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
+    @Resource
+    private AutoexecScriptMapper autoexecScriptMapper;
 
     @Resource
     private AutoexecTypeMapper autoexecTypeMapper;
-
-    @Resource
-    private AutoexecCombopService autoexecCombopService;
 
     @Resource
     private NotifyMapper notifyMapper;
@@ -102,7 +100,8 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                     while ((len = zipis.read(buf)) != -1) {
                         out.write(buf, 0, len);
                     }
-                    AutoexecCombopVo autoexecCombopVo = JSONObject.parseObject(new String(out.toByteArray(), StandardCharsets.UTF_8), new TypeReference<AutoexecCombopVo>() {});
+                    AutoexecCombopVo autoexecCombopVo = JSONObject.parseObject(new String(out.toByteArray(), StandardCharsets.UTF_8), new TypeReference<AutoexecCombopVo>() {
+                    });
                     resultList.add(save(autoexecCombopVo));
                     out.reset();
                 }
@@ -114,45 +113,45 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
     }
 
     private String save(AutoexecCombopVo autoexecCombopVo) {
-        String result;
+        Long id = autoexecCombopVo.getId();
+        String oldName = autoexecCombopVo.getName();
+        StringBuilder result = new StringBuilder();
+        result.append("导入：'");
+        result.append(oldName);
+        result.append("'，");
+        AutoexecCombopVo oldAutoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
+        if(oldAutoexecCombopVo != null){
+            if(Objects.equals(oldAutoexecCombopVo.getConfigStr(), autoexecCombopVo.getConfigStr())){
+                List<AutoexecCombopParamVo> autoexecCombopParamVoList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
+                if(Objects.equals(JSONObject.toJSONString(autoexecCombopParamVoList), JSONObject.toJSONString(autoexecCombopVo.getRuntimeParamList()))){
+                    result.append("更新成功。");
+                    return result.toString();
+                }
+            }
+        }else {
+            autoexecCombopVo.setId(null);
+            id = autoexecCombopVo.getId();
+        }
+
+        List<String> failureReasonList = new ArrayList<>();
         if (autoexecTypeMapper.checkTypeIsExistsById(autoexecCombopVo.getTypeId()) == 0) {
-            throw new AutoexecTypeNotFoundException(autoexecCombopVo.getTypeId());
+            failureReasonList.add("插件类型：'" + autoexecCombopVo.getTypeId() + "'不存在");
         }
         if (autoexecCombopVo.getNotifyPolicyId() != null) {
             if (notifyMapper.checkNotifyPolicyIsExists(autoexecCombopVo.getNotifyPolicyId()) == 0) {
-                throw new NotifyPolicyNotFoundException(autoexecCombopVo.getNotifyPolicyId().toString());
+                failureReasonList.add("通知策略：'" + autoexecCombopVo.getNotifyPolicyId() + "'不存在");
             }
         }
         int index = 0;
-        String oldName = autoexecCombopVo.getName();
         //如果导入的流程名称已存在就重命名
         while (autoexecCombopMapper.checkAutoexecCombopNameIsRepeat(autoexecCombopVo) != null) {
             index++;
             autoexecCombopVo.setName(oldName + "_" + index);
         }
-        Long id = autoexecCombopVo.getId();
-        int isExist = autoexecCombopMapper.checkAutoexecCombopIsExists(id);
-        if (isExist == 0) {
-            result = "新建组合工具：'" + autoexecCombopVo.getName() + "'";
-        } else {
-            result = "更新组合工具：'" + autoexecCombopVo.getName() + "'";
-            List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
-
-            if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
-                autoexecCombopMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
-            }
-            autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
-            autoexecCombopMapper.deleteAutoexecCombopParamByCombopId(id);
-        }
         String userUuid = UserContext.get().getUserUuid(true);
         autoexecCombopVo.setFcu(userUuid);
-        autoexecCombopVo.setOwner(userUuid);
-        List<AutoexecCombopParamVo> runtimeParamList = autoexecCombopVo.getRuntimeParamList();
-        if (CollectionUtils.isNotEmpty(runtimeParamList)) {
-            autoexecCombopMapper.insertAutoexecCombopParamVoList(runtimeParamList);
-        }
-        /** 保存前，校验组合工具是否配置正确，不正确不可以保存 **/
-        autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo);
+        List<AutoexecCombopPhaseVo> combopPhaseList2 = new ArrayList<>();
+        List<AutoexecCombopPhaseOperationVo> phaseOperationList2 = new ArrayList<>();
         AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
         int iSort = 0;
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
@@ -169,17 +168,57 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                     if (autoexecCombopPhaseOperationVo != null) {
                         autoexecCombopPhaseOperationVo.setSort(jSort++);
                         autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
-                        autoexecCombopMapper.insertAutoexecCombopPhaseOperation(autoexecCombopPhaseOperationVo);
+                        phaseOperationList2.add(autoexecCombopPhaseOperationVo);
+                        if (Objects.equals(autoexecCombopPhaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
+                            if (autoexecScriptMapper.checkScriptIsExistsById(autoexecCombopPhaseOperationVo.getOperationId()) == 0) {
+                                failureReasonList.add("脚本：'" + autoexecCombopPhaseOperationVo.getOperationId() + "'不存在");
+                            }
+                        } else {
+                            //TODO 工具
+                        }
                     }
                 }
-                autoexecCombopMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);
+                combopPhaseList2.add(autoexecCombopPhaseVo);
             }
         }
-        if (isExist == 0) {
-            autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
+
+
+        if (CollectionUtils.isEmpty(failureReasonList)) {
+            if (oldAutoexecCombopVo == null) {
+                autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
+                result.append("新建成功。");
+            } else {
+                List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
+                if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
+                    autoexecCombopMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
+                }
+                autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
+                autoexecCombopMapper.deleteAutoexecCombopParamByCombopId(id);
+                autoexecCombopMapper.updateAutoexecCombopById(autoexecCombopVo);
+                result.append("更新成功。");
+            }
+            List<AutoexecCombopParamVo> runtimeParamList = autoexecCombopVo.getRuntimeParamList();
+            if (CollectionUtils.isNotEmpty(runtimeParamList)) {
+                autoexecCombopMapper.insertAutoexecCombopParamVoList(runtimeParamList);
+            }
+            for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList2) {
+                autoexecCombopMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);
+            }
+            for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList2) {
+                autoexecCombopMapper.insertAutoexecCombopPhaseOperation(autoexecCombopPhaseOperationVo);
+            }
+
         } else {
-            autoexecCombopMapper.updateAutoexecCombopById(autoexecCombopVo);
+            result.append("失败；原因：<br>");
+            index = 1;
+            for (String reason : failureReasonList) {
+                result.append("&nbsp;&nbsp;&nbsp;");
+                result.append(index);
+                result.append("：");
+                result.append(reason);
+                result.append("；<br>");
+            }
         }
-        return result;
+        return result.toString();
     }
 }
