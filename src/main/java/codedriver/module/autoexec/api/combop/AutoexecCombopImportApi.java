@@ -1,3 +1,8 @@
+/*
+ * Copyright(c) 2021 TechSure Co., Ltd. All Rights Reserved.
+ * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
+ */
+
 package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
@@ -84,7 +89,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         //获取所有导入文件
         Map<String, MultipartFile> multipartFileMap = multipartRequest.getFileMap();
         //如果没有导入文件, 抛异常
-        if (multipartFileMap == null || multipartFileMap.isEmpty()) {
+        if (multipartFileMap.isEmpty()) {
             throw new FileNotUploadException();
         }
         List<String> resultList = new ArrayList<>();
@@ -96,7 +101,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
             try (ZipInputStream zipis = new ZipInputStream(multipartFile.getInputStream());
                  ByteArrayOutputStream out = new ByteArrayOutputStream()) {
                 while (zipis.getNextEntry() != null) {
-                    int len = 0;
+                    int len;
                     while ((len = zipis.read(buf)) != -1) {
                         out.write(buf, 0, len);
                     }
