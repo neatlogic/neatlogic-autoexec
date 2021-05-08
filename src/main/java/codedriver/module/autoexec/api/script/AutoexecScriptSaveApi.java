@@ -81,7 +81,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             @Param(name = "riskId", type = ApiParamType.LONG, desc = "操作级别ID", isRequired = true),
             @Param(name = "paramList", type = ApiParamType.JSONARRAY, desc = "参数列表"),
             @Param(name = "parser", type = ApiParamType.ENUM, rule = "python,vbs,shell,perl,powershell,bat,xml", desc = "脚本解析器"),
-            @Param(name = "lineList", type = ApiParamType.JSONARRAY, desc = "脚本内容行数据列表"),
+            @Param(name = "lineList", type = ApiParamType.JSONARRAY, desc = "脚本内容行数据列表,e.g:[{\"content\":\"#!/usr/bin/env bash\"},{\"content\":\"show_ascii_berry()\"}]"),
     })
     @Output({
             @Param(name = "id", type = ApiParamType.LONG, desc = "脚本ID"),
@@ -197,20 +197,19 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
     private void saveScriptLineList(AutoexecScriptVo scriptVo) {
         if (CollectionUtils.isNotEmpty(scriptVo.getLineList())) {
             int lineNumber = 0;
-            List<AutoexecScriptLineVo> lineList = new ArrayList<>();
-            for (String line : scriptVo.getLineList()) {
-                AutoexecScriptLineVo lineVo = new AutoexecScriptLineVo();
-                lineVo.setLineNumber(++lineNumber);
-                lineVo.setScriptId(scriptVo.getId());
-                lineVo.setScriptVersionId(scriptVo.getVersionId());
-                if (StringUtils.isNotBlank(line)) {
-                    AutoexecScriptLineContentVo content = new AutoexecScriptLineContentVo(line);
-                    lineVo.setContentHash(content.getHash());
+            List<AutoexecScriptLineVo> lineList = new ArrayList<>(100);
+            for (AutoexecScriptLineVo line : scriptVo.getLineList()) {
+                line.setLineNumber(++lineNumber);
+                line.setScriptId(scriptVo.getId());
+                line.setScriptVersionId(scriptVo.getVersionId());
+                if (StringUtils.isNotBlank(line.getContent())) {
+                    AutoexecScriptLineContentVo content = new AutoexecScriptLineContentVo(line.getContent());
+                    line.setContentHash(content.getHash());
                     if (autoexecScriptMapper.checkScriptLineContentHashIsExists(content.getHash()) == 0) {
                         autoexecScriptMapper.insertScriptLineContent(content);
                     }
                 }
-                lineList.add(lineVo);
+                lineList.add(line);
                 if (lineList.size() >= 100) {
                     autoexecScriptMapper.insertScriptLineList(lineList);
                     lineList.clear();
@@ -264,16 +263,16 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
         }
         List<AutoexecScriptLineVo> beforeLineList = new ArrayList<>();
         beforeLineList.addAll(before.getLineList());
-        List<String> afterLineList = new ArrayList<>();
+        List<AutoexecScriptLineVo> afterLineList = new ArrayList<>();
         afterLineList.addAll(after.getLineList());
         if (beforeLineList.size() != afterLineList.size()) {
             return true;
         }
         Iterator<AutoexecScriptLineVo> beforeLineIterator = beforeLineList.iterator();
-        Iterator<String> afterLineIterator = afterLineList.iterator();
+        Iterator<AutoexecScriptLineVo> afterLineIterator = afterLineList.iterator();
         while (beforeLineIterator.hasNext() && afterLineIterator.hasNext()) {
             String beforeContent = beforeLineIterator.next().getContent();
-            String afterContent = afterLineIterator.next();
+            String afterContent = afterLineIterator.next().getContent();
             if (!Objects.equals(beforeContent, afterContent)) {
                 return true;
             }

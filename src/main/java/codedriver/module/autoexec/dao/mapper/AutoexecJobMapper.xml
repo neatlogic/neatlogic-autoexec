@@ -143,8 +143,8 @@
         ap.`url` AS proxyUrl
         FROM
         `autoexec_job_phase_node` ajpn
-        LEFT JOIN `autoexec_node` an ON a.`host` = an.`host` AND a.`port` = an.`port`
-        LEFT JOIN `autoexec_proxy` ap ON a.`proxy_id` = ap.`id`
+        LEFT JOIN `autoexec_node` an ON ajpn.`host` = an.`host` AND ajpn.`port` = an.`port`
+        LEFT JOIN `autoexec_proxy` ap ON ajpn.`proxy_id` = ap.`id`
         <where>
             <include refid="searchJobPhaseNodeSql"/>
         </where>
