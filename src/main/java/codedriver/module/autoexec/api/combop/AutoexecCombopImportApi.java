@@ -135,11 +135,11 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
 
         List<String> failureReasonList = new ArrayList<>();
         if (autoexecTypeMapper.checkTypeIsExistsById(autoexecCombopVo.getTypeId()) == 0) {
-            failureReasonList.add("插件类型：'" + autoexecCombopVo.getTypeId() + "'不存在");
+            failureReasonList.add("添加工具类型：'" + autoexecCombopVo.getTypeId() + "'");
         }
         if (autoexecCombopVo.getNotifyPolicyId() != null) {
             if (notifyMapper.checkNotifyPolicyIsExists(autoexecCombopVo.getNotifyPolicyId()) == 0) {
-                failureReasonList.add("通知策略：'" + autoexecCombopVo.getNotifyPolicyId() + "'不存在");
+                failureReasonList.add("添加通知策略：'" + autoexecCombopVo.getNotifyPolicyId() + "'");
             }
         }
         int index = 0;
@@ -171,7 +171,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                         phaseOperationList2.add(autoexecCombopPhaseOperationVo);
                         if (Objects.equals(autoexecCombopPhaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
                             if (autoexecScriptMapper.checkScriptIsExistsById(autoexecCombopPhaseOperationVo.getOperationId()) == 0) {
-                                failureReasonList.add("脚本：'" + autoexecCombopPhaseOperationVo.getOperationId() + "'不存在");
+                                failureReasonList.add("添加自定义工具：'" + autoexecCombopPhaseOperationVo.getOperationId() + "'");
                             }
                         } else {
                             //TODO 工具
@@ -209,11 +209,11 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
             }
 
         } else {
-            result.append("失败；原因：<br>");
+            result.append("失败；请先在系统中：<br>");
             index = 1;
             for (String reason : failureReasonList) {
                 result.append("&nbsp;&nbsp;&nbsp;");
-                result.append(index);
+                result.append(index++);
                 result.append("：");
                 result.append(reason);
                 result.append("；<br>");
