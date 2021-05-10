@@ -14,90 +14,92 @@ import java.util.List;
 
 public interface AutoexecScriptMapper {
 
-    public AutoexecScriptVo getScriptBaseInfoById(Long id);
+    AutoexecScriptVo getScriptBaseInfoById(Long id);
 
-    public int checkScriptIsExistsById(Long id);
+    int checkScriptIsExistsById(Long id);
 
-    public int checkScriptNameIsExists(AutoexecScriptVo vo);
+    int checkScriptNameIsExists(AutoexecScriptVo vo);
 
-    public int checkScriptUkIsExists(AutoexecScriptVo vo);
+    int checkScriptUkIsExists(AutoexecScriptVo vo);
 
-    public int checkScriptLineContentHashIsExists(String hash);
+    int checkScriptLineContentHashIsExists(String hash);
 
-    public AutoexecScriptVersionVo getVersionByVersionId(Long versionId);
+    AutoexecScriptVersionVo getVersionByVersionId(Long versionId);
 
-    public Integer getMaxVersionByScriptId(Long id);
+    Integer getMaxVersionByScriptId(Long id);
 
-    public int getVersionCountByScriptId(Long scriptId);
+    int getVersionCountByScriptId(Long scriptId);
 
-    public List<AutoexecScriptVersionVo> getVersionList(AutoexecScriptVersionVo versionVo);
+    List<AutoexecScriptVersionVo> getVersionList(AutoexecScriptVersionVo versionVo);
 
-    public List<AutoexecScriptVersionVo> getVersionListByScriptId(Long id);
+    List<AutoexecScriptVersionVo> getVersionListByScriptId(Long id);
 
-    public AutoexecScriptVersionVo getActiveVersionByScriptId(Long scriptId);
+    AutoexecScriptVersionVo getActiveVersionByScriptId(Long scriptId);
 
-    public AutoexecScriptVersionVo getLatestVersionByScriptId(Long scriptId);
+    AutoexecScriptVersionVo getLatestVersionByScriptId(Long scriptId);
 
-    public List<AutoexecScriptVersionParamVo> getParamListByVersionId(Long versionId);
+    List<AutoexecScriptVersionParamVo> getParamListByVersionId(Long versionId);
 
-    public List<AutoexecScriptVersionParamVo> getParamListByScriptId(Long operationId);
+    List<AutoexecScriptVersionParamVo> getParamListByScriptId(Long operationId);
 
-    public List<AutoexecScriptLineVo> getLineListByVersionId(Long versionId);
+    List<AutoexecScriptLineVo> getLineListByVersionId(Long versionId);
 
-    public int searchScriptCount(AutoexecScriptVo scriptVo);
+    int searchScriptCount(AutoexecScriptVo scriptVo);
 
-    public List<AutoexecScriptVo> searchScript(AutoexecScriptVo scriptVo);
+    List<AutoexecScriptVo> searchScript(AutoexecScriptVo scriptVo);
 
-    public int searchScriptAndToolCount(AutoexecToolAndScriptVo searchVo);
+    int getReviewingScriptCount();
 
-    public List<AutoexecToolAndScriptVo> searchScriptAndTool(AutoexecToolAndScriptVo searchVo);
+    int searchScriptAndToolCount(AutoexecToolAndScriptVo searchVo);
 
-    public List<AutoexecToolAndScriptVo> getScriptListByIdList(List<Long> idList);
+    List<AutoexecToolAndScriptVo> searchScriptAndTool(AutoexecToolAndScriptVo searchVo);
 
-    public int getReferenceCountByScriptId(Long scriptId);
+    List<AutoexecToolAndScriptVo> getScriptListByIdList(List<Long> idList);
 
-    public List<AutoexecCombopVo> getReferenceListByScriptId(Long scriptId);
+    int getReferenceCountByScriptId(Long scriptId);
 
-    public List<Long> getVersionIdListByScriptId(Long scriptId);
+    List<AutoexecCombopVo> getReferenceListByScriptId(Long scriptId);
 
-    public AutoexecScriptAuditVo getScriptAuditByScriptVersionIdAndOperate(@Param("versionId") Long versionId, @Param("operate") String operate);
+    List<Long> getVersionIdListByScriptId(Long scriptId);
 
-    public String getScriptAuditDetailByHash(String hash);
+    AutoexecScriptAuditVo getScriptAuditByScriptVersionIdAndOperate(@Param("versionId") Long versionId, @Param("operate") String operate);
 
-    public int updateScriptBaseInfo(AutoexecScriptVo scriptVo);
+    String getScriptAuditDetailByHash(String hash);
 
-    public int updateScriptVersion(AutoexecScriptVersionVo versionVo);
+    int updateScriptBaseInfo(AutoexecScriptVo scriptVo);
 
-    public int insertScript(AutoexecScriptVo vo);
+    int updateScriptVersion(AutoexecScriptVersionVo versionVo);
 
-    public int insertScriptVersion(AutoexecScriptVersionVo versionVo);
+    int insertScript(AutoexecScriptVo vo);
 
-    public int insertScriptVersionParamList(List<AutoexecScriptVersionParamVo> paramList);
+    int insertScriptVersion(AutoexecScriptVersionVo versionVo);
 
-    public int insertScriptLineContent(AutoexecScriptLineContentVo contentVo);
+    int insertScriptVersionParamList(List<AutoexecScriptVersionParamVo> paramList);
 
-    public int insertScriptAudit(AutoexecScriptAuditVo auditVo);
+    int insertScriptLineContent(AutoexecScriptLineContentVo contentVo);
 
-    public int insertScriptAuditDetail(AutoexecScriptAuditContentVo auditContentVo);
+    int insertScriptAudit(AutoexecScriptAuditVo auditVo);
 
-    public int insertScriptLineList(List<AutoexecScriptLineVo> lineList);
+    int insertScriptAuditDetail(AutoexecScriptAuditContentVo auditContentVo);
 
-    public int batchInsertScriptVersion(List<AutoexecScriptVersionVo> versionList);
+    int insertScriptLineList(List<AutoexecScriptLineVo> lineList);
 
-    public int deleteParamByVersionId(Long versionId);
+    int batchInsertScriptVersion(List<AutoexecScriptVersionVo> versionList);
 
-    public int deleteScriptLineByVersionId(Long versionId);
+    int deleteParamByVersionId(Long versionId);
 
-    public int deleteParamByVersionIdList(List<Long> versionId);
+    int deleteScriptLineByVersionId(Long versionId);
 
-    public int deleteScriptLineByScriptId(Long scriptId);
+    int deleteParamByVersionIdList(List<Long> versionId);
 
-    public int deleteScriptVersionByScriptId(Long scriptId);
+    int deleteScriptLineByScriptId(Long scriptId);
 
-    public int deleteScriptAuditByScriptId(Long scriptId);
+    int deleteScriptVersionByScriptId(Long scriptId);
 
-    public int deleteVersionByVersionId(Long versionId);
+    int deleteScriptAuditByScriptId(Long scriptId);
 
-    public int deleteScriptById(Long id);
+    int deleteVersionByVersionId(Long versionId);
+
+    int deleteScriptById(Long id);
 
 }

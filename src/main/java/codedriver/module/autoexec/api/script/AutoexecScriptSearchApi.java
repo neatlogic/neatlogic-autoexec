@@ -61,6 +61,7 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
     })
     @Output({
             @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecScriptVo[].class, desc = "脚本列表"),
+            @Param(name = "reviewingCount", type = ApiParamType.INTEGER, desc = "待审批的脚本数"),
             @Param(explode = BasePageVo.class)
     })
     @Description(desc = "查询脚本")
@@ -78,6 +79,7 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
             result.put("pageCount", PageUtil.getPageCount(rowNum, scriptVo.getPageSize()));
             result.put("rowNum", scriptVo.getRowNum());
         }
+        result.put("reviewingCount", autoexecScriptMapper.getReviewingScriptCount());
         return result;
     }
 
