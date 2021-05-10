@@ -125,11 +125,8 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
             }
         }
         // 获取操作按钮
-        List<UserAuthVo> authList = userMapper.searchUserAllAuthByUserAuth(new UserAuthVo(UserContext.get().getUserUuid()));
-        if (CollectionUtils.isNotEmpty(authList)) {
-            ScriptOperateBuilder builder = new ScriptOperateBuilder(UserContext.get().getUserUuid(), version.getStatus());
-            operateList = builder.setAll().build();
-        }
+        ScriptOperateBuilder builder = new ScriptOperateBuilder(UserContext.get().getUserUuid(), version.getStatus());
+        operateList = builder.setAll().build();
         result.put("script", script);
         result.put("operateList", operateList);
         return result;
