@@ -22,6 +22,7 @@ import javax.annotation.Resource;
  * @since 2021/4/14 14:15
  **/
 @Service
+@Deprecated
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class AutoexecJobConfigGetApi extends PrivateApiComponentBase {

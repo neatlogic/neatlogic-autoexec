@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.service;
 
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
+import codedriver.framework.autoexec.constvalue.JobNodeStatus;
 import codedriver.framework.autoexec.dto.AutoexecProxyGroupNetworkVo;
 import codedriver.framework.autoexec.dto.AutoexecProxyGroupVo;
 import codedriver.framework.autoexec.dto.AutoexecProxyVo;
@@ -75,6 +76,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 jobPhaseNodeVo.setJobId(jobVo.getId());
                 jobPhaseNodeVo.setJobPhaseId(jobPhaseVo.getId());
                 jobPhaseNodeVo.setProxyId(getProxyByIp(jobPhaseNodeVo.getHost()));
+                jobPhaseNodeVo.setStatus(JobNodeStatus.PENDING.getValue());
                 autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
             }
             //jobPhaseOperation
