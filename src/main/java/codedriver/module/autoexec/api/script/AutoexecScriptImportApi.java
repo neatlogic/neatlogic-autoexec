@@ -8,6 +8,7 @@ package codedriver.module.autoexec.api.script;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -17,8 +18,9 @@ import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.module.autoexec.service.AutoexecScriptService;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -27,13 +29,11 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-import java.util.zip.ZipInputStream;
+import java.util.Objects;
 
 @Service
 @Transactional
@@ -44,6 +44,9 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
+
+    @Resource
+    private AutoexecScriptService autoexecScriptService;
 
     @Override
     public String getToken() {
@@ -90,12 +93,56 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                     ois.close();
                 }
             }
-            if(obj instanceof AutoexecScriptVo){
+            if (obj instanceof AutoexecScriptVo) {
                 AutoexecScriptVo scriptVo = (AutoexecScriptVo) obj;
-                List<AutoexecScriptVersionVo> versionList = scriptVo.getVersionList();
+                save(scriptVo);
             }
         }
         return null;
+    }
+
+    private void save(AutoexecScriptVo scriptVo) {
+        Long id = scriptVo.getId();
+        AutoexecScriptVo oldScriptVo = autoexecScriptMapper.getScriptBaseInfoById(id);
+        List<AutoexecScriptVersionVo> versionList = scriptVo.getVersionList();
+        if (oldScriptVo != null) {
+            boolean hasChange = false;
+            if (!Objects.equals(scriptVo.getName(), oldScriptVo.getName())) {
+                hasChange = true;
+            }
+            if (!Objects.equals(scriptVo.getExecMode(), oldScriptVo.getExecMode())) {
+                hasChange = true;
+            }
+            if (!Objects.equals(scriptVo.getRiskId(), oldScriptVo.getRiskVo())) {
+                hasChange = true;
+            }
+            if (!Objects.equals(scriptVo.getTypeId(), oldScriptVo.getTypeId())) {
+                hasChange = true;
+            }
+            if (hasChange) {
+                autoexecScriptService.validateScriptBaseInfo(scriptVo);
+                autoexecScriptMapper.updateScriptBaseInfo(scriptVo);
+            }
+            if (CollectionUtils.isNotEmpty(versionList)) {
+                for (AutoexecScriptVersionVo versionVo : versionList) {
+                    AutoexecScriptVersionVo oldVersion = autoexecScriptService.getScriptVersionDetailByVersionId(versionVo.getId());
+                    List<AutoexecScriptVersionParamVo> oldParamList = oldVersion.getParamList();
+                    if (oldVersion != null) {
+                        if(autoexecScriptService.checkScriptVersionNeedToUpdate(oldVersion, versionVo)){
+                            autoexecScriptMapper.deleteParamByVersionId(versionVo.getId());
+                            autoexecScriptMapper.deleteScriptLineByVersionId(versionVo.getId());
+                            List<AutoexecScriptVersionParamVo> paramList = versionVo.getParamList();
+                            autoexecScriptService.saveParamList(oldParamList,versionVo,paramList);
+                            autoexecScriptMapper.updateScriptVersion(versionVo);
+
+                        }
+                    }else{
+
+                    }
+                }
+            }
+
+        }
     }
 
 

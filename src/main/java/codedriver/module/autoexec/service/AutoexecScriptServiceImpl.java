@@ -6,6 +6,8 @@
 package codedriver.module.autoexec.service;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
+import codedriver.framework.autoexec.constvalue.ParamMode;
+import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditContentVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
@@ -16,6 +18,7 @@ import codedriver.framework.autoexec.exception.AutoexecRiskNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScriptNameOrUkRepeatException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
+import codedriver.framework.common.util.RC4Util;
 import codedriver.module.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
@@ -24,7 +27,11 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 public class AutoexecScriptServiceImpl implements AutoexecScriptService {
@@ -37,6 +44,9 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
 
     @Resource
     private AutoexecRiskMapper autoexecRiskMapper;
+
+    @Resource
+    private AutoexecService autoexecService;
 
     /**
      * 获取脚本版本详细信息，包括参数与脚本内容
@@ -85,6 +95,102 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
         }
         if (autoexecRiskMapper.checkRiskIsExistsById(scriptVo.getRiskId()) == 0) {
             throw new AutoexecRiskNotFoundException(scriptVo.getRiskId());
+        }
+    }
+
+    /**
+     * 检查脚本内容是否有变更
+     *
+     * @param before 当前版本
+     * @param after  待更新的内容
+     * @return 是否有变更
+     */
+    @Override
+    public boolean checkScriptVersionNeedToUpdate(AutoexecScriptVersionVo before, AutoexecScriptVersionVo after) {
+        if (!Objects.equals(before.getParser(), after.getParser())) {
+            return true;
+        }
+        List<AutoexecScriptVersionParamVo> beforeParamList = before.getParamList() != null ? before.getParamList() : new ArrayList<>();
+        List<AutoexecScriptVersionParamVo> afterParamList = after.getParamList() != null ? after.getParamList() : new ArrayList<>();
+        if (beforeParamList.size() != afterParamList.size()) {
+            return true;
+        }
+        Iterator<AutoexecScriptVersionParamVo> beforeParamIterator = beforeParamList.iterator();
+        Iterator<AutoexecScriptVersionParamVo> afterParamIterator = afterParamList.iterator();
+        while (beforeParamIterator.hasNext() && afterParamIterator.hasNext()) {
+            AutoexecScriptVersionParamVo beforeNextParam = beforeParamIterator.next();
+            AutoexecScriptVersionParamVo afterNextParam = afterParamIterator.next();
+            if (!Objects.equals(beforeNextParam.getKey(), afterNextParam.getKey())) {
+                return true;
+            }
+            if (!Objects.equals(beforeNextParam.getDefaultValue(), afterNextParam.getDefaultValue())) {
+                return true;
+            }
+            if (!Objects.equals(beforeNextParam.getType(), afterNextParam.getType())) {
+                return true;
+            }
+            if (!Objects.equals(beforeNextParam.getMode(), afterNextParam.getMode())) {
+                return true;
+            }
+            if (!Objects.equals(beforeNextParam.getIsRequired(), afterNextParam.getIsRequired())) {
+                return true;
+            }
+            if (!Objects.equals(beforeNextParam.getDescription(), afterNextParam.getDescription())) {
+                return true;
+            }
+        }
+        List<AutoexecScriptLineVo> beforeLineList = new ArrayList<>();
+        beforeLineList.addAll(before.getLineList());
+        List<AutoexecScriptLineVo> afterLineList = new ArrayList<>();
+        afterLineList.addAll(after.getLineList());
+        if (beforeLineList.size() != afterLineList.size()) {
+            return true;
+        }
+        Iterator<AutoexecScriptLineVo> beforeLineIterator = beforeLineList.iterator();
+        Iterator<AutoexecScriptLineVo> afterLineIterator = afterLineList.iterator();
+        while (beforeLineIterator.hasNext() && afterLineIterator.hasNext()) {
+            String beforeContent = beforeLineIterator.next().getContent();
+            String afterContent = afterLineIterator.next().getContent();
+            if (!Objects.equals(beforeContent, afterContent)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void saveParamList(List<AutoexecScriptVersionParamVo> oldParamList, AutoexecScriptVersionVo versionVo, List<AutoexecScriptVersionParamVo> newParamList) {
+        if (CollectionUtils.isNotEmpty(newParamList)) {
+            autoexecService.validateParamList(newParamList);
+            List<AutoexecScriptVersionParamVo> inputParamList = newParamList.stream().filter(o -> ParamMode.INPUT.getValue().equals(o.getMode())).collect(Collectors.toList());
+            List<AutoexecScriptVersionParamVo> outputParamList = newParamList.stream().filter(o -> ParamMode.OUTPUT.getValue().equals(o.getMode())).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(inputParamList)) {
+                for (int i = 0; i < inputParamList.size(); i++) {
+                    AutoexecScriptVersionParamVo paramVo = inputParamList.get(i);
+                    paramVo.setScriptVersionId(versionVo.getId());
+                    // 检查是否修改了原密码默认值，修改过则重新加密
+                    if (paramVo.getDefaultValue() != null && ParamType.PASSWORD.getValue().equals(paramVo.getType())) {
+                        Integer sort = paramVo.getSort();
+                        if (sort != null && oldParamList != null && sort < oldParamList.size()) {
+                            AutoexecScriptVersionParamVo oldPwd = oldParamList.get(sort);
+                            if (!Objects.equals(paramVo.getDefaultValue(), oldPwd.getDefaultValue())) {
+                                paramVo.setDefaultValue(RC4Util.encrypt((String) paramVo.getDefaultValue()));
+                            }
+                        } else {
+                            paramVo.setDefaultValue(RC4Util.encrypt((String) paramVo.getDefaultValue()));
+                        }
+                    }
+                    paramVo.setSort(i);
+                }
+                autoexecScriptMapper.insertScriptVersionParamList(inputParamList);
+            }
+            if (CollectionUtils.isNotEmpty(outputParamList)) {
+                for (int i = 0; i < outputParamList.size(); i++) {
+                    outputParamList.get(i).setScriptVersionId(versionVo.getId());
+                    outputParamList.get(i).setSort(i);
+                }
+                autoexecScriptMapper.insertScriptVersionParamList(outputParamList);
+            }
         }
     }
 

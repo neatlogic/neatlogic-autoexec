@@ -35,6 +35,17 @@ public interface AutoexecScriptService {
     void validateScriptBaseInfo(AutoexecScriptVo scriptVo);
 
     /**
+     * 检查脚本内容是否有变更
+     *
+     * @param before 当前版本
+     * @param after  待更新的内容
+     * @return 是否有变更
+     */
+    boolean checkScriptVersionNeedToUpdate(AutoexecScriptVersionVo before, AutoexecScriptVersionVo after);
+
+    void saveParamList(List<AutoexecScriptVersionParamVo> oldParamList, AutoexecScriptVersionVo versionVo, List<AutoexecScriptVersionParamVo> newParamList);
+
+    /**
      * 批量插入脚本参数
      *
      * @param paramList 参数列表
