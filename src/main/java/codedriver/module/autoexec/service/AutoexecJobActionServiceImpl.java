@@ -15,6 +15,7 @@ import codedriver.framework.autoexec.exception.AutoexecJobProxyConnectRefusedExc
 import codedriver.framework.dto.RestVo;
 import codedriver.framework.restful.dto.ApiVo;
 import codedriver.framework.util.RestUtil;
+import codedriver.module.autoexec.config.AutoexecConfig;
 import codedriver.module.autoexec.core.AutoexecJobAuthActionManager;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import com.alibaba.fastjson.JSONArray;
@@ -32,10 +33,7 @@ import javax.annotation.Resource;
 @Service
 public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     private static final Logger logger = LoggerFactory.getLogger(AutoexecJobActionServiceImpl.class);
-    private static final String BASIC_USER_NAME = "codedriver";
-    private static final String BASIC_PASSWORD = "123456";
-    private static final String PROXY_HOST = "http://localhost:8181/autoexecproxy/api/rest";
-    private static final String SEPARATOR = System.getProperty("file.separator");
+
     @Resource
     AutoexecJobAuthActionManager autoexecJobAuthActionManager;
 
@@ -64,8 +62,8 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             paramJson.put("jobPhaseName", jobPhase.getName());
             paramJson.put("nodeList", nodeList);
             paramJson.put("type", type);
-            String url = PROXY_HOST + "/job/exec";
-            RestVo restVo = new RestVo(url,ApiVo.AuthenticateType.BASIC.getValue(), BASIC_USER_NAME, BASIC_PASSWORD, paramJson);
+            String url = AutoexecConfig.PROXY_HOST() + "/job/exec";
+            RestVo restVo = new RestVo(url,ApiVo.AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
             String result = RestUtil.sendRequest(restVo);
             JSONObject resultJson = null;
             try {
