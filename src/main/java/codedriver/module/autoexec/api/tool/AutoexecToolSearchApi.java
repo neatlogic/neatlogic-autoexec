@@ -8,8 +8,8 @@ package codedriver.module.autoexec.api.tool;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.auth.core.AuthActionChecker;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_USE;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
@@ -28,7 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Service
-@AuthAction(action = AUTOEXEC_SCRIPT_USE.class)
+@AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecToolSearchApi extends PrivateApiComponentBase {
 
