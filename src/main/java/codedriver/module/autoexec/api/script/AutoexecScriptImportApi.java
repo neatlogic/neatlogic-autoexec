@@ -8,6 +8,7 @@ package codedriver.module.autoexec.api.script;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.exception.file.FileExtNotAllowedException;
@@ -28,7 +29,9 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Map;
 import java.util.zip.ZipInputStream;
 
@@ -73,23 +76,23 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
         if (multipartFileMap == null || multipartFileMap.isEmpty()) {
             throw new FileNotUploadException();
         }
-        byte[] buf = new byte[1024];
+        ObjectInputStream ois = null;
+        Object obj = null;
         for (Map.Entry<String, MultipartFile> entry : multipartFileMap.entrySet()) {
             MultipartFile multipartFile = entry.getValue();
-            //反序列化获取对象
-            try (ZipInputStream zis = new ZipInputStream(multipartFile.getInputStream());
-                 ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-                while (zis.getNextEntry() != null) {
-                    int len;
-                    while ((len = zis.read(buf)) != -1) {
-                        out.write(buf, 0, len);
-                    }
-                    AutoexecScriptVo autoexecScriptVo = JSONObject.parseObject(new String(out.toByteArray(), StandardCharsets.UTF_8), new TypeReference<AutoexecScriptVo>() {
-                    });
-                    out.reset();
-                }
+            try {
+                ois = new ObjectInputStream(multipartFile.getInputStream());
+                obj = ois.readObject();
             } catch (IOException e) {
                 throw new FileExtNotAllowedException(multipartFile.getOriginalFilename());
+            } finally {
+                if (ois != null) {
+                    ois.close();
+                }
+            }
+            if(obj instanceof AutoexecScriptVo){
+                AutoexecScriptVo scriptVo = (AutoexecScriptVo) obj;
+                List<AutoexecScriptVersionVo> versionList = scriptVo.getVersionList();
             }
         }
         return null;

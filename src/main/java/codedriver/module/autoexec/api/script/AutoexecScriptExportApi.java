@@ -20,17 +20,18 @@ import codedriver.framework.util.FileUtil;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.service.AutoexecScriptService;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.IOUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectOutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 @Service
 @AuthAction(action = AUTOEXEC_SCRIPT_USE.class)
@@ -74,25 +75,31 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
             throw new AutoexecScriptNotFoundException(id);
         }
         List<AutoexecScriptVersionVo> versionList = autoexecScriptService.getScriptVersionDetailListByScriptId(id);
-        if (CollectionUtils.isNotEmpty(versionList)) {
-            String fileName = script.getName() + ".pak";
-            String userAgent = request.getHeader("User-Agent");
-            if (userAgent.indexOf("Gecko") > 0) {
-                fileName = URLEncoder.encode(fileName, "UTF-8");
-                fileName = FileUtil.fileNameSpecialCharacterHandling(fileName);
-            } else {
-                fileName = new String(fileName.replace(" ", "").getBytes(StandardCharsets.UTF_8), "ISO8859-1");
-            }
-            response.setContentType("application/zip");
-            response.setHeader("Content-Disposition", "attachment;fileName=\"" + fileName + "\"");
-            try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
-                for (AutoexecScriptVersionVo version : versionList) {
-                    script.setVersionVo(version);
-                    zos.putNextEntry(new ZipEntry(script.getName() + "-" + version.getVersion() + ".json"));
-                    zos.write(JSONObject.toJSONBytes(script));
-                    zos.closeEntry();
-                }
-            }
+        script.setVersionList(versionList);
+        String fileName = script.getName() + ".pak";
+        String userAgent = request.getHeader("User-Agent");
+        if (userAgent.indexOf("Gecko") > 0) {
+            fileName = URLEncoder.encode(fileName, "UTF-8");
+            fileName = FileUtil.fileNameSpecialCharacterHandling(fileName);
+        } else {
+            fileName = new String(fileName.replace(" ", "").getBytes(StandardCharsets.UTF_8), "ISO8859-1");
+        }
+        response.setContentType("application/octet-stream");
+        response.setHeader("Content-Disposition", "attachment;fileName=\"" + fileName + "\"");
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.writeObject(script);
+        ServletOutputStream os = response.getOutputStream();
+        IOUtils.write(baos.toByteArray(), os);
+        if (os != null) {
+            os.flush();
+            os.close();
+        }
+        if (oos != null) {
+            oos.close();
+        }
+        if (baos != null) {
+            baos.close();
         }
         return null;
     }
