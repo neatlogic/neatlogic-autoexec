@@ -36,7 +36,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @AuthAction(action = AUTOEXEC_SCRIPT_USE.class)
@@ -128,8 +127,7 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         // 获取操作按钮
         List<UserAuthVo> authList = userMapper.searchUserAllAuthByUserAuth(new UserAuthVo(UserContext.get().getUserUuid()));
         if (CollectionUtils.isNotEmpty(authList)) {
-            ScriptOperateBuilder builder = new ScriptOperateBuilder(authList.stream()
-                    .map(UserAuthVo::getAuth).collect(Collectors.toList()), version.getStatus());
+            ScriptOperateBuilder builder = new ScriptOperateBuilder(UserContext.get().getUserUuid(), version.getStatus());
             operateList = builder.setAll().build();
         }
         result.put("script", script);
