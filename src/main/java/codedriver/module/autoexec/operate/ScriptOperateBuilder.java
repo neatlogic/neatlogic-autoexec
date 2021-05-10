@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.operate;
 
+import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_USE;
@@ -117,6 +118,22 @@ public class ScriptOperateBuilder {
         if (authList.contains(AUTOEXEC_SCRIPT_REVIEW.class.getSimpleName())
                 && Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), status)) {
             operateList.add(new ValueTextVo("reject", "驳回"));
+        }
+        return this;
+    }
+
+    public ScriptOperateBuilder setGenerateToCombop() {
+        if (authList.contains(AUTOEXEC_COMBOP_MODIFY.class.getSimpleName())) {
+            operateList.add(new ValueTextVo("generateToCombop", "发布为组合工具"));
+        }
+        return this;
+    }
+
+    public ScriptOperateBuilder setExport() {
+        if (authList.contains(AUTOEXEC_SCRIPT_USE.class.getSimpleName())
+                || authList.contains(AUTOEXEC_SCRIPT_REVIEW.class.getSimpleName())
+                || authList.contains(AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
+            operateList.add(new ValueTextVo("export", "导出"));
         }
         return this;
     }
