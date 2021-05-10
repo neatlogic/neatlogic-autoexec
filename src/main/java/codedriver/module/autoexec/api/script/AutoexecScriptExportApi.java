@@ -6,20 +6,31 @@
 package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_USE;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
+import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_USE;
+import codedriver.framework.util.FileUtil;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.module.autoexec.service.AutoexecScriptService;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Service
 @AuthAction(action = AUTOEXEC_SCRIPT_USE.class)
@@ -30,6 +41,9 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
+
+    @Resource
+    private AutoexecScriptService autoexecScriptService;
 
     @Override
     public String getToken() {
@@ -54,6 +68,32 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
     @Description(desc = "导出脚本")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
+        Long id = paramObj.getLong("id");
+        AutoexecScriptVo script = autoexecScriptMapper.getScriptBaseInfoById(id);
+        if (script == null) {
+            throw new AutoexecScriptNotFoundException(id);
+        }
+        List<AutoexecScriptVersionVo> versionList = autoexecScriptService.getScriptVersionDetailListByScriptId(id);
+        if (CollectionUtils.isNotEmpty(versionList)) {
+            String fileName = script.getName() + ".pak";
+            String userAgent = request.getHeader("User-Agent");
+            if (userAgent.indexOf("Gecko") > 0) {
+                fileName = URLEncoder.encode(fileName, "UTF-8");
+                fileName = FileUtil.fileNameSpecialCharacterHandling(fileName);
+            } else {
+                fileName = new String(fileName.replace(" ", "").getBytes(StandardCharsets.UTF_8), "ISO8859-1");
+            }
+            response.setContentType("application/zip");
+            response.setHeader("Content-Disposition", "attachment;fileName=\"" + fileName + "\"");
+            try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
+                for (AutoexecScriptVersionVo version : versionList) {
+                    script.setVersionVo(version);
+                    zos.putNextEntry(new ZipEntry(script.getName() + "-" + version.getVersion() + ".json"));
+                    zos.write(JSONObject.toJSONBytes(script));
+                    zos.closeEntry();
+                }
+            }
+        }
         return null;
     }
 
