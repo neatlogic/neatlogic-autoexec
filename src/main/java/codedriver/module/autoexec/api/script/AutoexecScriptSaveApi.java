@@ -112,7 +112,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
                 scriptVo.setFcu(UserContext.get().getUserUuid());
                 autoexecScriptMapper.insertScript(scriptVo);
                 versionVo.setScriptId(scriptVo.getId());
-                versionVo.setVersion(0);
+                versionVo.setVersion(1);
                 versionVo.setIsActive(0);
                 autoexecScriptMapper.insertScriptVersion(versionVo);
                 scriptVo.setVersionId(versionVo.getId());
@@ -138,7 +138,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
                 throw new AutoexecScriptNotFoundException(scriptVo.getId());
             }
             Integer maxVersion = autoexecScriptMapper.getMaxVersionByScriptId(scriptVo.getId());
-            versionVo.setVersion(maxVersion != null ? maxVersion + 1 : 0);
+            versionVo.setVersion(maxVersion != null ? maxVersion + 1 : 1);
             versionVo.setScriptId(scriptVo.getId());
             versionVo.setIsActive(0);
             autoexecScriptMapper.insertScriptVersion(versionVo);
