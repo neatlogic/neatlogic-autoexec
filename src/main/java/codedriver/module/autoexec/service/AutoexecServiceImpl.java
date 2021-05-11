@@ -35,6 +35,7 @@ public class AutoexecServiceImpl implements AutoexecService {
             if (param != null) {
                 String mode = param.getMode();
                 String key = param.getKey();
+                String name = param.getName();
                 String type = param.getType();
                 Integer isRequired = param.getIsRequired();
                 if (param instanceof AutoexecScriptVersionParamVo && StringUtils.isBlank(mode)) {
@@ -45,6 +46,9 @@ public class AutoexecServiceImpl implements AutoexecService {
                 }
                 if (StringUtils.isBlank(key)) {
                     throw new AutoexecParamFieldNotFoundException(i + 1, "key");
+                }
+                if (StringUtils.isBlank(name)) {
+                    throw new AutoexecParamFieldNotFoundException(i + 1, "name");
                 }
                 if (!paramKeyPattern.matcher(key).matches()) {
                     throw new AutoexecParamIrregularException(i + 1, "key");
