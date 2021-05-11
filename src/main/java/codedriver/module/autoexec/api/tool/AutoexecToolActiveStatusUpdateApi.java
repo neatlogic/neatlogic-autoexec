@@ -53,7 +53,7 @@ public class AutoexecToolActiveStatusUpdateApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");
         Integer isActive = jsonObj.getInteger("isActive");
-        if(autoexecToolMapper.checkToolExistsById(id) == 0){
+        if (autoexecToolMapper.checkToolExistsById(id) == 0) {
             throw new AutoexecToolNotFoundException(id);
         }
         AutoexecToolVo vo = new AutoexecToolVo();
