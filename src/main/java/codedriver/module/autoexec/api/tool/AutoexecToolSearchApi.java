@@ -7,24 +7,21 @@ package codedriver.module.autoexec.api.tool;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
-import codedriver.framework.common.dto.ValueTextVo;
 import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecToolMapper;
+import codedriver.module.autoexec.operate.ScriptOperateBuilder;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -80,12 +77,8 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
             result.put("pageCount", PageUtil.getPageCount(rowNum, toolVo.getPageSize()));
             result.put("rowNum", toolVo.getRowNum());
         }
-        List<ValueTextVo> operateList = new ArrayList<>();
-        if (AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
-            operateList.add(new ValueTextVo("测试", "test"));
-            operateList.add(new ValueTextVo("启用/禁用", "active"));
-        }
-        result.put("operateList", operateList);
+        ScriptOperateBuilder builder = new ScriptOperateBuilder(UserContext.get().getUserUuid());
+        result.put("operateList", builder.setTest().setActive().setGenerateToCombop().build());
         return result;
     }
 

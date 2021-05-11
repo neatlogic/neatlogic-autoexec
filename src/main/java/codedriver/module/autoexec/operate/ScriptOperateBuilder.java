@@ -131,6 +131,14 @@ public class ScriptOperateBuilder {
         return this;
     }
 
+    public ScriptOperateBuilder setActive() {
+        if (AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_SCRIPT_REVIEW.class.getSimpleName())
+                && Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), status)) {
+            operateList.add(new ValueTextVo("active", "启用/禁用"));
+        }
+        return this;
+    }
+
     public ScriptOperateBuilder setAll() {
         setDelete().setCopy().setCompare().setTest().setValidate().setSave().setSubmit().setPass().setReject();
         return this;
