@@ -147,12 +147,13 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
         for (int i = 0; i < size; i++) {
             AutoexecScriptVersionParamVo beforeNextParam = source.get(i);
             AutoexecScriptVersionParamVo afterNextParam = target.get(i);
-            if ((!Objects.equals(beforeNextParam.getKey(), afterNextParam.getKey()))
-                    || (!Objects.equals(beforeNextParam.getDefaultValue(), afterNextParam.getDefaultValue()))
-                    || (!Objects.equals(beforeNextParam.getType(), afterNextParam.getType()))
-                    || (!Objects.equals(beforeNextParam.getMode(), afterNextParam.getMode()))
-                    || (!Objects.equals(beforeNextParam.getIsRequired(), afterNextParam.getIsRequired()))
-                    || (!Objects.equals(beforeNextParam.getDescription(), afterNextParam.getDescription()))
+            if (!Objects.equals(beforeNextParam.getKey(), afterNextParam.getKey())
+                    || !Objects.equals(beforeNextParam.getName(), afterNextParam.getName())
+                    || !Objects.equals(beforeNextParam.getDefaultValue(), afterNextParam.getDefaultValue())
+                    || !Objects.equals(beforeNextParam.getType(), afterNextParam.getType())
+                    || !Objects.equals(beforeNextParam.getMode(), afterNextParam.getMode())
+                    || !Objects.equals(beforeNextParam.getIsRequired(), afterNextParam.getIsRequired())
+                    || !Objects.equals(beforeNextParam.getDescription(), afterNextParam.getDescription())
             ) {
                 beforeNextParam.setChangeType(ChangeType.UPDATE.getValue());
                 afterNextParam.setChangeType(ChangeType.UPDATE.getValue());

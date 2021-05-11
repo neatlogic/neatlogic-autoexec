@@ -245,6 +245,9 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             if (!Objects.equals(beforeNextParam.getKey(), afterNextParam.getKey())) {
                 return true;
             }
+            if (!Objects.equals(beforeNextParam.getName(), afterNextParam.getName())) {
+                return true;
+            }
             if (!Objects.equals(beforeNextParam.getDefaultValue(), afterNextParam.getDefaultValue())) {
                 return true;
             }
