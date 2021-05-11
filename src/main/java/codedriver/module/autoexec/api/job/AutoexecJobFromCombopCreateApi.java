@@ -6,7 +6,6 @@
 package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_JOB_MODIFY;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
@@ -95,8 +94,10 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
         Long jobId = autoexecJobService.saveAutoexecCombopJob(combopVo, jsonObj.getString("source"), threadCount, paramJson);
         //对接proxy 创建python任务
         AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getFirstJobPhase(jobId);
-        //autoexecJobActionService.fire(jobPhaseVo,null,"first");
-        return null;
+        autoexecJobActionService.fire(jobPhaseVo,null,"first");
+        return new JSONObject(){{
+            put("jobId",jobId);
+        }};
     }
 
     @Override

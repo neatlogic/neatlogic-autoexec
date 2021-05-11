@@ -203,14 +203,20 @@
             <if test="execMode != null and execMode != ''">
                 and `exec_mode` = #{execMode}
             </if>
-            <if test="typeId != null">
-                and `type_id` = #{typeId}
+            <if test="typeIdList != null and typeIdList.size() != 0">
+                and `type_id` in
+                <foreach collection="typeIdList" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
             </if>
-            <if test="riskId != null">
-                and `risk_id` = #{riskId}
+            <if test="riskIdList != null and riskIdList.size() != 0">
+                and `risk_id` in
+                <foreach collection="riskIdList" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
             </if>
             <if test="isReviewing == 1">
-                and `status` = 'submitted'
+                and exists (select 1 from `autoexec_script_version` b where b.`script_id` = a.`id` and b.`status` = 'submitted')
             </if>
         </where>
     </sql>
@@ -218,19 +224,36 @@
     <select id="searchScriptCount" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo" resultType="int">
         select
         count(`id`)
-        from `autoexec_script`
+        from `autoexec_script` a
         <include refid="searchScriptCondition"/>
     </select>
 
+    <resultMap id="AutoexecScriptMap" type="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
+        <result column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="uk" property="uk"/>
+        <result column="execMode" property="execMode"/>
+        <result column="type" property="type"/>
+        <result column="currentVersion" property="currentVersion"/>
+        <result column="versionCount" property="versionCount"/>
+        <result column="submittedVersionCount" property="submittedVersionCount"/>
+        <result column="passedVersionCount" property="passedVersionCount"/>
+        <association property="riskVo" javaType="codedriver.framework.autoexec.dto.AutoexecRiskVo">
+            <result property="id" column="riskId"/>
+            <result property="name" column="riskName"/>
+            <result property="color" column="riskColor"/>
+        </association>
+    </resultMap>
+
     <select id="searchScript" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo"
-            resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
+            resultMap="AutoexecScriptMap">
         select
         `id`,
         `name`,
         `uk`,
         `exec_mode` as execMode,
         (select `name` from `autoexec_type` where a.`type_id` = `id`) as type,
-        (select `name` from `autoexec_risk` where a.`risk_id` = `id`) as risk,
+        (select `name` from `autoexec_risk` where a.`risk_id` = `id`) as riskName,
         (select `color` from `autoexec_risk` where a.`risk_id` = `id`) as riskColor,
         (select `version` from `autoexec_script_version` where a.`id` = `script_id` and `is_active` = 1)
         as currentVersion,
@@ -245,6 +268,12 @@
         <if test="needPage == true">
             limit #{startNum}, #{pageSize}
         </if>
+    </select>
+
+    <select id="getReviewingScriptCount" resultType="int">
+        select count(distinct `script_id`)
+        from `autoexec_script_version`
+        where `status` = 'submitted'
     </select>
 
     <sql id="searchToolAndScriptConditionForTool">

@@ -45,7 +45,7 @@ public class AutoexecJobStatusUpdateApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
-            @Param(name = "jobPhaseUk", type = ApiParamType.STRING, desc = "作业剧本Uk", isRequired = true),
+            @Param(name = "jobPhaseName", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
             @Param(name = "node", type = ApiParamType.JSONOBJECT, desc = "执行完的节点"),
             @Param(name = "status", type = ApiParamType.INTEGER, desc = "创建进程状态，1:创建成功 0:创建失败", isRequired = true),
             @Param(name = "errorMsg", type = ApiParamType.STRING, desc = "失败原因，如果失败则需要传改字段"),

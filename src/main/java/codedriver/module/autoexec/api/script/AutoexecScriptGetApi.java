@@ -17,8 +17,6 @@ import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.ValueTextVo;
-import codedriver.framework.dao.mapper.UserMapper;
-import codedriver.framework.dto.UserAuthVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -30,13 +28,11 @@ import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.module.autoexec.operate.ScriptOperateBuilder;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @AuthAction(action = AUTOEXEC_SCRIPT_USE.class)
@@ -47,9 +43,6 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
-
-    @Resource
-    private UserMapper userMapper;
 
     @Override
     public String getToken() {
@@ -126,12 +119,8 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
             }
         }
         // 获取操作按钮
-        List<UserAuthVo> authList = userMapper.searchUserAllAuthByUserAuth(new UserAuthVo(UserContext.get().getUserUuid()));
-        if (CollectionUtils.isNotEmpty(authList)) {
-            ScriptOperateBuilder builder = new ScriptOperateBuilder(authList.stream()
-                    .map(UserAuthVo::getAuth).collect(Collectors.toList()), version.getStatus());
-            operateList = builder.setAll().build();
-        }
+        ScriptOperateBuilder builder = new ScriptOperateBuilder(UserContext.get().getUserUuid(), version.getStatus());
+        operateList = builder.setAll().build();
         result.put("script", script);
         result.put("operateList", operateList);
         return result;

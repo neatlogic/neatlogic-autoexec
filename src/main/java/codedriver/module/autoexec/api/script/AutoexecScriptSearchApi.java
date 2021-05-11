@@ -5,18 +5,20 @@
 
 package codedriver.module.autoexec.api.script;
 
+import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_USE;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
 import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_USE;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
-import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
+import codedriver.module.autoexec.operate.ScriptOperateBuilder;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
@@ -51,8 +53,8 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target", desc = "执行方式"),
-            @Param(name = "typeId", type = ApiParamType.LONG, desc = "脚本分类ID"),
-            @Param(name = "riskId", type = ApiParamType.LONG, desc = "操作级别ID"),
+            @Param(name = "typeIdList", type = ApiParamType.JSONARRAY, desc = "分类ID列表"),
+            @Param(name = "riskIdList", type = ApiParamType.JSONARRAY, desc = "操作级别ID列表"),
             @Param(name = "isReviewing", type = ApiParamType.ENUM, rule = "0,1", desc = "是否待审批"),
             @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
             @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
@@ -61,6 +63,8 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
     })
     @Output({
             @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecScriptVo[].class, desc = "脚本列表"),
+            @Param(name = "reviewingCount", type = ApiParamType.INTEGER, desc = "待审批的脚本数"),
+            @Param(name = "operateList", type = ApiParamType.JSONARRAY, desc = "操作按钮"),
             @Param(explode = BasePageVo.class)
     })
     @Description(desc = "查询脚本")
@@ -78,6 +82,9 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
             result.put("pageCount", PageUtil.getPageCount(rowNum, scriptVo.getPageSize()));
             result.put("rowNum", scriptVo.getRowNum());
         }
+        result.put("reviewingCount", autoexecScriptMapper.getReviewingScriptCount());
+        ScriptOperateBuilder builder = new ScriptOperateBuilder(UserContext.get().getUserUuid());
+        result.put("operateList", builder.setGenerateToCombop().setCopy().setExport().setDelete().build());
         return result;
     }
 
