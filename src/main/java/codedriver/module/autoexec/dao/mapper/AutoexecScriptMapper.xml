@@ -152,6 +152,7 @@
         select
         `script_version_id` as scriptVersionId,
         `key`,
+        `name`,
         `default_value` as defaultValue,
         `type`,
         `mode`,
@@ -167,6 +168,7 @@
         select
         `script_version_id` as scriptVersionId,
         `key`,
+        `name`,
         `default_value` as defaultValue,
         `type`,
         `mode`,
@@ -415,6 +417,7 @@
         </association>
         <collection property="paramList" ofType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo">
             <result property="key" column="key"/>
+            <result property="name" column="name"/>
             <result property="defaultValue" column="defaultValue"/>
             <result property="type" column="paramType"/>
             <result property="mode" column="mode"/>
@@ -437,6 +440,7 @@
         (select `name` from `autoexec_risk` where a.`risk_id` = `id`) as riskName,
         (select `color` from `autoexec_risk` where a.`risk_id` = `id`) as riskColor,
         c.`key`,
+        c.`name`,
         c.`default_value` as defaultValue,
         c.`type` as paramType,
         c.`mode`,
@@ -589,6 +593,7 @@
         insert into `autoexec_script_version_param` (
         `script_version_id`,
         `key`,
+        `name`,
         `default_value`,
         `type`,
         `mode`,
@@ -600,6 +605,7 @@
             (
             #{item.scriptVersionId},
             #{item.key},
+            #{item.name},
             #{item.defaultValue},
             #{item.type},
             #{item.mode},
