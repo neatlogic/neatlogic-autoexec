@@ -86,29 +86,29 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
             if (autoexecCombopParamVo != null) {
                 String key = autoexecCombopParamVo.getKey();
                 if(StringUtils.isBlank(key)){
-                    throw new ParamNotExistsException("参数：“paramList.[" + i + "].key”不能为空");
+                    throw new ParamNotExistsException("paramList.[" + i + "].key", false);
                 }
                 if(!keyPattern.matcher(key).matches()){
-                    throw new ParamIrregularException("参数：“paramList.[" + i + "].key”不符合格式要求");
+                    throw new ParamIrregularException("paramList.[" + i + "].key", false);
                 }
                 String name = autoexecCombopParamVo.getName();
                 if(StringUtils.isBlank(name)){
-                    throw new ParamNotExistsException("参数：“paramList.[" + i + "].name”不能为空");
+                    throw new ParamNotExistsException("paramList.[" + i + "].name", false);
                 }
                 if(!namePattern.matcher(name).matches()){
-                    throw new ParamIrregularException("参数：“paramList.[" + i + "].name”不符合格式要求");
+                    throw new ParamIrregularException("paramList.[" + i + "].name", false);
                 }
                 Integer isRequired = autoexecCombopParamVo.getIsRequired();
                 if(isRequired == null){
-                    throw new ParamNotExistsException("参数：“paramList.[" + i + "].isRequired”不能为空");
+                    throw new ParamNotExistsException("paramList.[" + i + "].isRequired", false);
                 }
                 String type = autoexecCombopParamVo.getType();
                 if(StringUtils.isBlank(type)){
-                    throw new ParamNotExistsException("参数：“paramList.[" + i + "].type”不能为空");
+                    throw new ParamNotExistsException("paramList.[" + i + "].type", false);
                 }
                 ParamType paramType = ParamType.getParamType(type);
                 if(paramType == null){
-                    throw new ParamIrregularException("参数：“paramList.[" + i + "].type”不符合格式要求");
+                    throw new ParamIrregularException("paramList.[" + i + "].type", false);
                 }
                 Object value = autoexecCombopParamVo.getDefaultValue();
                 if (value != null && paramType == ParamType.PASSWORD) {
