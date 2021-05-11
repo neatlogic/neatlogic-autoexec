@@ -89,10 +89,6 @@ public class AutoexecCombopCopyApi extends PrivateApiComponentBase {
             throw new AutoexecTypeNotFoundException(typeId);
         }
         autoexecCombopVo.setTypeId(typeId);
-        autoexecCombopService.setOperableButtonList(autoexecCombopVo);
-        if (autoexecCombopVo.getEditable() == 0) {
-            throw new PermissionDeniedException();
-        }
         String name = jsonObj.getString("name");
         autoexecCombopVo.setName(name);
         autoexecCombopVo.setId(null);
