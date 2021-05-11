@@ -12,9 +12,13 @@ import java.util.List;
 
 public interface AutoexecToolMapper {
 
+    int checkToolExistsById(Long id);
+
     List<AutoexecToolAndScriptVo> getToolListByIdList(List<Long> idList);
 
     List<AutoexecToolVo> searchTool(AutoexecToolVo toolVo);
 
     int searchToolCount(AutoexecToolVo toolVo);
+
+    int updateActiveStatus(AutoexecToolVo toolVo);
 }
