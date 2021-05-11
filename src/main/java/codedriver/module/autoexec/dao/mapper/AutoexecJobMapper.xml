@@ -170,7 +170,7 @@
                `start_time` as startTime,
                `end_time`   as endTime,
                `exec_user`  as execUser,
-               `exec_mode` as execMode,
+               `exec_mode`  as execMode,
                `name`       as name,
                `uk`         as uk
         FROM `autoexec_job_phase`
@@ -237,7 +237,7 @@
     </select>
 
     <select id="getFirstJobPhase" resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
-        select id, job_id as jobId,`name`
+        select id, job_id as jobId, `name`
         from `autoexec_job_phase`
         where job_id = #{value}
         order by `sort` asc
@@ -402,12 +402,14 @@
     <insert id="insertJobPhaseNode"
             parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
         INSERT INTO `autoexec_job_phase_node` (`id`,
+                                               `job_id`,
                                                `job_phase_id`,
                                                `host`,
                                                `port`,
                                                `status`,
                                                `proxy_id`)
         VALUES (#{id},
+                #{jobId},
                 #{jobPhaseId},
                 #{host},
                 #{port},
