@@ -82,10 +82,10 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
         }
         List<ValueTextVo> operateList = new ArrayList<>();
         if (AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
-            operateList.add(new ValueTextVo("执行","run"));
-            operateList.add(new ValueTextVo("启用/禁用","active"));
+            operateList.add(new ValueTextVo("测试", "test"));
+            operateList.add(new ValueTextVo("启用/禁用", "active"));
         }
-        result.put("operateList",operateList);
+        result.put("operateList", operateList);
         return result;
     }
 
