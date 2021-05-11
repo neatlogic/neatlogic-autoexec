@@ -6,9 +6,7 @@
 package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_USE;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.autoexec.constvalue.ChangeType;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
@@ -31,9 +29,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
-@AuthAction(action = AUTOEXEC_SCRIPT_USE.class)
-@AuthAction(action = AUTOEXEC_SCRIPT_MODIFY.class)
-@AuthAction(action = AUTOEXEC_SCRIPT_REVIEW.class)
+@AuthAction(action = AUTOEXEC_SCRIPT_SEARCH.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
 

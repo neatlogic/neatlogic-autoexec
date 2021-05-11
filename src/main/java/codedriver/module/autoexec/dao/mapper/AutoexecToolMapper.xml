@@ -2,6 +2,12 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecToolMapper">
 
+    <select id="checkToolExistsById" parameterType="java.lang.Long" resultType="int">
+        select count(`id`)
+        from `autoexec_tool`
+        where `id` = #{value}
+    </select>
+
     <resultMap id="autoexecToolAndScriptMap" type="codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo">
         <id column="id" property="id"/>
         <result column="uk" property="uk"/>
@@ -36,6 +42,74 @@
             #{id}
         </foreach>
     </select>
+
+    <sql id="searchToolCondition">
+        <where>
+            <if test="keyword != null and keyword != ''">
+                and (`name` like CONCAT('%', #{keyword}, '%') or `uk` like CONCAT('%', #{keyword}, '%'))
+            </if>
+            <if test="execMode != null and execMode != ''">
+                and `exec_mode` = #{execMode}
+            </if>
+            <if test="typeIdList != null and typeIdList.size() != 0">
+                and `type_id` in
+                <foreach collection="typeIdList" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="riskIdList != null and riskIdList.size() != 0">
+                and `risk_id` in
+                <foreach collection="riskIdList" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
+            <if test="isActive != null">
+                and `is_active` = #{isActive}
+            </if>
+        </where>
+    </sql>
+
+    <select id="searchToolCount" parameterType="codedriver.framework.autoexec.dto.AutoexecToolVo" resultType="int">
+        select count(`id`)
+        from `autoexec_tool`
+        <include refid="searchToolCondition"/>
+    </select>
+
+    <resultMap id="AutoexecToolMap" type="codedriver.framework.autoexec.dto.AutoexecToolVo">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="type" property="type"/>
+        <result column="execMode" property="execMode"/>
+        <result column="typeId" property="typeId"/>
+        <result column="typeName" property="typeName"/>
+        <result column="isActive" property="isActive"/>
+        <association property="riskVo" javaType="codedriver.framework.autoexec.dto.AutoexecRiskVo">
+            <result column="riskId" property="id"/>
+            <result column="riskName" property="name"/>
+            <result column="riskColor" property="color"/>
+        </association>
+    </resultMap>
+
+    <select id="searchTool" parameterType="codedriver.framework.autoexec.dto.AutoexecToolVo" resultMap="AutoexecToolMap">
+        select
+        `id`,
+        `name`,
+        `exec_mode` as execMode,
+        `type_id` as typeId,
+        (select `name` from `autoexec_type` where `type_id` = `id`) as typeName,
+        `risk_id` as riskId,
+        (select `name` from `autoexec_risk` where `risk_id` = `id`) as riskName,
+        (select `color` from `autoexec_risk` where `risk_id` = `id`) as riskColor,
+        `is_active` as isActive
+        from `autoexec_tool`
+        <include refid="searchToolCondition"/>
+    </select>
+
+    <update id="updateActiveStatus" parameterType="codedriver.framework.autoexec.dto.AutoexecToolVo">
+        update `autoexec_tool`
+        set `is_active` = #{isActive}
+        where `id` = #{id}
+    </update>
 
 </mapper>
 
