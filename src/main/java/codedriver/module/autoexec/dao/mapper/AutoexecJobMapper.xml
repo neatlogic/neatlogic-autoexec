@@ -125,7 +125,7 @@
             </foreach>
         </if>
         <if test="keyword != null and keyword != ''">
-           and an.`name` like concat('%',keyword,'%') or ajpn.`host` like concat('%',keyword,'%')
+           and (an.`name` like concat('%',#{keyword},'%') or ajpn.`host` like concat('%',#{keyword},'%'))
         </if>
     </sql>
 
