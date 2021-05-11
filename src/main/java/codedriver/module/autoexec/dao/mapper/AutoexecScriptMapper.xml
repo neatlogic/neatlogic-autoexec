@@ -203,11 +203,17 @@
             <if test="execMode != null and execMode != ''">
                 and `exec_mode` = #{execMode}
             </if>
-            <if test="typeId != null">
-                and `type_id` = #{typeId}
+            <if test="typeIdList != null and typeIdList.size() != 0">
+                and `type_id` in
+                <foreach collection="typeIdList" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
             </if>
-            <if test="riskId != null">
-                and `risk_id` = #{riskId}
+            <if test="riskIdList != null and riskIdList.size() != 0">
+                and `risk_id` in
+                <foreach collection="riskIdList" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
             </if>
             <if test="isReviewing == 1">
                 and exists (select 1 from `autoexec_script_version` b where b.`script_id` = a.`id` and b.`status` = 'submitted')

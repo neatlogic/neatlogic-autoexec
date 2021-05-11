@@ -11,9 +11,10 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobLogVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.exception.AutoexecJobProxyConnectAuthException;
 import codedriver.framework.autoexec.exception.AutoexecJobProxyConnectRefusedException;
 import codedriver.framework.dto.RestVo;
-import codedriver.framework.restful.dto.ApiVo;
+import codedriver.framework.integration.authentication.costvalue.AuthenticateType;
 import codedriver.framework.util.RestUtil;
 import codedriver.module.autoexec.config.AutoexecConfig;
 import codedriver.module.autoexec.core.AutoexecJobAuthActionManager;
@@ -62,8 +63,8 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             paramJson.put("jobPhaseName", jobPhase.getName());
             paramJson.put("nodeList", nodeList);
             paramJson.put("type", type);
-            String url = AutoexecConfig.PROXY_HOST() + "/job/exec";
-            RestVo restVo = new RestVo(url,ApiVo.AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
+            String url = AutoexecConfig.PROXY_URL() + "/job/exec";
+            RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
             String result = RestUtil.sendRequest(restVo);
             JSONObject resultJson = null;
             try {
@@ -71,6 +72,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             }catch (Exception ex){
                 logger.error(ex.getMessage(),ex);
                 throw new AutoexecJobProxyConnectRefusedException(restVo.getUrl() + " " + result);
+            }
+            if(!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))){
+                throw new AutoexecJobProxyConnectAuthException(resultJson.getString("Message"));
             }
         }
     }
