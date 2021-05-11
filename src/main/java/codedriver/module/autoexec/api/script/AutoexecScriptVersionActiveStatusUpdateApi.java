@@ -16,7 +16,7 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.service.AutoexecScriptService;
 import com.alibaba.fastjson.JSONObject;
@@ -28,7 +28,7 @@ import java.util.Objects;
 
 @Service
 @Transactional
-@AuthAction(action = AUTOEXEC_SCRIPT_REVIEW.class)
+@AuthAction(action = AUTOEXEC_SCRIPT_MANAGE.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class AutoexecScriptVersionActiveStatusUpdateApi extends PrivateApiComponentBase {
 

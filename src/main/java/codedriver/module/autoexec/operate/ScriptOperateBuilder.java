@@ -8,8 +8,8 @@ package codedriver.module.autoexec.operate;
 import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_USE;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.common.dto.ValueTextVo;
 
@@ -41,7 +41,7 @@ public class ScriptOperateBuilder {
     }
 
     public ScriptOperateBuilder setDelete() {
-        if (AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_SCRIPT_REVIEW.class.getSimpleName())) {
+        if (AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())) {
             operateList.add(new ValueTextVo("delete", "删除"));
         }
         return this;
@@ -62,7 +62,7 @@ public class ScriptOperateBuilder {
     }
 
     public ScriptOperateBuilder setCompare() {
-        if (AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_SCRIPT_USE.class.getSimpleName())) {
+        if (AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_SCRIPT_SEARCH.class.getSimpleName())) {
             operateList.add(new ValueTextVo("compare", "版本对比"));
         }
         return this;
@@ -101,7 +101,7 @@ public class ScriptOperateBuilder {
 
     public ScriptOperateBuilder setPass() {
         // 拥有脚本审核权限，且处于待审核状态才能通过
-        if (AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_SCRIPT_REVIEW.class.getSimpleName())
+        if (AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())
                 && Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), status)) {
             operateList.add(new ValueTextVo("pass", "通过"));
         }
@@ -110,7 +110,7 @@ public class ScriptOperateBuilder {
 
     public ScriptOperateBuilder setReject() {
         // 拥有脚本审核权限，且处于待审核状态才能驳回
-        if (AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_SCRIPT_REVIEW.class.getSimpleName())
+        if (AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())
                 && Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), status)) {
             operateList.add(new ValueTextVo("reject", "驳回"));
         }
@@ -125,14 +125,14 @@ public class ScriptOperateBuilder {
     }
 
     public ScriptOperateBuilder setExport() {
-        if (AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_SCRIPT_USE.class.getSimpleName())) {
+        if (AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_SCRIPT_SEARCH.class.getSimpleName())) {
             operateList.add(new ValueTextVo("export", "导出"));
         }
         return this;
     }
 
     public ScriptOperateBuilder setActive() {
-        if (AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_SCRIPT_REVIEW.class.getSimpleName())
+        if (AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())
                 && Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), status)) {
             operateList.add(new ValueTextVo("active", "启用/禁用"));
         }
