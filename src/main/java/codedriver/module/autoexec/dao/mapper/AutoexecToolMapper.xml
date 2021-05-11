@@ -2,6 +2,12 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecToolMapper">
 
+    <select id="checkToolExistsById" parameterType="java.lang.Long" resultType="int">
+        select count(`id`)
+        from `autoexec_tool`
+        where `id` = #{value}
+    </select>
+
     <resultMap id="autoexecToolAndScriptMap" type="codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo">
         <id column="id" property="id"/>
         <result column="uk" property="uk"/>
@@ -98,6 +104,12 @@
         from `autoexec_tool`
         <include refid="searchToolCondition"/>
     </select>
+
+    <update id="updateActiveStatus" parameterType="codedriver.framework.autoexec.dto.AutoexecToolVo">
+        update `autoexec_tool`
+        set `is_active` = #{isActive}
+        where `id` = #{id}
+    </update>
 
 </mapper>
 
