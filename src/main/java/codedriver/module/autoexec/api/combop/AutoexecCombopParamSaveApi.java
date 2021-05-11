@@ -78,8 +78,8 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
         List<AutoexecCombopParamVo> autoexecCombopParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopId);
         autoexecCombopMapper.deleteAutoexecCombopParamByCombopId(combopId);
         List<AutoexecCombopParamVo> autoexecCombopParamVoList = new ArrayList<>();
-        Pattern keyPattern = Pattern.compile("^[A-Za-z_\\d\\u4e00-\\u9fa5]+$");
-//        Pattern namePattern = Pattern.compile("^[A-Za-z_\\d]+$");
+        Pattern keyPattern = Pattern.compile("^[A-Za-z_\\d]+$");
+        Pattern namePattern = Pattern.compile("^[A-Za-z_\\d\\u4e00-\\u9fa5]+$");
         JSONArray paramList = jsonObj.getJSONArray("paramList");
         for (int i = 0; i < paramList.size(); i++) {
             AutoexecCombopParamVo autoexecCombopParamVo = paramList.getObject(i, AutoexecCombopParamVo.class);
@@ -91,13 +91,13 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
                 if(!keyPattern.matcher(key).matches()){
                     throw new ParamIrregularException("参数：“paramList.[" + i + "].key”不符合格式要求");
                 }
-//                String name = autoexecCombopParamVo.getName();
-//                if(StringUtils.isBlank(name)){
-//                    throw new ParamNotExistsException("参数：“paramList.[" + i + "].name”不能为空");
-//                }
-//                if(!namePattern.matcher(name).matches()){
-//                    throw new ParamIrregularException("参数：“paramList.[" + i + "].name”不符合格式要求");
-//                }
+                String name = autoexecCombopParamVo.getName();
+                if(StringUtils.isBlank(name)){
+                    throw new ParamNotExistsException("参数：“paramList.[" + i + "].name”不能为空");
+                }
+                if(!namePattern.matcher(name).matches()){
+                    throw new ParamIrregularException("参数：“paramList.[" + i + "].name”不符合格式要求");
+                }
                 Integer isRequired = autoexecCombopParamVo.getIsRequired();
                 if(isRequired == null){
                     throw new ParamNotExistsException("参数：“paramList.[" + i + "].isRequired”不能为空");

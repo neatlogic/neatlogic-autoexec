@@ -190,14 +190,16 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
             }
         }
         AutoexecCombopExecuteConfigVo executeConfigVo = config.getExecuteConfig();
-        if (executeConfigVo == null) {
-            throw new AutoexecCombopExecuteUserCannotBeEmptyException();
+        if (executeConfigVo != null) {
+            if(Objects.equals(executeConfigVo.getWhenToSpecify(), CombopNodeSpecify.NOW.getValue())){
+                String executeUser = executeConfigVo.getExecuteUser();
+                if (StringUtils.isBlank(executeUser)) {
+                    throw new AutoexecCombopExecuteUserCannotBeEmptyException();
+                }
+                // TODO 验证执行用户是否存在
+            }
         }
-        String executeUser = executeConfigVo.getExecuteUser();
-        if (StringUtils.isBlank(executeUser)) {
-            throw new AutoexecCombopExecuteUserCannotBeEmptyException();
-        }
-        // TODO 验证执行用户是否存在
+
         return true;
     }
 }
