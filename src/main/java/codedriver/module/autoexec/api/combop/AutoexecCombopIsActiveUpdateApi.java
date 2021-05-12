@@ -9,6 +9,7 @@ import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.exception.type.PermissionDeniedException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Objects;
 
 /**
  * 更新组合工具状态接口
@@ -69,13 +71,15 @@ public class AutoexecCombopIsActiveUpdateApi extends PrivateApiComponentBase {
         if (isActive == null) {
             throw new AutoexecCombopNotFoundException(id);
         }
+        AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
+        autoexecCombopService.setOperableButtonList(autoexecCombopVo);
+        if (Objects.equals(autoexecCombopVo.getEditable(), 0)) {
+            throw new PermissionDeniedException();
+        }
         /** 如果是激活组合工具，则需要校验该组合工具配置正确 **/
         if (isActive == 0) {
-            AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
             autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo);
         }
-        AutoexecCombopVo autoexecCombopVo = new AutoexecCombopVo();
-        autoexecCombopVo.setId(id);
         autoexecCombopVo.setLcu(UserContext.get().getUserUuid(true));
         autoexecCombopMapper.updateAutoexecCombopIsActiveById(autoexecCombopVo);
         return (1 - isActive);

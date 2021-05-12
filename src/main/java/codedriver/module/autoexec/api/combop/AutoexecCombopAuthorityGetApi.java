@@ -58,7 +58,8 @@ public class AutoexecCombopAuthorityGetApi extends PrivateApiComponentBase {
     })
     @Output({
             @Param(name = "editAuthorityList", type = ApiParamType.JSONARRAY, desc = "编辑授权列表"),
-            @Param(name = "executeAuthorityList", type = ApiParamType.JSONARRAY, desc = "执行授权列表")
+            @Param(name = "executeAuthorityList", type = ApiParamType.JSONARRAY, desc = "执行授权列表"),
+            @Param(name = "viewAuthorityList", type = ApiParamType.JSONARRAY, desc = "查看授权列表")
     })
     @Description(desc = "查询组合工具授权信息")
     @Override
@@ -67,19 +68,15 @@ public class AutoexecCombopAuthorityGetApi extends PrivateApiComponentBase {
         if (autoexecCombopMapper.checkAutoexecCombopIsExists(combopId) == 0) {
             throw new AutoexecCombopNotFoundException(combopId);
         }
-        List<String> editAuthorityList = new ArrayList<>();
-        List<AutoexecCombopAuthorityVo> editAuthorityVoList = autoexecCombopMapper.getAutoexecCombopAuthorityListByCombopIdAndAction(combopId, CombopAuthorityAction.EDIT.getValue());
-        for (AutoexecCombopAuthorityVo autoexecCombopAuthorityVo : editAuthorityVoList) {
-            editAuthorityList.add(autoexecCombopAuthorityVo.getType() + "#" + autoexecCombopAuthorityVo.getUuid());
-        }
-        List<String> executeAuthorityList = new ArrayList<>();
-        List<AutoexecCombopAuthorityVo> executeAuthorityVoList = autoexecCombopMapper.getAutoexecCombopAuthorityListByCombopIdAndAction(combopId, CombopAuthorityAction.EXECUTE.getValue());
-        for (AutoexecCombopAuthorityVo autoexecCombopAuthorityVo : executeAuthorityVoList) {
-            executeAuthorityList.add(autoexecCombopAuthorityVo.getType() + "#" + autoexecCombopAuthorityVo.getUuid());
-        }
         JSONObject resultObj = new JSONObject();
-        resultObj.put("editAuthorityList", editAuthorityList);
-        resultObj.put("executeAuthorityList", executeAuthorityList);
+        for (CombopAuthorityAction authorityAction : CombopAuthorityAction.values()) {
+            List<String> authorityList = new ArrayList<>();
+            List<AutoexecCombopAuthorityVo> authorityVoList = autoexecCombopMapper.getAutoexecCombopAuthorityListByCombopIdAndAction(combopId, authorityAction.getValue());
+            for (AutoexecCombopAuthorityVo autoexecCombopAuthorityVo : authorityVoList) {
+                authorityList.add(autoexecCombopAuthorityVo.getType() + "#" + autoexecCombopAuthorityVo.getUuid());
+            }
+            resultObj.put(authorityAction.getValue() + "AuthorityList", authorityList);
+        }
         return resultObj;
     }
 }
