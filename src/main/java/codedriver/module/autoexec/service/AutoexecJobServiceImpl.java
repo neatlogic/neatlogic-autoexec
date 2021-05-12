@@ -43,7 +43,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     AutoexecProxyMapper autoexecProxyMapper;
 
     @Override
-    public Long saveAutoexecCombopJob(AutoexecCombopVo combopVo, String source, Integer threadCount, JSONObject paramJson) {
+    public AutoexecJobVo saveAutoexecCombopJob(AutoexecCombopVo combopVo, String source, Integer threadCount, JSONObject paramJson) {
         AutoexecCombopConfigVo config = combopVo.getConfig();
         combopVo.setRuntimeParamList(autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopVo.getId()));
         AutoexecJobVo jobVo = new AutoexecJobVo(combopVo, CombopOperationType.COMBOP.getValue(), source, threadCount, paramJson);
@@ -57,11 +57,16 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             jobNodeVoList = getJobNodeList(nodeConfigVo, jobVo.getOperationId());
         }
         //保存阶段
+        List<AutoexecJobPhaseVo> jobPhaseVoList = new ArrayList<>();
+        jobVo.setPhaseList(jobPhaseVoList);
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
         for (int i = 0; i < combopPhaseList.size(); i++) {
             AutoexecCombopPhaseVo autoexecCombopPhaseVo = combopPhaseList.get(i);
             AutoexecJobPhaseVo jobPhaseVo = new AutoexecJobPhaseVo(autoexecCombopPhaseVo, i, jobVo.getId());
             autoexecJobMapper.insertJobPhase(jobPhaseVo);
+            if(jobPhaseVo.getSort() == 0) {//只需要第一个剧本，供后续激活执行
+                jobPhaseVoList.add(jobPhaseVo);
+            }
             AutoexecCombopPhaseConfigVo phaseConfigVo = autoexecCombopPhaseVo.getConfig();
             //jobPhaseNode
             AutoexecCombopExecuteConfigVo executeConfigVo = phaseConfigVo.getExecuteConfig();
@@ -80,22 +85,25 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
             }
             //jobPhaseOperation
+            List<AutoexecJobPhaseOperationVo> jobPhaseOperationVos = new ArrayList<>();
+            jobPhaseVo.setOperationList(jobPhaseOperationVos);
             List<AutoexecCombopPhaseOperationVo> combopPhaseOperationList = phaseConfigVo.getPhaseOperationList();
             for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : combopPhaseOperationList) {
                 String operationType = autoexecCombopPhaseOperationVo.getOperationType();
                 Long operationId = autoexecCombopPhaseOperationVo.getOperationId();
-                AutoexecJobPhaseOperationVo operationVo = null;
+                AutoexecJobPhaseOperationVo jobPhaseOperationVo = null;
                 if (CombopOperationType.SCRIPT.getValue().equalsIgnoreCase(operationType)) {
                     AutoexecScriptVo scriptVo = autoexecScriptMapper.getScriptBaseInfoById(operationId);
                     AutoexecScriptVersionVo scriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(operationId);
                     List<AutoexecScriptLineVo> scriptLineVoList = autoexecScriptMapper.getLineListByVersionId(scriptVersionVo.getId());
-                    operationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, scriptVo, scriptVersionVo, scriptLineVoList);
-                    autoexecJobMapper.insertJobPhaseOperation(operationVo);
-                    autoexecJobMapper.insertJobParamContent(new AutoexecJobParamContentVo(operationVo.getParamHash(), operationVo.getParamStr()));
+                    jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, scriptVo, scriptVersionVo, scriptLineVoList);
+                    autoexecJobMapper.insertJobPhaseOperation(jobPhaseOperationVo);
+                    autoexecJobMapper.insertJobParamContent(new AutoexecJobParamContentVo(jobPhaseOperationVo.getParamHash(), jobPhaseOperationVo.getParamStr()));
+                    jobPhaseOperationVos.add(jobPhaseOperationVo);
                 }
             }
         }
-        return jobVo.getId();
+        return jobVo;
     }
 
     /**

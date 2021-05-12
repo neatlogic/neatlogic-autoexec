@@ -7,10 +7,7 @@ package codedriver.module.autoexec.service;
 
 import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.constvalue.JobStatus;
-import codedriver.framework.autoexec.dto.job.AutoexecJobLogVo;
-import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
-import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
-import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.exception.AutoexecJobProxyConnectAuthException;
 import codedriver.framework.autoexec.exception.AutoexecJobProxyConnectRefusedException;
 import codedriver.framework.dto.RestVo;
@@ -44,25 +41,22 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     /**
      * 第一次执行/重跑/继续作业
      *
-     * @param jobPhase 作业剧本
-     * @param nodeList 如果存在某些节点重跑的场景，则必填 。为空数组时则全部重跑
-     *                 例：[{“ip”: “192.168.0.1”, “port”: “223”}]。
-     * @param type     重跑redo，第一次跑 first, 继续跑 goon
+     * @param jobVo 作业
+     * @param type   重跑redo，第一次跑 first, 继续跑 goon
      */
     @Override
-    public void fire(AutoexecJobPhaseVo jobPhase, JSONArray nodeList, String type) {
-        AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobPhase.getJobId());
+    public void fire(AutoexecJobVo jobVo, String type) {
+        autoexecJobMapper.getJobLockByJobId(jobVo.getId());
         autoexecJobAuthActionManager.setAutoexecJobAction(jobVo);
         if (jobVo.getIsCanJobExec() == 1) {
-            jobPhase.setStatus(JobPhaseStatus.WAITING.getValue());
             jobVo.setStatus(JobStatus.RUNNING.getValue());
             autoexecJobMapper.updateJobStatus(jobVo);
-            autoexecJobMapper.updateJobPhaseStatus(jobPhase);
+            for(AutoexecJobPhaseVo jobPhase : jobVo.getPhaseList()) {
+                jobPhase.setStatus(JobPhaseStatus.WAITING.getValue());
+                autoexecJobMapper.updateJobPhaseStatus(jobPhase);
+            }
             JSONObject paramJson = new JSONObject();
-            paramJson.put("jobId", jobPhase.getJobId());
-            paramJson.put("jobPhaseName", jobPhase.getName());
-            paramJson.put("nodeList", nodeList);
-            paramJson.put("type", type);
+            getFireParamJson(paramJson,jobVo);
             String url = AutoexecConfig.PROXY_URL() + "/job/exec";
             RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
             String result = RestUtil.sendRequest(restVo);
@@ -77,6 +71,66 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                 throw new AutoexecJobProxyConnectAuthException(resultJson.getString("Message"));
             }
         }
+    }
+
+    /**
+     * 拼装给proxy的param
+     * @param paramJson 返回param值
+     * @param jobVo 作业
+     */
+    private void getFireParamJson(JSONObject paramJson,AutoexecJobVo jobVo){
+        paramJson.put("jobId", jobVo.getId());
+        paramJson.put("preJobId", null); //给后续ITSM对接使用
+        paramJson.put("parallel",jobVo.getThreadCount());
+        paramJson.put("passThroughEnv", null); //回调需要的返回的参数
+        JSONArray paramArray = jobVo.getParam();
+        JSONObject argJson = new JSONObject(){{
+            for(Object paramObj : paramArray ){
+                JSONObject paramTmp = JSONObject.parseObject(paramObj.toString());
+                put(paramTmp.getString("key"),paramTmp.getString("value"));
+            }
+        }};
+        paramJson.put("arg",argJson);
+        JSONArray runFlowArray = new JSONArray();
+        paramJson.put("runFlow",new JSONArray(){{
+            for(AutoexecJobPhaseVo jobPhase : jobVo.getPhaseList()) {
+                add(new JSONObject(){{
+                    put(jobPhase.getName(),new JSONArray(){{
+                        for(AutoexecJobPhaseOperationVo operationVo : jobPhase.getOperationList()){
+                            add(new JSONObject(){{
+                                put("opId",operationVo.getName()+"_"+operationVo.getId());
+                                put("opName",operationVo.getName());
+                                put("opType",operationVo.getExecMode());
+                                put("failIgnore",operationVo.getFailIgnore());
+                                JSONObject param = operationVo.getParam();
+                                put("arg",new JSONObject(){{
+                                    for(Object arg : param.getJSONArray("inputParamList")){
+                                        JSONObject argJson  = JSONObject.parseObject(arg.toString());
+                                        put(argJson.getString("key"),argJson.getString("value"));
+                                    }
+                                }});
+                                put("desc",new JSONObject(){{
+                                    for(Object arg : param.getJSONArray("inputParamList")) {
+                                        JSONObject argJson  = JSONObject.parseObject(arg.toString());
+                                        put(argJson.getString("key"),argJson.getString("description"));
+                                    }
+                                }});
+                                put("output",new JSONObject(){{
+                                    for(Object arg : param.getJSONArray("outputParamList")){
+                                        JSONObject argJson  = JSONObject.parseObject(arg.toString());
+                                        put(argJson.getString("key"),argJson.getString("value"));
+                                    }
+                                }});
+
+                            }});
+                        }
+                    }});
+                }});
+            }
+        }});
+
+
+
     }
 
     /**
