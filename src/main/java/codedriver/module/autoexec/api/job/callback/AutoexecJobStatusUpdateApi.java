@@ -3,17 +3,14 @@
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  */
 
-package codedriver.module.autoexec.api.job;
+package codedriver.module.autoexec.api.job.callback;
 
-import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_JOB_MODIFY;
-import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
-import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
@@ -27,9 +24,8 @@ import javax.annotation.Resource;
  **/
 @Service
 @Transactional
-@AuthAction(action = AUTOEXEC_JOB_MODIFY.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
-public class AutoexecJobStatusUpdateApi extends PrivateApiComponentBase {
+public class AutoexecJobStatusUpdateApi extends PublicApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
 
@@ -45,28 +41,29 @@ public class AutoexecJobStatusUpdateApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
-            @Param(name = "jobPhaseName", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
+            @Param(name = "preJobId", type = ApiParamType.LONG, desc = "上一个作业Id"),
+            @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数"),
+            @Param(name = "phase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
             @Param(name = "node", type = ApiParamType.JSONOBJECT, desc = "执行完的节点"),
-            @Param(name = "status", type = ApiParamType.INTEGER, desc = "创建进程状态，1:创建成功 0:创建失败", isRequired = true),
-            @Param(name = "errorMsg", type = ApiParamType.STRING, desc = "失败原因，如果失败则需要传改字段"),
+            @Param(name = "status", type = ApiParamType.STRING, desc = "状态", isRequired = true),
+            @Param(name = "fireNext", type = ApiParamType.INTEGER, desc = "是否激活下一个剧本，1:是 0:否", isRequired = true)
     })
     @Output({
     })
-    @Description(desc = "回调创建作业剧本进程状态,更新作业状态")
+    @Description(desc = "回调创建作业剧本进程状态")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
-        String jobPhaseName = jsonObj.getString("jobPhaseName");
+        String jobPhaseName = jsonObj.getString("phase");
         JSONObject node = jsonObj.getJSONObject("node");
-        String status = jsonObj.getInteger("status") == 1 ? JobStatus.SUCCEED.getValue() : JobStatus.FAILED.getValue();
-        String errorMsg = jsonObj.getString("errorMsg");
+        String status = jsonObj.getString("status");
 
         if (node == null) {//跟新剧本状态
             AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseLockByJobIdAndPhaseName(jobId, jobPhaseName);
             if (jobPhaseVo == null) {
                 throw new AutoexecJobPhaseNotFoundException(jobPhaseName);
             }
-            autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), status, errorMsg));
+            autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), status));
         } else {//跟新节点状态
             //TODO
         }
