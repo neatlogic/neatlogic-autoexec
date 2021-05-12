@@ -120,10 +120,10 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
             }
         }
         // 获取操作按钮
-        ScriptOperateBuilder builder1 = new ScriptOperateBuilder(UserContext.get().getUserUuid(), version.getStatus());
-        versionOperateList = builder1.setAll().build();
-        ScriptOperateBuilder builder2 = new ScriptOperateBuilder(UserContext.get().getUserUuid());
-        scriptOperateList = builder2.setGenerateToCombop().setCopy().setExport().setDelete().build();
+        ScriptOperateBuilder versionOperateBuilder = new ScriptOperateBuilder(UserContext.get().getUserUuid(), version.getStatus());
+        versionOperateList = versionOperateBuilder.setAll().build();
+        ScriptOperateBuilder scriptOperateBuilder = new ScriptOperateBuilder(UserContext.get().getUserUuid());
+        scriptOperateList = scriptOperateBuilder.setGenerateToCombop().setCopy().setExport().setDelete().build();
         result.put("script", script);
         result.put("versionOperateList", versionOperateList);
         result.put("scriptOperateList", scriptOperateList);
