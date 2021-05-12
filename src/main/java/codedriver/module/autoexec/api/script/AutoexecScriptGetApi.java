@@ -62,7 +62,8 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
     })
     @Output({
             @Param(name = "script", explode = AutoexecScriptVo[].class, desc = "脚本内容"),
-            @Param(name = "operateList", explode = ValueTextVo[].class, desc = "按钮列表"),
+            @Param(name = "scriptOperateList", explode = ValueTextVo[].class, desc = "脚本按钮列表"),
+            @Param(name = "versionOperateList", explode = ValueTextVo[].class, desc = "版本按钮列表"),
     })
     @Description(desc = "查看脚本")
     @Override
@@ -70,7 +71,8 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         JSONObject result = new JSONObject();
         AutoexecScriptVo script = null;
         AutoexecScriptVersionVo version = null;
-        List<ValueTextVo> operateList = null;
+        List<ValueTextVo> versionOperateList = null;
+        List<ValueTextVo> scriptOperateList = null;
         Long id = jsonObj.getLong("id");
         Long versionId = jsonObj.getLong("versionId");
         if (id != null) { // 不指定版本
@@ -104,6 +106,7 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         version.setParamList(autoexecScriptMapper.getParamListByVersionId(version.getId()));
         version.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
         script.setReferenceCount(autoexecScriptMapper.getReferenceCountByScriptId(id));
+        // todo 设置当前用户对关联的组合工具的可读性
         List<AutoexecCombopVo> combopList = autoexecScriptMapper.getReferenceListByScriptId(id);
         script.setCombopList(combopList);
         // 如果是已驳回状态，查询驳回原因
@@ -117,10 +120,13 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
             }
         }
         // 获取操作按钮
-        ScriptOperateBuilder builder = new ScriptOperateBuilder(UserContext.get().getUserUuid(), version.getStatus());
-        operateList = builder.setAll().build();
+        ScriptOperateBuilder builder1 = new ScriptOperateBuilder(UserContext.get().getUserUuid(), version.getStatus());
+        versionOperateList = builder1.setAll().build();
+        ScriptOperateBuilder builder2 = new ScriptOperateBuilder(UserContext.get().getUserUuid());
+        scriptOperateList = builder2.setGenerateToCombop().setCopy().setExport().setDelete().build();
         result.put("script", script);
-        result.put("operateList", operateList);
+        result.put("versionOperateList", versionOperateList);
+        result.put("scriptOperateList", scriptOperateList);
         return result;
     }
 
