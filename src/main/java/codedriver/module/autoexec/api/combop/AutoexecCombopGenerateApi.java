@@ -24,8 +24,6 @@ import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -117,8 +115,8 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
             List<AutoexecScriptVersionParamVo> inputParamList = new ArrayList<>();
             List<AutoexecScriptVersionParamVo> outputParamList = new ArrayList<>();
             List<AutoexecScriptVersionParamVo> autoexecScriptVersionParamVoList = autoexecScriptMapper.getParamListByScriptId(operationId);
-            if(CollectionUtils.isNotEmpty(autoexecScriptVersionParamVoList)) {
-                for(AutoexecScriptVersionParamVo paramVo : autoexecScriptVersionParamVoList){
+            if (CollectionUtils.isNotEmpty(autoexecScriptVersionParamVoList)) {
+                for (AutoexecScriptVersionParamVo paramVo : autoexecScriptVersionParamVoList) {
                     String mode = paramVo.getMode();
                     if (Objects.equals(mode, ParamMode.INPUT.getValue())) {
                         inputParamList.add(paramVo);
