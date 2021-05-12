@@ -41,35 +41,35 @@ public class AutoexecServiceImpl implements AutoexecService {
                 String type = param.getType();
                 Integer isRequired = param.getIsRequired();
                 if (StringUtils.isBlank(key)) {
-                    throw new ParamNotExistsException("paramList.[" + i + "].key", false);
+                    throw new ParamNotExistsException("paramList.[" + i + "].key");
                 }
                 if (!paramKeyPattern.matcher(key).matches()) {
-                    throw new ParamIrregularException("paramList.[" + i + "].key", false);
+                    throw new ParamIrregularException("paramList.[" + i + "].key");
                 }
                 if (StringUtils.isBlank(name)) {
-                    throw new ParamNotExistsException("paramList.[" + i + "].name", false);
+                    throw new ParamNotExistsException("paramList.[" + i + "].name");
                 }
                 if (!paramNamePattern.matcher(name).matches()) {
-                    throw new ParamIrregularException("paramList.[" + i + "].name", false);
+                    throw new ParamIrregularException("paramList.[" + i + "].name");
                 }
                 if (isRequired == null && !Objects.equals(ParamMode.OUTPUT.getValue(), mode)) {
-                    throw new ParamNotExistsException("paramList.[" + i + "].isRequired", false);
+                    throw new ParamNotExistsException("paramList.[" + i + "].isRequired");
                 }
                 if (param instanceof AutoexecScriptVersionParamVo && StringUtils.isBlank(mode)) {
-                    throw new ParamNotExistsException("paramList.[" + i + "].mode", false);
+                    throw new ParamNotExistsException("paramList.[" + i + "].mode");
                 }
                 if (StringUtils.isNotBlank(mode) && ParamMode.getParamMode(mode) == null) {
-                    throw new ParamIrregularException("paramList.[" + i + "].mode", false);
+                    throw new ParamIrregularException("paramList.[" + i + "].mode");
                 }
                 if (StringUtils.isBlank(type)) {
-                    throw new ParamNotExistsException("paramList.[" + i + "].type", false);
+                    throw new ParamNotExistsException("paramList.[" + i + "].type");
                 }
                 ParamType paramType = ParamType.getParamType(type);
                 if (paramType == null) {
-                    throw new ParamIrregularException("paramList.[" + i + "].type", false);
+                    throw new ParamIrregularException("paramList.[" + i + "].type");
                 }
                 if (ParamType.TEXT != paramType && ParamMode.OUTPUT.getValue().equals(param.getMode())) {
-                    throw new ParamIrregularException("paramList.[" + i + "].type", false);
+                    throw new ParamIrregularException("paramList.[" + i + "].type");
                 }
             }
         }
