@@ -86,29 +86,29 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
             if (autoexecCombopParamVo != null) {
                 String key = autoexecCombopParamVo.getKey();
                 if(StringUtils.isBlank(key)){
-                    throw new ParamNotExistsException("paramList.[" + i + "].key", false);
+                    throw new ParamNotExistsException("paramList.[" + i + "].key");
                 }
                 if(!keyPattern.matcher(key).matches()){
-                    throw new ParamIrregularException("paramList.[" + i + "].key", false);
+                    throw new ParamIrregularException("paramList.[" + i + "].key");
                 }
                 String name = autoexecCombopParamVo.getName();
                 if(StringUtils.isBlank(name)){
-                    throw new ParamNotExistsException("paramList.[" + i + "].name", false);
+                    throw new ParamNotExistsException("paramList.[" + i + "].name");
                 }
                 if(!namePattern.matcher(name).matches()){
-                    throw new ParamIrregularException("paramList.[" + i + "].name", false);
+                    throw new ParamIrregularException("paramList.[" + i + "].name");
                 }
                 Integer isRequired = autoexecCombopParamVo.getIsRequired();
                 if(isRequired == null){
-                    throw new ParamNotExistsException("paramList.[" + i + "].isRequired", false);
+                    throw new ParamNotExistsException("paramList.[" + i + "].isRequired");
                 }
                 String type = autoexecCombopParamVo.getType();
                 if(StringUtils.isBlank(type)){
-                    throw new ParamNotExistsException("paramList.[" + i + "].type", false);
+                    throw new ParamNotExistsException("paramList.[" + i + "].type");
                 }
                 ParamType paramType = ParamType.getParamType(type);
                 if(paramType == null){
-                    throw new ParamIrregularException("paramList.[" + i + "].type", false);
+                    throw new ParamIrregularException("paramList.[" + i + "].type");
                 }
                 Object value = autoexecCombopParamVo.getDefaultValue();
                 if (value != null && paramType == ParamType.PASSWORD) {
