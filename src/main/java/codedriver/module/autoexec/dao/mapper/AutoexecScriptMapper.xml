@@ -11,7 +11,7 @@
         `type_id` as typeId,
         `risk_id` as riskId,
         (select `name` from `autoexec_type` where a.`type_id` = `id`) as type,
-        (select `name` from `autoexec_risk` where a.`risk_id` = `id`) as risk,
+        (select `name` from `autoexec_risk` where a.`risk_id` = `id`) as riskName,
         `fcu`,
         `fcd`
         from `autoexec_script` a
@@ -270,12 +270,6 @@
         <if test="needPage == true">
             limit #{startNum}, #{pageSize}
         </if>
-    </select>
-
-    <select id="getReviewingScriptCount" resultType="int">
-        select count(distinct `script_id`)
-        from `autoexec_script_version`
-        where `status` = 'submitted'
     </select>
 
     <sql id="searchToolAndScriptConditionForTool">

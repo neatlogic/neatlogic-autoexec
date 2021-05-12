@@ -78,7 +78,8 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
             result.put("pageCount", PageUtil.getPageCount(rowNum, scriptVo.getPageSize()));
             result.put("rowNum", scriptVo.getRowNum());
         }
-        result.put("reviewingCount", autoexecScriptMapper.getReviewingScriptCount());
+        scriptVo.setIsReviewing(1);
+        result.put("reviewingCount", autoexecScriptMapper.searchScriptCount(scriptVo));
         ScriptOperateBuilder builder = new ScriptOperateBuilder(UserContext.get().getUserUuid());
         result.put("operateList", builder.setGenerateToCombop().setCopy().setExport().setDelete().build());
         return result;

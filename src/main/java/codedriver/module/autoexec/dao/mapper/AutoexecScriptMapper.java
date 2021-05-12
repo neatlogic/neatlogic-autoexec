@@ -48,8 +48,6 @@ public interface AutoexecScriptMapper {
 
     List<AutoexecScriptVo> searchScript(AutoexecScriptVo scriptVo);
 
-    int getReviewingScriptCount();
-
     int searchScriptAndToolCount(AutoexecToolAndScriptVo searchVo);
 
     List<AutoexecToolAndScriptVo> searchScriptAndTool(AutoexecToolAndScriptVo searchVo);
