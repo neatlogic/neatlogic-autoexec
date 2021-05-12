@@ -75,7 +75,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
             for (AutoexecJobPhaseNodeVo nodeVo : autoexecJobPhaseNodeVoList){
                 JSONObject nodeJson = new JSONObject(){{
                     //TODO 待资源中心完善，需补充
-                    put("nodeId",nodeVo.getNodeId());
+                    put("nodeId",nodeVo.getId());
                     put("nodeType",nodeVo.getNodeType());
                     put("host",nodeVo.getHost());
                     put("port",nodeVo.getPort());
