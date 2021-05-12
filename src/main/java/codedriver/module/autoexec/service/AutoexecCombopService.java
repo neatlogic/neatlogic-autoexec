@@ -6,7 +6,8 @@
 package codedriver.module.autoexec.service;
 
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
-import com.alibaba.fastjson.JSONObject;
+
+import java.util.List;
 
 /**
  * @author: linbq
@@ -20,6 +21,13 @@ public interface AutoexecCombopService {
      * @param autoexecCombopVo 组合工具Vo对象
      */
     public void setOperableButtonList(AutoexecCombopVo autoexecCombopVo);
+
+    /**
+     * 设置当前用户可操作按钮权限列表
+     *
+     * @param combopVoList 组合工具Vo对象列表
+     */
+    public void setOperableButtonList(List<AutoexecCombopVo> combopVoList);
 
     /**
      * 校验组合工具每个阶段是否配置正确
