@@ -8,7 +8,6 @@ package codedriver.module.autoexec.api.script;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
 import codedriver.framework.autoexec.constvalue.ParamMode;
 import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
@@ -43,7 +42,6 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @AuthAction(action = AUTOEXEC_SCRIPT_MODIFY.class)
-@AuthAction(action = AUTOEXEC_SCRIPT_REVIEW.class)
 @OperationType(type = OperationTypeEnum.CREATE)
 public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
 
@@ -81,7 +79,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             @Param(name = "riskId", type = ApiParamType.LONG, desc = "操作级别ID", isRequired = true),
             @Param(name = "paramList", type = ApiParamType.JSONARRAY, desc = "参数列表"),
             @Param(name = "parser", type = ApiParamType.ENUM, rule = "python,vbs,shell,perl,powershell,bat,xml", desc = "脚本解析器"),
-            @Param(name = "lineList", type = ApiParamType.JSONARRAY, desc = "脚本内容行数据列表,e.g:[{\"content\":\"#!/usr/bin/env bash\"},{\"content\":\"show_ascii_berry()\"}]"),
+            @Param(name = "lineList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "脚本内容行数据列表,e.g:[{\"content\":\"#!/usr/bin/env bash\"},{\"content\":\"show_ascii_berry()\"}]"),
     })
     @Output({
             @Param(name = "id", type = ApiParamType.LONG, desc = "脚本ID"),
@@ -114,7 +112,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
                 scriptVo.setFcu(UserContext.get().getUserUuid());
                 autoexecScriptMapper.insertScript(scriptVo);
                 versionVo.setScriptId(scriptVo.getId());
-                versionVo.setVersion(0);
+                versionVo.setVersion(1);
                 versionVo.setIsActive(0);
                 autoexecScriptMapper.insertScriptVersion(versionVo);
                 scriptVo.setVersionId(versionVo.getId());
@@ -140,7 +138,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
                 throw new AutoexecScriptNotFoundException(scriptVo.getId());
             }
             Integer maxVersion = autoexecScriptMapper.getMaxVersionByScriptId(scriptVo.getId());
-            versionVo.setVersion(maxVersion != null ? maxVersion + 1 : 0);
+            versionVo.setVersion(maxVersion != null ? maxVersion + 1 : 1);
             versionVo.setScriptId(scriptVo.getId());
             versionVo.setIsActive(0);
             autoexecScriptMapper.insertScriptVersion(versionVo);
@@ -242,22 +240,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
         while (beforeParamIterator.hasNext() && afterParamIterator.hasNext()) {
             AutoexecScriptVersionParamVo beforeNextParam = beforeParamIterator.next();
             AutoexecScriptVersionParamVo afterNextParam = afterParamIterator.next();
-            if (!Objects.equals(beforeNextParam.getKey(), afterNextParam.getKey())) {
-                return true;
-            }
-            if (!Objects.equals(beforeNextParam.getDefaultValue(), afterNextParam.getDefaultValue())) {
-                return true;
-            }
-            if (!Objects.equals(beforeNextParam.getType(), afterNextParam.getType())) {
-                return true;
-            }
-            if (!Objects.equals(beforeNextParam.getMode(), afterNextParam.getMode())) {
-                return true;
-            }
-            if (!Objects.equals(beforeNextParam.getIsRequired(), afterNextParam.getIsRequired())) {
-                return true;
-            }
-            if (!Objects.equals(beforeNextParam.getDescription(), afterNextParam.getDescription())) {
+            if (!Objects.equals(beforeNextParam, afterNextParam)) {
                 return true;
             }
         }

@@ -25,7 +25,6 @@ import java.util.List;
 
 @Service
 @AuthAction(action = AUTOEXEC_SCRIPT_MODIFY.class)
-@AuthAction(action = AUTOEXEC_SCRIPT_REVIEW.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecScriptCheckApi extends PrivateApiComponentBase {
 

@@ -13,9 +13,7 @@ import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_USE;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import com.alibaba.fastjson.JSON;
@@ -26,9 +24,7 @@ import javax.annotation.Resource;
 import java.util.List;
 
 @Service
-@AuthAction(action = AUTOEXEC_SCRIPT_USE.class)
-@AuthAction(action = AUTOEXEC_SCRIPT_MODIFY.class)
-@AuthAction(action = AUTOEXEC_SCRIPT_REVIEW.class)
+@AuthAction(action = AUTOEXEC_SCRIPT_SEARCH.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecScriptVersionListApi extends PrivateApiComponentBase {
 
