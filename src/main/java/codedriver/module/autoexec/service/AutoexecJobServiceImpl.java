@@ -20,6 +20,7 @@ import codedriver.framework.util.IpUtil;
 import codedriver.module.autoexec.dao.mapper.*;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -52,10 +53,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         autoexecJobMapper.insertJobParamContent(new AutoexecJobParamContentVo(jobVo.getParamHash(), jobVo.getParamStr()));
         //保存作业执行目标
         AutoexecCombopExecuteConfigVo nodeConfigVo = config.getExecuteConfig();
+        String executeUser = nodeConfigVo.getExecuteUser();
         List<AutoexecJobPhaseNodeVo> jobNodeVoList = null;
-        if (nodeConfigVo != null) {
-            jobNodeVoList = getJobNodeList(nodeConfigVo, jobVo.getOperationId());
-        }
+        jobNodeVoList = getJobNodeList(nodeConfigVo, jobVo.getOperationId());
         //保存阶段
         List<AutoexecJobPhaseVo> jobPhaseVoList = new ArrayList<>();
         jobVo.setPhaseList(jobPhaseVoList);
@@ -76,12 +76,16 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             }
             if (CollectionUtils.isEmpty(jobPhaseNodeVoList)) {
                 jobPhaseNodeVoList = jobNodeVoList;
+            }else if(StringUtils.isNotBlank(executeConfigVo.getExecuteUser())){
+                executeUser = executeConfigVo.getExecuteUser();
             }
             for (AutoexecJobPhaseNodeVo jobPhaseNodeVo : jobPhaseNodeVoList) {
                 jobPhaseNodeVo.setJobId(jobVo.getId());
                 jobPhaseNodeVo.setJobPhaseId(jobPhaseVo.getId());
                 jobPhaseNodeVo.setProxyId(getProxyByIp(jobPhaseNodeVo.getHost()));
                 jobPhaseNodeVo.setStatus(JobNodeStatus.PENDING.getValue());
+                jobPhaseNodeVo.setUserName(jobPhaseVo.getExecUser());
+                jobPhaseNodeVo.setUserName(executeUser);
                 autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
             }
             //jobPhaseOperation

@@ -10,6 +10,7 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.constvalue.CacheControlType;
+import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicBinaryStreamApiComponentBase;
@@ -62,25 +63,34 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
         if(jobVo == null){
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
-        List<AutoexecJobPhaseNodeVo> autoexecJobPhaseNodeVoList =  autoexecJobMapper.searchJobPhaseNode(new AutoexecJobPhaseNodeVo(paramObj.getLong("jobId"),paramObj.getString("phase")));
+        AutoexecJobPhaseNodeVo nodeParamVo = new AutoexecJobPhaseNodeVo(paramObj.getLong("jobId"),paramObj.getString("phase"));
+        int count = autoexecJobMapper.searchJobPhaseNodeCount(nodeParamVo);
+        int pageCount = PageUtil.getPageCount(count,nodeParamVo.getPageSize());
+        nodeParamVo.setPageCount(pageCount);
         ServletOutputStream os = response.getOutputStream();
-        for (AutoexecJobPhaseNodeVo nodeVo : autoexecJobPhaseNodeVoList){
-            JSONObject nodeJson = new JSONObject(){{
-                //TODO 待资源中心完善，需补充
-                put("nodeId",nodeVo.getNodeId());
-                put("nodeType","ssh");
-                put("host",nodeVo.getHost());
-                put("port",nodeVo.getPort());
-                put("username","root");
-                put("password","techsure");
-            }};
-            response.setContentType("application/json");
-            response.setHeader("Content-Disposition", "attachment;fileName=nodes.json");
-            IOUtils.copyLarge(IOUtils.toInputStream(nodeJson.toString(), StandardCharsets.UTF_8), os);
-            if (os != null) {
-                os.flush();
+        for (int i = 1; i <= pageCount; i++) {
+            nodeParamVo.setCurrentPage(i);
+            nodeParamVo.setStartNum(nodeParamVo.getStartNum());
+            List<AutoexecJobPhaseNodeVo> autoexecJobPhaseNodeVoList =  autoexecJobMapper.searchJobPhaseNode(nodeParamVo);
+            for (AutoexecJobPhaseNodeVo nodeVo : autoexecJobPhaseNodeVoList){
+                JSONObject nodeJson = new JSONObject(){{
+                    //TODO 待资源中心完善，需补充
+                    put("nodeId",nodeVo.getNodeId());
+                    put("nodeType",nodeVo.getNodeType());
+                    put("host",nodeVo.getHost());
+                    put("port",nodeVo.getPort());
+                    put("username",nodeVo.getUserName());
+                    put("password",nodeVo.getPassword());
+                }};
+                response.setContentType("application/json");
+                response.setHeader("Content-Disposition", "attachment;fileName=nodes.json");
+                IOUtils.copyLarge(IOUtils.toInputStream(nodeJson.toString(), StandardCharsets.UTF_8), os);
+                if (os != null) {
+                    os.flush();
+                }
             }
         }
+
         if(os != null) {
             os.close();
         }

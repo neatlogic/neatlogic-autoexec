@@ -150,6 +150,8 @@
         an.`id` as nodeId,
         an.`name` AS nodeName,
         an.`type` as nodeType,
+        an.`user_name` as userName,
+        an.`password`,
         ap.`url` AS proxyUrl
         FROM
         `autoexec_job_phase_node` ajpn
@@ -167,6 +169,7 @@
         count(ajpn.`id`)
         FROM
         `autoexec_job_phase_node` ajpn
+        LEFT JOIN `autoexec_job_phase` ajp on ajpn.`job_phase_id` = ajp.`id`
         LEFT JOIN `autoexec_node` an ON ajpn.`host` = an.`host` AND ajpn.`port` = an.`port`
         <where>
             <include refid="searchJobPhaseNodeSql"/>
@@ -414,6 +417,7 @@
                                                `job_phase_id`,
                                                `host`,
                                                `port`,
+                                               `user_name`,
                                                `status`,
                                                `proxy_id`)
         VALUES (#{id},
@@ -421,6 +425,7 @@
                 #{jobPhaseId},
                 #{host},
                 #{port},
+                #{userName},
                 #{status},
                 #{proxyId});
     </insert>
