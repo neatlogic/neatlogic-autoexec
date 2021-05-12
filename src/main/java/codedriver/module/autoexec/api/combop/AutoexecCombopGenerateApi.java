@@ -8,22 +8,23 @@ package codedriver.module.autoexec.api.combop;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
-import codedriver.framework.autoexec.constvalue.CombopOperationType;
-import codedriver.framework.autoexec.constvalue.FailPolicy;
-import codedriver.framework.autoexec.constvalue.ParamMappingMode;
-import codedriver.framework.autoexec.constvalue.ParamMode;
+import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dto.AutoexecRiskVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
+import codedriver.framework.autoexec.exception.AutoexecCombopNameRepeatException;
 import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.dto.FieldValidResultVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
+import codedriver.framework.restful.core.IValid;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -77,7 +78,10 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "operationId", type = ApiParamType.LONG, isRequired = true, desc = "脚本/工具主键id"),
-            @Param(name = "operationType", type = ApiParamType.ENUM, rule = "script,tool", isRequired = true, desc = "脚本/工具")
+            @Param(name = "operationType", type = ApiParamType.ENUM, rule = "script,tool", isRequired = true, desc = "脚本/工具"),
+            @Param(name = "name", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", isRequired = true, minLength = 1, maxLength = 70, desc = "显示名"),
+            @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
+            @Param(name = "typeId", type = ApiParamType.LONG, isRequired = true, desc = "类型id")
     })
     @Output({
             @Param(name = "Return", type = ApiParamType.LONG, desc = "主键id")
@@ -153,13 +157,22 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
 //            if (autoexecCombopMapper.checkAutoexecCombopUkIsRepeat(autoexecCombopVo) != null) {
 //                autoexecCombopVo.setUk(autoexecCombopVo.getUk() + "_" + combopId);
 //            }
+            String name = jsonObj.getString("name");
+            Long typeId = jsonObj.getLong("typeId");
+            String description = jsonObj.getString("description");
+            autoexecCombopVo.setName(name);
+            autoexecCombopVo.setTypeId(typeId);
+            autoexecCombopVo.setDescription(description);
             if (autoexecCombopMapper.checkAutoexecCombopNameIsRepeat(autoexecCombopVo) != null) {
-                autoexecCombopVo.setName(autoexecCombopVo.getName() + "_" + combopId);
+                throw new AutoexecCombopNameRepeatException(autoexecCombopVo.getName());
             }
             AutoexecCombopConfigVo config = new AutoexecCombopConfigVo();
             List<AutoexecCombopPhaseVo> combopPhaseList = new ArrayList<>();
             combopPhaseList.add(combopPhaseVo);
             config.setCombopPhaseList(combopPhaseList);
+            AutoexecCombopExecuteConfigVo executeConfigVo = new AutoexecCombopExecuteConfigVo();
+            executeConfigVo.setWhenToSpecify(CombopNodeSpecify.RUNTIME.getValue());
+            config.setExecuteConfig(executeConfigVo);
             autoexecCombopVo.setConfig(JSONObject.toJSONString(config));
             autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
             combopPhaseVo.setCombopId(combopId);
@@ -180,5 +193,16 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
             // TODO linbq 工具生成组合工具暂时不做
         }
         return null;
+    }
+
+    public IValid name() {
+        return jsonObj -> {
+            AutoexecCombopVo autoexecCombopVo = new AutoexecCombopVo();
+            autoexecCombopVo.setName(jsonObj.getString("name"));
+            if (autoexecCombopMapper.checkAutoexecCombopNameIsRepeat(autoexecCombopVo) != null) {
+                return new FieldValidResultVo(new AutoexecCombopNameRepeatException(autoexecCombopVo.getName()));
+            }
+            return new FieldValidResultVo();
+        };
     }
 }
