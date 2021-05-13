@@ -17,6 +17,7 @@ import codedriver.framework.restful.core.publicapi.PublicBinaryStreamApiComponen
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -52,26 +53,40 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
     @CacheControl(cacheControlType = CacheControlType.MAXAGE, maxAge = 30000)
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
-            @Param(name = "phase", type = ApiParamType.STRING, desc = "剧本", isRequired = true)
+            @Param(name = "phase", type = ApiParamType.STRING, desc = "剧本")
     })
     @Description(desc = "下载作业剧本节点")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         Long jobId = paramObj.getLong("jobId");
-        String phaseName = paramObj.getString("phase");
-        AutoexecJobVo jobVo = autoexecJobMapper.getJobDetailByJobIdAndPhaseName(jobId,phaseName);
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
         if(jobVo == null){
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
+        String phaseName = paramObj.getString("phase");
+        int count = 0;
+        int pageCount = 0;
         AutoexecJobPhaseNodeVo nodeParamVo = new AutoexecJobPhaseNodeVo(paramObj.getLong("jobId"),paramObj.getString("phase"));
-        int count = autoexecJobMapper.searchJobPhaseNodeCount(nodeParamVo);
-        int pageCount = PageUtil.getPageCount(count,nodeParamVo.getPageSize());
+        if(StringUtils.isNotBlank(phaseName)){
+            //TODO 判断作业剧本节点是否和作业节点剧本一致，一致则返回304
+            count = autoexecJobMapper.searchJobPhaseNodeCount(nodeParamVo);
+            pageCount = PageUtil.getPageCount(count,nodeParamVo.getPageSize());
+        }else{
+            count = autoexecJobMapper.getJobPhaseNodeCountByJobId(nodeParamVo);
+            pageCount = PageUtil.getPageCount(count,nodeParamVo.getPageSize());
+        }
+
         nodeParamVo.setPageCount(pageCount);
         ServletOutputStream os = response.getOutputStream();
         for (int i = 1; i <= pageCount; i++) {
             nodeParamVo.setCurrentPage(i);
             nodeParamVo.setStartNum(nodeParamVo.getStartNum());
-            List<AutoexecJobPhaseNodeVo> autoexecJobPhaseNodeVoList =  autoexecJobMapper.searchJobPhaseNode(nodeParamVo);
+            List<AutoexecJobPhaseNodeVo> autoexecJobPhaseNodeVoList = null;
+            if(StringUtils.isNotBlank(phaseName)) {
+                autoexecJobPhaseNodeVoList = autoexecJobMapper.searchJobPhaseNode(nodeParamVo);
+            }else{
+                autoexecJobPhaseNodeVoList = autoexecJobMapper.searchJobNodeByJobId(nodeParamVo);
+            }
             for (AutoexecJobPhaseNodeVo nodeVo : autoexecJobPhaseNodeVoList){
                 JSONObject nodeJson = new JSONObject(){{
                     //TODO 待资源中心完善，需补充

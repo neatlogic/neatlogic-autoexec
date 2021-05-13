@@ -130,9 +130,24 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                 }});
             }
         }});
+    }
 
-
-
+    @Override
+    public JSONObject tailNodeLog(JSONObject paramJson){
+        String url = AutoexecConfig.PROXY_URL() + "/job/phase/node/log/tail";
+        RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
+        String result = RestUtil.sendRequest(restVo);
+        JSONObject resultJson = null;
+        try {
+            resultJson = JSONObject.parseObject(result);
+        }catch (Exception ex){
+            logger.error(ex.getMessage(),ex);
+            throw new AutoexecJobProxyConnectRefusedException(restVo.getUrl() + " " + result);
+        }
+        if(!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))){
+            throw new AutoexecJobProxyConnectAuthException(resultJson.getString("Message"));
+        }
+        return resultJson;
     }
 
     /**
