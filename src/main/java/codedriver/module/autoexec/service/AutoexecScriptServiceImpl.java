@@ -120,22 +120,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
         while (beforeParamIterator.hasNext() && afterParamIterator.hasNext()) {
             AutoexecScriptVersionParamVo beforeNextParam = beforeParamIterator.next();
             AutoexecScriptVersionParamVo afterNextParam = afterParamIterator.next();
-            if (!Objects.equals(beforeNextParam.getKey(), afterNextParam.getKey())) {
-                return true;
-            }
-            if (!Objects.equals(beforeNextParam.getDefaultValue(), afterNextParam.getDefaultValue())) {
-                return true;
-            }
-            if (!Objects.equals(beforeNextParam.getType(), afterNextParam.getType())) {
-                return true;
-            }
-            if (!Objects.equals(beforeNextParam.getMode(), afterNextParam.getMode())) {
-                return true;
-            }
-            if (!Objects.equals(beforeNextParam.getIsRequired(), afterNextParam.getIsRequired())) {
-                return true;
-            }
-            if (!Objects.equals(beforeNextParam.getDescription(), afterNextParam.getDescription())) {
+            if (!Objects.equals(beforeNextParam, afterNextParam)) {
                 return true;
             }
         }

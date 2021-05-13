@@ -7,11 +7,9 @@ package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
-import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.exception.file.FileExtNotAllowedException;
 import codedriver.framework.exception.file.FileNotUploadException;
 import codedriver.framework.restful.annotation.*;
@@ -65,8 +63,6 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
     @Input({
     })
     @Output({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "脚本ID"),
-            @Param(name = "versionId", type = ApiParamType.LONG, desc = "版本id"),
     })
     @Description(desc = "导入脚本")
     @Override
@@ -106,6 +102,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
         List<AutoexecScriptVersionVo> versionList = scriptVo.getVersionList();
         if (oldScriptVo != null) {
             boolean hasChange = false;
+            // todo 重写equals
             if (!Objects.equals(scriptVo.getName(), oldScriptVo.getName())) {
                 hasChange = true;
             }
