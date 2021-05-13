@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.api.job.callback;
 
 import codedriver.framework.autoexec.constvalue.JobAction;
+import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
@@ -65,7 +66,11 @@ public class AutoexecJobProcessStatusUpdateApi extends PublicApiComponentBase {
         }
         if (status != null && status == 1) {
             if (JobAction.EXEC.getValue().equalsIgnoreCase(jobAction)) {
-                phaseStatus = JobStatus.RUNNING.getValue();
+                phaseStatus = JobPhaseStatus.RUNNING.getValue();
+            }else if(JobAction.PAUSE.getValue().equalsIgnoreCase(jobAction)) {
+                phaseStatus = JobPhaseStatus.PAUSING.getValue();
+            }else if(JobAction.STOP.getValue().equalsIgnoreCase(jobAction)) {
+                phaseStatus = JobPhaseStatus.STOPPING.getValue();
             }
         }else {
             phaseStatus = JobStatus.FAILED.getValue();

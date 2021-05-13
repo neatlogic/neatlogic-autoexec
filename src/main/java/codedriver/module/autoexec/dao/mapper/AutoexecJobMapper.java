@@ -19,7 +19,7 @@ public interface AutoexecJobMapper {
 
     AutoexecJobVo getJobInfo(Long jobId);
 
-    AutoexecJobVo getJobDetailByJobIdAndPhaseId(Long jobId, Long jobPhaseId);
+    AutoexecJobVo getJobDetailByJobIdAndPhaseName(@Param("jobId")Long jobId,@Param("phaseName") String phaseName);
 
     Integer searchJobCount(AutoexecJobVo jobVo);
 

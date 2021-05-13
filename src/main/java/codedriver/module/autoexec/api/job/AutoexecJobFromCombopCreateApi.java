@@ -6,10 +6,10 @@
 package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_JOB_MODIFY;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
-import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopCannotExecuteException;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobThreadCountException;
@@ -22,6 +22,7 @@ import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import codedriver.module.autoexec.service.AutoexecJobActionService;
 import codedriver.module.autoexec.service.AutoexecJobService;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -65,7 +66,7 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "组合工具ID"),
-            @Param(name = "param", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "运行参数"),
+            @Param(name = "param", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "执行参数"),
             @Param(name = "source", type = ApiParamType.STRING, isRequired = true, desc = "来源 itsm|human   ITSM|人工发起的等，不传默认是人工发起的"),
             @Param(name = "threadCount", type = ApiParamType.LONG, isRequired = true, desc = "并发线程,2的n次方 "),
             @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "执行目标"),
@@ -81,9 +82,15 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
         if (autoexecCombopMapper.checkAutoexecCombopIsExists(combopId) == 0) {
             throw new AutoexecCombopNotFoundException(combopId);
         }
+        //设置作业执行节点
         AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
-        //校验参数
+        if(combopVo.getConfig() != null){
+            AutoexecCombopExecuteConfigVo executeConfigVo = JSON.toJavaObject(jsonObj.getJSONObject("executeConfig"), AutoexecCombopExecuteConfigVo.class);
+            combopVo.getConfig().setExecuteConfig(executeConfigVo);
+        }
+        //TODO 校验执行参数
 
+        //校验是否允许执行
         autoexecCombopService.setOperableButtonList(combopVo);
         if (combopVo.getEditable() == 0) {
             throw new AutoexecCombopCannotExecuteException(combopVo.getName());
@@ -92,11 +99,14 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
         if ((threadCount & (threadCount - 1)) != 0) {
             throw new AutoexecJobThreadCountException();
         }
-        Long jobId = autoexecJobService.saveAutoexecCombopJob(combopVo, jsonObj.getString("source"), threadCount, paramJson);
+        AutoexecJobVo jobVo = autoexecJobService.saveAutoexecCombopJob(combopVo, jsonObj.getString("source"), threadCount, paramJson);
         //对接proxy 创建python任务
-        AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getFirstJobPhase(jobId);
-        //autoexecJobActionService.fire(jobPhaseVo,null,"first");
-        return null;
+        //AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getFirstJobPhase(jobVo.getId());
+        //jobVo.setPhaseList(Collections.singletonList(jobPhaseVo));
+        autoexecJobActionService.fire(jobVo,"first");
+        return new JSONObject(){{
+            put("jobId",jobVo.getId());
+        }};
     }
 
     @Override

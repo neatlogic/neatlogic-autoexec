@@ -8,6 +8,7 @@ package codedriver.module.autoexec.dao.mapper;
 import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.script.*;
+import codedriver.framework.common.dto.ValueTextVo;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -22,6 +23,8 @@ public interface AutoexecScriptMapper {
 
     int checkScriptUkIsExists(AutoexecScriptVo vo);
 
+    List<Long> checkScriptIdListExists(List<Long> idList);
+
     int checkScriptLineContentHashIsExists(String hash);
 
     AutoexecScriptVersionVo getVersionByVersionId(Long versionId);
@@ -33,6 +36,8 @@ public interface AutoexecScriptMapper {
     List<AutoexecScriptVersionVo> getVersionList(AutoexecScriptVersionVo versionVo);
 
     List<AutoexecScriptVersionVo> getVersionListByScriptId(Long id);
+
+    List<ValueTextVo> getVersionNumberListByScriptId(Long id);
 
     AutoexecScriptVersionVo getActiveVersionByScriptId(Long scriptId);
 
@@ -47,8 +52,6 @@ public interface AutoexecScriptMapper {
     int searchScriptCount(AutoexecScriptVo scriptVo);
 
     List<AutoexecScriptVo> searchScript(AutoexecScriptVo scriptVo);
-
-    int getReviewingScriptCount();
 
     int searchScriptAndToolCount(AutoexecToolAndScriptVo searchVo);
 

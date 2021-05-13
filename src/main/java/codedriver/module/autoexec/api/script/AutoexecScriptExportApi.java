@@ -6,9 +6,7 @@
 package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_USE;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
@@ -20,23 +18,24 @@ import codedriver.framework.util.FileUtil;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.service.AutoexecScriptService;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectOutputStream;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 @Service
-@AuthAction(action = AUTOEXEC_SCRIPT_USE.class)
-@AuthAction(action = AUTOEXEC_SCRIPT_MODIFY.class)
-@AuthAction(action = AUTOEXEC_SCRIPT_REVIEW.class)
+@AuthAction(action = AUTOEXEC_SCRIPT_SEARCH.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase {
 
@@ -62,21 +61,25 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "脚本ID"),
+            @Param(name = "ids", type = ApiParamType.REGEX, rule = "^[0-9,]+$", isRequired = true, desc = "脚本ID列表"),
     })
     @Output({
     })
     @Description(desc = "导出脚本")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
-        Long id = paramObj.getLong("id");
-        AutoexecScriptVo script = autoexecScriptMapper.getScriptBaseInfoById(id);
-        if (script == null) {
-            throw new AutoexecScriptNotFoundException(id);
+        String ids = paramObj.getString("ids");
+        String[] idArray = ids.split(",");
+        List<Long> idList = new ArrayList<>(idArray.length);
+        for (String id : idArray) {
+            idList.add(Long.valueOf(id));
         }
-        List<AutoexecScriptVersionVo> versionList = autoexecScriptService.getScriptVersionDetailListByScriptId(id);
-        script.setVersionList(versionList);
-        String fileName = script.getName() + ".pak";
+        List<Long> existedIdList = autoexecScriptMapper.checkScriptIdListExists(idList);
+        idList.removeAll(existedIdList);
+        if (CollectionUtils.isNotEmpty(idList)) {
+            throw new AutoexecScriptNotFoundException(StringUtils.join(idList, ","));
+        }
+        String fileName = "自定义工具." + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak";
         String userAgent = request.getHeader("User-Agent");
         if (userAgent.indexOf("Gecko") > 0) {
             fileName = URLEncoder.encode(fileName, "UTF-8");
@@ -84,22 +87,17 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
         } else {
             fileName = new String(fileName.replace(" ", "").getBytes(StandardCharsets.UTF_8), "ISO8859-1");
         }
-        response.setContentType("application/octet-stream");
+        response.setContentType("application/zip");
         response.setHeader("Content-Disposition", "attachment;fileName=\"" + fileName + "\"");
-        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-        ObjectOutputStream oos = new ObjectOutputStream(baos);
-        oos.writeObject(script);
-        ServletOutputStream os = response.getOutputStream();
-        IOUtils.write(baos.toByteArray(), os);
-        if (os != null) {
-            os.flush();
-            os.close();
-        }
-        if (oos != null) {
-            oos.close();
-        }
-        if (baos != null) {
-            baos.close();
+        try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
+            for (Long id : existedIdList) {
+                AutoexecScriptVo script = autoexecScriptMapper.getScriptBaseInfoById(id);
+                List<AutoexecScriptVersionVo> versionList = autoexecScriptService.getScriptVersionDetailListByScriptId(id);
+                script.setVersionList(versionList);
+                zos.putNextEntry(new ZipEntry(script.getName() + ".json"));
+                zos.write(JSONObject.toJSONBytes(script));
+                zos.closeEntry();
+            }
         }
         return null;
     }

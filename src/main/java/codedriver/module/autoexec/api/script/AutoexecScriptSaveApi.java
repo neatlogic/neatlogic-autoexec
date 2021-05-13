@@ -7,8 +7,11 @@ package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.auth.core.AuthActionChecker;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
+import codedriver.framework.autoexec.constvalue.ParamMode;
+import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dto.script.*;
 import codedriver.framework.autoexec.exception.AutoexecScriptNameOrUkRepeatException;
@@ -36,7 +39,6 @@ import java.util.List;
 @Service
 @Transactional
 @AuthAction(action = AUTOEXEC_SCRIPT_MODIFY.class)
-@AuthAction(action = AUTOEXEC_SCRIPT_REVIEW.class)
 @OperationType(type = OperationTypeEnum.CREATE)
 public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
 
@@ -65,17 +67,18 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             @Param(name = "id", type = ApiParamType.LONG, desc = "脚本ID(没有id和versionId,表示首次创建脚本;有id没有versionId,表示新增一个版本;没有id有versionId,表示编辑某个版本)"),
             @Param(name = "versionId", type = ApiParamType.LONG, desc = "脚本版本ID"),
 //            @Param(name = "uk", type = ApiParamType.REGEX, rule = "^[A-Za-z]+$", isRequired = true, xss = true, desc = "唯一标识"),
-            @Param(name = "name", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", isRequired = true, xss = true, desc = "名称"),
+            @Param(name = "name", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", maxLength = 50, isRequired = true, xss = true, desc = "名称"),
             @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target", desc = "执行方式", isRequired = true),
             @Param(name = "typeId", type = ApiParamType.LONG, desc = "脚本分类ID", isRequired = true),
             @Param(name = "riskId", type = ApiParamType.LONG, desc = "操作级别ID", isRequired = true),
             @Param(name = "paramList", type = ApiParamType.JSONARRAY, desc = "参数列表"),
             @Param(name = "parser", type = ApiParamType.ENUM, rule = "python,vbs,shell,perl,powershell,bat,xml", desc = "脚本解析器"),
-            @Param(name = "lineList", type = ApiParamType.JSONARRAY, desc = "脚本内容行数据列表,e.g:[{\"content\":\"#!/usr/bin/env bash\"},{\"content\":\"show_ascii_berry()\"}]"),
+            @Param(name = "lineList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "脚本内容行数据列表,e.g:[{\"content\":\"#!/usr/bin/env bash\"},{\"content\":\"show_ascii_berry()\"}]"),
     })
     @Output({
             @Param(name = "id", type = ApiParamType.LONG, desc = "脚本ID"),
             @Param(name = "versionId", type = ApiParamType.LONG, desc = "版本id"),
+            @Param(name = "isReviewable", type = ApiParamType.ENUM, rule = "0,1", desc = "是否能审批(1:能;0:不能)"),
     })
     @Description(desc = "保存脚本")
     @Override
@@ -104,7 +107,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
                 scriptVo.setFcu(UserContext.get().getUserUuid());
                 autoexecScriptMapper.insertScript(scriptVo);
                 versionVo.setScriptId(scriptVo.getId());
-                versionVo.setVersion(0);
+                versionVo.setVersion(1);
                 versionVo.setIsActive(0);
                 autoexecScriptMapper.insertScriptVersion(versionVo);
                 scriptVo.setVersionId(versionVo.getId());
@@ -134,7 +137,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
                 throw new AutoexecScriptNotFoundException(scriptVo.getId());
             }
             Integer maxVersion = autoexecScriptMapper.getMaxVersionByScriptId(scriptVo.getId());
-            versionVo.setVersion(maxVersion != null ? maxVersion + 1 : 0);
+            versionVo.setVersion(maxVersion != null ? maxVersion + 1 : 1);
             versionVo.setScriptId(scriptVo.getId());
             versionVo.setIsActive(0);
             autoexecScriptMapper.insertScriptVersion(versionVo);
@@ -149,6 +152,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
         }
         result.put("id", scriptVo.getId());
         result.put("versionId", scriptVo.getVersionId());
+        result.put("isReviewable", AuthActionChecker.check(AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName()) ? 1 : 0);
         return result;
     }
 

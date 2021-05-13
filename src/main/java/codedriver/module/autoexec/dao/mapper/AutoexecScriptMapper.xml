@@ -11,7 +11,7 @@
         `type_id` as typeId,
         `risk_id` as riskId,
         (select `name` from `autoexec_type` where a.`type_id` = `id`) as type,
-        (select `name` from `autoexec_risk` where a.`risk_id` = `id`) as risk,
+        (select `name` from `autoexec_risk` where a.`risk_id` = `id`) as riskName,
         `fcu`,
         `fcd`
         from `autoexec_script` a
@@ -31,6 +31,15 @@
     <select id="checkScriptUkIsExists" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo"
             resultType="int">
         select count(`id`) from `autoexec_script` where `uk` = #{uk} and `id` != #{id}
+    </select>
+
+    <select id="checkScriptIdListExists" parameterType="java.util.List" resultType="java.lang.Long">
+        select `id`
+        from `autoexec_script`
+        where `id` in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
     </select>
 
     <select id="checkScriptLineContentHashIsExists" parameterType="java.lang.String" resultType="int">
@@ -115,6 +124,14 @@
         where `script_id` = #{scriptId}
     </select>
 
+    <select id="getVersionNumberListByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.common.dto.ValueTextVo">
+        select
+        `id` as `value`,
+        CONCAT('版本',`version`) as `text`
+        from `autoexec_script_version`
+        where `script_id` = #{value}
+    </select>
+
     <select id="getActiveVersionByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
         select
         `id`,
@@ -152,6 +169,7 @@
         select
         `script_version_id` as scriptVersionId,
         `key`,
+        `name`,
         `default_value` as defaultValue,
         `type`,
         `mode`,
@@ -167,6 +185,7 @@
         select
         `script_version_id` as scriptVersionId,
         `key`,
+        `name`,
         `default_value` as defaultValue,
         `type`,
         `mode`,
@@ -203,11 +222,17 @@
             <if test="execMode != null and execMode != ''">
                 and `exec_mode` = #{execMode}
             </if>
-            <if test="typeId != null">
-                and `type_id` = #{typeId}
+            <if test="typeIdList != null and typeIdList.size() != 0">
+                and `type_id` in
+                <foreach collection="typeIdList" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
             </if>
-            <if test="riskId != null">
-                and `risk_id` = #{riskId}
+            <if test="riskIdList != null and riskIdList.size() != 0">
+                and `risk_id` in
+                <foreach collection="riskIdList" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
             </if>
             <if test="isReviewing == 1">
                 and exists (select 1 from `autoexec_script_version` b where b.`script_id` = a.`id` and b.`status` = 'submitted')
@@ -262,12 +287,6 @@
         <if test="needPage == true">
             limit #{startNum}, #{pageSize}
         </if>
-    </select>
-
-    <select id="getReviewingScriptCount" resultType="int">
-        select count(distinct `script_id`)
-        from `autoexec_script_version`
-        where `status` = 'submitted'
     </select>
 
     <sql id="searchToolAndScriptConditionForTool">
@@ -409,6 +428,7 @@
         </association>
         <collection property="paramList" ofType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo">
             <result property="key" column="key"/>
+            <result property="name" column="name"/>
             <result property="defaultValue" column="defaultValue"/>
             <result property="type" column="paramType"/>
             <result property="mode" column="mode"/>
@@ -431,6 +451,7 @@
         (select `name` from `autoexec_risk` where a.`risk_id` = `id`) as riskName,
         (select `color` from `autoexec_risk` where a.`risk_id` = `id`) as riskColor,
         c.`key`,
+        c.`name`,
         c.`default_value` as defaultValue,
         c.`type` as paramType,
         c.`mode`,
@@ -583,6 +604,7 @@
         insert into `autoexec_script_version_param` (
         `script_version_id`,
         `key`,
+        `name`,
         `default_value`,
         `type`,
         `mode`,
@@ -594,6 +616,7 @@
             (
             #{item.scriptVersionId},
             #{item.key},
+            #{item.name},
             #{item.defaultValue},
             #{item.type},
             #{item.mode},

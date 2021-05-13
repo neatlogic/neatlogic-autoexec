@@ -7,6 +7,7 @@ package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.constvalue.ScriptOperate;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
@@ -17,31 +18,24 @@ import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.ValueTextVo;
-import codedriver.framework.dao.mapper.UserMapper;
-import codedriver.framework.dto.UserAuthVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_REVIEW;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_USE;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.module.autoexec.operate.ScriptOperateBuilder;
+import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
-@AuthAction(action = AUTOEXEC_SCRIPT_USE.class)
-@AuthAction(action = AUTOEXEC_SCRIPT_MODIFY.class)
-@AuthAction(action = AUTOEXEC_SCRIPT_REVIEW.class)
+@AuthAction(action = AUTOEXEC_SCRIPT_SEARCH.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecScriptGetApi extends PrivateApiComponentBase {
 
@@ -49,7 +43,7 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
     private AutoexecScriptMapper autoexecScriptMapper;
 
     @Resource
-    private UserMapper userMapper;
+    private AutoexecCombopService autoexecCombopService;
 
     @Override
     public String getToken() {
@@ -72,7 +66,8 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
     })
     @Output({
             @Param(name = "script", explode = AutoexecScriptVo[].class, desc = "脚本内容"),
-            @Param(name = "operateList", explode = ValueTextVo[].class, desc = "按钮列表"),
+            @Param(name = "scriptOperateList", explode = ValueTextVo[].class, desc = "脚本按钮列表"),
+            @Param(name = "versionOperateList", explode = ValueTextVo[].class, desc = "版本按钮列表"),
     })
     @Description(desc = "查看脚本")
     @Override
@@ -80,7 +75,8 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         JSONObject result = new JSONObject();
         AutoexecScriptVo script = null;
         AutoexecScriptVersionVo version = null;
-        List<ValueTextVo> operateList = null;
+        List<ValueTextVo> versionOperateList = null;
+        List<ValueTextVo> scriptOperateList = null;
         Long id = jsonObj.getLong("id");
         Long versionId = jsonObj.getLong("versionId");
         if (id != null) { // 不指定版本
@@ -109,12 +105,14 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         if (script == null) {
             throw new AutoexecScriptNotFoundException(id);
         }
+        script.setExecModeText(ExecMode.getExecMode(script.getExecMode()).getText());
         script.setVersionVo(version);
         version.setParamList(autoexecScriptMapper.getParamListByVersionId(version.getId()));
         version.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
         script.setReferenceCount(autoexecScriptMapper.getReferenceCountByScriptId(id));
         List<AutoexecCombopVo> combopList = autoexecScriptMapper.getReferenceListByScriptId(id);
         script.setCombopList(combopList);
+        autoexecCombopService.setOperableButtonList(combopList);
         // 如果是已驳回状态，查询驳回原因
         if (ScriptVersionStatus.REJECTED.getValue().equals(version.getStatus())) {
             AutoexecScriptAuditVo audit = autoexecScriptMapper.getScriptAuditByScriptVersionIdAndOperate(version.getId(), ScriptOperate.REJECT.getValue());
@@ -126,14 +124,13 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
             }
         }
         // 获取操作按钮
-        List<UserAuthVo> authList = userMapper.searchUserAllAuthByUserAuth(new UserAuthVo(UserContext.get().getUserUuid()));
-        if (CollectionUtils.isNotEmpty(authList)) {
-            ScriptOperateBuilder builder = new ScriptOperateBuilder(authList.stream()
-                    .map(UserAuthVo::getAuth).collect(Collectors.toList()), version.getStatus());
-            operateList = builder.setAll().build();
-        }
+        ScriptOperateBuilder versionOperateBuilder = new ScriptOperateBuilder(UserContext.get().getUserUuid(), version.getStatus());
+        versionOperateList = versionOperateBuilder.setAll().build();
+        ScriptOperateBuilder scriptOperateBuilder = new ScriptOperateBuilder(UserContext.get().getUserUuid());
+        scriptOperateList = scriptOperateBuilder.setGenerateToCombop().setCopy().setExport().setDelete().build();
         result.put("script", script);
-        result.put("operateList", operateList);
+        result.put("versionOperateList", versionOperateList);
+        result.put("scriptOperateList", scriptOperateList);
         return result;
     }
 

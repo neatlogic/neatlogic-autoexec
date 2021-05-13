@@ -38,7 +38,6 @@ import java.util.Objects;
 @Service
 @Transactional
 @AuthAction(action = AUTOEXEC_SCRIPT_MODIFY.class)
-@AuthAction(action = AUTOEXEC_SCRIPT_REVIEW.class)
 @OperationType(type = OperationTypeEnum.CREATE)
 public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase {
 
