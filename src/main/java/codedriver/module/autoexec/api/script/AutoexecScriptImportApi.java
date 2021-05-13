@@ -16,6 +16,7 @@ import codedriver.framework.exception.file.FileNotUploadException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
@@ -38,7 +39,6 @@ import java.util.zip.ZipInputStream;
 @Service
 @Transactional
 @AuthAction(action = AUTOEXEC_SCRIPT_MODIFY.class)
-@AuthAction(action = AUTOEXEC_SCRIPT_REVIEW.class)
 @OperationType(type = OperationTypeEnum.CREATE)
 public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase {
 

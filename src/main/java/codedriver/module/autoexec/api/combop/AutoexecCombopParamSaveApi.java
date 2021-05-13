@@ -9,11 +9,13 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
 import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.exception.type.ParamIrregularException;
 import codedriver.framework.exception.type.ParamNotExistsException;
+import codedriver.framework.exception.type.PermissionDeniedException;
 import codedriver.framework.restful.annotation.Description;
 import codedriver.framework.restful.annotation.Input;
 import codedriver.framework.restful.annotation.OperationType;
@@ -21,6 +23,7 @@ import codedriver.framework.restful.annotation.Param;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -49,6 +52,9 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
 
+    @Resource
+    private AutoexecCombopService autoexecCombopService;
+
     @Override
     public String getToken() {
         return "autoexec/combop/param/save";
@@ -72,43 +78,48 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long combopId = jsonObj.getLong("combopId");
-        if (autoexecCombopMapper.checkAutoexecCombopIsExists(combopId) == 0) {
+        AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
+        if (autoexecCombopVo == null) {
             throw new AutoexecCombopNotFoundException(combopId);
+        }
+        autoexecCombopService.setOperableButtonList(autoexecCombopVo);
+        if (Objects.equals(autoexecCombopVo.getEditable(), 0)) {
+            throw new PermissionDeniedException();
         }
         List<AutoexecCombopParamVo> autoexecCombopParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopId);
         autoexecCombopMapper.deleteAutoexecCombopParamByCombopId(combopId);
         List<AutoexecCombopParamVo> autoexecCombopParamVoList = new ArrayList<>();
-        Pattern keyPattern = Pattern.compile("^[A-Za-z_\\d\\u4e00-\\u9fa5]+$");
-//        Pattern namePattern = Pattern.compile("^[A-Za-z_\\d]+$");
+        Pattern keyPattern = Pattern.compile("^[A-Za-z_\\d]+$");
+        Pattern namePattern = Pattern.compile("^[A-Za-z_\\d\\u4e00-\\u9fa5]+$");
         JSONArray paramList = jsonObj.getJSONArray("paramList");
         for (int i = 0; i < paramList.size(); i++) {
             AutoexecCombopParamVo autoexecCombopParamVo = paramList.getObject(i, AutoexecCombopParamVo.class);
             if (autoexecCombopParamVo != null) {
                 String key = autoexecCombopParamVo.getKey();
                 if(StringUtils.isBlank(key)){
-                    throw new ParamNotExistsException("参数：“paramList.[" + i + "].key”不能为空");
+                    throw new ParamNotExistsException("paramList.[" + i + "].key");
                 }
                 if(!keyPattern.matcher(key).matches()){
-                    throw new ParamIrregularException("参数：“paramList.[" + i + "].key”不符合格式要求");
+                    throw new ParamIrregularException("paramList.[" + i + "].key");
                 }
-//                String name = autoexecCombopParamVo.getName();
-//                if(StringUtils.isBlank(name)){
-//                    throw new ParamNotExistsException("参数：“paramList.[" + i + "].name”不能为空");
-//                }
-//                if(!namePattern.matcher(name).matches()){
-//                    throw new ParamIrregularException("参数：“paramList.[" + i + "].name”不符合格式要求");
-//                }
+                String name = autoexecCombopParamVo.getName();
+                if(StringUtils.isBlank(name)){
+                    throw new ParamNotExistsException("paramList.[" + i + "].name");
+                }
+                if(!namePattern.matcher(name).matches()){
+                    throw new ParamIrregularException("paramList.[" + i + "].name");
+                }
                 Integer isRequired = autoexecCombopParamVo.getIsRequired();
                 if(isRequired == null){
-                    throw new ParamNotExistsException("参数：“paramList.[" + i + "].isRequired”不能为空");
+                    throw new ParamNotExistsException("paramList.[" + i + "].isRequired");
                 }
                 String type = autoexecCombopParamVo.getType();
                 if(StringUtils.isBlank(type)){
-                    throw new ParamNotExistsException("参数：“paramList.[" + i + "].type”不能为空");
+                    throw new ParamNotExistsException("paramList.[" + i + "].type");
                 }
                 ParamType paramType = ParamType.getParamType(type);
                 if(paramType == null){
-                    throw new ParamIrregularException("参数：“paramList.[" + i + "].type”不符合格式要求");
+                    throw new ParamIrregularException("paramList.[" + i + "].type");
                 }
                 Object value = autoexecCombopParamVo.getDefaultValue();
                 if (value != null && paramType == ParamType.PASSWORD) {

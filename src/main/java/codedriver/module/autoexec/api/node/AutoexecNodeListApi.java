@@ -5,16 +5,11 @@
 
 package codedriver.module.autoexec.api.node;
 
-import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
-import codedriver.framework.autoexec.dto.AutoexecTypeVo;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
-import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
-import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -42,6 +37,11 @@ public class AutoexecNodeListApi extends PrivateApiComponentBase {
     static {
         int sort = 0;
         long id = 340994557796350L;
+        AUTOEXEC_NODE_VO_LIST.add(new AutoexecNodeVo(1L, "执行目标" + sort, "192.168.0.168", 22, "ssh"));
+        AUTOEXEC_NODE_VO_LIST.add(new AutoexecNodeVo(2L, "执行目标" + sort, "192.168.0.22", 3939, "tagent"));
+        AUTOEXEC_NODE_VO_LIST.add(new AutoexecNodeVo(3L, "执行目标" + sort, "192.168.0.26", 3939, "tagent"));
+        AUTOEXEC_NODE_VO_LIST.add(new AutoexecNodeVo(4L, "执行目标" + sort, "192.168.0.25", 22, "ssh"));
+/*        AUTOEXEC_NODE_VO_LIST.add(new AutoexecNodeVo(id + sort, "执行目标" + sort, "192.168.0." + sort, 8080 + sort++, "linux"));
         AUTOEXEC_NODE_VO_LIST.add(new AutoexecNodeVo(id + sort, "执行目标" + sort, "192.168.0." + sort, 8080 + sort++, "linux"));
         AUTOEXEC_NODE_VO_LIST.add(new AutoexecNodeVo(id + sort, "执行目标" + sort, "192.168.0." + sort, 8080 + sort++, "linux"));
         AUTOEXEC_NODE_VO_LIST.add(new AutoexecNodeVo(id + sort, "执行目标" + sort, "192.168.0." + sort, 8080 + sort++, "linux"));
@@ -56,12 +56,7 @@ public class AutoexecNodeListApi extends PrivateApiComponentBase {
         AUTOEXEC_NODE_VO_LIST.add(new AutoexecNodeVo(id + sort, "执行目标" + sort, "192.168.0." + sort, 8080 + sort++, "linux"));
         AUTOEXEC_NODE_VO_LIST.add(new AutoexecNodeVo(id + sort, "执行目标" + sort, "192.168.0." + sort, 8080 + sort++, "linux"));
         AUTOEXEC_NODE_VO_LIST.add(new AutoexecNodeVo(id + sort, "执行目标" + sort, "192.168.0." + sort, 8080 + sort++, "linux"));
-        AUTOEXEC_NODE_VO_LIST.add(new AutoexecNodeVo(id + sort, "执行目标" + sort, "192.168.0." + sort, 8080 + sort++, "linux"));
-        AUTOEXEC_NODE_VO_LIST.add(new AutoexecNodeVo(id + sort, "执行目标" + sort, "192.168.0." + sort, 8080 + sort++, "linux"));
-        AUTOEXEC_NODE_VO_LIST.add(new AutoexecNodeVo(id + sort, "执行目标" + sort, "192.168.0." + sort, 8080 + sort++, "linux"));
-        AUTOEXEC_NODE_VO_LIST.add(new AutoexecNodeVo(id + sort, "执行目标" + sort, "192.168.0." + sort, 8080 + sort++, "linux"));
-        AUTOEXEC_NODE_VO_LIST.add(new AutoexecNodeVo(id + sort, "执行目标" + sort, "192.168.0." + sort, 8080 + sort++, "linux"));
-        AUTOEXEC_NODE_VO_LIST.add(new AutoexecNodeVo(id + sort, "执行目标" + sort, "192.168.0." + sort, 8080 + sort++, "linux"));
+        AUTOEXEC_NODE_VO_LIST.add(new AutoexecNodeVo(id + sort, "执行目标" + sort, "192.168.0." + sort, 8080 + sort++, "linux"));*/
     }
 
     @Override

@@ -16,6 +16,7 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.util.FileUtil;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.service.AutoexecScriptService;
@@ -34,9 +35,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 @Service
-@AuthAction(action = AUTOEXEC_SCRIPT_USE.class)
-@AuthAction(action = AUTOEXEC_SCRIPT_MODIFY.class)
-@AuthAction(action = AUTOEXEC_SCRIPT_REVIEW.class)
+@AuthAction(action = AUTOEXEC_SCRIPT_SEARCH.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase {
 

@@ -6,12 +6,15 @@
 package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.exception.type.PermissionDeniedException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -19,6 +22,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * 删除组合工具接口
@@ -34,6 +38,9 @@ public class AutoexecCombopDeleteApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
+
+    @Resource
+    private AutoexecCombopService autoexecCombopService;
 
     @Override
     public String getToken() {
@@ -57,7 +64,12 @@ public class AutoexecCombopDeleteApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");
-        if (autoexecCombopMapper.checkAutoexecCombopIsExists(id) > 0) {
+        AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
+        if (autoexecCombopVo != null) {
+            autoexecCombopService.setOperableButtonList(autoexecCombopVo);
+            if (Objects.equals(autoexecCombopVo.getDeletable(), 0)) {
+                throw new PermissionDeniedException();
+            }
             List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
             autoexecCombopMapper.deleteAutoexecCombopById(id);
             autoexecCombopMapper.deleteAutoexecCombopAuthorityByCombopId(id);

@@ -117,7 +117,15 @@
     </sql>
 
     <sql id="searchJobPhaseNodeSql">
-        ajpn.`job_phase_id` = #{jobPhaseId}
+        <if test="jobId != null">
+            ajp.`job_id` = #{jobId}
+        </if>
+        <if test="jobPhaseName != null and jobPhaseName != ''">
+            and ajp.`name` = #{jobPhaseName}
+        </if>
+        <if test="jobPhaseId != null">
+            and ajpn.`job_phase_id` = #{jobPhaseId}
+        </if>
         <if test="statusList != null and statusList.size() > 0 ">
             and ajpn.`status` in
             <foreach collection="statusList" item="status" open="(" close=")" separator=",">
@@ -125,7 +133,7 @@
             </foreach>
         </if>
         <if test="keyword != null and keyword != ''">
-            an.`name` like concat('%',keyword,'%') or ajpn.`ip` like concat('%',keyword,'%')
+            and (an.`name` like concat('%',#{keyword},'%') or ajpn.`host` like concat('%',#{keyword},'%'))
         </if>
     </sql>
 
@@ -139,10 +147,15 @@
         ajpn.`end_time` as endTime,
         ajpn.`status`,
         ajpn.`proxy_id` as proxyId,
+        an.`id` as nodeId,
         an.`name` AS nodeName,
+        an.`type` as nodeType,
+        an.`user_name` as userName,
+        an.`password`,
         ap.`url` AS proxyUrl
         FROM
         `autoexec_job_phase_node` ajpn
+        LEFT JOIN `autoexec_job_phase` ajp on ajpn.`job_phase_id` = ajp.`id`
         LEFT JOIN `autoexec_node` an ON ajpn.`host` = an.`host` AND ajpn.`port` = an.`port`
         LEFT JOIN `autoexec_proxy` ap ON ajpn.`proxy_id` = ap.`id`
         <where>
@@ -156,6 +169,7 @@
         count(ajpn.`id`)
         FROM
         `autoexec_job_phase_node` ajpn
+        LEFT JOIN `autoexec_job_phase` ajp on ajpn.`job_phase_id` = ajp.`id`
         LEFT JOIN `autoexec_node` an ON ajpn.`host` = an.`host` AND ajpn.`port` = an.`port`
         <where>
             <include refid="searchJobPhaseNodeSql"/>
@@ -170,7 +184,7 @@
                `start_time` as startTime,
                `end_time`   as endTime,
                `exec_user`  as execUser,
-               `exec_mode` as execMode,
+               `exec_mode`  as execMode,
                `name`       as name,
                `uk`         as uk
         FROM `autoexec_job_phase`
@@ -237,7 +251,7 @@
     </select>
 
     <select id="getFirstJobPhase" resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
-        select id, job_id as jobId,`name`
+        select id, job_id as jobId, `name`
         from `autoexec_job_phase`
         where job_id = #{value}
         order by `sort` asc
@@ -266,32 +280,29 @@
         </collection>
     </resultMap>
 
-    <select id="getJobDetailByJobIdAndPhaseId" parameterType="java.lang.Long" resultMap="jobMap">
+    <select id="getJobDetailByJobIdAndPhaseName" resultMap="jobMap">
         SELECT aj.`id`,
-        aj.`name`,
-        ajpc.`content` AS paramStr,
-        ajp.`id` AS phaseId,
-        ajp.`name` AS phaseName,
-        ajp.`uk` AS phaseUk,
-        ajpo.`id` AS operationId,
-        ajpo.`uk` AS operationUk,
-        ajpo.`name` AS operationName,
-        ajpo.type AS operationType,
-        ajpo.parser,
-        ajpo.`exec_mode` AS execMode,
-        ajpo.`fail_policy` AS failPolicy,
-        ajpc1.`content` AS operationParam
+               aj.`name`,
+               ajpc.`content`     AS paramStr,
+               ajp.`id`           AS phaseId,
+               ajp.`name`         AS phaseName,
+               ajp.`uk`           AS phaseUk,
+               ajpo.`id`          AS operationId,
+               ajpo.`uk`          AS operationUk,
+               ajpo.`name`        AS operationName,
+               ajpo.type          AS operationType,
+               ajpo.parser,
+               ajpo.`exec_mode`   AS execMode,
+               ajpo.`fail_policy` AS failPolicy,
+               ajpc1.`content`    AS operationParam
         FROM `autoexec_job` aj
-        LEFT JOIN `autoexec_job_param_content` ajpc ON aj.`param_hash` = ajpc.`hash`
-        LEFT JOIN `autoexec_job_phase` ajp ON aj.`id` = ajp.`job_id`
-        LEFT JOIN `autoexec_job_phase_operation` ajpo ON ajp.`id` = ajpo.`job_phase_id`
-        LEFT JOIN `autoexec_job_param_content` ajpc1 ON ajpo.`param_hash` = ajpc1.`hash`
-        <where>
-            aj.`id` = #{jobId}
-            <if test="jobPhaseId != null">
-                and ajp.`id` = #{jobPhaseId}
-            </if>
-        </where>
+                 LEFT JOIN `autoexec_job_param_content` ajpc ON aj.`param_hash` = ajpc.`hash`
+                 LEFT JOIN `autoexec_job_phase` ajp ON aj.`id` = ajp.`job_id`
+                 LEFT JOIN `autoexec_job_phase_operation` ajpo ON ajp.`id` = ajpo.`job_phase_id`
+                 LEFT JOIN `autoexec_job_param_content` ajpc1 ON ajpo.`param_hash` = ajpc1.`hash`
+        where aj.`id` = #{jobId}
+          and ajp.`name` = #{phaseName}
+
     </select>
 
     <select id="getJobLockByJobId" resultType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
@@ -402,15 +413,19 @@
     <insert id="insertJobPhaseNode"
             parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
         INSERT INTO `autoexec_job_phase_node` (`id`,
+                                               `job_id`,
                                                `job_phase_id`,
                                                `host`,
                                                `port`,
+                                               `user_name`,
                                                `status`,
                                                `proxy_id`)
         VALUES (#{id},
+                #{jobId},
                 #{jobPhaseId},
                 #{host},
                 #{port},
+                #{userName},
                 #{status},
                 #{proxyId});
     </insert>
