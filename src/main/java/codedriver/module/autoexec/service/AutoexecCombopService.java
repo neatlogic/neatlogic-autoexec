@@ -39,4 +39,11 @@ public interface AutoexecCombopService {
      * @return
      */
     public boolean verifyAutoexecCombopConfig(AutoexecCombopVo autoexecCombopVo);
+
+    /**
+     *  通过操作id 获取当前激活版本脚本内容
+     * @param operationId 操作Id
+     * @return 脚本内容
+     */
+    public String getOperationActiveVersionScriptByOperationId(Long operationId);
 }

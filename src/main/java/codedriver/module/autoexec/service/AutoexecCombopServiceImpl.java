@@ -8,7 +8,9 @@ package codedriver.module.autoexec.service;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dto.combop.*;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.dao.mapper.TeamMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
@@ -19,7 +21,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -223,5 +228,19 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
         }
 
         return true;
+    }
+
+    @Override
+    public String getOperationActiveVersionScriptByOperationId(Long operationId){
+        AutoexecScriptVersionVo scriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(operationId);
+        if(scriptVersionVo == null){
+            throw new AutoexecScriptVersionHasNoActivedException();
+        }
+        List<AutoexecScriptLineVo> scriptLineVoList = autoexecScriptMapper.getLineListByVersionId(scriptVersionVo.getId());
+        StringBuilder scriptSb = new StringBuilder();
+        for (AutoexecScriptLineVo lineVo : scriptLineVoList) {
+            scriptSb.append(lineVo.getContent()).append("\n");
+        }
+        return scriptSb.toString();
     }
 }

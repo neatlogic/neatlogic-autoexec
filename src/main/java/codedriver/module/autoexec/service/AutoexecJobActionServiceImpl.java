@@ -107,6 +107,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                                 put("opType",operationVo.getExecMode());
                                 put("failIgnore",operationVo.getFailIgnore());
                                 put("isScript", Objects.equals(operationVo.getType(), ToolType.SCRIPT.getValue())?1:0);
+                                put("scriptId",operationVo.getScriptId());
+                                //TODO tool 暂未实现
+                                put("script",operationVo.getScript());
                                 JSONObject param = operationVo.getParam();
                                 put("arg",new JSONObject(){{
                                     for(Object arg : param.getJSONArray("inputParamList")){

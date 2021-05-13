@@ -13,11 +13,13 @@ import codedriver.framework.autoexec.dto.AutoexecProxyVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
-import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.util.IpUtil;
-import codedriver.module.autoexec.dao.mapper.*;
+import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecProxyMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -37,7 +39,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     @Resource
     AutoexecScriptMapper autoexecScriptMapper;
     @Resource
-    AutoexecToolMapper autoexecToolMapper;
+    private AutoexecCombopService autoexecCombopService;
     @Resource
     AutoexecCombopMapper autoexecCombopMapper;
     @Resource
@@ -99,8 +101,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 if (CombopOperationType.SCRIPT.getValue().equalsIgnoreCase(operationType)) {
                     AutoexecScriptVo scriptVo = autoexecScriptMapper.getScriptBaseInfoById(operationId);
                     AutoexecScriptVersionVo scriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(operationId);
-                    List<AutoexecScriptLineVo> scriptLineVoList = autoexecScriptMapper.getLineListByVersionId(scriptVersionVo.getId());
-                    jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, scriptVo, scriptVersionVo, scriptLineVoList);
+                    jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, scriptVo, scriptVersionVo, autoexecCombopService.getOperationActiveVersionScriptByOperationId(operationId));
                     autoexecJobMapper.insertJobPhaseOperation(jobPhaseOperationVo);
                     autoexecJobMapper.insertJobParamContent(new AutoexecJobParamContentVo(jobPhaseOperationVo.getParamHash(), jobPhaseOperationVo.getParamStr()));
                     jobPhaseOperationVos.add(jobPhaseOperationVo);
@@ -109,6 +110,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         }
         return jobVo;
     }
+
+
 
     /**
      * 根据目标ip自动匹配proxy
