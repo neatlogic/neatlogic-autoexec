@@ -8,6 +8,7 @@ package codedriver.module.autoexec.service;
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.constvalue.JobStatus;
+import codedriver.framework.autoexec.constvalue.ToolType;
 import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.exception.AutoexecJobProxyConnectAuthException;
 import codedriver.framework.autoexec.exception.AutoexecJobProxyConnectRefusedException;
@@ -24,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Objects;
 
 /**
  * @author lvzk
@@ -104,6 +106,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                                 put("opName",operationVo.getName());
                                 put("opType",operationVo.getExecMode());
                                 put("failIgnore",operationVo.getFailIgnore());
+                                put("isScript", Objects.equals(operationVo.getType(), ToolType.SCRIPT.getValue())?1:0);
                                 JSONObject param = operationVo.getParam();
                                 put("arg",new JSONObject(){{
                                     for(Object arg : param.getJSONArray("inputParamList")){
