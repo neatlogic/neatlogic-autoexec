@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.service;
 
+import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dto.job.*;
@@ -80,6 +81,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
      */
     private void getFireParamJson(JSONObject paramJson,AutoexecJobVo jobVo){
         paramJson.put("jobId", jobVo.getId());
+        paramJson.put("tenant", TenantContext.get().getTenantUuid());
         paramJson.put("preJobId", null); //给后续ITSM对接使用
         paramJson.put("parallel",jobVo.getThreadCount());
         paramJson.put("passThroughEnv", null); //回调需要的返回的参数
