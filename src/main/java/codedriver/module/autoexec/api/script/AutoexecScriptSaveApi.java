@@ -7,6 +7,8 @@ package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.auth.core.AuthActionChecker;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.constvalue.ParamMode;
 import codedriver.framework.autoexec.constvalue.ParamType;
@@ -84,6 +86,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
     @Output({
             @Param(name = "id", type = ApiParamType.LONG, desc = "脚本ID"),
             @Param(name = "versionId", type = ApiParamType.LONG, desc = "版本id"),
+            @Param(name = "isReviewable", type = ApiParamType.ENUM, rule = "0,1", desc = "是否能审批(1:能;0:不能)"),
     })
     @Description(desc = "保存脚本")
     @Override
@@ -184,6 +187,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
         }
         result.put("id", scriptVo.getId());
         result.put("versionId", scriptVo.getVersionId());
+        result.put("isReviewable", AuthActionChecker.check(AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName()) ? 1 : 0);
         return result;
     }
 
