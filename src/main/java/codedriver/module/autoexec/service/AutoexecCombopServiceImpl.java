@@ -80,6 +80,20 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
     }
 
     /**
+     * 设置当前用户可操作按钮权限列表
+     *
+     * @param combopVoList 组合工具Vo对象列表
+     */
+    @Override
+    public void setOperableButtonList(List<AutoexecCombopVo> combopVoList) {
+        if (CollectionUtils.isNotEmpty(combopVoList)) {
+            for (AutoexecCombopVo vo : combopVoList) {
+                setOperableButtonList(vo);
+            }
+        }
+    }
+
+    /**
      * 校验组合工具每个阶段是否配置正确
      * 校验规则
      * 1.每个阶段至少选择了一个工具
@@ -160,7 +174,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                                 continue;
                             }
                             Object valueObj = paramMappingVo.getValue();
-                            if(Objects.equals(mappingMode, ParamMappingMode.CONSTANT.getValue())){
+                            if (Objects.equals(mappingMode, ParamMappingMode.CONSTANT.getValue())) {
                                 if (valueObj == null && Objects.equals(inputParamVo.getIsRequired(), 1)) {
                                     throw new AutoexecParamMappingIncorrectException(key);
                                 }
@@ -199,7 +213,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
         }
         AutoexecCombopExecuteConfigVo executeConfigVo = config.getExecuteConfig();
         if (executeConfigVo != null) {
-            if(Objects.equals(executeConfigVo.getWhenToSpecify(), CombopNodeSpecify.NOW.getValue())){
+            if (Objects.equals(executeConfigVo.getWhenToSpecify(), CombopNodeSpecify.NOW.getValue())) {
                 String executeUser = executeConfigVo.getExecuteUser();
                 if (StringUtils.isBlank(executeUser)) {
                     throw new AutoexecCombopExecuteUserCannotBeEmptyException();

@@ -25,6 +25,7 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.module.autoexec.operate.ScriptOperateBuilder;
+import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +41,9 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
+
+    @Resource
+    private AutoexecCombopService autoexecCombopService;
 
     @Override
     public String getToken() {
@@ -106,9 +110,9 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         version.setParamList(autoexecScriptMapper.getParamListByVersionId(version.getId()));
         version.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
         script.setReferenceCount(autoexecScriptMapper.getReferenceCountByScriptId(id));
-        // todo 设置当前用户对关联的组合工具的可读性
         List<AutoexecCombopVo> combopList = autoexecScriptMapper.getReferenceListByScriptId(id);
         script.setCombopList(combopList);
+        autoexecCombopService.setOperableButtonList(combopList);
         // 如果是已驳回状态，查询驳回原因
         if (ScriptVersionStatus.REJECTED.getValue().equals(version.getStatus())) {
             AutoexecScriptAuditVo audit = autoexecScriptMapper.getScriptAuditByScriptVersionIdAndOperate(version.getId(), ScriptOperate.REJECT.getValue());
