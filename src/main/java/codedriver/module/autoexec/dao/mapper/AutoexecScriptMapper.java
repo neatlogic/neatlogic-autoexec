@@ -23,6 +23,8 @@ public interface AutoexecScriptMapper {
 
     int checkScriptUkIsExists(AutoexecScriptVo vo);
 
+    List<Long> checkScriptIdListExists(List<Long> idList);
+
     int checkScriptLineContentHashIsExists(String hash);
 
     AutoexecScriptVersionVo getVersionByVersionId(Long versionId);

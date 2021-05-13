@@ -33,6 +33,15 @@
         select count(`id`) from `autoexec_script` where `uk` = #{uk} and `id` != #{id}
     </select>
 
+    <select id="checkScriptIdListExists" parameterType="java.util.List" resultType="java.lang.Long">
+        select `id`
+        from `autoexec_script`
+        where `id` in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+    </select>
+
     <select id="checkScriptLineContentHashIsExists" parameterType="java.lang.String" resultType="int">
         select count(`hash`)
         from `autoexec_script_line_content`
