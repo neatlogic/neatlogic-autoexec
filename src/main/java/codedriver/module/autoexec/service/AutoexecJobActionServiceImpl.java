@@ -8,6 +8,7 @@ package codedriver.module.autoexec.service;
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.constvalue.JobStatus;
+import codedriver.framework.autoexec.constvalue.ToolType;
 import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.exception.AutoexecJobProxyConnectAuthException;
 import codedriver.framework.autoexec.exception.AutoexecJobProxyConnectRefusedException;
@@ -24,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Objects;
 
 /**
  * @author lvzk
@@ -104,6 +106,10 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                                 put("opName",operationVo.getName());
                                 put("opType",operationVo.getExecMode());
                                 put("failIgnore",operationVo.getFailIgnore());
+                                put("isScript", Objects.equals(operationVo.getType(), ToolType.SCRIPT.getValue())?1:0);
+                                put("scriptId",operationVo.getScriptId());
+                                //TODO tool 暂未实现
+                                put("script",operationVo.getScript());
                                 JSONObject param = operationVo.getParam();
                                 put("arg",new JSONObject(){{
                                     for(Object arg : param.getJSONArray("inputParamList")){
@@ -130,9 +136,24 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                 }});
             }
         }});
+    }
 
-
-
+    @Override
+    public JSONObject tailNodeLog(JSONObject paramJson){
+        String url = AutoexecConfig.PROXY_URL() + "/job/phase/node/log/tail";
+        RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
+        String result = RestUtil.sendRequest(restVo);
+        JSONObject resultJson = null;
+        try {
+            resultJson = JSONObject.parseObject(result);
+        }catch (Exception ex){
+            logger.error(ex.getMessage(),ex);
+            throw new AutoexecJobProxyConnectRefusedException(restVo.getUrl() + " " + result);
+        }
+        if(!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))){
+            throw new AutoexecJobProxyConnectAuthException(resultJson.getString("Message"));
+        }
+        return resultJson;
     }
 
     /**

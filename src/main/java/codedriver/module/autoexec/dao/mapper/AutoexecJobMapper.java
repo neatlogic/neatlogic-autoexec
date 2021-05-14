@@ -35,6 +35,11 @@ public interface AutoexecJobMapper {
 
     void updateJobStatus(AutoexecJobVo jobVo);
 
+    //jobNodes
+    int getJobPhaseNodeCountByJobId(AutoexecJobPhaseNodeVo nodeParamVo);
+
+    List<AutoexecJobPhaseNodeVo> searchJobNodeByJobId(AutoexecJobPhaseNodeVo nodeParamVo);
+
     //jobPhase
     List<AutoexecJobPhaseVo> getJobPhaseListByJobId(Long jobId);
 

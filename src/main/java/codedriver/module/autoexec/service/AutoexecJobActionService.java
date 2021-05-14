@@ -9,6 +9,7 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobLogVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import com.alibaba.fastjson.JSONObject;
 
 /**
  * @author lvzk
@@ -19,9 +20,17 @@ public interface AutoexecJobActionService {
      * 第一次执行/重跑/继续作业
      *
      * @param jobVo 作业
-     * @param type     重跑redo，第一次跑 first, 继续跑 goon
+     * @param type  重跑redo，第一次跑 first, 继续跑 goon
      */
     void fire(AutoexecJobVo jobVo, String type);
+
+    /**
+     * 实时获取剧本节点执行日志
+     *
+     * @param paramJson 入参
+     * @return 执行日志
+     */
+    JSONObject tailNodeLog(JSONObject paramJson);
 
     /**
      * 暂停作业

@@ -363,6 +363,26 @@
         WHERE job_id != #{jobId}
           AND `param_hash` = #{hash}
     </select>
+    <select id="getJobPhaseNodeCountByJobId" resultType="java.lang.Integer">
+        SELECT count(ajn.`id`)
+        FROM `autoexec_job_node` ajn
+        where ajn.job_id = #{jobId}
+    </select>
+
+    <select id="searchJobNodeByJobId" resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
+        SELECT ajn.`id`,
+               ajn.`host`,
+               ajn.`port`,
+               an.`id`             as nodeId,
+               an.`name`           AS nodeName,
+               an.`type`           as nodeType,
+               an.`user_name`      as userName,
+               an.`password`
+        FROM `autoexec_job_node` ajn
+                 LEFT JOIN `autoexec_node` an ON ajn.`host` = an.`host` AND ajn.`port` = an.`port`
+        where ajn.job_id = #{jobId}
+        limit #{startNum}, #{pageSize}
+    </select>
 
     <insert id="insertJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
         INSERT INTO `autoexec_job` (`id`,
