@@ -8,6 +8,7 @@ package codedriver.module.autoexec.api.job;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.constvalue.CacheControlType;
 import codedriver.framework.common.util.PageUtil;
@@ -68,6 +69,10 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
         int pageCount = 0;
         AutoexecJobPhaseNodeVo nodeParamVo = new AutoexecJobPhaseNodeVo(paramObj.getLong("jobId"),paramObj.getString("phase"));
         if(StringUtils.isNotBlank(phaseName)){
+            jobVo = autoexecJobMapper.getJobDetailByJobIdAndPhaseName(jobId,phaseName);
+            if(jobVo == null){
+                throw new AutoexecJobPhaseNotFoundException(phaseName);
+            }
             //TODO 判断作业剧本节点是否和作业节点剧本一致，一致则返回304
             count = autoexecJobMapper.searchJobPhaseNodeCount(nodeParamVo);
             pageCount = PageUtil.getPageCount(count,nodeParamVo.getPageSize());

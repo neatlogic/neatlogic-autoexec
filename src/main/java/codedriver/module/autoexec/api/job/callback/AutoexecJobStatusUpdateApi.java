@@ -31,7 +31,7 @@ public class AutoexecJobStatusUpdateApi extends PublicApiComponentBase {
 
     @Override
     public String getName() {
-        return "回调创建作业剧本进程状态";
+        return "回调更新作业剧本或节点状态";
     }
 
     @Override
@@ -50,7 +50,7 @@ public class AutoexecJobStatusUpdateApi extends PublicApiComponentBase {
     })
     @Output({
     })
-    @Description(desc = "回调创建作业剧本进程状态")
+    @Description(desc = "回调更新作业剧本或节点状态")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
