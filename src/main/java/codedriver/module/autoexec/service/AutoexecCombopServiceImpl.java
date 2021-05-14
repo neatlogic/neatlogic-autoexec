@@ -141,8 +141,10 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                     continue;
                 }
                 Map<String, AutoexecScriptVersionParamVo> inputParamMap = new HashMap<>();
-                Long operationId = autoexecCombopPhaseOperationVo.getOperationId();
                 if (Objects.equals(autoexecCombopPhaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
+                    Long operationId = autoexecCombopPhaseOperationVo.getOperationId();
+                    String operationUuid = autoexecCombopPhaseOperationVo.getUuid();
+                    String operationName = autoexecCombopPhaseOperationVo.getName();
                     if (autoexecScriptMapper.checkScriptIsExistsById(operationId) == 0) {
                         throw new AutoexecScriptNotFoundException(operationId);
                     }
@@ -151,7 +153,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                         if (Objects.equals(paramVo.getMode(), ParamMode.INPUT.getValue())) {
                             inputParamMap.put(paramVo.getKey(), paramVo);
                         } else if (Objects.equals(paramVo.getMode(), ParamMode.OUTPUT.getValue())) {
-                            preNodeOutputParamMap.put(uuid + "&&" + operationId + "&&" + paramVo.getKey(), paramVo);
+                            preNodeOutputParamMap.put(uuid + "&&" + operationName + "&&" + operationUuid + "&&" + paramVo.getKey(), paramVo);
                         }
                     }
                 } else {
