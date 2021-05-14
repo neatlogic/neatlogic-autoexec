@@ -18,7 +18,11 @@ public interface AutoexecToolMapper {
 
     List<AutoexecToolVo> searchTool(AutoexecToolVo toolVo);
 
+    Integer getActiveStatusByName(String name);
+
     int searchToolCount(AutoexecToolVo toolVo);
 
     int updateActiveStatus(AutoexecToolVo toolVo);
+
+    int replaceTool(AutoexecToolVo toolVo);
 }

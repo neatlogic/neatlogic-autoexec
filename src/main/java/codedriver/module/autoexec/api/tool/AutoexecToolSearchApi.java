@@ -8,6 +8,7 @@ package codedriver.module.autoexec.api.tool;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
+import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
@@ -19,6 +20,7 @@ import codedriver.module.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.module.autoexec.operate.ScriptOperateBuilder;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -69,6 +71,9 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
         AutoexecToolVo toolVo = JSON.toJavaObject(jsonObj, AutoexecToolVo.class);
         List<AutoexecToolVo> toolVoList = autoexecToolMapper.searchTool(toolVo);
         result.put("tbodyList", toolVoList);
+        if (CollectionUtils.isNotEmpty(toolVoList)) {
+            toolVoList.stream().forEach(o -> o.setExecModeText(ExecMode.getExecMode(o.getExecMode()).getText()));
+        }
         if (toolVo.getNeedPage()) {
             int rowNum = autoexecToolMapper.searchToolCount(toolVo);
             toolVo.setRowNum(rowNum);

@@ -11,15 +11,17 @@ import java.util.List;
 
 public interface AutoexecTypeMapper {
 
-    public AutoexecTypeVo getTypeById(Long id);
+    AutoexecTypeVo getTypeById(Long id);
 
-    public int checkTypeNameIsExists(AutoexecTypeVo vo);
+    int checkTypeNameIsExists(AutoexecTypeVo vo);
 
-    public int searchTypeCount(AutoexecTypeVo vo);
+    Long getTypeIdByName(String name);
 
-    public List<AutoexecTypeVo> searchType(AutoexecTypeVo vo);
+    int searchTypeCount(AutoexecTypeVo vo);
 
-    public int checkTypeIsExistsById(Long id);
+    List<AutoexecTypeVo> searchType(AutoexecTypeVo vo);
+
+    int checkTypeIsExistsById(Long id);
 
     /**
      * 检查插件类型是否被工具或脚本引用
@@ -27,11 +29,11 @@ public interface AutoexecTypeMapper {
      * @param id 类型ID
      * @return 引用次数
      */
-    public int checkTypeHasBeenReferredById(Long id);
+    int checkTypeHasBeenReferredById(Long id);
 
-    public int insertType(AutoexecTypeVo vo);
+    int insertType(AutoexecTypeVo vo);
 
-    public int updateType(AutoexecTypeVo vo);
+    int updateType(AutoexecTypeVo vo);
 
-    public int deleteTypeById(Long id);
+    int deleteTypeById(Long id);
 }

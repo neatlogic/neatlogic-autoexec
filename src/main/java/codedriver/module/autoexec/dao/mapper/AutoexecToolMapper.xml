@@ -105,10 +105,40 @@
         <include refid="searchToolCondition"/>
     </select>
 
+    <select id="getActiveStatusByName" parameterType="java.lang.String" resultType="java.lang.Integer">
+        select `is_active`
+        from `autoexec_tool`
+        where `name` = #{value}
+    </select>
+
     <update id="updateActiveStatus" parameterType="codedriver.framework.autoexec.dto.AutoexecToolVo">
         update `autoexec_tool`
         set `is_active` = #{isActive}
         where `id` = #{id}
+    </update>
+
+    <update id="replaceTool" parameterType="codedriver.framework.autoexec.dto.AutoexecToolVo">
+        replace into `autoexec_tool`(
+        `id`,
+        `name`,
+        `exec_mode`,
+        `interpreter`,
+        `type_id`,
+        `risk_id`,
+        `is_active`,
+        `description`,
+        `lcd`
+        ) values (
+        #{id},
+        #{name},
+        #{execMode},
+        #{interpreter},
+        #{typeId},
+        #{riskId},
+        #{isActive},
+        #{description},
+        now(3)
+        )
     </update>
 
 </mapper>
