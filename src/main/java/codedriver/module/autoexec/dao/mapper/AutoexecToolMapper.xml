@@ -105,8 +105,11 @@
         <include refid="searchToolCondition"/>
     </select>
 
-    <select id="getActiveStatusByName" parameterType="java.lang.String" resultType="java.lang.Integer">
-        select `is_active`
+    <select id="getToolByName" parameterType="java.lang.String" resultType="codedriver.framework.autoexec.dto.AutoexecToolVo">
+        select
+        `id`,
+        `name`,
+        `is_active`
         from `autoexec_tool`
         where `name` = #{value}
     </select>

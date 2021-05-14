@@ -69,6 +69,7 @@ public class AutoexecToolPushApi extends PublicApiComponentBase {
         String description = jsonObj.getString("description");
         Long typeId = autoexecTypeMapper.getTypeIdByName(typeName);
         Long riskId = autoexecRiskMapper.getRiskIdByName(riskName);
+        AutoexecToolVo oldTool = autoexecToolMapper.getToolByName(opName);
         if (typeId == null) {
             throw new AutoexecTypeNotFoundException(typeName);
         }
@@ -76,13 +77,15 @@ public class AutoexecToolPushApi extends PublicApiComponentBase {
             throw new AutoexecRiskNotFoundException(riskName);
         }
         AutoexecToolVo vo = new AutoexecToolVo();
+        if (oldTool != null) {
+            vo.setId(oldTool.getId());
+            vo.setIsActive(oldTool.getIsActive() != null ? oldTool.getIsActive() : 1);
+        }
         vo.setName(opName);
         vo.setExecMode(opType);
         vo.setInterpreter(interpreter);
         vo.setTypeId(typeId);
         vo.setRiskId(riskId);
-        Integer isActive = autoexecToolMapper.getActiveStatusByName(opName);
-        vo.setIsActive(isActive != null ? isActive : 1);
         vo.setDescription(description);
         autoexecToolMapper.replaceTool(vo);
 
