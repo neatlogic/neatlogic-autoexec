@@ -121,6 +121,7 @@
         CONCAT('版本',`version`) as `text`
         from `autoexec_script_version`
         where `script_id` = #{value}
+        order by version desc
     </select>
 
     <select id="getActiveVersionByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
