@@ -7,7 +7,6 @@ package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.constvalue.ScriptOperate;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
@@ -105,7 +104,6 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         if (script == null) {
             throw new AutoexecScriptNotFoundException(id);
         }
-        script.setExecModeText(ExecMode.getExecMode(script.getExecMode()).getText());
         script.setVersionVo(version);
         version.setParamList(autoexecScriptMapper.getParamListByVersionId(version.getId()));
         version.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));

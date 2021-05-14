@@ -12,9 +12,11 @@ import java.util.List;
 
 public interface AutoexecRiskMapper {
 
-    public int checkRiskIsExistsById(Long id);
+    int checkRiskIsExistsById(Long id);
 
-    public List<ValueTextVo> getAllActiveRisk();
+    Long getRiskIdByName(String name);
 
-    public AutoexecRiskVo getAutoexecRiskById(Long riskId);
+    List<ValueTextVo> getAllActiveRisk();
+
+    AutoexecRiskVo getAutoexecRiskById(Long riskId);
 }

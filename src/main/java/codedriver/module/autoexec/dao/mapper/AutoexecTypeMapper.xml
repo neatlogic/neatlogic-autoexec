@@ -18,6 +18,12 @@
         where `name` = #{name} and `id` != #{id}
     </select>
 
+    <select id="getTypeIdByName" parameterType="java.lang.String" resultType="java.lang.Long">
+        select `id`
+        from `autoexec_type`
+        where `name` = #{value}
+    </select>
+
     <select id="searchTypeCount" parameterType="codedriver.framework.autoexec.dto.AutoexecTypeVo" resultType="int">
         select
         count(1)
