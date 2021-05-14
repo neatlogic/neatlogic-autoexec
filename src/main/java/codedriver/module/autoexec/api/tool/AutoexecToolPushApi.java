@@ -22,7 +22,7 @@ import javax.annotation.Resource;
 
 @Service
 @OperationType(type = OperationTypeEnum.OPERATE)
-public class AutoexecToolPullApi extends PublicApiComponentBase {
+public class AutoexecToolPushApi extends PublicApiComponentBase {
 
     @Resource
     private AutoexecToolMapper autoexecToolMapper;
@@ -35,12 +35,12 @@ public class AutoexecToolPullApi extends PublicApiComponentBase {
 
     @Override
     public String getToken() {
-        return "autoexec/tool/pull";
+        return "autoexec/tool/push";
     }
 
     @Override
     public String getName() {
-        return "拉取内置工具";
+        return "推送内置工具";
     }
 
     @Override
@@ -58,7 +58,7 @@ public class AutoexecToolPullApi extends PublicApiComponentBase {
     })
     @Output({
     })
-    @Description(desc = "拉取内置工具")
+    @Description(desc = "推送内置工具")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         String opName = jsonObj.getString("opName");
