@@ -356,7 +356,6 @@
     <select id="searchScriptAndTool" parameterType="codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo" resultMap="autoexecToolAndScriptMap">
         select
         a.`id`,
-        a.`uk`,
         a.`name`,
         a.`type`,
         a.`execMode`,
@@ -370,7 +369,6 @@
         <if test="(type == null or type == '') or (type != null and type != '' and type == 'tool')">
             select
             `id`,
-            `uk`,
             `name`,
             'tool' as `type`,
             `exec_mode` as execMode,
@@ -387,7 +385,6 @@
         <if test="(type == null or type == '') or (type != null and type != '' and type == 'script')">
             select
             a.`id`,
-            `uk`,
             `name`,
             'script' as `type`,
             `exec_mode` as execMode,
