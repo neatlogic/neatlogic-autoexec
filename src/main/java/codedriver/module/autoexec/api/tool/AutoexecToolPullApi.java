@@ -69,10 +69,10 @@ public class AutoexecToolPullApi extends PublicApiComponentBase {
         String description = jsonObj.getString("description");
         Long typeId = autoexecTypeMapper.getTypeIdByName(typeName);
         Long riskId = autoexecRiskMapper.getRiskIdByName(riskName);
-        if(typeId == null){
+        if (typeId == null) {
             throw new AutoexecTypeNotFoundException(typeName);
         }
-        if(riskId == null){
+        if (riskId == null) {
             throw new AutoexecRiskNotFoundException(riskName);
         }
         AutoexecToolVo vo = new AutoexecToolVo();
