@@ -26,7 +26,6 @@
     <select id="getToolListByIdList" parameterType="java.lang.Long" resultMap="autoexecToolAndScriptMap">
         select
         `id`,
-        `uk`,
         `name`,
         'tool' as `type`,
         `exec_mode` as execMode,
