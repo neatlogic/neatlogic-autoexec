@@ -9,6 +9,12 @@
         where `id` = #{value}
     </select>
 
+    <select id="getRiskIdByName" parameterType="java.lang.String" resultType="java.lang.Long">
+        select `id`
+        from `autoexec_risk`
+        where `name` = #{value}
+    </select>
+
     <select id="getAllActiveRisk" resultType="codedriver.framework.common.dto.ValueTextVo">
         select
         `id` as `value`,

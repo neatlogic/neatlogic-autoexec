@@ -22,4 +22,5 @@ public interface AutoexecJobService {
      * @return jobId
      */
     AutoexecJobVo saveAutoexecCombopJob(AutoexecCombopVo combopVo, String source, Integer threadCount, JSONObject paramJson);
+
 }

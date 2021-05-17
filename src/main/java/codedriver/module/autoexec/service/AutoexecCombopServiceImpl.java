@@ -8,7 +8,9 @@ package codedriver.module.autoexec.service;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dto.combop.*;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.dao.mapper.TeamMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
@@ -19,7 +21,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -136,8 +141,10 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                     continue;
                 }
                 Map<String, AutoexecScriptVersionParamVo> inputParamMap = new HashMap<>();
-                Long operationId = autoexecCombopPhaseOperationVo.getOperationId();
                 if (Objects.equals(autoexecCombopPhaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
+                    Long operationId = autoexecCombopPhaseOperationVo.getOperationId();
+                    String operationUuid = autoexecCombopPhaseOperationVo.getUuid();
+                    String operationName = autoexecCombopPhaseOperationVo.getName();
                     if (autoexecScriptMapper.checkScriptIsExistsById(operationId) == 0) {
                         throw new AutoexecScriptNotFoundException(operationId);
                     }
@@ -146,7 +153,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                         if (Objects.equals(paramVo.getMode(), ParamMode.INPUT.getValue())) {
                             inputParamMap.put(paramVo.getKey(), paramVo);
                         } else if (Objects.equals(paramVo.getMode(), ParamMode.OUTPUT.getValue())) {
-                            preNodeOutputParamMap.put(uuid + "&&" + operationId + "&&" + paramVo.getKey(), paramVo);
+                            preNodeOutputParamMap.put(uuid + "&&" + operationName + "&&" + operationUuid + "&&" + paramVo.getKey(), paramVo);
                         }
                     }
                 } else {
@@ -223,5 +230,24 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
         }
 
         return true;
+    }
+
+    @Override
+    public String getOperationActiveVersionScriptByOperationId(Long operationId){
+        AutoexecScriptVersionVo scriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(operationId);
+        if (scriptVersionVo == null) {
+            throw new AutoexecScriptVersionHasNoActivedException();
+        }
+        return getOperationActiveVersionScriptByOperation(scriptVersionVo);
+    }
+
+    @Override
+    public String getOperationActiveVersionScriptByOperation(AutoexecScriptVersionVo scriptVersionVo){
+        List<AutoexecScriptLineVo> scriptLineVoList = autoexecScriptMapper.getLineListByVersionId(scriptVersionVo.getId());
+        StringBuilder scriptSb = new StringBuilder();
+        for (AutoexecScriptLineVo lineVo : scriptLineVoList) {
+            scriptSb.append(lineVo.getContent()).append("\n");
+        }
+        return scriptSb.toString();
     }
 }

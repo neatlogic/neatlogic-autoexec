@@ -130,6 +130,7 @@
         CONCAT('版本',`version`) as `text`
         from `autoexec_script_version`
         where `script_id` = #{value}
+        order by version desc
     </select>
 
     <select id="getActiveVersionByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
@@ -294,7 +295,7 @@
         `autoexec_tool`
         where `is_active` = 1
         <if test="keyword != null and keyword != ''">
-            and (`name` like CONCAT('%', #{keyword}, '%') or `uk` like CONCAT('%', #{keyword}, '%'))
+            and `name` like CONCAT('%', #{keyword}, '%')
         </if>
         <if test="execMode != null and execMode != ''">
             and `exec_mode` = #{execMode}
@@ -320,7 +321,7 @@
         on a.`id` = b.`script_id`
         where b.`is_active` = 1
         <if test="keyword != null and keyword != ''">
-            and (a.`name` like CONCAT('%', #{keyword}, '%') or a.`uk` like CONCAT('%', #{keyword}, '%'))
+            and a.`name` like CONCAT('%', #{keyword}, '%')
         </if>
         <if test="execMode != null and execMode != ''">
             and a.`exec_mode` = #{execMode}
@@ -364,7 +365,6 @@
     <select id="searchScriptAndTool" parameterType="codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo" resultMap="autoexecToolAndScriptMap">
         select
         a.`id`,
-        a.`uk`,
         a.`name`,
         a.`type`,
         a.`execMode`,
@@ -378,7 +378,6 @@
         <if test="(type == null or type == '') or (type != null and type != '' and type == 'tool')">
             select
             `id`,
-            `uk`,
             `name`,
             'tool' as `type`,
             `exec_mode` as execMode,
@@ -395,7 +394,6 @@
         <if test="(type == null or type == '') or (type != null and type != '' and type == 'script')">
             select
             a.`id`,
-            `uk`,
             `name`,
             'script' as `type`,
             `exec_mode` as execMode,
@@ -428,7 +426,7 @@
         </association>
         <collection property="paramList" ofType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo">
             <result property="key" column="key"/>
-            <result property="name" column="name"/>
+            <result property="name" column="paramName"/>
             <result property="defaultValue" column="defaultValue"/>
             <result property="type" column="paramType"/>
             <result property="mode" column="mode"/>
@@ -441,7 +439,6 @@
     <select id="getScriptListByIdList" parameterType="java.util.List" resultMap="autoexecToolAndScriptMap">
         select
         a.`id`,
-        a.`uk`,
         a.`name`,
         'script' as `type`,
         a.`exec_mode` as execMode,
@@ -451,7 +448,7 @@
         (select `name` from `autoexec_risk` where a.`risk_id` = `id`) as riskName,
         (select `color` from `autoexec_risk` where a.`risk_id` = `id`) as riskColor,
         c.`key`,
-        c.`name`,
+        c.`name` as paramName,
         c.`default_value` as defaultValue,
         c.`type` as paramType,
         c.`mode`,
