@@ -6,10 +6,7 @@
 package codedriver.module.autoexec.service;
 
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
-import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
-import codedriver.framework.autoexec.constvalue.JobStatus;
-import codedriver.framework.autoexec.constvalue.ParamMappingMode;
-import codedriver.framework.autoexec.constvalue.ToolType;
+import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.exception.AutoexecCombopPhasePreParamException;
 import codedriver.framework.autoexec.exception.AutoexecJobProxyConnectAuthException;
@@ -98,7 +95,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         JSONObject argJson = new JSONObject() {{
             for (Object paramObj : paramArray) {
                 JSONObject paramTmp = JSONObject.parseObject(paramObj.toString());
-                put(paramTmp.getString("key"), paramTmp.getString("value"));
+                put(paramTmp.getString("key"), getValueByParamType(paramTmp));
             }
         }};
         paramJson.put("arg", argJson);
@@ -123,7 +120,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                                         JSONObject argJson = JSONObject.parseObject(arg.toString());
                                         String value =  argJson.getString("value");
                                         if(Objects.equals(ParamMappingMode.CONSTANT.getValue(),argJson.getString("mappingMode"))) {
-                                            put(argJson.getString("key"), value);
+                                            put(argJson.getString("key"), getValueByParamType(argJson));
                                         }else if(Objects.equals(ParamMappingMode.RUNTIME_PARAM.getValue(),argJson.getString("mappingMode"))) {
                                             put(argJson.getString("key"), String.format("${%s}",value));
                                         }else if(Objects.equals(ParamMappingMode.PRE_NODE_OUTPUT_PARAM.getValue(),argJson.getString("mappingMode"))) {
@@ -165,6 +162,27 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                 }});
             }
         }});
+    }
+
+    /**
+     * 根据参数值类型获取对应参数的值
+     * @param param 参数json
+     * @return 值
+     */
+    private Object getValueByParamType(JSONObject param){
+        String type = param.getString("type");
+        Object value = param.get("value");
+        if(Objects.equals(type, ParamType.FILE.getValue())){
+            value = JSONObject.parseObject(value.toString()).getJSONArray("fileIdList");
+        }else if(Objects.equals(type,ParamType.NODE.getValue())){
+            JSONArray nodeJsonArray = JSONObject.parseArray(value.toString());
+            for(Object node : nodeJsonArray) {
+                JSONObject nodeJson = (JSONObject) node;
+                nodeJson.put("ip", nodeJson.getString("host"));
+            }
+            value = nodeJsonArray;
+        }
+        return value;
     }
 
     @Override
