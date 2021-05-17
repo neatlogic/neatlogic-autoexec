@@ -15,7 +15,6 @@ import codedriver.framework.exception.file.FileNotUploadException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.service.AutoexecScriptService;
 import com.alibaba.fastjson.JSONObject;
@@ -125,15 +124,15 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                     AutoexecScriptVersionVo oldVersion = autoexecScriptService.getScriptVersionDetailByVersionId(versionVo.getId());
                     List<AutoexecScriptVersionParamVo> oldParamList = oldVersion.getParamList();
                     if (oldVersion != null) {
-                        if(autoexecScriptService.checkScriptVersionNeedToUpdate(oldVersion, versionVo)){
+                        if (autoexecScriptService.checkScriptVersionNeedToUpdate(oldVersion, versionVo)) {
                             autoexecScriptMapper.deleteParamByVersionId(versionVo.getId());
                             autoexecScriptMapper.deleteScriptLineByVersionId(versionVo.getId());
                             List<AutoexecScriptVersionParamVo> paramList = versionVo.getParamList();
-                            autoexecScriptService.saveParamList(oldParamList,versionVo,paramList);
+                            autoexecScriptService.saveParamList(oldParamList, versionVo, paramList);
                             autoexecScriptMapper.updateScriptVersion(versionVo);
 
                         }
-                    }else{
+                    } else {
 
                     }
                 }
