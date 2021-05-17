@@ -12,12 +12,17 @@ import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.exception.file.FileExtNotAllowedException;
 import codedriver.framework.exception.file.FileNotUploadException;
-import codedriver.framework.restful.annotation.*;
+import codedriver.framework.restful.annotation.Description;
+import codedriver.framework.restful.annotation.Input;
+import codedriver.framework.restful.annotation.OperationType;
+import codedriver.framework.restful.annotation.Output;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.service.AutoexecScriptService;
+import codedriver.module.autoexec.service.AutoexecService;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -27,11 +32,14 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.ObjectInputStream;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.zip.ZipInputStream;
 
 @Service
 @Transactional
@@ -44,6 +52,9 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
 
     @Resource
     private AutoexecScriptService autoexecScriptService;
+
+    @Resource
+    private AutoexecService autoexecService;
 
     @Override
     public String getToken() {
@@ -71,26 +82,29 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
         //获取所有导入文件
         Map<String, MultipartFile> multipartFileMap = multipartRequest.getFileMap();
         //如果没有导入文件, 抛异常
-        if (multipartFileMap == null || multipartFileMap.isEmpty()) {
+        if (multipartFileMap.isEmpty()) {
             throw new FileNotUploadException();
         }
-        ObjectInputStream ois = null;
-        Object obj = null;
+        List<String> resultList = new ArrayList<>();
+        byte[] buf = new byte[1024];
+        //遍历导入文件
         for (Map.Entry<String, MultipartFile> entry : multipartFileMap.entrySet()) {
             MultipartFile multipartFile = entry.getValue();
-            try {
-                ois = new ObjectInputStream(multipartFile.getInputStream());
-                obj = ois.readObject();
+            //反序列化获取对象
+            try (ZipInputStream zipis = new ZipInputStream(multipartFile.getInputStream());
+                 ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+                while (zipis.getNextEntry() != null) {
+                    int len;
+                    while ((len = zipis.read(buf)) != -1) {
+                        out.write(buf, 0, len);
+                    }
+                    AutoexecScriptVo scriptVo = JSONObject.parseObject(new String(out.toByteArray(), StandardCharsets.UTF_8), new TypeReference<AutoexecScriptVo>() {
+                    });
+                    save(scriptVo);
+                    out.reset();
+                }
             } catch (IOException e) {
                 throw new FileExtNotAllowedException(multipartFile.getOriginalFilename());
-            } finally {
-                if (ois != null) {
-                    ois.close();
-                }
-            }
-            if (obj instanceof AutoexecScriptVo) {
-                AutoexecScriptVo scriptVo = (AutoexecScriptVo) obj;
-                save(scriptVo);
             }
         }
         return null;
@@ -98,8 +112,8 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
 
     private void save(AutoexecScriptVo scriptVo) {
         Long id = scriptVo.getId();
-        AutoexecScriptVo oldScriptVo = autoexecScriptMapper.getScriptBaseInfoById(id);
         List<AutoexecScriptVersionVo> versionList = scriptVo.getVersionList();
+        AutoexecScriptVo oldScriptVo = autoexecScriptMapper.getScriptBaseInfoById(id);
         if (oldScriptVo != null) {
             boolean hasChange = false;
             // todo 重写equals
@@ -133,6 +147,9 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
 
                         }
                     } else {
+                        if (CollectionUtils.isNotEmpty(versionVo.getParamList())) {
+                            autoexecService.validateParamList(versionVo.getParamList());
+                        }
 
                     }
                 }
