@@ -417,7 +417,7 @@
         </association>
         <collection property="paramList" ofType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo">
             <result property="key" column="key"/>
-            <result property="name" column="name"/>
+            <result property="name" column="paramName"/>
             <result property="defaultValue" column="defaultValue"/>
             <result property="type" column="paramType"/>
             <result property="mode" column="mode"/>
@@ -439,7 +439,7 @@
         (select `name` from `autoexec_risk` where a.`risk_id` = `id`) as riskName,
         (select `color` from `autoexec_risk` where a.`risk_id` = `id`) as riskColor,
         c.`key`,
-        c.`name`,
+        c.`name` as paramName,
         c.`default_value` as defaultValue,
         c.`type` as paramType,
         c.`mode`,
