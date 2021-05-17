@@ -191,6 +191,27 @@
         where `job_id` = #{value}
     </select>
 
+    <select id="getJobPhaseListByJobIdAndPhaseStatus"
+            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
+        SELECT `id`,
+        `job_id` as jobId,
+        `status`,
+        `start_time` as startTime,
+        `end_time` as endTime,
+        `exec_user` as execUser,
+        `exec_mode` as execMode,
+        `name` as name,
+        `uk` as uk
+        FROM `autoexec_job_phase`
+        where `job_id` = #{jobId}
+        <if test="statusList != null and statusList.size() >0">
+            and `status` in
+            <foreach collection="statusList" item="status" separator="," open="(" close=")">
+                #{status}
+            </foreach>
+        </if>
+    </select>
+
     <select id="getJobPhaseNodeStatusCount" parameterType="java.lang.Long"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeStatusCountVo">
         SELECT `job_phase_id` as jobPhaseId, `status`, COUNT(1) AS `count`
@@ -373,10 +394,10 @@
         SELECT ajn.`id`,
                ajn.`host`,
                ajn.`port`,
-               an.`id`             as nodeId,
-               an.`name`           AS nodeName,
-               an.`type`           as nodeType,
-               an.`user_name`      as userName,
+               an.`id`        as nodeId,
+               an.`name`      AS nodeName,
+               an.`type`      as nodeType,
+               an.`user_name` as userName,
                an.`password`
         FROM `autoexec_job_node` ajn
                  LEFT JOIN `autoexec_node` an ON ajn.`host` = an.`host` AND ajn.`port` = an.`port`
@@ -502,6 +523,24 @@
             ,`end_time` = NOW(3)
         </if>
         WHERE id = #{id}
+    </update>
+
+    <update id="updateJobPhaseStatusBatch">
+        UPDATE `autoexec_job_phase`
+        SET `status` = #{status}
+        <if test="status == 'running'">
+            ,`start_time` = NOW(3)
+        </if>
+        <if test="errorMsg != null and errorMsg != ''">
+            ,`error_msg` = #{errorMsg}
+        </if>
+        <if test="status == 'completed' or status == 'failed'">
+            ,`end_time` = NOW(3)
+        </if>
+        WHERE id in
+        <foreach collection="phaseIdList" item="phaseId" separator="," open="(" close=")">
+            #{phaseId}
+        </foreach>
     </update>
 
     <delete id="deleteJobParamContentByHash" parameterType="java.lang.String">

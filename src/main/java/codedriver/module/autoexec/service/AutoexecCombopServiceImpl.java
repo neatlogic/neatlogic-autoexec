@@ -235,9 +235,14 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
     @Override
     public String getOperationActiveVersionScriptByOperationId(Long operationId){
         AutoexecScriptVersionVo scriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(operationId);
-        if(scriptVersionVo == null){
+        if (scriptVersionVo == null) {
             throw new AutoexecScriptVersionHasNoActivedException();
         }
+        return getOperationActiveVersionScriptByOperation(scriptVersionVo);
+    }
+
+    @Override
+    public String getOperationActiveVersionScriptByOperation(AutoexecScriptVersionVo scriptVersionVo){
         List<AutoexecScriptLineVo> scriptLineVoList = autoexecScriptMapper.getLineListByVersionId(scriptVersionVo.getId());
         StringBuilder scriptSb = new StringBuilder();
         for (AutoexecScriptLineVo lineVo : scriptLineVoList) {

@@ -19,7 +19,7 @@ public interface AutoexecJobMapper {
 
     AutoexecJobVo getJobInfo(Long jobId);
 
-    AutoexecJobVo getJobDetailByJobIdAndPhaseName(@Param("jobId")Long jobId,@Param("phaseName") String phaseName);
+    AutoexecJobVo getJobDetailByJobIdAndPhaseName(@Param("jobId") Long jobId, @Param("phaseName") String phaseName);
 
     Integer searchJobCount(AutoexecJobVo jobVo);
 
@@ -43,9 +43,11 @@ public interface AutoexecJobMapper {
     //jobPhase
     List<AutoexecJobPhaseVo> getJobPhaseListByJobId(Long jobId);
 
+    List<AutoexecJobPhaseVo> getJobPhaseListByJobIdAndPhaseStatus(@Param("jobId") Long jobId, @Param("statusList") List<String> statusList);
+
     AutoexecJobPhaseVo getJobPhaseLockByPhaseId(Long jobPhaseId);
 
-    AutoexecJobPhaseVo getJobPhaseLockByJobIdAndPhaseName(@Param("jobId") Long jobId,@Param("jobPhaseName") String jobPhaseName);
+    AutoexecJobPhaseVo getJobPhaseLockByJobIdAndPhaseName(@Param("jobId") Long jobId, @Param("jobPhaseName") String jobPhaseName);
 
     AutoexecJobPhaseVo getFirstJobPhase(Long jobId);
 
@@ -64,7 +66,6 @@ public interface AutoexecJobMapper {
     //jobParamContent
 
 
-
     Integer insertJob(AutoexecJobVo jobVo);
 
     Integer insertJobPhase(AutoexecJobPhaseVo jobVo);
@@ -76,6 +77,8 @@ public interface AutoexecJobMapper {
     Integer insertJobParamContent(AutoexecJobParamContentVo contentVo);
 
     Integer updateJobPhaseStatus(AutoexecJobPhaseVo autoexecJobPhaseVo);
+
+    Integer updateJobPhaseStatusBatch(@Param("phaseIdList")List<Long> phaseIdList,@Param("status")String phaseStatus,@Param("errorMsg")String errorMsg);
 
 
     void deleteJobParamContentByHash(String paramHash);

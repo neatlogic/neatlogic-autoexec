@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.service;
 
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 
 import java.util.List;
 
@@ -45,5 +46,7 @@ public interface AutoexecCombopService {
      * @param operationId 操作Id
      * @return 脚本内容
      */
+    public String getOperationActiveVersionScriptByOperation(AutoexecScriptVersionVo operation);
+
     public String getOperationActiveVersionScriptByOperationId(Long operationId);
 }
