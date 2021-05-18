@@ -131,9 +131,8 @@ public class ScriptOperateBuilder {
         return this;
     }
 
-    public ScriptOperateBuilder setActive() {
-        if (AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())
-                && Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), status)) {
+    public ScriptOperateBuilder setToolActive() {
+        if (AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())) {
             operateList.add(new ValueTextVo("active", "启用/禁用"));
         }
         return this;
