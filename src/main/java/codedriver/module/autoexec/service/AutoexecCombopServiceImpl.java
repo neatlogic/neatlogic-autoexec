@@ -8,6 +8,7 @@ package codedriver.module.autoexec.service;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dto.combop.*;
+import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
@@ -224,6 +225,17 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                 String executeUser = executeConfigVo.getExecuteUser();
                 if (StringUtils.isBlank(executeUser)) {
                     throw new AutoexecCombopExecuteUserCannotBeEmptyException();
+                }
+                AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = executeConfigVo.getExecuteNodeConfig();
+                if (executeNodeConfigVo == null) {
+                    throw new AutoexecCombopExecuteNodeCannotBeEmptyException();
+                }
+                List<AutoexecNodeVo> selectNodeList = executeNodeConfigVo.getSelectNodeList();
+                List<AutoexecNodeVo> inputNodeList = executeNodeConfigVo.getInputNodeList();
+                List<String> paramList = executeNodeConfigVo.getParamList();
+                List<String> tagList = executeNodeConfigVo.getTagList();
+                if (CollectionUtils.isEmpty(selectNodeList) && CollectionUtils.isEmpty(inputNodeList) && CollectionUtils.isEmpty(paramList) && CollectionUtils.isEmpty(tagList)) {
+                    throw new AutoexecCombopExecuteNodeCannotBeEmptyException();
                 }
                 // TODO 验证执行用户是否存在
             }
