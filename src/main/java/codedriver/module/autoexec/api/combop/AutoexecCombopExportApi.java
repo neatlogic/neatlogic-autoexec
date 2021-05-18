@@ -15,7 +15,6 @@ import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiCompon
 import codedriver.framework.util.FileUtil;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.service.AutoexecCombopService;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
