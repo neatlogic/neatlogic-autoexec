@@ -25,8 +25,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -79,14 +77,8 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
         if (CollectionUtils.isNotEmpty(idList)) {
             throw new AutoexecScriptNotFoundException(StringUtils.join(idList, ","));
         }
-        String fileName = "自定义工具." + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak";
         String userAgent = request.getHeader("User-Agent");
-        if (userAgent.indexOf("Gecko") > 0) {
-            fileName = URLEncoder.encode(fileName, "UTF-8");
-            fileName = FileUtil.fileNameSpecialCharacterHandling(fileName);
-        } else {
-            fileName = new String(fileName.replace(" ", "").getBytes(StandardCharsets.UTF_8), "ISO8859-1");
-        }
+        String fileName = FileUtil.getEncodedFileName(userAgent, "自定义工具." + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak");
         response.setContentType("application/zip");
         response.setHeader("Content-Disposition", "attachment;fileName=\"" + fileName + "\"");
         try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
