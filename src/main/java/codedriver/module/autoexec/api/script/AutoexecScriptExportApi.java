@@ -26,7 +26,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.zip.ZipEntry;
@@ -59,25 +58,21 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
     }
 
     @Input({
-            @Param(name = "ids", type = ApiParamType.REGEX, rule = "^[0-9,]+$", isRequired = true, desc = "脚本ID列表"),
+            @Param(name = "idList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "脚本ID列表"),
     })
     @Output({
     })
     @Description(desc = "导出脚本")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
-        String ids = paramObj.getString("ids");
-        String[] idArray = ids.split(",");
-        List<Long> idList = new ArrayList<>(idArray.length);
-        for (String id : idArray) {
-            idList.add(Long.valueOf(id));
-        }
+        List<Long> idList = paramObj.getJSONArray("idList").toJavaList(Long.class);
         List<Long> existedIdList = autoexecScriptMapper.checkScriptIdListExists(idList);
         idList.removeAll(existedIdList);
         if (CollectionUtils.isNotEmpty(idList)) {
             throw new AutoexecScriptNotFoundException(StringUtils.join(idList, ","));
         }
-        String fileName = FileUtil.getEncodedFileName(request.getHeader("User-Agent"), "自定义工具." + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak");
+        String fileName = FileUtil.getEncodedFileName(request.getHeader("User-Agent"),
+                "自定义工具." + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak");
         response.setContentType("application/zip");
         response.setHeader("Content-Disposition", "attachment;fileName=\"" + fileName + "\"");
         try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
