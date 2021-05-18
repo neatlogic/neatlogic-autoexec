@@ -78,7 +78,7 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
             result.put("rowNum", toolVo.getRowNum());
         }
         ScriptOperateBuilder builder = new ScriptOperateBuilder(UserContext.get().getUserUuid());
-        result.put("operateList", builder.setTest().setActive().setGenerateToCombop().build());
+        result.put("operateList", builder.setTest().setToolActive().setGenerateToCombop().build());
         return result;
     }
 
