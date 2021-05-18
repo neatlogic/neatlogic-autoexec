@@ -15,6 +15,7 @@ import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiCompon
 import codedriver.framework.util.FileUtil;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.service.AutoexecCombopService;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -61,17 +62,12 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
     }
 
     @Input({
-            @Param(name = "ids", type = ApiParamType.STRING, isRequired = true, minLength = 1, desc = "组合工具id列表")
+            @Param(name = "idList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "组合工具id列表")
     })
     @Description(desc = "导出组合工具")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
-        String ids = paramObj.getString("ids");
-        String[] split = ids.split(",");
-        List<Long> idList = new ArrayList<>(split.length);
-        for(String id : split){
-            idList.add(new Long(id));
-        }
+        List<Long> idList = JSON.parseArray(paramObj.getJSONArray("idList").toJSONString(), Long.class);
         List<Long> existIdList = autoexecCombopMapper.checkAutoexecCombopIdListIsExists(idList);
         idList.removeAll(existIdList);
         if (CollectionUtils.isNotEmpty(idList)) {
