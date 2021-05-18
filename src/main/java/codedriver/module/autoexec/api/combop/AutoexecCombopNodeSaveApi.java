@@ -13,6 +13,9 @@ import codedriver.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteNodeConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
+import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
+import codedriver.framework.autoexec.exception.AutoexecCombopExecuteNodeCannotBeEmptyException;
+import codedriver.framework.autoexec.exception.AutoexecCombopExecuteUserCannotBeEmptyException;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.Description;
@@ -23,10 +26,14 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -72,13 +79,28 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
             throw new AutoexecCombopNotFoundException(combopId);
         }
         AutoexecCombopExecuteConfigVo executeConfig = new AutoexecCombopExecuteConfigVo();
-        String executeUser = jsonObj.getString("executeUser");
+
         String whenToSpecify = jsonObj.getString("whenToSpecify");
-        executeConfig.setExecuteUser(executeUser);
         executeConfig.setWhenToSpecify(whenToSpecify);
         if (Objects.equals(whenToSpecify, CombopNodeSpecify.NOW.getValue())) {
+            String executeUser = jsonObj.getString("executeUser");
+            if (StringUtils.isBlank(executeUser)) {
+                throw new AutoexecCombopExecuteUserCannotBeEmptyException();
+            }
+            executeConfig.setExecuteUser(executeUser);
             JSONObject executeNodeConfig = jsonObj.getJSONObject("executeNodeConfig");
-            executeConfig.setExecuteNodeConfig(JSONObject.toJavaObject(executeNodeConfig, AutoexecCombopExecuteNodeConfigVo.class));
+            if (MapUtils.isEmpty(executeNodeConfig)) {
+                throw new AutoexecCombopExecuteNodeCannotBeEmptyException();
+            }
+            AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = JSONObject.toJavaObject(executeNodeConfig, AutoexecCombopExecuteNodeConfigVo.class);
+            List<AutoexecNodeVo> selectNodeList = executeNodeConfigVo.getSelectNodeList();
+            List<AutoexecNodeVo> inputNodeList = executeNodeConfigVo.getInputNodeList();
+            List<String> paramList = executeNodeConfigVo.getParamList();
+            List<String> tagList = executeNodeConfigVo.getTagList();
+            if (CollectionUtils.isEmpty(selectNodeList) && CollectionUtils.isEmpty(inputNodeList) && CollectionUtils.isEmpty(paramList) && CollectionUtils.isEmpty(tagList)) {
+                throw new AutoexecCombopExecuteNodeCannotBeEmptyException();
+            }
+            executeConfig.setExecuteNodeConfig(executeNodeConfigVo);
         } else {
             executeConfig.setExecuteNodeConfig(new AutoexecCombopExecuteNodeConfigVo());
         }
