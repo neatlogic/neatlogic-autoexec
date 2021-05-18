@@ -87,8 +87,7 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
             throw new AutoexecCombopNotFoundException(stringBuilder.toString());
         }
         //设置导出文件名
-        String userAgent = request.getHeader("User-Agent");
-        String fileName = FileUtil.getEncodedFileName(userAgent, "组合工具." + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak");
+        String fileName = FileUtil.getEncodedFileName(request.getHeader("User-Agent"), "组合工具." + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak");
         response.setContentType("aplication/zip");
         response.setHeader("Content-Disposition", "attachment;fileName=\"" + fileName + "\"");
 
