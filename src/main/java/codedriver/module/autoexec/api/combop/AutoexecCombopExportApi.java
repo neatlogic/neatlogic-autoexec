@@ -67,7 +67,7 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
     @Description(desc = "导出组合工具")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
-        List<Long> idList = JSON.parseArray(paramObj.getJSONArray("idList").toJSONString(), Long.class);
+        List<Long> idList = paramObj.getJSONArray("idList").toJavaList(Long.class);
         List<Long> existIdList = autoexecCombopMapper.checkAutoexecCombopIdListIsExists(idList);
         idList.removeAll(existIdList);
         if (CollectionUtils.isNotEmpty(idList)) {
