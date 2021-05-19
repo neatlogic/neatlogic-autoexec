@@ -11,7 +11,9 @@ import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
-import codedriver.framework.autoexec.dto.script.*;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.exception.AutoexecScriptNameOrUkRepeatException;
 import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionCannotEditException;
@@ -25,13 +27,10 @@ import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.service.AutoexecScriptService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -111,6 +110,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
                 scriptVo.setVersionId(versionVo.getId());
             } else {  // 编辑版本
                 AutoexecScriptVersionVo currentVersion = autoexecScriptService.getScriptVersionDetailByVersionId(scriptVo.getVersionId());
+                scriptVo.setId(currentVersion.getScriptId());
                 oldParamList = currentVersion.getParamList();
                 // 处于待审批和已通过状态的版本，任何权限都无法编辑
                 if (ScriptVersionStatus.SUBMITTED.getValue().equals(currentVersion.getStatus())
@@ -146,44 +146,12 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             List<AutoexecScriptVersionParamVo> paramList = scriptVo.getParamList();
             autoexecScriptService.saveParamList(versionVo.getId(), oldParamList, paramList);
             // 保存脚本内容
-            saveScriptLineList(scriptVo);
+            autoexecScriptService.saveLineList(scriptVo.getId(), scriptVo.getVersionId(), scriptVo.getLineList());
         }
         result.put("id", scriptVo.getId());
         result.put("versionId", scriptVo.getVersionId());
         result.put("isReviewable", AuthActionChecker.check(AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName()) ? 1 : 0);
         return result;
-    }
-
-    /**
-     * 保存脚本内容行
-     *
-     * @param scriptVo 脚本VO
-     */
-    private void saveScriptLineList(AutoexecScriptVo scriptVo) {
-        if (CollectionUtils.isNotEmpty(scriptVo.getLineList())) {
-            int lineNumber = 0;
-            List<AutoexecScriptLineVo> lineList = new ArrayList<>(100);
-            for (AutoexecScriptLineVo line : scriptVo.getLineList()) {
-                line.setLineNumber(++lineNumber);
-                line.setScriptId(scriptVo.getId());
-                line.setScriptVersionId(scriptVo.getVersionId());
-                if (StringUtils.isNotBlank(line.getContent())) {
-                    AutoexecScriptLineContentVo content = new AutoexecScriptLineContentVo(line.getContent());
-                    line.setContentHash(content.getHash());
-                    if (autoexecScriptMapper.checkScriptLineContentHashIsExists(content.getHash()) == 0) {
-                        autoexecScriptMapper.insertScriptLineContent(content);
-                    }
-                }
-                lineList.add(line);
-                if (lineList.size() >= 100) {
-                    autoexecScriptMapper.insertScriptLineList(lineList);
-                    lineList.clear();
-                }
-            }
-            if (CollectionUtils.isNotEmpty(lineList)) {
-                autoexecScriptMapper.insertScriptLineList(lineList);
-            }
-        }
     }
 
     public IValid name() {

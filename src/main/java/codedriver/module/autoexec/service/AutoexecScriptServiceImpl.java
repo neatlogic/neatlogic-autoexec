@@ -8,12 +8,7 @@ package codedriver.module.autoexec.service;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.ParamMode;
 import codedriver.framework.autoexec.constvalue.ParamType;
-import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditContentVo;
-import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
-import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
-import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
-import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
-import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
+import codedriver.framework.autoexec.dto.script.*;
 import codedriver.framework.autoexec.exception.AutoexecRiskNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScriptNameOrUkRepeatException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
@@ -24,6 +19,7 @@ import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -175,6 +171,34 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
                     outputParamList.get(i).setSort(i);
                 }
                 autoexecScriptMapper.insertScriptVersionParamList(outputParamList);
+            }
+        }
+    }
+
+    @Override
+    public void saveLineList(Long scriptId, Long versionId, List<AutoexecScriptLineVo> lineList) {
+        if (CollectionUtils.isNotEmpty(lineList)) {
+            int lineNumber = 0;
+            List<AutoexecScriptLineVo> buffer = new ArrayList<>(100);
+            for (AutoexecScriptLineVo line : lineList) {
+                line.setLineNumber(++lineNumber);
+                line.setScriptId(scriptId);
+                line.setScriptVersionId(versionId);
+                if (StringUtils.isNotBlank(line.getContent())) {
+                    AutoexecScriptLineContentVo content = new AutoexecScriptLineContentVo(line.getContent());
+                    line.setContentHash(content.getHash());
+                    if (autoexecScriptMapper.checkScriptLineContentHashIsExists(content.getHash()) == 0) {
+                        autoexecScriptMapper.insertScriptLineContent(content);
+                    }
+                }
+                buffer.add(line);
+                if (buffer.size() >= 100) {
+                    autoexecScriptMapper.insertScriptLineList(buffer);
+                    buffer.clear();
+                }
+            }
+            if (CollectionUtils.isNotEmpty(buffer)) {
+                autoexecScriptMapper.insertScriptLineList(buffer);
             }
         }
     }
