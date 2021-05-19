@@ -69,6 +69,16 @@ public interface AutoexecScriptMapper {
 
     String getScriptAuditDetailByHash(String hash);
 
+    /**
+     * 检查脚本是否已经被发布为组合工具
+     *
+     * @param scriptId
+     * @return
+     */
+    int checkScriptHasBeenGeneratedToCombop(Long scriptId);
+
+    List<AutoexecScriptVo> checkScriptListHasBeenGeneratedToCombop(List<Long> scriptIdList);
+
     int updateScriptBaseInfo(AutoexecScriptVo scriptVo);
 
     int updateScriptVersion(AutoexecScriptVersionVo versionVo);
