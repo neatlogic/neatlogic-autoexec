@@ -19,6 +19,7 @@ import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.operate.ScriptOperateBuilder;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -70,6 +71,11 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
         AutoexecScriptVo scriptVo = JSON.toJavaObject(jsonObj, AutoexecScriptVo.class);
         List<AutoexecScriptVo> scriptVoList = autoexecScriptMapper.searchScript(scriptVo);
         result.put("tbodyList", scriptVoList);
+        if(CollectionUtils.isNotEmpty(scriptVoList)){
+            for(AutoexecScriptVo vo : scriptVoList){
+                vo.setHasBeenGeneratedToCombop(autoexecScriptMapper.checkScriptHasBeenGeneratedToCombop(vo.getId()) > 0 ? 1 : 0);
+            }
+        }
         if (scriptVo.getNeedPage()) {
             int rowNum = autoexecScriptMapper.searchScriptCount(scriptVo);
             scriptVo.setRowNum(rowNum);

@@ -108,6 +108,7 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         version.setParamList(autoexecScriptMapper.getParamListByVersionId(version.getId()));
         version.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
         script.setReferenceCount(autoexecScriptMapper.getReferenceCountByScriptId(id));
+        script.setHasBeenGeneratedToCombop(autoexecScriptMapper.checkScriptHasBeenGeneratedToCombop(id) > 0 ? 1 : 0);
         List<AutoexecCombopVo> combopList = autoexecScriptMapper.getReferenceListByScriptId(id);
         script.setCombopList(combopList);
         autoexecCombopService.setOperableButtonList(combopList);
