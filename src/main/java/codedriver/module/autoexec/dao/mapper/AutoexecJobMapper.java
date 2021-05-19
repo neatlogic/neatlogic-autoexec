@@ -31,6 +31,8 @@ public interface AutoexecJobMapper {
 
     AutoexecJobParamContentVo getJobParamContentLock(String hash);
 
+    AutoexecJobParamContentVo getJobParamContent(String hash);
+
     int checkIsJobParamReference(@Param("jobId") Long jobId, @Param("hash") String hash);
 
     void updateJobStatus(AutoexecJobVo jobVo);
@@ -51,6 +53,8 @@ public interface AutoexecJobMapper {
 
     AutoexecJobPhaseVo getFirstJobPhase(Long jobId);
 
+    AutoexecJobPhaseVo getJobPhaseByJobIdAndPhaseName(@Param("jobId") Long jobId, @Param("jobPhaseName") String jobPhaseName);
+
     //jobPhaseNode
     List<AutoexecJobPhaseNodeVo> searchJobPhaseNode(AutoexecJobPhaseNodeVo jobPhaseNodeVo);
 
@@ -58,8 +62,16 @@ public interface AutoexecJobMapper {
 
     List<AutoexecJobPhaseNodeStatusCountVo> getJobPhaseNodeStatusCount(Long jobId);
 
+    int checkIsJobPhaseNodeExist(AutoexecJobPhaseNodeVo nodeVo);
+
+    int updateJobPhaseNodeStatus(AutoexecJobPhaseNodeVo nodeVo);
+
     //jobPhaseOperation
     List<AutoexecJobPhaseOperationVo> getJobPhaseOperationByJobId(Long jobId);
+
+    List<AutoexecJobPhaseOperationVo> getJobPhaseOperationByJobIdAndPhaseId(@Param("jobId")Long jobId,@Param("phaseId")Long phaseId);
+
+    AutoexecJobPhaseOperationVo getJobPhaseOperationByJobIdAndPhaseIdAndOperationId(Long jobId, Long jobPhaseId, Long operationId);
 
     int checkIsJobPhaseOperationParamReference(@Param("jobId") Long jobId, @Param("hash") String hash);
 

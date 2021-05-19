@@ -74,7 +74,7 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
         String fileName = FileUtil.getEncodedFileName(request.getHeader("User-Agent"),
                 "自定义工具." + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak");
         response.setContentType("application/zip");
-        response.setHeader("Content-Disposition", "attachment;fileName=\"" + fileName + "\"");
+        response.setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
         try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
             for (Long id : existedIdList) {
                 AutoexecScriptVo script = autoexecScriptMapper.getScriptBaseInfoById(id);

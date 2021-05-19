@@ -66,7 +66,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             AutoexecCombopPhaseVo autoexecCombopPhaseVo = combopPhaseList.get(i);
             AutoexecJobPhaseVo jobPhaseVo = new AutoexecJobPhaseVo(autoexecCombopPhaseVo, i, jobVo.getId());
             autoexecJobMapper.insertJobPhase(jobPhaseVo);
-            if(jobPhaseVo.getSort() == 0) {//只需要第一个剧本，供后续激活执行
+            if (jobPhaseVo.getSort() == 0) {//只需要第一个剧本，供后续激活执行
                 jobPhaseVoList.add(jobPhaseVo);
             }
             AutoexecCombopPhaseConfigVo phaseConfigVo = autoexecCombopPhaseVo.getConfig();
@@ -78,7 +78,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             }
             if (CollectionUtils.isEmpty(jobPhaseNodeVoList)) {
                 jobPhaseNodeVoList = jobNodeVoList;
-            }else if(StringUtils.isNotBlank(executeConfigVo.getExecuteUser())){
+            } else if (StringUtils.isNotBlank(executeConfigVo.getExecuteUser())) {
                 executeUser = executeConfigVo.getExecuteUser();
             }
             for (AutoexecJobPhaseNodeVo jobPhaseNodeVo : jobPhaseNodeVoList) {
@@ -91,8 +91,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
             }
             //jobPhaseOperation
-            List<AutoexecJobPhaseOperationVo> jobPhaseOperationVos = new ArrayList<>();
-            jobPhaseVo.setOperationList(jobPhaseOperationVos);
+            List<AutoexecJobPhaseOperationVo> jobPhaseOperationVoList = new ArrayList<>();
+            jobPhaseVo.setOperationList(jobPhaseOperationVoList);
             List<AutoexecCombopPhaseOperationVo> combopPhaseOperationList = phaseConfigVo.getPhaseOperationList();
             for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : combopPhaseOperationList) {
                 String operationType = autoexecCombopPhaseOperationVo.getOperationType();
@@ -101,16 +101,35 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 if (CombopOperationType.SCRIPT.getValue().equalsIgnoreCase(operationType)) {
                     AutoexecScriptVo scriptVo = autoexecScriptMapper.getScriptBaseInfoById(operationId);
                     AutoexecScriptVersionVo scriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(operationId);
-                    jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, scriptVo, scriptVersionVo, autoexecCombopService.getOperationActiveVersionScriptByOperationId(operationId));
+                    jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, scriptVo, scriptVersionVo, autoexecCombopService.getOperationActiveVersionScriptByOperationId(operationId), jobPhaseVoList);
                     autoexecJobMapper.insertJobPhaseOperation(jobPhaseOperationVo);
                     autoexecJobMapper.insertJobParamContent(new AutoexecJobParamContentVo(jobPhaseOperationVo.getParamHash(), jobPhaseOperationVo.getParamStr()));
-                    jobPhaseOperationVos.add(jobPhaseOperationVo);
+                    jobPhaseOperationVoList.add(jobPhaseOperationVo);
                 }
             }
         }
         return jobVo;
     }
 
+    @Override
+    public void getAutoexecJobDetail(AutoexecJobVo jobVo) {
+        AutoexecJobParamContentVo paramContentVo = autoexecJobMapper.getJobParamContent(jobVo.getParamHash());
+        if (paramContentVo != null) {
+            jobVo.setParamStr(paramContentVo.getContent());
+        }
+        List<AutoexecJobPhaseVo> phaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId());
+        jobVo.setPhaseList(phaseVoList);
+        for (AutoexecJobPhaseVo phaseVo : phaseVoList) {
+            List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseId(jobVo.getId(), phaseVo.getId());
+            phaseVo.setOperationList(operationVoList);
+            for (AutoexecJobPhaseOperationVo operationVo : operationVoList) {
+                paramContentVo = autoexecJobMapper.getJobParamContent(operationVo.getParamHash());
+                if (paramContentVo != null) {
+                    operationVo.setParamStr(paramContentVo.getContent());
+                }
+            }
+        }
+    }
 
 
     /**

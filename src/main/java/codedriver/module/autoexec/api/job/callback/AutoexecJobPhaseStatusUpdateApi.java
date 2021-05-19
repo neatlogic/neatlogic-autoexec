@@ -25,7 +25,7 @@ import javax.annotation.Resource;
 @Service
 @Transactional
 @OperationType(type = OperationTypeEnum.UPDATE)
-public class AutoexecJobStatusUpdateApi extends PublicApiComponentBase {
+public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
 
@@ -44,31 +44,35 @@ public class AutoexecJobStatusUpdateApi extends PublicApiComponentBase {
             @Param(name = "preJobId", type = ApiParamType.LONG, desc = "上一个作业Id"),
             @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数"),
             @Param(name = "phase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
-            @Param(name = "node", type = ApiParamType.JSONOBJECT, desc = "执行完的节点"),
             @Param(name = "status", type = ApiParamType.STRING, desc = "状态", isRequired = true),
-            @Param(name = "fireNext", type = ApiParamType.INTEGER, desc = "是否激活下一个剧本，1:是 0:否", isRequired = true)
+            @Param(name = "fireNext", type = ApiParamType.INTEGER, desc = "是否激活下一个剧本，1:是 0:否")
     })
     @Output({
     })
     @Description(desc = "回调更新作业剧本或节点状态")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
+        JSONObject result = new JSONObject();
         Long jobId = jsonObj.getLong("jobId");
-        String jobPhaseName = jsonObj.getString("phase");
+        String phaseName = jsonObj.getString("phase");
         JSONObject node = jsonObj.getJSONObject("node");
         String status = jsonObj.getString("status");
+        Integer fireNext = jsonObj.getInteger("fireNext");
 
-        if (node == null) {//跟新剧本状态
-            AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseLockByJobIdAndPhaseName(jobId, jobPhaseName);
-            if (jobPhaseVo == null) {
-                throw new AutoexecJobPhaseNotFoundException(jobPhaseName);
-            }
-            autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), status));
-        } else {//跟新节点状态
-            //TODO
+
+        AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseLockByJobIdAndPhaseName(jobId, phaseName);
+        if (jobPhaseVo == null) {
+            throw new AutoexecJobPhaseNotFoundException(phaseName);
+        }
+        autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), status));
+
+
+        //根据fireNext==1,则判断是否满足激活下个phase条件
+        if(fireNext != null && fireNext == 1 ){
+
         }
 
-        return null;
+        return result;
     }
 
     @Override

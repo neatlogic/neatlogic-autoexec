@@ -25,6 +25,14 @@ public interface AutoexecJobActionService {
     void fire(AutoexecJobVo jobVo, String type);
 
     /**
+     * 拼装给proxy的param
+     *
+     * @param paramJson 返回param值
+     * @param jobVo     作业
+     */
+    void getFireParamJson(JSONObject paramJson, AutoexecJobVo jobVo);
+
+    /**
      * 实时获取剧本节点执行日志
      *
      * @param paramJson 入参

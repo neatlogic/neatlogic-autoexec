@@ -23,4 +23,10 @@ public interface AutoexecJobService {
      */
     AutoexecJobVo saveAutoexecCombopJob(AutoexecCombopVo combopVo, String source, Integer threadCount, JSONObject paramJson);
 
+    /**
+     * 补充job全部信息
+     * @param jobVo 作业概要
+     */
+    void getAutoexecJobDetail(AutoexecJobVo jobVo);
+
 }
