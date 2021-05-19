@@ -24,6 +24,8 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @AuthAction(action = AUTOEXEC_SCRIPT_SEARCH.class)
@@ -72,8 +74,16 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
         List<AutoexecScriptVo> scriptVoList = autoexecScriptMapper.searchScript(scriptVo);
         result.put("tbodyList", scriptVoList);
         if (CollectionUtils.isNotEmpty(scriptVoList)) {
-            for (AutoexecScriptVo vo : scriptVoList) {
-                vo.setHasBeenGeneratedToCombop(autoexecScriptMapper.checkScriptHasBeenGeneratedToCombop(vo.getId()) > 0 ? 1 : 0);
+            List<AutoexecScriptVo> list = autoexecScriptMapper.checkScriptListHasBeenGeneratedToCombop(
+                    scriptVoList.stream().map(AutoexecScriptVo::getId).collect(Collectors.toList()));
+            if (CollectionUtils.isNotEmpty(list)) {
+                for (AutoexecScriptVo vo : list) {
+                    scriptVoList.stream().forEach(o -> {
+                        if (Objects.equals(o.getId(), vo.getId())) {
+                            o.setHasBeenGeneratedToCombop(vo.getHasBeenGeneratedToCombop() > 0 ? 1 : 0);
+                        }
+                    });
+                }
             }
         }
         if (scriptVo.getNeedPage()) {
