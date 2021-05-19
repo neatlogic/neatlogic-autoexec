@@ -71,8 +71,8 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
         AutoexecScriptVo scriptVo = JSON.toJavaObject(jsonObj, AutoexecScriptVo.class);
         List<AutoexecScriptVo> scriptVoList = autoexecScriptMapper.searchScript(scriptVo);
         result.put("tbodyList", scriptVoList);
-        if(CollectionUtils.isNotEmpty(scriptVoList)){
-            for(AutoexecScriptVo vo : scriptVoList){
+        if (CollectionUtils.isNotEmpty(scriptVoList)) {
+            for (AutoexecScriptVo vo : scriptVoList) {
                 vo.setHasBeenGeneratedToCombop(autoexecScriptMapper.checkScriptHasBeenGeneratedToCombop(vo.getId()) > 0 ? 1 : 0);
             }
         }
