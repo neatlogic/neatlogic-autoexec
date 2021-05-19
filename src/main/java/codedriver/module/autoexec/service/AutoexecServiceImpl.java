@@ -11,11 +11,14 @@ import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.exception.type.ParamIrregularException;
 import codedriver.framework.exception.type.ParamNotExistsException;
+import codedriver.framework.exception.type.ParamRepeatsException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 @Service
@@ -32,6 +35,7 @@ public class AutoexecServiceImpl implements AutoexecService {
      */
     @Override
     public void validateParamList(List<? extends AutoexecParamVo> paramList) {
+        Set<String> keySet = new HashSet<>(paramList.size());
         for (int i = 0; i < paramList.size(); i++) {
             AutoexecParamVo param = paramList.get(i);
             if (param != null) {
@@ -42,6 +46,11 @@ public class AutoexecServiceImpl implements AutoexecService {
                 Integer isRequired = param.getIsRequired();
                 if (StringUtils.isBlank(key)) {
                     throw new ParamNotExistsException("paramList.[" + i + "].key");
+                }
+                if (keySet.contains(key)) {
+                    throw new ParamRepeatsException("paramList.[" + i + "].key");
+                } else {
+                    keySet.add(key);
                 }
                 if (!paramKeyPattern.matcher(key).matches()) {
                     throw new ParamIrregularException("paramList.[" + i + "].key");
