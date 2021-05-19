@@ -43,7 +43,7 @@ public interface AutoexecScriptService {
      */
     boolean checkScriptVersionNeedToUpdate(AutoexecScriptVersionVo before, AutoexecScriptVersionVo after);
 
-    void saveParamList(List<AutoexecScriptVersionParamVo> oldParamList, AutoexecScriptVersionVo versionVo, List<AutoexecScriptVersionParamVo> newParamList);
+    void saveParamList(Long versionId, List<AutoexecScriptVersionParamVo> oldParamList, List<AutoexecScriptVersionParamVo> newParamList);
 
     /**
      * 批量插入脚本参数

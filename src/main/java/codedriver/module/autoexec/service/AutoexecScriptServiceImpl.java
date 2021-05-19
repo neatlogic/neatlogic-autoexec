@@ -144,7 +144,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
     }
 
     @Override
-    public void saveParamList(List<AutoexecScriptVersionParamVo> oldParamList, AutoexecScriptVersionVo versionVo, List<AutoexecScriptVersionParamVo> newParamList) {
+    public void saveParamList(Long versionId, List<AutoexecScriptVersionParamVo> oldParamList, List<AutoexecScriptVersionParamVo> newParamList) {
         if (CollectionUtils.isNotEmpty(newParamList)) {
             autoexecService.validateParamList(newParamList);
             List<AutoexecScriptVersionParamVo> inputParamList = newParamList.stream().filter(o -> ParamMode.INPUT.getValue().equals(o.getMode())).collect(Collectors.toList());
@@ -152,7 +152,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
             if (CollectionUtils.isNotEmpty(inputParamList)) {
                 for (int i = 0; i < inputParamList.size(); i++) {
                     AutoexecScriptVersionParamVo paramVo = inputParamList.get(i);
-                    paramVo.setScriptVersionId(versionVo.getId());
+                    paramVo.setScriptVersionId(versionId);
                     // 检查是否修改了原密码默认值，修改过则重新加密
                     if (paramVo.getDefaultValue() != null && ParamType.PASSWORD.getValue().equals(paramVo.getType())) {
                         Integer sort = paramVo.getSort();
@@ -171,7 +171,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
             }
             if (CollectionUtils.isNotEmpty(outputParamList)) {
                 for (int i = 0; i < outputParamList.size(); i++) {
-                    outputParamList.get(i).setScriptVersionId(versionVo.getId());
+                    outputParamList.get(i).setScriptVersionId(versionId);
                     outputParamList.get(i).setSort(i);
                 }
                 autoexecScriptMapper.insertScriptVersionParamList(outputParamList);
