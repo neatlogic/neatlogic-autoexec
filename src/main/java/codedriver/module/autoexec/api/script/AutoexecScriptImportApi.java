@@ -7,7 +7,6 @@ package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
-import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.exception.file.FileExtNotAllowedException;
@@ -20,7 +19,6 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.service.AutoexecScriptService;
-import codedriver.module.autoexec.service.AutoexecService;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import org.apache.commons.collections4.CollectionUtils;
@@ -52,9 +50,6 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
 
     @Resource
     private AutoexecScriptService autoexecScriptService;
-
-    @Resource
-    private AutoexecService autoexecService;
 
     @Override
     public String getToken() {
@@ -136,25 +131,31 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
             if (CollectionUtils.isNotEmpty(versionList)) {
                 for (AutoexecScriptVersionVo versionVo : versionList) {
                     AutoexecScriptVersionVo oldVersion = autoexecScriptService.getScriptVersionDetailByVersionId(versionVo.getId());
-                    List<AutoexecScriptVersionParamVo> oldParamList = oldVersion.getParamList();
                     if (oldVersion != null) {
                         if (autoexecScriptService.checkScriptVersionNeedToUpdate(oldVersion, versionVo)) {
                             autoexecScriptMapper.deleteParamByVersionId(versionVo.getId());
                             autoexecScriptMapper.deleteScriptLineByVersionId(versionVo.getId());
-                            List<AutoexecScriptVersionParamVo> paramList = versionVo.getParamList();
-                            autoexecScriptService.saveParamList(versionVo.getId(), oldParamList, paramList);
+                            autoexecScriptService.saveParamList(versionVo.getId(), oldVersion.getParamList(), versionVo.getParamList());
+                            autoexecScriptService.saveLineList(id, versionVo.getId(), versionVo.getLineList());
                             autoexecScriptMapper.updateScriptVersion(versionVo);
-
                         }
                     } else {
-                        if (CollectionUtils.isNotEmpty(versionVo.getParamList())) {
-                            autoexecService.validateParamList(versionVo.getParamList());
-                        }
-
+                        autoexecScriptService.saveParamList(versionVo.getId(), null, versionVo.getParamList());
+                        autoexecScriptService.saveLineList(id, versionVo.getId(), versionVo.getLineList());
+                        autoexecScriptMapper.insertScriptVersion(versionVo);
                     }
                 }
             }
-
+        } else {
+            autoexecScriptService.validateScriptBaseInfo(scriptVo);
+            autoexecScriptMapper.insertScript(scriptVo);
+            if (CollectionUtils.isNotEmpty(versionList)) {
+                for (AutoexecScriptVersionVo versionVo : versionList) {
+                    autoexecScriptService.saveParamList(versionVo.getId(), null, versionVo.getParamList());
+                    autoexecScriptService.saveLineList(id, versionVo.getId(), versionVo.getLineList());
+                    autoexecScriptMapper.insertScriptVersion(versionVo);
+                }
+            }
         }
     }
 
