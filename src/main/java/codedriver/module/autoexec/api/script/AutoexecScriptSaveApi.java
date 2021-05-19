@@ -121,6 +121,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
                 scriptVo.setVersionId(versionVo.getId());
             } else {  // 编辑版本
                 AutoexecScriptVersionVo currentVersion = autoexecScriptService.getScriptVersionDetailByVersionId(scriptVo.getVersionId());
+                scriptVo.setId(currentVersion.getScriptId());
                 oldParamList = currentVersion.getParamList();
                 // 处于待审批和已通过状态的版本，任何权限都无法编辑
                 if (ScriptVersionStatus.SUBMITTED.getValue().equals(currentVersion.getStatus())
