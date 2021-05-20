@@ -29,7 +29,7 @@ import javax.annotation.Resource;
 @Service
 @Transactional
 @OperationType(type = OperationTypeEnum.UPDATE)
-public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
+public class AutoexecJobNextPhaseFireApi extends PublicApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
 
@@ -41,7 +41,7 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
 
     @Override
     public String getName() {
-        return "回调更新作业剧本或节点状态";
+        return "激活作业下一阶段剧本";
     }
 
     @Override
@@ -51,20 +51,19 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
-            @Param(name = "preJobId", type = ApiParamType.LONG, desc = "上一个作业Id"),
-            @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数"),
             @Param(name = "phase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
-            @Param(name = "status", type = ApiParamType.STRING, desc = "状态", isRequired = true)
+            @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数"),
+            @Param(name = "time", type = ApiParamType.LONG, desc = "回调时间"),
+            @Param(name = "fireNext", type = ApiParamType.INTEGER, desc = "是否激活下一个剧本，1:是 0:否")
     })
     @Output({
     })
-    @Description(desc = "回调更新作业剧本或节点状态")
+    @Description(desc = "激活作业下一阶段剧本")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        JSONObject result = new JSONObject();
         Long jobId = jsonObj.getLong("jobId");
         String phaseName = jsonObj.getString("phase");
-        String status = jsonObj.getString("status");
+        Integer fireNext = jsonObj.getInteger("fireNext");
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
         if(jobVo == null){
             throw new AutoexecJobNotFoundException(jobId.toString());
@@ -73,13 +72,21 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
         if (jobPhaseVo == null) {
             throw new AutoexecJobPhaseNotFoundException(jobId+":"+phaseName);
         }
-        autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), status));
-
-        return result;
+        //根据fireNext==1,则判断是否满足激活下个phase条件
+        if(fireNext != null && fireNext == 1 ){
+            if(autoexecJobService.checkIsAllActivePhaseIsDone(jobId,jobPhaseVo.getSort())) {
+                Integer sort = autoexecJobMapper.getNextJobPhaseSortByJobId(jobId);
+                if(sort != null) {
+                    autoexecJobService.getAutoexecJobDetail(jobVo, jobPhaseVo.getSort());
+                    autoexecJobActionService.fire(jobVo);
+                }
+            }
+        }
+        return null;
     }
 
     @Override
     public String getToken() {
-        return "autoexec/job/phase/status/update";
+        return "autoexec/job/next/phase/fire";
     }
 }

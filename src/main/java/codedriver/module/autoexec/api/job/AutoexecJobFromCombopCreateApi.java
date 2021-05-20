@@ -6,7 +6,7 @@
 package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_JOB_MODIFY;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
@@ -36,7 +36,7 @@ import javax.annotation.Resource;
 
 @Transactional
 @Service
-@AuthAction(action = AUTOEXEC_JOB_MODIFY.class)
+@AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.CREATE)
 public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
     @Resource
@@ -103,7 +103,7 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
         //对接proxy 创建python任务
         //AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getFirstJobPhase(jobVo.getId());
         //jobVo.setPhaseList(Collections.singletonList(jobPhaseVo));
-        autoexecJobActionService.fire(jobVo,"first");
+        autoexecJobActionService.fire(jobVo);
         return new JSONObject(){{
             put("jobId",jobVo.getId());
         }};

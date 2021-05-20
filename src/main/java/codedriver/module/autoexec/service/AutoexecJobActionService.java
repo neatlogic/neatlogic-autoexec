@@ -20,9 +20,8 @@ public interface AutoexecJobActionService {
      * 第一次执行/重跑/继续作业
      *
      * @param jobVo 作业
-     * @param type  重跑redo，第一次跑 first, 继续跑 goon
      */
-    void fire(AutoexecJobVo jobVo, String type);
+    void fire(AutoexecJobVo jobVo);
 
     /**
      * 拼装给proxy的param

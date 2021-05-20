@@ -235,7 +235,7 @@
                aj.`source`,
                aj.`thread_count`    as threadCount,
                aj.`param_hash`      as paramHash,
-               aj.`config` as configStr
+               aj.`config`          as configStr
         FROM `autoexec_job` aj
         WHERE aj.`id` = #{value}
     </select>
@@ -451,7 +451,34 @@
     </select>
     <select id="getJobPhaseOperationByJobIdAndPhaseIdAndOperationId"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseOperationVo">
-
+        SELECT `job_id`       as jobId,
+               `job_phase_id` as jobPhaseId,
+               `id`,
+               `name`,
+               `uk`,
+               `type`,
+               `parser`,
+               `exec_mode`    as execMode,
+               `fail_policy`  as failPolicy,
+               `param_hash`   as paramHash
+        FROM `autoexec_job_phase_operation`
+        where `job_id` = #{jobId}
+          and `job_phase_id` = #{jobPhaseId}
+          and `id` = #{jobPhaseOperationId}
+    </select>
+    <select id="checkIsAllActivePhaseIsDone" resultType="java.lang.Integer">
+        select count(1)
+        from `autoexec_job_phase`
+        where `job_id` = #{job_id}
+          and `sort` = #{sort}
+    </select>
+    <select id="getNextJobPhaseSortByJobId" resultType="java.lang.Integer">
+        SELECT sort
+        FROM `autoexec_job_phase`
+        WHERE job_id = #{value}
+          AND `status` = 'pending'
+        ORDER BY sort ASC
+        LIMIT 1
     </select>
 
     <insert id="insertJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">

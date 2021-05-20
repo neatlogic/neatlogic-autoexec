@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.api.job.exectest;
 
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -56,7 +57,10 @@ public class AutoexecJobRuntimeParamGetApi extends PublicApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
-        autoexecJobService.getAutoexecJobDetail(jobVo);
+        if(jobVo == null){
+            throw new AutoexecJobNotFoundException(jobId.toString());
+        }
+        autoexecJobService.getAutoexecJobDetail(jobVo,null);
         JSONObject result = new JSONObject();
         autoexecJobActionService.getFireParamJson(result,jobVo);
         return result;

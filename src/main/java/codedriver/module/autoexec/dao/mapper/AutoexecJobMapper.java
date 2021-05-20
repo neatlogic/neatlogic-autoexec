@@ -55,6 +55,8 @@ public interface AutoexecJobMapper {
 
     AutoexecJobPhaseVo getJobPhaseByJobIdAndPhaseName(@Param("jobId") Long jobId, @Param("jobPhaseName") String jobPhaseName);
 
+    Integer checkIsAllActivePhaseIsDone(@Param("jobId") Long jobId,@Param("sort") Integer sort);
+
     //jobPhaseNode
     List<AutoexecJobPhaseNodeVo> searchJobPhaseNode(AutoexecJobPhaseNodeVo jobPhaseNodeVo);
 
@@ -71,12 +73,13 @@ public interface AutoexecJobMapper {
 
     List<AutoexecJobPhaseOperationVo> getJobPhaseOperationByJobIdAndPhaseId(@Param("jobId")Long jobId,@Param("phaseId")Long phaseId);
 
-    AutoexecJobPhaseOperationVo getJobPhaseOperationByJobIdAndPhaseIdAndOperationId(Long jobId, Long jobPhaseId, Long operationId);
+    AutoexecJobPhaseOperationVo getJobPhaseOperationByJobIdAndPhaseIdAndOperationId(@Param("jobId")Long jobId, @Param("jobPhaseId")Long jobPhaseId, @Param("jobPhaseOperationId")Long operationId);
 
     int checkIsJobPhaseOperationParamReference(@Param("jobId") Long jobId, @Param("hash") String hash);
 
     //jobParamContent
 
+    Integer getNextJobPhaseSortByJobId(Long jobId);
 
     Integer insertJob(AutoexecJobVo jobVo);
 
@@ -104,5 +107,6 @@ public interface AutoexecJobMapper {
     void deleteJobPhaseByJobId(Long jobId);
 
     void deleteJobByJobId(Long jobId);
+
 
 }

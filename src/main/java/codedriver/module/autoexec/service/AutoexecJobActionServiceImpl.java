@@ -44,10 +44,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
      * 第一次执行/重跑/继续作业
      *
      * @param jobVo 作业
-     * @param type  重跑redo，第一次跑 first, 继续跑 goon
      */
     @Override
-    public void fire(AutoexecJobVo jobVo, String type) {
+    public void fire(AutoexecJobVo jobVo) {
         autoexecJobMapper.getJobLockByJobId(jobVo.getId());
         autoexecJobAuthActionManager.setAutoexecJobAction(jobVo);
         if (jobVo.getIsCanJobExec() == 1) {
