@@ -25,10 +25,13 @@ public class ScriptOperateBuilder {
 
     String status; // 脚本版本状态
 
-    public ScriptOperateBuilder(String userUuid, String status) {
+    Integer versionCount;
+
+    public ScriptOperateBuilder(String userUuid, String status, Integer versionCount) {
         operateList = new ArrayList<>();
         this.userUuid = userUuid;
         this.status = status;
+        this.versionCount = versionCount;
     }
 
     public ScriptOperateBuilder(String userUuid) {
@@ -42,6 +45,15 @@ public class ScriptOperateBuilder {
 
     public ScriptOperateBuilder setDelete() {
         if (AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())) {
+            operateList.add(new ValueTextVo("delete", "删除"));
+        }
+        return this;
+    }
+
+    public ScriptOperateBuilder setVersionDelete() {
+        // 只剩一个版本时，不可删除
+        if (AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())
+                && versionCount > 1) {
             operateList.add(new ValueTextVo("delete", "删除"));
         }
         return this;
@@ -139,7 +151,7 @@ public class ScriptOperateBuilder {
     }
 
     public ScriptOperateBuilder setAll() {
-        setDelete().setCopy().setCompare().setTest().setValidate().setSave().setSubmit().setPass().setReject();
+        setVersionDelete().setCopy().setCompare().setTest().setValidate().setSave().setSubmit().setPass().setReject();
         return this;
     }
 
