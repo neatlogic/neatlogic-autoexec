@@ -25,12 +25,15 @@ public class ScriptOperateBuilder {
 
     String status; // 脚本版本状态
 
-    Integer versionCount;
+    Integer isActive; // 脚本版本是否激活
 
-    public ScriptOperateBuilder(String userUuid, String status, Integer versionCount) {
+    Integer versionCount; // 脚本版本数
+
+    public ScriptOperateBuilder(String userUuid, String status, Integer isActive, Integer versionCount) {
         operateList = new ArrayList<>();
         this.userUuid = userUuid;
         this.status = status;
+        this.isActive = isActive;
         this.versionCount = versionCount;
     }
 
@@ -51,9 +54,9 @@ public class ScriptOperateBuilder {
     }
 
     public ScriptOperateBuilder setVersionDelete() {
-        // 只剩一个版本时，不可删除
+        // 只剩一个版本或当前版本处于激活状态时，不可删除
         if (AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())
-                && versionCount > 1) {
+                && versionCount > 1 && !Objects.equals(isActive, 1)) {
             operateList.add(new ValueTextVo("delete", "删除"));
         }
         return this;
