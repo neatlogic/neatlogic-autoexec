@@ -27,6 +27,8 @@ public interface AutoexecScriptMapper {
 
     int checkScriptLineContentHashIsExists(String hash);
 
+    AutoexecScriptVersionVo getVersionByVersionIdForUpdate(Long versionId);
+
     AutoexecScriptVersionVo getVersionByVersionId(Long versionId);
 
     Integer getMaxVersionByScriptId(Long id);

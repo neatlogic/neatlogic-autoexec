@@ -87,7 +87,7 @@ public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
             autoexecScriptMapper.deleteScriptVersionByScriptId(id);
             autoexecScriptMapper.deleteScriptById(id);
         } else if (versionId != null) { // 删除版本
-            AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(versionId);
+            AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionIdForUpdate(versionId);
             if (version == null) {
                 throw new AutoexecScriptVersionNotFoundException(versionId);
             }
