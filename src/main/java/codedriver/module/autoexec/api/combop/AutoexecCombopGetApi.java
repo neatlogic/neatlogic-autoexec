@@ -11,7 +11,7 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.ParamMode;
-import codedriver.framework.autoexec.constvalue.ParamType;
+import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecRiskVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
@@ -120,8 +120,8 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
                                     AutoexecRiskVo riskVo = autoexecRiskMapper.getAutoexecRiskById(autoexecScriptVo.getRiskId());
                                     phaseOperationVo.setRiskVo(riskVo);
 
-                                    List<AutoexecScriptVersionParamVo> inputParamList = new ArrayList<>();
-                                    List<AutoexecScriptVersionParamVo> outputParamList = new ArrayList<>();
+                                    List<AutoexecParamVo> inputParamList = new ArrayList<>();
+                                    List<AutoexecParamVo> outputParamList = new ArrayList<>();
                                     List<AutoexecScriptVersionParamVo> autoexecScriptVersionParamVoList = autoexecScriptMapper.getParamListByScriptId(phaseOperationVo.getOperationId());
                                     if (CollectionUtils.isNotEmpty(autoexecScriptVersionParamVoList)) {
                                         for (AutoexecScriptVersionParamVo paramVo : autoexecScriptVersionParamVoList) {
