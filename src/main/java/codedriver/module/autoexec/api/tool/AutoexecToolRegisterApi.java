@@ -5,24 +5,33 @@
 
 package codedriver.module.autoexec.api.tool;
 
+import codedriver.framework.autoexec.constvalue.ParamMode;
+import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.exception.AutoexecRiskNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.exception.type.ParamTypeNotFoundException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Objects;
 
 @Service
 @OperationType(type = OperationTypeEnum.OPERATE)
-public class AutoexecToolPushApi extends PublicApiComponentBase {
+public class AutoexecToolRegisterApi extends PublicApiComponentBase {
 
     @Resource
     private AutoexecToolMapper autoexecToolMapper;
@@ -35,12 +44,12 @@ public class AutoexecToolPushApi extends PublicApiComponentBase {
 
     @Override
     public String getToken() {
-        return "autoexec/tool/push";
+        return "autoexec/tool/register";
     }
 
     @Override
     public String getName() {
-        return "推送内置工具";
+        return "注册内置工具";
     }
 
     @Override
@@ -55,10 +64,12 @@ public class AutoexecToolPushApi extends PublicApiComponentBase {
             @Param(name = "riskName", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", maxLength = 50, isRequired = true, desc = "操作级别名称"),
             @Param(name = "interpreter", type = ApiParamType.ENUM, rule = "python,vbs,shell,perl,powershell,bat,xml", isRequired = true, desc = "解析器"),
             @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
+            @Param(name = "desc", type = ApiParamType.JSONOBJECT, desc = "入参"),
+            @Param(name = "output", type = ApiParamType.JSONOBJECT, desc = "出参"),
     })
     @Output({
     })
-    @Description(desc = "推送内置工具")
+    @Description(desc = "注册内置工具")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         String opName = jsonObj.getString("opName");
@@ -67,6 +78,8 @@ public class AutoexecToolPushApi extends PublicApiComponentBase {
         String riskName = jsonObj.getString("riskName");
         String interpreter = jsonObj.getString("interpreter");
         String description = jsonObj.getString("description");
+        JSONObject desc = jsonObj.getJSONObject("desc");
+        JSONObject output = jsonObj.getJSONObject("output");
         Long typeId = autoexecTypeMapper.getTypeIdByName(typeName);
         Long riskId = autoexecRiskMapper.getRiskIdByName(riskName);
         AutoexecToolVo oldTool = autoexecToolMapper.getToolByName(opName);
@@ -76,10 +89,13 @@ public class AutoexecToolPushApi extends PublicApiComponentBase {
         if (riskId == null) {
             throw new AutoexecRiskNotFoundException(riskName);
         }
+        JSONArray paramList = getParamList(desc, output);
         AutoexecToolVo vo = new AutoexecToolVo();
         if (oldTool != null) {
             vo.setId(oldTool.getId());
             vo.setIsActive(oldTool.getIsActive() != null ? oldTool.getIsActive() : 1);
+        } else {
+            vo.setIsActive(1);
         }
         vo.setName(opName);
         vo.setExecMode(opType);
@@ -87,9 +103,66 @@ public class AutoexecToolPushApi extends PublicApiComponentBase {
         vo.setTypeId(typeId);
         vo.setRiskId(riskId);
         vo.setDescription(description);
+        vo.setConfigStr(paramList.toJSONString());
         autoexecToolMapper.replaceTool(vo);
 
         return null;
+    }
+
+    private JSONArray getParamList(JSONObject desc, JSONObject output) {
+        JSONArray paramList = new JSONArray();
+        if (MapUtils.isNotEmpty(desc)) {
+            Iterator<Map.Entry<String, Object>> iterator = desc.entrySet().iterator();
+            int i = 0;
+            while (iterator.hasNext()) {
+                JSONObject param = new JSONObject();
+                Map.Entry<String, Object> next = iterator.next();
+                String key = next.getKey();
+                JSONObject value = (JSONObject) next.getValue();
+                param.put("key", key);
+                param.put("name", value.getString("name"));
+                param.put("defaultValue", value.getString("defaultValue"));
+                param.put("mode", ParamMode.INPUT.getValue());
+                String required = value.getString("required");
+                if (StringUtils.isNotBlank(required)) {
+                    param.put("isRequired", Objects.equals(required, "true") ? 1 : 0);
+                }
+                param.put("description", value.getString("help"));
+                String type = value.getString("type");
+                if (Objects.equals(type, "input")) {
+                    type = ParamType.TEXT.getValue();
+                } else {
+                    ParamType paramType = ParamType.getParamType(type);
+                    if (paramType != null) {
+                        type = paramType.getValue();
+                    } else {
+                        throw new ParamTypeNotFoundException(type);
+                    }
+                }
+                param.put("type", type);
+                param.put("sort", i++);
+                paramList.add(param);
+            }
+        }
+        if (MapUtils.isNotEmpty(output)) {
+            Iterator<Map.Entry<String, Object>> iterator = output.entrySet().iterator();
+            int i = 0;
+            while (iterator.hasNext()) {
+                JSONObject param = new JSONObject();
+                Map.Entry<String, Object> next = iterator.next();
+                String key = next.getKey();
+                JSONObject value = (JSONObject) next.getValue();
+                param.put("key", key);
+                param.put("name", value.getString("name"));
+                param.put("type", ParamType.TEXT.getValue());
+                param.put("mode", ParamMode.OUTPUT.getValue());
+                param.put("defaultValue", value.getString("defaultValue"));
+                param.put("description", value.getString("help"));
+                param.put("sort", i++);
+                paramList.add(param);
+            }
+        }
+        return paramList;
     }
 
 

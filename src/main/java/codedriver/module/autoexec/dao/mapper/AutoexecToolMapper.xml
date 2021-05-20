@@ -129,6 +129,7 @@
         `risk_id`,
         `is_active`,
         `description`,
+        `config`,
         `lcd`
         ) values (
         #{id},
@@ -139,6 +140,7 @@
         #{riskId},
         #{isActive},
         #{description},
+        #{configStr},
         now(3)
         )
     </update>
