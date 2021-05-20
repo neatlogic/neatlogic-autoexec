@@ -436,12 +436,13 @@
         <result column="execMode" property="execMode"/>
         <result column="typeId" property="typeId"/>
         <result column="typeName" property="typeName"/>
+        <result column="configStr" property="configStr"/>
         <association property="riskVo" javaType="codedriver.framework.autoexec.dto.AutoexecRiskVo">
             <result column="riskId" property="id"/>
             <result column="riskName" property="name"/>
             <result column="riskColor" property="color"/>
         </association>
-        <collection property="paramList" ofType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo">
+        <collection property="paramList" ofType="codedriver.framework.autoexec.dto.AutoexecParamVo">
             <result property="key" column="key"/>
             <result property="name" column="paramName"/>
             <result property="defaultValue" column="defaultValue"/>
