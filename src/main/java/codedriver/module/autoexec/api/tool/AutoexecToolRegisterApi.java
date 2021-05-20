@@ -123,7 +123,7 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                 JSONObject value = (JSONObject) next.getValue();
                 String name = value.getString("name");
                 if (StringUtils.isBlank(name)) {
-                    throw new ParamNotExistsException(key);
+                    throw new ParamNotExistsException("["  + key + ".name]");
                 }
                 param.put("key", key);
                 param.put("name", name);
@@ -162,7 +162,7 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                 JSONObject value = (JSONObject) next.getValue();
                 String name = value.getString("name");
                 if (StringUtils.isBlank(name)) {
-                    throw new ParamNotExistsException(key);
+                    throw new ParamNotExistsException("["  + key + ".name]");
                 }
                 param.put("key", key);
                 param.put("name", name);
