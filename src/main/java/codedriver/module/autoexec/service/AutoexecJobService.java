@@ -24,9 +24,18 @@ public interface AutoexecJobService {
     AutoexecJobVo saveAutoexecCombopJob(AutoexecCombopVo combopVo, String source, Integer threadCount, JSONObject paramJson);
 
     /**
-     * 补充job全部信息
+     * sort 为null 则补充job全部信息 ，否则返回当前sort的所有剧本
      * @param jobVo 作业概要
+     * @param sort 当前需要激活作业剧本的顺序
      */
-    void getAutoexecJobDetail(AutoexecJobVo jobVo);
+    void getAutoexecJobDetail(AutoexecJobVo jobVo,Integer sort);
+
+    /**
+     * 判断是否所有并行剧本都跑完
+     * @param jobId 作业id
+     * @param sort 作业剧本顺序
+     * @return true:都跑完 false:存在没跑完的
+     */
+    boolean checkIsAllActivePhaseIsDone(Long jobId,Integer sort);
 
 }

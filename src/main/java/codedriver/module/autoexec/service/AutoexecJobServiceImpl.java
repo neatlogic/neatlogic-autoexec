@@ -28,6 +28,8 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @since 2021/4/12 18:44
@@ -112,13 +114,14 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     }
 
     @Override
-    public void getAutoexecJobDetail(AutoexecJobVo jobVo) {
+    public void getAutoexecJobDetail(AutoexecJobVo jobVo, Integer sort) {
         AutoexecJobParamContentVo paramContentVo = autoexecJobMapper.getJobParamContent(jobVo.getParamHash());
         if (paramContentVo != null) {
             jobVo.setParamStr(paramContentVo.getContent());
         }
         List<AutoexecJobPhaseVo> phaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId());
         jobVo.setPhaseList(phaseVoList);
+        phaseVoList = phaseVoList.stream().filter(o -> Objects.equals(o.getSort(), sort)).collect(Collectors.toList());
         for (AutoexecJobPhaseVo phaseVo : phaseVoList) {
             List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseId(jobVo.getId(), phaseVo.getId());
             phaseVo.setOperationList(operationVoList);
@@ -206,5 +209,15 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
 
     public void authParam(AutoexecCombopVo combopVo, JSONObject paramJson) {
         List<AutoexecCombopParamVo> autoexecCombopParamVoList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopVo.getId());
+    }
+
+    @Override
+    public boolean checkIsAllActivePhaseIsDone(Long jobId, Integer sort) {
+        boolean isDone = false;
+        Integer count = autoexecJobMapper.checkIsAllActivePhaseIsDone(jobId, sort);
+        if (count == 0) {
+            isDone = true;
+        }
+        return true;
     }
 }

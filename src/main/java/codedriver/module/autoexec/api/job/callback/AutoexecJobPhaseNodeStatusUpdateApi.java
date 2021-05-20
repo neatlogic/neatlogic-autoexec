@@ -5,12 +5,15 @@
 
 package codedriver.module.autoexec.api.job.callback;
 
+import codedriver.framework.autoexec.constvalue.FailPolicy;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
 import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseOperationVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
+import codedriver.framework.autoexec.exception.AutoexecCombopOperationNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNodeNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -46,7 +49,6 @@ public class AutoexecJobPhaseNodeStatusUpdateApi extends PublicApiComponentBase 
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
-            @Param(name = "preJobId", type = ApiParamType.LONG, desc = "上一个作业Id"),
             @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数"),
             @Param(name = "phase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
             @Param(name = "operationId", type = ApiParamType.LONG, desc = "作业剧本Name", isRequired = true),
@@ -61,22 +63,29 @@ public class AutoexecJobPhaseNodeStatusUpdateApi extends PublicApiComponentBase 
         JSONObject result = new JSONObject();
         Long operationId = jsonObj.getLong("operationId");
         AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(jsonObj);
-        AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(nodeVo.getJobId(), nodeVo.getJobPhaseName());
+        AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseLockByJobIdAndPhaseName(nodeVo.getJobId(), nodeVo.getJobPhaseName());
+        if(jobPhaseVo == null){
+            throw new AutoexecJobPhaseNotFoundException(nodeVo.getJobPhaseName());
+        }
         nodeVo.setJobPhaseId(jobPhaseVo.getId());
         if (autoexecJobMapper.checkIsJobPhaseNodeExist(nodeVo) == 0) {
             throw new AutoexecJobPhaseNodeNotFoundException(nodeVo.getJobPhaseName(), nodeVo.getHost() + ":" + nodeVo.getPort());
         }
         AutoexecJobPhaseOperationVo operationVo = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseIdAndOperationId(nodeVo.getJobId(), nodeVo.getJobPhaseId(), operationId);
-        if (Objects.equals(nodeVo.getStatus(), JobNodeStatus.FAILED) )
-            autoexecJobMapper.updateJobPhaseNodeStatus(nodeVo);
-
-
-        result.put("phaseStatus", JobPhaseStatus.FAILED.getValue());
+        if (operationVo == null) {
+            throw new AutoexecCombopOperationNotFoundException(operationId.toString());
+        }
+        if (Objects.equals(nodeVo.getStatus(), JobNodeStatus.FAILED.getValue()) && Objects.equals(operationVo.getFailPolicy(), FailPolicy.STOP.getValue())) {
+            jobPhaseVo.setStatus(JobPhaseStatus.FAILED.getValue());
+            autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(nodeVo.getJobPhaseId(), nodeVo.getStatus()));
+        }
+        autoexecJobMapper.updateJobPhaseNodeStatus(nodeVo);
+        result.put("phaseStatus", jobPhaseVo.getStatus());
         return result;
     }
 
     @Override
     public String getToken() {
-        return "autoexec/job/status/update";
+        return "autoexec/job/phase/node/status/update";
     }
 }
