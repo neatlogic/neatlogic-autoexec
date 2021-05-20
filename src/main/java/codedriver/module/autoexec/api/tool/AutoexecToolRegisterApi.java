@@ -11,6 +11,7 @@ import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.exception.AutoexecRiskNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.exception.type.ParamNotExistsException;
 import codedriver.framework.exception.type.ParamTypeNotFoundException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -20,6 +21,7 @@ import codedriver.module.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -103,7 +105,7 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
         vo.setTypeId(typeId);
         vo.setRiskId(riskId);
         vo.setDescription(description);
-        vo.setConfigStr(paramList.toJSONString());
+        vo.setConfigStr(CollectionUtils.isNotEmpty(paramList) ? paramList.toJSONString() : null);
         autoexecToolMapper.replaceTool(vo);
 
         return null;
@@ -119,13 +121,19 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                 Map.Entry<String, Object> next = iterator.next();
                 String key = next.getKey();
                 JSONObject value = (JSONObject) next.getValue();
+                String name = value.getString("name");
+                if (StringUtils.isBlank(name)) {
+                    throw new ParamNotExistsException(key);
+                }
                 param.put("key", key);
-                param.put("name", value.getString("name"));
-                param.put("defaultValue", value.getString("defaultValue"));
+                param.put("name", name);
+                param.put("defaultValue", value.get("defaultValue"));
                 param.put("mode", ParamMode.INPUT.getValue());
                 String required = value.getString("required");
                 if (StringUtils.isNotBlank(required)) {
                     param.put("isRequired", Objects.equals(required, "true") ? 1 : 0);
+                } else {
+                    param.put("isRequired", 0);
                 }
                 param.put("description", value.getString("help"));
                 String type = value.getString("type");
@@ -152,11 +160,15 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                 Map.Entry<String, Object> next = iterator.next();
                 String key = next.getKey();
                 JSONObject value = (JSONObject) next.getValue();
+                String name = value.getString("name");
+                if (StringUtils.isBlank(name)) {
+                    throw new ParamNotExistsException(key);
+                }
                 param.put("key", key);
-                param.put("name", value.getString("name"));
+                param.put("name", name);
                 param.put("type", ParamType.TEXT.getValue());
                 param.put("mode", ParamMode.OUTPUT.getValue());
-                param.put("defaultValue", value.getString("defaultValue"));
+                param.put("defaultValue", value.get("defaultValue"));
                 param.put("description", value.getString("help"));
                 param.put("sort", i++);
                 paramList.add(param);
