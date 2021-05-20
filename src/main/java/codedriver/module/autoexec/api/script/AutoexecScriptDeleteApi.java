@@ -10,10 +10,7 @@ import codedriver.framework.autoexec.constvalue.ScriptOperate;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
-import codedriver.framework.autoexec.exception.AutoexecScriptHasReferenceException;
-import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecScriptVersionHasBeenActivedException;
-import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
+import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -90,12 +87,15 @@ public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
             autoexecScriptMapper.deleteScriptVersionByScriptId(id);
             autoexecScriptMapper.deleteScriptById(id);
         } else if (versionId != null) { // 删除版本
-            AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(versionId);
+            AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionIdForUpdate(versionId);
             if (version == null) {
                 throw new AutoexecScriptVersionNotFoundException(versionId);
             }
             if (Objects.equals(version.getIsActive(), 1)) {
                 throw new AutoexecScriptVersionHasBeenActivedException();
+            }
+            if (autoexecScriptMapper.getVersionCountByScriptId(version.getScriptId()) == 1) {
+                throw new AutoexecScriptVersionCannotDeleteException();
             }
             autoexecScriptMapper.deleteParamByVersionId(versionId);
             autoexecScriptMapper.deleteScriptLineByVersionId(versionId);

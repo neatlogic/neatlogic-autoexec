@@ -107,7 +107,9 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         script.setVersionVo(version);
         version.setParamList(autoexecScriptMapper.getParamListByVersionId(version.getId()));
         version.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
+        script.setVersionCount(autoexecScriptMapper.getVersionCountByScriptId(id));
         script.setReferenceCount(autoexecScriptMapper.getReferenceCountByScriptId(id));
+        script.setHasBeenGeneratedToCombop(autoexecScriptMapper.checkScriptHasBeenGeneratedToCombop(id) > 0 ? 1 : 0);
         List<AutoexecCombopVo> combopList = autoexecScriptMapper.getReferenceListByScriptId(id);
         script.setCombopList(combopList);
         autoexecCombopService.setOperableButtonList(combopList);
@@ -122,7 +124,7 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
             }
         }
         // 获取操作按钮
-        ScriptOperateBuilder versionOperateBuilder = new ScriptOperateBuilder(UserContext.get().getUserUuid(), version.getStatus());
+        ScriptOperateBuilder versionOperateBuilder = new ScriptOperateBuilder(UserContext.get().getUserUuid(), version.getStatus(), version.getIsActive(), script.getVersionCount());
         versionOperateList = versionOperateBuilder.setAll().build();
         ScriptOperateBuilder scriptOperateBuilder = new ScriptOperateBuilder(UserContext.get().getUserUuid());
         scriptOperateList = scriptOperateBuilder.setGenerateToCombop().setCopy().setExport().setDelete().build();

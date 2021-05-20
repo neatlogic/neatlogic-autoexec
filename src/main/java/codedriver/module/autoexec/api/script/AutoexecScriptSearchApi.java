@@ -19,10 +19,13 @@ import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.operate.ScriptOperateBuilder;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @AuthAction(action = AUTOEXEC_SCRIPT_SEARCH.class)
@@ -70,6 +73,19 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
         AutoexecScriptVo scriptVo = JSON.toJavaObject(jsonObj, AutoexecScriptVo.class);
         List<AutoexecScriptVo> scriptVoList = autoexecScriptMapper.searchScript(scriptVo);
         result.put("tbodyList", scriptVoList);
+        if (CollectionUtils.isNotEmpty(scriptVoList)) {
+            List<AutoexecScriptVo> list = autoexecScriptMapper.checkScriptListHasBeenGeneratedToCombop(
+                    scriptVoList.stream().map(AutoexecScriptVo::getId).collect(Collectors.toList()));
+            if (CollectionUtils.isNotEmpty(list)) {
+                for (AutoexecScriptVo vo : list) {
+                    scriptVoList.stream().forEach(o -> {
+                        if (Objects.equals(o.getId(), vo.getId())) {
+                            o.setHasBeenGeneratedToCombop(vo.getHasBeenGeneratedToCombop() > 0 ? 1 : 0);
+                        }
+                    });
+                }
+            }
+        }
         if (scriptVo.getNeedPage()) {
             int rowNum = autoexecScriptMapper.searchScriptCount(scriptVo);
             scriptVo.setRowNum(rowNum);

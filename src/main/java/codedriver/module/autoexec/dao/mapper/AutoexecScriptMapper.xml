@@ -64,6 +64,23 @@
         where `id` = #{value}
     </select>
 
+    <select id="getVersionByVersionIdForUpdate" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
+        select
+        `id`,
+        `script_id` as scriptId,
+        `version`,
+        `parser`,
+        `status`,
+        `reviewer`,
+        `is_active` as isActive,
+        `config`,
+        `lcu`,
+        `lcd`
+        from `autoexec_script_version`
+        where `id` = #{value}
+        for update
+    </select>
+
     <select id="getMaxVersionByScriptId" parameterType="java.lang.Long" resultType="int">
         select
         max(`version`)
@@ -520,6 +537,35 @@
         `id`
         from `autoexec_script_version`
         where `script_id` = #{value}
+    </select>
+
+    <select id="checkScriptHasBeenGeneratedToCombop" parameterType="java.lang.Long" resultType="int">
+        select
+        count(1)
+        from `autoexec_combop` a
+        join `autoexec_combop_phase` b
+        on a.`id` = b.`combop_id`
+        join `autoexec_combop_phase_operation` c
+        on b.`id` = c.`combop_phase_id`
+        where c.`operation_id` = #{value}
+        and a.`operation_type` = 'script'
+    </select>
+
+    <select id="checkScriptListHasBeenGeneratedToCombop" parameterType="java.util.List" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
+        select
+        c.`operation_id` as id,
+        count(c.`operation_id`) as hasBeenGeneratedToCombop
+        from `autoexec_combop` a
+        join `autoexec_combop_phase` b
+        on a.`id` = b.`combop_id`
+        join `autoexec_combop_phase_operation` c
+        on b.`id` = c.`combop_phase_id`
+        where c.`operation_id` in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        and a.`operation_type` = 'script'
+        group by c.`operation_id`
     </select>
 
     <update id="updateScriptBaseInfo" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">

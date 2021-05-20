@@ -27,6 +27,8 @@ public interface AutoexecScriptMapper {
 
     int checkScriptLineContentHashIsExists(String hash);
 
+    AutoexecScriptVersionVo getVersionByVersionIdForUpdate(Long versionId);
+
     AutoexecScriptVersionVo getVersionByVersionId(Long versionId);
 
     Integer getMaxVersionByScriptId(Long id);
@@ -68,6 +70,16 @@ public interface AutoexecScriptMapper {
     AutoexecScriptAuditVo getScriptAuditByScriptVersionIdAndOperate(@Param("versionId") Long versionId, @Param("operate") String operate);
 
     String getScriptAuditDetailByHash(String hash);
+
+    /**
+     * 检查脚本是否已经被发布为组合工具
+     *
+     * @param scriptId
+     * @return
+     */
+    int checkScriptHasBeenGeneratedToCombop(Long scriptId);
+
+    List<AutoexecScriptVo> checkScriptListHasBeenGeneratedToCombop(List<Long> scriptIdList);
 
     int updateScriptBaseInfo(AutoexecScriptVo scriptVo);
 
