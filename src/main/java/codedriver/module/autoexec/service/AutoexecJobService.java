@@ -36,6 +36,13 @@ public interface AutoexecJobService {
      * @param sort 作业剧本顺序
      * @return true:都跑完 false:存在没跑完的
      */
-    boolean checkIsAllActivePhaseIsDone(Long jobId,Integer sort);
+    boolean checkIsAllActivePhaseIsCompleted(Long jobId, Integer sort);
+
+    /**
+     * 刷新激活剧本的所有节点信息
+     * @param jobId 作业id
+     * @param sort 当前激活剧本顺序
+     */
+    void refreshJobPhaseNodeList(Long jobId,int sort);
 
 }

@@ -57,6 +57,10 @@ public interface AutoexecJobMapper {
 
     Integer checkIsAllActivePhaseIsDone(@Param("jobId") Long jobId,@Param("sort") Integer sort);
 
+    List<AutoexecJobPhaseVo> getJobPhaseListByJobIdAndSort(@Param("jobId") Long jobId,@Param("sort") Integer sort);
+
+    Integer checkIsHasActivePhaseFailed(Long jobId);
+
     //jobPhaseNode
     List<AutoexecJobPhaseNodeVo> searchJobPhaseNode(AutoexecJobPhaseNodeVo jobPhaseNodeVo);
 
@@ -108,5 +112,5 @@ public interface AutoexecJobMapper {
 
     void deleteJobByJobId(Long jobId);
 
-
+    void deleteJobPhaseNodeByJobPhaseIdList(@Param("jobPhaseIdList") List<Long> jobPhaseIdList);
 }

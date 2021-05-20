@@ -471,7 +471,9 @@
         from `autoexec_job_phase`
         where `job_id` = #{job_id}
           and `sort` = #{sort}
+          and `status` != 'completed'
     </select>
+
     <select id="getNextJobPhaseSortByJobId" resultType="java.lang.Integer">
         SELECT sort
         FROM `autoexec_job_phase`
@@ -479,6 +481,20 @@
           AND `status` = 'pending'
         ORDER BY sort ASC
         LIMIT 1
+    </select>
+
+    <select id="checkIsHasActivePhaseFailed" resultType="java.lang.Integer">
+        select count(1)
+        from `autoexec_job_phase`
+        where `job_id` = #{value}
+          AND `status` = 'failed'
+    </select>
+    <select id="getJobPhaseListByJobIdAndSort"
+            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
+        select `job_id` as jobId, `name`
+        from `autoexec_job_phase`
+        where `job_id` = #{job_id}
+          and `sort` = #{sort}
     </select>
 
     <insert id="insertJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
@@ -678,6 +694,15 @@
         DELETE
         FROM `autoexec_job`
         WHERE `id` = #{value};
+    </delete>
+
+    <delete id="deleteJobPhaseNodeByJobPhaseIdList">
+        DELETE
+        FROM `autoexec_job_phase_node`
+        WHERE `job_phase_id` in
+        <foreach collection="jobPhaseIdList" item="phaseId" open="(" close=")" separator=",">
+            #{phaseId}
+        </foreach>
     </delete>
 
 

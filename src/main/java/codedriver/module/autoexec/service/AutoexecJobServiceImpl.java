@@ -20,6 +20,7 @@ import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecProxyMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -88,7 +89,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 jobPhaseNodeVo.setJobPhaseId(jobPhaseVo.getId());
                 jobPhaseNodeVo.setProxyId(getProxyByIp(jobPhaseNodeVo.getHost()));
                 jobPhaseNodeVo.setStatus(JobNodeStatus.PENDING.getValue());
-                jobPhaseNodeVo.setUserName(jobPhaseVo.getExecUser());
                 jobPhaseNodeVo.setUserName(executeUser);
                 autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
             }
@@ -111,6 +111,51 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             }
         }
         return jobVo;
+    }
+
+    @Override
+    public void refreshJobPhaseNodeList(Long jobId, int sort) {
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        AutoexecCombopConfigVo configVo = JSON.toJavaObject(jobVo.getConfig(), AutoexecCombopConfigVo.class);
+        AutoexecCombopExecuteConfigVo nodeConfigVo = configVo.getExecuteConfig();
+        String executeUser = nodeConfigVo.getExecuteUser();
+        List<AutoexecJobPhaseNodeVo> jobNodeVoList = null;
+        jobNodeVoList = getJobNodeList(nodeConfigVo, jobVo.getOperationId());
+        List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndSort(jobId, sort);
+        autoexecJobMapper.deleteJobPhaseNodeByJobPhaseIdList(jobPhaseVoList.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()));
+        List<AutoexecCombopPhaseVo> combopPhaseList = configVo.getCombopPhaseList();
+        for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
+            if (sort != autoexecCombopPhaseVo.getSort()) {
+                continue;
+            }
+            AutoexecCombopPhaseConfigVo phaseConfigVo = autoexecCombopPhaseVo.getConfig();
+            //jobPhaseNode
+            AutoexecCombopExecuteConfigVo executeConfigVo = phaseConfigVo.getExecuteConfig();
+            List<AutoexecJobPhaseNodeVo> jobPhaseNodeVoList = null;
+            if (executeConfigVo != null) {
+                jobPhaseNodeVoList = getJobNodeList(executeConfigVo, autoexecCombopPhaseVo.getCombopId());
+            }
+            if (CollectionUtils.isEmpty(jobPhaseNodeVoList)) {
+                jobPhaseNodeVoList = jobNodeVoList;
+            } else if (StringUtils.isNotBlank(executeConfigVo.getExecuteUser())) {
+                executeUser = executeConfigVo.getExecuteUser();
+            }
+            Long jobPhaseId = null;
+            for (AutoexecJobPhaseVo jobPhase : jobPhaseVoList) {
+                if (Objects.equals(jobPhase.getName(), autoexecCombopPhaseVo.getName())) {
+                    jobPhaseId = jobPhase.getId();
+                }
+            }
+            for (AutoexecJobPhaseNodeVo jobPhaseNodeVo : jobPhaseNodeVoList) {
+                jobPhaseNodeVo.setJobId(jobId);
+                jobPhaseNodeVo.setJobPhaseId(jobPhaseId);
+                jobPhaseNodeVo.setProxyId(getProxyByIp(jobPhaseNodeVo.getHost()));
+                jobPhaseNodeVo.setStatus(JobNodeStatus.PENDING.getValue());
+                jobPhaseNodeVo.setUserName(executeUser);
+                autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
+            }
+        }
+
     }
 
     @Override
@@ -212,7 +257,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     }
 
     @Override
-    public boolean checkIsAllActivePhaseIsDone(Long jobId, Integer sort) {
+    public boolean checkIsAllActivePhaseIsCompleted(Long jobId, Integer sort) {
         boolean isDone = false;
         Integer count = autoexecJobMapper.checkIsAllActivePhaseIsDone(jobId, sort);
         if (count == 0) {

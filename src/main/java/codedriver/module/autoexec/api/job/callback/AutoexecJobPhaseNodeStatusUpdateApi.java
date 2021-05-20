@@ -5,13 +5,10 @@
 
 package codedriver.module.autoexec.api.job.callback;
 
-import codedriver.framework.autoexec.constvalue.FailPolicy;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
 import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
-import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseOperationVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
-import codedriver.framework.autoexec.exception.AutoexecCombopOperationNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNodeNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -49,21 +46,22 @@ public class AutoexecJobPhaseNodeStatusUpdateApi extends PublicApiComponentBase 
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
-            @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数"),
             @Param(name = "phase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
-            @Param(name = "operationId", type = ApiParamType.LONG, desc = "作业剧本Name", isRequired = true),
             @Param(name = "node", type = ApiParamType.JSONOBJECT, desc = "执行完的节点", isRequired = true),
-            @Param(name = "status", type = ApiParamType.STRING, desc = "状态", isRequired = true)
+            @Param(name = "status", type = ApiParamType.STRING, desc = "状态", isRequired = true),
+            @Param(name = "failIgnore", type = ApiParamType.INTEGER, desc = "失败是否继续，1：继续 0：停止", isRequired = true),
+            @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数")
     })
     @Output({
+            @Param(name = "hasFailNode", type = ApiParamType.JSONOBJECT, desc = "并行剧本是否存在fail节点")
     })
     @Description(desc = "回调更新作业剧本节点状态")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
-        Long operationId = jsonObj.getLong("operationId");
+        Integer failIgnore = jsonObj.getInteger("failIgnore");
         AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(jsonObj);
-        AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseLockByJobIdAndPhaseName(nodeVo.getJobId(), nodeVo.getJobPhaseName());
+        AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(nodeVo.getJobId(), nodeVo.getJobPhaseName());
         if(jobPhaseVo == null){
             throw new AutoexecJobPhaseNotFoundException(nodeVo.getJobPhaseName());
         }
@@ -71,16 +69,18 @@ public class AutoexecJobPhaseNodeStatusUpdateApi extends PublicApiComponentBase 
         if (autoexecJobMapper.checkIsJobPhaseNodeExist(nodeVo) == 0) {
             throw new AutoexecJobPhaseNodeNotFoundException(nodeVo.getJobPhaseName(), nodeVo.getHost() + ":" + nodeVo.getPort());
         }
-        AutoexecJobPhaseOperationVo operationVo = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseIdAndOperationId(nodeVo.getJobId(), nodeVo.getJobPhaseId(), operationId);
-        if (operationVo == null) {
-            throw new AutoexecCombopOperationNotFoundException(operationId.toString());
-        }
-        if (Objects.equals(nodeVo.getStatus(), JobNodeStatus.FAILED.getValue()) && Objects.equals(operationVo.getFailPolicy(), FailPolicy.STOP.getValue())) {
+        //如果节点失败且failIgnore等于0，则表明失败中止;如果节点成功，则需要查询是否存在失败的phase
+        if (Objects.equals(nodeVo.getStatus(), JobNodeStatus.FAILED.getValue()) && Objects.equals(failIgnore,0)) {
+            autoexecJobMapper.getJobPhaseLockByJobIdAndPhaseName(nodeVo.getJobId(), nodeVo.getJobPhaseName());
             jobPhaseVo.setStatus(JobPhaseStatus.FAILED.getValue());
             autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(nodeVo.getJobPhaseId(), nodeVo.getStatus()));
+            result.put("hasFailNode",1);
+        }else{
+            if(autoexecJobMapper.checkIsHasActivePhaseFailed(nodeVo.getJobId())>0){
+                result.put("hasFailNode",1);
+            }
         }
         autoexecJobMapper.updateJobPhaseNodeStatus(nodeVo);
-        result.put("phaseStatus", jobPhaseVo.getStatus());
         return result;
     }
 

@@ -74,7 +74,7 @@ public class AutoexecJobNextPhaseFireApi extends PublicApiComponentBase {
         }
         //根据fireNext==1,则判断是否满足激活下个phase条件
         if(fireNext != null && fireNext == 1 ){
-            if(autoexecJobService.checkIsAllActivePhaseIsDone(jobId,jobPhaseVo.getSort())) {
+            if(autoexecJobService.checkIsAllActivePhaseIsCompleted(jobId,jobPhaseVo.getSort())) {
                 Integer sort = autoexecJobMapper.getNextJobPhaseSortByJobId(jobId);
                 if(sort != null) {
                     autoexecJobService.getAutoexecJobDetail(jobVo, jobPhaseVo.getSort());

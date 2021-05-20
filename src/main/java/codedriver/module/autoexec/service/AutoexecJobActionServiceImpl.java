@@ -40,6 +40,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
 
+    @Resource
+    AutoexecJobServiceImpl autoexecJobService;
+
     /**
      * 第一次执行/重跑/继续作业
      *
@@ -52,10 +55,13 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         if (jobVo.getIsCanJobExec() == 1) {
             jobVo.setStatus(JobStatus.RUNNING.getValue());
             autoexecJobMapper.updateJobStatus(jobVo);
+            int sort = 0;
             for (AutoexecJobPhaseVo jobPhase : jobVo.getPhaseList()) {
                 jobPhase.setStatus(JobPhaseStatus.WAITING.getValue());
                 autoexecJobMapper.updateJobPhaseStatus(jobPhase);
+                sort = jobPhase.getSort();
             }
+            autoexecJobService.refreshJobPhaseNodeList(jobVo.getId(), sort);
             JSONObject paramJson = new JSONObject();
             getFireParamJson(paramJson, jobVo);
             String url = AutoexecConfig.PROXY_URL() + "/job/exec";

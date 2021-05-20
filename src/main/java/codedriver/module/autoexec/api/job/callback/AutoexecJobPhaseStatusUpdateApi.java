@@ -51,10 +51,9 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
-            @Param(name = "preJobId", type = ApiParamType.LONG, desc = "上一个作业Id"),
-            @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数"),
             @Param(name = "phase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
-            @Param(name = "status", type = ApiParamType.STRING, desc = "状态", isRequired = true)
+            @Param(name = "status", type = ApiParamType.STRING, desc = "状态", isRequired = true),
+            @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数")
     })
     @Output({
     })
@@ -74,7 +73,13 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
             throw new AutoexecJobPhaseNotFoundException(jobId+":"+phaseName);
         }
         autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), status));
-
+        /*if(Objects.equals(status, JobPhaseStatus.FAILED.getValue())){
+            result.put("hasFailNode",1);
+        }else{
+            if(autoexecJobMapper.checkIsHasActivePhaseFailed(jobId)>0){
+                result.put("hasFailNode",1);
+            }
+        }*/
         return result;
     }
 
