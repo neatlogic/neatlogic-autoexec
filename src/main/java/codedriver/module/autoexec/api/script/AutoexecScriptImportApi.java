@@ -5,10 +5,13 @@
 
 package codedriver.module.autoexec.api.script;
 
+import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
+import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
+import codedriver.framework.exception.core.ApiRuntimeException;
 import codedriver.framework.exception.file.FileExtNotAllowedException;
 import codedriver.framework.exception.file.FileNotUploadException;
 import codedriver.framework.restful.annotation.Description;
@@ -17,8 +20,11 @@ import codedriver.framework.restful.annotation.OperationType;
 import codedriver.framework.restful.annotation.Output;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
+import codedriver.module.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.module.autoexec.service.AutoexecScriptService;
+import codedriver.module.autoexec.service.AutoexecService;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import org.apache.commons.collections4.CollectionUtils;
@@ -33,10 +39,11 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.zip.ZipInputStream;
 
 @Service
@@ -45,11 +52,22 @@ import java.util.zip.ZipInputStream;
 @OperationType(type = OperationTypeEnum.CREATE)
 public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase {
 
+    static SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
 
     @Resource
+    private AutoexecTypeMapper autoexecTypeMapper;
+
+    @Resource
+    private AutoexecRiskMapper autoexecRiskMapper;
+
+    @Resource
     private AutoexecScriptService autoexecScriptService;
+
+    @Resource
+    private AutoexecService autoexecService;
 
     @Override
     public String getToken() {
@@ -86,77 +104,102 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
         for (Map.Entry<String, MultipartFile> entry : multipartFileMap.entrySet()) {
             MultipartFile multipartFile = entry.getValue();
             //反序列化获取对象
-            try (ZipInputStream zipis = new ZipInputStream(multipartFile.getInputStream());
+            try (ZipInputStream zis = new ZipInputStream(multipartFile.getInputStream());
                  ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-                while (zipis.getNextEntry() != null) {
+                while (zis.getNextEntry() != null) {
                     int len;
-                    while ((len = zipis.read(buf)) != -1) {
+                    while ((len = zis.read(buf)) != -1) {
                         out.write(buf, 0, len);
                     }
                     AutoexecScriptVo scriptVo = JSONObject.parseObject(new String(out.toByteArray(), StandardCharsets.UTF_8), new TypeReference<AutoexecScriptVo>() {
                     });
-                    save(scriptVo);
+                    resultList.add(save(scriptVo));
                     out.reset();
                 }
             } catch (IOException e) {
                 throw new FileExtNotAllowedException(multipartFile.getOriginalFilename());
             }
         }
-        return null;
+        return resultList;
     }
 
-    private void save(AutoexecScriptVo scriptVo) {
+    private String save(AutoexecScriptVo scriptVo) {
+        StringBuilder failLog = new StringBuilder();
+        List<String> failReasonList = new ArrayList<>();
         Long id = scriptVo.getId();
+        String name = scriptVo.getName();
         List<AutoexecScriptVersionVo> versionList = scriptVo.getVersionList();
         AutoexecScriptVo oldScriptVo = autoexecScriptMapper.getScriptBaseInfoById(id);
-        if (oldScriptVo != null) {
-            boolean hasChange = false;
-            // todo 重写equals
-            if (!Objects.equals(scriptVo.getName(), oldScriptVo.getName())) {
-                hasChange = true;
-            }
-            if (!Objects.equals(scriptVo.getExecMode(), oldScriptVo.getExecMode())) {
-                hasChange = true;
-            }
-            if (!Objects.equals(scriptVo.getRiskId(), oldScriptVo.getRiskVo())) {
-                hasChange = true;
-            }
-            if (!Objects.equals(scriptVo.getTypeId(), oldScriptVo.getTypeId())) {
-                hasChange = true;
-            }
-            if (hasChange) {
-                autoexecScriptService.validateScriptBaseInfo(scriptVo);
+        if (autoexecScriptMapper.checkScriptNameIsExists(scriptVo) > 0) {
+            scriptVo.setName(scriptVo.getName() + sdf.format(new Date()));
+        }
+        if (autoexecTypeMapper.checkTypeIsExistsById(scriptVo.getTypeId()) == 0) {
+            failReasonList.add("系统缺少工具类型：" + scriptVo.getTypeId());
+        }
+        if (autoexecRiskMapper.checkRiskIsExistsById(scriptVo.getRiskId()) == 0) {
+            failReasonList.add("系统缺少操作级别：" + scriptVo.getRiskId());
+        }
+        if (ExecMode.getExecMode(scriptVo.getExecMode()) == null) {
+            failReasonList.add("不存在的执行方式：" + scriptVo.getExecMode());
+        }
+        if (CollectionUtils.isEmpty(failReasonList)) {
+            if (oldScriptVo != null) {
                 autoexecScriptMapper.updateScriptBaseInfo(scriptVo);
-            }
-            if (CollectionUtils.isNotEmpty(versionList)) {
-                for (AutoexecScriptVersionVo versionVo : versionList) {
-                    AutoexecScriptVersionVo oldVersion = autoexecScriptService.getScriptVersionDetailByVersionId(versionVo.getId());
-                    if (oldVersion != null) {
-                        if (autoexecScriptService.checkScriptVersionNeedToUpdate(oldVersion, versionVo)) {
-                            autoexecScriptMapper.deleteParamByVersionId(versionVo.getId());
-                            autoexecScriptMapper.deleteScriptLineByVersionId(versionVo.getId());
-                            autoexecScriptService.saveParamList(versionVo.getId(), oldVersion.getParamList(), versionVo.getParamList());
-                            autoexecScriptService.saveLineList(id, versionVo.getId(), versionVo.getLineList());
-                            autoexecScriptMapper.updateScriptVersion(versionVo);
+                if (CollectionUtils.isNotEmpty(versionList)) {
+                    for (AutoexecScriptVersionVo versionVo : versionList) {
+                        try {
+                            if (CollectionUtils.isNotEmpty(versionVo.getParamList())) {
+                                autoexecService.validateParamList(versionVo.getParamList());
+                            }
+                        } catch (ApiRuntimeException ex) {
+                            failReasonList.add("版本：" + versionVo.getVersion() + "-----" + ex.getMessage());
+                            continue;
                         }
-                    } else {
+                        autoexecScriptMapper.getVersionByVersionIdForUpdate(versionVo.getId());
+                        AutoexecScriptVersionVo oldVersion = autoexecScriptService.getScriptVersionDetailByVersionId(versionVo.getId());
+                        if (oldVersion != null) {
+                            if (autoexecScriptService.checkScriptVersionNeedToUpdate(oldVersion, versionVo)) {
+                                autoexecScriptMapper.deleteParamByVersionId(versionVo.getId());
+                                autoexecScriptMapper.deleteScriptLineByVersionId(versionVo.getId());
+                                autoexecScriptService.saveParamList(versionVo.getId(), oldVersion.getParamList(), versionVo.getParamList());
+                                autoexecScriptService.saveLineList(id, versionVo.getId(), versionVo.getLineList());
+                                versionVo.setLcu(UserContext.get().getUserUuid());
+                                autoexecScriptMapper.updateScriptVersion(versionVo);
+                            }
+                        } else {
+                            autoexecScriptService.saveParamList(versionVo.getId(), null, versionVo.getParamList());
+                            autoexecScriptService.saveLineList(id, versionVo.getId(), versionVo.getLineList());
+                            autoexecScriptMapper.insertScriptVersion(versionVo);
+                        }
+                    }
+                }
+            } else {
+                scriptVo.setFcu(UserContext.get().getUserUuid());
+                autoexecScriptMapper.insertScript(scriptVo);
+                if (CollectionUtils.isNotEmpty(versionList)) {
+                    for (AutoexecScriptVersionVo versionVo : versionList) {
+                        try {
+                            if (CollectionUtils.isNotEmpty(versionVo.getParamList())) {
+                                autoexecService.validateParamList(versionVo.getParamList());
+                            }
+                        } catch (ApiRuntimeException ex) {
+                            failReasonList.add("版本：" + versionVo.getVersion() + "-----" + ex.getMessage());
+                            continue;
+                        }
                         autoexecScriptService.saveParamList(versionVo.getId(), null, versionVo.getParamList());
                         autoexecScriptService.saveLineList(id, versionVo.getId(), versionVo.getLineList());
                         autoexecScriptMapper.insertScriptVersion(versionVo);
                     }
                 }
             }
-        } else {
-            autoexecScriptService.validateScriptBaseInfo(scriptVo);
-            autoexecScriptMapper.insertScript(scriptVo);
-            if (CollectionUtils.isNotEmpty(versionList)) {
-                for (AutoexecScriptVersionVo versionVo : versionList) {
-                    autoexecScriptService.saveParamList(versionVo.getId(), null, versionVo.getParamList());
-                    autoexecScriptService.saveLineList(id, versionVo.getId(), versionVo.getLineList());
-                    autoexecScriptMapper.insertScriptVersion(versionVo);
-                }
+        }
+        if (CollectionUtils.isNotEmpty(failReasonList)) {
+            failLog.append("导入：" + name + "时出现如下问题：</br>");
+            for (int i = 0; i < failReasonList.size(); i++) {
+                failLog.append((i + 1) + "、" + failReasonList.get(i) + "；");
             }
         }
+        return failLog.toString();
     }
 
 

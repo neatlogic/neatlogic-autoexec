@@ -25,8 +25,10 @@ import codedriver.framework.restful.core.IValid;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.service.AutoexecScriptService;
+import codedriver.module.autoexec.service.AutoexecService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -44,6 +46,9 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptService autoexecScriptService;
+
+    @Resource
+    private AutoexecService autoexecService;
 
     @Override
     public String getToken() {
@@ -144,6 +149,9 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
         if (needSave) {
             // 保存参数
             List<AutoexecScriptVersionParamVo> paramList = scriptVo.getParamList();
+            if (CollectionUtils.isNotEmpty(paramList)) {
+                autoexecService.validateParamList(paramList);
+            }
             autoexecScriptService.saveParamList(versionVo.getId(), oldParamList, paramList);
             // 保存脚本内容
             autoexecScriptService.saveLineList(scriptVo.getId(), scriptVo.getVersionId(), scriptVo.getLineList());

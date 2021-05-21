@@ -661,7 +661,7 @@
             #{item.scriptVersionId},
             #{item.key},
             #{item.name},
-            #{item.defaultValue},
+            #{item.defaultValueStr},
             #{item.type},
             #{item.mode},
             #{item.isRequired},

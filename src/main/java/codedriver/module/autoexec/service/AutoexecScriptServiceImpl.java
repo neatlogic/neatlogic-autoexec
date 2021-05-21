@@ -41,8 +41,6 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
     @Resource
     private AutoexecRiskMapper autoexecRiskMapper;
 
-    @Resource
-    private AutoexecService autoexecService;
 
     /**
      * 获取脚本版本详细信息，包括参数与脚本内容
@@ -142,7 +140,6 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
     @Override
     public void saveParamList(Long versionId, List<AutoexecScriptVersionParamVo> oldParamList, List<AutoexecScriptVersionParamVo> newParamList) {
         if (CollectionUtils.isNotEmpty(newParamList)) {
-            autoexecService.validateParamList(newParamList);
             List<AutoexecScriptVersionParamVo> inputParamList = newParamList.stream().filter(o -> ParamMode.INPUT.getValue().equals(o.getMode())).collect(Collectors.toList());
             List<AutoexecScriptVersionParamVo> outputParamList = newParamList.stream().filter(o -> ParamMode.OUTPUT.getValue().equals(o.getMode())).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(inputParamList)) {
