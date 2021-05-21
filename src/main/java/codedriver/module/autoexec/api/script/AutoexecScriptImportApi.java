@@ -49,7 +49,7 @@ import java.util.zip.ZipInputStream;
 @Service
 @Transactional
 @AuthAction(action = AUTOEXEC_SCRIPT_MODIFY.class)
-@OperationType(type = OperationTypeEnum.CREATE)
+@OperationType(type = OperationTypeEnum.OPERATE)
 public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase {
 
     static SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
@@ -134,10 +134,10 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
             scriptVo.setName(scriptVo.getName() + sdf.format(new Date()));
         }
         if (autoexecTypeMapper.checkTypeIsExistsById(scriptVo.getTypeId()) == 0) {
-            failReasonList.add("系统缺少工具类型：" + scriptVo.getTypeId());
+            failReasonList.add("不存在的工具类型：" + scriptVo.getTypeId());
         }
         if (autoexecRiskMapper.checkRiskIsExistsById(scriptVo.getRiskId()) == 0) {
-            failReasonList.add("系统缺少操作级别：" + scriptVo.getRiskId());
+            failReasonList.add("不存在的操作级别：" + scriptVo.getRiskId());
         }
         if (ExecMode.getExecMode(scriptVo.getExecMode()) == null) {
             failReasonList.add("不存在的执行方式：" + scriptVo.getExecMode());
@@ -155,9 +155,10 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                             failReasonList.add("版本：" + versionVo.getVersion() + "-----" + ex.getMessage());
                             continue;
                         }
-                        autoexecScriptMapper.getVersionByVersionIdForUpdate(versionVo.getId());
-                        AutoexecScriptVersionVo oldVersion = autoexecScriptService.getScriptVersionDetailByVersionId(versionVo.getId());
+                        AutoexecScriptVersionVo oldVersion = autoexecScriptMapper.getVersionByVersionIdForUpdate(versionVo.getId());
                         if (oldVersion != null) {
+                            oldVersion.setParamList(autoexecScriptMapper.getParamListByVersionId(versionVo.getId()));
+                            oldVersion.setLineList(autoexecScriptMapper.getLineListByVersionId(versionVo.getId()));
                             if (autoexecScriptService.checkScriptVersionNeedToUpdate(oldVersion, versionVo)) {
                                 autoexecScriptMapper.deleteParamByVersionId(versionVo.getId());
                                 autoexecScriptMapper.deleteScriptLineByVersionId(versionVo.getId());
@@ -196,7 +197,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
         if (CollectionUtils.isNotEmpty(failReasonList)) {
             failLog.append("导入：" + name + "时出现如下问题：</br>");
             for (int i = 0; i < failReasonList.size(); i++) {
-                failLog.append((i + 1) + "、" + failReasonList.get(i) + "；");
+                failLog.append((i + 1) + "、" + failReasonList.get(i) + "；</br>");
             }
         }
         return failLog.toString();
