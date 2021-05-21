@@ -1,0 +1,92 @@
+/*
+ * Copyright (c)  2021 TechSure Co.,Ltd.  All Rights Reserved.
+ * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
+ */
+
+package codedriver.module.autoexec.api.job.callback;
+
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
+import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.restful.annotation.*;
+import codedriver.framework.restful.constvalue.OperationTypeEnum;
+import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
+import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.module.autoexec.service.AutoexecJobActionService;
+import codedriver.module.autoexec.service.AutoexecJobService;
+import com.alibaba.fastjson.JSONObject;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.Resource;
+
+/**
+ * @author lvzk
+ * @since 2021/4/14 14:15
+ **/
+@Service
+@Transactional
+@OperationType(type = OperationTypeEnum.UPDATE)
+public class AutoexecJobNextPhaseFireApi extends PublicApiComponentBase {
+    @Resource
+    AutoexecJobMapper autoexecJobMapper;
+
+    @Resource
+    AutoexecJobActionService autoexecJobActionService;
+
+    @Resource
+    AutoexecJobService autoexecJobService;
+
+    @Override
+    public String getName() {
+        return "激活作业下一阶段剧本";
+    }
+
+    @Override
+    public String getConfig() {
+        return null;
+    }
+
+    @Input({
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
+            @Param(name = "phase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
+            @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数"),
+            @Param(name = "time", type = ApiParamType.LONG, desc = "回调时间"),
+            @Param(name = "fireNext", type = ApiParamType.INTEGER, desc = "是否激活下一个剧本，1:是 0:否")
+    })
+    @Output({
+    })
+    @Description(desc = "激活作业下一阶段剧本")
+    @Override
+    public Object myDoService(JSONObject jsonObj) throws Exception {
+        Long jobId = jsonObj.getLong("jobId");
+        String phaseName = jsonObj.getString("phase");
+        Integer fireNext = jsonObj.getInteger("fireNext");
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        if(jobVo == null){
+            throw new AutoexecJobNotFoundException(jobId.toString());
+        }
+        AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseLockByJobIdAndPhaseName(jobId, phaseName);
+        if (jobPhaseVo == null) {
+            throw new AutoexecJobPhaseNotFoundException(jobId+":"+phaseName);
+        }
+        //根据fireNext==1,则判断是否满足激活下个phase条件
+        if(fireNext != null && fireNext == 1 ){
+            if(autoexecJobService.checkIsAllActivePhaseIsCompleted(jobId,jobPhaseVo.getSort())) {
+                Integer sort = autoexecJobMapper.getNextJobPhaseSortByJobId(jobId);
+                if(sort != null) {
+                    autoexecJobService.getAutoexecJobDetail(jobVo, jobPhaseVo.getSort());
+                    autoexecJobActionService.fire(jobVo);
+                }
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public String getToken() {
+        return "autoexec/job/next/phase/fire";
+    }
+}

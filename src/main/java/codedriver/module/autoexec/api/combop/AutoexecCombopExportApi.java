@@ -84,7 +84,7 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
         //设置导出文件名
         String fileName = FileUtil.getEncodedFileName(request.getHeader("User-Agent"), "组合工具." + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak");
         response.setContentType("aplication/zip");
-        response.setHeader("Content-Disposition", "attachment;fileName=\"" + fileName + "\"");
+        response.setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
 
         try (ZipOutputStream zipos = new ZipOutputStream(response.getOutputStream())) {
             for (Long id : existIdList) {

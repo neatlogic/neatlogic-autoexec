@@ -9,6 +9,7 @@ import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
 import codedriver.framework.autoexec.constvalue.*;
+import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecRiskVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
@@ -112,8 +113,8 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
             AutoexecCombopPhaseOperationConfigVo operationConfigVo = new AutoexecCombopPhaseOperationConfigVo();
             List<ParamMappingVo> paramMappingList = new ArrayList<>();
             operationConfigVo.setParamMappingList(paramMappingList);
-            List<AutoexecScriptVersionParamVo> inputParamList = new ArrayList<>();
-            List<AutoexecScriptVersionParamVo> outputParamList = new ArrayList<>();
+            List<AutoexecParamVo> inputParamList = new ArrayList<>();
+            List<AutoexecParamVo> outputParamList = new ArrayList<>();
             List<AutoexecScriptVersionParamVo> autoexecScriptVersionParamVoList = autoexecScriptMapper.getParamListByScriptId(operationId);
             if (CollectionUtils.isNotEmpty(autoexecScriptVersionParamVoList)) {
                 for (AutoexecScriptVersionParamVo paramVo : autoexecScriptVersionParamVoList) {
@@ -129,7 +130,7 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
             phaseOperationVo.setOutputParamList(outputParamList);
             List<AutoexecCombopParamVo> autoexecCombopParamVoList = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(inputParamList)) {
-                for (AutoexecScriptVersionParamVo inputParamVo : inputParamList) {
+                for (AutoexecParamVo inputParamVo : inputParamList) {
                     autoexecCombopParamVoList.add(new AutoexecCombopParamVo(inputParamVo));
                     paramMappingList.add(new ParamMappingVo(inputParamVo.getKey(), ParamMappingMode.RUNTIME_PARAM.getValue(), inputParamVo.getKey()));
                 }

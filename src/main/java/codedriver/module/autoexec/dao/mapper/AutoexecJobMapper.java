@@ -31,6 +31,8 @@ public interface AutoexecJobMapper {
 
     AutoexecJobParamContentVo getJobParamContentLock(String hash);
 
+    AutoexecJobParamContentVo getJobParamContent(String hash);
+
     int checkIsJobParamReference(@Param("jobId") Long jobId, @Param("hash") String hash);
 
     void updateJobStatus(AutoexecJobVo jobVo);
@@ -51,6 +53,14 @@ public interface AutoexecJobMapper {
 
     AutoexecJobPhaseVo getFirstJobPhase(Long jobId);
 
+    AutoexecJobPhaseVo getJobPhaseByJobIdAndPhaseName(@Param("jobId") Long jobId, @Param("jobPhaseName") String jobPhaseName);
+
+    Integer checkIsAllActivePhaseIsDone(@Param("jobId") Long jobId,@Param("sort") Integer sort);
+
+    List<AutoexecJobPhaseVo> getJobPhaseListByJobIdAndSort(@Param("jobId") Long jobId,@Param("sort") Integer sort);
+
+    Integer checkIsHasActivePhaseFailed(Long jobId);
+
     //jobPhaseNode
     List<AutoexecJobPhaseNodeVo> searchJobPhaseNode(AutoexecJobPhaseNodeVo jobPhaseNodeVo);
 
@@ -58,13 +68,22 @@ public interface AutoexecJobMapper {
 
     List<AutoexecJobPhaseNodeStatusCountVo> getJobPhaseNodeStatusCount(Long jobId);
 
+    int checkIsJobPhaseNodeExist(AutoexecJobPhaseNodeVo nodeVo);
+
+    int updateJobPhaseNodeStatus(AutoexecJobPhaseNodeVo nodeVo);
+
     //jobPhaseOperation
     List<AutoexecJobPhaseOperationVo> getJobPhaseOperationByJobId(Long jobId);
+
+    List<AutoexecJobPhaseOperationVo> getJobPhaseOperationByJobIdAndPhaseId(@Param("jobId")Long jobId,@Param("phaseId")Long phaseId);
+
+    AutoexecJobPhaseOperationVo getJobPhaseOperationByJobIdAndPhaseIdAndOperationId(@Param("jobId")Long jobId, @Param("jobPhaseId")Long jobPhaseId, @Param("jobPhaseOperationId")Long operationId);
 
     int checkIsJobPhaseOperationParamReference(@Param("jobId") Long jobId, @Param("hash") String hash);
 
     //jobParamContent
 
+    Integer getNextJobPhaseSortByJobId(Long jobId);
 
     Integer insertJob(AutoexecJobVo jobVo);
 
@@ -93,4 +112,5 @@ public interface AutoexecJobMapper {
 
     void deleteJobByJobId(Long jobId);
 
+    void deleteJobPhaseNodeByJobPhaseIdList(@Param("jobPhaseIdList") List<Long> jobPhaseIdList);
 }

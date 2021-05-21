@@ -8,7 +8,6 @@ package codedriver.module.autoexec.service;
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dto.job.*;
-import codedriver.framework.autoexec.exception.AutoexecCombopPhasePreParamException;
 import codedriver.framework.autoexec.exception.AutoexecJobProxyConnectAuthException;
 import codedriver.framework.autoexec.exception.AutoexecJobProxyConnectRefusedException;
 import codedriver.framework.dto.RestVo;
@@ -25,10 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 
 /**
  * @author lvzk
@@ -44,23 +40,28 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
 
+    @Resource
+    AutoexecJobServiceImpl autoexecJobService;
+
     /**
      * 第一次执行/重跑/继续作业
      *
      * @param jobVo 作业
-     * @param type  重跑redo，第一次跑 first, 继续跑 goon
      */
     @Override
-    public void fire(AutoexecJobVo jobVo, String type) {
+    public void fire(AutoexecJobVo jobVo) {
         autoexecJobMapper.getJobLockByJobId(jobVo.getId());
         autoexecJobAuthActionManager.setAutoexecJobAction(jobVo);
         if (jobVo.getIsCanJobExec() == 1) {
             jobVo.setStatus(JobStatus.RUNNING.getValue());
             autoexecJobMapper.updateJobStatus(jobVo);
+            int sort = 0;
             for (AutoexecJobPhaseVo jobPhase : jobVo.getPhaseList()) {
                 jobPhase.setStatus(JobPhaseStatus.WAITING.getValue());
                 autoexecJobMapper.updateJobPhaseStatus(jobPhase);
+                sort = jobPhase.getSort();
             }
+            autoexecJobService.refreshJobPhaseNodeList(jobVo.getId(), sort);
             JSONObject paramJson = new JSONObject();
             getFireParamJson(paramJson, jobVo);
             String url = AutoexecConfig.PROXY_URL() + "/job/exec";
@@ -85,7 +86,8 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
      * @param paramJson 返回param值
      * @param jobVo     作业
      */
-    private void getFireParamJson(JSONObject paramJson, AutoexecJobVo jobVo) {
+    @Override
+    public void getFireParamJson(JSONObject paramJson, AutoexecJobVo jobVo) {
         paramJson.put("jobId", jobVo.getId());
         paramJson.put("tenant", TenantContext.get().getTenantUuid());
         paramJson.put("preJobId", null); //给后续ITSM对接使用
@@ -124,20 +126,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                                         }else if(Objects.equals(ParamMappingMode.RUNTIME_PARAM.getValue(),argJson.getString("mappingMode"))) {
                                             put(argJson.getString("key"), String.format("${%s}",value));
                                         }else if(Objects.equals(ParamMappingMode.PRE_NODE_OUTPUT_PARAM.getValue(),argJson.getString("mappingMode"))) {
-                                            if(StringUtils.isNotBlank(value)){
-                                                List<String> valueList = Arrays.asList(value.split("&&"));
-                                                if(valueList.size() != 4){
-                                                    throw new AutoexecCombopPhasePreParamException(argJson.getString("key")+" : "+value);
-                                                }
-                                                String phaseUuid = valueList.get(0);
-                                                String opName = valueList.get(1);
-                                                String opUuid = valueList.get(2);
-                                                value = valueList.get(3);
-                                                Optional<AutoexecJobPhaseOperationVo> tmpOperation = jobPhase.getOperationList().parallelStream().filter(o->Objects.equals(o.getUuid(),opUuid)).findAny();
-                                                Optional<AutoexecJobPhaseVo> tmpPhase=jobVo.getPhaseList().parallelStream().filter(o->Objects.equals(o.getUuid(),phaseUuid)).findAny();
-                                                put(argJson.getString("key"), String.format("${%s.%s_%d.%s}",tmpPhase.get().getName(),opName,tmpOperation.get().getId(),value));
-                                            }
-
+                                            put(argJson.getString("key"), value);
                                         }else {
                                             put(argJson.getString("key"), StringUtils.EMPTY);
                                         }

@@ -235,7 +235,7 @@
                aj.`source`,
                aj.`thread_count`    as threadCount,
                aj.`param_hash`      as paramHash,
-               aj.`config`
+               aj.`config`          as configStr
         FROM `autoexec_job` aj
         WHERE aj.`id` = #{value}
     </select>
@@ -355,6 +355,14 @@
         update
     </select>
 
+    <select id="getJobParamContent"
+            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobParamContentVo">
+        SELECT `hash`,
+               `content`
+        FROM `autoexec_job_param_content`
+        where `hash` = #{value}
+    </select>
+
     <select id="getJobPhaseOperationByJobId"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseOperationVo">
         SELECT `job_id`       as jobId,
@@ -369,6 +377,23 @@
                `param_hash`   as paramHash
         FROM `autoexec_job_phase_operation`
         where `job_id` = #{value}
+    </select>
+
+    <select id="getJobPhaseOperationByJobIdAndPhaseId"
+            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseOperationVo">
+        SELECT `job_id`       as jobId,
+               `job_phase_id` as jobPhaseId,
+               `id`,
+               `name`,
+               `uk`,
+               `type`,
+               `parser`,
+               `exec_mode`    as execMode,
+               `fail_policy`  as failPolicy,
+               `param_hash`   as paramHash
+        FROM `autoexec_job_phase_operation`
+        where `job_id` = #{jobId}
+          and `job_phase_id` = #{phaseId}
     </select>
 
     <select id="checkIsJobParamReference" resultType="java.lang.Integer">
@@ -405,6 +430,73 @@
         limit #{startNum}, #{pageSize}
     </select>
 
+    <select id="checkIsJobPhaseNodeExist" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo"
+            resultType="java.lang.Integer">
+        select count(1)
+        from `autoexec_job_phase_node`
+        where `job_id` = #{jobId}
+          and `job_phase_id` = #{jobPhaseId}
+          and `host` = #{host}
+          and port = #{port}
+    </select>
+
+    <select id="getJobPhaseByJobIdAndPhaseName"
+            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
+        SELECT id,
+               job_id as jobId,
+               `status`
+        FROM `autoexec_job_phase`
+        WHERE `job_id` = #{jobId}
+          and `name` = #{jobPhaseName}
+    </select>
+    <select id="getJobPhaseOperationByJobIdAndPhaseIdAndOperationId"
+            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseOperationVo">
+        SELECT `job_id`       as jobId,
+               `job_phase_id` as jobPhaseId,
+               `id`,
+               `name`,
+               `uk`,
+               `type`,
+               `parser`,
+               `exec_mode`    as execMode,
+               `fail_policy`  as failPolicy,
+               `param_hash`   as paramHash
+        FROM `autoexec_job_phase_operation`
+        where `job_id` = #{jobId}
+          and `job_phase_id` = #{jobPhaseId}
+          and `id` = #{jobPhaseOperationId}
+    </select>
+    <select id="checkIsAllActivePhaseIsDone" resultType="java.lang.Integer">
+        select count(1)
+        from `autoexec_job_phase`
+        where `job_id` = #{job_id}
+          and `sort` = #{sort}
+          and `status` != 'completed'
+    </select>
+
+    <select id="getNextJobPhaseSortByJobId" resultType="java.lang.Integer">
+        SELECT sort
+        FROM `autoexec_job_phase`
+        WHERE job_id = #{value}
+          AND `status` = 'pending'
+        ORDER BY sort ASC
+        LIMIT 1
+    </select>
+
+    <select id="checkIsHasActivePhaseFailed" resultType="java.lang.Integer">
+        select count(1)
+        from `autoexec_job_phase`
+        where `job_id` = #{value}
+          AND `status` = 'failed'
+    </select>
+    <select id="getJobPhaseListByJobIdAndSort"
+            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
+        select `job_id` as jobId, `name`
+        from `autoexec_job_phase`
+        where `job_id` = #{job_id}
+          and `sort` = #{sort}
+    </select>
+
     <insert id="insertJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
         INSERT INTO `autoexec_job` (`id`,
         `name`,
@@ -418,6 +510,7 @@
         `param_hash`,
         `exec_user`,
         `exec_user_type`,
+        `config`,
         `source`)
         VALUES (#{id},
         #{name},
@@ -431,6 +524,7 @@
         #{paramHash},
         #{execUser},
         #{execUserType},
+        #{configStr},
         #{source});
     </insert>
 
@@ -479,6 +573,9 @@
                                                     `uk`,
                                                     `name`,
                                                     `type`,
+                                                    `parser`,
+                                                    `exec_mode`,
+                                                    `fail_policy`,
                                                     `param_hash`)
         VALUES (#{id},
                 #{jobId},
@@ -486,6 +583,9 @@
                 #{uk},
                 #{name},
                 #{type},
+                #{parser},
+                #{execMode},
+                #{failPolicy},
                 #{paramHash});
     </insert>
 
@@ -543,6 +643,23 @@
         </foreach>
     </update>
 
+    <update id="updateJobPhaseNodeStatus" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
+        UPDATE
+        `autoexec_job_phase_node`
+        SET
+        <if test="status == 'running'">
+            `start_time` = NOW(3),
+        </if>
+        <if test="status == 'completed' or status == 'failed'">
+            `end_time` = NOW(3),
+        </if>
+        `status` = #{status},
+        WHERE `job_id` = #{jobId}
+        AND `job_phase_id` = #{jobPhaseId}
+        AND `host` = #{host}
+        AND `port` = #{port}
+    </update>
+
     <delete id="deleteJobParamContentByHash" parameterType="java.lang.String">
         DELETE
         FROM `autoexec_job_param_content`
@@ -577,6 +694,15 @@
         DELETE
         FROM `autoexec_job`
         WHERE `id` = #{value};
+    </delete>
+
+    <delete id="deleteJobPhaseNodeByJobPhaseIdList">
+        DELETE
+        FROM `autoexec_job_phase_node`
+        WHERE `job_phase_id` in
+        <foreach collection="jobPhaseIdList" item="phaseId" open="(" close=")" separator=",">
+            #{phaseId}
+        </foreach>
     </delete>
 
 

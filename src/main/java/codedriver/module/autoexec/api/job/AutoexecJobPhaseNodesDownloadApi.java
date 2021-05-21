@@ -103,7 +103,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                     put("password",nodeVo.getPassword());
                 }};
                 response.setContentType("application/json");
-                response.setHeader("Content-Disposition", "attachment;fileName=nodes.json");
+                response.setHeader("Content-Disposition", " attachment; filename=nodes.json");
                 IOUtils.copyLarge(IOUtils.toInputStream(nodeJson.toString()+"\n", StandardCharsets.UTF_8), os);
                 if (os != null) {
                     os.flush();
