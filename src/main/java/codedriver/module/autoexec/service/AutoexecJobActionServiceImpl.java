@@ -176,7 +176,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
 
     @Override
     public JSONObject tailNodeLog(JSONObject paramJson) {
-        String url = AutoexecConfig.PROXY_URL() + "/job/phase/node/log/tail";
+        String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/log/tail";
         RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
         String result = RestUtil.sendRequest(restVo);
         JSONObject resultJson = null;

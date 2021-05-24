@@ -72,6 +72,8 @@ public interface AutoexecJobMapper {
 
     int updateJobPhaseNodeStatus(AutoexecJobPhaseNodeVo nodeVo);
 
+    AutoexecJobPhaseNodeVo getJobPhaseNodeInfoByJobNodeId(Long nodeId);
+
     //jobPhaseOperation
     List<AutoexecJobPhaseOperationVo> getJobPhaseOperationByJobId(Long jobId);
 
@@ -113,4 +115,5 @@ public interface AutoexecJobMapper {
     void deleteJobByJobId(Long jobId);
 
     void deleteJobPhaseNodeByJobPhaseIdList(@Param("jobPhaseIdList") List<Long> jobPhaseIdList);
+
 }
