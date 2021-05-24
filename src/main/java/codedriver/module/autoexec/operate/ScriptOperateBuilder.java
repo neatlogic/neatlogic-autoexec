@@ -84,11 +84,10 @@ public class ScriptOperateBuilder {
     }
 
     public ScriptOperateBuilder setValidate() {
-        // 拥有脚本审核或维护权限，且处于编辑中、已驳回、待审核状态才能校验
+        // 拥有脚本审核或维护权限，且处于编辑中、已驳回状态才能校验
         if (AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())
                 && (Objects.equals(ScriptVersionStatus.DRAFT.getValue(), status)
-                || Objects.equals(ScriptVersionStatus.REJECTED.getValue(), status)
-                || Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), status))) {
+                || Objects.equals(ScriptVersionStatus.REJECTED.getValue(), status))) {
             operateList.add(new ValueTextVo("validate", "校验"));
         }
         return this;
