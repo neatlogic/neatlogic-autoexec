@@ -569,6 +569,23 @@
         group by c.`operation_id`
     </select>
 
+    <select id="getReferenceCountListByScriptIdList" parameterType="java.util.List" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
+        select
+        c.`operation_id`,
+        count(c.`operation_id`) as referenceCount
+        from `autoexec_combop` a
+        join `autoexec_combop_phase` b
+        on a.`id` = b.`combop_id`
+        join `autoexec_combop_phase_operation` c
+        on b.`id` = c.`combop_phase_id`
+        where c.`operation_id` in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        and c.`operation_type` = 'script'
+        group by c.`operation_id`
+    </select>
+
     <update id="updateScriptBaseInfo" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
         update `autoexec_script` set
         `name` = #{name},
@@ -661,7 +678,7 @@
             #{item.scriptVersionId},
             #{item.key},
             #{item.name},
-            #{item.defaultValue},
+            #{item.defaultValueStr},
             #{item.type},
             #{item.mode},
             #{item.isRequired},
