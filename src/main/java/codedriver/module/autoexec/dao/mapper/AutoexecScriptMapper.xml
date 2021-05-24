@@ -571,7 +571,7 @@
 
     <select id="getReferenceCountListByScriptIdList" parameterType="java.util.List" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
         select
-        c.`operation_id`,
+        c.`operation_id` as id,
         count(c.`operation_id`) as referenceCount
         from `autoexec_combop` a
         join `autoexec_combop_phase` b
