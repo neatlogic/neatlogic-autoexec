@@ -97,7 +97,7 @@
         `name`,
         `exec_mode` as execMode,
         `type_id` as typeId,
-        (select `name` from `autoexec_type` where `type_id` = `id`) as typeName,
+        (select `name` from `autoexec_type` where `type_id` = `id`) as type,
         `risk_id` as riskId,
         (select `name` from `autoexec_risk` where `risk_id` = `id`) as riskName,
         (select `color` from `autoexec_risk` where `risk_id` = `id`) as riskColor,
