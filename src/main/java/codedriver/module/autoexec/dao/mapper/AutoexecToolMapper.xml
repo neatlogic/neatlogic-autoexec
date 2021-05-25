@@ -122,7 +122,7 @@
             `is_active` AS isActive,
             `exec_mode` AS execMode,
             `type_id` AS typeId,
-            (select `name` from `autoexec_type` where `id` = a.`type_id`) as typeName,
+            (select `name` from `autoexec_type` where `id` = `type_id`) as typeName,
             `risk_id` AS riskId,
             `description`,
             `interpreter`,
