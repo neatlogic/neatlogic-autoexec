@@ -150,31 +150,21 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                 if (autoexecCombopPhaseOperationVo == null) {
                     continue;
                 }
+                Long operationId = autoexecCombopPhaseOperationVo.getOperationId();
+                String operationUuid = autoexecCombopPhaseOperationVo.getUuid();
+                String operationName = autoexecCombopPhaseOperationVo.getName();
+                List<? extends AutoexecParamVo> autoexecParamVoList = null;
                 Map<String, AutoexecParamVo> inputParamMap = new HashMap<>();
                 if (Objects.equals(autoexecCombopPhaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
-                    Long operationId = autoexecCombopPhaseOperationVo.getOperationId();
-                    String operationUuid = autoexecCombopPhaseOperationVo.getUuid();
-                    String operationName = autoexecCombopPhaseOperationVo.getName();
                     if (autoexecScriptMapper.checkScriptIsExistsById(operationId) == 0) {
                         throw new AutoexecScriptNotFoundException(operationId);
                     }
-                    List<AutoexecScriptVersionParamVo> autoexecScriptVersionParamVoList = autoexecScriptMapper.getParamListByScriptId(operationId);
-                    for (AutoexecScriptVersionParamVo paramVo : autoexecScriptVersionParamVoList) {
-                        if (Objects.equals(paramVo.getMode(), ParamMode.INPUT.getValue())) {
-                            inputParamMap.put(paramVo.getKey(), paramVo);
-                        } else if (Objects.equals(paramVo.getMode(), ParamMode.OUTPUT.getValue())) {
-                            preNodeOutputParamMap.put(uuid + "&&" + operationName + "&&" + operationUuid + "&&" + paramVo.getKey(), paramVo);
-                        }
-                    }
+                    autoexecParamVoList = autoexecScriptMapper.getParamListByScriptId(operationId);
                 } else {
-                    Long operationId = autoexecCombopPhaseOperationVo.getOperationId();
-                    String operationUuid = autoexecCombopPhaseOperationVo.getUuid();
-                    String operationName = autoexecCombopPhaseOperationVo.getName();
                     AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(operationId);
                     if (autoexecToolVo == null) {
                         throw new AutoexecToolNotFoundException(operationId);
                     }
-                    List<AutoexecParamVo> autoexecParamVoList = null;
                     JSONObject toolConfig = autoexecToolVo.getConfig();
                     if(MapUtils.isNotEmpty(toolConfig)) {
                         JSONArray paramArray = toolConfig.getJSONArray("paramList");
@@ -182,16 +172,15 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                             autoexecParamVoList = paramArray.toJavaList(AutoexecParamVo.class);
                         }
                     }
-                    if (CollectionUtils.isNotEmpty(autoexecParamVoList)) {
-                        for (AutoexecParamVo paramVo : autoexecParamVoList) {
-                            if (Objects.equals(paramVo.getMode(), ParamMode.INPUT.getValue())) {
-                                inputParamMap.put(paramVo.getKey(), paramVo);
-                            } else if (Objects.equals(paramVo.getMode(), ParamMode.OUTPUT.getValue())) {
-                                preNodeOutputParamMap.put(uuid + "&&" + operationName + "&&" + operationUuid + "&&" + paramVo.getKey(), paramVo);
-                            }
+                }
+                if (CollectionUtils.isNotEmpty(autoexecParamVoList)) {
+                    for (AutoexecParamVo paramVo : autoexecParamVoList) {
+                        if (Objects.equals(paramVo.getMode(), ParamMode.INPUT.getValue())) {
+                            inputParamMap.put(paramVo.getKey(), paramVo);
+                        } else if (Objects.equals(paramVo.getMode(), ParamMode.OUTPUT.getValue())) {
+                            preNodeOutputParamMap.put(uuid + "&&" + operationName + "&&" + operationUuid + "&&" + paramVo.getKey(), paramVo);
                         }
                     }
-
                 }
 
                 AutoexecCombopPhaseOperationConfigVo operationConfig = autoexecCombopPhaseOperationVo.getConfig();
