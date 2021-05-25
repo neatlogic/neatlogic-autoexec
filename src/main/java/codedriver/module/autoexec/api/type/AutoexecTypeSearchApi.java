@@ -17,10 +17,13 @@ import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
@@ -62,6 +65,29 @@ public class AutoexecTypeSearchApi extends PrivateApiComponentBase {
         AutoexecTypeVo typeVo = JSON.toJavaObject(jsonObj, AutoexecTypeVo.class);
         List<AutoexecTypeVo> typeList = autoexecTypeMapper.searchType(typeVo);
         result.put("tbodyList", typeList);
+        if (CollectionUtils.isNotEmpty(typeList)) {
+            List<Long> idList = typeList.stream().map(AutoexecTypeVo::getId).collect(Collectors.toList());
+            List<AutoexecTypeVo> referenceCountListForTool = autoexecTypeMapper.getReferenceCountListForTool(idList);
+            List<AutoexecTypeVo> referenceCountListForScript = autoexecTypeMapper.getReferenceCountListForScript(idList);
+            if (CollectionUtils.isNotEmpty(referenceCountListForTool)) {
+                for (AutoexecTypeVo vo : referenceCountListForTool) {
+                    typeList.stream().forEach(o -> {
+                        if (Objects.equals(o.getId(), vo.getId())) {
+                            o.setReferenceCountForTool(vo.getReferenceCountForTool());
+                        }
+                    });
+                }
+            }
+            if (CollectionUtils.isNotEmpty(referenceCountListForScript)) {
+                for (AutoexecTypeVo vo : referenceCountListForScript) {
+                    typeList.stream().forEach(o -> {
+                        if (Objects.equals(o.getId(), vo.getId())) {
+                            o.setReferenceCountForScript(vo.getReferenceCountForScript());
+                        }
+                    });
+                }
+            }
+        }
         if (typeVo.getNeedPage()) {
             int rowNum = autoexecTypeMapper.searchTypeCount(typeVo);
             typeVo.setRowNum(rowNum);
