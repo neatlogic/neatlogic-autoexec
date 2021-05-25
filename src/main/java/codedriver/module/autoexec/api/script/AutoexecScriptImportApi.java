@@ -11,13 +11,11 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
+import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.exception.core.ApiRuntimeException;
 import codedriver.framework.exception.file.FileExtNotAllowedException;
 import codedriver.framework.exception.file.FileNotUploadException;
-import codedriver.framework.restful.annotation.Description;
-import codedriver.framework.restful.annotation.Input;
-import codedriver.framework.restful.annotation.OperationType;
-import codedriver.framework.restful.annotation.Output;
+import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecRiskMapper;
@@ -28,6 +26,7 @@ import codedriver.module.autoexec.service.AutoexecService;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -52,7 +51,7 @@ import java.util.zip.ZipInputStream;
 @OperationType(type = OperationTypeEnum.OPERATE)
 public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase {
 
-    static SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMddHHmmss");
+    static SimpleDateFormat sdf = new SimpleDateFormat("yyyyMMdd");
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
@@ -87,23 +86,20 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
     @Input({
     })
     @Output({
+            @Param(name = "Return", type = ApiParamType.JSONARRAY, desc = "导入结果")
     })
     @Description(desc = "导入脚本")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
-        //获取所有导入文件
         Map<String, MultipartFile> multipartFileMap = multipartRequest.getFileMap();
-        //如果没有导入文件, 抛异常
         if (multipartFileMap.isEmpty()) {
             throw new FileNotUploadException();
         }
         List<String> resultList = new ArrayList<>();
         byte[] buf = new byte[1024];
-        //遍历导入文件
         for (Map.Entry<String, MultipartFile> entry : multipartFileMap.entrySet()) {
             MultipartFile multipartFile = entry.getValue();
-            //反序列化获取对象
             try (ZipInputStream zis = new ZipInputStream(multipartFile.getInputStream());
                  ByteArrayOutputStream out = new ByteArrayOutputStream()) {
                 while (zis.getNextEntry() != null) {
@@ -113,14 +109,17 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                     }
                     AutoexecScriptVo scriptVo = JSONObject.parseObject(new String(out.toByteArray(), StandardCharsets.UTF_8), new TypeReference<AutoexecScriptVo>() {
                     });
-                    resultList.add(save(scriptVo));
+                    String result = save(scriptVo);
+                    if (StringUtils.isNotBlank(result)) {
+                        resultList.add(result);
+                    }
                     out.reset();
                 }
             } catch (IOException e) {
                 throw new FileExtNotAllowedException(multipartFile.getOriginalFilename());
             }
         }
-        return resultList;
+        return CollectionUtils.isNotEmpty(resultList) ? resultList : null;
     }
 
     private String save(AutoexecScriptVo scriptVo) {
@@ -152,7 +151,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                                 autoexecService.validateParamList(versionVo.getParamList());
                             }
                         } catch (ApiRuntimeException ex) {
-                            failReasonList.add("版本：" + versionVo.getVersion() + "-----" + ex.getMessage());
+                            failReasonList.add("版本：" + versionVo.getVersion() + "：" + ex.getMessage());
                             continue;
                         }
                         AutoexecScriptVersionVo oldVersion = autoexecScriptMapper.getVersionByVersionIdForUpdate(versionVo.getId());
@@ -184,7 +183,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                                 autoexecService.validateParamList(versionVo.getParamList());
                             }
                         } catch (ApiRuntimeException ex) {
-                            failReasonList.add("版本：" + versionVo.getVersion() + "-----" + ex.getMessage());
+                            failReasonList.add("版本：" + versionVo.getVersion() + "：" + ex.getMessage());
                             continue;
                         }
                         autoexecScriptService.saveParamList(versionVo.getId(), null, versionVo.getParamList());
@@ -200,7 +199,8 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                 failLog.append((i + 1) + "、" + failReasonList.get(i) + "；</br>");
             }
         }
-        return failLog.toString();
+        String result = failLog.toString();
+        return StringUtils.isNotBlank(result) ? result : null;
     }
 
 
