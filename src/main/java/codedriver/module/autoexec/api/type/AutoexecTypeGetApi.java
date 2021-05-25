@@ -34,7 +34,7 @@ public class AutoexecTypeGetApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取插件类型";
+        return "获取工具类型";
     }
 
     @Override
@@ -48,7 +48,7 @@ public class AutoexecTypeGetApi extends PrivateApiComponentBase {
     @Output({
             @Param(explode = AutoexecTypeVo.class)
     })
-    @Description(desc = "获取插件类型")
+    @Description(desc = "获取工具类型")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");
