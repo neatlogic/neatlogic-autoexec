@@ -82,7 +82,7 @@
         <result column="type" property="type"/>
         <result column="execMode" property="execMode"/>
         <result column="typeId" property="typeId"/>
-        <result column="typeName" property="typeName"/>
+        <result column="type" property="type"/>
         <result column="isActive" property="isActive"/>
         <association property="riskVo" javaType="codedriver.framework.autoexec.dto.AutoexecRiskVo">
             <result column="riskId" property="id"/>
@@ -97,7 +97,7 @@
         `name`,
         `exec_mode` as execMode,
         `type_id` as typeId,
-        (select `name` from `autoexec_type` where `type_id` = `id`) as typeName,
+        (select `name` from `autoexec_type` where `type_id` = `id`) as type,
         `risk_id` as riskId,
         (select `name` from `autoexec_risk` where `risk_id` = `id`) as riskName,
         (select `color` from `autoexec_risk` where `risk_id` = `id`) as riskColor,
@@ -115,6 +115,23 @@
         where `name` = #{value}
     </select>
 
+    <select id="checkToolListHasBeenGeneratedToCombop" parameterType="java.util.List" resultType="codedriver.framework.autoexec.dto.AutoexecToolVo">
+        select
+        c.`operation_id` as id,
+        count(c.`operation_id`) as hasBeenGeneratedToCombop
+        from `autoexec_combop` a
+        join `autoexec_combop_phase` b
+        on a.`id` = b.`combop_id`
+        join `autoexec_combop_phase_operation` c
+        on b.`id` = c.`combop_phase_id`
+        where c.`operation_id` in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        and a.`operation_type` = 'tool'
+        group by c.`operation_id`
+    </select>
+
     <update id="updateActiveStatus" parameterType="codedriver.framework.autoexec.dto.AutoexecToolVo">
         update `autoexec_tool`
         set `is_active` = #{isActive}
@@ -126,7 +143,7 @@
         `id`,
         `name`,
         `exec_mode`,
-        `interpreter`,
+        `parser`,
         `type_id`,
         `risk_id`,
         `is_active`,
@@ -137,7 +154,7 @@
         #{id},
         #{name},
         #{execMode},
-        #{interpreter},
+        #{parser},
         #{typeId},
         #{riskId},
         #{isActive},

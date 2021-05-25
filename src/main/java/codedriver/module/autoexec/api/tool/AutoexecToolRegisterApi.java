@@ -101,7 +101,7 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
         }
         vo.setName(opName);
         vo.setExecMode(opType);
-        vo.setInterpreter(interpreter);
+        vo.setParser(interpreter);
         vo.setTypeId(typeId);
         vo.setRiskId(riskId);
         vo.setDescription(description);
