@@ -70,12 +70,6 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
         return "脚本/工具发布生成组合工具";
     }
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 额外配置
-     */
     @Override
     public String getConfig() {
         return null;
@@ -110,7 +104,7 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
             }
             List<AutoexecParamVo> autoexecParamVoList = new ArrayList<>();
             JSONObject toolConfig = autoexecToolVo.getConfig();
-            if(MapUtils.isNotEmpty(toolConfig)) {
+            if (MapUtils.isNotEmpty(toolConfig)) {
                 JSONArray paramArray = toolConfig.getJSONArray("paramList");
                 if (CollectionUtils.isNotEmpty(paramArray)) {
                     autoexecParamVoList = paramArray.toJavaList(AutoexecParamVo.class);
@@ -131,8 +125,8 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
         };
     }
 
-    private Long generate(JSONObject jsonObj, AutoexecToolAndScriptVo autoexecToolAndScriptVo, List<? extends AutoexecParamVo> autoexecParamVoList){
-        if(autoexecCombopMapper.checkItHasBeenGeneratedToCombopByOperationId(autoexecToolAndScriptVo.getId()) != null){
+    private Long generate(JSONObject jsonObj, AutoexecToolAndScriptVo autoexecToolAndScriptVo, List<? extends AutoexecParamVo> autoexecParamVoList) {
+        if (autoexecCombopMapper.checkItHasBeenGeneratedToCombopByOperationId(autoexecToolAndScriptVo.getId()) != null) {
             throw new AutoexecCombopCannotBeRepeatReleaseExcepiton(autoexecToolAndScriptVo.getName());
         }
         /** 新建一个操作 **/

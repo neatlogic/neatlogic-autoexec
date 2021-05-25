@@ -129,15 +129,15 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         result.append(oldName);
         result.append("'，");
         AutoexecCombopVo oldAutoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
-        if(oldAutoexecCombopVo != null){
-            if(Objects.equals(oldAutoexecCombopVo.getConfigStr(), autoexecCombopVo.getConfigStr())){
+        if (oldAutoexecCombopVo != null) {
+            if (Objects.equals(oldAutoexecCombopVo.getConfigStr(), autoexecCombopVo.getConfigStr())) {
                 List<AutoexecCombopParamVo> autoexecCombopParamVoList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
-                if(Objects.equals(JSONObject.toJSONString(autoexecCombopParamVoList), JSONObject.toJSONString(autoexecCombopVo.getRuntimeParamList()))){
+                if (Objects.equals(JSONObject.toJSONString(autoexecCombopParamVoList), JSONObject.toJSONString(autoexecCombopVo.getRuntimeParamList()))) {
                     result.append("更新成功。");
                     return result.toString();
                 }
             }
-        }else {
+        } else {
             autoexecCombopVo.setId(null);
             id = autoexecCombopVo.getId();
         }

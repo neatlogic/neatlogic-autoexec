@@ -166,7 +166,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                         throw new AutoexecToolNotFoundException(operationId);
                     }
                     JSONObject toolConfig = autoexecToolVo.getConfig();
-                    if(MapUtils.isNotEmpty(toolConfig)) {
+                    if (MapUtils.isNotEmpty(toolConfig)) {
                         JSONArray paramArray = toolConfig.getJSONArray("paramList");
                         if (CollectionUtils.isNotEmpty(paramArray)) {
                             autoexecParamVoList = paramArray.toJavaList(AutoexecParamVo.class);
