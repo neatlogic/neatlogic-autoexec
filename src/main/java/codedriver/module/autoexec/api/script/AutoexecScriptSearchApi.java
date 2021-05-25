@@ -74,13 +74,25 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
         List<AutoexecScriptVo> scriptVoList = autoexecScriptMapper.searchScript(scriptVo);
         result.put("tbodyList", scriptVoList);
         if (CollectionUtils.isNotEmpty(scriptVoList)) {
-            List<AutoexecScriptVo> list = autoexecScriptMapper.checkScriptListHasBeenGeneratedToCombop(
-                    scriptVoList.stream().map(AutoexecScriptVo::getId).collect(Collectors.toList()));
+            List<Long> idList = scriptVoList.stream().map(AutoexecScriptVo::getId).collect(Collectors.toList());
+            // 已经发布为组合工具的脚本不能重复发布
+            List<AutoexecScriptVo> list = autoexecScriptMapper.checkScriptListHasBeenGeneratedToCombop(idList);
             if (CollectionUtils.isNotEmpty(list)) {
                 for (AutoexecScriptVo vo : list) {
                     scriptVoList.stream().forEach(o -> {
                         if (Objects.equals(o.getId(), vo.getId())) {
                             o.setHasBeenGeneratedToCombop(vo.getHasBeenGeneratedToCombop() > 0 ? 1 : 0);
+                        }
+                    });
+                }
+            }
+            // 已经被组合工具引用的脚本不能删除
+            List<AutoexecScriptVo> referenceCountList = autoexecScriptMapper.getReferenceCountListByScriptIdList(idList);
+            if (CollectionUtils.isNotEmpty(referenceCountList)) {
+                for (AutoexecScriptVo vo : referenceCountList) {
+                    scriptVoList.stream().forEach(o -> {
+                        if (Objects.equals(o.getId(), vo.getId())) {
+                            o.setReferenceCount(vo.getReferenceCount());
                         }
                     });
                 }

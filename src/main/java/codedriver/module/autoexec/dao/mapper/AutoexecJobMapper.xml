@@ -493,8 +493,34 @@
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
         select `job_id` as jobId, `name`
         from `autoexec_job_phase`
-        where `job_id` = #{job_id}
+        where `job_id` = #{jobId}
           and `sort` = #{sort}
+    </select>
+    <select id="getJobPhaseNodeInfoByJobNodeId"
+            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
+        SELECT
+            ajpn.`id`,
+            ajpn.`job_id` as jobId,
+            ajpn.`job_phase_id` as jobPhaseId,
+            ajpn.`host`,
+            ajpn.`port`,
+            ajpn.`start_time` as startTime,
+            ajpn.`end_time` as endTime,
+            ajpn.`status`,
+            ajpn.`proxy_id` as proxyId,
+            ajp.`name` as jobPhaseName,
+            an.`id` as nodeId,
+            an.`name` AS nodeName,
+            an.`type` as nodeType,
+            an.`user_name` as userName,
+            an.`password`,
+            ap.`url` AS proxyUrl
+        FROM
+            `autoexec_job_phase_node` ajpn
+                LEFT JOIN `autoexec_job_phase` ajp on ajpn.`job_phase_id` = ajp.`id`
+                LEFT JOIN `autoexec_node` an ON ajpn.`host` = an.`host` AND ajpn.`port` = an.`port`
+                LEFT JOIN `autoexec_proxy` ap ON ajpn.`proxy_id` = ap.`id`
+        where ajpn.`id` = #{value}
     </select>
 
     <insert id="insertJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">

@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.service;
 
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
+import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.exception.AutoexecJobProxyConnectAuthException;
@@ -92,6 +93,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         paramJson.put("tenant", TenantContext.get().getTenantUuid());
         paramJson.put("preJobId", null); //给后续ITSM对接使用
         paramJson.put("parallel", jobVo.getThreadCount());
+        paramJson.put("execUser", UserContext.get().getUserUuid(true));
         paramJson.put("passThroughEnv", null); //回调需要的返回的参数
         JSONArray paramArray = jobVo.getParam();
         JSONObject argJson = new JSONObject() {{
@@ -176,7 +178,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
 
     @Override
     public JSONObject tailNodeLog(JSONObject paramJson) {
-        String url = AutoexecConfig.PROXY_URL() + "/job/phase/node/log/tail";
+        String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/log/tail";
         RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
         String result = RestUtil.sendRequest(restVo);
         JSONObject resultJson = null;
