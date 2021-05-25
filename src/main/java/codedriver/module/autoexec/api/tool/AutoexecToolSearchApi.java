@@ -19,10 +19,13 @@ import codedriver.module.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.module.autoexec.operate.ScriptOperateBuilder;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @AuthAction(action = AUTOEXEC_SCRIPT_SEARCH.class)
@@ -69,6 +72,18 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
         AutoexecToolVo toolVo = JSON.toJavaObject(jsonObj, AutoexecToolVo.class);
         List<AutoexecToolVo> toolVoList = autoexecToolMapper.searchTool(toolVo);
         result.put("tbodyList", toolVoList);
+        if (CollectionUtils.isNotEmpty(toolVoList)) {
+            List<AutoexecToolVo> list = autoexecToolMapper.checkToolListHasBeenGeneratedToCombop(toolVoList.stream().map(AutoexecToolVo::getId).collect(Collectors.toList()));
+            if (CollectionUtils.isNotEmpty(list)) {
+                for (AutoexecToolVo vo : list) {
+                    toolVoList.stream().forEach(o -> {
+                        if (Objects.equals(o.getId(), vo.getId())) {
+                            o.setHasBeenGeneratedToCombop(vo.getHasBeenGeneratedToCombop() > 0 ? 1 : 0);
+                        }
+                    });
+                }
+            }
+        }
         if (toolVo.getNeedPage()) {
             int rowNum = autoexecToolMapper.searchToolCount(toolVo);
             toolVo.setRowNum(rowNum);
