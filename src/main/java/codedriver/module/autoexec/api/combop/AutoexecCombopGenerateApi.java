@@ -94,6 +94,9 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long operationId = jsonObj.getLong("operationId");
         String operationType = jsonObj.getString("operationType");
+//        if(autoexecCombopMapper.checkItHasBeenGeneratedToCombopByOperationId(operationId) != null){
+//            //throw new
+//        }
         if (Objects.equals(operationType, CombopOperationType.SCRIPT.getValue())) {
             AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(operationId);
             if (autoexecScriptVo == null) {
