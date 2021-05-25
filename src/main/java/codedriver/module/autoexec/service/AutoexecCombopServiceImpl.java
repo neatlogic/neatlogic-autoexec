@@ -7,6 +7,8 @@ package codedriver.module.autoexec.service;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.*;
+import codedriver.framework.autoexec.dto.AutoexecParamVo;
+import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
@@ -15,7 +17,11 @@ import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.dao.mapper.TeamMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecToolMapper;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +46,9 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
+
+    @Resource
+    private AutoexecToolMapper autoexecToolMapper;
 
     @Resource
     private TeamMapper teamMapper;
@@ -123,7 +132,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
         if (CollectionUtils.isNotEmpty(autoexecCombopParamVoList)) {
             runtimeParamMap = autoexecCombopParamVoList.stream().collect(Collectors.toMap(e -> e.getKey(), e -> e));
         }
-        Map<String, AutoexecScriptVersionParamVo> preNodeOutputParamMap = new HashMap<>();
+        Map<String, AutoexecParamVo> preNodeOutputParamMap = new HashMap<>();
         for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
             if (autoexecCombopPhaseVo == null) {
                 continue;
@@ -141,7 +150,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                 if (autoexecCombopPhaseOperationVo == null) {
                     continue;
                 }
-                Map<String, AutoexecScriptVersionParamVo> inputParamMap = new HashMap<>();
+                Map<String, AutoexecParamVo> inputParamMap = new HashMap<>();
                 if (Objects.equals(autoexecCombopPhaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
                     Long operationId = autoexecCombopPhaseOperationVo.getOperationId();
                     String operationUuid = autoexecCombopPhaseOperationVo.getUuid();
@@ -158,7 +167,31 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                         }
                     }
                 } else {
-                    //TODO linbq 工具暂时不实现
+                    Long operationId = autoexecCombopPhaseOperationVo.getOperationId();
+                    String operationUuid = autoexecCombopPhaseOperationVo.getUuid();
+                    String operationName = autoexecCombopPhaseOperationVo.getName();
+                    AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(operationId);
+                    if (autoexecToolVo == null) {
+                        throw new AutoexecToolNotFoundException(operationId);
+                    }
+                    List<AutoexecParamVo> autoexecParamVoList = null;
+                    JSONObject toolConfig = autoexecToolVo.getConfig();
+                    if(MapUtils.isNotEmpty(toolConfig)) {
+                        JSONArray paramArray = toolConfig.getJSONArray("paramList");
+                        if (CollectionUtils.isNotEmpty(paramArray)) {
+                            autoexecParamVoList = paramArray.toJavaList(AutoexecParamVo.class);
+                        }
+                    }
+                    if (CollectionUtils.isNotEmpty(autoexecParamVoList)) {
+                        for (AutoexecParamVo paramVo : autoexecParamVoList) {
+                            if (Objects.equals(paramVo.getMode(), ParamMode.INPUT.getValue())) {
+                                inputParamMap.put(paramVo.getKey(), paramVo);
+                            } else if (Objects.equals(paramVo.getMode(), ParamMode.OUTPUT.getValue())) {
+                                preNodeOutputParamMap.put(uuid + "&&" + operationName + "&&" + operationUuid + "&&" + paramVo.getKey(), paramVo);
+                            }
+                        }
+                    }
+
                 }
 
                 AutoexecCombopPhaseOperationConfigVo operationConfig = autoexecCombopPhaseOperationVo.getConfig();
@@ -170,7 +203,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                                 continue;
                             }
                             String key = paramMappingVo.getKey();
-                            AutoexecScriptVersionParamVo inputParamVo = inputParamMap.remove(key);
+                            AutoexecParamVo inputParamVo = inputParamMap.remove(key);
                             if (inputParamVo == null) {
                                 throw new AutoexecParamNotFoundException(key);
                             }
@@ -201,7 +234,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                                     throw new AutoexecParamMappingIncorrectException(key);
                                 }
                             } else if (Objects.equals(mappingMode, ParamMappingMode.PRE_NODE_OUTPUT_PARAM.getValue())) {
-                                AutoexecScriptVersionParamVo preNodeOutputParamVo = preNodeOutputParamMap.get(value);
+                                AutoexecParamVo preNodeOutputParamVo = preNodeOutputParamMap.get(value);
                                 if (preNodeOutputParamVo == null) {
                                     throw new AutoexecParamMappingIncorrectException(key);
                                 }

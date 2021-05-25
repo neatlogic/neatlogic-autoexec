@@ -13,6 +13,7 @@ import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.ParamMode;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecRiskVo;
+import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
@@ -26,9 +27,12 @@ import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.module.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.module.autoexec.service.AutoexecCombopService;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -53,6 +57,9 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
+
+    @Resource
+    private AutoexecToolMapper autoexecToolMapper;
 
     @Resource
     private AutoexecRiskMapper autoexecRiskMapper;
@@ -112,10 +119,10 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
                                     phaseOperationVo.setId(autoexecScriptVo.getId());
                                     phaseOperationVo.setUk(autoexecScriptVo.getUk());
                                     phaseOperationVo.setName(autoexecScriptVo.getName());
-                                    phaseOperationVo.setType(autoexecScriptVo.getType());
+                                    phaseOperationVo.setType(CombopOperationType.SCRIPT.getValue());
                                     phaseOperationVo.setExecMode(autoexecScriptVo.getExecMode());
                                     phaseOperationVo.setTypeId(autoexecScriptVo.getTypeId());
-                                    phaseOperationVo.setTypeName(autoexecScriptVo.getName());
+                                    phaseOperationVo.setTypeName(autoexecScriptVo.getType());
                                     phaseOperationVo.setRiskId(autoexecScriptVo.getRiskId());
                                     AutoexecRiskVo riskVo = autoexecRiskMapper.getAutoexecRiskById(autoexecScriptVo.getRiskId());
                                     phaseOperationVo.setRiskVo(riskVo);
@@ -137,7 +144,39 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
                                     phaseOperationVo.setOutputParamList(outputParamList);
                                 }
                             } else if (Objects.equals(phaseOperationVo.getOperationType(), CombopOperationType.TOOL.getValue())) {
-                                // TODO linbq 工具的暂时不实现
+                                AutoexecToolVo autoexecScriptVo = autoexecToolMapper.getToolById(phaseOperationVo.getOperationId());
+                                if (autoexecScriptVo != null) {
+                                    phaseOperationVo.setId(autoexecScriptVo.getId());
+                                    phaseOperationVo.setUk(autoexecScriptVo.getUk());
+                                    phaseOperationVo.setName(autoexecScriptVo.getName());
+                                    phaseOperationVo.setType(CombopOperationType.TOOL.getValue());
+                                    phaseOperationVo.setExecMode(autoexecScriptVo.getExecMode());
+                                    phaseOperationVo.setTypeId(autoexecScriptVo.getTypeId());
+                                    phaseOperationVo.setTypeName(autoexecScriptVo.getTypeName());
+                                    phaseOperationVo.setRiskId(autoexecScriptVo.getRiskId());
+                                    AutoexecRiskVo riskVo = autoexecRiskMapper.getAutoexecRiskById(autoexecScriptVo.getRiskId());
+                                    phaseOperationVo.setRiskVo(riskVo);
+
+                                    List<AutoexecParamVo> inputParamList = new ArrayList<>();
+                                    List<AutoexecParamVo> outputParamList = new ArrayList<>();
+                                    JSONObject toolConfig = autoexecScriptVo.getConfig();
+                                    if(MapUtils.isNotEmpty(toolConfig)){
+                                        JSONArray paramArray = toolConfig.getJSONArray("paramList");
+                                        if(CollectionUtils.isNotEmpty(paramArray)){
+                                            List<AutoexecParamVo> autoexecParamVoList = paramArray.toJavaList(AutoexecParamVo.class);
+                                            for (AutoexecParamVo paramVo : autoexecParamVoList) {
+                                                String mode = paramVo.getMode();
+                                                if (Objects.equals(mode, ParamMode.INPUT.getValue())) {
+                                                    inputParamList.add(paramVo);
+                                                } else if (Objects.equals(mode, ParamMode.OUTPUT.getValue())) {
+                                                    outputParamList.add(paramVo);
+                                                }
+                                            }
+                                        }
+                                    }
+                                    phaseOperationVo.setInputParamList(inputParamList);
+                                    phaseOperationVo.setOutputParamList(outputParamList);
+                                }
                             }
                         }
                     }
