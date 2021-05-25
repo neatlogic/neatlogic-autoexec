@@ -44,6 +44,8 @@ public interface AutoexecCombopMapper {
 
     List<Long> checkAutoexecCombopIdListIsExists(List<Long> idList);
 
+    Long checkItHasBeenGeneratedToCombopByOperationId(Long operationId);
+
     int insertAutoexecCombop(AutoexecCombopVo autoexecCombopVo);
 
     int insertAutoexecCombopAuthorityVoList(List<AutoexecCombopAuthorityVo> autoexecCombopAuthorityVoList);

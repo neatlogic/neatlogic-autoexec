@@ -16,6 +16,7 @@ import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
+import codedriver.framework.autoexec.exception.AutoexecCombopCannotBeRepeatReleaseExcepiton;
 import codedriver.framework.autoexec.exception.AutoexecCombopNameRepeatException;
 import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecToolNotFoundException;
@@ -95,9 +96,6 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long operationId = jsonObj.getLong("operationId");
         String operationType = jsonObj.getString("operationType");
-//        if(autoexecCombopMapper.checkItHasBeenGeneratedToCombopByOperationId(operationId) != null){
-//            //throw new
-//        }
         if (Objects.equals(operationType, CombopOperationType.SCRIPT.getValue())) {
             AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(operationId);
             if (autoexecScriptVo == null) {
@@ -134,6 +132,9 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
     }
 
     private Long generate(JSONObject jsonObj, AutoexecToolAndScriptVo autoexecToolAndScriptVo, List<? extends AutoexecParamVo> autoexecParamVoList){
+        if(autoexecCombopMapper.checkItHasBeenGeneratedToCombopByOperationId(autoexecToolAndScriptVo.getId()) != null){
+            throw new AutoexecCombopCannotBeRepeatReleaseExcepiton(autoexecToolAndScriptVo.getName());
+        }
         /** 新建一个操作 **/
         AutoexecCombopPhaseOperationVo phaseOperationVo = new AutoexecCombopPhaseOperationVo();
         phaseOperationVo.setOperationType(CombopOperationType.SCRIPT.getValue());
