@@ -11,22 +11,26 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
 import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecRiskVo;
+import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
+import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
+import codedriver.framework.autoexec.exception.AutoexecCombopCannotBeRepeatReleaseExcepiton;
 import codedriver.framework.autoexec.exception.AutoexecCombopNameRepeatException;
 import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecToolNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.dto.FieldValidResultVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.IValid;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
-import codedriver.module.autoexec.dao.mapper.AutoexecRiskMapper;
-import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.module.autoexec.dao.mapper.*;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,6 +56,8 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
     @Resource
+    private AutoexecToolMapper autoexecToolMapper;
+    @Resource
     private AutoexecRiskMapper autoexecRiskMapper;
 
     @Override
@@ -64,12 +70,6 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
         return "脚本/工具发布生成组合工具";
     }
 
-    /**
-     * @return String
-     * @Author: chenqiwei
-     * @Time:Jun 19, 2020
-     * @Description: 额外配置
-     */
     @Override
     public String getConfig() {
         return null;
@@ -95,103 +95,23 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
             if (autoexecScriptVo == null) {
                 throw new AutoexecScriptNotFoundException(operationId);
             }
-            /** 新建一个操作 **/
-            AutoexecCombopPhaseOperationVo phaseOperationVo = new AutoexecCombopPhaseOperationVo();
-            phaseOperationVo.setOperationType(CombopOperationType.SCRIPT.getValue());
-            phaseOperationVo.setFailPolicy(FailPolicy.STOP.getValue());
-            phaseOperationVo.setSort(0);
-            phaseOperationVo.setId(autoexecScriptVo.getId());
-            phaseOperationVo.setUk(autoexecScriptVo.getUk());
-            phaseOperationVo.setName(autoexecScriptVo.getName());
-            phaseOperationVo.setType(autoexecScriptVo.getType());
-            phaseOperationVo.setExecMode(autoexecScriptVo.getExecMode());
-            phaseOperationVo.setTypeId(autoexecScriptVo.getTypeId());
-            phaseOperationVo.setTypeName(autoexecScriptVo.getName());
-            phaseOperationVo.setRiskId(autoexecScriptVo.getRiskId());
-            AutoexecRiskVo riskVo = autoexecRiskMapper.getAutoexecRiskById(autoexecScriptVo.getRiskId());
-            phaseOperationVo.setRiskVo(riskVo);
-            AutoexecCombopPhaseOperationConfigVo operationConfigVo = new AutoexecCombopPhaseOperationConfigVo();
-            List<ParamMappingVo> paramMappingList = new ArrayList<>();
-            operationConfigVo.setParamMappingList(paramMappingList);
-            List<AutoexecParamVo> inputParamList = new ArrayList<>();
-            List<AutoexecParamVo> outputParamList = new ArrayList<>();
             List<AutoexecScriptVersionParamVo> autoexecScriptVersionParamVoList = autoexecScriptMapper.getParamListByScriptId(operationId);
-            if (CollectionUtils.isNotEmpty(autoexecScriptVersionParamVoList)) {
-                for (AutoexecScriptVersionParamVo paramVo : autoexecScriptVersionParamVoList) {
-                    String mode = paramVo.getMode();
-                    if (Objects.equals(mode, ParamMode.INPUT.getValue())) {
-                        inputParamList.add(paramVo);
-                    } else if (Objects.equals(mode, ParamMode.OUTPUT.getValue())) {
-                        outputParamList.add(paramVo);
-                    }
-                }
-            }
-            phaseOperationVo.setInputParamList(inputParamList);
-            phaseOperationVo.setOutputParamList(outputParamList);
-            List<AutoexecCombopParamVo> autoexecCombopParamVoList = new ArrayList<>();
-            if (CollectionUtils.isNotEmpty(inputParamList)) {
-                for (AutoexecParamVo inputParamVo : inputParamList) {
-                    autoexecCombopParamVoList.add(new AutoexecCombopParamVo(inputParamVo));
-                    paramMappingList.add(new ParamMappingVo(inputParamVo.getKey(), ParamMappingMode.RUNTIME_PARAM.getValue(), inputParamVo.getKey()));
-                }
-            }
-            phaseOperationVo.setConfig(JSONObject.toJSONString(operationConfigVo));
-
-            /** 新建一个阶段 **/
-            AutoexecCombopPhaseVo combopPhaseVo = new AutoexecCombopPhaseVo();
-//            combopPhaseVo.setUk(autoexecScriptVo.getUk());
-            combopPhaseVo.setName(autoexecScriptVo.getName());
-            combopPhaseVo.setExecMode(autoexecScriptVo.getExecMode());
-            combopPhaseVo.setSort(0);
-            AutoexecCombopPhaseConfigVo combopPhaseConfig = new AutoexecCombopPhaseConfigVo();
-            List<AutoexecCombopPhaseOperationVo> phaseOperationList = new ArrayList<>();
-            phaseOperationList.add(phaseOperationVo);
-            combopPhaseConfig.setPhaseOperationList(phaseOperationList);
-            combopPhaseVo.setConfig(JSONObject.toJSONString(combopPhaseConfig));
-
-            /** 新建一个组合工具 **/
-            AutoexecCombopVo autoexecCombopVo = new AutoexecCombopVo(autoexecScriptVo);
-            autoexecCombopVo.setOwner(UserContext.get().getUserUuid(true));
-            Long combopId = autoexecCombopVo.getId();
-//            if (autoexecCombopMapper.checkAutoexecCombopUkIsRepeat(autoexecCombopVo) != null) {
-//                autoexecCombopVo.setUk(autoexecCombopVo.getUk() + "_" + combopId);
-//            }
-            String name = jsonObj.getString("name");
-            Long typeId = jsonObj.getLong("typeId");
-            String description = jsonObj.getString("description");
-            autoexecCombopVo.setName(name);
-            autoexecCombopVo.setTypeId(typeId);
-            autoexecCombopVo.setDescription(description);
-            if (autoexecCombopMapper.checkAutoexecCombopNameIsRepeat(autoexecCombopVo) != null) {
-                throw new AutoexecCombopNameRepeatException(autoexecCombopVo.getName());
-            }
-            AutoexecCombopConfigVo config = new AutoexecCombopConfigVo();
-            List<AutoexecCombopPhaseVo> combopPhaseList = new ArrayList<>();
-            combopPhaseList.add(combopPhaseVo);
-            config.setCombopPhaseList(combopPhaseList);
-            AutoexecCombopExecuteConfigVo executeConfigVo = new AutoexecCombopExecuteConfigVo();
-            executeConfigVo.setWhenToSpecify(CombopNodeSpecify.RUNTIME.getValue());
-            config.setExecuteConfig(executeConfigVo);
-            autoexecCombopVo.setConfig(JSONObject.toJSONString(config));
-            autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
-            combopPhaseVo.setCombopId(combopId);
-            autoexecCombopMapper.insertAutoexecCombopPhase(combopPhaseVo);
-            phaseOperationVo.setCombopPhaseId(combopPhaseVo.getId());
-            autoexecCombopMapper.insertAutoexecCombopPhaseOperation(phaseOperationVo);
-
-            if (CollectionUtils.isNotEmpty(autoexecCombopParamVoList)) {
-                int sort = 0;
-                for (AutoexecCombopParamVo autoexecCombopParamVo : autoexecCombopParamVoList) {
-                    autoexecCombopParamVo.setCombopId(combopId);
-                    autoexecCombopParamVo.setSort(sort++);
-                }
-                autoexecCombopMapper.insertAutoexecCombopParamVoList(autoexecCombopParamVoList);
-            }
-            return combopId;
+            return generate(jsonObj, new AutoexecToolAndScriptVo(autoexecScriptVo), autoexecScriptVersionParamVoList);
         } else {
-            // TODO linbq 工具生成组合工具暂时不做
+            AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(operationId);
+            if (autoexecToolVo == null) {
+                throw new AutoexecToolNotFoundException(operationId);
+            }
+            List<AutoexecParamVo> autoexecParamVoList = new ArrayList<>();
+            JSONObject toolConfig = autoexecToolVo.getConfig();
+            if (MapUtils.isNotEmpty(toolConfig)) {
+                JSONArray paramArray = toolConfig.getJSONArray("paramList");
+                if (CollectionUtils.isNotEmpty(paramArray)) {
+                    autoexecParamVoList = paramArray.toJavaList(AutoexecParamVo.class);
+                }
+            }
+            return generate(jsonObj, new AutoexecToolAndScriptVo(autoexecToolVo), autoexecParamVoList);
         }
-        return null;
     }
 
     public IValid name() {
@@ -203,5 +123,104 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
             }
             return new FieldValidResultVo();
         };
+    }
+
+    private Long generate(JSONObject jsonObj, AutoexecToolAndScriptVo autoexecToolAndScriptVo, List<? extends AutoexecParamVo> autoexecParamVoList) {
+        if (autoexecCombopMapper.checkItHasBeenGeneratedToCombopByOperationId(autoexecToolAndScriptVo.getId()) != null) {
+            throw new AutoexecCombopCannotBeRepeatReleaseExcepiton(autoexecToolAndScriptVo.getName());
+        }
+        /** 新建一个操作 **/
+        AutoexecCombopPhaseOperationVo phaseOperationVo = new AutoexecCombopPhaseOperationVo();
+        phaseOperationVo.setOperationType(CombopOperationType.SCRIPT.getValue());
+        phaseOperationVo.setFailPolicy(FailPolicy.STOP.getValue());
+        phaseOperationVo.setSort(0);
+        phaseOperationVo.setId(autoexecToolAndScriptVo.getId());
+        phaseOperationVo.setUk(autoexecToolAndScriptVo.getUk());
+        phaseOperationVo.setName(autoexecToolAndScriptVo.getName());
+        phaseOperationVo.setType(autoexecToolAndScriptVo.getType());
+        phaseOperationVo.setExecMode(autoexecToolAndScriptVo.getExecMode());
+        phaseOperationVo.setTypeId(autoexecToolAndScriptVo.getTypeId());
+        phaseOperationVo.setTypeName(autoexecToolAndScriptVo.getTypeName());
+        phaseOperationVo.setRiskId(autoexecToolAndScriptVo.getRiskId());
+        AutoexecRiskVo riskVo = autoexecRiskMapper.getAutoexecRiskById(autoexecToolAndScriptVo.getRiskId());
+        phaseOperationVo.setRiskVo(riskVo);
+        AutoexecCombopPhaseOperationConfigVo operationConfigVo = new AutoexecCombopPhaseOperationConfigVo();
+        List<ParamMappingVo> paramMappingList = new ArrayList<>();
+        operationConfigVo.setParamMappingList(paramMappingList);
+        List<AutoexecParamVo> inputParamList = new ArrayList<>();
+        List<AutoexecParamVo> outputParamList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(autoexecParamVoList)) {
+            for (AutoexecParamVo paramVo : autoexecParamVoList) {
+                String mode = paramVo.getMode();
+                if (Objects.equals(mode, ParamMode.INPUT.getValue())) {
+                    inputParamList.add(paramVo);
+                } else if (Objects.equals(mode, ParamMode.OUTPUT.getValue())) {
+                    outputParamList.add(paramVo);
+                }
+            }
+        }
+        phaseOperationVo.setInputParamList(inputParamList);
+        phaseOperationVo.setOutputParamList(outputParamList);
+        List<AutoexecCombopParamVo> autoexecCombopParamVoList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(inputParamList)) {
+            for (AutoexecParamVo inputParamVo : inputParamList) {
+                autoexecCombopParamVoList.add(new AutoexecCombopParamVo(inputParamVo));
+                paramMappingList.add(new ParamMappingVo(inputParamVo.getKey(), ParamMappingMode.RUNTIME_PARAM.getValue(), inputParamVo.getKey()));
+            }
+        }
+        phaseOperationVo.setConfig(JSONObject.toJSONString(operationConfigVo));
+
+        /** 新建一个阶段 **/
+        AutoexecCombopPhaseVo combopPhaseVo = new AutoexecCombopPhaseVo();
+//            combopPhaseVo.setUk(autoexecScriptVo.getUk());
+        combopPhaseVo.setName(autoexecToolAndScriptVo.getName());
+        combopPhaseVo.setExecMode(autoexecToolAndScriptVo.getExecMode());
+        combopPhaseVo.setSort(0);
+        AutoexecCombopPhaseConfigVo combopPhaseConfig = new AutoexecCombopPhaseConfigVo();
+        List<AutoexecCombopPhaseOperationVo> phaseOperationList = new ArrayList<>();
+        phaseOperationList.add(phaseOperationVo);
+        combopPhaseConfig.setPhaseOperationList(phaseOperationList);
+        combopPhaseVo.setConfig(JSONObject.toJSONString(combopPhaseConfig));
+
+        /** 新建一个组合工具 **/
+        AutoexecCombopVo autoexecCombopVo = new AutoexecCombopVo(autoexecToolAndScriptVo);
+        autoexecCombopVo.setOwner(UserContext.get().getUserUuid(true));
+        Long combopId = autoexecCombopVo.getId();
+//            if (autoexecCombopMapper.checkAutoexecCombopUkIsRepeat(autoexecCombopVo) != null) {
+//                autoexecCombopVo.setUk(autoexecCombopVo.getUk() + "_" + combopId);
+//            }
+        String name = jsonObj.getString("name");
+        Long typeId = jsonObj.getLong("typeId");
+        String description = jsonObj.getString("description");
+        autoexecCombopVo.setName(name);
+        autoexecCombopVo.setTypeId(typeId);
+        autoexecCombopVo.setDescription(description);
+        if (autoexecCombopMapper.checkAutoexecCombopNameIsRepeat(autoexecCombopVo) != null) {
+            throw new AutoexecCombopNameRepeatException(autoexecCombopVo.getName());
+        }
+        AutoexecCombopConfigVo config = new AutoexecCombopConfigVo();
+        List<AutoexecCombopPhaseVo> combopPhaseList = new ArrayList<>();
+        combopPhaseList.add(combopPhaseVo);
+        config.setCombopPhaseList(combopPhaseList);
+        AutoexecCombopExecuteConfigVo executeConfigVo = new AutoexecCombopExecuteConfigVo();
+        executeConfigVo.setWhenToSpecify(CombopNodeSpecify.RUNTIME.getValue());
+        config.setExecuteConfig(executeConfigVo);
+        autoexecCombopVo.setConfig(JSONObject.toJSONString(config));
+        autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
+        combopPhaseVo.setCombopId(combopId);
+        autoexecCombopMapper.insertAutoexecCombopPhase(combopPhaseVo);
+        phaseOperationVo.setCombopPhaseId(combopPhaseVo.getId());
+        autoexecCombopMapper.insertAutoexecCombopPhaseOperation(phaseOperationVo);
+
+        if (CollectionUtils.isNotEmpty(autoexecCombopParamVoList)) {
+            int sort = 0;
+            for (AutoexecCombopParamVo autoexecCombopParamVo : autoexecCombopParamVoList) {
+                autoexecCombopParamVo.setCombopId(combopId);
+                autoexecCombopParamVo.setSort(sort++);
+            }
+            autoexecCombopMapper.insertAutoexecCombopParamVoList(autoexecCombopParamVoList);
+        }
+        autoexecCombopMapper.updateAutoexecCombopIsActiveById(autoexecCombopVo);
+        return combopId;
     }
 }

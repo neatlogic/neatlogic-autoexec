@@ -19,6 +19,7 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
@@ -60,6 +61,9 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
 
     @Resource
     private AutoexecTypeMapper autoexecTypeMapper;
+
+    @Resource
+    private AutoexecToolMapper autoexecToolMapper;
 
     @Resource
     private NotifyMapper notifyMapper;
@@ -125,15 +129,15 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         result.append(oldName);
         result.append("'，");
         AutoexecCombopVo oldAutoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
-        if(oldAutoexecCombopVo != null){
-            if(Objects.equals(oldAutoexecCombopVo.getConfigStr(), autoexecCombopVo.getConfigStr())){
+        if (oldAutoexecCombopVo != null) {
+            if (Objects.equals(oldAutoexecCombopVo.getConfigStr(), autoexecCombopVo.getConfigStr())) {
                 List<AutoexecCombopParamVo> autoexecCombopParamVoList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
-                if(Objects.equals(JSONObject.toJSONString(autoexecCombopParamVoList), JSONObject.toJSONString(autoexecCombopVo.getRuntimeParamList()))){
+                if (Objects.equals(JSONObject.toJSONString(autoexecCombopParamVoList), JSONObject.toJSONString(autoexecCombopVo.getRuntimeParamList()))) {
                     result.append("更新成功。");
                     return result.toString();
                 }
             }
-        }else {
+        } else {
             autoexecCombopVo.setId(null);
             id = autoexecCombopVo.getId();
         }
@@ -179,7 +183,9 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                                 failureReasonList.add("添加自定义工具：'" + autoexecCombopPhaseOperationVo.getOperationId() + "'");
                             }
                         } else {
-                            //TODO 工具
+                            if (autoexecToolMapper.checkToolExistsById(autoexecCombopPhaseOperationVo.getOperationId()) == 0) {
+                                failureReasonList.add("添加工具：'" + autoexecCombopPhaseOperationVo.getOperationId() + "'");
+                            }
                         }
                     }
                 }

@@ -13,8 +13,9 @@ import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.ParamMode;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecRiskVo;
+import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
+import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
-import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.constvalue.GroupSearch;
@@ -26,9 +27,12 @@ import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.module.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.module.autoexec.service.AutoexecCombopService;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -53,6 +57,9 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
+
+    @Resource
+    private AutoexecToolMapper autoexecToolMapper;
 
     @Resource
     private AutoexecRiskMapper autoexecRiskMapper;
@@ -106,38 +113,53 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
                     List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfigVo.getPhaseOperationList();
                     if (CollectionUtils.isNotEmpty(phaseOperationList)) {
                         for (AutoexecCombopPhaseOperationVo phaseOperationVo : phaseOperationList) {
+                            AutoexecToolAndScriptVo autoexecToolAndScriptVo = null;
+                            List<? extends AutoexecParamVo> autoexecParamVoList = new ArrayList<>();
                             if (Objects.equals(phaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
                                 AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(phaseOperationVo.getOperationId());
                                 if (autoexecScriptVo != null) {
-                                    phaseOperationVo.setId(autoexecScriptVo.getId());
-                                    phaseOperationVo.setUk(autoexecScriptVo.getUk());
-                                    phaseOperationVo.setName(autoexecScriptVo.getName());
-                                    phaseOperationVo.setType(autoexecScriptVo.getType());
-                                    phaseOperationVo.setExecMode(autoexecScriptVo.getExecMode());
-                                    phaseOperationVo.setTypeId(autoexecScriptVo.getTypeId());
-                                    phaseOperationVo.setTypeName(autoexecScriptVo.getName());
-                                    phaseOperationVo.setRiskId(autoexecScriptVo.getRiskId());
-                                    AutoexecRiskVo riskVo = autoexecRiskMapper.getAutoexecRiskById(autoexecScriptVo.getRiskId());
-                                    phaseOperationVo.setRiskVo(riskVo);
-
-                                    List<AutoexecParamVo> inputParamList = new ArrayList<>();
-                                    List<AutoexecParamVo> outputParamList = new ArrayList<>();
-                                    List<AutoexecScriptVersionParamVo> autoexecScriptVersionParamVoList = autoexecScriptMapper.getParamListByScriptId(phaseOperationVo.getOperationId());
-                                    if (CollectionUtils.isNotEmpty(autoexecScriptVersionParamVoList)) {
-                                        for (AutoexecScriptVersionParamVo paramVo : autoexecScriptVersionParamVoList) {
-                                            String mode = paramVo.getMode();
-                                            if (Objects.equals(mode, ParamMode.INPUT.getValue())) {
-                                                inputParamList.add(paramVo);
-                                            } else if (Objects.equals(mode, ParamMode.OUTPUT.getValue())) {
-                                                outputParamList.add(paramVo);
-                                            }
-                                        }
-                                    }
-                                    phaseOperationVo.setInputParamList(inputParamList);
-                                    phaseOperationVo.setOutputParamList(outputParamList);
+                                    autoexecToolAndScriptVo = new AutoexecToolAndScriptVo(autoexecScriptVo);
+                                    autoexecParamVoList = autoexecScriptMapper.getParamListByScriptId(phaseOperationVo.getOperationId());
                                 }
                             } else if (Objects.equals(phaseOperationVo.getOperationType(), CombopOperationType.TOOL.getValue())) {
-                                // TODO linbq 工具的暂时不实现
+                                AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(phaseOperationVo.getOperationId());
+                                if (autoexecToolVo != null) {
+                                    autoexecToolAndScriptVo = new AutoexecToolAndScriptVo(autoexecToolVo);
+                                    JSONObject toolConfig = autoexecToolVo.getConfig();
+                                    if(MapUtils.isNotEmpty(toolConfig)) {
+                                        JSONArray paramArray = toolConfig.getJSONArray("paramList");
+                                        if (CollectionUtils.isNotEmpty(paramArray)) {
+                                            autoexecParamVoList = paramArray.toJavaList(AutoexecParamVo.class);
+                                        }
+                                    }
+                                }
+                            }
+                            if(autoexecToolAndScriptVo != null){
+                                phaseOperationVo.setId(autoexecToolAndScriptVo.getId());
+                                phaseOperationVo.setUk(autoexecToolAndScriptVo.getUk());
+                                phaseOperationVo.setName(autoexecToolAndScriptVo.getName());
+                                phaseOperationVo.setType(CombopOperationType.SCRIPT.getValue());
+                                phaseOperationVo.setExecMode(autoexecToolAndScriptVo.getExecMode());
+                                phaseOperationVo.setTypeId(autoexecToolAndScriptVo.getTypeId());
+                                phaseOperationVo.setTypeName(autoexecToolAndScriptVo.getTypeName());
+                                phaseOperationVo.setRiskId(autoexecToolAndScriptVo.getRiskId());
+                                AutoexecRiskVo riskVo = autoexecRiskMapper.getAutoexecRiskById(autoexecToolAndScriptVo.getRiskId());
+                                phaseOperationVo.setRiskVo(riskVo);
+
+                                List<AutoexecParamVo> inputParamList = new ArrayList<>();
+                                List<AutoexecParamVo> outputParamList = new ArrayList<>();
+                                if (CollectionUtils.isNotEmpty(autoexecParamVoList)) {
+                                    for (AutoexecParamVo paramVo : autoexecParamVoList) {
+                                        String mode = paramVo.getMode();
+                                        if (Objects.equals(mode, ParamMode.INPUT.getValue())) {
+                                            inputParamList.add(paramVo);
+                                        } else if (Objects.equals(mode, ParamMode.OUTPUT.getValue())) {
+                                            outputParamList.add(paramVo);
+                                        }
+                                    }
+                                }
+                                phaseOperationVo.setInputParamList(inputParamList);
+                                phaseOperationVo.setOutputParamList(outputParamList);
                             }
                         }
                     }

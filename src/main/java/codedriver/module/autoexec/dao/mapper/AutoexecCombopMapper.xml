@@ -192,6 +192,16 @@
         </foreach>
     </select>
 
+    <select id="checkItHasBeenGeneratedToCombopByOperationId" parameterType="java.lang.Long" resultType="java.lang.Long">
+        SELECT
+            a.`id`
+        FROM `autoexec_combop` a
+        JOIN `autoexec_combop_phase` b ON a.`id` = b.`combop_id`
+        JOIN `autoexec_combop_phase_operation` c ON b.`id` = c.`combop_phase_id` AND c.`operation_id` = #{value}
+        WHERE a.`operation_type` != 'combop'
+        LIMIT 1
+    </select>
+
     <insert id="insertAutoexecCombop" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVo">
         INSERT INTO `autoexec_combop` (
             `id`,

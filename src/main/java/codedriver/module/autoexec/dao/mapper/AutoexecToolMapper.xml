@@ -132,6 +132,22 @@
         group by c.`operation_id`
     </select>
 
+    <select id="getToolById" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.AutoexecToolVo">
+        SELECT
+            `id`,
+            `name`,
+            `is_active` AS isActive,
+            `exec_mode` AS execMode,
+            `type_id` AS typeId,
+            (select `name` from `autoexec_type` where `id` = `type_id`) as typeName,
+            `risk_id` AS riskId,
+            `description`,
+            `parser`,
+            `config` AS configStr
+        FROM `autoexec_tool`
+        WHERE `id` = #{value}
+    </select>
+
     <update id="updateActiveStatus" parameterType="codedriver.framework.autoexec.dto.AutoexecToolVo">
         update `autoexec_tool`
         set `is_active` = #{isActive}

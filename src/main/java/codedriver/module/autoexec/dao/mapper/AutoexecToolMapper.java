@@ -20,6 +20,8 @@ public interface AutoexecToolMapper {
 
     AutoexecToolVo getToolByName(String name);
 
+    AutoexecToolVo getToolById(Long id);
+
     int searchToolCount(AutoexecToolVo toolVo);
 
     List<AutoexecToolVo> checkToolListHasBeenGeneratedToCombop(List<Long> idList);
