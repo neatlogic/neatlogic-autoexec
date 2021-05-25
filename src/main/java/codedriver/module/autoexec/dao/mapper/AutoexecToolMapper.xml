@@ -115,6 +115,23 @@
         where `name` = #{value}
     </select>
 
+    <select id="checkToolListHasBeenGeneratedToCombop" parameterType="java.util.List" resultType="codedriver.framework.autoexec.dto.AutoexecToolVo">
+        select
+        c.`operation_id` as id,
+        count(c.`operation_id`) as hasBeenGeneratedToCombop
+        from `autoexec_combop` a
+        join `autoexec_combop_phase` b
+        on a.`id` = b.`combop_id`
+        join `autoexec_combop_phase_operation` c
+        on b.`id` = c.`combop_phase_id`
+        where c.`operation_id` in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        and a.`operation_type` = 'tool'
+        group by c.`operation_id`
+    </select>
+
     <update id="updateActiveStatus" parameterType="codedriver.framework.autoexec.dto.AutoexecToolVo">
         update `autoexec_tool`
         set `is_active` = #{isActive}
