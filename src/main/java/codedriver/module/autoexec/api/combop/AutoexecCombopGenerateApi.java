@@ -103,7 +103,6 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
             if (autoexecScriptVo == null) {
                 throw new AutoexecScriptNotFoundException(operationId);
             }
-
             List<AutoexecScriptVersionParamVo> autoexecScriptVersionParamVoList = autoexecScriptMapper.getParamListByScriptId(operationId);
             return generate(jsonObj, new AutoexecToolAndScriptVo(autoexecScriptVo), autoexecScriptVersionParamVoList);
         } else {
@@ -226,6 +225,7 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
             }
             autoexecCombopMapper.insertAutoexecCombopParamVoList(autoexecCombopParamVoList);
         }
+        autoexecCombopMapper.updateAutoexecCombopIsActiveById(autoexecCombopVo);
         return combopId;
     }
 }
