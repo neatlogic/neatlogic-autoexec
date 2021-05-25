@@ -5,7 +5,8 @@
     <select id="getTypeById" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.AutoexecTypeVo">
         select
         `id`,
-        `name`
+        `name`,
+        `description`
         from
         `autoexec_type`
         where `id` = #{value}
@@ -40,6 +41,7 @@
         select
         `id`,
         `name`,
+        `description`,
         `lcu`,
         `lcd`
         from `autoexec_type`
@@ -59,6 +61,30 @@
         count(1)
         from `autoexec_type`
         where `id` = #{value}
+    </select>
+
+    <select id="getReferenceCountListForTool" parameterType="java.util.List" resultType="codedriver.framework.autoexec.dto.AutoexecTypeVo">
+        select
+        `type_id` as id,
+        count(`id`) as referenceCountForTool
+        from `autoexec_tool`
+        where `type_id` in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        group by `type_id`
+    </select>
+
+    <select id="getReferenceCountListForScript" parameterType="java.util.List" resultType="codedriver.framework.autoexec.dto.AutoexecTypeVo">
+        select
+        `type_id` as id,
+        count(`id`) as referenceCountForScript
+        from `autoexec_script`
+        where `type_id` in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        group by `type_id`
     </select>
 
     <select id="checkTypeHasBeenReferredById" parameterType="java.lang.Long" resultType="int">
@@ -81,12 +107,14 @@
         insert into `autoexec_type`(
         `id`,
         `name`,
+        `description`,
         `lcu`,
         `lcd`
         )
         values (
         #{id},
         #{name},
+        #{description},
         #{lcu},
         now(3)
         )
@@ -95,6 +123,9 @@
     <update id="updateType" parameterType="codedriver.framework.autoexec.dto.AutoexecTypeVo">
         update `autoexec_type`
         set `name` = #{name},
+        <if test="description != null and description != ''">
+            `description` = #{description},
+        </if>
         `lcu` = #{lcu},
         `lcd` = now(3)
         where `id` = #{id}
