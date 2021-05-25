@@ -193,8 +193,8 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
             }
             return combopId;
         } else {
-            AutoexecToolVo autoexecScriptVo = autoexecToolMapper.getToolById(operationId);
-            if (autoexecScriptVo == null) {
+            AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(operationId);
+            if (autoexecToolVo == null) {
                 throw new AutoexecToolNotFoundException(operationId);
             }
             /** 新建一个操作 **/
@@ -202,22 +202,22 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
             phaseOperationVo.setOperationType(CombopOperationType.SCRIPT.getValue());
             phaseOperationVo.setFailPolicy(FailPolicy.STOP.getValue());
             phaseOperationVo.setSort(0);
-            phaseOperationVo.setId(autoexecScriptVo.getId());
-            phaseOperationVo.setUk(autoexecScriptVo.getUk());
-            phaseOperationVo.setName(autoexecScriptVo.getName());
+            phaseOperationVo.setId(autoexecToolVo.getId());
+            phaseOperationVo.setUk(autoexecToolVo.getUk());
+            phaseOperationVo.setName(autoexecToolVo.getName());
             phaseOperationVo.setType(CombopOperationType.SCRIPT.getValue());
-            phaseOperationVo.setExecMode(autoexecScriptVo.getExecMode());
-            phaseOperationVo.setTypeId(autoexecScriptVo.getTypeId());
-            phaseOperationVo.setTypeName(autoexecScriptVo.getTypeName());
-            phaseOperationVo.setRiskId(autoexecScriptVo.getRiskId());
-            AutoexecRiskVo riskVo = autoexecRiskMapper.getAutoexecRiskById(autoexecScriptVo.getRiskId());
+            phaseOperationVo.setExecMode(autoexecToolVo.getExecMode());
+            phaseOperationVo.setTypeId(autoexecToolVo.getTypeId());
+            phaseOperationVo.setTypeName(autoexecToolVo.getTypeName());
+            phaseOperationVo.setRiskId(autoexecToolVo.getRiskId());
+            AutoexecRiskVo riskVo = autoexecRiskMapper.getAutoexecRiskById(autoexecToolVo.getRiskId());
             phaseOperationVo.setRiskVo(riskVo);
             AutoexecCombopPhaseOperationConfigVo operationConfigVo = new AutoexecCombopPhaseOperationConfigVo();
             List<ParamMappingVo> paramMappingList = new ArrayList<>();
             operationConfigVo.setParamMappingList(paramMappingList);
             List<AutoexecParamVo> inputParamList = new ArrayList<>();
             List<AutoexecParamVo> outputParamList = new ArrayList<>();
-            JSONObject toolConfig = autoexecScriptVo.getConfig();
+            JSONObject toolConfig = autoexecToolVo.getConfig();
             if(MapUtils.isNotEmpty(toolConfig)){
                 JSONArray paramArray = toolConfig.getJSONArray("paramList");
                 if(CollectionUtils.isNotEmpty(paramArray)){
@@ -246,8 +246,8 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
             /** 新建一个阶段 **/
             AutoexecCombopPhaseVo combopPhaseVo = new AutoexecCombopPhaseVo();
 //            combopPhaseVo.setUk(autoexecScriptVo.getUk());
-            combopPhaseVo.setName(autoexecScriptVo.getName());
-            combopPhaseVo.setExecMode(autoexecScriptVo.getExecMode());
+            combopPhaseVo.setName(autoexecToolVo.getName());
+            combopPhaseVo.setExecMode(autoexecToolVo.getExecMode());
             combopPhaseVo.setSort(0);
             AutoexecCombopPhaseConfigVo combopPhaseConfig = new AutoexecCombopPhaseConfigVo();
             List<AutoexecCombopPhaseOperationVo> phaseOperationList = new ArrayList<>();
@@ -256,7 +256,7 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
             combopPhaseVo.setConfig(JSONObject.toJSONString(combopPhaseConfig));
 
             /** 新建一个组合工具 **/
-            AutoexecCombopVo autoexecCombopVo = new AutoexecCombopVo(autoexecScriptVo);
+            AutoexecCombopVo autoexecCombopVo = new AutoexecCombopVo(autoexecToolVo);
             autoexecCombopVo.setOwner(UserContext.get().getUserUuid(true));
             Long combopId = autoexecCombopVo.getId();
 //            if (autoexecCombopMapper.checkAutoexecCombopUkIsRepeat(autoexecCombopVo) != null) {

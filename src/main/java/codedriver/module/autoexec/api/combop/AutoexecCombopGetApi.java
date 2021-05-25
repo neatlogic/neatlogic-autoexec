@@ -144,22 +144,22 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
                                     phaseOperationVo.setOutputParamList(outputParamList);
                                 }
                             } else if (Objects.equals(phaseOperationVo.getOperationType(), CombopOperationType.TOOL.getValue())) {
-                                AutoexecToolVo autoexecScriptVo = autoexecToolMapper.getToolById(phaseOperationVo.getOperationId());
-                                if (autoexecScriptVo != null) {
-                                    phaseOperationVo.setId(autoexecScriptVo.getId());
-                                    phaseOperationVo.setUk(autoexecScriptVo.getUk());
-                                    phaseOperationVo.setName(autoexecScriptVo.getName());
+                                AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(phaseOperationVo.getOperationId());
+                                if (autoexecToolVo != null) {
+                                    phaseOperationVo.setId(autoexecToolVo.getId());
+                                    phaseOperationVo.setUk(autoexecToolVo.getUk());
+                                    phaseOperationVo.setName(autoexecToolVo.getName());
                                     phaseOperationVo.setType(CombopOperationType.TOOL.getValue());
-                                    phaseOperationVo.setExecMode(autoexecScriptVo.getExecMode());
-                                    phaseOperationVo.setTypeId(autoexecScriptVo.getTypeId());
-                                    phaseOperationVo.setTypeName(autoexecScriptVo.getTypeName());
-                                    phaseOperationVo.setRiskId(autoexecScriptVo.getRiskId());
-                                    AutoexecRiskVo riskVo = autoexecRiskMapper.getAutoexecRiskById(autoexecScriptVo.getRiskId());
+                                    phaseOperationVo.setExecMode(autoexecToolVo.getExecMode());
+                                    phaseOperationVo.setTypeId(autoexecToolVo.getTypeId());
+                                    phaseOperationVo.setTypeName(autoexecToolVo.getTypeName());
+                                    phaseOperationVo.setRiskId(autoexecToolVo.getRiskId());
+                                    AutoexecRiskVo riskVo = autoexecRiskMapper.getAutoexecRiskById(autoexecToolVo.getRiskId());
                                     phaseOperationVo.setRiskVo(riskVo);
 
                                     List<AutoexecParamVo> inputParamList = new ArrayList<>();
                                     List<AutoexecParamVo> outputParamList = new ArrayList<>();
-                                    JSONObject toolConfig = autoexecScriptVo.getConfig();
+                                    JSONObject toolConfig = autoexecToolVo.getConfig();
                                     if(MapUtils.isNotEmpty(toolConfig)){
                                         JSONArray paramArray = toolConfig.getJSONArray("paramList");
                                         if(CollectionUtils.isNotEmpty(paramArray)){
