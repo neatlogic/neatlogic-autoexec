@@ -73,7 +73,7 @@ public class AutoexecScriptActiveVersionGetApi extends PublicApiComponentBase {
             if (lastModified * 1000 >= scriptVersionVo.getLcd().getTime()) {
                 HttpServletResponse resp = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getResponse();
                 if (resp != null) {
-                    resp.setStatus(304);
+                    resp.setStatus(205);
                     resp.getWriter().print(StringUtils.EMPTY);
                 }
             }
