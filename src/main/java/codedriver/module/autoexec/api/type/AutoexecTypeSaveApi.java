@@ -49,7 +49,8 @@ public class AutoexecTypeSaveApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "id", type = ApiParamType.LONG, desc = "类型ID"),
-            @Param(name = "name", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", isRequired = true, desc = "名称")
+            @Param(name = "name", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", maxLength = 50, isRequired = true, desc = "名称"),
+            @Param(name = "description", type = ApiParamType.STRING, maxLength = 500, desc = "描述")
     })
     @Output({})
     @Description(desc = "保存插件类型")

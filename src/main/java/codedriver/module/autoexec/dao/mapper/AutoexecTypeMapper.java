@@ -31,6 +31,10 @@ public interface AutoexecTypeMapper {
      */
     int checkTypeHasBeenReferredById(Long id);
 
+    List<AutoexecTypeVo> getReferenceCountListForTool(List<Long> idList);
+
+    List<AutoexecTypeVo> getReferenceCountListForScript(List<Long> idList);
+
     int insertType(AutoexecTypeVo vo);
 
     int updateType(AutoexecTypeVo vo);
