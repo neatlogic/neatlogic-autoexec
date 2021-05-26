@@ -131,7 +131,7 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
         }
         /** 新建一个操作 **/
         AutoexecCombopPhaseOperationVo phaseOperationVo = new AutoexecCombopPhaseOperationVo();
-        phaseOperationVo.setOperationType(CombopOperationType.SCRIPT.getValue());
+        phaseOperationVo.setOperationType(autoexecToolAndScriptVo.getType());
         phaseOperationVo.setFailPolicy(FailPolicy.STOP.getValue());
         phaseOperationVo.setSort(0);
         phaseOperationVo.setId(autoexecToolAndScriptVo.getId());
