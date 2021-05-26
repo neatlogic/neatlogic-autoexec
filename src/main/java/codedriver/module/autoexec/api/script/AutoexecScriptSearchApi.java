@@ -9,6 +9,7 @@ import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
+import codedriver.framework.autoexec.operate.ScriptOperateBuilder;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
 import codedriver.framework.common.util.PageUtil;
@@ -16,7 +17,6 @@ import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
-import codedriver.module.autoexec.operate.ScriptOperateBuilder;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -97,6 +97,11 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
                     });
                 }
             }
+            // 获取操作按钮
+            scriptVoList.stream().forEach(o -> {
+                ScriptOperateBuilder builder = new ScriptOperateBuilder(UserContext.get().getUserUuid(), o.getCurrentVersion(), o.getHasBeenGeneratedToCombop(), o.getReferenceCount());
+                o.setOperateList(builder.setGenerateToCombop().setCopy().setExport().setDelete().build());
+            });
         }
         if (scriptVo.getNeedPage()) {
             int rowNum = autoexecScriptMapper.searchScriptCount(scriptVo);
@@ -108,8 +113,6 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
         }
         scriptVo.setIsReviewing(1);
         result.put("reviewingCount", autoexecScriptMapper.searchScriptCount(scriptVo));
-        ScriptOperateBuilder builder = new ScriptOperateBuilder(UserContext.get().getUserUuid());
-        result.put("operateList", builder.setGenerateToCombop().setCopy().setExport().setDelete().build());
         return result;
     }
 

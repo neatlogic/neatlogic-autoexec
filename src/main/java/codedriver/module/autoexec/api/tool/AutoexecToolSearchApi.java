@@ -9,6 +9,7 @@ import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
+import codedriver.framework.autoexec.operate.ToolOperateBuilder;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
 import codedriver.framework.common.util.PageUtil;
@@ -16,7 +17,6 @@ import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecToolMapper;
-import codedriver.module.autoexec.operate.ScriptOperateBuilder;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -83,6 +83,11 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
                     });
                 }
             }
+            // 获取操作按钮
+            toolVoList.stream().forEach(o -> {
+                ToolOperateBuilder builder = new ToolOperateBuilder(UserContext.get().getUserUuid(), o.getIsActive(), o.getHasBeenGeneratedToCombop());
+                o.setOperateList(builder.setAll().build());
+            });
         }
         if (toolVo.getNeedPage()) {
             int rowNum = autoexecToolMapper.searchToolCount(toolVo);
@@ -92,8 +97,6 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
             result.put("pageCount", PageUtil.getPageCount(rowNum, toolVo.getPageSize()));
             result.put("rowNum", toolVo.getRowNum());
         }
-        ScriptOperateBuilder builder = new ScriptOperateBuilder(UserContext.get().getUserUuid());
-        result.put("operateList", builder.setTest().setToolActive().setGenerateToCombop().build());
         return result;
     }
 
