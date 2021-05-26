@@ -59,9 +59,12 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         autoexecJobMapper.insertJobParamContent(new AutoexecJobParamContentVo(jobVo.getParamHash(), jobVo.getParamStr()));
         //保存作业执行目标
         AutoexecCombopExecuteConfigVo nodeConfigVo = config.getExecuteConfig();
-        String executeUser = nodeConfigVo.getExecuteUser();
         List<AutoexecJobPhaseNodeVo> jobNodeVoList = null;
-        jobNodeVoList = getJobNodeList(nodeConfigVo, jobVo.getOperationId());
+        String executeUser = StringUtils.EMPTY;
+        if(nodeConfigVo != null) {
+            executeUser = nodeConfigVo.getExecuteUser();
+            jobNodeVoList = getJobNodeList(nodeConfigVo, jobVo.getOperationId());
+        }
         //保存阶段
         List<AutoexecJobPhaseVo> jobPhaseVoList = new ArrayList<>();
         jobVo.setPhaseList(jobPhaseVoList);
@@ -126,13 +129,13 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     public void refreshJobPhaseNodeList(Long jobId, int sort) {
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
         AutoexecCombopConfigVo configVo = JSON.toJavaObject(jobVo.getConfig(), AutoexecCombopConfigVo.class);
-        AutoexecCombopExecuteConfigVo nodeConfigVo = configVo.getExecuteConfig();
-        String executeUser = nodeConfigVo.getExecuteUser();
-        List<AutoexecJobPhaseNodeVo> jobNodeVoList = null;
-        jobNodeVoList = getJobNodeList(nodeConfigVo, jobVo.getOperationId());
         List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndSort(jobId, sort);
         List<AutoexecJobPhaseVo> targetPhaseList = jobPhaseVoList.stream().filter(o -> Objects.equals(o.getExecMode(), ExecMode.TARGET.getValue())).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(targetPhaseList)) {
+            AutoexecCombopExecuteConfigVo nodeConfigVo = configVo.getExecuteConfig();
+            String executeUser = nodeConfigVo.getExecuteUser();
+            List<AutoexecJobPhaseNodeVo> jobNodeVoList = null;
+            jobNodeVoList = getJobNodeList(nodeConfigVo, jobVo.getOperationId());
             autoexecJobMapper.deleteJobPhaseNodeByJobPhaseIdList(targetPhaseList.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()));
             List<AutoexecCombopPhaseVo> combopPhaseList = configVo.getCombopPhaseList();
             for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
