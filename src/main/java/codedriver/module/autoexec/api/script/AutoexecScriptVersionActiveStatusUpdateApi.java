@@ -8,8 +8,10 @@ package codedriver.module.autoexec.api.script;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.constvalue.ScriptOperate;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
+import codedriver.framework.autoexec.exception.AutoexecScriptHasReferenceException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionCannotActiveException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -20,11 +22,15 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.service.AutoexecScriptService;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -67,7 +73,7 @@ public class AutoexecScriptVersionActiveStatusUpdateApi extends PrivateApiCompon
          */
         Long versionId = jsonObj.getLong("versionId");
         Integer isActive = jsonObj.getInteger("isActive");
-        AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(versionId);
+        AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionIdForUpdate(versionId);
         if (version == null) {
             throw new AutoexecScriptVersionNotFoundException(versionId);
         }
@@ -82,6 +88,13 @@ public class AutoexecScriptVersionActiveStatusUpdateApi extends PrivateApiCompon
                 updateVo.setId(activeVersion.getId());
                 updateVo.setIsActive(0);
                 autoexecScriptMapper.updateScriptVersion(updateVo);
+            }
+        } else {
+            // 检查脚本是否被组合工具引用
+            List<AutoexecCombopVo> referenceList = autoexecScriptMapper.getReferenceListByScriptId(version.getScriptId());
+            if (CollectionUtils.isNotEmpty(referenceList)) {
+                List<String> list = referenceList.stream().map(AutoexecCombopVo::getName).collect(Collectors.toList());
+                throw new AutoexecScriptHasReferenceException(StringUtils.join(list, ","));
             }
         }
         updateVo.setId(version.getId());
