@@ -7,6 +7,7 @@ package codedriver.module.autoexec.dao.mapper;
 
 import codedriver.framework.autoexec.dto.AutoexecProxyGroupNetworkVo;
 import codedriver.framework.autoexec.dto.AutoexecProxyGroupVo;
+import codedriver.framework.autoexec.dto.AutoexecProxyVo;
 
 import java.util.List;
 
@@ -16,4 +17,5 @@ public interface AutoexecProxyMapper {
 
     AutoexecProxyGroupVo getProxyGroupById(Long groupId);
 
+    List<AutoexecProxyVo> getAllProxy();
 }

@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.service;
 
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
+import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
 import codedriver.framework.autoexec.dto.AutoexecProxyGroupNetworkVo;
 import codedriver.framework.autoexec.dto.AutoexecProxyGroupVo;
@@ -74,23 +75,31 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             }
             AutoexecCombopPhaseConfigVo phaseConfigVo = autoexecCombopPhaseVo.getConfig();
             //jobPhaseNode
-            AutoexecCombopExecuteConfigVo executeConfigVo = phaseConfigVo.getExecuteConfig();
-            List<AutoexecJobPhaseNodeVo> jobPhaseNodeVoList = null;
-            if (executeConfigVo != null) {
-                jobPhaseNodeVoList = getJobNodeList(executeConfigVo, autoexecCombopPhaseVo.getCombopId());
-            }
-            if (CollectionUtils.isEmpty(jobPhaseNodeVoList)) {
-                jobPhaseNodeVoList = jobNodeVoList;
-            } else if (StringUtils.isNotBlank(executeConfigVo.getExecuteUser())) {
-                executeUser = executeConfigVo.getExecuteUser();
-            }
-            for (AutoexecJobPhaseNodeVo jobPhaseNodeVo : jobPhaseNodeVoList) {
-                jobPhaseNodeVo.setJobId(jobVo.getId());
-                jobPhaseNodeVo.setJobPhaseId(jobPhaseVo.getId());
-                jobPhaseNodeVo.setProxyId(getProxyByIp(jobPhaseNodeVo.getHost()));
-                jobPhaseNodeVo.setStatus(JobNodeStatus.PENDING.getValue());
-                jobPhaseNodeVo.setUserName(executeUser);
-                autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
+            //如果是target 则获取执行目标，否则随机分配runner
+            if (Objects.equals(autoexecCombopPhaseVo.getExecMode(), ExecMode.TARGET.getValue())) {
+                AutoexecCombopExecuteConfigVo executeConfigVo = phaseConfigVo.getExecuteConfig();
+                List<AutoexecJobPhaseNodeVo> jobPhaseNodeVoList = null;
+                if (executeConfigVo != null) {
+                    jobPhaseNodeVoList = getJobNodeList(executeConfigVo, autoexecCombopPhaseVo.getCombopId());
+                }
+                if (CollectionUtils.isEmpty(jobPhaseNodeVoList)) {
+                    jobPhaseNodeVoList = jobNodeVoList;
+                } else if (StringUtils.isNotBlank(executeConfigVo.getExecuteUser())) {
+                    executeUser = executeConfigVo.getExecuteUser();
+                }
+                for (AutoexecJobPhaseNodeVo jobPhaseNodeVo : jobPhaseNodeVoList) {
+                    jobPhaseNodeVo.setJobId(jobVo.getId());
+                    jobPhaseNodeVo.setJobPhaseId(jobPhaseVo.getId());
+                    jobPhaseNodeVo.setProxyId(getProxyByIp(jobPhaseNodeVo.getHost()));
+                    jobPhaseNodeVo.setStatus(JobNodeStatus.PENDING.getValue());
+                    jobPhaseNodeVo.setUserName(executeUser);
+                    autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
+                }
+            } else {
+                List<AutoexecProxyVo> proxyList = autoexecProxyMapper.getAllProxy();
+                int proxyIndex = (int) (Math.random() * proxyList.size());
+                AutoexecProxyVo localProxyVo = proxyList.get(proxyIndex);
+                autoexecJobMapper.insertJobPhaseNode(new AutoexecJobPhaseNodeVo(jobVo.getId(), jobPhaseVo.getId(), localProxyVo.getId(), localProxyVo.getHost(), localProxyVo.getPort(), JobNodeStatus.PENDING.getValue(), executeUser));
             }
             //jobPhaseOperation
             List<AutoexecJobPhaseOperationVo> jobPhaseOperationVoList = new ArrayList<>();
@@ -122,40 +131,42 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         List<AutoexecJobPhaseNodeVo> jobNodeVoList = null;
         jobNodeVoList = getJobNodeList(nodeConfigVo, jobVo.getOperationId());
         List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndSort(jobId, sort);
-        autoexecJobMapper.deleteJobPhaseNodeByJobPhaseIdList(jobPhaseVoList.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()));
-        List<AutoexecCombopPhaseVo> combopPhaseList = configVo.getCombopPhaseList();
-        for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
-            if (sort != autoexecCombopPhaseVo.getSort()) {
-                continue;
-            }
-            AutoexecCombopPhaseConfigVo phaseConfigVo = autoexecCombopPhaseVo.getConfig();
-            //jobPhaseNode
-            AutoexecCombopExecuteConfigVo executeConfigVo = phaseConfigVo.getExecuteConfig();
-            List<AutoexecJobPhaseNodeVo> jobPhaseNodeVoList = null;
-            if (executeConfigVo != null) {
-                jobPhaseNodeVoList = getJobNodeList(executeConfigVo, autoexecCombopPhaseVo.getCombopId());
-            }
-            if (CollectionUtils.isEmpty(jobPhaseNodeVoList)) {
-                jobPhaseNodeVoList = jobNodeVoList;
-            } else if (StringUtils.isNotBlank(executeConfigVo.getExecuteUser())) {
-                executeUser = executeConfigVo.getExecuteUser();
-            }
-            Long jobPhaseId = null;
-            for (AutoexecJobPhaseVo jobPhase : jobPhaseVoList) {
-                if (Objects.equals(jobPhase.getName(), autoexecCombopPhaseVo.getName())) {
-                    jobPhaseId = jobPhase.getId();
+        List<AutoexecJobPhaseVo> targetPhaseList = jobPhaseVoList.stream().filter(o -> Objects.equals(o.getExecMode(), ExecMode.TARGET.getValue())).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(targetPhaseList)) {
+            autoexecJobMapper.deleteJobPhaseNodeByJobPhaseIdList(targetPhaseList.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()));
+            List<AutoexecCombopPhaseVo> combopPhaseList = configVo.getCombopPhaseList();
+            for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
+                if (sort != autoexecCombopPhaseVo.getSort() || targetPhaseList.stream().noneMatch(o -> Objects.equals(o.getName(), autoexecCombopPhaseVo.getName()))) {
+                    continue;
+                }
+                AutoexecCombopPhaseConfigVo phaseConfigVo = autoexecCombopPhaseVo.getConfig();
+                //jobPhaseNode
+                AutoexecCombopExecuteConfigVo executeConfigVo = phaseConfigVo.getExecuteConfig();
+                List<AutoexecJobPhaseNodeVo> jobPhaseNodeVoList = null;
+                if (executeConfigVo != null) {
+                    jobPhaseNodeVoList = getJobNodeList(executeConfigVo, autoexecCombopPhaseVo.getCombopId());
+                }
+                if (CollectionUtils.isEmpty(jobPhaseNodeVoList)) {
+                    jobPhaseNodeVoList = jobNodeVoList;
+                } else if (StringUtils.isNotBlank(executeConfigVo.getExecuteUser())) {
+                    executeUser = executeConfigVo.getExecuteUser();
+                }
+                Long jobPhaseId = null;
+                for (AutoexecJobPhaseVo jobPhase : jobPhaseVoList) {
+                    if (Objects.equals(jobPhase.getName(), autoexecCombopPhaseVo.getName())) {
+                        jobPhaseId = jobPhase.getId();
+                    }
+                }
+                for (AutoexecJobPhaseNodeVo jobPhaseNodeVo : jobPhaseNodeVoList) {
+                    jobPhaseNodeVo.setJobId(jobId);
+                    jobPhaseNodeVo.setJobPhaseId(jobPhaseId);
+                    jobPhaseNodeVo.setProxyId(getProxyByIp(jobPhaseNodeVo.getHost()));
+                    jobPhaseNodeVo.setStatus(JobNodeStatus.PENDING.getValue());
+                    jobPhaseNodeVo.setUserName(executeUser);
+                    autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
                 }
             }
-            for (AutoexecJobPhaseNodeVo jobPhaseNodeVo : jobPhaseNodeVoList) {
-                jobPhaseNodeVo.setJobId(jobId);
-                jobPhaseNodeVo.setJobPhaseId(jobPhaseId);
-                jobPhaseNodeVo.setProxyId(getProxyByIp(jobPhaseNodeVo.getHost()));
-                jobPhaseNodeVo.setStatus(JobNodeStatus.PENDING.getValue());
-                jobPhaseNodeVo.setUserName(executeUser);
-                autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
-            }
         }
-
     }
 
     @Override
@@ -190,7 +201,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         List<AutoexecProxyGroupNetworkVo> networkVoList = autoexecProxyMapper.getAllNetworkMask();
         for (AutoexecProxyGroupNetworkVo networkVo : networkVoList) {
             if (IpUtil.isBelongSegment(ip, networkVo.getNetworkIp(), networkVo.getMask())) {
-                AutoexecProxyGroupVo groupVo = autoexecProxyMapper.getProxyGroupById(networkVo.getProxyGroupId());
+                AutoexecProxyGroupVo groupVo = autoexecProxyMapper.getProxyGroupById(networkVo.getGroupId());
                 int proxyIndex = (int) (Math.random() * groupVo.getProxyList().size());
                 AutoexecProxyVo proxyVo = groupVo.getProxyList().get(proxyIndex);
                 return proxyVo.getId();

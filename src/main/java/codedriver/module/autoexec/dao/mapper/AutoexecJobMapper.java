@@ -74,6 +74,8 @@ public interface AutoexecJobMapper {
 
     AutoexecJobPhaseNodeVo getJobPhaseNodeInfoByJobNodeId(Long nodeId);
 
+    AutoexecJobPhaseNodeVo getJobPhaseRunnerNodeByJobIdAndPhaseId(@Param("jobId")Long jobId,@Param("phaseId")Long phaseId);
+
     //jobPhaseOperation
     List<AutoexecJobPhaseOperationVo> getJobPhaseOperationByJobId(Long jobId);
 
