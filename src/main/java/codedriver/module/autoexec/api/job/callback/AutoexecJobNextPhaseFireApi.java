@@ -53,7 +53,7 @@ public class AutoexecJobNextPhaseFireApi extends PublicApiComponentBase {
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
             @Param(name = "lastPhase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
             @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数"),
-            @Param(name = "time", type = ApiParamType.LONG, desc = "回调时间"),
+            @Param(name = "time", type = ApiParamType.DOUBLE, desc = "回调时间"),
             @Param(name = "fireNext", type = ApiParamType.INTEGER, desc = "是否激活下一个剧本，1:是 0:否")
     })
     @Output({
