@@ -8,6 +8,7 @@ package codedriver.module.autoexec.api.job;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNodeNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.Input;
@@ -65,11 +66,13 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
         if(nodeVo == null){
             throw new AutoexecJobPhaseNodeNotFoundException(StringUtils.EMPTY,paramObj.getString("nodeId"));
         }
+        AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(nodeVo.getJobId(),nodeVo.getJobPhaseId());
         paramObj.put("jobId",nodeVo.getJobId());
         paramObj.put("phase",nodeVo.getJobPhaseName());
         paramObj.put("ip",nodeVo.getHost());
         paramObj.put("port",nodeVo.getPort());
         paramObj.put("runnerUrl",nodeVo.getProxyUrl());
+        paramObj.put("execMode",phaseVo.getExecMode());
         paramObj.put("direction","down");
         return autoexecJobActionService.tailNodeLog(paramObj);
     }

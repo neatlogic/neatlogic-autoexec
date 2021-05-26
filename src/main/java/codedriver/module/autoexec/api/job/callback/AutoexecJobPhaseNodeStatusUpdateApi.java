@@ -53,7 +53,6 @@ public class AutoexecJobPhaseNodeStatusUpdateApi extends PublicApiComponentBase 
             @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数")
     })
     @Output({
-            @Param(name = "hasFailNode", type = ApiParamType.JSONOBJECT, desc = "并行剧本是否存在fail节点")
     })
     @Description(desc = "回调更新作业剧本节点状态")
     @Override
@@ -74,11 +73,6 @@ public class AutoexecJobPhaseNodeStatusUpdateApi extends PublicApiComponentBase 
             autoexecJobMapper.getJobPhaseLockByJobIdAndPhaseName(nodeVo.getJobId(), nodeVo.getJobPhaseName());
             jobPhaseVo.setStatus(JobPhaseStatus.FAILED.getValue());
             autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(nodeVo.getJobPhaseId(), nodeVo.getStatus()));
-            result.put("hasFailNode",1);
-        }else{
-            if(autoexecJobMapper.checkIsHasActivePhaseFailed(nodeVo.getJobId())>0){
-                result.put("hasFailNode",1);
-            }
         }
         autoexecJobMapper.updateJobPhaseNodeStatus(nodeVo);
         return result;

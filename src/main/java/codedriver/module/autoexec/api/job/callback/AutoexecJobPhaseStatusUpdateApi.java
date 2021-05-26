@@ -5,22 +5,31 @@
 
 package codedriver.module.autoexec.api.job.callback;
 
+import codedriver.framework.autoexec.constvalue.JobNodeStatus;
+import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecJobPhaseNodeStatusException;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
-import codedriver.module.autoexec.service.AutoexecJobActionService;
-import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author lvzk
@@ -33,15 +42,9 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
 
-    @Resource
-    AutoexecJobActionService autoexecJobActionService;
-
-    @Resource
-    AutoexecJobService autoexecJobService;
-
     @Override
     public String getName() {
-        return "回调更新作业剧本或节点状态";
+        return "回调更新作业阶段状态";
     }
 
     @Override
@@ -57,10 +60,9 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
     })
     @Output({
     })
-    @Description(desc = "回调更新作业剧本或节点状态")
+    @Description(desc = "回调更新作业阶段状态")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        JSONObject result = new JSONObject();
         Long jobId = jsonObj.getLong("jobId");
         String phaseName = jsonObj.getString("phase");
         String status = jsonObj.getString("status");
@@ -72,6 +74,32 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
         if (jobPhaseVo == null) {
             throw new AutoexecJobPhaseNotFoundException(jobId+":"+phaseName);
         }
+
+        /*
+         * 如果status = completed，表示除了“失败继续”和“已忽略”的节点，其它节点已成功,将web端phase状态更新为completed
+         * 如果status = succeed 表示除了“已忽略”的节点，其它节点都已成功,将web端phase状态更新为completed
+         * 如果status = failed 表示存在“失败中止”节点，将web端phase状态更新为failed
+         */
+        if(Objects.equals(status, JobPhaseStatus.COMPLETED.getValue())){
+            List<String> exceptStatus = Arrays.asList(JobNodeStatus.IGNORED.getValue(),JobNodeStatus.FAILED.getValue(),JobNodeStatus.SUCCEED.getValue());
+            List<AutoexecJobPhaseNodeVo> jobPhaseNodeVoList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseNameAndExceptStatus(jobId,phaseName,exceptStatus);
+            if(CollectionUtils.isNotEmpty(jobPhaseNodeVoList)){
+                throw new AutoexecJobPhaseNodeStatusException(phaseName,status,StringUtils.join(jobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()),","));
+            }
+//            因为没法知道是失败node的哪一个operation失败，故暂不检查失败的node是否是“失败继续”策略
+//            jobPhaseNodeVoList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseNameAndStatus(jobId,phaseName,JobNodeStatus.FAILED.getValue());
+//            for(AutoexecJobPhaseNodeVo jobPhaseNodeVo : jobPhaseNodeVoList){
+//                autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseIdAndOperationId()
+//            }
+        }else if(Objects.equals(status, JobNodeStatus.SUCCEED.getValue())){
+            List<String> exceptStatus = Collections.singletonList(JobNodeStatus.SUCCEED.getValue());
+            List<AutoexecJobPhaseNodeVo> jobPhaseNodeVoList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseNameAndExceptStatus(jobId,phaseName,exceptStatus);
+            if(CollectionUtils.isNotEmpty(jobPhaseNodeVoList)){
+                throw new AutoexecJobPhaseNodeStatusException(phaseName,status,StringUtils.join(jobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()),","));
+            }
+            status = JobPhaseStatus.COMPLETED.getValue();
+        }
+
         autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), status));
         /*if(Objects.equals(status, JobPhaseStatus.FAILED.getValue())){
             result.put("hasFailNode",1);
@@ -80,7 +108,7 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
                 result.put("hasFailNode",1);
             }
         }*/
-        return result;
+        return null;
     }
 
     @Override
