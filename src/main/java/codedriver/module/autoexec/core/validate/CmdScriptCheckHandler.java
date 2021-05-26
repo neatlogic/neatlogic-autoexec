@@ -15,7 +15,7 @@ import javax.annotation.Resource;
 import java.util.List;
 
 @Component
-public class BatScriptCheckHandler extends ScriptCheckHandlerBase {
+public class CmdScriptCheckHandler extends ScriptCheckHandlerBase {
 
     @Resource
     private AutoexecScriptValidateMapper validateMapper;
@@ -41,6 +41,6 @@ public class BatScriptCheckHandler extends ScriptCheckHandlerBase {
 
     @Override
     public String getType() {
-        return ScriptParser.BAT.getValue();
+        return ScriptParser.CMD.getValue();
     }
 }

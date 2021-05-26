@@ -3,54 +3,64 @@
 <mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecProxyMapper">
 
     <select id="getAllNetworkMask" resultType="codedriver.framework.autoexec.dto.AutoexecProxyGroupNetworkVo">
-        SELECT
-            `id`,
-            `group_id` as groupId,
-            `network_ip` as networkIp,
-            `mask`
-        FROM
-            `autoexec_proxygroup_network`
+        SELECT `id`,
+               `group_id`   as groupId,
+               `network_ip` as networkIp,
+               `mask`
+        FROM `autoexec_proxygroup_network`
     </select>
 
     <resultMap id="proxyGroupMap" type="codedriver.framework.autoexec.dto.AutoexecProxyGroupVo">
-        <id column="id" property="id" />
-        <result column="groupName" property="name" />
+        <id column="id" property="id"/>
+        <result column="groupName" property="name"/>
         <collection property="networkList" ofType="codedriver.framework.autoexec.dto.AutoexecProxyGroupNetworkVo">
-            <id column="networkId" property="id" />
-            <result column="proxyGroupId" property="proxyGroupId" />
-            <result column="networkIp" property="networkIp" />
-            <result column="mask" property="mask" />
+            <id column="networkId" property="id"/>
+            <result column="groupId" property="groupId"/>
+            <result column="networkIp" property="networkIp"/>
+            <result column="mask" property="mask"/>
         </collection>
         <collection property="proxyList" ofType="codedriver.framework.autoexec.dto.AutoexecProxyVo">
-            <id column="proxyId" property="id" />
-            <result column="proxyName" property="name" />
-            <result column="url" property="url" />
-            <result column="accessKey" property="accessKey" />
-            <result column="accessSecret" property="accessSecret" />
-            <result column="authMode" property="authType" />
+            <id column="proxyId" property="id"/>
+            <result column="proxyName" property="name"/>
+            <result column="url" property="url"/>
+            <result column="accessKey" property="accessKey"/>
+            <result column="accessSecret" property="accessSecret"/>
+            <result column="authMode" property="authType"/>
         </collection>
     </resultMap>
 
     <select id="getProxyGroupById" resultMap="proxyGroupMap">
-        SELECT
-            a.id id,
-            a.name groupName,
-            c.id AS proxyId,
-            c.`auth_type` AS authType,
-            c.`access_key` AS accessKey,
-            c.`access_secret`
-                AS accessSecret,
-            c.`url` AS url,
-            c.`name` AS proxyName,
-            b.id networkId,
-            b.group_id proxyGroupId,
-            b.network_ip networkIp,
-            b.mask mask
-        FROM
-            `autoexec_proxygroup` a
-                LEFT JOIN `autoexec_proxygroup_network` b ON a.id = b.group_id
-                LEFT JOIN `autoexec_proxy` c ON a.id = c.group_id
+        SELECT a.id              id,
+               a.name            groupName,
+               c.id           AS proxyId,
+               c.`auth_type`  AS authType,
+               c.`access_key` AS accessKey,
+               c.`access_secret`
+                              AS accessSecret,
+               c.`url`        AS url,
+               c.`name`       AS proxyName,
+               b.id              networkId,
+               b.group_id        groupId,
+               b.network_ip      networkIp,
+               b.mask            mask
+        FROM `autoexec_proxygroup` a
+                 LEFT JOIN `autoexec_proxygroup_network` b ON a.id = b.group_id
+                 LEFT JOIN `autoexec_proxy` c ON a.id = c.group_id
         WHERE a.id = #{id}
+    </select>
+    <select id="getAllProxy" resultType="codedriver.framework.autoexec.dto.AutoexecProxyVo">
+        SELECT `id`,
+               `name`,
+               `url`,
+               `host`,
+               `port`,
+               `access_key`    as accessKey,
+               `access_secret` as accessSecret,
+               `auth_type`     as authType,
+               `public_key`    as publicKey,
+               `private_key`   as privateKey,
+               `group_id`      as groupId
+        FROM `autoexec_proxy`
     </select>
 </mapper>
 

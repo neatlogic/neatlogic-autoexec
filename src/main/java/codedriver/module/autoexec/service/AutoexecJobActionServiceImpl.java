@@ -112,6 +112,17 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                                 put("opId", operationVo.getName() + "_" + operationVo.getId());
                                 put("opName", operationVo.getName());
                                 put("opType", operationVo.getExecMode());
+                                //如果执行方式 是runner 则需要返回runner节点信息
+                                /*if(!Objects.equals( operationVo.getExecMode(),ExecMode.TARGET.getValue())){
+                                    AutoexecJobPhaseNodeVo jobPhaseNodeVo = autoexecJobMapper.getJobPhaseRunnerNodeByJobIdAndPhaseId(jobVo.getId(),operationVo.getId());
+                                    if(jobPhaseNodeVo == null){
+                                        throw new AutoexecJobPhaseRunnerNodeNotFoundException(jobVo.getId()+":"+operationVo.getName()+"("+operationVo.getId()+")");
+                                    }
+                                    put("runnerNode",new JSONObject(){{
+                                        put("ip",jobPhaseNodeVo.getHost());
+                                        put("port",jobPhaseNodeVo.getPort());
+                                    }});
+                                }*/
                                 put("failIgnore", operationVo.getFailIgnore());
                                 put("isScript", Objects.equals(operationVo.getType(), ToolType.SCRIPT.getValue()) ? 1 : 0);
                                 put("scriptId", operationVo.getScriptId());
