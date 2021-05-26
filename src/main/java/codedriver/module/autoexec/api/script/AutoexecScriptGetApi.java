@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @AuthAction(action = AUTOEXEC_SCRIPT_SEARCH.class)
@@ -111,6 +112,7 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         script.setVersionVo(version);
         version.setParamList(autoexecScriptMapper.getParamListByVersionId(version.getId()));
         version.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
+        script.setCurrentVersion(autoexecScriptMapper.getActiveVersionNumberByScriptId(id));
         script.setVersionCount(autoexecScriptMapper.getVersionCountByScriptId(id));
         script.setReferenceCount(autoexecScriptMapper.getReferenceCountByScriptId(id));
         script.setHasBeenGeneratedToCombop(autoexecScriptMapper.checkScriptHasBeenGeneratedToCombop(id) > 0 ? 1 : 0);
@@ -134,7 +136,14 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         ScriptOperateBuilder versionOperateBuilder = new ScriptOperateBuilder(UserContext.get().getUserUuid(), version.getStatus(), version.getIsActive(), script.getVersionCount());
         versionOperateList = versionOperateBuilder.setAll().build();
         ScriptOperateBuilder scriptOperateBuilder = new ScriptOperateBuilder(UserContext.get().getUserUuid());
-        scriptOperateList = scriptOperateBuilder.setGenerateToCombop().setCopy().setExport().setDelete().build();
+        scriptOperateBuilder.setCopy().setExport();
+        if (Objects.equals(script.getCanGeneratedToCombop(), 1)) {
+            scriptOperateBuilder.setGenerateToCombop();
+        }
+        if (Objects.equals(script.getCanDelete(), 1)) {
+            scriptOperateBuilder.setDelete();
+        }
+        scriptOperateList = scriptOperateBuilder.build();
         result.put("script", script);
         result.put("versionOperateList", versionOperateList);
         result.put("scriptOperateList", scriptOperateList);

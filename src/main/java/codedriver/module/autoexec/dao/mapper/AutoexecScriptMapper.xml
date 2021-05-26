@@ -586,6 +586,14 @@
         group by c.`operation_id`
     </select>
 
+    <select id="getActiveVersionNumberByScriptId" parameterType="java.lang.Long" resultType="int">
+        select
+        `version`
+        from `autoexec_script_version`
+        where `script_id` = #{value}
+        and `is_active` = 1
+    </select>
+
     <update id="updateScriptBaseInfo" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
         update `autoexec_script` set
         `name` = #{name},
