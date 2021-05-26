@@ -545,7 +545,7 @@
                `status`
         FROM `autoexec_job_phase`
         WHERE `job_id` = #{jobId}
-          and `name` = #{jobPhaseId}
+          and `id` = #{jobPhaseId}
     </select>
     <select id="getJobPhaseNodeListByJobIdAndPhaseNameAndExceptStatus"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
