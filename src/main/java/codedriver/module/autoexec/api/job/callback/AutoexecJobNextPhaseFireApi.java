@@ -51,7 +51,7 @@ public class AutoexecJobNextPhaseFireApi extends PublicApiComponentBase {
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
-            @Param(name = "phase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
+            @Param(name = "lastPhase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
             @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数"),
             @Param(name = "time", type = ApiParamType.LONG, desc = "回调时间"),
             @Param(name = "fireNext", type = ApiParamType.INTEGER, desc = "是否激活下一个剧本，1:是 0:否")
@@ -62,15 +62,15 @@ public class AutoexecJobNextPhaseFireApi extends PublicApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
-        String phaseName = jsonObj.getString("phase");
+        String lastPhase = jsonObj.getString("lastPhase");
         Integer fireNext = jsonObj.getInteger("fireNext");
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
         if(jobVo == null){
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
-        AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseLockByJobIdAndPhaseName(jobId, phaseName);
+        AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseLockByJobIdAndPhaseName(jobId, lastPhase);
         if (jobPhaseVo == null) {
-            throw new AutoexecJobPhaseNotFoundException(jobId+":"+phaseName);
+            throw new AutoexecJobPhaseNotFoundException(jobId+":"+lastPhase);
         }
         //根据fireNext==1,则判断是否满足激活下个phase条件
         if(fireNext != null && fireNext == 1 ){
