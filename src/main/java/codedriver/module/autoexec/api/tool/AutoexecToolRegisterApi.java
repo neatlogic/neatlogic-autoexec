@@ -64,7 +64,7 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
             @Param(name = "opType", type = ApiParamType.ENUM, rule = "runner,target,runner_target", isRequired = true, desc = "执行方式"),
             @Param(name = "typeName", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", maxLength = 50, isRequired = true, desc = "工具分类名称"),
             @Param(name = "riskName", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", maxLength = 50, isRequired = true, desc = "操作级别名称"),
-            @Param(name = "interpreter", type = ApiParamType.ENUM, rule = "python,vbs,shell,perl,powershell,bat,xml", isRequired = true, desc = "解析器"),
+            @Param(name = "interpreter", type = ApiParamType.ENUM, rule = "python,ruby,vbscript,shell,perl,powershell,cmd,bash,ksh,csh,sh,javascript,xml", isRequired = true, desc = "解析器"),
             @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
             @Param(name = "desc", type = ApiParamType.JSONOBJECT, desc = "入参"),
             @Param(name = "output", type = ApiParamType.JSONOBJECT, desc = "出参"),
