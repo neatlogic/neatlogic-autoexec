@@ -47,7 +47,7 @@ public class AutoexecJobPhaseNodeStatusUpdateApi extends PublicApiComponentBase 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
             @Param(name = "phase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
-            @Param(name = "nodeId", type = ApiParamType.LONG, desc = "节点Id", isRequired = true),
+            @Param(name = "nodeId", type = ApiParamType.LONG, desc = "节点Id"),
             @Param(name = "host", type = ApiParamType.STRING, desc = "节点ip"),
             @Param(name = "port", type = ApiParamType.INTEGER, desc = "节点port"),
             @Param(name = "status", type = ApiParamType.STRING, desc = "状态", isRequired = true),

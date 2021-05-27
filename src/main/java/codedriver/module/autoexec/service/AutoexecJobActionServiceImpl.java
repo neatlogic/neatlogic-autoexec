@@ -201,8 +201,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         }
         if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
             throw new AutoexecJobProxyConnectAuthException(resultJson.getString("Message"));
+        }else{
+            return resultJson.getJSONObject("Return");
         }
-        return resultJson;
     }
 
     /**
