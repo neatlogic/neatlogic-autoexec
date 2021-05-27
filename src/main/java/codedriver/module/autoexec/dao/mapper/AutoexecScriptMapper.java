@@ -45,6 +45,8 @@ public interface AutoexecScriptMapper {
 
     Integer getActiveVersionNumberByScriptId(Long scriptId);
 
+    List<AutoexecScriptVo> getActiveVersionNumberListByScriptIdList(List<Long> idList);
+
     AutoexecScriptVersionVo getLatestVersionByScriptId(Long scriptId);
 
     List<AutoexecScriptVersionParamVo> getParamListByVersionId(Long versionId);

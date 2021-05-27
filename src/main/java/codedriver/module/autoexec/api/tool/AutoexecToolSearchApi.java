@@ -9,7 +9,6 @@ import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.autoexec.constvalue.ScriptAndToolOperate;
@@ -90,13 +89,14 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
                 }
             }
             // 获取操作按钮
-            String userUuid = UserContext.get().getUserUuid();
+            Boolean hasScriptModifyAuth = AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName());
+            Boolean hasCombopModifyAuth = AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_COMBOP_MODIFY.class.getSimpleName());
             toolVoList.stream().forEach(o -> {
                 List<OperateVo> operateList = new ArrayList<>();
-                if (AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
+                if (hasScriptModifyAuth) {
                     operateList.add(new OperateVo(ScriptAndToolOperate.TEST.getValue(), ScriptAndToolOperate.TEST.getText()));
                 }
-                if (AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_COMBOP_MODIFY.class.getSimpleName())) {
+                if (hasCombopModifyAuth) {
                     OperateVo vo = new OperateVo(ScriptAndToolOperate.GENERATETOCOMBOP.getValue(), ScriptAndToolOperate.GENERATETOCOMBOP.getText());
                     if (Objects.equals(o.getHasBeenGeneratedToCombop(), 1)) {
                         vo.setDisabled(1);
@@ -107,8 +107,8 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
                     }
                     operateList.add(vo);
                 }
-                if (AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())) {
-                    operateList.add(new OperateVo("active", "启用/禁用"));
+                if (hasScriptModifyAuth) {
+                    operateList.add(new OperateVo(ScriptAndToolOperate.ACTIVE.getValue(), ScriptAndToolOperate.ACTIVE.getText()));
                 }
                 if (CollectionUtils.isNotEmpty(operateList)) {
                     o.setOperateList(operateList);

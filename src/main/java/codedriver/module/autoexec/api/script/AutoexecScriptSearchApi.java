@@ -7,8 +7,8 @@ package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
+import codedriver.framework.autoexec.dto.OperateVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
-import codedriver.module.autoexec.operate.ScriptOperateManager;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
 import codedriver.framework.common.util.PageUtil;
@@ -16,14 +16,16 @@ import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.module.autoexec.operate.ScriptOperateManager;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -74,34 +76,12 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
         result.put("tbodyList", scriptVoList);
         if (CollectionUtils.isNotEmpty(scriptVoList)) {
             List<Long> idList = scriptVoList.stream().map(AutoexecScriptVo::getId).collect(Collectors.toList());
-            // 已经发布为组合工具的脚本不能重复发布
-            List<AutoexecScriptVo> list = autoexecScriptMapper.checkScriptListHasBeenGeneratedToCombop(idList);
-            if (CollectionUtils.isNotEmpty(list)) {
-                for (AutoexecScriptVo vo : list) {
-                    scriptVoList.stream().forEach(o -> {
-                        if (Objects.equals(o.getId(), vo.getId())) {
-                            o.setHasBeenGeneratedToCombop(vo.getHasBeenGeneratedToCombop() > 0 ? 1 : 0);
-                        }
-                    });
-                }
+            ScriptOperateManager.Builder builder = new ScriptOperateManager().new Builder();
+            builder.addScriptId(idList.toArray(new Long[idList.size()]));
+            Map<Long, List<OperateVo>> operateListMap = builder.managerBuild().getOperateListMap();
+            if (MapUtils.isNotEmpty(operateListMap)) {
+                scriptVoList.stream().forEach(o -> o.setOperateList(operateListMap.get(o.getId())));
             }
-            // 已经被组合工具引用的脚本不能删除
-            List<AutoexecScriptVo> referenceCountList = autoexecScriptMapper.getReferenceCountListByScriptIdList(idList);
-            if (CollectionUtils.isNotEmpty(referenceCountList)) {
-                for (AutoexecScriptVo vo : referenceCountList) {
-                    scriptVoList.stream().forEach(o -> {
-                        if (Objects.equals(o.getId(), vo.getId())) {
-                            o.setReferenceCount(vo.getReferenceCount());
-                        }
-                    });
-                }
-            }
-            ScriptOperateManager manager = new ScriptOperateManager();
-            // 获取操作按钮
-            scriptVoList.stream().forEach(o -> {
-                ScriptOperateManager.Builder builder = manager.new Builder();
-                o.setOperateList(builder.setGenerateToCombop(o.getId()).setCopy().setExport().setDelete(o.getId()).build());
-            });
         }
         if (scriptVo.getNeedPage()) {
             int rowNum = autoexecScriptMapper.searchScriptCount(scriptVo);
