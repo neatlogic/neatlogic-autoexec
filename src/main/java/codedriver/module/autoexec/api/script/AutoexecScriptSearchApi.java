@@ -74,6 +74,7 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
         AutoexecScriptVo scriptVo = JSON.toJavaObject(jsonObj, AutoexecScriptVo.class);
         List<AutoexecScriptVo> scriptVoList = autoexecScriptMapper.searchScript(scriptVo);
         result.put("tbodyList", scriptVoList);
+        // 获取操作权限
         if (CollectionUtils.isNotEmpty(scriptVoList)) {
             List<Long> idList = scriptVoList.stream().map(AutoexecScriptVo::getId).collect(Collectors.toList());
             ScriptOperateManager.Builder builder = new ScriptOperateManager().new Builder();

@@ -199,14 +199,14 @@ public class ScriptOperateManager {
         List<AutoexecScriptVo> hasBeenGeneratedToCombopList = autoexecScriptMapper.checkScriptListHasBeenGeneratedToCombop(idList);
         // 查询脚本当前激活版本号
         List<AutoexecScriptVo> activeVersionNumberList = autoexecScriptMapper.getActiveVersionNumberListByScriptIdList(idList);
-        Map<Long, Boolean> referenceCountListMap = new HashMap<>();
-        Map<Long, Boolean> hasBeenGeneratedToCombopListMap = new HashMap<>();
+        Map<Long, Boolean> referenceCountMap = new HashMap<>();
+        Map<Long, Boolean> hasBeenGeneratedToCombopMap = new HashMap<>();
         Map<Long, Boolean> hasActiveVersionMap = new HashMap<>();
         if (CollectionUtils.isNotEmpty(referenceCountList)) {
-            referenceCountList.stream().forEach(o -> referenceCountListMap.put(o.getId(), o.getReferenceCount() > 0 ? true : false));
+            referenceCountList.stream().forEach(o -> referenceCountMap.put(o.getId(), o.getReferenceCount() > 0 ? true : false));
         }
         if (CollectionUtils.isNotEmpty(hasBeenGeneratedToCombopList)) {
-            hasBeenGeneratedToCombopList.stream().forEach(o -> hasBeenGeneratedToCombopListMap.put(o.getId(), o.getHasBeenGeneratedToCombop() > 0 ? true : false));
+            hasBeenGeneratedToCombopList.stream().forEach(o -> hasBeenGeneratedToCombopMap.put(o.getId(), o.getHasBeenGeneratedToCombop() > 0 ? true : false));
         }
         if (CollectionUtils.isNotEmpty(activeVersionNumberList)) {
             activeVersionNumberList.stream().forEach(o -> hasActiveVersionMap.put(o.getId(), o.getCurrentVersion() != null ? true : false));
@@ -215,7 +215,7 @@ public class ScriptOperateManager {
             List<OperateVo> operateList = new ArrayList<>();
             if (hasModifyAuth) {
                 OperateVo generateToCombop = new OperateVo(ScriptAndToolOperate.GENERATETOCOMBOP.getValue(), ScriptAndToolOperate.GENERATETOCOMBOP.getText());
-                if (MapUtils.isNotEmpty(hasBeenGeneratedToCombopListMap) && Objects.equals(hasBeenGeneratedToCombopListMap.get(id), true)) {
+                if (MapUtils.isNotEmpty(hasBeenGeneratedToCombopMap) && Objects.equals(hasBeenGeneratedToCombopMap.get(id), true)) {
                     generateToCombop.setDisabled(1);
                     generateToCombop.setDisabledReason("已经发布为组合工具");
                 } else if (MapUtils.isNotEmpty(hasActiveVersionMap) && !Objects.equals(hasActiveVersionMap.get(id), true)) {
@@ -230,7 +230,7 @@ public class ScriptOperateManager {
             }
             if (hasManageAuth) {
                 OperateVo delete = new OperateVo(ScriptAndToolOperate.DELETE.getValue(), ScriptAndToolOperate.DELETE.getText());
-                if (MapUtils.isNotEmpty(referenceCountListMap) && Objects.equals(referenceCountListMap.get(id), true)) {
+                if (MapUtils.isNotEmpty(referenceCountMap) && Objects.equals(referenceCountMap.get(id), true)) {
                     delete.setDisabled(1);
                     delete.setDisabledReason("已经被组合工具引用");
                 }
@@ -255,11 +255,8 @@ public class ScriptOperateManager {
 
         Set<Long> scriptIdSet = new HashSet<>();
 
-        //String userUuid; // 当前用户uuid
-
         public Builder() {
             operateList = new ArrayList<>();
-            //this.userUuid = UserContext.get().getUserUuid();
         }
 
         public ScriptOperateManager managerBuild() {
