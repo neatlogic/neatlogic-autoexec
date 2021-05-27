@@ -101,6 +101,10 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
                 }
                 status = JobPhaseStatus.COMPLETED.getValue();
             }
+        }else{
+            if(Objects.equals(status, JobNodeStatus.SUCCEED.getValue())){
+                status = JobPhaseStatus.COMPLETED.getValue();
+            }
         }
 
         autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), status));
