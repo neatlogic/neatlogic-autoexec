@@ -137,7 +137,7 @@
         a.`id`,
         a.`uk`,
         a.`name`
-		from `autoexec_combop` a
+        from `autoexec_combop` a
         join `autoexec_combop_phase` b
         on a.`id` = b.`combop_id`
         join `autoexec_combop_phase_operation` c
