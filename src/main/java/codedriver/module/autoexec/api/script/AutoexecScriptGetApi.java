@@ -5,10 +5,9 @@
 
 package codedriver.module.autoexec.api.script;
 
-import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
-import codedriver.framework.autoexec.constvalue.ScriptOperate;
+import codedriver.framework.autoexec.constvalue.ScriptAction;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
@@ -17,7 +16,6 @@ import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.exception.AutoexecScriptHasNotAnyVersionException;
 import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
-import codedriver.framework.autoexec.operate.ScriptOperateBuilder;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.ValueTextVo;
 import codedriver.framework.dao.mapper.UserMapper;
@@ -25,6 +23,7 @@ import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.module.autoexec.operate.ScriptOperateManager;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
@@ -121,7 +120,7 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         }
         // 如果是已驳回状态，查询驳回原因
         if (ScriptVersionStatus.REJECTED.getValue().equals(version.getStatus())) {
-            AutoexecScriptAuditVo audit = autoexecScriptMapper.getScriptAuditByScriptVersionIdAndOperate(version.getId(), ScriptOperate.REJECT.getValue());
+            AutoexecScriptAuditVo audit = autoexecScriptMapper.getScriptAuditByScriptVersionIdAndOperate(version.getId(), ScriptAction.REJECT.getValue());
             if (audit != null) {
                 String detail = autoexecScriptMapper.getScriptAuditDetailByHash(audit.getContentHash());
                 if (StringUtils.isNotBlank(detail)) {
@@ -130,10 +129,12 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
             }
         }
         // 获取操作按钮
-        ScriptOperateBuilder scriptOperateBuilder = new ScriptOperateBuilder(UserContext.get().getUserUuid(), script.getCurrentVersion(), script.getHasBeenGeneratedToCombop(), script.getReferenceCount());
-        script.setOperateList(scriptOperateBuilder.setGenerateToCombop().setCopy().setExport().setDelete().build());
-        ScriptOperateBuilder versionOperateBuilder = new ScriptOperateBuilder(UserContext.get().getUserUuid(), version.getStatus(), version.getIsActive(), version.getVersionCount());
-        version.setOperateList(versionOperateBuilder.setVersionOperate().build());
+        ScriptOperateManager manager = new ScriptOperateManager();
+        ScriptOperateManager.Builder scriptOperateBuilder = manager.new Builder();
+        ScriptOperateManager.Builder versionOperateBuilder = manager.new Builder();
+        script.setOperateList(scriptOperateBuilder.setGenerateToCombop(script.getId()).setCopy().setExport().setDelete(script.getId()).build());
+        version.setOperateList(versionOperateBuilder.setVersionDelete(version.getId()).setCopy().setCompare().setTest().setValidate(version.getId())
+                .setSave(version.getId()).setSubmit(version.getId()).setPass(version.getId()).setReject(version.getId()).build());
         result.put("script", script);
         return result;
     }

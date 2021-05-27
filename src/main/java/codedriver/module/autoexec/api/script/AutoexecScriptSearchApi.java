@@ -5,11 +5,10 @@
 
 package codedriver.module.autoexec.api.script;
 
-import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
-import codedriver.framework.autoexec.operate.ScriptOperateBuilder;
+import codedriver.module.autoexec.operate.ScriptOperateManager;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
 import codedriver.framework.common.util.PageUtil;
@@ -97,10 +96,11 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
                     });
                 }
             }
+            ScriptOperateManager manager = new ScriptOperateManager();
             // 获取操作按钮
             scriptVoList.stream().forEach(o -> {
-                ScriptOperateBuilder builder = new ScriptOperateBuilder(UserContext.get().getUserUuid(), o.getCurrentVersion(), o.getHasBeenGeneratedToCombop(), o.getReferenceCount());
-                o.setOperateList(builder.setGenerateToCombop().setCopy().setExport().setDelete().build());
+                ScriptOperateManager.Builder builder = manager.new Builder();
+                o.setOperateList(builder.setGenerateToCombop(o.getId()).setCopy().setExport().setDelete(o.getId()).build());
             });
         }
         if (scriptVo.getNeedPage()) {

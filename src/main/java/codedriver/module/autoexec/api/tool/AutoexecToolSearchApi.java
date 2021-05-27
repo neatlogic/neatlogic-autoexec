@@ -7,9 +7,14 @@ package codedriver.module.autoexec.api.tool;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.auth.core.AuthActionChecker;
+import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
+import codedriver.framework.autoexec.constvalue.ScriptAndToolOperate;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
-import codedriver.framework.autoexec.operate.ToolOperateBuilder;
+import codedriver.framework.autoexec.dto.OperateVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
 import codedriver.framework.common.util.PageUtil;
@@ -23,6 +28,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -84,9 +90,29 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
                 }
             }
             // 获取操作按钮
+            String userUuid = UserContext.get().getUserUuid();
             toolVoList.stream().forEach(o -> {
-                ToolOperateBuilder builder = new ToolOperateBuilder(UserContext.get().getUserUuid(), o.getIsActive(), o.getHasBeenGeneratedToCombop());
-                o.setOperateList(builder.setAll().build());
+                List<OperateVo> operateList = new ArrayList<>();
+                if (AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
+                    operateList.add(new OperateVo(ScriptAndToolOperate.TEST.getValue(), ScriptAndToolOperate.TEST.getText()));
+                }
+                if (AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_COMBOP_MODIFY.class.getSimpleName())) {
+                    OperateVo vo = new OperateVo(ScriptAndToolOperate.GENERATETOCOMBOP.getValue(), ScriptAndToolOperate.GENERATETOCOMBOP.getText());
+                    if (Objects.equals(o.getHasBeenGeneratedToCombop(), 1)) {
+                        vo.setDisabled(1);
+                        vo.setDisabledReason("已经被发布为组合工具");
+                    } else if (!Objects.equals(o.getIsActive(), 1)) {
+                        vo.setDisabled(1);
+                        vo.setDisabledReason("工具未激活");
+                    }
+                    operateList.add(vo);
+                }
+                if (AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())) {
+                    operateList.add(new OperateVo("active", "启用/禁用"));
+                }
+                if (CollectionUtils.isNotEmpty(operateList)) {
+                    o.setOperateList(operateList);
+                }
             });
         }
         if (toolVo.getNeedPage()) {
