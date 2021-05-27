@@ -26,6 +26,7 @@ import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.IValid;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.framework.util.UuidUtil;
 import codedriver.module.autoexec.dao.mapper.*;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -131,6 +132,7 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
         }
         /** 新建一个操作 **/
         AutoexecCombopPhaseOperationVo phaseOperationVo = new AutoexecCombopPhaseOperationVo();
+        phaseOperationVo.setUuid(UuidUtil.randomUuid());
         phaseOperationVo.setOperationType(autoexecToolAndScriptVo.getType());
         phaseOperationVo.setFailPolicy(FailPolicy.STOP.getValue());
         phaseOperationVo.setSort(0);
@@ -172,6 +174,7 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
 
         /** 新建一个阶段 **/
         AutoexecCombopPhaseVo combopPhaseVo = new AutoexecCombopPhaseVo();
+        combopPhaseVo.setUuid(UuidUtil.randomUuid());
 //            combopPhaseVo.setUk(autoexecScriptVo.getUk());
         combopPhaseVo.setName(autoexecToolAndScriptVo.getName());
         combopPhaseVo.setExecMode(autoexecToolAndScriptVo.getExecMode());
