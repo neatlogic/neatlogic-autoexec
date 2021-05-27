@@ -186,6 +186,7 @@
                `exec_user`  as execUser,
                `exec_mode`  as execMode,
                `name`       as name,
+               `error_msg`  as errorMsg,
                `uk`         as uk
         FROM `autoexec_job_phase`
         where `job_id` = #{value}
@@ -264,6 +265,7 @@
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
         SELECT id,
                job_id as jobId,
+               exec_mode as execMode,
                `status`
         FROM `autoexec_job_phase`
         WHERE `job_id` = #{jobId}
@@ -540,7 +542,7 @@
     <select id="getJobPhaseByJobIdAndPhaseId"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
         SELECT id,
-               job_id as jobId,
+               job_id      as jobId,
                `exec_mode` as execMode,
                `status`
         FROM `autoexec_job_phase`
@@ -550,18 +552,18 @@
     <select id="getJobPhaseNodeListByJobIdAndPhaseNameAndExceptStatus"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
         SELECT ajpn.`id`,
-               ajpn.`job_id`       as jobId,
-               ajpn.`job_phase_id` as jobPhaseId,
-               ajpn.`host`,
-               ajpn.`port`,
-               ajpn.`start_time`   as startTime,
-               ajpn.`end_time`     as endTime,
-               ajpn.`status`,
-               ajpn.`proxy_id`     as proxyId,
-               ajp.`name`          as jobPhaseName
+        ajpn.`job_id` as jobId,
+        ajpn.`job_phase_id` as jobPhaseId,
+        ajpn.`host`,
+        ajpn.`port`,
+        ajpn.`start_time` as startTime,
+        ajpn.`end_time` as endTime,
+        ajpn.`status`,
+        ajpn.`proxy_id` as proxyId,
+        ajp.`name` as jobPhaseName
         FROM `autoexec_job_phase_node` ajpn
-                 LEFT JOIN `autoexec_job_phase` ajp on ajpn.`job_phase_id` = ajp.`id`
-        where ajpn.`job_id` = #{jobId} and ajp.`name` = #{phaseName} and  ajpn.`status` not in
+        LEFT JOIN `autoexec_job_phase` ajp on ajpn.`job_phase_id` = ajp.`id`
+        where ajpn.`job_id` = #{jobId} and ajp.`name` = #{phaseName} and ajpn.`status` not in
         <foreach collection="exceptStatus" item="status" separator="," open="(" close=")">
             #{status}
         </foreach>
@@ -726,8 +728,7 @@
         `status` = #{status},
         WHERE `job_id` = #{jobId}
         AND `job_phase_id` = #{jobPhaseId}
-        AND `host` = #{host}
-        AND `port` = #{port}
+        AND `id` = #{id}
     </update>
 
     <delete id="deleteJobParamContentByHash" parameterType="java.lang.String">
