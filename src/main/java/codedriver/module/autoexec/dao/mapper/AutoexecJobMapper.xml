@@ -537,6 +537,35 @@
         WHERE `job_id` = #{jobId}
           AND `job_phase_id` = #{phaseId}
     </select>
+    <select id="getJobPhaseByJobIdAndPhaseId"
+            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
+        SELECT id,
+               job_id as jobId,
+               `exec_mode` as execMode,
+               `status`
+        FROM `autoexec_job_phase`
+        WHERE `job_id` = #{jobId}
+          and `id` = #{jobPhaseId}
+    </select>
+    <select id="getJobPhaseNodeListByJobIdAndPhaseNameAndExceptStatus"
+            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
+        SELECT ajpn.`id`,
+               ajpn.`job_id`       as jobId,
+               ajpn.`job_phase_id` as jobPhaseId,
+               ajpn.`host`,
+               ajpn.`port`,
+               ajpn.`start_time`   as startTime,
+               ajpn.`end_time`     as endTime,
+               ajpn.`status`,
+               ajpn.`proxy_id`     as proxyId,
+               ajp.`name`          as jobPhaseName
+        FROM `autoexec_job_phase_node` ajpn
+                 LEFT JOIN `autoexec_job_phase` ajp on ajpn.`job_phase_id` = ajp.`id`
+        where ajpn.`job_id` = #{jobId} and ajp.`name` = #{phaseName} and  ajpn.`status` not in
+        <foreach collection="exceptStatus" item="status" separator="," open="(" close=")">
+            #{status}
+        </foreach>
+    </select>
 
     <insert id="insertJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
         INSERT INTO `autoexec_job` (`id`,

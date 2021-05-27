@@ -8,6 +8,7 @@ package codedriver.module.autoexec.api.job;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNodeNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.Input;
@@ -51,12 +52,14 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "nodeId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本节点Id"),
-            @Param(name = "position", type = ApiParamType.LONG, isRequired = true, desc = "日志读取位置")
+            @Param(name = "logPos", type = ApiParamType.LONG, isRequired = true, desc = "日志读取位置,-1:获取最新的数据"),
+            @Param(name = "direction", type = ApiParamType.ENUM, rule = "up,down", isRequired = true, desc = "读取方向，up:向上读，down:向下读")
     })
     @Output({
+            @Param(name = "tailContent", type = ApiParamType.LONG, isRequired = true, desc = "内容"),
             @Param(name = "startPos", type = ApiParamType.LONG, isRequired = true, desc = "日志读取开始位置"),
             @Param(name = "endPos", type = ApiParamType.LONG, isRequired = true, desc = "日志读取结束位置"),
-            @Param(name = "logPos", type = ApiParamType.LONG, isRequired = true, desc = "日志读取开始位置"),
+            @Param(name = "logPos", type = ApiParamType.LONG, isRequired = true, desc = "读取到的位置"),
             @Param(name = "last", type = ApiParamType.LONG, isRequired = true, desc = "日志读取内容"),
     })
     @Override
@@ -65,11 +68,13 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
         if(nodeVo == null){
             throw new AutoexecJobPhaseNodeNotFoundException(StringUtils.EMPTY,paramObj.getString("nodeId"));
         }
+        AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(nodeVo.getJobId(),nodeVo.getJobPhaseId());
         paramObj.put("jobId",nodeVo.getJobId());
         paramObj.put("phase",nodeVo.getJobPhaseName());
         paramObj.put("ip",nodeVo.getHost());
         paramObj.put("port",nodeVo.getPort());
         paramObj.put("runnerUrl",nodeVo.getProxyUrl());
+        paramObj.put("execMode",phaseVo.getExecMode());
         paramObj.put("direction","down");
         return autoexecJobActionService.tailNodeLog(paramObj);
     }

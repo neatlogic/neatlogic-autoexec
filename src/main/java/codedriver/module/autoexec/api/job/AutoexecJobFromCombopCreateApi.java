@@ -69,7 +69,7 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
             @Param(name = "param", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "执行参数"),
             @Param(name = "source", type = ApiParamType.STRING, isRequired = true, desc = "来源 itsm|human   ITSM|人工发起的等，不传默认是人工发起的"),
             @Param(name = "threadCount", type = ApiParamType.LONG, isRequired = true, desc = "并发线程,2的n次方 "),
-            @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "执行目标"),
+            @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT,  desc = "执行目标"),
     })
     @Output({
     })
@@ -84,7 +84,7 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
         }
         //设置作业执行节点
         AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
-        if(combopVo.getConfig() != null){
+        if(combopVo.getConfig() != null && jsonObj.containsKey("executeConfig")){
             AutoexecCombopExecuteConfigVo executeConfigVo = JSON.toJavaObject(jsonObj.getJSONObject("executeConfig"), AutoexecCombopExecuteConfigVo.class);
             combopVo.getConfig().setExecuteConfig(executeConfigVo);
         }

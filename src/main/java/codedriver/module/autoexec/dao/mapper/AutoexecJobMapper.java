@@ -51,6 +51,8 @@ public interface AutoexecJobMapper {
 
     AutoexecJobPhaseVo getJobPhaseLockByJobIdAndPhaseName(@Param("jobId") Long jobId, @Param("jobPhaseName") String jobPhaseName);
 
+    AutoexecJobPhaseVo getJobPhaseByJobIdAndPhaseId(@Param("jobId")Long jobId,@Param("jobPhaseId") Long jobPhaseId);
+
     AutoexecJobPhaseVo getFirstJobPhase(Long jobId);
 
     AutoexecJobPhaseVo getJobPhaseByJobIdAndPhaseName(@Param("jobId") Long jobId, @Param("jobPhaseName") String jobPhaseName);
@@ -75,6 +77,8 @@ public interface AutoexecJobMapper {
     AutoexecJobPhaseNodeVo getJobPhaseNodeInfoByJobNodeId(Long nodeId);
 
     AutoexecJobPhaseNodeVo getJobPhaseRunnerNodeByJobIdAndPhaseId(@Param("jobId")Long jobId,@Param("phaseId")Long phaseId);
+
+    List<AutoexecJobPhaseNodeVo> getJobPhaseNodeListByJobIdAndPhaseNameAndExceptStatus(@Param("jobId")Long jobId,@Param("phaseName") String phaseName,@Param("exceptStatus") List<String> exceptStatus);
 
     //jobPhaseOperation
     List<AutoexecJobPhaseOperationVo> getJobPhaseOperationByJobId(Long jobId);
