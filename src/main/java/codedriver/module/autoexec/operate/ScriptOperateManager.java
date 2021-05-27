@@ -218,8 +218,7 @@ public class ScriptOperateManager {
                 if (MapUtils.isNotEmpty(hasBeenGeneratedToCombopListMap) && Objects.equals(hasBeenGeneratedToCombopListMap.get(id), true)) {
                     generateToCombop.setDisabled(1);
                     generateToCombop.setDisabledReason("已经发布为组合工具");
-                }
-                if (MapUtils.isNotEmpty(hasActiveVersionMap) && !Objects.equals(hasActiveVersionMap.get(id), true)) {
+                } else if (MapUtils.isNotEmpty(hasActiveVersionMap) && !Objects.equals(hasActiveVersionMap.get(id), true)) {
                     generateToCombop.setDisabled(1);
                     generateToCombop.setDisabledReason("没有激活版本");
                 }
