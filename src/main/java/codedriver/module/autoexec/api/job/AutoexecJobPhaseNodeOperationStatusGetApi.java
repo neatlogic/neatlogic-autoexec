@@ -7,6 +7,7 @@ package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeOperationStatusVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNodeNotFoundException;
@@ -39,7 +40,7 @@ public class AutoexecJobPhaseNodeOperationStatusGetApi extends PrivateApiCompone
 
     @Override
     public String getName() {
-        return "获取作业剧本节点操作记录";
+        return "获取作业剧本节点操作状态列表";
     }
 
     @Override
@@ -51,8 +52,9 @@ public class AutoexecJobPhaseNodeOperationStatusGetApi extends PrivateApiCompone
             @Param(name = "nodeId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本节点Id")
     })
     @Output({
+            @Param(explode = AutoexecJobPhaseNodeOperationStatusVo[].class, desc = "作业剧本节点操作状态列表"),
     })
-    @Description(desc = "获取作业剧本节点操作记录")
+    @Description(desc = "获取作业剧本节点操作状态列表")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         JSONObject result = new JSONObject();

@@ -7,6 +7,7 @@ package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeAuditVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNodeNotFoundException;
@@ -51,7 +52,7 @@ public class AutoexecJobPhaseNodeAuditGetApi extends PrivateApiComponentBase {
             @Param(name = "nodeId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本节点Id")
     })
     @Output({
-            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecJobPhaseNodeVo[].class, desc = "列表")
+            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecJobPhaseNodeAuditVo[].class, desc = "节点操作记录列表")
     })
     @Description(desc = "获取作业剧本节点操作记录")
     @Override
