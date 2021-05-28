@@ -70,6 +70,7 @@ public class AutoexecToolActiveStatusUpdateApi extends PrivateApiComponentBase {
                 throw new AutoexecToolHasReferenceException(StringUtils.join(list, ","));
             }
         }
+
         AutoexecToolVo vo = new AutoexecToolVo();
         vo.setId(id);
         vo.setIsActive(isActive);

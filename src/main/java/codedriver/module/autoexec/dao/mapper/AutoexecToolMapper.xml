@@ -146,6 +146,7 @@
         and c.`operation_type` = 'tool'
     </select>
 
+
     <select id="getToolById" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.AutoexecToolVo">
         SELECT
             `id`,
