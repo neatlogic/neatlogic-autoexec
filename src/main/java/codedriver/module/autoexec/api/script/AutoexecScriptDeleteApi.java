@@ -6,7 +6,7 @@
 package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.constvalue.ScriptOperate;
+import codedriver.framework.autoexec.constvalue.ScriptAction;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
@@ -104,7 +104,7 @@ public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
             JSONObject auditContent = new JSONObject();
             auditContent.put("version", version.getVersion());
             AutoexecScriptAuditVo auditVo = new AutoexecScriptAuditVo(version.getScriptId()
-                    , version.getId(), ScriptOperate.DELETE.getValue(), auditContent);
+                    , version.getId(), ScriptAction.DELETE.getValue(), auditContent);
             autoexecScriptService.audit(auditVo);
         }
         return null;

@@ -5,13 +5,14 @@
 
 package codedriver.module.autoexec.api.script;
 
-import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
-import codedriver.framework.autoexec.constvalue.ScriptOperate;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
+import codedriver.framework.autoexec.constvalue.ScriptAction;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.exception.AutoexecScriptHasNotAnyVersionException;
 import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
@@ -21,10 +22,8 @@ import codedriver.framework.dao.mapper.UserMapper;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
-import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
-import codedriver.module.autoexec.operate.ScriptOperateBuilder;
+import codedriver.module.autoexec.operate.ScriptOperateManager;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
@@ -78,8 +77,6 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         JSONObject result = new JSONObject();
         AutoexecScriptVo script = null;
         AutoexecScriptVersionVo version = null;
-        List<ValueTextVo> versionOperateList = null;
-        List<ValueTextVo> scriptOperateList = null;
         Long id = jsonObj.getLong("id");
         Long versionId = jsonObj.getLong("versionId");
         if (id != null) { // 不指定版本
@@ -111,9 +108,6 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         script.setVersionVo(version);
         version.setParamList(autoexecScriptMapper.getParamListByVersionId(version.getId()));
         version.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
-        script.setVersionCount(autoexecScriptMapper.getVersionCountByScriptId(id));
-        script.setReferenceCount(autoexecScriptMapper.getReferenceCountByScriptId(id));
-        script.setHasBeenGeneratedToCombop(autoexecScriptMapper.checkScriptHasBeenGeneratedToCombop(id) > 0 ? 1 : 0);
         List<AutoexecCombopVo> combopList = autoexecScriptMapper.getReferenceListByScriptId(id);
         script.setCombopList(combopList);
         autoexecCombopService.setOperableButtonList(combopList);
@@ -122,7 +116,7 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         }
         // 如果是已驳回状态，查询驳回原因
         if (ScriptVersionStatus.REJECTED.getValue().equals(version.getStatus())) {
-            AutoexecScriptAuditVo audit = autoexecScriptMapper.getScriptAuditByScriptVersionIdAndOperate(version.getId(), ScriptOperate.REJECT.getValue());
+            AutoexecScriptAuditVo audit = autoexecScriptMapper.getScriptAuditByScriptVersionIdAndOperate(version.getId(), ScriptAction.REJECT.getValue());
             if (audit != null) {
                 String detail = autoexecScriptMapper.getScriptAuditDetailByHash(audit.getContentHash());
                 if (StringUtils.isNotBlank(detail)) {
@@ -131,13 +125,13 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
             }
         }
         // 获取操作按钮
-        ScriptOperateBuilder versionOperateBuilder = new ScriptOperateBuilder(UserContext.get().getUserUuid(), version.getStatus(), version.getIsActive(), script.getVersionCount());
-        versionOperateList = versionOperateBuilder.setAll().build();
-        ScriptOperateBuilder scriptOperateBuilder = new ScriptOperateBuilder(UserContext.get().getUserUuid());
-        scriptOperateList = scriptOperateBuilder.setGenerateToCombop().setCopy().setExport().setDelete().build();
+        ScriptOperateManager manager = new ScriptOperateManager();
+        ScriptOperateManager.Builder scriptOperateBuilder = manager.new Builder();
+        ScriptOperateManager.Builder versionOperateBuilder = manager.new Builder();
+        script.setOperateList(scriptOperateBuilder.setGenerateToCombop(script.getId()).setCopy().setExport().setDelete(script.getId()).build());
+        version.setOperateList(versionOperateBuilder.setVersionDelete(version.getId()).setCopy().setCompare().setTest().setValidate(version.getId())
+                .setSave(version.getId()).setSubmit(version.getId()).setPass(version.getId()).setReject(version.getId()).build());
         result.put("script", script);
-        result.put("versionOperateList", versionOperateList);
-        result.put("scriptOperateList", scriptOperateList);
         return result;
     }
 

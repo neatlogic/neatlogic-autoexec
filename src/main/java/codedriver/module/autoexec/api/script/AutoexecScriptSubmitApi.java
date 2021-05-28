@@ -7,7 +7,7 @@ package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.constvalue.ScriptOperate;
+import codedriver.framework.autoexec.constvalue.ScriptAction;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
@@ -86,7 +86,7 @@ public class AutoexecScriptSubmitApi extends PrivateApiComponentBase {
 
         JSONObject auditContent = new JSONObject();
         auditContent.put("version", version.getVersion());
-        AutoexecScriptAuditVo auditVo = new AutoexecScriptAuditVo(script.getId(), version.getId(), ScriptOperate.SUBMIT.getValue(), auditContent);
+        AutoexecScriptAuditVo auditVo = new AutoexecScriptAuditVo(script.getId(), version.getId(), ScriptAction.SUBMIT.getValue(), auditContent);
         autoexecScriptService.audit(auditVo);
 
         return result;
