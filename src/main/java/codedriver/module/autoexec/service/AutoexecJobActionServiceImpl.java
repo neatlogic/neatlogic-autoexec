@@ -11,6 +11,7 @@ import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.exception.AutoexecJobProxyConnectAuthException;
 import codedriver.framework.autoexec.exception.AutoexecJobProxyConnectRefusedException;
+import codedriver.framework.dao.mapper.UserMapper;
 import codedriver.framework.dto.RestVo;
 import codedriver.framework.integration.authentication.costvalue.AuthenticateType;
 import codedriver.framework.util.RestUtil;
@@ -25,6 +26,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -43,6 +47,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
 
     @Resource
     AutoexecJobServiceImpl autoexecJobService;
+
+    @Resource
+    UserMapper userMapper;
 
     /**
      * 第一次执行/重跑/继续作业
@@ -268,5 +275,40 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     @Override
     public void logDownload(AutoexecJobPhaseNodeVo jobPhaseNode, String path) {
 
+    }
+
+    /**
+     * 获取作业剧本节点执行记录
+     *
+     * @param paramJson 参数
+     * @return 记录列表
+     */
+    @Override
+    public List<AutoexecJobPhaseNodeAuditVo> getNodeAudit(JSONObject paramJson) throws ParseException {
+        String url = paramJson.getString("runnerUrl") + "job/phase/node/execute/audit/get";
+        RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
+        String result = RestUtil.sendRequest(restVo);
+        List<AutoexecJobPhaseNodeAuditVo> auditList = new ArrayList<>();
+        JSONObject resultJson = null;
+        try {
+            resultJson = JSONObject.parseObject(result);
+        } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
+            throw new AutoexecJobProxyConnectRefusedException(restVo.getUrl() + " " + result);
+        }
+        if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
+            throw new AutoexecJobProxyConnectAuthException(resultJson.getString("Message"));
+        }else{
+            JSONArray auditArray = resultJson.getJSONArray("Return");
+            for(Object audit : auditArray){
+                JSONObject auditJson =  (JSONObject)audit;
+                AutoexecJobPhaseNodeAuditVo auditVo = new AutoexecJobPhaseNodeAuditVo(auditJson);
+                auditVo.setExecUserVo(userMapper.getUserBaseInfoByUuid(auditVo.getExecUser()));
+                //TODO download
+                //auditVo.setDownloadPath(String.format(""));
+                auditList.add(auditVo);
+            }
+        }
+        return auditList;
     }
 }

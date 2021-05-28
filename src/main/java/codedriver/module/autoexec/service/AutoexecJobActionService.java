@@ -5,11 +5,11 @@
 
 package codedriver.module.autoexec.service;
 
-import codedriver.framework.autoexec.dto.job.AutoexecJobLogVo;
-import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
-import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
-import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.dto.job.*;
 import com.alibaba.fastjson.JSONObject;
+
+import java.text.ParseException;
+import java.util.List;
 
 /**
  * @author lvzk
@@ -84,4 +84,11 @@ public interface AutoexecJobActionService {
      * @param path         日志path
      */
     void logDownload(AutoexecJobPhaseNodeVo jobPhaseNode, String path);
+
+    /**
+     * 获取作业剧本节点执行记录
+     * @param paramObj 参数
+     * @return 记录列表
+     */
+    List<AutoexecJobPhaseNodeAuditVo> getNodeAudit(JSONObject paramObj) throws ParseException;
 }
