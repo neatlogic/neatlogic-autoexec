@@ -100,10 +100,10 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
                     OperateVo vo = new OperateVo(ScriptAndToolOperate.GENERATETOCOMBOP.getValue(), ScriptAndToolOperate.GENERATETOCOMBOP.getText());
                     if (Objects.equals(o.getHasBeenGeneratedToCombop(), 1)) {
                         vo.setDisabled(1);
-                        vo.setDisabledReason("已经被发布为组合工具");
+                        vo.setDisabledReason("已发布为组合工具");
                     } else if (!Objects.equals(o.getIsActive(), 1)) {
                         vo.setDisabled(1);
-                        vo.setDisabledReason("工具未激活");
+                        vo.setDisabledReason("当前工具未激活，无法发布为组合工具");
                     }
                     operateList.add(vo);
                 }

@@ -49,7 +49,7 @@ public class ScriptOperateManager {
                 OperateVo vo = new OperateVo(ScriptAndToolOperate.DELETE.getValue(), ScriptAndToolOperate.DELETE.getText());
                 if (autoexecScriptMapper.getReferenceCountByScriptId(id) > 0) {
                     vo.setDisabled(1);
-                    vo.setDisabledReason("已被组合工具引用");
+                    vo.setDisabledReason("当前自定义工具已被组合工具引用，无法删除");
                 }
                 return vo;
             }
@@ -156,10 +156,10 @@ public class ScriptOperateManager {
                 Integer currentVersion = autoexecScriptMapper.getActiveVersionNumberByScriptId(id);
                 if (hasBeenGeneratedToCombop > 0) {
                     vo.setDisabled(1);
-                    vo.setDisabledReason("已经被发布为组合工具");
+                    vo.setDisabledReason("已发布为组合工具");
                 } else if (currentVersion == null) {
                     vo.setDisabled(1);
-                    vo.setDisabledReason("没有激活版本");
+                    vo.setDisabledReason("当前自定义工具未有激活版本，无法发布为组合工具");
                 }
                 return vo;
             }
@@ -217,10 +217,10 @@ public class ScriptOperateManager {
                 OperateVo generateToCombop = new OperateVo(ScriptAndToolOperate.GENERATETOCOMBOP.getValue(), ScriptAndToolOperate.GENERATETOCOMBOP.getText());
                 if (MapUtils.isNotEmpty(hasBeenGeneratedToCombopMap) && Objects.equals(hasBeenGeneratedToCombopMap.get(id), true)) {
                     generateToCombop.setDisabled(1);
-                    generateToCombop.setDisabledReason("已经发布为组合工具");
+                    generateToCombop.setDisabledReason("已发布为组合工具");
                 } else if (MapUtils.isNotEmpty(hasActiveVersionMap) && !Objects.equals(hasActiveVersionMap.get(id), true)) {
                     generateToCombop.setDisabled(1);
-                    generateToCombop.setDisabledReason("没有激活版本");
+                    generateToCombop.setDisabledReason("当前自定义工具未有激活版本，无法发布为组合工具");
                 }
                 operateList.add(generateToCombop);
             }
@@ -232,7 +232,7 @@ public class ScriptOperateManager {
                 OperateVo delete = new OperateVo(ScriptAndToolOperate.DELETE.getValue(), ScriptAndToolOperate.DELETE.getText());
                 if (MapUtils.isNotEmpty(referenceCountMap) && Objects.equals(referenceCountMap.get(id), true)) {
                     delete.setDisabled(1);
-                    delete.setDisabledReason("已经被组合工具引用");
+                    delete.setDisabledReason("当前自定义工具已被组合工具引用，无法删除");
                 }
                 operateList.add(delete);
             }
