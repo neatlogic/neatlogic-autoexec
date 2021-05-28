@@ -7,7 +7,7 @@ package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.constvalue.ScriptOperate;
+import codedriver.framework.autoexec.constvalue.ScriptAction;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
@@ -77,7 +77,7 @@ public class AutoexecScriptReviewApi extends PrivateApiComponentBase {
         }
         AutoexecScriptVersionVo updateVo = new AutoexecScriptVersionVo();
         updateVo.setId(versionId);
-        updateVo.setStatus(Objects.equals(ScriptOperate.PASS.getValue(), action)
+        updateVo.setStatus(Objects.equals(ScriptAction.PASS.getValue(), action)
                 ? ScriptVersionStatus.PASSED.getValue() : ScriptVersionStatus.REJECTED.getValue());
         updateVo.setReviewer(UserContext.get().getUserUuid());
         updateVo.setLcu(UserContext.get().getUserUuid());

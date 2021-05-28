@@ -6,7 +6,7 @@
 package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.constvalue.ScriptOperate;
+import codedriver.framework.autoexec.constvalue.ScriptAction;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
@@ -106,7 +106,7 @@ public class AutoexecScriptVersionActiveStatusUpdateApi extends PrivateApiCompon
         AutoexecScriptAuditVo auditVo = new AutoexecScriptAuditVo(
                 version.getScriptId()
                 , version.getId()
-                , Objects.equals(isActive, 1) ? ScriptOperate.ACTIVE.getValue() : ScriptOperate.DISABLE.getValue()
+                , Objects.equals(isActive, 1) ? ScriptAction.ACTIVE.getValue() : ScriptAction.DISABLE.getValue()
                 , auditContent);
         autoexecScriptService.audit(auditVo);
         return null;

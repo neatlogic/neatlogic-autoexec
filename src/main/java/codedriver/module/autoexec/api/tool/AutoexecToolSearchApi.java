@@ -7,8 +7,13 @@ package codedriver.module.autoexec.api.tool;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.auth.core.AuthActionChecker;
+import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
+import codedriver.framework.autoexec.constvalue.ScriptAndToolOperate;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
+import codedriver.framework.autoexec.dto.OperateVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
 import codedriver.framework.common.util.PageUtil;
@@ -16,13 +21,13 @@ import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecToolMapper;
-import codedriver.module.autoexec.operate.ScriptOperateBuilder;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -83,6 +88,32 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
                     });
                 }
             }
+            // 获取操作按钮
+            Boolean hasScriptModifyAuth = AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName());
+            Boolean hasCombopModifyAuth = AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_COMBOP_MODIFY.class.getSimpleName());
+            toolVoList.stream().forEach(o -> {
+                List<OperateVo> operateList = new ArrayList<>();
+                if (hasScriptModifyAuth) {
+                    operateList.add(new OperateVo(ScriptAndToolOperate.TEST.getValue(), ScriptAndToolOperate.TEST.getText()));
+                }
+                if (hasCombopModifyAuth) {
+                    OperateVo vo = new OperateVo(ScriptAndToolOperate.GENERATETOCOMBOP.getValue(), ScriptAndToolOperate.GENERATETOCOMBOP.getText());
+                    if (Objects.equals(o.getHasBeenGeneratedToCombop(), 1)) {
+                        vo.setDisabled(1);
+                        vo.setDisabledReason("已发布为组合工具");
+                    } else if (!Objects.equals(o.getIsActive(), 1)) {
+                        vo.setDisabled(1);
+                        vo.setDisabledReason("当前工具未激活，无法发布为组合工具");
+                    }
+                    operateList.add(vo);
+                }
+                if (hasScriptModifyAuth) {
+                    operateList.add(new OperateVo(ScriptAndToolOperate.ACTIVE.getValue(), ScriptAndToolOperate.ACTIVE.getText()));
+                }
+                if (CollectionUtils.isNotEmpty(operateList)) {
+                    o.setOperateList(operateList);
+                }
+            });
         }
         if (toolVo.getNeedPage()) {
             int rowNum = autoexecToolMapper.searchToolCount(toolVo);
@@ -92,8 +123,6 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
             result.put("pageCount", PageUtil.getPageCount(rowNum, toolVo.getPageSize()));
             result.put("rowNum", toolVo.getRowNum());
         }
-        ScriptOperateBuilder builder = new ScriptOperateBuilder(UserContext.get().getUserUuid());
-        result.put("operateList", builder.setTest().setToolActive().setGenerateToCombop().build());
         return result;
     }
 
