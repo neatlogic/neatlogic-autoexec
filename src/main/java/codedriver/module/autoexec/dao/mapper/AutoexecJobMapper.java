@@ -86,6 +86,7 @@ public interface AutoexecJobMapper {
     List<AutoexecJobPhaseOperationVo> getJobPhaseOperationByJobIdAndPhaseId(@Param("jobId")Long jobId,@Param("phaseId")Long phaseId);
 
     AutoexecJobPhaseOperationVo getJobPhaseOperationByJobIdAndPhaseIdAndOperationId(@Param("jobId")Long jobId, @Param("jobPhaseId")Long jobPhaseId, @Param("jobPhaseOperationId")Long operationId);
+    AutoexecJobPhaseOperationVo getJobPhaseOperationByOperationId( @Param("jobPhaseOperationId")Long operationId);
 
     int checkIsJobPhaseOperationParamReference(@Param("jobId") Long jobId, @Param("hash") String hash);
 

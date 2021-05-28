@@ -264,7 +264,7 @@
     <select id="getJobPhaseLockByJobIdAndPhaseName"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
         SELECT id,
-               job_id as jobId,
+               job_id    as jobId,
                exec_mode as execMode,
                `status`
         FROM `autoexec_job_phase`
@@ -468,6 +468,25 @@
           and `job_phase_id` = #{jobPhaseId}
           and `id` = #{jobPhaseOperationId}
     </select>
+
+    <select id="getJobPhaseOperationByOperationId"
+            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseOperationVo">
+        SELECT `job_id`       as jobId,
+               `job_phase_id` as jobPhaseId,
+               `id`,
+               `name`,
+               `uk`,
+               `type`,
+               `parser`,
+               `exec_mode`    as execMode,
+               `fail_policy`  as failPolicy,
+               `param_hash`   as paramHash,
+               `version_id`
+        FROM `autoexec_job_phase_operation`
+        where
+           `id` = #{jobPhaseOperationId}
+    </select>
+
     <select id="checkIsAllActivePhaseIsDone" resultType="java.lang.Integer">
         select count(1)
         from `autoexec_job_phase`
@@ -640,25 +659,33 @@
     <insert id="insertJobPhaseOperation"
             parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseOperationVo">
         INSERT INTO `autoexec_job_phase_operation` (`id`,
-                                                    `job_id`,
-                                                    `job_phase_id`,
-                                                    `uk`,
-                                                    `name`,
-                                                    `type`,
-                                                    `parser`,
-                                                    `exec_mode`,
-                                                    `fail_policy`,
-                                                    `param_hash`)
+        `job_id`,
+        `job_phase_id`,
+        `uk`,
+        `name`,
+        `type`,
+        `parser`,
+        `exec_mode`,
+        `fail_policy`,
+        <if test="type != null and type == 'script'">
+            `version_id`,
+        </if>
+        `sort`,
+        `param_hash`)
         VALUES (#{id},
-                #{jobId},
-                #{jobPhaseId},
-                #{uk},
-                #{name},
-                #{type},
-                #{parser},
-                #{execMode},
-                #{failPolicy},
-                #{paramHash});
+        #{jobId},
+        #{jobPhaseId},
+        #{uk},
+        #{name},
+        #{type},
+        #{parser},
+        #{execMode},
+        #{failPolicy},
+        <if test="type != null and type == 'script'">
+            #{versionId},
+        </if>
+        #{sort},
+        #{paramHash});
     </insert>
 
     <insert id="insertJobParamContent"

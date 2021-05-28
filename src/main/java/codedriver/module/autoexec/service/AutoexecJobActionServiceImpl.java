@@ -28,8 +28,10 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author lvzk
@@ -337,6 +339,6 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                 }
             }
         }
-        return statusList;
+        return statusList.stream().sorted(Comparator.comparing(AutoexecJobPhaseNodeOperationStatusVo::getSort)).collect(Collectors.toList());
     }
 }
