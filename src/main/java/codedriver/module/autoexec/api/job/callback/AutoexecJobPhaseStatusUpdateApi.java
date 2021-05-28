@@ -8,6 +8,7 @@ package codedriver.module.autoexec.api.job.callback;
 import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
 import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
+import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
@@ -108,13 +109,13 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
         }
 
         autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), status));
-        /*if(Objects.equals(status, JobPhaseStatus.FAILED.getValue())){
-            result.put("hasFailNode",1);
-        }else{
-            if(autoexecJobMapper.checkIsHasActivePhaseFailed(jobId)>0){
-                result.put("hasFailNode",1);
+        //判断所有phase是否都已跑完（completed），如果是则需要更新job状态
+        if(Objects.equals(status,JobPhaseStatus.COMPLETED.getValue())||Objects.equals(status,JobNodeStatus.SUCCEED.getValue())){
+            List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobId);
+            if(jobPhaseVoList.stream().allMatch(o-> Objects.equals(o.getStatus(),JobPhaseStatus.COMPLETED.getValue()))){
+                autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobId, JobStatus.COMPLETED.getValue()));
             }
-        }*/
+        }
         return null;
     }
 
