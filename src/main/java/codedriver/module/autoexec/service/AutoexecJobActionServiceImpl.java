@@ -285,7 +285,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
      */
     @Override
     public List<AutoexecJobPhaseNodeAuditVo> getNodeAudit(JSONObject paramJson) throws ParseException {
-        String url = paramJson.getString("runnerUrl") + "job/phase/node/execute/audit/get";
+        String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/execute/audit/get";
         RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
         String result = RestUtil.sendRequest(restVo);
         List<AutoexecJobPhaseNodeAuditVo> auditList = new ArrayList<>();
@@ -303,12 +303,40 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             for(Object audit : auditArray){
                 JSONObject auditJson =  (JSONObject)audit;
                 AutoexecJobPhaseNodeAuditVo auditVo = new AutoexecJobPhaseNodeAuditVo(auditJson);
-                auditVo.setExecUserVo(userMapper.getUserBaseInfoByUuid(auditVo.getExecUser()));
+                auditVo.setExecUserVo(userMapper.getUserBaseInfoByUuidWithoutCache(auditVo.getExecUser()));
                 //TODO download
                 //auditVo.setDownloadPath(String.format(""));
                 auditList.add(auditVo);
             }
         }
         return auditList;
+    }
+
+    @Override
+    public Object getNodeOperationStatus(JSONObject paramJson) {
+        List<AutoexecJobPhaseNodeOperationStatusVo> statusList = new ArrayList<>();
+        String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/status/get";
+        RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
+        String restResult = RestUtil.sendRequest(restVo);
+        JSONObject resultJson = null;
+        try {
+            resultJson = JSONObject.parseObject(restResult);
+        } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
+            throw new AutoexecJobProxyConnectRefusedException(restVo.getUrl() + " " + restResult);
+        }
+        if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
+            throw new AutoexecJobProxyConnectAuthException(resultJson.getString("Message"));
+        }else{
+            String resultStr = resultJson.getString("Return");
+            if(StringUtils.isNotBlank(resultStr)){
+                JSONObject statusJson = JSONObject.parseObject(resultStr);
+                List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseId(paramJson.getLong("jobId"),paramJson.getLong("phaseId"));
+                for(AutoexecJobPhaseOperationVo operationVo : operationVoList){
+                    statusList.add(new AutoexecJobPhaseNodeOperationStatusVo(operationVo,statusJson));
+                }
+            }
+        }
+        return statusList;
     }
 }

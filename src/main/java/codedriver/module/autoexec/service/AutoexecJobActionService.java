@@ -91,4 +91,11 @@ public interface AutoexecJobActionService {
      * @return 记录列表
      */
     List<AutoexecJobPhaseNodeAuditVo> getNodeAudit(JSONObject paramObj) throws ParseException;
+
+    /**
+     * 获取作业剧本节点操作状态
+     * @param paramObj
+     * @return
+     */
+    Object getNodeOperationStatus(JSONObject paramObj);
 }

@@ -30,7 +30,7 @@ import javax.annotation.Resource;
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
-public class AutoexecJobPhaseNodeAuditGetApi extends PrivateApiComponentBase {
+public class AutoexecJobPhaseNodeOperationStatusGetApi extends PrivateApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
 
@@ -51,7 +51,6 @@ public class AutoexecJobPhaseNodeAuditGetApi extends PrivateApiComponentBase {
             @Param(name = "nodeId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本节点Id")
     })
     @Output({
-            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecJobPhaseNodeVo[].class, desc = "列表")
     })
     @Description(desc = "获取作业剧本节点操作记录")
     @Override
@@ -64,17 +63,17 @@ public class AutoexecJobPhaseNodeAuditGetApi extends PrivateApiComponentBase {
         AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(nodeVo.getJobId(),nodeVo.getJobPhaseId());
         paramObj.put("jobId",nodeVo.getJobId());
         paramObj.put("phase",nodeVo.getJobPhaseName());
+        paramObj.put("phaseId",nodeVo.getJobPhaseId());
         paramObj.put("ip",nodeVo.getHost());
         paramObj.put("port",nodeVo.getPort());
         paramObj.put("runnerUrl",nodeVo.getProxyUrl());
         paramObj.put("execMode",phaseVo.getExecMode());
-        result.put("tbodyList", autoexecJobActionService.getNodeAudit(paramObj));
-        return result;
+        return  autoexecJobActionService.getNodeOperationStatus(paramObj);
     }
 
     @Override
     public String getToken() {
-        return "autoexec/job/phase/node/audit/get";
+        return "autoexec/job/phase/node/operation/status/get";
     }
 
 
