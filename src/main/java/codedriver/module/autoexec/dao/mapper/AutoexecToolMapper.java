@@ -7,6 +7,7 @@ package codedriver.module.autoexec.dao.mapper;
 
 import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 
 import java.util.List;
 
@@ -25,6 +26,8 @@ public interface AutoexecToolMapper {
     int searchToolCount(AutoexecToolVo toolVo);
 
     List<AutoexecToolVo> checkToolListHasBeenGeneratedToCombop(List<Long> idList);
+
+    List<AutoexecCombopVo> getReferenceListByToolId(Long toolId);
 
     int updateActiveStatus(AutoexecToolVo toolVo);
 

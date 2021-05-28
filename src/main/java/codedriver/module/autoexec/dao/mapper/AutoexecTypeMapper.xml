@@ -123,9 +123,7 @@
     <update id="updateType" parameterType="codedriver.framework.autoexec.dto.AutoexecTypeVo">
         update `autoexec_type`
         set `name` = #{name},
-        <if test="description != null and description != ''">
-            `description` = #{description},
-        </if>
+        `description` = #{description},
         `lcu` = #{lcu},
         `lcd` = now(3)
         where `id` = #{id}

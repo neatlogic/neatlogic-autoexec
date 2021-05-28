@@ -8,6 +8,8 @@ package codedriver.module.autoexec.api.tool;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
+import codedriver.framework.autoexec.exception.AutoexecToolHasReferenceException;
 import codedriver.framework.autoexec.exception.AutoexecToolNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
@@ -15,9 +17,14 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecToolMapper;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @AuthAction(action = AUTOEXEC_SCRIPT_MANAGE.class)
@@ -56,6 +63,14 @@ public class AutoexecToolActiveStatusUpdateApi extends PrivateApiComponentBase {
         if (autoexecToolMapper.checkToolExistsById(id) == 0) {
             throw new AutoexecToolNotFoundException(id);
         }
+        if (Objects.equals(isActive, 0)) {
+            List<AutoexecCombopVo> referenceList = autoexecToolMapper.getReferenceListByToolId(id);
+            if (CollectionUtils.isNotEmpty(referenceList)) {
+                List<String> list = referenceList.stream().map(AutoexecCombopVo::getName).collect(Collectors.toList());
+                throw new AutoexecToolHasReferenceException(StringUtils.join(list, ","));
+            }
+        }
+
         AutoexecToolVo vo = new AutoexecToolVo();
         vo.setId(id);
         vo.setIsActive(isActive);
