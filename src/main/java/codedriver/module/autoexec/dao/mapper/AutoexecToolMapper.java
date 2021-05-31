@@ -29,6 +29,8 @@ public interface AutoexecToolMapper {
 
     List<AutoexecCombopVo> getReferenceListByToolId(Long toolId);
 
+    List<AutoexecToolVo> getReferenceCountListByToolIdList(List<Long> idList);
+
     int updateActiveStatus(AutoexecToolVo toolVo);
 
     int replaceTool(AutoexecToolVo toolVo);
