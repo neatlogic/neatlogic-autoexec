@@ -481,7 +481,7 @@
                `exec_mode`    as execMode,
                `fail_policy`  as failPolicy,
                `param_hash`   as paramHash,
-               `version_id`
+               `version_id` as versionId
         FROM `autoexec_job_phase_operation`
         where
            `id` = #{jobPhaseOperationId}

@@ -67,7 +67,7 @@ public class AutoexecJobPhaseOperationScriptGetApi extends PublicApiComponentBas
         JSONObject result = new JSONObject();
         String operationId = jsonObj.getString("operationId");
         Double lastModified = jsonObj.getDouble("lastModified");
-        Long opId = Long.valueOf(operationId.substring(operationId.lastIndexOf("_")));
+        Long opId = Long.valueOf(operationId.substring(operationId.lastIndexOf("_")+1));
         AutoexecJobPhaseOperationVo jobPhaseOperationVo = autoexecJobMapper.getJobPhaseOperationByOperationId(opId);
         if(jobPhaseOperationVo == null) {
             throw new AutoexecJobPhaseOperationNotFoundException(opId.toString());

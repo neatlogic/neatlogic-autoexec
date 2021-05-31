@@ -51,7 +51,7 @@ public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
     })
     @Output({
-            @Param(explode = AutoexecJobPhaseVo[].class, desc = "列表")
+            @Param(explode = AutoexecJobVo[].class, desc = "列表")
     })
     @Description(desc = "获取作业详情，包括：剧本列表、作业基本信息、操作按钮")
     @Override
