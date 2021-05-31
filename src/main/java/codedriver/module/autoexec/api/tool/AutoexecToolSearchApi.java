@@ -24,12 +24,11 @@ import codedriver.module.autoexec.dao.mapper.AutoexecToolMapper;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -78,15 +77,16 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
         List<AutoexecToolVo> toolVoList = autoexecToolMapper.searchTool(toolVo);
         result.put("tbodyList", toolVoList);
         if (CollectionUtils.isNotEmpty(toolVoList)) {
-            List<AutoexecToolVo> list = autoexecToolMapper.checkToolListHasBeenGeneratedToCombop(toolVoList.stream().map(AutoexecToolVo::getId).collect(Collectors.toList()));
-            if (CollectionUtils.isNotEmpty(list)) {
-                for (AutoexecToolVo vo : list) {
-                    toolVoList.stream().forEach(o -> {
-                        if (Objects.equals(o.getId(), vo.getId())) {
-                            o.setHasBeenGeneratedToCombop(vo.getHasBeenGeneratedToCombop() > 0 ? 1 : 0);
-                        }
-                    });
-                }
+            List<Long> idList = toolVoList.stream().map(AutoexecToolVo::getId).collect(Collectors.toList());
+            List<AutoexecToolVo> hasBeenGeneratedToCombopList = autoexecToolMapper.checkToolListHasBeenGeneratedToCombop(idList);
+            Map<Long, Boolean> hasBeenGeneratedToCombopMap = new HashMap<>();
+            if (CollectionUtils.isNotEmpty(hasBeenGeneratedToCombopList)) {
+                hasBeenGeneratedToCombopList.stream().forEach(o -> hasBeenGeneratedToCombopMap.put(o.getId(), o.getHasBeenGeneratedToCombop() > 0 ? true : false));
+            }
+            List<AutoexecToolVo> referenceCountList = autoexecToolMapper.getReferenceCountListByToolIdList(idList);
+            Map<Long, Boolean> referenceCountMap = new HashMap<>();
+            if (CollectionUtils.isNotEmpty(referenceCountList)) {
+                referenceCountList.stream().forEach(o -> referenceCountMap.put(o.getId(), o.getReferenceCount() > 0 ? true : false));
             }
             // 获取操作按钮
             Boolean hasScriptModifyAuth = AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName());
@@ -98,7 +98,7 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
                 }
                 if (hasCombopModifyAuth) {
                     OperateVo vo = new OperateVo(ScriptAndToolOperate.GENERATETOCOMBOP.getValue(), ScriptAndToolOperate.GENERATETOCOMBOP.getText());
-                    if (Objects.equals(o.getHasBeenGeneratedToCombop(), 1)) {
+                    if (MapUtils.isNotEmpty(hasBeenGeneratedToCombopMap) && Objects.equals(hasBeenGeneratedToCombopMap.get(o.getId()), true)) {
                         vo.setDisabled(1);
                         vo.setDisabledReason("已发布为组合工具");
                     } else if (!Objects.equals(o.getIsActive(), 1)) {
@@ -108,7 +108,12 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
                     operateList.add(vo);
                 }
                 if (hasScriptModifyAuth) {
-                    operateList.add(new OperateVo(ScriptAndToolOperate.ACTIVE.getValue(), ScriptAndToolOperate.ACTIVE.getText()));
+                    OperateVo vo = new OperateVo(ScriptAndToolOperate.ACTIVE.getValue(), ScriptAndToolOperate.ACTIVE.getText());
+                    if (MapUtils.isNotEmpty(referenceCountMap) && Objects.equals(referenceCountMap.get(o.getId()), true) && Objects.equals(o.getIsActive(), 1)) {
+                        vo.setDisabled(1);
+                        vo.setDisabledReason("当前工具已被组合工具引用，不可禁用");
+                    }
+                    operateList.add(vo);
                 }
                 if (CollectionUtils.isNotEmpty(operateList)) {
                     o.setOperateList(operateList);
