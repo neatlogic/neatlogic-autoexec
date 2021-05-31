@@ -8,9 +8,9 @@ package codedriver.module.autoexec.service;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
-import codedriver.framework.autoexec.dto.AutoexecProxyGroupNetworkVo;
-import codedriver.framework.autoexec.dto.AutoexecProxyGroupVo;
-import codedriver.framework.autoexec.dto.AutoexecProxyVo;
+import codedriver.framework.autoexec.dto.AutoexecRunnerGroupNetworkVo;
+import codedriver.framework.autoexec.dto.AutoexecRunnerGroupVo;
+import codedriver.framework.autoexec.dto.AutoexecRunnerVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
@@ -19,7 +19,7 @@ import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.util.IpUtil;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
-import codedriver.module.autoexec.dao.mapper.AutoexecProxyMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecRunnerMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -47,7 +47,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     @Resource
     AutoexecCombopMapper autoexecCombopMapper;
     @Resource
-    AutoexecProxyMapper autoexecProxyMapper;
+    AutoexecRunnerMapper autoexecRunnerMapper;
 
     @Override
     public AutoexecJobVo saveAutoexecCombopJob(AutoexecCombopVo combopVo, String source, Integer threadCount, JSONObject paramJson) {
@@ -61,9 +61,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         AutoexecCombopExecuteConfigVo nodeConfigVo = config.getExecuteConfig();
         List<AutoexecJobPhaseNodeVo> jobNodeVoList = null;
         String executeUser = StringUtils.EMPTY;
-        if(nodeConfigVo != null) {
+        if (nodeConfigVo != null) {
             executeUser = nodeConfigVo.getExecuteUser();
-            jobNodeVoList = getJobNodeList(nodeConfigVo, jobVo.getOperationId());
+            if (nodeConfigVo.getExecuteNodeConfig() != null) {
+                jobNodeVoList = getJobNodeList(nodeConfigVo, jobVo.getOperationId());
+            }
         }
         //保存阶段
         List<AutoexecJobPhaseVo> jobPhaseVoList = new ArrayList<>();
@@ -93,16 +95,20 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 for (AutoexecJobPhaseNodeVo jobPhaseNodeVo : jobPhaseNodeVoList) {
                     jobPhaseNodeVo.setJobId(jobVo.getId());
                     jobPhaseNodeVo.setJobPhaseId(jobPhaseVo.getId());
-                    jobPhaseNodeVo.setProxyId(getProxyByIp(jobPhaseNodeVo.getHost()));
+                    Long runnerId = getRunnerByIp(jobPhaseNodeVo.getHost());
                     jobPhaseNodeVo.setStatus(JobNodeStatus.PENDING.getValue());
                     jobPhaseNodeVo.setUserName(executeUser);
                     autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
+                    autoexecJobMapper.insertJobPhaseNodeRunner(jobPhaseNodeVo.getId(), runnerId);
                 }
             } else {
-                List<AutoexecProxyVo> proxyList = autoexecProxyMapper.getAllProxy();
-                int proxyIndex = (int) (Math.random() * proxyList.size());
-                AutoexecProxyVo localProxyVo = proxyList.get(proxyIndex);
-                autoexecJobMapper.insertJobPhaseNode(new AutoexecJobPhaseNodeVo(jobVo.getId(), jobPhaseVo.getId(), localProxyVo.getId(), localProxyVo.getHost(), localProxyVo.getPort(), JobNodeStatus.PENDING.getValue(), executeUser));
+                List<AutoexecRunnerVo> runnerList = autoexecRunnerMapper.getAllRunner();
+                //TODO 负载均衡
+                int runnerIndex = (int) (Math.random() * runnerList.size());
+                AutoexecRunnerVo autoexecRunnerVo = runnerList.get(runnerIndex);
+                AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), jobPhaseVo.getId(), autoexecRunnerVo.getHost(), autoexecRunnerVo.getPort(), JobNodeStatus.PENDING.getValue(), executeUser);
+                autoexecJobMapper.insertJobPhaseNode(nodeVo);
+                autoexecJobMapper.insertJobPhaseNodeRunner(nodeVo.getId(), autoexecRunnerVo.getId());
             }
             //jobPhaseOperation
             List<AutoexecJobPhaseOperationVo> jobPhaseOperationVoList = new ArrayList<>();
@@ -163,7 +169,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 for (AutoexecJobPhaseNodeVo jobPhaseNodeVo : jobPhaseNodeVoList) {
                     jobPhaseNodeVo.setJobId(jobId);
                     jobPhaseNodeVo.setJobPhaseId(jobPhaseId);
-                    jobPhaseNodeVo.setProxyId(getProxyByIp(jobPhaseNodeVo.getHost()));
+                    jobPhaseNodeVo.setRunnerId(getRunnerByIp(jobPhaseNodeVo.getHost()));
                     jobPhaseNodeVo.setStatus(JobNodeStatus.PENDING.getValue());
                     jobPhaseNodeVo.setUserName(executeUser);
                     autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
@@ -195,19 +201,19 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
 
 
     /**
-     * 根据目标ip自动匹配proxy
+     * 根据目标ip自动匹配runner
      *
      * @param ip 目标ip
-     * @return proxyId
+     * @return runnerId
      */
-    private Long getProxyByIp(String ip) {
-        List<AutoexecProxyGroupNetworkVo> networkVoList = autoexecProxyMapper.getAllNetworkMask();
-        for (AutoexecProxyGroupNetworkVo networkVo : networkVoList) {
+    private Long getRunnerByIp(String ip) {
+        List<AutoexecRunnerGroupNetworkVo> networkVoList = autoexecRunnerMapper.getAllNetworkMask();
+        for (AutoexecRunnerGroupNetworkVo networkVo : networkVoList) {
             if (IpUtil.isBelongSegment(ip, networkVo.getNetworkIp(), networkVo.getMask())) {
-                AutoexecProxyGroupVo groupVo = autoexecProxyMapper.getProxyGroupById(networkVo.getGroupId());
-                int proxyIndex = (int) (Math.random() * groupVo.getProxyList().size());
-                AutoexecProxyVo proxyVo = groupVo.getProxyList().get(proxyIndex);
-                return proxyVo.getId();
+                AutoexecRunnerGroupVo groupVo = autoexecRunnerMapper.getRunnerGroupById(networkVo.getGroupId());
+                int runnerIndex = (int) (Math.random() * groupVo.getRunnerList().size());
+                AutoexecRunnerVo runnerVo = groupVo.getRunnerList().get(runnerIndex);
+                return runnerVo.getId();
             }
         }
         return null;

@@ -24,7 +24,7 @@ public interface AutoexecJobActionService {
     void fire(AutoexecJobVo jobVo);
 
     /**
-     * 拼装给proxy的param
+     * 拼装给runner的param
      *
      * @param paramJson 返回param值
      * @param jobVo     作业

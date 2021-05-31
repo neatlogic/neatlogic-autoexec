@@ -7,7 +7,7 @@ package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
-import codedriver.framework.autoexec.dto.AutoexecProxyVo;
+import codedriver.framework.autoexec.dto.AutoexecRunnerVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -49,7 +49,7 @@ public class AutoexecJobRunnerListApi extends PrivateApiComponentBase {
             @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "作业Id")
     })
     @Output({
-            @Param(explode = AutoexecProxyVo.class, desc = "runner 列表")
+            @Param(explode = AutoexecRunnerVo.class, desc = "runner 列表")
     })
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {

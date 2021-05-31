@@ -146,18 +146,19 @@
         ajpn.`start_time` as startTime,
         ajpn.`end_time` as endTime,
         ajpn.`status`,
-        ajpn.`proxy_id` as proxyId,
+        ap.`id` as runnerId,
         an.`id` as nodeId,
         an.`name` AS nodeName,
         an.`type` as nodeType,
         an.`user_name` as userName,
         an.`password`,
-        ap.`url` AS proxyUrl
+        ap.`url` AS runnerUrl
         FROM
         `autoexec_job_phase_node` ajpn
         LEFT JOIN `autoexec_job_phase` ajp on ajpn.`job_phase_id` = ajp.`id`
         LEFT JOIN `autoexec_node` an ON ajpn.`host` = an.`host` AND ajpn.`port` = an.`port`
-        LEFT JOIN `autoexec_proxy` ap ON ajpn.`proxy_id` = ap.`id`
+        LEFT JOIN `autoexec_job_phase_node_runner` ajpnr on ajpn.id = ajpnr.`node_id`
+        LEFT JOIN `autoexec_runner` ap ON ajpnr.`runner_id` = ap.`id`
         <where>
             <include refid="searchJobPhaseNodeSql"/>
         </where>
@@ -527,34 +528,36 @@
                ajpn.`start_time`   as startTime,
                ajpn.`end_time`     as endTime,
                ajpn.`status`,
-               ajpn.`proxy_id`     as proxyId,
                ajp.`name`          as jobPhaseName,
                an.`id`             as nodeId,
                an.`name`           AS nodeName,
                an.`type`           as nodeType,
                an.`user_name`      as userName,
                an.`password`,
-               ap.`url`            AS proxyUrl
+               ap.`id`             as runnerId,
+               ap.`url`            AS runnerUrl
         FROM `autoexec_job_phase_node` ajpn
                  LEFT JOIN `autoexec_job_phase` ajp on ajpn.`job_phase_id` = ajp.`id`
                  LEFT JOIN `autoexec_node` an ON ajpn.`host` = an.`host` AND ajpn.`port` = an.`port`
-                 LEFT JOIN `autoexec_proxy` ap ON ajpn.`proxy_id` = ap.`id`
+                 LEFT JOIN `autoexec_job_phase_node_runner` ajpnr on ajpn.id = ajpnr.`node_id`
+                 LEFT JOIN `autoexec_runner` ap ON ajpnr.`runner_id` = ap.`id`
         where ajpn.`id` = #{value}
     </select>
 
     <select id="getJobPhaseRunnerNodeByJobIdAndPhaseId"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
-        SELECT `id`,
-               `job_id`       as jobId,
-               `job_phase_id` as jobPhaseId,
-               `host`,
-               `port`,
-               `user_name`    as userName,
-               `start_time`   as startTime,
-               `end_time`     as endTime,
-               `status`,
-               `proxy_id`     as proxyId
-        FROM `autoexec_job_phase_node`
+        SELECT ajpn.`id`,
+               ajpn.`job_id`       as jobId,
+               ajpn.`job_phase_id` as jobPhaseId,
+               ajpn.`host`,
+               ajpn.`port`,
+               ajpn.`user_name`    as userName,
+               ajpn.`start_time`   as startTime,
+               ajpn.`end_time`     as endTime,
+               ajpn.`status`,
+               ajpnr.`runner_id`   as runnerId
+        FROM `autoexec_job_phase_node` ajpn
+                 LEFT JOIN `autoexec_job_phase_node_runner` ajpnr on ajpn.id = ajpnr.`node_id`
         WHERE `job_id` = #{jobId}
           AND `job_phase_id` = #{phaseId}
     </select>
@@ -578,19 +581,21 @@
         ajpn.`start_time` as startTime,
         ajpn.`end_time` as endTime,
         ajpn.`status`,
-        ajpn.`proxy_id` as proxyId,
+        ajpnr.`runner_id` as runnerId,
         ajp.`name` as jobPhaseName
         FROM `autoexec_job_phase_node` ajpn
+        LEFT JOIN `autoexec_job_phase_node_runner` ajpnr on ajpn.id = ajpnr.`node_id`
         LEFT JOIN `autoexec_job_phase` ajp on ajpn.`job_phase_id` = ajp.`id`
         where ajpn.`job_id` = #{jobId} and ajp.`name` = #{phaseName} and ajpn.`status` not in
         <foreach collection="exceptStatus" item="status" separator="," open="(" close=")">
             #{status}
         </foreach>
     </select>
-    <select id="getJobRunnerListByJobId" resultType="codedriver.framework.autoexec.dto.AutoexecProxyVo">
+    <select id="getJobRunnerListByJobId" resultType="codedriver.framework.autoexec.dto.AutoexecRunnerVo">
         SELECT DISTINCT ap.`id`, ap.`name`, ap.`url`, ap.`host`, ap.`port`
         FROM `autoexec_job_phase_node` ajpn
-                 LEFT JOIN `autoexec_proxy` ap ON ajpn.`proxy_id` = ap.`id`
+                 LEFT JOIN `autoexec_job_phase_node_runner` ajpnr on ajpn.id = ajpnr.`node_id`
+                 LEFT JOIN `autoexec_runner` ap ON ajpnr.`runner_id` = ap.`id`
         WHERE ajpn.`job_id` = #{value}
     </select>
 
@@ -650,16 +655,14 @@
                                                `host`,
                                                `port`,
                                                `user_name`,
-                                               `status`,
-                                               `proxy_id`)
+                                               `status`)
         VALUES (#{id},
                 #{jobId},
                 #{jobPhaseId},
                 #{host},
                 #{port},
                 #{userName},
-                #{status},
-                #{proxyId});
+                #{status});
     </insert>
 
     <insert id="insertJobPhaseOperation"
@@ -698,6 +701,12 @@
             parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobParamContentVo">
         INSERT IGNORE INTO `autoexec_job_param_content` (`hash`, `content`)
         VALUES (#{hash}, #{content});
+    </insert>
+
+    <insert id="insertJobPhaseNodeRunner"
+            parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeRunnerVo">
+        INSERT INTO `autoexec_job_phase_node_runner` (`node_id`, `runner_id`)
+        VALUES (#{nodeId}, #{runnerId});
     </insert>
 
     <update id="updateJobPhaseStatus" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">

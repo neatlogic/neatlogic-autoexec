@@ -68,7 +68,7 @@ public class AutoexecJobPhaseNodeOperationStatusGetApi extends PrivateApiCompone
         paramObj.put("phaseId",nodeVo.getJobPhaseId());
         paramObj.put("ip",nodeVo.getHost());
         paramObj.put("port",nodeVo.getPort());
-        paramObj.put("runnerUrl",nodeVo.getProxyUrl());
+        paramObj.put("runnerUrl",nodeVo.getRunnerUrl());
         paramObj.put("execMode",phaseVo.getExecMode());
         return  autoexecJobActionService.getNodeOperationStatus(paramObj);
     }
