@@ -146,6 +146,23 @@
         and c.`operation_type` = 'tool'
     </select>
 
+    <select id="getReferenceCountListByToolIdList" parameterType="java.util.List" resultType="codedriver.framework.autoexec.dto.AutoexecToolVo">
+        select
+        c.`operation_id` as id,
+        count(c.`operation_id`) as referenceCount
+        from `autoexec_combop` a
+        join `autoexec_combop_phase` b
+        on a.`id` = b.`combop_id`
+        join `autoexec_combop_phase_operation` c
+        on b.`id` = c.`combop_phase_id`
+        where c.`operation_id` in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        and c.`operation_type` = 'tool'
+        group by c.`operation_id`
+    </select>
+
 
     <select id="getToolById" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.AutoexecToolVo">
         SELECT
