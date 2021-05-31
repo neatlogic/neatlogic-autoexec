@@ -16,6 +16,7 @@ import codedriver.framework.dao.mapper.UserMapper;
 import codedriver.framework.dto.RestVo;
 import codedriver.framework.integration.authentication.costvalue.AuthenticateType;
 import codedriver.framework.util.RestUtil;
+import codedriver.module.autoexec.config.AutoexecConfig;
 import codedriver.module.autoexec.core.AutoexecJobAuthActionManager;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import com.alibaba.fastjson.JSONArray;
@@ -80,7 +81,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             List<String> authErrorList = new ArrayList<>();
             for (AutoexecRunnerVo runner : runnerVos) {
                 String url = runner.getUrl() + "/job/exec";
-                RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), runner.getAccessKey(), runner.getAccessSecret(), paramJson);
+                RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_USER_NAME(), paramJson);
                 String result = RestUtil.sendRequest(restVo);
                 JSONObject resultJson = null;
                 try {
@@ -214,7 +215,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     @Override
     public JSONObject tailNodeLog(JSONObject paramJson) {
         String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/log/tail";
-        RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), paramJson.getString("username"), paramJson.getString("password"), paramJson);
+        RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_USER_NAME(), paramJson);
         String result = RestUtil.sendRequest(restVo);
         JSONObject resultJson = null;
         try {
@@ -233,7 +234,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     @Override
     public JSONObject tailConsoleLog(JSONObject paramJson) {
         String url = paramJson.getString("runnerUrl") + "/api/rest/job/console/log/tail";
-        RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), paramJson.getString("username"), paramJson.getString("password"), paramJson);
+        RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_USER_NAME(), paramJson);
         String result = RestUtil.sendRequest(restVo);
         JSONObject resultJson = null;
         try {
@@ -322,7 +323,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     @Override
     public List<AutoexecJobPhaseNodeAuditVo> getNodeAudit(JSONObject paramJson) throws ParseException {
         String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/execute/audit/get";
-        RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), paramJson.getString("username"), paramJson.getString("password"), paramJson);
+        RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_USER_NAME(), paramJson);
         String result = RestUtil.sendRequest(restVo);
         List<AutoexecJobPhaseNodeAuditVo> auditList = new ArrayList<>();
         JSONObject resultJson = null;
@@ -352,7 +353,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     public Object getNodeOperationStatus(JSONObject paramJson) {
         List<AutoexecJobPhaseNodeOperationStatusVo> statusList = new ArrayList<>();
         String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/status/get";
-        RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), paramJson.getString("username"), paramJson.getString("password"), paramJson);
+        RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_USER_NAME(), paramJson);
         String restResult = RestUtil.sendRequest(restVo);
         JSONObject resultJson = null;
         try {

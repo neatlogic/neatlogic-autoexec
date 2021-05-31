@@ -83,8 +83,6 @@ public class AutoexecJobConsoleLogTailApi extends PrivateApiComponentBase {
         paramObj.put("ip", runnerVo.getHost());
         paramObj.put("port", runnerVo.getPort());
         paramObj.put("runnerUrl", runnerVo.getUrl());
-        paramObj.put("username",runnerVo.getAccessKey());
-        paramObj.put("password",runnerVo.getAccessSecret());
         paramObj.put("direction", paramObj.getString("direction"));
         return autoexecJobActionService.tailConsoleLog(paramObj);
     }

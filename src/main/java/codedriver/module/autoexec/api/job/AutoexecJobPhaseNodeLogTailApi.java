@@ -74,8 +74,6 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
         paramObj.put("ip",nodeVo.getHost());
         paramObj.put("port",nodeVo.getPort());
         paramObj.put("runnerUrl",nodeVo.getRunnerUrl());
-        paramObj.put("username",nodeVo.getUserName());
-        paramObj.put("password",nodeVo.getPassword());
         paramObj.put("execMode",phaseVo.getExecMode());
         paramObj.put("direction","down");
         return autoexecJobActionService.tailNodeLog(paramObj);
