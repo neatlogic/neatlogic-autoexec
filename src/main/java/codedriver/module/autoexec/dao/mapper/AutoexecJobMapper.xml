@@ -391,6 +391,7 @@
                `type`,
                `parser`,
                `exec_mode`    as execMode,
+               `sort`,
                `fail_policy`  as failPolicy,
                `param_hash`   as paramHash
         FROM `autoexec_job_phase_operation`
