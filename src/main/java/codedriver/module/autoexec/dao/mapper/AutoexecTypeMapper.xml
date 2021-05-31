@@ -87,6 +87,18 @@
         group by `type_id`
     </select>
 
+    <select id="getReferenceCountListForCombop" parameterType="java.util.List" resultType="codedriver.framework.autoexec.dto.AutoexecTypeVo">
+        select
+        `type_id` as id,
+        count(`id`) as referenceCountForCombop
+        from `autoexec_combop`
+        where `type_id` in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        group by `type_id`
+    </select>
+
     <select id="checkTypeHasBeenReferredById" parameterType="java.lang.Long" resultType="int">
         select sum(refCount)
 		from
@@ -99,6 +111,11 @@
         select
         count(`id`) as refCount
         from `autoexec_script`
+        where `type_id` = #{value}
+        union all
+        select
+        count(`id`) as refCount
+        from `autoexec_combop`
         where `type_id` = #{value}
 		) a
     </select>

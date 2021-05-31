@@ -35,6 +35,8 @@ public interface AutoexecTypeMapper {
 
     List<AutoexecTypeVo> getReferenceCountListForScript(List<Long> idList);
 
+    List<AutoexecTypeVo> getReferenceCountListForCombop(List<Long> idList);
+
     int insertType(AutoexecTypeVo vo);
 
     int updateType(AutoexecTypeVo vo);
