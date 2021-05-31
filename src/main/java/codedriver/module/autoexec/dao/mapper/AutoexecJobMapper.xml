@@ -481,10 +481,9 @@
                `exec_mode`    as execMode,
                `fail_policy`  as failPolicy,
                `param_hash`   as paramHash,
-               `version_id` as versionId
+               `version_id`   as versionId
         FROM `autoexec_job_phase_operation`
-        where
-           `id` = #{jobPhaseOperationId}
+        where `id` = #{jobPhaseOperationId}
     </select>
 
     <select id="checkIsAllActivePhaseIsDone" resultType="java.lang.Integer">
@@ -586,6 +585,12 @@
         <foreach collection="exceptStatus" item="status" separator="," open="(" close=")">
             #{status}
         </foreach>
+    </select>
+    <select id="getJobRunnerListByJobId" resultType="codedriver.framework.autoexec.dto.AutoexecProxyVo">
+        SELECT DISTINCT ap.`id`, ap.`name`, ap.`url`, ap.`host`, ap.`port`
+        FROM `autoexec_job_phase_node` ajpn
+                 LEFT JOIN `autoexec_proxy` ap ON ajpn.`proxy_id` = ap.`id`
+        WHERE ajpn.`job_id` = #{value}
     </select>
 
     <insert id="insertJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">

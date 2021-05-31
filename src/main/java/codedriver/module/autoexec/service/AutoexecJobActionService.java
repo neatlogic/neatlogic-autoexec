@@ -94,8 +94,15 @@ public interface AutoexecJobActionService {
 
     /**
      * 获取作业剧本节点操作状态
-     * @param paramObj
-     * @return
+     * @param paramObj 参数
+     * @return 节点操作状态
      */
     Object getNodeOperationStatus(JSONObject paramObj);
+
+    /**
+     * 获取作业console日志
+     * @param paramObj 参数
+     * @return 日志内容
+     */
+    Object tailConsoleLog(JSONObject paramObj);
 }

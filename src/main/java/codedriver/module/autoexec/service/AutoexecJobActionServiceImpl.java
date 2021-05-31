@@ -215,6 +215,25 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         }
     }
 
+    @Override
+    public JSONObject tailConsoleLog(JSONObject paramJson) {
+        String url = paramJson.getString("runnerUrl") + "/api/rest/job/console/log/tail";
+        RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), paramJson.getString("username"), paramJson.getString("password"), paramJson);
+        String result = RestUtil.sendRequest(restVo);
+        JSONObject resultJson = null;
+        try {
+            resultJson = JSONObject.parseObject(result);
+        } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
+            throw new AutoexecJobProxyConnectRefusedException(restVo.getUrl() + " " + result);
+        }
+        if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
+            throw new AutoexecJobProxyConnectAuthException(resultJson.getString("Message"));
+        }else{
+            return resultJson.getJSONObject("Return");
+        }
+    }
+
     /**
      * 暂停作业
      *

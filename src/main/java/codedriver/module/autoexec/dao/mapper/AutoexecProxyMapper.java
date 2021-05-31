@@ -18,4 +18,6 @@ public interface AutoexecProxyMapper {
     AutoexecProxyGroupVo getProxyGroupById(Long groupId);
 
     List<AutoexecProxyVo> getAllProxy();
+
+    AutoexecProxyVo getProxyById(Integer proxyId);
 }

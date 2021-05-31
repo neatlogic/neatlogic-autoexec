@@ -62,5 +62,20 @@
                `group_id`      as groupId
         FROM `autoexec_proxy`
     </select>
+
+    <select id="getProxyById" resultType="codedriver.framework.autoexec.dto.AutoexecProxyVo">
+        SELECT `id`,
+               `name`,
+               `url`,
+               `host`,
+               `port`,
+               `access_key`    as accessKey,
+               `access_secret` as accessSecret,
+               `auth_type`     as authType,
+               `public_key`    as publicKey,
+               `private_key`   as privateKey,
+               `group_id`      as groupId
+        FROM `autoexec_proxy` WHERE `id` = #{value}
+    </select>
 </mapper>
 
