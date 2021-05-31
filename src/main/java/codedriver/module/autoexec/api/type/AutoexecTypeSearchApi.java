@@ -21,8 +21,9 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
@@ -69,23 +70,29 @@ public class AutoexecTypeSearchApi extends PrivateApiComponentBase {
             List<Long> idList = typeList.stream().map(AutoexecTypeVo::getId).collect(Collectors.toList());
             List<AutoexecTypeVo> referenceCountListForTool = autoexecTypeMapper.getReferenceCountListForTool(idList);
             List<AutoexecTypeVo> referenceCountListForScript = autoexecTypeMapper.getReferenceCountListForScript(idList);
+            List<AutoexecTypeVo> referenceCountListForCombop = autoexecTypeMapper.getReferenceCountListForCombop(idList);
+            Map<Long, Integer> referenceCountForToolMap = new HashMap<>();
+            Map<Long, Integer> referenceCountForScriptMap = new HashMap<>();
+            Map<Long, Integer> referenceCountForCombopMap = new HashMap<>();
             if (CollectionUtils.isNotEmpty(referenceCountListForTool)) {
-                for (AutoexecTypeVo vo : referenceCountListForTool) {
-                    typeList.stream().forEach(o -> {
-                        if (Objects.equals(o.getId(), vo.getId())) {
-                            o.setReferenceCountForTool(vo.getReferenceCountForTool());
-                        }
-                    });
-                }
+                referenceCountForToolMap = referenceCountListForTool.stream()
+                        .collect(Collectors.toMap(AutoexecTypeVo::getId, AutoexecTypeVo::getReferenceCountForTool));
             }
             if (CollectionUtils.isNotEmpty(referenceCountListForScript)) {
-                for (AutoexecTypeVo vo : referenceCountListForScript) {
-                    typeList.stream().forEach(o -> {
-                        if (Objects.equals(o.getId(), vo.getId())) {
-                            o.setReferenceCountForScript(vo.getReferenceCountForScript());
-                        }
-                    });
-                }
+                referenceCountForScriptMap = referenceCountListForScript.stream()
+                        .collect(Collectors.toMap(AutoexecTypeVo::getId, AutoexecTypeVo::getReferenceCountForScript));
+            }
+            if (CollectionUtils.isNotEmpty(referenceCountListForCombop)) {
+                referenceCountForCombopMap = referenceCountListForCombop.stream()
+                        .collect(Collectors.toMap(AutoexecTypeVo::getId, AutoexecTypeVo::getReferenceCountForCombop));
+            }
+            for (AutoexecTypeVo vo : typeList) {
+                Integer referenceCountForTool = referenceCountForToolMap.get(vo.getId());
+                Integer referenceCountForScript = referenceCountForScriptMap.get(vo.getId());
+                Integer referenceCountForCombop = referenceCountForCombopMap.get(vo.getId());
+                vo.setReferenceCountForTool(referenceCountForTool != null ? referenceCountForTool : 0);
+                vo.setReferenceCountForScript(referenceCountForScript != null ? referenceCountForScript : 0);
+                vo.setReferenceCountForCombop(referenceCountForCombop != null ? referenceCountForCombop : 0);
             }
         }
         if (typeVo.getNeedPage()) {
