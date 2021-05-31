@@ -15,14 +15,12 @@ import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.dto.FieldValidResultVo;
-import codedriver.framework.exception.type.PermissionDeniedException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.IValid;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
-import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -48,9 +46,6 @@ public class AutoexecCombopCopyApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecTypeMapper autoexecTypeMapper;
-
-    @Resource
-    private AutoexecCombopService autoexecCombopService;
 
     @Override
     public String getToken() {
@@ -104,23 +99,25 @@ public class AutoexecCombopCopyApi extends PrivateApiComponentBase {
         Long combopId = autoexecCombopVo.getId();
         int iSort = 0;
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
-        for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
-            if (autoexecCombopPhaseVo != null) {
-                autoexecCombopPhaseVo.setId(null);
-                autoexecCombopPhaseVo.setCombopId(combopId);
-                autoexecCombopPhaseVo.setSort(iSort++);
-                AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
-                List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
-                Long combopPhaseId = autoexecCombopPhaseVo.getId();
-                int jSort = 0;
-                for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
-                    if (autoexecCombopPhaseOperationVo != null) {
-                        autoexecCombopPhaseOperationVo.setSort(jSort++);
-                        autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
-                        autoexecCombopMapper.insertAutoexecCombopPhaseOperation(autoexecCombopPhaseOperationVo);
+        if(CollectionUtils.isNotEmpty(combopPhaseList)){
+            for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
+                if (autoexecCombopPhaseVo != null) {
+                    autoexecCombopPhaseVo.setId(null);
+                    autoexecCombopPhaseVo.setCombopId(combopId);
+                    autoexecCombopPhaseVo.setSort(iSort++);
+                    AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
+                    List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
+                    Long combopPhaseId = autoexecCombopPhaseVo.getId();
+                    int jSort = 0;
+                    for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
+                        if (autoexecCombopPhaseOperationVo != null) {
+                            autoexecCombopPhaseOperationVo.setSort(jSort++);
+                            autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
+                            autoexecCombopMapper.insertAutoexecCombopPhaseOperation(autoexecCombopPhaseOperationVo);
+                        }
                     }
+                    autoexecCombopMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);
                 }
-                autoexecCombopMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);
             }
         }
         autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
