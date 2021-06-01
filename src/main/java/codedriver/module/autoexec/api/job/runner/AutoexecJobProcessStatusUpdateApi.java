@@ -72,8 +72,8 @@ public class AutoexecJobProcessStatusUpdateApi extends PublicApiComponentBase {
             if(JobAction.PAUSE.getValue().equalsIgnoreCase(jobAction)) {
                 phaseStatus = JobPhaseStatus.PAUSING.getValue();
                 jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobId, Collections.singletonList(JobPhaseStatus.RUNNING.getValue()));
-            }else if(JobAction.STOP.getValue().equalsIgnoreCase(jobAction)) {
-                phaseStatus = JobPhaseStatus.STOPPING.getValue();
+            }else if(JobAction.ABORT.getValue().equalsIgnoreCase(jobAction)) {
+                phaseStatus = JobPhaseStatus.ABORTING.getValue();
                 jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobId, Collections.singletonList(JobPhaseStatus.RUNNING.getValue()));
             }
         }else {

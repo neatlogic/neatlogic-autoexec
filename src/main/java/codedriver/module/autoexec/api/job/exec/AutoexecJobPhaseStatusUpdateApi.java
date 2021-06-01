@@ -115,6 +115,8 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
             if(jobPhaseVoList.stream().allMatch(o-> Objects.equals(o.getStatus(),JobPhaseStatus.COMPLETED.getValue()))){
                 autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobId, JobStatus.COMPLETED.getValue()));
             }
+        }else if(Objects.equals(status,JobPhaseStatus.FAILED.getValue())){
+            autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobId, JobStatus.FAILED.getValue()));
         }
         return null;
     }

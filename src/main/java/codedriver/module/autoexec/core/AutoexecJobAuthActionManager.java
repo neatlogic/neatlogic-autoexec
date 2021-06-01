@@ -65,25 +65,25 @@ public class AutoexecJobAuthActionManager {
         });
 
         actionMap.put("goonJob", (jobVo) -> {
-            if (JobStatus.STOPPED.getValue().equalsIgnoreCase(jobVo.getStatus()) || JobStatus.PAUSED.getValue().equalsIgnoreCase(jobVo.getStatus())) {
+            if (JobStatus.ABORTED.getValue().equalsIgnoreCase(jobVo.getStatus()) || JobStatus.PAUSED.getValue().equalsIgnoreCase(jobVo.getStatus())) {
                 jobVo.setIsCanJobGoon(1);
             }
         });
 
         actionMap.put("redoJob", (jobVo) -> {
-            if (JobStatus.STOPPED.getValue().equalsIgnoreCase(jobVo.getStatus()) || JobStatus.PAUSED.getValue().equalsIgnoreCase(jobVo.getStatus())) {
+            if (JobStatus.ABORTED.getValue().equalsIgnoreCase(jobVo.getStatus()) || JobStatus.PAUSED.getValue().equalsIgnoreCase(jobVo.getStatus())) {
                 jobVo.setIsCanJobRedo(1);
             }
         });
 
         actionMap.put("resetJobNode", (jobVo) -> {
-            if (JobStatus.STOPPED.getValue().equalsIgnoreCase(jobVo.getStatus()) || JobStatus.PAUSED.getValue().equalsIgnoreCase(jobVo.getStatus())) {
+            if (JobStatus.ABORTED.getValue().equalsIgnoreCase(jobVo.getStatus()) || JobStatus.PAUSED.getValue().equalsIgnoreCase(jobVo.getStatus())) {
                 jobVo.setIsCanJobNodeReset(1);
             }
         });
 
         actionMap.put("ignoreJobNode", (jobVo) -> {
-            if (JobStatus.STOPPED.getValue().equalsIgnoreCase(jobVo.getStatus()) || JobStatus.PAUSED.getValue().equalsIgnoreCase(jobVo.getStatus())) {
+            if (JobStatus.ABORTED.getValue().equalsIgnoreCase(jobVo.getStatus()) || JobStatus.PAUSED.getValue().equalsIgnoreCase(jobVo.getStatus())) {
                 jobVo.setIsCanJobNodeIgnore(1);
             }
         });
