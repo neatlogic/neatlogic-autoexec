@@ -228,6 +228,14 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                                 if (!Objects.equals(preNodeOutputParamVo.getType(), inputParamVo.getType())) {
                                     throw new AutoexecParamMappingIncorrectException(key);
                                 }
+                            } else if (Objects.equals(mappingMode, ParamMappingMode.PRE_NODE_OUTPUT_PARAM_KEY.getValue())) {
+                                AutoexecParamVo preNodeOutputParamVo = preNodeOutputParamMap.get(value);
+                                if (preNodeOutputParamVo == null) {
+                                    throw new AutoexecParamMappingIncorrectException(key);
+                                }
+                                if (!Objects.equals(preNodeOutputParamVo.getType(), inputParamVo.getType())) {
+                                    throw new AutoexecParamMappingIncorrectException(key);
+                                }
                             } else {
                                 throw new AutoexecParamMappingIncorrectException(key);
                             }
