@@ -1,27 +1,27 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecProxyMapper">
+<mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecRunnerMapper">
 
-    <select id="getAllNetworkMask" resultType="codedriver.framework.autoexec.dto.AutoexecProxyGroupNetworkVo">
+    <select id="getAllNetworkMask" resultType="codedriver.framework.autoexec.dto.AutoexecRunnerGroupNetworkVo">
         SELECT `id`,
                `group_id`   as groupId,
                `network_ip` as networkIp,
                `mask`
-        FROM `autoexec_proxygroup_network`
+        FROM `autoexec_runnergroup_network`
     </select>
 
-    <resultMap id="proxyGroupMap" type="codedriver.framework.autoexec.dto.AutoexecProxyGroupVo">
+    <resultMap id="runnerGroupMap" type="codedriver.framework.autoexec.dto.AutoexecRunnerGroupVo">
         <id column="id" property="id"/>
         <result column="groupName" property="name"/>
-        <collection property="networkList" ofType="codedriver.framework.autoexec.dto.AutoexecProxyGroupNetworkVo">
+        <collection property="networkList" ofType="codedriver.framework.autoexec.dto.AutoexecRunnerGroupNetworkVo">
             <id column="networkId" property="id"/>
             <result column="groupId" property="groupId"/>
             <result column="networkIp" property="networkIp"/>
             <result column="mask" property="mask"/>
         </collection>
-        <collection property="proxyList" ofType="codedriver.framework.autoexec.dto.AutoexecProxyVo">
-            <id column="proxyId" property="id"/>
-            <result column="proxyName" property="name"/>
+        <collection property="runnerList" ofType="codedriver.framework.autoexec.dto.AutoexecRunnerVo">
+            <id column="runnerId" property="id"/>
+            <result column="runnerName" property="name"/>
             <result column="url" property="url"/>
             <result column="accessKey" property="accessKey"/>
             <result column="accessSecret" property="accessSecret"/>
@@ -29,26 +29,26 @@
         </collection>
     </resultMap>
 
-    <select id="getProxyGroupById" resultMap="proxyGroupMap">
+    <select id="getRunnerGroupById" resultMap="runnerGroupMap">
         SELECT a.id              id,
                a.name            groupName,
-               c.id           AS proxyId,
+               c.id           AS runnerId,
                c.`auth_type`  AS authType,
                c.`access_key` AS accessKey,
                c.`access_secret`
                               AS accessSecret,
                c.`url`        AS url,
-               c.`name`       AS proxyName,
+               c.`name`       AS runnerName,
                b.id              networkId,
                b.group_id        groupId,
                b.network_ip      networkIp,
                b.mask            mask
-        FROM `autoexec_proxygroup` a
-                 LEFT JOIN `autoexec_proxygroup_network` b ON a.id = b.group_id
-                 LEFT JOIN `autoexec_proxy` c ON a.id = c.group_id
+        FROM `autoexec_runnergroup` a
+                 LEFT JOIN `autoexec_runnergroup_network` b ON a.id = b.group_id
+                 LEFT JOIN `autoexec_runner` c ON a.id = c.group_id
         WHERE a.id = #{id}
     </select>
-    <select id="getAllProxy" resultType="codedriver.framework.autoexec.dto.AutoexecProxyVo">
+    <select id="getAllRunner" resultType="codedriver.framework.autoexec.dto.AutoexecRunnerVo">
         SELECT `id`,
                `name`,
                `url`,
@@ -60,7 +60,22 @@
                `public_key`    as publicKey,
                `private_key`   as privateKey,
                `group_id`      as groupId
-        FROM `autoexec_proxy`
+        FROM `autoexec_runner`
+    </select>
+
+    <select id="getRunnerById" resultType="codedriver.framework.autoexec.dto.AutoexecRunnerVo">
+        SELECT `id`,
+               `name`,
+               `url`,
+               `host`,
+               `port`,
+               `access_key`    as accessKey,
+               `access_secret` as accessSecret,
+               `auth_type`     as authType,
+               `public_key`    as publicKey,
+               `private_key`   as privateKey,
+               `group_id`      as groupId
+        FROM `autoexec_runner` WHERE `id` = #{value}
     </select>
 </mapper>
 

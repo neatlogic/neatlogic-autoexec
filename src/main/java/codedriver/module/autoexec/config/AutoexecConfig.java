@@ -24,14 +24,9 @@ public class AutoexecConfig {
 	@NacosInjected
 	private ConfigService configService;
 	private static final String CONFIG_FILE = "config.properties";
-
-	private static String PROXY_URL;
 	private static String PROXY_BASIC_USER_NAME;
 	private static String PROXY_BASIC_PASSWORD;
 
-	public static String PROXY_URL() {
-		return PROXY_URL;
-	}
 	public static String PROXY_BASIC_USER_NAME() {
 		return PROXY_BASIC_USER_NAME;
 	}
@@ -70,7 +65,6 @@ public class AutoexecConfig {
 				prop.load(new InputStreamReader(Objects.requireNonNull(AutoexecConfig.class.getClassLoader().getResourceAsStream(CONFIG_FILE)), "UTF-8"));
 			}
 
-			PROXY_URL = prop.getProperty("proxy.url");
 			PROXY_BASIC_USER_NAME = prop.getProperty("proxy.basic.username", "codedriver");
 			PROXY_BASIC_PASSWORD = prop.getProperty("proxy.basic.password", "123456");
 

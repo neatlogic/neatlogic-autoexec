@@ -1,9 +1,9 @@
 /*
- * Copyright(c) 2021. TechSure Co., Ltd. All Rights Reserved.
+ * Copyright (c)  2021 TechSure Co.,Ltd.  All Rights Reserved.
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  */
 
-package codedriver.module.autoexec.api.job.runner;
+package codedriver.module.autoexec.api.job.exec;
 
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseOperationVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
@@ -24,6 +24,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
+import java.math.BigDecimal;
 import java.util.Objects;
 
 @Service
@@ -66,8 +67,11 @@ public class AutoexecJobPhaseOperationScriptGetApi extends PublicApiComponentBas
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
         String operationId = jsonObj.getString("operationId");
-        Double lastModified = jsonObj.getDouble("lastModified");
-        Long opId = Long.valueOf(operationId.substring(operationId.lastIndexOf("_")));
+        BigDecimal lastModified = null;
+        if(jsonObj.getDouble("lastModified") != null) {
+            lastModified = new BigDecimal(Double.toString(jsonObj.getDouble("lastModified")));
+        }
+        Long opId = Long.valueOf(operationId.substring(operationId.lastIndexOf("_")+1));
         AutoexecJobPhaseOperationVo jobPhaseOperationVo = autoexecJobMapper.getJobPhaseOperationByOperationId(opId);
         if(jobPhaseOperationVo == null) {
             throw new AutoexecJobPhaseOperationNotFoundException(opId.toString());
@@ -77,7 +81,7 @@ public class AutoexecJobPhaseOperationScriptGetApi extends PublicApiComponentBas
             throw new AutoexecScriptVersionHasNoActivedException();
         }
         if (lastModified != null) {
-            if (lastModified * 1000 >= scriptVersionVo.getLcd().getTime()) {
+            if (lastModified.multiply(new BigDecimal("1000")).longValue() >= scriptVersionVo.getLcd().getTime()) {
                 HttpServletResponse resp = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getResponse();
                 if (resp != null) {
                     resp.setStatus(205);

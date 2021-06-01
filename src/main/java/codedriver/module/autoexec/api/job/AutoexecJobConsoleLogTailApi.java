@@ -7,9 +7,10 @@ package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
-import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
-import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
-import codedriver.framework.autoexec.exception.AutoexecJobPhaseNodeNotFoundException;
+import codedriver.framework.autoexec.dto.AutoexecRunnerVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.Input;
 import codedriver.framework.restful.annotation.OperationType;
@@ -18,31 +19,34 @@ import codedriver.framework.restful.annotation.Param;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecRunnerMapper;
 import codedriver.module.autoexec.service.AutoexecJobActionService;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 
 /**
  * @author lvzk
- * @since 2021/5/13 16:49
+ * @since 2021/5/31 16:49
  **/
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
-public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
+public class AutoexecJobConsoleLogTailApi extends PrivateApiComponentBase {
 
     @Resource
     AutoexecJobActionService autoexecJobActionService;
+
+    @Resource
+    AutoexecRunnerMapper autoexecRunnerMapper;
 
     @Resource
     AutoexecJobMapper autoexecJobMapper;
 
     @Override
     public String getName() {
-        return "获取剧本节点执行日志";
+        return "获取作业console日志";
     }
 
     @Override
@@ -51,7 +55,8 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "nodeId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本节点Id"),
+            @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "作业Id"),
+            @Param(name = "runnerId", type = ApiParamType.INTEGER, isRequired = true, desc = "runnerId"),
             @Param(name = "logPos", type = ApiParamType.LONG, isRequired = true, desc = "日志读取位置,-1:获取最新的数据"),
             @Param(name = "direction", type = ApiParamType.ENUM, rule = "up,down", isRequired = true, desc = "读取方向，up:向上读，down:向下读")
     })
@@ -64,23 +69,26 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
     })
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobNodeId(paramObj.getLong("nodeId"));
-        if(nodeVo == null){
-            throw new AutoexecJobPhaseNodeNotFoundException(StringUtils.EMPTY,paramObj.getString("nodeId"));
+        Integer runnerId = paramObj.getInteger("runnerId");
+        Long jobId = paramObj.getLong("jobId");
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        if(jobVo == null){
+            throw  new AutoexecJobNotFoundException(jobId.toString());
         }
-        AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(nodeVo.getJobId(),nodeVo.getJobPhaseId());
-        paramObj.put("jobId",nodeVo.getJobId());
-        paramObj.put("phase",nodeVo.getJobPhaseName());
-        paramObj.put("ip",nodeVo.getHost());
-        paramObj.put("port",nodeVo.getPort());
-        paramObj.put("runnerUrl",nodeVo.getRunnerUrl());
-        paramObj.put("execMode",phaseVo.getExecMode());
-        paramObj.put("direction","down");
-        return autoexecJobActionService.tailNodeLog(paramObj);
+        AutoexecRunnerVo runnerVo = autoexecRunnerMapper.getRunnerById(runnerId);
+        if (runnerVo == null) {
+            throw new AutoexecJobRunnerNotFoundException(runnerId.toString());
+        }
+        paramObj.put("jobId", paramObj.getLong("jobId"));
+        paramObj.put("ip", runnerVo.getHost());
+        paramObj.put("port", runnerVo.getPort());
+        paramObj.put("runnerUrl", runnerVo.getUrl());
+        paramObj.put("direction", paramObj.getString("direction"));
+        return autoexecJobActionService.tailConsoleLog(paramObj);
     }
 
     @Override
     public String getToken() {
-        return "/autoexec/job/phase/node/log/tail";
+        return "/autoexec/job/console/log/tail";
     }
 }

@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.dao.mapper;
 
+import codedriver.framework.autoexec.dto.AutoexecRunnerVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.*;
 import org.apache.ibatis.annotations.Param;
@@ -51,15 +52,15 @@ public interface AutoexecJobMapper {
 
     AutoexecJobPhaseVo getJobPhaseLockByJobIdAndPhaseName(@Param("jobId") Long jobId, @Param("jobPhaseName") String jobPhaseName);
 
-    AutoexecJobPhaseVo getJobPhaseByJobIdAndPhaseId(@Param("jobId")Long jobId,@Param("jobPhaseId") Long jobPhaseId);
+    AutoexecJobPhaseVo getJobPhaseByJobIdAndPhaseId(@Param("jobId") Long jobId, @Param("jobPhaseId") Long jobPhaseId);
 
     AutoexecJobPhaseVo getFirstJobPhase(Long jobId);
 
     AutoexecJobPhaseVo getJobPhaseByJobIdAndPhaseName(@Param("jobId") Long jobId, @Param("jobPhaseName") String jobPhaseName);
 
-    Integer checkIsAllActivePhaseIsDone(@Param("jobId") Long jobId,@Param("sort") Integer sort);
+    Integer checkIsAllActivePhaseIsDone(@Param("jobId") Long jobId, @Param("sort") Integer sort);
 
-    List<AutoexecJobPhaseVo> getJobPhaseListByJobIdAndSort(@Param("jobId") Long jobId,@Param("sort") Integer sort);
+    List<AutoexecJobPhaseVo> getJobPhaseListByJobIdAndSort(@Param("jobId") Long jobId, @Param("sort") Integer sort);
 
     Integer checkIsHasActivePhaseFailed(Long jobId);
 
@@ -76,23 +77,28 @@ public interface AutoexecJobMapper {
 
     AutoexecJobPhaseNodeVo getJobPhaseNodeInfoByJobNodeId(Long nodeId);
 
-    AutoexecJobPhaseNodeVo getJobPhaseRunnerNodeByJobIdAndPhaseId(@Param("jobId")Long jobId,@Param("phaseId")Long phaseId);
+    AutoexecJobPhaseNodeVo getJobPhaseRunnerNodeByJobIdAndPhaseId(@Param("jobId") Long jobId, @Param("phaseId") Long phaseId);
 
-    List<AutoexecJobPhaseNodeVo> getJobPhaseNodeListByJobIdAndPhaseNameAndExceptStatus(@Param("jobId")Long jobId,@Param("phaseName") String phaseName,@Param("exceptStatus") List<String> exceptStatus);
+    List<AutoexecJobPhaseNodeVo> getJobPhaseNodeListByJobIdAndPhaseNameAndExceptStatus(@Param("jobId") Long jobId, @Param("phaseName") String phaseName, @Param("exceptStatus") List<String> exceptStatus);
 
     //jobPhaseOperation
     List<AutoexecJobPhaseOperationVo> getJobPhaseOperationByJobId(Long jobId);
 
-    List<AutoexecJobPhaseOperationVo> getJobPhaseOperationByJobIdAndPhaseId(@Param("jobId")Long jobId,@Param("phaseId")Long phaseId);
+    List<AutoexecJobPhaseOperationVo> getJobPhaseOperationByJobIdAndPhaseId(@Param("jobId") Long jobId, @Param("phaseId") Long phaseId);
 
-    AutoexecJobPhaseOperationVo getJobPhaseOperationByJobIdAndPhaseIdAndOperationId(@Param("jobId")Long jobId, @Param("jobPhaseId")Long jobPhaseId, @Param("jobPhaseOperationId")Long operationId);
-    AutoexecJobPhaseOperationVo getJobPhaseOperationByOperationId( @Param("jobPhaseOperationId")Long operationId);
+    AutoexecJobPhaseOperationVo getJobPhaseOperationByJobIdAndPhaseIdAndOperationId(@Param("jobId") Long jobId, @Param("jobPhaseId") Long jobPhaseId, @Param("jobPhaseOperationId") Long operationId);
+
+    AutoexecJobPhaseOperationVo getJobPhaseOperationByOperationId(@Param("jobPhaseOperationId") Long operationId);
 
     int checkIsJobPhaseOperationParamReference(@Param("jobId") Long jobId, @Param("hash") String hash);
 
     //jobParamContent
-
     Integer getNextJobPhaseSortByJobId(Long jobId);
+
+    //runner
+    List<AutoexecRunnerVo> getJobRunnerListByJobId(Long jobId);
+
+    Integer insertJobPhaseNodeRunner(@Param("nodeId") Long nodeId, @Param("runnerId") Long runnerId);
 
     Integer insertJob(AutoexecJobVo jobVo);
 
@@ -106,7 +112,7 @@ public interface AutoexecJobMapper {
 
     Integer updateJobPhaseStatus(AutoexecJobPhaseVo autoexecJobPhaseVo);
 
-    Integer updateJobPhaseStatusBatch(@Param("phaseIdList")List<Long> phaseIdList,@Param("status")String phaseStatus,@Param("errorMsg")String errorMsg);
+    Integer updateJobPhaseStatusBatch(@Param("phaseIdList") List<Long> phaseIdList, @Param("status") String phaseStatus, @Param("errorMsg") String errorMsg);
 
 
     void deleteJobParamContentByHash(String paramHash);

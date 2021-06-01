@@ -10,6 +10,7 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeAuditVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
+import codedriver.framework.autoexec.exception.AutoexecJobHostPortRunnerNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNodeNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
@@ -62,12 +63,15 @@ public class AutoexecJobPhaseNodeAuditGetApi extends PrivateApiComponentBase {
         if(nodeVo == null){
             throw new AutoexecJobPhaseNodeNotFoundException(StringUtils.EMPTY,paramObj.getString("nodeId"));
         }
+        if(StringUtils.isBlank(nodeVo.getRunnerUrl())){
+            throw new AutoexecJobHostPortRunnerNotFoundException(nodeVo.getHost()+":"+nodeVo.getPort());
+        }
         AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(nodeVo.getJobId(),nodeVo.getJobPhaseId());
         paramObj.put("jobId",nodeVo.getJobId());
         paramObj.put("phase",nodeVo.getJobPhaseName());
         paramObj.put("ip",nodeVo.getHost());
         paramObj.put("port",nodeVo.getPort());
-        paramObj.put("runnerUrl",nodeVo.getProxyUrl());
+        paramObj.put("runnerUrl",nodeVo.getRunnerUrl());
         paramObj.put("execMode",phaseVo.getExecMode());
         result.put("tbodyList", autoexecJobActionService.getNodeAudit(paramObj));
         return result;
