@@ -104,6 +104,9 @@
         `is_active` as isActive
         from `autoexec_tool`
         <include refid="searchToolCondition"/>
+        <if test="needPage == true">
+            LIMIT #{startNum}, #{pageSize}
+        </if>
     </select>
 
     <select id="getToolByName" parameterType="java.lang.String" resultType="codedriver.framework.autoexec.dto.AutoexecToolVo">
