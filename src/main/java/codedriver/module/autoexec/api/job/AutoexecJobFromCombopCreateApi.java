@@ -6,7 +6,7 @@
 package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
@@ -14,11 +14,11 @@ import codedriver.framework.autoexec.exception.AutoexecCombopCannotExecuteExcept
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobThreadCountException;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.dao.mapper.TeamMapper;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
-import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import codedriver.module.autoexec.service.AutoexecJobActionService;
 import codedriver.module.autoexec.service.AutoexecJobService;
@@ -36,7 +36,7 @@ import javax.annotation.Resource;
 
 @Transactional
 @Service
-@AuthAction(action = AUTOEXEC_BASE.class)
+@AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
 @OperationType(type = OperationTypeEnum.CREATE)
 public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
     @Resource
@@ -52,7 +52,7 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
     AutoexecJobActionService autoexecJobActionService;
 
     @Resource
-    AutoexecJobMapper autoexecJobMapper;
+    TeamMapper teamMapper;
 
     @Override
     public String getName() {
@@ -79,30 +79,29 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
         Long combopId = jsonObj.getLong("combopId");
         Integer threadCount = jsonObj.getInteger("threadCount");
         JSONObject paramJson = jsonObj.getJSONObject("param");
-        if (autoexecCombopMapper.checkAutoexecCombopIsExists(combopId) == 0) {
+        AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
+        if (combopVo == null) {
             throw new AutoexecCombopNotFoundException(combopId);
         }
+        //作业执行权限校验
+        autoexecCombopService.setOperableButtonList(combopVo);
+        if(combopVo.getExecutable() != 1){
+            throw new AutoexecCombopCannotExecuteException(combopVo.getName());
+        }
         //设置作业执行节点
-        AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
         if(combopVo.getConfig() != null && jsonObj.containsKey("executeConfig")){
             AutoexecCombopExecuteConfigVo executeConfigVo = JSON.toJavaObject(jsonObj.getJSONObject("executeConfig"), AutoexecCombopExecuteConfigVo.class);
             combopVo.getConfig().setExecuteConfig(executeConfigVo);
         }
+        autoexecCombopService.verifyAutoexecCombopConfig(combopVo);
         //TODO 校验执行参数
 
-        //校验是否允许执行
-        autoexecCombopService.setOperableButtonList(combopVo);
-        if (combopVo.getEditable() == 0) {
-            throw new AutoexecCombopCannotExecuteException(combopVo.getName());
-        }
         //并发数必须是2的n次方
         if ((threadCount & (threadCount - 1)) != 0) {
             throw new AutoexecJobThreadCountException();
         }
         AutoexecJobVo jobVo = autoexecJobService.saveAutoexecCombopJob(combopVo, jsonObj.getString("source"), threadCount, paramJson);
-        //对接proxy 创建python任务
-        //AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getFirstJobPhase(jobVo.getId());
-        //jobVo.setPhaseList(Collections.singletonList(jobPhaseVo));
+
         autoexecJobActionService.fire(jobVo);
         return new JSONObject(){{
             put("jobId",jobVo.getId());
