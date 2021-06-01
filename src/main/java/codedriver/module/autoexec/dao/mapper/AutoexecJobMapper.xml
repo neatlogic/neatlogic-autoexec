@@ -767,7 +767,7 @@
         <if test="status == 'completed' or status == 'failed'">
             `end_time` = NOW(3),
         </if>
-        `status` = #{status},
+        `status` = #{status}
         WHERE `job_id` = #{jobId}
         AND `job_phase_id` = #{jobPhaseId}
         AND `id` = #{id}
