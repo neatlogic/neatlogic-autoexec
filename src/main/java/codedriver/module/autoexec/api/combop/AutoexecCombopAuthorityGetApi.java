@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_EXECUTE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
 import codedriver.framework.autoexec.constvalue.CombopAuthorityAction;
@@ -30,6 +31,7 @@ import java.util.List;
  * @since 2021/4/13 11:21
  **/
 @Service
+@AuthAction(action = AUTOEXEC_BASE.class)
 @AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
 @AuthAction(action = AUTOEXEC_COMBOP_EXECUTE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
@@ -58,8 +60,7 @@ public class AutoexecCombopAuthorityGetApi extends PrivateApiComponentBase {
     })
     @Output({
             @Param(name = "editAuthorityList", type = ApiParamType.JSONARRAY, desc = "编辑授权列表"),
-            @Param(name = "executeAuthorityList", type = ApiParamType.JSONARRAY, desc = "执行授权列表"),
-            @Param(name = "viewAuthorityList", type = ApiParamType.JSONARRAY, desc = "查看授权列表")
+            @Param(name = "executeAuthorityList", type = ApiParamType.JSONARRAY, desc = "执行授权列表")
     })
     @Description(desc = "查询组合工具授权信息")
     @Override

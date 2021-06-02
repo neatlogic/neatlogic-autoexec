@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_EXECUTE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
@@ -47,6 +48,7 @@ import java.util.Objects;
  * @since 2021/4/13 15:29
  **/
 @Service
+@AuthAction(action = AUTOEXEC_BASE.class)
 @AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
 @AuthAction(action = AUTOEXEC_COMBOP_EXECUTE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
@@ -97,9 +99,9 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
             throw new AutoexecCombopNotFoundException(id);
         }
         autoexecCombopService.setOperableButtonList(autoexecCombopVo);
-        if (Objects.equals(autoexecCombopVo.getViewable(), 0)) {
-            throw new PermissionDeniedException();
-        }
+//        if (Objects.equals(autoexecCombopVo.getViewable(), 0)) {
+//            throw new PermissionDeniedException();
+//        }
         autoexecCombopVo.setOwner(GroupSearch.USER.getValuePlugin() + autoexecCombopVo.getOwner());
         List<AutoexecCombopParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
         autoexecCombopVo.setRuntimeParamList(runtimeParamList);
