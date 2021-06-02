@@ -53,8 +53,7 @@ public class AutoexecJobNextPhaseFireApi extends PublicApiComponentBase {
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
             @Param(name = "lastPhase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
             @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数"),
-            @Param(name = "time", type = ApiParamType.DOUBLE, desc = "回调时间"),
-            @Param(name = "fireNext", type = ApiParamType.INTEGER, desc = "是否激活下一个剧本，1:是 0:否")
+            @Param(name = "time", type = ApiParamType.DOUBLE, desc = "回调时间")
     })
     @Output({
     })
@@ -63,23 +62,20 @@ public class AutoexecJobNextPhaseFireApi extends PublicApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
         String lastPhase = jsonObj.getString("lastPhase");
-        Integer fireNext = jsonObj.getInteger("fireNext");
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
-        if(jobVo == null){
+        if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
         AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseLockByJobIdAndPhaseName(jobId, lastPhase);
         if (jobPhaseVo == null) {
-            throw new AutoexecJobPhaseNotFoundException(jobId+":"+lastPhase);
+            throw new AutoexecJobPhaseNotFoundException(jobId + ":" + lastPhase);
         }
-        //根据fireNext==1,则判断是否满足激活下个phase条件
-        if(fireNext != null && fireNext == 1 ){
-            if(autoexecJobService.checkIsAllActivePhaseIsCompleted(jobId,jobPhaseVo.getSort())) {
-                Integer sort = autoexecJobMapper.getNextJobPhaseSortByJobId(jobId);
-                if(sort != null) {
-                    autoexecJobService.getAutoexecJobDetail(jobVo, jobPhaseVo.getSort());
-                    autoexecJobActionService.fire(jobVo);
-                }
+        //判断是否满足激活下个phase条件
+        if (autoexecJobService.checkIsAllActivePhaseIsCompleted(jobId, jobPhaseVo.getSort())) {
+            Integer sort = autoexecJobMapper.getNextJobPhaseSortByJobId(jobId);
+            if (sort != null) {
+                autoexecJobService.getAutoexecJobDetail(jobVo, jobPhaseVo.getSort());
+                autoexecJobActionService.fire(jobVo);
             }
         }
         return null;
