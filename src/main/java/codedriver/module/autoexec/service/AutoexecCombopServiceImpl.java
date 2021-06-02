@@ -60,7 +60,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
     public void setOperableButtonList(AutoexecCombopVo autoexecCombopVo) {
         String userUuid = UserContext.get().getUserUuid(true);
         if (Objects.equals(autoexecCombopVo.getOwner(), userUuid)) {
-            autoexecCombopVo.setViewable(1);
+//            autoexecCombopVo.setViewable(1);
             autoexecCombopVo.setEditable(1);
             autoexecCombopVo.setDeletable(1);
             autoexecCombopVo.setExecutable(1);
@@ -70,22 +70,22 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
             List<String> roleUuidList = UserContext.get().getRoleUuidList();
             List<String> teamUuidList = teamMapper.getTeamUuidListByUserUuid(userUuid);
             List<String> authorityList = autoexecCombopMapper.getAutoexecCombopAuthorityListByCombopIdAndUserUuidAndTeamUuidListAndRoleUuidList(autoexecCombopVo.getId(), userUuid, teamUuidList, roleUuidList);
-            if (authorityList.contains(CombopAuthorityAction.VIEW.getValue())) {
-                autoexecCombopVo.setViewable(1);
-            } else {
-                autoexecCombopVo.setViewable(0);
-            }
+//            if (authorityList.contains(CombopAuthorityAction.VIEW.getValue())) {
+//                autoexecCombopVo.setViewable(1);
+//            } else {
+//                autoexecCombopVo.setViewable(0);
+//            }
             if (authorityList.contains(CombopAuthorityAction.EDIT.getValue())) {
                 autoexecCombopVo.setEditable(1);
                 autoexecCombopVo.setDeletable(1);
-                autoexecCombopVo.setViewable(1);
+//                autoexecCombopVo.setViewable(1);
             } else {
                 autoexecCombopVo.setEditable(0);
                 autoexecCombopVo.setDeletable(0);
             }
             if (authorityList.contains(CombopAuthorityAction.EXECUTE.getValue())) {
                 autoexecCombopVo.setExecutable(1);
-                autoexecCombopVo.setViewable(1);
+//                autoexecCombopVo.setViewable(1);
             } else {
                 autoexecCombopVo.setExecutable(0);
             }
