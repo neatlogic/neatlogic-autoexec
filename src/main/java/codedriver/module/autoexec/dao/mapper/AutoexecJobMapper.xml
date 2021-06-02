@@ -267,6 +267,7 @@
         SELECT id,
                job_id    as jobId,
                exec_mode as execMode,
+               `sort` ,
                `status`
         FROM `autoexec_job_phase`
         WHERE `job_id` = #{jobId}
