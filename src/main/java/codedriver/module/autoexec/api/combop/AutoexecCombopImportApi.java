@@ -9,7 +9,10 @@ import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
+import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.exception.file.FileExtNotAllowedException;
 import codedriver.framework.exception.file.FileNotUploadException;
@@ -137,9 +140,6 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                     return result.toString();
                 }
             }
-        } else {
-            autoexecCombopVo.setId(null);
-            id = autoexecCombopVo.getId();
         }
 
         List<String> failureReasonList = new ArrayList<>();
@@ -179,12 +179,21 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                         autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
                         phaseOperationList2.add(autoexecCombopPhaseOperationVo);
                         if (Objects.equals(autoexecCombopPhaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
-                            if (autoexecScriptMapper.checkScriptIsExistsById(autoexecCombopPhaseOperationVo.getOperationId()) == 0) {
+                            AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(autoexecCombopPhaseOperationVo.getOperationId());
+                            if (autoexecScriptVo == null) {
                                 failureReasonList.add("添加自定义工具：'" + autoexecCombopPhaseOperationVo.getOperationId() + "'");
+                            } else {
+                                AutoexecScriptVersionVo autoexecScriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(autoexecScriptVo.getId());
+                                if(autoexecScriptVersionVo == null){
+                                    failureReasonList.add("启用自定义工具：'" + autoexecScriptVo.getName() + "'");
+                                }
                             }
                         } else {
-                            if (autoexecToolMapper.checkToolExistsById(autoexecCombopPhaseOperationVo.getOperationId()) == 0) {
+                            AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(autoexecCombopPhaseOperationVo.getOperationId());
+                            if (autoexecToolVo == null) {
                                 failureReasonList.add("添加工具：'" + autoexecCombopPhaseOperationVo.getOperationId() + "'");
+                            } else if (Objects.equals(autoexecToolVo.getIsActive(), 0)) {
+                                failureReasonList.add("启用工具：'" + autoexecToolVo.getName() + "'");
                             }
                         }
                     }
@@ -192,7 +201,6 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                 combopPhaseList2.add(autoexecCombopPhaseVo);
             }
         }
-
 
         if (CollectionUtils.isEmpty(failureReasonList)) {
             if (oldAutoexecCombopVo == null) {
@@ -210,6 +218,9 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
             }
             List<AutoexecCombopParamVo> runtimeParamList = autoexecCombopVo.getRuntimeParamList();
             if (CollectionUtils.isNotEmpty(runtimeParamList)) {
+                for(AutoexecCombopParamVo paramVo : runtimeParamList){
+                    paramVo.setCombopId(id);
+                }
                 autoexecCombopMapper.insertAutoexecCombopParamVoList(runtimeParamList);
             }
             for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList2) {
