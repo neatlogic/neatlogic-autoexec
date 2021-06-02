@@ -51,7 +51,7 @@ public interface AutoexecJobActionService {
      *
      * @param jobVo 作业
      */
-    void stop(AutoexecJobVo jobVo);
+    void abort(AutoexecJobVo jobVo);
 
     /**
      * 重置作业节点

@@ -266,8 +266,26 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
      * @param jobVo 作业
      */
     @Override
-    public void stop(AutoexecJobVo jobVo) {
-
+    public void abort(AutoexecJobVo jobVo) {
+        List<AutoexecRunnerVo> runnerVos = autoexecJobMapper.getJobRunnerListByJobId(jobVo.getId());
+        List<String> refusedErrorList = new ArrayList<>();
+        List<String> authErrorList = new ArrayList<>();
+        JSONObject paramJson = new JSONObject();
+        for (AutoexecRunnerVo runner : runnerVos) {
+            String url = runner.getUrl() + "api/rest/job/abort";
+            RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
+            String result = RestUtil.sendRequest(restVo);
+            JSONObject resultJson = null;
+            try {
+                resultJson = JSONObject.parseObject(result);
+                if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
+                    authErrorList.add(restVo.getUrl() + ":" + resultJson.getString("Message"));
+                }
+            } catch (Exception ex) {
+                logger.error(ex.getMessage(), ex);
+                refusedErrorList.add(restVo.getUrl() + " " + result);
+            }
+        }
     }
 
     /**

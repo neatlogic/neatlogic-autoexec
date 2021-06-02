@@ -188,6 +188,7 @@
                `exec_mode`  as execMode,
                `name`       as name,
                `error_msg`  as errorMsg,
+               `sort`,
                `uk`         as uk
         FROM `autoexec_job_phase`
         where `job_id` = #{value}
@@ -492,7 +493,7 @@
     <select id="checkIsAllActivePhaseIsDone" resultType="java.lang.Integer">
         select count(1)
         from `autoexec_job_phase`
-        where `job_id` = #{job_id}
+        where `job_id` = #{jobId}
           and `sort` = #{sort}
           and `status` != 'completed'
     </select>

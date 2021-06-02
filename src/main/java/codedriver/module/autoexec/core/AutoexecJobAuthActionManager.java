@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.core;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
+import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.dao.mapper.TeamMapper;
@@ -15,10 +16,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author lvzkR
@@ -47,7 +45,7 @@ public class AutoexecJobAuthActionManager {
     @PostConstruct
     public void actionDispatcherInit() {
         actionMap.put("execJob", (jobVo) -> {
-            if (JobStatus.PENDING.getValue().equalsIgnoreCase(jobVo.getStatus())) {
+            if (JobStatus.PENDING.getValue().equalsIgnoreCase(jobVo.getStatus())||jobVo.getPhaseList().stream().allMatch(o-> Objects.equals(o.getStatus(), JobPhaseStatus.PENDING.getValue()))) {
                 jobVo.setIsCanJobExec(1);
             }
         });

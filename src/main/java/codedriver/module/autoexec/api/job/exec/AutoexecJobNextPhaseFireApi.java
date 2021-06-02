@@ -5,11 +5,15 @@
 
 package codedriver.module.autoexec.api.job.exec;
 
+import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.dao.mapper.UserMapper;
+import codedriver.framework.dto.UserVo;
+import codedriver.framework.exception.user.UserNotFoundException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
@@ -39,6 +43,9 @@ public class AutoexecJobNextPhaseFireApi extends PublicApiComponentBase {
     @Resource
     AutoexecJobService autoexecJobService;
 
+    @Resource
+    UserMapper userMapper;
+
     @Override
     public String getName() {
         return "激活作业下一阶段剧本";
@@ -66,6 +73,12 @@ public class AutoexecJobNextPhaseFireApi extends PublicApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
+        //初始化执行用户上下文
+        UserVo execUser = userMapper.getUserBaseInfoByUuid(jobVo.getExecUser());
+        if(execUser == null){
+            throw  new UserNotFoundException(jobVo.getExecUser());
+        }
+        UserContext.init(execUser,"+8:00");
         AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseLockByJobIdAndPhaseName(jobId, lastPhase);
         if (jobPhaseVo == null) {
             throw new AutoexecJobPhaseNotFoundException(jobId + ":" + lastPhase);
@@ -74,7 +87,7 @@ public class AutoexecJobNextPhaseFireApi extends PublicApiComponentBase {
         if (autoexecJobService.checkIsAllActivePhaseIsCompleted(jobId, jobPhaseVo.getSort())) {
             Integer sort = autoexecJobMapper.getNextJobPhaseSortByJobId(jobId);
             if (sort != null) {
-                autoexecJobService.getAutoexecJobDetail(jobVo, jobPhaseVo.getSort());
+                autoexecJobService.getAutoexecJobDetail(jobVo, sort);
                 autoexecJobActionService.fire(jobVo);
             }
         }
