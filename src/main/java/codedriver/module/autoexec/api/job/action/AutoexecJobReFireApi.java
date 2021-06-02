@@ -3,7 +3,7 @@
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  */
 
-package codedriver.module.autoexec.api.job;
+package codedriver.module.autoexec.api.job.action;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_JOB_MODIFY;
@@ -20,13 +20,13 @@ import javax.annotation.Resource;
 
 /**
  * @author lvzk
- * @since 2021/4/21 15:20
+ * @since 2021/6/2 15:20
  **/
 
 @Service
 @AuthAction(action = AUTOEXEC_JOB_MODIFY.class)
 @OperationType(type = OperationTypeEnum.OPERATE)
-public class AutoexecJobAbortApi extends PrivateApiComponentBase {
+public class AutoexecJobReFireApi extends PrivateApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
 
@@ -35,7 +35,7 @@ public class AutoexecJobAbortApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "中止作业";
+        return "重跑作业";
     }
 
     @Override
@@ -48,7 +48,7 @@ public class AutoexecJobAbortApi extends PrivateApiComponentBase {
     })
     @Output({
     })
-    @Description(desc = "删除作业")
+    @Description(desc = "重跑作业")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         //autoexecJobMapper.getJobLockByJobId();
@@ -57,6 +57,6 @@ public class AutoexecJobAbortApi extends PrivateApiComponentBase {
 
     @Override
     public String getToken() {
-        return "autoexec/job/stop";
+        return "autoexec/job/refire";
     }
 }

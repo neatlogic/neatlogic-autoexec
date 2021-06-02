@@ -268,7 +268,7 @@
         SELECT id,
                job_id    as jobId,
                exec_mode as execMode,
-               `sort` ,
+               `sort`,
                `status`
         FROM `autoexec_job_phase`
         WHERE `job_id` = #{jobId}
@@ -607,19 +607,32 @@
         <result column="end_time" property="endTime"/>
         <association property="autoexecRunnerVo" javaType="codedriver.framework.autoexec.dto.AutoexecRunnerVo">
             <id column="runnerId" property="id"/>
-            <result  column="runnerName" property="name"/>
-            <result  column="url" property="url"/>
-            <result  column="host" property="host"/>
-            <result  column="port" property="port"/>
+            <result column="runnerName" property="name"/>
+            <result column="url" property="url"/>
+            <result column="host" property="host"/>
+            <result column="port" property="port"/>
         </association>
     </resultMap>
     <select id="getJobRunnerByJobIdAndPhaseId" resultMap="jobPhaseNodeMap">
-        SELECT
-            ar.`id` as runnerId, ar.`name` as runnerName, ar.`url`, ar.`host`, ar.`port`,ajpn.`start_time`,ajpn.`end_time`,ajpn.`id`
+        SELECT ar.`id`   as runnerId,
+               ar.`name` as runnerName,
+               ar.`url`,
+               ar.`host`,
+               ar.`port`,
+               ajpn.`start_time`,
+               ajpn.`end_time`,
+               ajpn.`id`
         FROM `autoexec_job_phase_node` ajpn
                  LEFT JOIN `autoexec_job_phase_node_runner` ajpnr ON ajpn.`id` = ajpnr.`node_id`
-                 LEFT JOIN `autoexec_runner` ar ON ajpnr.`runner_id` =  ar.`id`
-        WHERE ajpn.`job_id` = #{jobId} and ajpn.`job_phase_id` = #{jobPhaseId}
+                 LEFT JOIN `autoexec_runner` ar ON ajpnr.`runner_id` = ar.`id`
+        WHERE ajpn.`job_id` = #{jobId}
+          and ajpn.`job_phase_id` = #{jobPhaseId}
+    </select>
+    <select id="checkIsHasRunningNode" resultType="java.lang.Integer">
+        select count(1)
+        from `autoexec_job_phase_node`
+        WHERE `job_id` = #{value}
+          and `status` = 'running'
     </select>
 
     <insert id="insertJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">

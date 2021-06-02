@@ -44,9 +44,9 @@ public class AutoexecJobAuthActionManager {
 
     @PostConstruct
     public void actionDispatcherInit() {
-        actionMap.put("execJob", (jobVo) -> {
-            if (JobStatus.PENDING.getValue().equalsIgnoreCase(jobVo.getStatus())||jobVo.getPhaseList().stream().allMatch(o-> Objects.equals(o.getStatus(), JobPhaseStatus.PENDING.getValue()))) {
-                jobVo.setIsCanJobExec(1);
+        actionMap.put("fireJob", (jobVo) -> {
+            if (JobStatus.PENDING.getValue().equalsIgnoreCase(jobVo.getStatus()) || jobVo.getPhaseList().stream().allMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.PENDING.getValue()))) {
+                jobVo.setIsCanJobFire(1);
             }
         });
 
@@ -56,9 +56,9 @@ public class AutoexecJobAuthActionManager {
             }
         });
 
-        actionMap.put("stopJob", (jobVo) -> {
+        actionMap.put("abortJob", (jobVo) -> {
             if (JobStatus.RUNNING.getValue().equalsIgnoreCase(jobVo.getStatus())) {
-                jobVo.setIsCanJobStop(1);
+                jobVo.setIsCanJobAbort(1);
             }
         });
 
@@ -68,9 +68,12 @@ public class AutoexecJobAuthActionManager {
             }
         });
 
-        actionMap.put("redoJob", (jobVo) -> {
-            if (JobStatus.ABORTED.getValue().equalsIgnoreCase(jobVo.getStatus()) || JobStatus.PAUSED.getValue().equalsIgnoreCase(jobVo.getStatus())) {
-                jobVo.setIsCanJobRedo(1);
+        actionMap.put("reFireJob", (jobVo) -> {
+            if(CollectionUtils.isEmpty(jobVo.getPhaseList())){
+                jobVo.setPhaseList(autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId()));
+            }
+            if (!JobStatus.RUNNING.getValue().equalsIgnoreCase(jobVo.getStatus()) && jobVo.getPhaseList().stream().noneMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.RUNNING.getValue())) && autoexecJobMapper.checkIsHasRunningNode(jobVo.getId()) == 0) {
+                jobVo.setIsCanJobReFire(1);
             }
         });
 
@@ -97,6 +100,7 @@ public class AutoexecJobAuthActionManager {
      * 设置作业操作权限
      * 1、先判断有没有执行权限
      * 2、按需要，根据指定操作判断权限（如果没有指定的，默认判断所有操作权限）
+     *
      * @param autoexecJobVo 作业参数
      */
     public void setAutoexecJobAction(AutoexecJobVo autoexecJobVo) {
@@ -105,12 +109,12 @@ public class AutoexecJobAuthActionManager {
         userList.addAll(UserContext.get().getRoleUuidList());
         userList.addAll(teamMapper.getTeamUuidListByUserUuid(UserContext.get().getUserUuid()));
         if (autoexecJobMapper.checkIsJobUser(autoexecJobVo.getId(), userList) > 0) {
-            if(CollectionUtils.isNotEmpty(actionList)) {
+            if (CollectionUtils.isNotEmpty(actionList)) {
                 for (String action : actionList) {
                     actionMap.get(action).execute(autoexecJobVo);
                 }
-            }else{
-                for(Map.Entry<String,Action<AutoexecJobVo>> entry : actionMap.entrySet()){
+            } else {
+                for (Map.Entry<String, Action<AutoexecJobVo>> entry : actionMap.entrySet()) {
                     entry.getValue().execute(autoexecJobVo);
                 }
             }
@@ -128,8 +132,8 @@ public class AutoexecJobAuthActionManager {
             return this;
         }
 
-        public Builder addStopJob() {
-            this.actionList.add("stopJob");
+        public Builder addAbortJob() {
+            this.actionList.add("abortJob");
             return this;
         }
 
@@ -138,18 +142,13 @@ public class AutoexecJobAuthActionManager {
             return this;
         }
 
-        public Builder addRedoJob() {
-            this.actionList.add("redoJob");
+        public Builder addFireJob() {
+            this.actionList.add("fireJob");
             return this;
         }
 
-        public Builder addResetJobNode() {
-            this.actionList.add("resetJobNode");
-            return this;
-        }
-
-        public Builder addIgnoreJobNode() {
-            this.actionList.add("ignoreJobNode");
+        public Builder addReFireJob() {
+            this.actionList.add("reFireJob");
             return this;
         }
 
