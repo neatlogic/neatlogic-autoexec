@@ -67,7 +67,7 @@ public class AutoexecScriptActiveVersionGetApi extends PublicApiComponentBase {
         }
         AutoexecScriptVersionVo scriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(operationId);
         if (scriptVersionVo == null) {
-            throw new AutoexecScriptVersionHasNoActivedException();
+            throw new AutoexecScriptVersionHasNoActivedException(operationId.toString());
         }
         if (lastModified != null) {
             if (lastModified * 1000 >= scriptVersionVo.getLcd().getTime()) {

@@ -265,7 +265,6 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                 if (CollectionUtils.isEmpty(selectNodeList) && CollectionUtils.isEmpty(inputNodeList) && CollectionUtils.isEmpty(paramList) && CollectionUtils.isEmpty(tagList)) {
                     throw new AutoexecCombopExecuteNodeCannotBeEmptyException();
                 }
-                // TODO 验证执行用户是否存在
             }
         }
 
@@ -276,7 +275,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
     public String getOperationActiveVersionScriptByOperationId(Long operationId){
         AutoexecScriptVersionVo scriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(operationId);
         if (scriptVersionVo == null) {
-            throw new AutoexecScriptVersionHasNoActivedException();
+            throw new AutoexecScriptVersionHasNoActivedException(operationId.toString());
         }
         return getOperationActiveVersionScriptByOperation(scriptVersionVo);
     }

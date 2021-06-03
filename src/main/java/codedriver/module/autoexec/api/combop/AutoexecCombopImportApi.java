@@ -168,44 +168,47 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
         int iSort = 0;
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
-        for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
-            if (autoexecCombopPhaseVo != null) {
-                autoexecCombopPhaseVo.setId(null);
-                autoexecCombopPhaseVo.setCombopId(id);
-                autoexecCombopPhaseVo.setSort(iSort++);
-                AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
-                List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
-                Long combopPhaseId = autoexecCombopPhaseVo.getId();
-                int jSort = 0;
-                for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
-                    if (autoexecCombopPhaseOperationVo != null) {
-                        autoexecCombopPhaseOperationVo.setSort(jSort++);
-                        autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
-                        phaseOperationList2.add(autoexecCombopPhaseOperationVo);
-                        if (Objects.equals(autoexecCombopPhaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
-                            AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(autoexecCombopPhaseOperationVo.getOperationId());
-                            if (autoexecScriptVo == null) {
-                                failureReasonSet.add("添加自定义工具：'" + autoexecCombopPhaseOperationVo.getOperationId() + "'");
-                            } else {
-                                AutoexecScriptVersionVo autoexecScriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(autoexecScriptVo.getId());
-                                if(autoexecScriptVersionVo == null){
-                                    failureReasonSet.add("启用自定义工具：'" + autoexecScriptVo.getName() + "'");
+        if (CollectionUtils.isNotEmpty(combopPhaseList)) {
+            for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
+                if (autoexecCombopPhaseVo != null) {
+                    autoexecCombopPhaseVo.setId(null);
+                    autoexecCombopPhaseVo.setCombopId(id);
+                    autoexecCombopPhaseVo.setSort(iSort++);
+                    AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
+                    List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
+                    if (CollectionUtils.isNotEmpty(phaseOperationList)) {
+                        Long combopPhaseId = autoexecCombopPhaseVo.getId();
+                        int jSort = 0;
+                        for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
+                            if (autoexecCombopPhaseOperationVo != null) {
+                                autoexecCombopPhaseOperationVo.setSort(jSort++);
+                                autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
+                                phaseOperationList2.add(autoexecCombopPhaseOperationVo);
+                                if (Objects.equals(autoexecCombopPhaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
+                                    AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(autoexecCombopPhaseOperationVo.getOperationId());
+                                    if (autoexecScriptVo == null) {
+                                        failureReasonSet.add("添加自定义工具：'" + autoexecCombopPhaseOperationVo.getOperationId() + "'");
+                                    } else {
+                                        AutoexecScriptVersionVo autoexecScriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(autoexecScriptVo.getId());
+                                        if (autoexecScriptVersionVo == null) {
+                                            failureReasonSet.add("启用自定义工具：'" + autoexecScriptVo.getName() + "'");
+                                        }
+                                    }
+                                } else {
+                                    AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(autoexecCombopPhaseOperationVo.getOperationId());
+                                    if (autoexecToolVo == null) {
+                                        failureReasonSet.add("添加工具：'" + autoexecCombopPhaseOperationVo.getOperationId() + "'");
+                                    } else if (Objects.equals(autoexecToolVo.getIsActive(), 0)) {
+                                        failureReasonSet.add("启用工具：'" + autoexecToolVo.getName() + "'");
+                                    }
                                 }
-                            }
-                        } else {
-                            AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(autoexecCombopPhaseOperationVo.getOperationId());
-                            if (autoexecToolVo == null) {
-                                failureReasonSet.add("添加工具：'" + autoexecCombopPhaseOperationVo.getOperationId() + "'");
-                            } else if (Objects.equals(autoexecToolVo.getIsActive(), 0)) {
-                                failureReasonSet.add("启用工具：'" + autoexecToolVo.getName() + "'");
                             }
                         }
                     }
+                    combopPhaseList2.add(autoexecCombopPhaseVo);
                 }
-                combopPhaseList2.add(autoexecCombopPhaseVo);
             }
         }
-
         if (CollectionUtils.isEmpty(failureReasonSet)) {
             if (oldAutoexecCombopVo == null) {
                 autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
