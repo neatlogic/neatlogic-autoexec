@@ -65,7 +65,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     public void fire(AutoexecJobVo jobVo) {
         autoexecJobMapper.getJobLockByJobId(jobVo.getId());
         new AutoexecJobAuthActionManager.Builder().addFireJob().addReFireJob().build().setAutoexecJobAction(jobVo);
-        if (jobVo.getIsCanJobFire() == 1||jobVo.getIsCanJobReFire() == 1) {
+        if (jobVo.getIsCanJobFire() == 1 || jobVo.getIsCanJobReFire() == 1) {
             jobVo.setStatus(JobStatus.RUNNING.getValue());
             autoexecJobMapper.updateJobStatus(jobVo);
             int sort = 0;
@@ -269,39 +269,48 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     @Override
     public void abort(AutoexecJobVo jobVo) {
         new AutoexecJobAuthActionManager.Builder().addAbortJob().build().setAutoexecJobAction(jobVo);
-        if(jobVo.getIsCanJobAbort() == 1) {
+        if (jobVo.getIsCanJobAbort() == 1) {
             jobVo.setStatus(JobStatus.ABORTING.getValue());
             autoexecJobMapper.updateJobStatus(jobVo);
             for (AutoexecJobPhaseVo jobPhase : jobVo.getPhaseList()) {
-                if(Objects.equals(jobPhase.getStatus(),JobPhaseStatus.RUNNING.getValue())) {
+                if (Objects.equals(jobPhase.getStatus(), JobPhaseStatus.RUNNING.getValue())) {
                     jobPhase.setStatus(JobPhaseStatus.ABORTING.getValue());
                     autoexecJobMapper.updateJobPhaseStatus(jobPhase);
                 }
             }
             List<AutoexecRunnerVo> runnerVos = autoexecJobMapper.getJobRunnerListByJobId(jobVo.getId());
-            List<String> refusedErrorList = new ArrayList<>();
-            List<String> authErrorList = new ArrayList<>();
             JSONObject paramJson = new JSONObject();
             paramJson.put("jobId", jobVo.getId());
             paramJson.put("tenant", TenantContext.get().getTenantUuid());
             paramJson.put("execUser", UserContext.get().getUserUuid(true));
             paramJson.put("passThroughEnv", null); //回调需要的返回的参数
-            for (AutoexecRunnerVo runner : runnerVos) {
-                String url = runner.getUrl() + "api/rest/job/abort";
-                RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
-                String result = RestUtil.sendRequest(restVo);
-                JSONObject resultJson = null;
-                try {
-                    resultJson = JSONObject.parseObject(result);
+            //TODO 校验连通性
+            RestVo restVo = null;
+            String result = StringUtils.EMPTY;
+            try {
+                for (AutoexecRunnerVo runner : runnerVos) {
+                    String url = runner.getUrl() + "api/rest/job/abort";
+                    restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
+                    result = RestUtil.sendRequest(restVo);
+                    JSONObject resultJson = JSONObject.parseObject(result);
                     if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                        authErrorList.add(restVo.getUrl() + ":" + resultJson.getString("Message"));
+                        throw new AutoexecJobRunnerConnectAuthException(restVo.getUrl() + ":" + resultJson.getString("Message"));
+                    }else{
+                        jobVo.setStatus(JobStatus.ABORTED.getValue());
+                        autoexecJobMapper.updateJobStatus(jobVo);
+                        for (AutoexecJobPhaseVo jobPhase : jobVo.getPhaseList()) {
+                            if (Objects.equals(jobPhase.getStatus(), JobPhaseStatus.ABORTING.getValue())) {
+                                jobPhase.setStatus(JobPhaseStatus.ABORTED.getValue());
+                                autoexecJobMapper.updateJobPhaseStatus(jobPhase);
+                            }
+                        }
                     }
-                } catch (Exception ex) {
-                    logger.error(ex.getMessage(), ex);
-                    refusedErrorList.add(restVo.getUrl() + " " + result);
                 }
+            } catch (Exception ex) {
+                logger.error(ex.getMessage(), ex);
+                throw new AutoexecJobRunnerConnectRefusedException(restVo.getUrl() + " " + result);
             }
-        }else{
+        } else {
             throw new AutoexecJobCanNotAbortException();
         }
     }
