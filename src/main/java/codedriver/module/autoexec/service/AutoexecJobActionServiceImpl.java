@@ -63,8 +63,8 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     @Override
     public void fire(AutoexecJobVo jobVo) {
         autoexecJobMapper.getJobLockByJobId(jobVo.getId());
-        autoexecJobAuthActionManager.setAutoexecJobAction(jobVo);
-        if (jobVo.getIsCanJobExec() == 1) {
+        new AutoexecJobAuthActionManager.Builder().addFireJob().addReFireJob().build().setAutoexecJobAction(jobVo);
+        if (jobVo.getIsCanJobFire() == 1||jobVo.getIsCanJobReFire() == 1) {
             jobVo.setStatus(JobStatus.RUNNING.getValue());
             autoexecJobMapper.updateJobStatus(jobVo);
             int sort = 0;
@@ -152,7 +152,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                                 put("scriptId", operationVo.getScriptId());
                                 put("interpreter", operationVo.getParser());
                                 //TODO tool 暂未实现
-                                put("script", operationVo.getScript());
+                                //put("script", operationVo.getScript());
                                 JSONObject param = operationVo.getParam();
                                 put("arg", new JSONObject() {{
                                     for (Object arg : param.getJSONArray("inputParamList")) {
@@ -231,6 +231,15 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         }
     }
 
+    /**
+     * 重跑作业
+     *
+     * @param jobVo 作业
+     */
+    @Override
+    public void reFire(AutoexecJobVo jobVo) {
+    }
+
     @Override
     public JSONObject tailConsoleLog(JSONObject paramJson) {
         String url = paramJson.getString("runnerUrl") + "/api/rest/job/console/log/tail";
@@ -267,23 +276,26 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
      */
     @Override
     public void abort(AutoexecJobVo jobVo) {
-        List<AutoexecRunnerVo> runnerVos = autoexecJobMapper.getJobRunnerListByJobId(jobVo.getId());
-        List<String> refusedErrorList = new ArrayList<>();
-        List<String> authErrorList = new ArrayList<>();
-        JSONObject paramJson = new JSONObject();
-        for (AutoexecRunnerVo runner : runnerVos) {
-            String url = runner.getUrl() + "api/rest/job/abort";
-            RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
-            String result = RestUtil.sendRequest(restVo);
-            JSONObject resultJson = null;
-            try {
-                resultJson = JSONObject.parseObject(result);
-                if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                    authErrorList.add(restVo.getUrl() + ":" + resultJson.getString("Message"));
+        new AutoexecJobAuthActionManager.Builder().addAbortJob().build().setAutoexecJobAction(jobVo);
+        if(jobVo.getIsCanJobAbort() == 1) {
+            List<AutoexecRunnerVo> runnerVos = autoexecJobMapper.getJobRunnerListByJobId(jobVo.getId());
+            List<String> refusedErrorList = new ArrayList<>();
+            List<String> authErrorList = new ArrayList<>();
+            JSONObject paramJson = new JSONObject();
+            for (AutoexecRunnerVo runner : runnerVos) {
+                String url = runner.getUrl() + "api/rest/job/abort";
+                RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
+                String result = RestUtil.sendRequest(restVo);
+                JSONObject resultJson = null;
+                try {
+                    resultJson = JSONObject.parseObject(result);
+                    if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
+                        authErrorList.add(restVo.getUrl() + ":" + resultJson.getString("Message"));
+                    }
+                } catch (Exception ex) {
+                    logger.error(ex.getMessage(), ex);
+                    refusedErrorList.add(restVo.getUrl() + " " + result);
                 }
-            } catch (Exception ex) {
-                logger.error(ex.getMessage(), ex);
-                refusedErrorList.add(restVo.getUrl() + " " + result);
             }
         }
     }
@@ -306,19 +318,6 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     @Override
     public void ignore(AutoexecJobPhaseVo jobPhase) {
 
-    }
-
-    /**
-     * 实时获取作业剧本节点执行情况
-     *
-     * @param jobPhaseNode 作业剧本节点
-     * @param position     日志位置
-     * @param path         日志path
-     * @return 日志内容
-     */
-    @Override
-    public AutoexecJobLogVo logTail(AutoexecJobPhaseNodeVo jobPhaseNode, Integer position, String path) {
-        return null;
     }
 
     /**

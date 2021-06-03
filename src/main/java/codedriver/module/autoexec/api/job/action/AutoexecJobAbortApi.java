@@ -3,16 +3,16 @@
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  */
 
-package codedriver.module.autoexec.api.job;
+package codedriver.module.autoexec.api.job.action;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_JOB_MODIFY;
+import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.module.autoexec.core.AutoexecJobAuthActionManager;
-import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.module.autoexec.service.AutoexecJobActionService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
@@ -28,10 +28,7 @@ import javax.annotation.Resource;
 @OperationType(type = OperationTypeEnum.OPERATE)
 public class AutoexecJobAbortApi extends PrivateApiComponentBase {
     @Resource
-    AutoexecJobMapper autoexecJobMapper;
-
-    @Resource
-    AutoexecJobAuthActionManager autoexecJobAuthActionManager;
+    AutoexecJobActionService autoexecJobActionService;
 
     @Override
     public String getName() {
@@ -48,10 +45,10 @@ public class AutoexecJobAbortApi extends PrivateApiComponentBase {
     })
     @Output({
     })
-    @Description(desc = "删除作业")
+    @Description(desc = "中止作业")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        //autoexecJobMapper.getJobLockByJobId();
+        autoexecJobActionService.abort(new AutoexecJobVo(jsonObj.getLong("jobId")));
         return null;
     }
 

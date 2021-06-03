@@ -40,6 +40,13 @@ public interface AutoexecJobActionService {
     JSONObject tailNodeLog(JSONObject paramJson);
 
     /**
+     * 重跑作业
+     *
+     * @param jobVo 作业
+     */
+    void reFire(AutoexecJobVo jobVo);
+
+    /**
      * 暂停作业
      *
      * @param jobVo 作业
@@ -66,16 +73,6 @@ public interface AutoexecJobActionService {
      * @param jobPhase 作业剧本
      */
     public void ignore(AutoexecJobPhaseVo jobPhase);
-
-    /**
-     * 实时获取作业剧本节点执行情况
-     *
-     * @param jobPhaseNode 作业剧本节点
-     * @param position     日志位置
-     * @param path         日志path
-     * @return 日志内容
-     */
-    AutoexecJobLogVo logTail(AutoexecJobPhaseNodeVo jobPhaseNode, Integer position, String path);
 
     /**
      * 下载作业剧本节点执行情况
