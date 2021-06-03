@@ -159,65 +159,43 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
         }
         if (CollectionUtils.isEmpty(failReasonList)) {
             if (oldScriptVo != null) {
+                scriptVo.setLcu(UserContext.get().getUserUuid());
                 autoexecScriptMapper.updateScriptBaseInfo(scriptVo);
-                if (CollectionUtils.isNotEmpty(versionList)) {
-                    for (AutoexecScriptVersionVo versionVo : versionList) {
-                        String versionStr = "版本-" + versionVo.getVersion() + "：";
-                        try {
-                            if (CollectionUtils.isNotEmpty(versionVo.getParamList())) {
-                                autoexecService.validateParamList(versionVo.getParamList());
-                            }
-                        } catch (ApiRuntimeException ex) {
-                            failReasonList.add(versionStr + ex.getMessage());
-                            continue;
-                        }
-                        if (StringUtils.isBlank(versionVo.getParser())) {
-                            failReasonList.add(versionStr + "脚本解析器为空");
-                            continue;
-                        } else if (ScriptParser.getScriptParser(versionVo.getParser()) == null) {
-                            failReasonList.add(versionStr + "不存在的脚本解析器[" + versionVo.getParser() + "]");
-                            continue;
-                        }
-                        AutoexecScriptVersionVo oldVersion = autoexecScriptMapper.getVersionByVersionIdForUpdate(versionVo.getId());
-                        if (oldVersion != null) {
-                            oldVersion.setParamList(autoexecScriptMapper.getParamListByVersionId(versionVo.getId()));
-                            oldVersion.setLineList(autoexecScriptMapper.getLineListByVersionId(versionVo.getId()));
-                            if (autoexecScriptService.checkScriptVersionNeedToUpdate(oldVersion, versionVo)) {
-                                autoexecScriptMapper.deleteParamByVersionId(versionVo.getId());
-                                autoexecScriptMapper.deleteScriptLineByVersionId(versionVo.getId());
-                                autoexecScriptService.saveParamList(versionVo.getId(), oldVersion.getParamList(), versionVo.getParamList());
-                                autoexecScriptService.saveLineList(id, versionVo.getId(), versionVo.getLineList());
-                                versionVo.setLcu(UserContext.get().getUserUuid());
-                                autoexecScriptMapper.updateScriptVersion(versionVo);
-                            }
-                        } else {
-                            autoexecScriptService.saveParamList(versionVo.getId(), null, versionVo.getParamList());
-                            autoexecScriptService.saveLineList(id, versionVo.getId(), versionVo.getLineList());
-                            autoexecScriptMapper.insertScriptVersion(versionVo);
-                        }
-                    }
-                }
             } else {
                 scriptVo.setFcu(UserContext.get().getUserUuid());
                 autoexecScriptMapper.insertScript(scriptVo);
-                if (CollectionUtils.isNotEmpty(versionList)) {
-                    for (AutoexecScriptVersionVo versionVo : versionList) {
-                        String versionStr = "版本-" + versionVo.getVersion() + "：";
-                        try {
-                            if (CollectionUtils.isNotEmpty(versionVo.getParamList())) {
-                                autoexecService.validateParamList(versionVo.getParamList());
-                            }
-                        } catch (ApiRuntimeException ex) {
-                            failReasonList.add(versionStr + ex.getMessage());
-                            continue;
+            }
+            if (CollectionUtils.isNotEmpty(versionList)) {
+                for (AutoexecScriptVersionVo versionVo : versionList) {
+                    String versionStr = "版本-" + versionVo.getVersion() + "：";
+                    try {
+                        if (CollectionUtils.isNotEmpty(versionVo.getParamList())) {
+                            autoexecService.validateParamList(versionVo.getParamList());
                         }
-                        if (StringUtils.isBlank(versionVo.getParser())) {
-                            failReasonList.add(versionStr + "脚本解析器为空");
-                            continue;
-                        } else if (ScriptParser.getScriptParser(versionVo.getParser()) == null) {
-                            failReasonList.add(versionStr + "不存在的脚本解析器[" + versionVo.getParser() + "]");
-                            continue;
+                    } catch (ApiRuntimeException ex) {
+                        failReasonList.add(versionStr + ex.getMessage());
+                        continue;
+                    }
+                    if (StringUtils.isBlank(versionVo.getParser())) {
+                        failReasonList.add(versionStr + "脚本解析器为空");
+                        continue;
+                    } else if (ScriptParser.getScriptParser(versionVo.getParser()) == null) {
+                        failReasonList.add(versionStr + "不存在的脚本解析器[" + versionVo.getParser() + "]");
+                        continue;
+                    }
+                    AutoexecScriptVersionVo oldVersion = autoexecScriptMapper.getVersionByVersionIdForUpdate(versionVo.getId());
+                    if (oldVersion != null) {
+                        oldVersion.setParamList(autoexecScriptMapper.getParamListByVersionId(versionVo.getId()));
+                        oldVersion.setLineList(autoexecScriptMapper.getLineListByVersionId(versionVo.getId()));
+                        if (autoexecScriptService.checkScriptVersionNeedToUpdate(oldVersion, versionVo)) {
+                            autoexecScriptMapper.deleteParamByVersionId(versionVo.getId());
+                            autoexecScriptMapper.deleteScriptLineByVersionId(versionVo.getId());
+                            autoexecScriptService.saveParamList(versionVo.getId(), oldVersion.getParamList(), versionVo.getParamList());
+                            autoexecScriptService.saveLineList(id, versionVo.getId(), versionVo.getLineList());
+                            versionVo.setLcu(UserContext.get().getUserUuid());
+                            autoexecScriptMapper.updateScriptVersion(versionVo);
                         }
+                    } else {
                         autoexecScriptService.saveParamList(versionVo.getId(), null, versionVo.getParamList());
                         autoexecScriptService.saveLineList(id, versionVo.getId(), versionVo.getLineList());
                         autoexecScriptMapper.insertScriptVersion(versionVo);
