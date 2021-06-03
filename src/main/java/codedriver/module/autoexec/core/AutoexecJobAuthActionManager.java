@@ -26,7 +26,7 @@ import java.util.*;
 public class AutoexecJobAuthActionManager {
     private static TeamMapper teamMapper;
     private static AutoexecJobMapper autoexecJobMapper;
-    public final Map<String, Action<AutoexecJobVo>> actionMap = new HashMap<>();
+    public static final Map<String, Action<AutoexecJobVo>> actionMap = new HashMap<>();
     private List<String> actionList = new ArrayList<>();
 
     public AutoexecJobAuthActionManager() {

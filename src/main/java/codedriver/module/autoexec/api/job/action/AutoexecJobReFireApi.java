@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 
 /**
+ * 仅允许phase 和 node 状态都不是running的情况下才能执行重跑动作
  * @author lvzk
  * @since 2021/6/2 15:20
  **/
