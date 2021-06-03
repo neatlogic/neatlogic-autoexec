@@ -83,11 +83,6 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
             if (CollectionUtils.isNotEmpty(hasBeenGeneratedToCombopList)) {
                 hasBeenGeneratedToCombopList.stream().forEach(o -> hasBeenGeneratedToCombopMap.put(o.getId(), o.getHasBeenGeneratedToCombop() > 0 ? true : false));
             }
-            List<AutoexecToolVo> referenceCountList = autoexecToolMapper.getReferenceCountListByToolIdList(idList);
-            Map<Long, Boolean> referenceCountMap = new HashMap<>();
-            if (CollectionUtils.isNotEmpty(referenceCountList)) {
-                referenceCountList.stream().forEach(o -> referenceCountMap.put(o.getId(), o.getReferenceCount() > 0 ? true : false));
-            }
             // 获取操作按钮
             Boolean hasScriptModifyAuth = AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName());
             Boolean hasCombopModifyAuth = AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_COMBOP_MODIFY.class.getSimpleName());
@@ -95,6 +90,7 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
                 List<OperateVo> operateList = new ArrayList<>();
                 if (hasScriptModifyAuth) {
                     operateList.add(new OperateVo(ScriptAndToolOperate.TEST.getValue(), ScriptAndToolOperate.TEST.getText()));
+                    operateList.add(new OperateVo(ScriptAndToolOperate.ACTIVE.getValue(), ScriptAndToolOperate.ACTIVE.getText()));
                 }
                 if (hasCombopModifyAuth) {
                     OperateVo vo = new OperateVo(ScriptAndToolOperate.GENERATETOCOMBOP.getValue(), ScriptAndToolOperate.GENERATETOCOMBOP.getText());
@@ -104,14 +100,6 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
                     } else if (!Objects.equals(o.getIsActive(), 1)) {
                         vo.setDisabled(1);
                         vo.setDisabledReason("当前工具未激活，无法发布为组合工具");
-                    }
-                    operateList.add(vo);
-                }
-                if (hasScriptModifyAuth) {
-                    OperateVo vo = new OperateVo(ScriptAndToolOperate.ACTIVE.getValue(), ScriptAndToolOperate.ACTIVE.getText());
-                    if (MapUtils.isNotEmpty(referenceCountMap) && Objects.equals(referenceCountMap.get(o.getId()), true) && Objects.equals(o.getIsActive(), 1)) {
-                        vo.setDisabled(1);
-                        vo.setDisabledReason("当前工具已被组合工具引用，不可禁用");
                     }
                     operateList.add(vo);
                 }
