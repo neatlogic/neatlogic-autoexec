@@ -44,7 +44,7 @@ public interface AutoexecJobActionService {
      *
      * @param jobVo 作业
      */
-    void reExecute(AutoexecJobVo jobVo);
+    void reFire(AutoexecJobVo jobVo);
 
     /**
      * 暂停作业

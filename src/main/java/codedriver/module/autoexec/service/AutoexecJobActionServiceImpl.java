@@ -237,7 +237,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
      * @param jobVo 作业
      */
     @Override
-    public void reExecute(AutoexecJobVo jobVo) {
+    public void reFire(AutoexecJobVo jobVo) {
     }
 
     @Override

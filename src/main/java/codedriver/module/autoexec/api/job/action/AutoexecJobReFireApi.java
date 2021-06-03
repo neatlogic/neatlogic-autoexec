@@ -7,12 +7,13 @@ package codedriver.module.autoexec.api.job.action;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_JOB_MODIFY;
+import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.module.autoexec.core.AutoexecJobAuthActionManager;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.module.autoexec.service.AutoexecJobActionService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
@@ -28,10 +29,10 @@ import javax.annotation.Resource;
 @OperationType(type = OperationTypeEnum.OPERATE)
 public class AutoexecJobReFireApi extends PrivateApiComponentBase {
     @Resource
-    AutoexecJobMapper autoexecJobMapper;
+    AutoexecJobActionService autoexecJobActionService;
 
     @Resource
-    AutoexecJobAuthActionManager autoexecJobAuthActionManager;
+    AutoexecJobMapper autoexecJobMapper;
 
     @Override
     public String getName() {
@@ -51,7 +52,10 @@ public class AutoexecJobReFireApi extends PrivateApiComponentBase {
     @Description(desc = "重跑作业")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        //autoexecJobMapper.getJobLockByJobId();
+        Long jobId = jsonObj.getLong("jobId");
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        jobVo.setPhaseList(autoexecJobMapper.getJobPhaseListByJobId(jobId));
+        autoexecJobActionService.fire(jobVo);
         return null;
     }
 
