@@ -63,7 +63,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     @Override
     public void fire(AutoexecJobVo jobVo) {
         autoexecJobMapper.getJobLockByJobId(jobVo.getId());
-        new AutoexecJobAuthActionManager.Builder().addFireJob().build().setAutoexecJobAction(jobVo);
+        new AutoexecJobAuthActionManager.Builder().addFireJob().addReFireJob().build().setAutoexecJobAction(jobVo);
         if (jobVo.getIsCanJobFire() == 1||jobVo.getIsCanJobReFire() == 1) {
             jobVo.setStatus(JobStatus.RUNNING.getValue());
             autoexecJobMapper.updateJobStatus(jobVo);

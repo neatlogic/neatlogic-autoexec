@@ -14,8 +14,10 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.module.autoexec.service.AutoexecJobActionService;
+import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 
@@ -26,11 +28,15 @@ import javax.annotation.Resource;
  **/
 
 @Service
+@Transactional
 @AuthAction(action = AUTOEXEC_JOB_MODIFY.class)
 @OperationType(type = OperationTypeEnum.OPERATE)
 public class AutoexecJobReFireApi extends PrivateApiComponentBase {
     @Resource
     AutoexecJobActionService autoexecJobActionService;
+
+    @Resource
+    AutoexecJobService autoexecJobService;
 
     @Resource
     AutoexecJobMapper autoexecJobMapper;
@@ -55,7 +61,7 @@ public class AutoexecJobReFireApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
-        jobVo.setPhaseList(autoexecJobMapper.getJobPhaseListByJobId(jobId));
+        autoexecJobService.getAutoexecJobDetail(jobVo,0);
         autoexecJobActionService.fire(jobVo);
         return null;
     }
