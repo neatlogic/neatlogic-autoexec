@@ -12,6 +12,7 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.module.autoexec.service.AutoexecJobActionService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
@@ -29,6 +30,9 @@ import javax.annotation.Resource;
 public class AutoexecJobAbortApi extends PrivateApiComponentBase {
     @Resource
     AutoexecJobActionService autoexecJobActionService;
+
+    @Resource
+    AutoexecJobMapper autoexecJobMapper;
 
     @Override
     public String getName() {
@@ -48,12 +52,14 @@ public class AutoexecJobAbortApi extends PrivateApiComponentBase {
     @Description(desc = "中止作业")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        autoexecJobActionService.abort(new AutoexecJobVo(jsonObj.getLong("jobId")));
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jsonObj.getLong("jobId"));
+        jobVo.setPhaseList(autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId()));
+        autoexecJobActionService.abort(jobVo);
         return null;
     }
 
     @Override
     public String getToken() {
-        return "autoexec/job/stop";
+        return "autoexec/job/abort";
     }
 }

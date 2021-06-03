@@ -40,13 +40,6 @@ public interface AutoexecJobActionService {
     JSONObject tailNodeLog(JSONObject paramJson);
 
     /**
-     * 重跑作业
-     *
-     * @param jobVo 作业
-     */
-    void reFire(AutoexecJobVo jobVo);
-
-    /**
      * 暂停作业
      *
      * @param jobVo 作业

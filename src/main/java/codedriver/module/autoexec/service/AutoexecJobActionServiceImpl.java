@@ -10,6 +10,7 @@ import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dto.AutoexecRunnerVo;
 import codedriver.framework.autoexec.dto.job.*;
+import codedriver.framework.autoexec.exception.AutoexecJobCanNotAbortException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerConnectAuthException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerConnectRefusedException;
 import codedriver.framework.dao.mapper.UserMapper;
@@ -231,15 +232,6 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         }
     }
 
-    /**
-     * 重跑作业
-     *
-     * @param jobVo 作业
-     */
-    @Override
-    public void reFire(AutoexecJobVo jobVo) {
-    }
-
     @Override
     public JSONObject tailConsoleLog(JSONObject paramJson) {
         String url = paramJson.getString("runnerUrl") + "/api/rest/job/console/log/tail";
@@ -278,10 +270,22 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     public void abort(AutoexecJobVo jobVo) {
         new AutoexecJobAuthActionManager.Builder().addAbortJob().build().setAutoexecJobAction(jobVo);
         if(jobVo.getIsCanJobAbort() == 1) {
+            jobVo.setStatus(JobStatus.ABORTING.getValue());
+            autoexecJobMapper.updateJobStatus(jobVo);
+            for (AutoexecJobPhaseVo jobPhase : jobVo.getPhaseList()) {
+                if(Objects.equals(jobPhase.getStatus(),JobPhaseStatus.RUNNING.getValue())) {
+                    jobPhase.setStatus(JobPhaseStatus.ABORTING.getValue());
+                    autoexecJobMapper.updateJobPhaseStatus(jobPhase);
+                }
+            }
             List<AutoexecRunnerVo> runnerVos = autoexecJobMapper.getJobRunnerListByJobId(jobVo.getId());
             List<String> refusedErrorList = new ArrayList<>();
             List<String> authErrorList = new ArrayList<>();
             JSONObject paramJson = new JSONObject();
+            paramJson.put("jobId", jobVo.getId());
+            paramJson.put("tenant", TenantContext.get().getTenantUuid());
+            paramJson.put("execUser", UserContext.get().getUserUuid(true));
+            paramJson.put("passThroughEnv", null); //回调需要的返回的参数
             for (AutoexecRunnerVo runner : runnerVos) {
                 String url = runner.getUrl() + "api/rest/job/abort";
                 RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
@@ -297,6 +301,8 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                     refusedErrorList.add(restVo.getUrl() + " " + result);
                 }
             }
+        }else{
+            throw new AutoexecJobCanNotAbortException();
         }
     }
 
