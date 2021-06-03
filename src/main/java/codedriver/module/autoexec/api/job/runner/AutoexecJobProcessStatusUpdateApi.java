@@ -62,7 +62,7 @@ public class AutoexecJobProcessStatusUpdateApi extends PublicApiComponentBase {
         Integer status = jsonObj.getInteger("status");
         String jobAction = jsonObj.getJSONObject("command").getString("action");
         String errorMsg = jsonObj.getString("errorMsg");
-        String phaseStatus = null;
+        String jobStatus = null;
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         if (jobVo == null) {
             throw new AutoexecJobPhaseNotFoundException(jobId.toString());
@@ -70,20 +70,20 @@ public class AutoexecJobProcessStatusUpdateApi extends PublicApiComponentBase {
         List<AutoexecJobPhaseVo> jobPhaseVoList = null;
         if (status != null && status == 1) {
             if(JobAction.PAUSE.getValue().equalsIgnoreCase(jobAction)) {
-                phaseStatus = JobPhaseStatus.PAUSING.getValue();
-                jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobId, Collections.singletonList(JobPhaseStatus.RUNNING.getValue()));
+                jobStatus = JobPhaseStatus.PAUSED.getValue();
             }else if(JobAction.ABORT.getValue().equalsIgnoreCase(jobAction)) {
-                phaseStatus = JobPhaseStatus.ABORTING.getValue();
+                jobStatus = JobPhaseStatus.ABORTED.getValue();
                 jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobId, Collections.singletonList(JobPhaseStatus.RUNNING.getValue()));
             }
         }else {
             jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobId, Arrays.asList(JobPhaseStatus.WAITING.getValue(), JobPhaseStatus.RUNNING.getValue()));
-            phaseStatus = JobPhaseStatus.FAILED.getValue();
+            jobStatus = JobPhaseStatus.FAILED.getValue();
         }
         if(CollectionUtils.isNotEmpty(jobPhaseVoList)) {
             List<Long> jobPhaseIdList = jobPhaseVoList.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList());
-            autoexecJobMapper.updateJobPhaseStatusBatch(jobPhaseIdList, phaseStatus, errorMsg);
+            autoexecJobMapper.updateJobPhaseStatusBatch(jobPhaseIdList, jobStatus, errorMsg);
         }
+        autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobId,jobStatus));
         return null;
     }
 
