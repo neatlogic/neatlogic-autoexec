@@ -501,7 +501,7 @@
     <select id="getNextJobPhaseSortByJobId" resultType="java.lang.Integer">
         SELECT sort
         FROM `autoexec_job_phase`
-        WHERE job_id = #{value}
+        WHERE job_id = #{jobId}
           AND `sort` > #{sort}
         ORDER BY `sort` ASC
         LIMIT 1
