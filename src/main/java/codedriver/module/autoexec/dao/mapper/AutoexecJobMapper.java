@@ -95,7 +95,7 @@ public interface AutoexecJobMapper {
     int checkIsJobPhaseOperationParamReference(@Param("jobId") Long jobId, @Param("hash") String hash);
 
     //jobParamContent
-    Integer getNextJobPhaseSortByJobId(Long jobId);
+    Integer getNextJobPhaseSortByJobId(@Param("jobId") Long jobId, @Param("sort") Integer sort);
 
     //runner
     List<AutoexecRunnerVo> getJobRunnerListByJobId(Long jobId);

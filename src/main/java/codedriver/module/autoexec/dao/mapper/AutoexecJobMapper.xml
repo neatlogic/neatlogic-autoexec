@@ -502,8 +502,8 @@
         SELECT sort
         FROM `autoexec_job_phase`
         WHERE job_id = #{value}
-          AND `status` = 'pending'
-        ORDER BY sort ASC
+          AND `sort` > #{sort}
+        ORDER BY `sort` ASC
         LIMIT 1
     </select>
 
@@ -800,7 +800,7 @@
         <if test="status == 'running'">
             `start_time` = NOW(3),
         </if>
-        <if test="status == 'completed' or status == 'failed'">
+        <if test="status == 'succeed' or status == 'failed'">
             `end_time` = NOW(3),
         </if>
         `status` = #{status}

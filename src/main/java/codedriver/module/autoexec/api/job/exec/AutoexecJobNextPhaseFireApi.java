@@ -75,17 +75,17 @@ public class AutoexecJobNextPhaseFireApi extends PublicApiComponentBase {
         }
         //初始化执行用户上下文
         UserVo execUser = userMapper.getUserBaseInfoByUuid(jobVo.getExecUser());
-        if(execUser == null){
-            throw  new UserNotFoundException(jobVo.getExecUser());
+        if (execUser == null) {
+            throw new UserNotFoundException(jobVo.getExecUser());
         }
-        UserContext.init(execUser,"+8:00");
+        UserContext.init(execUser, "+8:00");
         AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseLockByJobIdAndPhaseName(jobId, lastPhase);
         if (jobPhaseVo == null) {
             throw new AutoexecJobPhaseNotFoundException(jobId + ":" + lastPhase);
         }
         //判断是否满足激活下个phase条件
         if (autoexecJobService.checkIsAllActivePhaseIsCompleted(jobId, jobPhaseVo.getSort())) {
-            Integer sort = autoexecJobMapper.getNextJobPhaseSortByJobId(jobId);
+            Integer sort = autoexecJobMapper.getNextJobPhaseSortByJobId(jobId, jobPhaseVo.getSort());
             if (sort != null) {
                 autoexecJobService.getAutoexecJobDetail(jobVo, sort);
                 autoexecJobActionService.fire(jobVo);
