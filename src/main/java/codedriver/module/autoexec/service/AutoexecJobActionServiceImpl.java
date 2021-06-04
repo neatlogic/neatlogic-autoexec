@@ -382,7 +382,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     }
 
     @Override
-    public Object getNodeOperationStatus(JSONObject paramJson) {
+    public List<AutoexecJobPhaseNodeOperationStatusVo> getNodeOperationStatus(JSONObject paramJson) {
         List<AutoexecJobPhaseNodeOperationStatusVo> statusList = new ArrayList<>();
         String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/status/get";
         RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);

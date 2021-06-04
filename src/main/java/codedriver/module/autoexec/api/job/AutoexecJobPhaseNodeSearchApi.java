@@ -15,6 +15,7 @@ import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
@@ -32,6 +33,9 @@ import java.util.List;
 public class AutoexecJobPhaseNodeSearchApi extends PrivateApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
+
+    @Resource
+    AutoexecJobService autoexecJobService;
 
     @Override
     public String getName() {
@@ -53,7 +57,8 @@ public class AutoexecJobPhaseNodeSearchApi extends PrivateApiComponentBase {
     })
     @Output({
             @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecJobPhaseNodeVo[].class, desc = "列表"),
-            @Param(explode = BasePageVo.class)
+            @Param(explode = BasePageVo.class),
+            @Param(name = "isRefresh", type = ApiParamType.INTEGER, isRequired = true, desc = "是否需要继续定时刷新，1:继续 0:停止")
     })
     @Description(desc = "作业剧本节点搜索")
     @Override
@@ -70,6 +75,8 @@ public class AutoexecJobPhaseNodeSearchApi extends PrivateApiComponentBase {
             result.put("pageCount", PageUtil.getPageCount(rowNum, jobPhaseNodeVo.getPageSize()));
             result.put("rowNum", jobPhaseNodeVo.getRowNum());
         }
+        //判断是否停止刷新作业详细
+        autoexecJobService.setIsRefresh(result, jobPhaseNodeVo.getJobId());
         return result;
     }
 

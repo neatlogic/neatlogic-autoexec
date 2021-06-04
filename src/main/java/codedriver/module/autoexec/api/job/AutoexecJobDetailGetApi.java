@@ -16,6 +16,7 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.core.AutoexecJobAuthActionManager;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +38,9 @@ public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
     @Resource
     AutoexecJobAuthActionManager autoexecJobAuthActionManager;
 
+    @Resource
+    AutoexecJobService autoexecJobService;
+
     @Override
     public String getName() {
         return "获取作业详情";
@@ -51,7 +55,8 @@ public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
     })
     @Output({
-            @Param(explode = AutoexecJobVo[].class, desc = "列表")
+            @Param(explode = AutoexecJobVo[].class, desc = "列表"),
+            @Param(name = "isRefresh", type = ApiParamType.INTEGER, isRequired = true, desc = "是否需要继续定时刷新，1:继续 0:停止")
     })
     @Description(desc = "获取作业详情，包括：剧本列表、作业基本信息、操作按钮")
     @Override
@@ -72,7 +77,10 @@ public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
         jobVo.setPhaseList(jobPhaseVoList);
         //操作按钮
         autoexecJobAuthActionManager.setAutoexecJobAction(jobVo);
-        return jobVo;
+        JSONObject result = JSONObject.parseObject(JSONObject.toJSON(jobVo).toString());
+        //判断是否停止刷新作业详细
+        autoexecJobService.setIsRefresh(result, jobId);
+        return result;
     }
 
     @Override

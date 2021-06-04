@@ -21,6 +21,7 @@ import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecRunnerMapper;
 import codedriver.module.autoexec.service.AutoexecJobActionService;
+import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +38,9 @@ public class AutoexecJobConsoleLogTailApi extends PrivateApiComponentBase {
 
     @Resource
     AutoexecJobActionService autoexecJobActionService;
+
+    @Resource
+    AutoexecJobService autoexecJobService;
 
     @Resource
     AutoexecRunnerMapper autoexecRunnerMapper;
@@ -66,24 +70,26 @@ public class AutoexecJobConsoleLogTailApi extends PrivateApiComponentBase {
             @Param(name = "endPos", type = ApiParamType.LONG, isRequired = true, desc = "日志读取结束位置"),
             @Param(name = "logPos", type = ApiParamType.LONG, isRequired = true, desc = "读取到的位置"),
             @Param(name = "last", type = ApiParamType.LONG, isRequired = true, desc = "日志读取内容"),
+            @Param(name = "isRefresh", type = ApiParamType.INTEGER, isRequired = true, desc = "是否需要继续定时刷新，1:继续 0:停止")
     })
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         Integer runnerId = paramObj.getInteger("runnerId");
         Long jobId = paramObj.getLong("jobId");
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
-        if(jobVo == null){
-            throw  new AutoexecJobNotFoundException(jobId.toString());
+        if (jobVo == null) {
+            throw new AutoexecJobNotFoundException(jobId.toString());
         }
         AutoexecRunnerVo runnerVo = autoexecRunnerMapper.getRunnerById(runnerId);
         if (runnerVo == null) {
             throw new AutoexecJobRunnerNotFoundException(runnerId.toString());
         }
-        paramObj.put("jobId", paramObj.getLong("jobId"));
+        paramObj.put("jobId", jobId);
         paramObj.put("ip", runnerVo.getHost());
         paramObj.put("port", runnerVo.getPort());
         paramObj.put("runnerUrl", runnerVo.getUrl());
         paramObj.put("direction", paramObj.getString("direction"));
+        autoexecJobService.setIsRefresh(paramObj, jobId);
         return autoexecJobActionService.tailConsoleLog(paramObj);
     }
 

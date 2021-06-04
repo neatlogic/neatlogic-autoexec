@@ -8,6 +8,7 @@ package codedriver.module.autoexec.service;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
+import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.dto.AutoexecRunnerGroupNetworkVo;
 import codedriver.framework.autoexec.dto.AutoexecRunnerGroupVo;
 import codedriver.framework.autoexec.dto.AutoexecRunnerVo;
@@ -284,5 +285,17 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             isDone = true;
         }
         return true;
+    }
+
+    @Override
+    public void setIsRefresh(JSONObject paramObj, Long jobId) {
+        List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobId);
+        paramObj.put("isRefresh", 1);
+        for (AutoexecJobPhaseVo phaseVo : jobPhaseVoList) {
+            if (Objects.equals(phaseVo.getStatus(), JobPhaseStatus.FAILED.getValue())) {
+                paramObj.put("isRefresh", 0);
+                break;
+            }
+        }
     }
 }

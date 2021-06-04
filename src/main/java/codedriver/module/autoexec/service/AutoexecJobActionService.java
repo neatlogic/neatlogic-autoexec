@@ -87,7 +87,7 @@ public interface AutoexecJobActionService {
      * @param paramObj 参数
      * @return 节点操作状态
      */
-    Object getNodeOperationStatus(JSONObject paramObj);
+    List<AutoexecJobPhaseNodeOperationStatusVo> getNodeOperationStatus(JSONObject paramObj);
 
     /**
      * 获取作业console日志
@@ -95,4 +95,5 @@ public interface AutoexecJobActionService {
      * @return 日志内容
      */
     Object tailConsoleLog(JSONObject paramObj);
+
 }
