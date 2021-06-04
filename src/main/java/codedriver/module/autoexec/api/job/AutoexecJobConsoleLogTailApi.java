@@ -89,8 +89,9 @@ public class AutoexecJobConsoleLogTailApi extends PrivateApiComponentBase {
         paramObj.put("port", runnerVo.getPort());
         paramObj.put("runnerUrl", runnerVo.getUrl());
         paramObj.put("direction", paramObj.getString("direction"));
-        autoexecJobService.setIsRefresh(paramObj, jobId);
-        return autoexecJobActionService.tailConsoleLog(paramObj);
+        JSONObject result = autoexecJobActionService.tailConsoleLog(paramObj);
+        autoexecJobService.setIsRefresh(result, jobId);
+        return result;
     }
 
     @Override

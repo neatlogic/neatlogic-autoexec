@@ -94,6 +94,6 @@ public interface AutoexecJobActionService {
      * @param paramObj 参数
      * @return 日志内容
      */
-    Object tailConsoleLog(JSONObject paramObj);
+    JSONObject tailConsoleLog(JSONObject paramObj);
 
 }

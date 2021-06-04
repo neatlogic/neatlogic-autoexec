@@ -70,6 +70,7 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
     })
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
+        JSONObject result = new JSONObject();
         AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobNodeId(paramObj.getLong("nodeId"));
         if(nodeVo == null){
             throw new AutoexecJobPhaseNodeNotFoundException(StringUtils.EMPTY,paramObj.getString("nodeId"));
@@ -82,17 +83,17 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
         paramObj.put("runnerUrl",nodeVo.getRunnerUrl());
         paramObj.put("execMode",phaseVo.getExecMode());
         paramObj.put("direction","down");
-        paramObj = autoexecJobActionService.tailNodeLog(paramObj);
-        paramObj.put("isRefresh",1);
+        result = autoexecJobActionService.tailNodeLog(paramObj);
+        result.put("isRefresh",1);
         List<AutoexecJobPhaseNodeOperationStatusVo> operationStatusVos = autoexecJobActionService.getNodeOperationStatus(paramObj);
         for(AutoexecJobPhaseNodeOperationStatusVo statusVo : operationStatusVos){
             if(Objects.equals(statusVo.getStatus(), JobNodeStatus.FAILED.getValue())&&Objects.equals(statusVo.getFailIgnore(),0)){
-                paramObj.put("isRefresh",0);
+                result.put("isRefresh",0);
                 break;
             }
         }
-        paramObj.put("operationStatusList",operationStatusVos);
-        return paramObj;
+        result.put("operationStatusList",operationStatusVos);
+        return result;
     }
 
     @Override
