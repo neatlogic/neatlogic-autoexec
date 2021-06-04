@@ -107,13 +107,15 @@ public class AutoexecCombopCopyApi extends PrivateApiComponentBase {
                     autoexecCombopPhaseVo.setSort(iSort++);
                     AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
                     List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
-                    Long combopPhaseId = autoexecCombopPhaseVo.getId();
-                    int jSort = 0;
-                    for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
-                        if (autoexecCombopPhaseOperationVo != null) {
-                            autoexecCombopPhaseOperationVo.setSort(jSort++);
-                            autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
-                            autoexecCombopMapper.insertAutoexecCombopPhaseOperation(autoexecCombopPhaseOperationVo);
+                    if (CollectionUtils.isNotEmpty(phaseOperationList)) {
+                        Long combopPhaseId = autoexecCombopPhaseVo.getId();
+                        int jSort = 0;
+                        for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
+                            if (autoexecCombopPhaseOperationVo != null) {
+                                autoexecCombopPhaseOperationVo.setSort(jSort++);
+                                autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
+                                autoexecCombopMapper.insertAutoexecCombopPhaseOperation(autoexecCombopPhaseOperationVo);
+                            }
                         }
                     }
                     autoexecCombopMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);

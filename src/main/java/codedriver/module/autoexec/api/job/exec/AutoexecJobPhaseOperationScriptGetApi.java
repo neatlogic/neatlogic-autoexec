@@ -78,7 +78,7 @@ public class AutoexecJobPhaseOperationScriptGetApi extends PublicApiComponentBas
         }
         AutoexecScriptVersionVo scriptVersionVo = autoexecScriptMapper.getVersionByVersionId(jobPhaseOperationVo.getVersionId());
         if (scriptVersionVo == null) {
-            throw new AutoexecScriptVersionHasNoActivedException();
+            throw new AutoexecScriptVersionHasNoActivedException(jobPhaseOperationVo.getName());
         }
         if (lastModified != null) {
             if (lastModified.multiply(new BigDecimal("1000")).longValue() >= scriptVersionVo.getLcd().getTime()) {
