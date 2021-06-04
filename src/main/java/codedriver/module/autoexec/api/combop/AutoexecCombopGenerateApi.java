@@ -15,11 +15,9 @@ import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
-import codedriver.framework.autoexec.exception.AutoexecCombopCannotBeRepeatReleaseExcepiton;
-import codedriver.framework.autoexec.exception.AutoexecCombopNameRepeatException;
-import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecToolNotFoundException;
+import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.dto.FieldValidResultVo;
 import codedriver.framework.restful.annotation.*;
@@ -96,12 +94,19 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
             if (autoexecScriptVo == null) {
                 throw new AutoexecScriptNotFoundException(operationId);
             }
+            AutoexecScriptVersionVo autoexecScriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(autoexecScriptVo.getId());
+            if(autoexecScriptVersionVo == null){
+                throw new AutoexecScriptVersionHasNoActivedException(autoexecScriptVo.getName());
+            }
             List<AutoexecScriptVersionParamVo> autoexecScriptVersionParamVoList = autoexecScriptMapper.getParamListByScriptId(operationId);
             return generate(jsonObj, new AutoexecToolAndScriptVo(autoexecScriptVo), autoexecScriptVersionParamVoList);
         } else {
             AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(operationId);
             if (autoexecToolVo == null) {
                 throw new AutoexecToolNotFoundException(operationId);
+            }
+            if(Objects.equals(autoexecToolVo.getIsActive(), 0)){
+                throw new AutoexecToolinactivatedException(autoexecToolVo.getName());
             }
             List<AutoexecParamVo> autoexecParamVoList = new ArrayList<>();
             JSONObject toolConfig = autoexecToolVo.getConfig();

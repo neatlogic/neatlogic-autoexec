@@ -96,7 +96,7 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
             List<AutoexecNodeVo> selectNodeList = executeNodeConfigVo.getSelectNodeList();
             List<AutoexecNodeVo> inputNodeList = executeNodeConfigVo.getInputNodeList();
             List<String> paramList = executeNodeConfigVo.getParamList();
-            List<String> tagList = executeNodeConfigVo.getTagList();
+            List<Long> tagList = executeNodeConfigVo.getTagList();
             if (CollectionUtils.isEmpty(selectNodeList) && CollectionUtils.isEmpty(inputNodeList) && CollectionUtils.isEmpty(paramList) && CollectionUtils.isEmpty(tagList)) {
                 throw new AutoexecCombopExecuteNodeCannotBeEmptyException();
             }

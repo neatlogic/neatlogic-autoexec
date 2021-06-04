@@ -6,6 +6,7 @@ import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.exception.type.ParamNotExistsException;
 import codedriver.framework.restful.annotation.Description;
 import codedriver.framework.restful.annotation.Input;
 import codedriver.framework.restful.annotation.OperationType;
@@ -67,6 +68,9 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         List<Long> idList = paramObj.getJSONArray("idList").toJavaList(Long.class);
+        if(CollectionUtils.isEmpty(idList)){
+            throw new ParamNotExistsException("idList");
+        }
         List<Long> existIdList = autoexecCombopMapper.checkAutoexecCombopIdListIsExists(idList);
         idList.removeAll(existIdList);
         if (CollectionUtils.isNotEmpty(idList)) {
@@ -90,9 +94,9 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
             for (Long id : existIdList) {
                 AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
                 autoexecCombopService.setOperableButtonList(autoexecCombopVo);
-                if (autoexecCombopVo.getEditable() == 0) {
-                    continue;
-                }
+//                if (autoexecCombopVo.getEditable() == 0) {
+//                    continue;
+//                }
                 List<AutoexecCombopParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
                 autoexecCombopVo.setRuntimeParamList(runtimeParamList);
                 zipos.putNextEntry(new ZipEntry(autoexecCombopVo.getName() + ".json"));

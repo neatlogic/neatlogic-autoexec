@@ -232,9 +232,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = nodeConfigVo.getExecuteNodeConfig();
         String userName = nodeConfigVo.getExecuteUser();
         //tagList
-        List<String> tagList = executeNodeConfigVo.getTagList();
+        List<Long> tagList = executeNodeConfigVo.getTagList();
         if (CollectionUtils.isNotEmpty(tagList)) {
-            for (String tag : tagList) {
+            for (Long tag : tagList) {
                 //TODO 待资源中心完成后，继续实现标签逻辑
             }
         }
