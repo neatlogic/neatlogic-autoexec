@@ -66,9 +66,10 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "组合工具主键id"),
-            @Param(name = "executeUser", type = ApiParamType.STRING, isRequired = true, desc = "执行用户"),
+            @Param(name = "protocol", type = ApiParamType.ENUM, rule = "ftp,local,rlogin,serial,sftp,ssh,telnet", desc = "连接协议"),
+            @Param(name = "executeUser", type = ApiParamType.STRING, desc = "执行用户"),
             @Param(name = "whenToSpecify", type = ApiParamType.ENUM, rule = "now,runtime", isRequired = true, desc = "执行目标指定时机，现在指定/运行时再指定"),
-            @Param(name = "executeNodeConfig", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "执行目标信息")
+            @Param(name = "executeNodeConfig", type = ApiParamType.JSONOBJECT, desc = "执行目标信息")
     })
     @Description(desc = "保存组合工具执行目标信息")
     @Override
@@ -83,6 +84,7 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
         String whenToSpecify = jsonObj.getString("whenToSpecify");
         executeConfig.setWhenToSpecify(whenToSpecify);
         if (Objects.equals(whenToSpecify, CombopNodeSpecify.NOW.getValue())) {
+            executeConfig.setProtocol(jsonObj.getString("protocol"));
             String executeUser = jsonObj.getString("executeUser");
             if (StringUtils.isBlank(executeUser)) {
                 throw new AutoexecCombopExecuteUserCannotBeEmptyException();
