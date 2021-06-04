@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.service;
 
 import codedriver.framework.autoexec.dto.job.*;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 import java.text.ParseException;
@@ -77,6 +78,7 @@ public interface AutoexecJobActionService {
 
     /**
      * 获取作业剧本节点执行记录
+     *
      * @param paramObj 参数
      * @return 记录列表
      */
@@ -84,6 +86,7 @@ public interface AutoexecJobActionService {
 
     /**
      * 获取作业剧本节点操作状态
+     *
      * @param paramObj 参数
      * @return 节点操作状态
      */
@@ -91,9 +94,18 @@ public interface AutoexecJobActionService {
 
     /**
      * 获取作业console日志
+     *
      * @param paramObj 参数
      * @return 日志内容
      */
     JSONObject tailConsoleLog(JSONObject paramObj);
+
+    /**
+     * 获取节点输出参数
+     *
+     * @param paramJson 参数
+     * @return 输出参数
+     */
+    JSONArray getNodeOutputParam(JSONObject paramJson);
 
 }
