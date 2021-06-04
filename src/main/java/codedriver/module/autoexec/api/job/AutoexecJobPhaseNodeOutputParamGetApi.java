@@ -74,7 +74,7 @@ public class AutoexecJobPhaseNodeOutputParamGetApi extends PrivateApiComponentBa
 
     @Override
     public String getToken() {
-        return "autoexec/job/phase/node/operation/status/get";
+        return "autoexec/job/phase/node/output/param/get";
     }
 
 
