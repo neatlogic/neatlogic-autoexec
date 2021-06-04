@@ -69,7 +69,7 @@ public class AutoexecJobPhaseNodeOutputParamGetApi extends PrivateApiComponentBa
         paramObj.put("port",nodeVo.getPort());
         paramObj.put("runnerUrl",nodeVo.getRunnerUrl());
         paramObj.put("execMode",phaseVo.getExecMode());
-        return  autoexecJobActionService.getNodeOperationStatus(paramObj);
+        return  autoexecJobActionService.getNodeOutputParam(paramObj);
     }
 
     @Override
