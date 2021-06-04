@@ -444,7 +444,10 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                                     JSONArray outputArray = json.getJSONArray("outputParamList");
                                     for (Object output : outputArray) {
                                         AutoexecJobParamVo outputVo = new AutoexecJobParamVo(JSONObject.parseObject(output.toString()));
-                                        outputVo.setValue(outputParamJson.getString(outputVo.getName() + "_" + operationVo.getId()));
+                                        JSONObject valueJson = outputParamJson.getJSONObject(operationVo.getName() + "_" + operationVo.getId());
+                                        if(valueJson != null){
+                                            outputVo.setValue(valueJson.getString(outputVo.getKey()));
+                                        }
                                         finalOutputParamList.add(outputVo);
                                     }
                                 }
