@@ -24,6 +24,7 @@ import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import org.apache.commons.collections4.CollectionUtils;
@@ -99,7 +100,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         }
         int successCount = 0;
         int failureCount = 0;
-        List<String> failureReasonList = new ArrayList<>();
+        JSONArray failureReasonList = new JSONArray();
         byte[] buf = new byte[1024];
         //遍历导入文件
         for (Entry<String, MultipartFile> entry : multipartFileMap.entrySet()) {
@@ -113,10 +114,10 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                         out.write(buf, 0, len);
                     }
                     AutoexecCombopVo autoexecCombopVo = JSONObject.parseObject(new String(out.toByteArray(), StandardCharsets.UTF_8), new TypeReference<AutoexecCombopVo>() {});
-                    String result = save(autoexecCombopVo);
-                    if (StringUtils.isNotBlank(result)) {
+                    JSONObject resultObj = save(autoexecCombopVo);
+                    if (resultObj != null) {
                         failureCount++;
-                        failureReasonList.add(result);
+                        failureReasonList.add(resultObj);
                     } else {
                         successCount++;
                     }
@@ -133,7 +134,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         return resultObj;
     }
 
-    private String save(AutoexecCombopVo autoexecCombopVo) {
+    private JSONObject save(AutoexecCombopVo autoexecCombopVo) {
         Long id = autoexecCombopVo.getId();
         String oldName = autoexecCombopVo.getName();
         AutoexecCombopVo oldAutoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
@@ -236,20 +237,10 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
             }
             return null;
         } else {
-            StringBuilder result = new StringBuilder();
-            result.append("导入：'");
-            result.append(oldName);
-            result.append("'，");
-            result.append("失败；请先在系统中：<br>");
-            index = 1;
-            for (String reason : failureReasonSet) {
-                result.append("&nbsp;&nbsp;&nbsp;");
-                result.append(index++);
-                result.append(".");
-                result.append(reason);
-                result.append("<br>");
-            }
-            return result.toString();
+            JSONObject resultObj = new JSONObject();
+            resultObj.put("item", "导入：'" + oldName + "'，失败；请先在系统中：");
+            resultObj.put("list", failureReasonSet);
+            return resultObj;
         }
     }
 }
