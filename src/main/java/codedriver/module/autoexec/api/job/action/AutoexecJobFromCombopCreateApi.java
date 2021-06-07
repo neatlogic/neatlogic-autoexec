@@ -5,8 +5,6 @@
 
 package codedriver.module.autoexec.api.job.action;
 
-import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_EXECUTE;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
@@ -36,7 +34,7 @@ import javax.annotation.Resource;
 
 @Transactional
 @Service
-@AuthAction(action = AUTOEXEC_COMBOP_EXECUTE.class)
+//@AuthAction(action = AUTOEXEC_COMBOP_EXECUTE.class)
 @OperationType(type = OperationTypeEnum.CREATE)
 public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
     @Resource
