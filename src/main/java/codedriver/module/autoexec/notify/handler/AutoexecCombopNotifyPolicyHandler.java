@@ -5,7 +5,7 @@
 
 package codedriver.module.autoexec.notify.handler;
 
-import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
+import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import codedriver.framework.dto.ConditionParamVo;
 import codedriver.framework.notify.core.INotifyPolicyHandlerGroup;
 import codedriver.framework.notify.core.NotifyHandlerType;
@@ -35,7 +35,7 @@ public class AutoexecCombopNotifyPolicyHandler extends NotifyPolicyHandlerBase {
      */
     @Override
     public String getAuthName() {
-        return AUTOEXEC_COMBOP_MODIFY.class.getSimpleName();
+        return AUTOEXEC_COMBOP_ADD.class.getSimpleName();
     }
 
     @Override

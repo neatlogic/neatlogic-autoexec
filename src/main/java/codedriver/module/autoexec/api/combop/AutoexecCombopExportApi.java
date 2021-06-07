@@ -1,7 +1,7 @@
 package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
+import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
@@ -36,7 +36,7 @@ import java.util.zip.ZipOutputStream;
  * @since 2021/4/13 11:21
  **/
 @Service
-@AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
+@AuthAction(action = AUTOEXEC_COMBOP_ADD.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase {
 

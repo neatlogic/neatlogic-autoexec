@@ -7,8 +7,6 @@ package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
-import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_EXECUTE;
-import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
 import codedriver.framework.autoexec.constvalue.CombopAuthorityAction;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopAuthorityVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
@@ -32,8 +30,6 @@ import java.util.List;
  **/
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
-@AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
-@AuthAction(action = AUTOEXEC_COMBOP_EXECUTE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecCombopAuthorityGetApi extends PrivateApiComponentBase {
 

@@ -7,7 +7,7 @@ package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.CombopNodeSpecify;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
@@ -18,6 +18,7 @@ import codedriver.framework.autoexec.exception.AutoexecCombopExecuteNodeCannotBe
 import codedriver.framework.autoexec.exception.AutoexecCombopExecuteUserCannotBeEmptyException;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.exception.type.PermissionDeniedException;
 import codedriver.framework.restful.annotation.Description;
 import codedriver.framework.restful.annotation.Input;
 import codedriver.framework.restful.annotation.OperationType;
@@ -25,6 +26,7 @@ import codedriver.framework.restful.annotation.Param;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -42,12 +44,14 @@ import java.util.Objects;
  **/
 @Service
 @Transactional
-@AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
+@AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
+    @Resource
+    private AutoexecCombopService autoexecCombopService;
 
     @Override
     public String getToken() {
@@ -66,7 +70,7 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "组合工具主键id"),
-            @Param(name = "protocol", type = ApiParamType.ENUM, rule = "ftp,local,rlogin,serial,sftp,ssh,telnet", desc = "连接协议"),
+            @Param(name = "protocol", type = ApiParamType.ENUM, rule = "ftp,local,rlogin,serial,sftp,ssh,telnet,", desc = "连接协议"),
             @Param(name = "executeUser", type = ApiParamType.STRING, desc = "执行用户"),
             @Param(name = "whenToSpecify", type = ApiParamType.ENUM, rule = "now,runtime", isRequired = true, desc = "执行目标指定时机，现在指定/运行时再指定"),
             @Param(name = "executeNodeConfig", type = ApiParamType.JSONOBJECT, desc = "执行目标信息")
@@ -78,6 +82,10 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
         AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
         if (autoexecCombopVo == null) {
             throw new AutoexecCombopNotFoundException(combopId);
+        }
+        autoexecCombopService.setOperableButtonList(autoexecCombopVo);
+        if (Objects.equals(autoexecCombopVo.getEditable(), 0)) {
+            throw new PermissionDeniedException();
         }
         AutoexecCombopExecuteConfigVo executeConfig = new AutoexecCombopExecuteConfigVo();
 

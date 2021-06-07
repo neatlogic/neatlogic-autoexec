@@ -7,7 +7,7 @@ package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
+import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.exception.AutoexecCombopNameRepeatException;
@@ -37,7 +37,7 @@ import java.util.List;
  **/
 @Service
 @Transactional
-@AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
+@AuthAction(action = AUTOEXEC_COMBOP_ADD.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class AutoexecCombopCopyApi extends PrivateApiComponentBase {
 

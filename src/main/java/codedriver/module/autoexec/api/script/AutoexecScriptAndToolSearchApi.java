@@ -5,8 +5,6 @@
 
 package codedriver.module.autoexec.api.script;
 
-import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
 import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.util.PageUtil;
@@ -28,7 +26,7 @@ import java.util.Objects;
 import java.util.Optional;
 
 @Service
-@AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
+//@AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
 
