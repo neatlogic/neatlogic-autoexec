@@ -634,6 +634,16 @@
         WHERE `job_id` = #{value}
           and `status` = 'running'
     </select>
+    <select id="getJobParamContentList"
+            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobParamContentVo">
+        SELECT `hash`,
+               `content`
+        FROM `autoexec_job_param_content`
+        where `hash` in
+        <foreach collection="hashList" separator="," open="(" close=")" item="hash">
+            #{hash}
+        </foreach>
+    </select>
 
     <insert id="insertJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
         INSERT INTO `autoexec_job` (`id`,

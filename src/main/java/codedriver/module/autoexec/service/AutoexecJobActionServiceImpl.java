@@ -295,7 +295,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                     JSONObject resultJson = JSONObject.parseObject(result);
                     if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
                         throw new AutoexecJobRunnerConnectAuthException(restVo.getUrl() + ":" + resultJson.getString("Message"));
-                    }else{
+                    } else {
                         jobVo.setStatus(JobStatus.ABORTED.getValue());
                         autoexecJobMapper.updateJobStatus(jobVo);
                         for (AutoexecJobPhaseVo jobPhase : jobVo.getPhaseList()) {
@@ -407,5 +407,58 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             }
         }
         return statusList.stream().sorted(Comparator.comparing(AutoexecJobPhaseNodeOperationStatusVo::getSort)).collect(Collectors.toList());
+    }
+
+    @Override
+    public JSONArray getNodeOutputParam(JSONObject paramJson) {
+        JSONArray operationOutputParamArray = null;
+        String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/output/param/get";
+        RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
+        String restResult = RestUtil.sendRequest(restVo);
+        JSONObject resultJson = null;
+        try {
+            resultJson = JSONObject.parseObject(restResult);
+        } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
+            throw new AutoexecJobRunnerConnectRefusedException(restVo.getUrl() + " " + restResult);
+        }
+        if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
+            throw new AutoexecJobRunnerConnectAuthException(resultJson.getString("Message"));
+        } else {
+            String resultStr = resultJson.getString("Return");
+            if (StringUtils.isNotBlank(resultStr)) {
+                JSONObject outputParamJson = JSONObject.parseObject(resultStr);
+                Long jobId = paramJson.getLong("jobId");
+                Long jobPhaseId = paramJson.getLong("phaseId");
+                List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseId(jobId, jobPhaseId);
+                List<AutoexecJobParamContentVo> paramContentVoList = autoexecJobMapper.getJobParamContentList(operationVoList.stream().map(AutoexecJobPhaseOperationVo::getParamHash).collect(Collectors.toList()));
+                operationOutputParamArray = new JSONArray() {{
+                    for (AutoexecJobPhaseOperationVo operationVo : operationVoList) {
+                        add(new JSONObject() {{
+                            put("name", operationVo.getName());
+                            List<AutoexecJobParamVo> outputParamList = new ArrayList<>();
+                            List<AutoexecJobParamVo> finalOutputParamList = outputParamList;
+                            paramContentVoList.forEach(o -> {
+                                if(Objects.equals(operationVo.getParamHash(),o.getHash())) {
+                                    JSONObject json = JSONObject.parseObject(o.getContent());
+                                    JSONArray outputArray = json.getJSONArray("outputParamList");
+                                    for (Object output : outputArray) {
+                                        AutoexecJobParamVo outputVo = new AutoexecJobParamVo(JSONObject.parseObject(output.toString()));
+                                        JSONObject valueJson = outputParamJson.getJSONObject(operationVo.getName() + "_" + operationVo.getId());
+                                        if(valueJson != null){
+                                            outputVo.setValue(valueJson.getString(outputVo.getKey()));
+                                        }
+                                        finalOutputParamList.add(outputVo);
+                                    }
+                                }
+                            });
+                            outputParamList = outputParamList.stream().sorted(Comparator.comparing(AutoexecJobParamVo::getSort)).collect(Collectors.toList());
+                            put("paramList", outputParamList);
+                        }});
+                    }
+                }};
+            }
+        }
+        return operationOutputParamArray;
     }
 }
