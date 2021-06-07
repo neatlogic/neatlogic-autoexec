@@ -72,7 +72,7 @@ public class AutoexecJobAuthActionManager {
             if(CollectionUtils.isEmpty(jobVo.getPhaseList())){
                 jobVo.setPhaseList(autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId()));
             }
-            if (!JobStatus.RUNNING.getValue().equalsIgnoreCase(jobVo.getStatus()) && jobVo.getPhaseList().stream().noneMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.RUNNING.getValue())) && autoexecJobMapper.checkIsHasRunningNode(jobVo.getId()) == 0) {
+            if (jobVo.getPhaseList().stream().noneMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.RUNNING.getValue())) && autoexecJobMapper.checkIsHasRunningNode(jobVo.getId()) == 0) {
                 jobVo.setIsCanJobReFire(1);
             }
         });
