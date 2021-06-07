@@ -95,15 +95,6 @@ public class AutoexecCombopAuthoritySaveApi extends PrivateApiComponentBase {
         if (autoexecCombopVo.getEditable() == 0) {
             throw new PermissionDeniedException();
         }
-//        String userUuid = UserContext.get().getUserUuid(true);
-//        if(!Objects.equals(autoexecCombopVo.getOwner(), userUuid)){
-//            List<String> roleUuidList = UserContext.get().getRoleUuidList();
-//            List<String> teamUuidList = teamMapper.getTeamUuidListByUserUuid(userUuid);
-//            int count = autoexecCombopMapper.checkAutoexecCombopAuthorityByActionCombopIdAndUserUuidAndTeamUuidListAndRoleUuidList(CombopAuthorityAction.EDIT.getValue(), autoexecCombopVo.getId(), userUuid, teamUuidList, roleUuidList);
-//            if(count == 0){
-//                throw new PermissionDeniedException();
-//            }
-//        }
         autoexecCombopMapper.deleteAutoexecCombopAuthorityByCombopId(combopId);
         List<AutoexecCombopAuthorityVo> autoexecCombopAuthorityVoList = new ArrayList<>();
         for (CombopAuthorityAction authorityAction : CombopAuthorityAction.values()) {
