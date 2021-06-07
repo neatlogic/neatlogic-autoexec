@@ -8,11 +8,15 @@ package codedriver.module.autoexec.api.tool;
 import codedriver.framework.autoexec.constvalue.ParamMode;
 import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
-import codedriver.framework.autoexec.exception.AutoexecRiskNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
+import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.exception.type.ParamNotExistsException;
 import codedriver.framework.exception.type.ParamTypeNotFoundException;
+import codedriver.framework.matrix.dao.mapper.MatrixAttributeMapper;
+import codedriver.framework.matrix.dao.mapper.MatrixMapper;
+import codedriver.framework.matrix.dto.MatrixAttributeVo;
+import codedriver.framework.matrix.exception.MatrixAttributeNotFoundException;
+import codedriver.framework.matrix.exception.MatrixNotFoundException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
@@ -20,6 +24,7 @@ import codedriver.module.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -28,6 +33,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
@@ -43,6 +49,12 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
 
     @Resource
     private AutoexecRiskMapper autoexecRiskMapper;
+
+    @Resource
+    private MatrixMapper matrixMapper;
+
+    @Resource
+    private MatrixAttributeMapper matrixAttributeMapper;
 
     @Override
     public String getToken() {
@@ -66,7 +78,8 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
             @Param(name = "riskName", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", maxLength = 50, isRequired = true, desc = "操作级别名称"),
             @Param(name = "interpreter", type = ApiParamType.ENUM, rule = "python,ruby,vbscript,shell,perl,powershell,cmd,bash,ksh,csh,sh,javascript,xml", isRequired = true, desc = "解析器"),
             @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
-            @Param(name = "desc", type = ApiParamType.JSONOBJECT, desc = "入参"),
+            @Param(name = "desc", type = ApiParamType.JSONOBJECT,
+                    desc = "入参(当控件类型为[select,multiselect,radio,checkbox]时，需要在defaultValue字段填写矩阵数据源，格式如下：{\"matrixUuid\":\"f32f82d97e3148e79ab6a4bb7b69a65d\",\"matrixValue\":\"e46e10986ffe42edaf3163424377cdeb\"}，matrixUuid代表矩阵uuid，matrixValue代表矩阵属性uuid)"),
             @Param(name = "output", type = ApiParamType.JSONOBJECT, desc = "出参"),
     })
     @Output({
@@ -147,6 +160,34 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                     ParamType paramType = ParamType.getParamType(type);
                     if (paramType != null) {
                         type = paramType.getValue();
+                        // 如果参数控件类型需要配置矩阵数据源，那么检验矩阵配置是否合法
+                        if (paramType.getIsDynamic()) {
+                            Object defaultValue = value.get("defaultValue");
+                            if (defaultValue == null) {
+                                throw new AutoexecToolParamMatrixConfigEmptyException(key);
+                            }
+                            JSONObject matrixConfig = null;
+                            try {
+                                matrixConfig = JSONObject.parseObject(defaultValue.toString());
+                            } catch (JSONException ex) {
+                                throw new AutoexecToolParamMatrixConfigFormatIllegalException(key);
+                            }
+                            String matrixUuid = matrixConfig.getString("matrixUuid");
+                            String matrixValue = matrixConfig.getString("matrixValue");
+                            if (StringUtils.isBlank(matrixUuid)) {
+                                throw new AutoexecToolParamMatrixUuidEmptyException(key);
+                            }
+                            if (StringUtils.isBlank(matrixValue)) {
+                                throw new AutoexecToolParamMatrixAttributeUuidEmptyException(key);
+                            }
+                            if (matrixMapper.getMatrixByUuid(matrixUuid) == null) {
+                                throw new MatrixNotFoundException(matrixUuid);
+                            }
+                            List<MatrixAttributeVo> attributeList = matrixAttributeMapper.getMatrixAttributeByMatrixUuid(matrixUuid);
+                            if (!attributeList.stream().anyMatch(o -> Objects.equals(o.getUuid(), matrixValue))) {
+                                throw new MatrixAttributeNotFoundException(matrixUuid, matrixValue);
+                            }
+                        }
                     } else {
                         throw new ParamTypeNotFoundException(type);
                     }
