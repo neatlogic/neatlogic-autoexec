@@ -8,7 +8,7 @@ package codedriver.module.autoexec.api.tool;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.auth.core.AuthActionChecker;
-import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
+import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.autoexec.constvalue.ScriptAndToolOperate;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
@@ -67,7 +67,7 @@ public class AutoexecToolGetApi extends PrivateApiComponentBase {
         tool.setCombopList(autoexecToolMapper.getReferenceListByToolId(id));
         List<OperateVo> operateList = new ArrayList<>();
         tool.setOperateList(operateList);
-        if (AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_COMBOP_MODIFY.class.getSimpleName())) {
+        if (AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_COMBOP_ADD.class.getSimpleName())) {
             OperateVo generateToCombop = new OperateVo(ScriptAndToolOperate.GENERATETOCOMBOP.getValue(), ScriptAndToolOperate.GENERATETOCOMBOP.getText());
             operateList.add(generateToCombop);
             if (autoexecToolMapper.checkToolHasBeenGeneratedToCombop(id) > 0) {
