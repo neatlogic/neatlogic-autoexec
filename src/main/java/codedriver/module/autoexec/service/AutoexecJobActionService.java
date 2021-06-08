@@ -18,11 +18,18 @@ import java.util.List;
  **/
 public interface AutoexecJobActionService {
     /**
-     * 第一次执行/重跑/继续作业
+     * 第一次执行
      *
      * @param jobVo 作业
      */
     void fire(AutoexecJobVo jobVo);
+
+    /**
+     * 重跑
+     *
+     * @param jobVo 作业
+     */
+    void refire(AutoexecJobVo jobVo);
 
     /**
      * 拼装给runner的param

@@ -70,7 +70,7 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
     })
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        JSONObject result = new JSONObject();
+        JSONObject result;
         AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobNodeId(paramObj.getLong("nodeId"));
         if(nodeVo == null){
             throw new AutoexecJobPhaseNodeNotFoundException(StringUtils.EMPTY,paramObj.getString("nodeId"));
@@ -85,11 +85,17 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
         paramObj.put("execMode",phaseVo.getExecMode());
         paramObj.put("direction","down");
         result = autoexecJobActionService.tailNodeLog(paramObj);
-        result.put("isRefresh",1);
+        result.put("isRefresh",0);
         List<AutoexecJobPhaseNodeOperationStatusVo> operationStatusVos = autoexecJobActionService.getNodeOperationStatus(paramObj);
         for(AutoexecJobPhaseNodeOperationStatusVo statusVo : operationStatusVos){
-            if((Objects.equals(statusVo.getStatus(), JobNodeStatus.FAILED.getValue())&&Objects.equals(statusVo.getFailIgnore(),1))){
+            //如果存在pending 或 running 的节点则继续tail
+            if(Objects.equals(statusVo.getStatus(), JobNodeStatus.PENDING.getValue()) || Objects.equals(statusVo.getStatus(), JobNodeStatus.RUNNING.getValue())){
                 result.put("isRefresh",1);
+                break;
+            }
+            //如果存在失败停止策略的操作节点，则停止tail
+            if(Objects.equals(statusVo.getStatus(), JobNodeStatus.FAILED.getValue())&&Objects.equals(statusVo.getFailIgnore(),0)){
+                result.put("isRefresh",0);
                 break;
             }
         }

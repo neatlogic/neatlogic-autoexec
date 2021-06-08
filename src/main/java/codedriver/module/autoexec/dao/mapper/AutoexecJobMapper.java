@@ -118,8 +118,11 @@ public interface AutoexecJobMapper {
 
     Integer updateJobPhaseStatus(AutoexecJobPhaseVo autoexecJobPhaseVo);
 
+    Integer updateJobPhaseFailedNodeStatusByJobId(@Param("jobId") Long id,@Param("status") String value);
+
     Integer updateJobPhaseStatusBatch(@Param("phaseIdList") List<Long> phaseIdList, @Param("status") String phaseStatus, @Param("errorMsg") String errorMsg);
 
+    void updateJobPhaseStatusByJobId(@Param("jobId") Long id,@Param("status") String value);
 
     void deleteJobParamContentByHash(String paramHash);
 

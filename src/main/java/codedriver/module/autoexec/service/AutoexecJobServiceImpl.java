@@ -78,6 +78,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             autoexecJobMapper.insertJobPhase(jobPhaseVo);
             if (jobPhaseVo.getSort() == 0) {//只需要第一个剧本，供后续激活执行
                 jobPhaseVoList.add(jobPhaseVo);
+                jobVo.setCurrentPhaseSort(0);
             }
             AutoexecCombopPhaseConfigVo phaseConfigVo = autoexecCombopPhaseVo.getConfig();
             //jobPhaseNode
@@ -290,9 +291,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     @Override
     public void setIsRefresh(JSONObject paramObj, Long jobId) {
         List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobId);
-        paramObj.put("isRefresh", 1);
+        paramObj.put("isRefresh", 0);
         for (AutoexecJobPhaseVo phaseVo : jobPhaseVoList) {
-            if (Objects.equals(phaseVo.getStatus(), JobPhaseStatus.RUNNING.getValue())) {
+            if (Objects.equals(phaseVo.getStatus(), JobPhaseStatus.RUNNING.getValue())||Objects.equals(phaseVo.getStatus(), JobPhaseStatus.PENDING.getValue())||Objects.equals(phaseVo.getStatus(), JobPhaseStatus.WAITING.getValue())) {
                 paramObj.put("isRefresh", 1);
                 break;
             }

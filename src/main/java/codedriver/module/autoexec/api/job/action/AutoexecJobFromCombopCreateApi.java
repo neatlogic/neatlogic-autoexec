@@ -101,7 +101,6 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
             throw new AutoexecJobThreadCountException();
         }
         AutoexecJobVo jobVo = autoexecJobService.saveAutoexecCombopJob(combopVo, jsonObj.getString("source"), threadCount, paramJson);
-
         autoexecJobActionService.fire(jobVo);
         return new JSONObject(){{
             put("jobId",jobVo.getId());

@@ -68,15 +68,14 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         if (jobVo.getIsCanJobFire() == 1 || jobVo.getIsCanJobReFire() == 1) {
             jobVo.setStatus(JobStatus.RUNNING.getValue());
             autoexecJobMapper.updateJobStatus(jobVo);
-            int sort = 0;
             for (AutoexecJobPhaseVo jobPhase : jobVo.getPhaseList()) {
                 jobPhase.setStatus(JobPhaseStatus.WAITING.getValue());
                 autoexecJobMapper.updateJobPhaseStatus(jobPhase);
-                sort = jobPhase.getSort();
             }
-            autoexecJobService.refreshJobPhaseNodeList(jobVo.getId(), sort);
+            autoexecJobService.refreshJobPhaseNodeList(jobVo.getId(), jobVo.getCurrentPhaseSort());
             JSONObject paramJson = new JSONObject();
             getFireParamJson(paramJson, jobVo);
+            paramJson.put("isFirstFire",jobVo.getCurrentPhaseSort() == 0?1:0);
             List<AutoexecRunnerVo> runnerVos = autoexecJobMapper.getJobRunnerListByJobId(jobVo.getId());
             List<String> refusedErrorList = new ArrayList<>();
             List<String> authErrorList = new ArrayList<>();
@@ -104,6 +103,14 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             }
 
         }
+    }
+
+    @Override
+    public void refire(AutoexecJobVo jobVo) {
+        autoexecJobMapper.updateJobPhaseStatusByJobId(jobVo.getId(),JobPhaseStatus.PENDING.getValue());//重置phase状态为pending
+        autoexecJobMapper.updateJobPhaseFailedNodeStatusByJobId(jobVo.getId(),JobNodeStatus.PENDING.getValue());//重置失败的节点的状态为pending
+        jobVo.setCurrentPhaseSort(0);//重头开始跑
+        fire(jobVo);
     }
 
     /**

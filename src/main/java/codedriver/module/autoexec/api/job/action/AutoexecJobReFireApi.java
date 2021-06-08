@@ -60,9 +60,9 @@ public class AutoexecJobReFireApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
-        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         autoexecJobService.getAutoexecJobDetail(jobVo,0);
-        autoexecJobActionService.fire(jobVo);
+        autoexecJobActionService.refire(jobVo);
         return null;
     }
 
