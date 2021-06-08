@@ -25,9 +25,11 @@ import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.module.autoexec.service.AutoexecScriptService;
 import codedriver.module.autoexec.service.AutoexecService;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -97,7 +99,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
         if (multipartFileMap.isEmpty()) {
             throw new FileNotUploadException();
         }
-        List<String> resultList = new ArrayList<>();
+        JSONArray resultList = new JSONArray();
         byte[] buf = new byte[1024];
         int successCount = 0;
         int failureCount = 0;
@@ -112,8 +114,8 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                     }
                     AutoexecScriptVo scriptVo = JSONObject.parseObject(new String(out.toByteArray(), StandardCharsets.UTF_8), new TypeReference<AutoexecScriptVo>() {
                     });
-                    String result = save(scriptVo);
-                    if (StringUtils.isNotBlank(result)) {
+                    JSONObject result = save(scriptVo);
+                    if (MapUtils.isNotEmpty(result)) {
                         resultList.add(result);
                         failureCount++;
                     } else {
@@ -133,8 +135,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
         return resultObj;
     }
 
-    private String save(AutoexecScriptVo scriptVo) {
-        StringBuilder failLog = new StringBuilder();
+    private JSONObject save(AutoexecScriptVo scriptVo) {
         List<String> failReasonList = new ArrayList<>();
         Long id = scriptVo.getId();
         String name = scriptVo.getName();
@@ -204,14 +205,12 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
             }
         }
         if (CollectionUtils.isNotEmpty(failReasonList)) {
-            failLog.append("导入：" + name + "时出现如下问题：</br>");
-            for (int i = 0; i < failReasonList.size(); i++) {
-                failLog.append("&nbsp;&nbsp;&nbsp;");
-                failLog.append((i + 1) + "、" + failReasonList.get(i) + "；</br>");
-            }
+            JSONObject result = new JSONObject();
+            result.put("item", "导入：" + name + "时出现如下问题：");
+            result.put("list", failReasonList);
+            return result;
         }
-        String result = failLog.toString();
-        return StringUtils.isNotBlank(result) ? result : null;
+        return null;
     }
 
 

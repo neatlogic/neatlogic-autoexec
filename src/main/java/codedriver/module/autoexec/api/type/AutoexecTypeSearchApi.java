@@ -6,7 +6,7 @@
 package codedriver.module.autoexec.api.type;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.auth.AUTOEXEC_TYPE_MODIFY;
 import codedriver.framework.autoexec.dto.AutoexecTypeVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
@@ -27,7 +27,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Service
-@AuthAction(action = AUTOEXEC_BASE.class)
+@AuthAction(action = AUTOEXEC_TYPE_MODIFY.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecTypeSearchApi extends PrivateApiComponentBase {
 
