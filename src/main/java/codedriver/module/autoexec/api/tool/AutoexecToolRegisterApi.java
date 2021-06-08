@@ -79,7 +79,7 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
             @Param(name = "interpreter", type = ApiParamType.ENUM, rule = "python,ruby,vbscript,shell,perl,powershell,cmd,bash,ksh,csh,sh,javascript,xml", isRequired = true, desc = "解析器"),
             @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
             @Param(name = "desc", type = ApiParamType.JSONOBJECT,
-                    desc = "入参(当控件类型为[select,multiselect,radio,checkbox]时，需要在defaultValue字段填写矩阵数据源，格式如下：{\"matrixUuid\":\"f32f82d97e3148e79ab6a4bb7b69a65d\",\"matrixValue\":\"e46e10986ffe42edaf3163424377cdeb\"}，matrixUuid代表矩阵uuid，matrixValue代表矩阵属性uuid)"),
+                    desc = "入参(当控件类型为[select,multiselect,radio,checkbox]时，需要在config字段填写矩阵数据源，格式如下：{\"matrixUuid\":\"f32f82d97e3148e79ab6a4bb7b69a65d\",\"matrixValue\":\"e46e10986ffe42edaf3163424377cdeb\"}，matrixUuid代表矩阵uuid，matrixValue代表矩阵属性uuid)"),
             @Param(name = "output", type = ApiParamType.JSONOBJECT, desc = "出参"),
     })
     @Output({
@@ -162,13 +162,13 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                         type = paramType.getValue();
                         // 如果参数控件类型需要配置矩阵数据源，那么检验矩阵配置是否合法
                         if (paramType.getIsDynamic()) {
-                            Object defaultValue = value.get("defaultValue");
-                            if (defaultValue == null) {
+                            Object config = value.get("config");
+                            if (config == null) {
                                 throw new AutoexecToolParamMatrixConfigEmptyException(key);
                             }
                             JSONObject matrixConfig = null;
                             try {
-                                matrixConfig = JSONObject.parseObject(defaultValue.toString());
+                                matrixConfig = JSONObject.parseObject(config.toString());
                             } catch (JSONException ex) {
                                 throw new AutoexecToolParamMatrixConfigFormatIllegalException(key);
                             }
@@ -187,6 +187,7 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                             if (!attributeList.stream().anyMatch(o -> Objects.equals(o.getUuid(), matrixValue))) {
                                 throw new MatrixAttributeNotFoundException(matrixUuid, matrixValue);
                             }
+                            param.put("config",matrixConfig.toJSONString());
                         }
                     } else {
                         throw new ParamTypeNotFoundException(type);
