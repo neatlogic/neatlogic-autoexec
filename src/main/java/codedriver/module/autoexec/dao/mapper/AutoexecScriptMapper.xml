@@ -9,7 +9,7 @@
         `exec_mode` as execMode,
         `type_id` as typeId,
         `risk_id` as riskId,
-        (select `name` from `autoexec_type` where a.`type_id` = `id`) as type,
+        (select `name` from `autoexec_type` where a.`type_id` = `id`) as typeName,
         (select `name` from `autoexec_risk` where a.`risk_id` = `id`) as riskName,
         `fcu`,
         `fcd`
@@ -192,7 +192,8 @@
         `mode`,
         `is_required` as isRequired,
         `description`,
-        `sort`
+        `sort`,
+        `config`
         from `autoexec_script_version_param`
         where `script_version_id` = #{value}
         order by `sort`
@@ -200,15 +201,16 @@
 
     <select id="getParamListByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo">
         select
-        `script_version_id` as scriptVersionId,
-        `key`,
-        `name`,
-        `default_value` as defaultValue,
-        `type`,
-        `mode`,
-        `is_required` as isRequired,
-        `description`,
-        `sort`
+        a.`script_version_id` as scriptVersionId,
+        a.`key`,
+        a.`name`,
+        a.`default_value` as defaultValue,
+        a.`type`,
+        a.`mode`,
+        a.`is_required` as isRequired,
+        a.`description`,
+        a.`sort`,
+        a.`config`
         from `autoexec_script_version_param` a
         join `autoexec_script_version` b on a.`script_version_id` = b.`id`
         where b.`is_active` = 1
@@ -268,7 +270,7 @@
         <result column="id" property="id"/>
         <result column="name" property="name"/>
         <result column="execMode" property="execMode"/>
-        <result column="type" property="type"/>
+        <result column="typeName" property="typeName"/>
         <result column="currentVersion" property="currentVersion"/>
         <result column="versionCount" property="versionCount"/>
         <result column="submittedVersionCount" property="submittedVersionCount"/>
@@ -286,7 +288,7 @@
         `id`,
         `name`,
         `exec_mode` as execMode,
-        (select `name` from `autoexec_type` where a.`type_id` = `id`) as type,
+        (select `name` from `autoexec_type` where a.`type_id` = `id`) as typeName,
         (select `name` from `autoexec_risk` where a.`risk_id` = `id`) as riskName,
         (select `color` from `autoexec_risk` where a.`risk_id` = `id`) as riskColor,
         (select `version` from `autoexec_script_version` where a.`id` = `script_id` and `is_active` = 1)
@@ -447,6 +449,7 @@
             <result property="isRequired" column="isRequired"/>
             <result property="description" column="description"/>
             <result property="sort" column="sort"/>
+            <result property="config" column="config"/>
         </collection>
     </resultMap>
 
@@ -468,7 +471,8 @@
         c.`mode`,
         c.`is_required` as isRequired,
         c.`description`,
-        c.`sort`
+        c.`sort`,
+        c.`config`
         from
         `autoexec_script` a
         join `autoexec_script_version` b
@@ -681,7 +685,8 @@
         `mode`,
         `is_required`,
         `description`,
-        `sort`
+        `sort`,
+        `config`
         ) values
         <foreach collection="list" item="item" separator=",">
             (
@@ -693,7 +698,8 @@
             #{item.mode},
             #{item.isRequired},
             #{item.description},
-            #{item.sort}
+            #{item.sort},
+            #{item.configStr}
             )
         </foreach>
     </insert>

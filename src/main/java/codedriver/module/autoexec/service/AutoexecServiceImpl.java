@@ -12,6 +12,7 @@ import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.exception.type.ParamIrregularException;
 import codedriver.framework.exception.type.ParamNotExistsException;
 import codedriver.framework.exception.type.ParamRepeatsException;
+import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -83,6 +84,25 @@ public class AutoexecServiceImpl implements AutoexecService {
             }
         }
 
+    }
+
+    @Override
+    public void mergeConfig(AutoexecParamVo autoexecParamVo) {
+        ParamType paramType = ParamType.getParamType(autoexecParamVo.getType());
+        if (paramType != null) {
+            JSONObject paramTypeConfig = new JSONObject(paramType.getConfig());
+            if (Objects.equals(autoexecParamVo.getIsRequired(), 0)) {
+                paramTypeConfig.put("isRequired", false);
+            } else {
+                paramTypeConfig.put("isRequired", true);
+            }
+            JSONObject config = autoexecParamVo.getConfig();
+            if(config == null){
+                autoexecParamVo.setConfig(paramTypeConfig.toJSONString());
+            } else {
+                config.putAll(paramTypeConfig);
+            }
+        }
     }
 
 }

@@ -7,11 +7,10 @@ package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
-import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_EXECUTE;
-import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.ParamMode;
+import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecRiskVo;
 import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
@@ -20,7 +19,6 @@ import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.constvalue.GroupSearch;
-import codedriver.framework.exception.type.PermissionDeniedException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -30,6 +28,7 @@ import codedriver.module.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.module.autoexec.service.AutoexecCombopService;
+import codedriver.module.autoexec.service.AutoexecService;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -49,8 +48,6 @@ import java.util.Objects;
  **/
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
-@AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
-@AuthAction(action = AUTOEXEC_COMBOP_EXECUTE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecCombopGetApi extends PrivateApiComponentBase {
 
@@ -68,6 +65,9 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopService autoexecCombopService;
+
+    @Resource
+    private AutoexecService autoexecService;
 
     @Override
     public String getToken() {
@@ -104,6 +104,9 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
 //        }
         autoexecCombopVo.setOwner(GroupSearch.USER.getValuePlugin() + autoexecCombopVo.getOwner());
         List<AutoexecCombopParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
+        for (AutoexecCombopParamVo autoexecCombopParamVo : runtimeParamList) {
+            autoexecService.mergeConfig(autoexecCombopParamVo);
+        }
         autoexecCombopVo.setRuntimeParamList(runtimeParamList);
         AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
@@ -152,6 +155,7 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
                                 List<AutoexecParamVo> outputParamList = new ArrayList<>();
                                 if (CollectionUtils.isNotEmpty(autoexecParamVoList)) {
                                     for (AutoexecParamVo paramVo : autoexecParamVoList) {
+                                        autoexecService.mergeConfig(paramVo);
                                         String mode = paramVo.getMode();
                                         if (Objects.equals(mode, ParamMode.INPUT.getValue())) {
                                             inputParamList.add(paramVo);

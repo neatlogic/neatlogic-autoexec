@@ -18,5 +18,6 @@ public interface AutoexecService {
      */
     void validateParamList(List<? extends AutoexecParamVo> paramList);
 
+    public void mergeConfig(AutoexecParamVo autoexecParamVo);
 
 }

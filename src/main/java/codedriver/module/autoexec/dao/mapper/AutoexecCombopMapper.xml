@@ -108,7 +108,8 @@
             `description`,
             `is_required` AS isRequired,
             `type`,
-            `sort`
+            `sort`,
+            `config`
         FROM `autoexec_combop_param`
         WHERE `combop_id` = #{combopId}
         ORDER BY `sort`
@@ -217,7 +218,8 @@
             `description`,
             `is_required`,
             `type`,
-            `sort`
+            `sort`,
+            `config`
         )
         VALUES
         <foreach collection="list" item="paramVo" separator=",">
@@ -229,7 +231,8 @@
             #{paramVo.description},
             #{paramVo.isRequired},
             #{paramVo.type},
-            #{paramVo.sort}
+            #{paramVo.sort},
+            #{paramVo.configStr}
         )
         </foreach>
     </insert>

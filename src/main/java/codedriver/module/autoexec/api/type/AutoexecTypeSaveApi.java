@@ -7,13 +7,13 @@ package codedriver.module.autoexec.api.type;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_TYPE_MODIFY;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.dto.FieldValidResultVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.IValid;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.framework.autoexec.dto.AutoexecTypeVo;
 import codedriver.framework.autoexec.exception.AutoexecTypeNameRepeatException;
@@ -25,7 +25,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 
 @Service
-@AuthAction(action = AUTOEXEC_SCRIPT_MODIFY.class)
+@AuthAction(action = AUTOEXEC_TYPE_MODIFY.class)
 @OperationType(type = OperationTypeEnum.OPERATE)
 public class AutoexecTypeSaveApi extends PrivateApiComponentBase {
 
