@@ -39,7 +39,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * 保存组合工具基本信息接口
@@ -116,7 +115,7 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
         }
         Long id = jsonObj.getLong("id");
         if (id == null) {
-            if(AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(true), AUTOEXEC_COMBOP_ADD.class.getSimpleName())){
+            if(!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(true), AUTOEXEC_COMBOP_ADD.class.getSimpleName())){
                 throw new PermissionDeniedException();
             }
             autoexecCombopVo.setOperationType(CombopOperationType.COMBOP.getValue());

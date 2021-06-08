@@ -7,7 +7,6 @@ package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
-import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -15,12 +14,12 @@ import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.module.autoexec.service.AutoexecService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * 查询组合工具顶层参数列表接口
@@ -35,6 +34,8 @@ public class AutoexecCombopParamListApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
+    @Resource
+    private AutoexecService autoexecService;
 
     @Override
     public String getToken() {
@@ -66,18 +67,8 @@ public class AutoexecCombopParamListApi extends PrivateApiComponentBase {
         }
         List<AutoexecCombopParamVo> autoexecCombopParamVoList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopId);
         for (AutoexecCombopParamVo autoexecCombopParamVo : autoexecCombopParamVoList) {
-            ParamType paramType = ParamType.getParamType(autoexecCombopParamVo.getType());
-            if (paramType != null) {
-                JSONObject config = new JSONObject(paramType.getConfig());
-                if (Objects.equals(autoexecCombopParamVo.getIsRequired(), 0)) {
-                    config.put("isRequired", false);
-                } else {
-                    config.put("isRequired", true);
-                }
-                autoexecCombopParamVo.setConfig(config);
-            }
+            autoexecService.mergeConfig(autoexecCombopParamVo);
         }
         return autoexecCombopParamVoList;
     }
-
 }
