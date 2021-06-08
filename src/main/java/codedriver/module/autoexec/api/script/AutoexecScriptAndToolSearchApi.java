@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.api.script;
 
+import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.util.PageUtil;
@@ -13,6 +14,7 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecToolMapper;
+import codedriver.module.autoexec.service.AutoexecService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -35,6 +37,9 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecToolMapper autoexecToolMapper;
+
+    @Resource
+    private AutoexecService autoexecService;
 
     @Override
     public String getToken() {
@@ -81,6 +86,14 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
             List<AutoexecToolAndScriptVo> scriptList = autoexecScriptMapper.getScriptListByIdList(idList);
             toolAndScriptList.addAll(toolList);
             toolAndScriptList.addAll(scriptList);
+            for (AutoexecToolAndScriptVo autoexecToolAndScriptVo : toolAndScriptList) {
+                List<AutoexecParamVo> paramList = autoexecToolAndScriptVo.getParamList();
+                if (CollectionUtils.isNotEmpty(paramList)) {
+                    for (AutoexecParamVo autoexecParamVo : paramList) {
+                        autoexecService.mergeConfig(autoexecParamVo);
+                    }
+                }
+            }
             // 按传入的valueList排序
             if (CollectionUtils.isNotEmpty(toolAndScriptList)) {
                 for (Long id : idList) {
@@ -104,6 +117,4 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
 
         return result;
     }
-
-
 }

@@ -10,6 +10,7 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.ParamMode;
+import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecRiskVo;
 import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
@@ -27,6 +28,7 @@ import codedriver.module.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.module.autoexec.service.AutoexecCombopService;
+import codedriver.module.autoexec.service.AutoexecService;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -64,6 +66,9 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
     @Resource
     private AutoexecCombopService autoexecCombopService;
 
+    @Resource
+    private AutoexecService autoexecService;
+
     @Override
     public String getToken() {
         return "autoexec/combop/get";
@@ -99,6 +104,9 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
 //        }
         autoexecCombopVo.setOwner(GroupSearch.USER.getValuePlugin() + autoexecCombopVo.getOwner());
         List<AutoexecCombopParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
+        for (AutoexecCombopParamVo autoexecCombopParamVo : runtimeParamList) {
+            autoexecService.mergeConfig(autoexecCombopParamVo);
+        }
         autoexecCombopVo.setRuntimeParamList(runtimeParamList);
         AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
@@ -147,6 +155,7 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
                                 List<AutoexecParamVo> outputParamList = new ArrayList<>();
                                 if (CollectionUtils.isNotEmpty(autoexecParamVoList)) {
                                     for (AutoexecParamVo paramVo : autoexecParamVoList) {
+                                        autoexecService.mergeConfig(paramVo);
                                         String mode = paramVo.getMode();
                                         if (Objects.equals(mode, ParamMode.INPUT.getValue())) {
                                             inputParamList.add(paramVo);
