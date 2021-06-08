@@ -397,13 +397,16 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
             throw new AutoexecJobRunnerConnectAuthException(resultJson.getString("Message"));
         } else {
+            JSONObject statusJson = null;
             String resultStr = resultJson.getString("Return");
             if (StringUtils.isNotBlank(resultStr)) {
-                JSONObject statusJson = JSONObject.parseObject(resultStr);
-                List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseId(paramJson.getLong("jobId"), paramJson.getLong("phaseId"));
-                for (AutoexecJobPhaseOperationVo operationVo : operationVoList) {
-                    statusList.add(new AutoexecJobPhaseNodeOperationStatusVo(operationVo, statusJson));
-                }
+                statusJson = JSONObject.parseObject(resultStr);
+            }else{
+                statusJson = new JSONObject();
+            }
+            List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseId(paramJson.getLong("jobId"), paramJson.getLong("phaseId"));
+            for (AutoexecJobPhaseOperationVo operationVo : operationVoList) {
+                statusList.add(new AutoexecJobPhaseNodeOperationStatusVo(operationVo, statusJson));
             }
         }
         return statusList.stream().sorted(Comparator.comparing(AutoexecJobPhaseNodeOperationStatusVo::getSort)).collect(Collectors.toList());

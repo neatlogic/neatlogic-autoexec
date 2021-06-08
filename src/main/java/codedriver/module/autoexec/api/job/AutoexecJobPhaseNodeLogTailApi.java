@@ -78,6 +78,7 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
         AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(nodeVo.getJobId(),nodeVo.getJobPhaseId());
         paramObj.put("jobId",nodeVo.getJobId());
         paramObj.put("phase",nodeVo.getJobPhaseName());
+        paramObj.put("phaseId",nodeVo.getJobPhaseId());
         paramObj.put("ip",nodeVo.getHost());
         paramObj.put("port",nodeVo.getPort());
         paramObj.put("runnerUrl",nodeVo.getRunnerUrl());
@@ -87,8 +88,8 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
         result.put("isRefresh",1);
         List<AutoexecJobPhaseNodeOperationStatusVo> operationStatusVos = autoexecJobActionService.getNodeOperationStatus(paramObj);
         for(AutoexecJobPhaseNodeOperationStatusVo statusVo : operationStatusVos){
-            if(Objects.equals(statusVo.getStatus(), JobNodeStatus.FAILED.getValue())&&Objects.equals(statusVo.getFailIgnore(),0)){
-                result.put("isRefresh",0);
+            if((Objects.equals(statusVo.getStatus(), JobNodeStatus.FAILED.getValue())&&Objects.equals(statusVo.getFailIgnore(),1))){
+                result.put("isRefresh",1);
                 break;
             }
         }

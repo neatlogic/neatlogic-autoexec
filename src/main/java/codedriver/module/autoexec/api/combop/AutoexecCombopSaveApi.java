@@ -7,6 +7,9 @@ package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.auth.core.AuthActionChecker;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -22,13 +25,11 @@ import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.IValid;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_MODIFY;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.framework.autoexec.exception.AutoexecCombopNameRepeatException;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecCombopUkRepeatException;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -48,7 +49,7 @@ import java.util.Objects;
  **/
 @Service
 @Transactional
-@AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
+@AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
 
@@ -115,6 +116,9 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
         }
         Long id = jsonObj.getLong("id");
         if (id == null) {
+            if(AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(true), AUTOEXEC_COMBOP_ADD.class.getSimpleName())){
+                throw new PermissionDeniedException();
+            }
             autoexecCombopVo.setOperationType(CombopOperationType.COMBOP.getValue());
             autoexecCombopVo.setOwner(UserContext.get().getUserUuid(true));
             autoexecCombopVo.setConfig("{}");
@@ -136,11 +140,6 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             autoexecCombopService.setOperableButtonList(oldAutoexecCombopVo);
             if (oldAutoexecCombopVo.getEditable() == 0) {
                 throw new PermissionDeniedException();
-            }
-            if (!Objects.equals(owner, oldAutoexecCombopVo.getOwner())) {
-                if (oldAutoexecCombopVo.getOwnerEditable() == 0) {
-                    throw new PermissionDeniedException();
-                }
             }
             AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
             AutoexecCombopConfigVo oldConfigVo = oldAutoexecCombopVo.getConfig();

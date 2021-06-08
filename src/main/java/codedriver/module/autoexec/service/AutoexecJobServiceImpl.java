@@ -292,8 +292,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobId);
         paramObj.put("isRefresh", 1);
         for (AutoexecJobPhaseVo phaseVo : jobPhaseVoList) {
-            if (Objects.equals(phaseVo.getStatus(), JobPhaseStatus.FAILED.getValue())) {
-                paramObj.put("isRefresh", 0);
+            if (Objects.equals(phaseVo.getStatus(), JobPhaseStatus.RUNNING.getValue())) {
+                paramObj.put("isRefresh", 1);
                 break;
             }
         }
