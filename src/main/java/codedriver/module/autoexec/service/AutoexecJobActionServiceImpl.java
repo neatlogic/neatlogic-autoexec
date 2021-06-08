@@ -436,26 +436,26 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             throw new AutoexecJobRunnerConnectAuthException(resultJson.getString("Message"));
         } else {
             String resultStr = resultJson.getString("Return");
-            if (StringUtils.isNotBlank(resultStr)) {
-                JSONObject outputParamJson = JSONObject.parseObject(resultStr);
-                Long jobId = paramJson.getLong("jobId");
-                Long jobPhaseId = paramJson.getLong("phaseId");
-                List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseId(jobId, jobPhaseId);
-                List<AutoexecJobParamContentVo> paramContentVoList = autoexecJobMapper.getJobParamContentList(operationVoList.stream().map(AutoexecJobPhaseOperationVo::getParamHash).collect(Collectors.toList()));
-                operationOutputParamArray = new JSONArray() {{
-                    for (AutoexecJobPhaseOperationVo operationVo : operationVoList) {
-                        add(new JSONObject() {{
-                            put("name", operationVo.getName());
+            Long jobId = paramJson.getLong("jobId");
+            Long jobPhaseId = paramJson.getLong("phaseId");
+            List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseId(jobId, jobPhaseId);
+            List<AutoexecJobParamContentVo> paramContentVoList = autoexecJobMapper.getJobParamContentList(operationVoList.stream().map(AutoexecJobPhaseOperationVo::getParamHash).collect(Collectors.toList()));
+            operationOutputParamArray = new JSONArray() {{
+                for (AutoexecJobPhaseOperationVo operationVo : operationVoList) {
+                    add(new JSONObject() {{
+                        put("name", operationVo.getName());
+                        if (StringUtils.isNotBlank(resultStr)) {
+                            JSONObject outputParamJson = JSONObject.parseObject(resultStr);
                             List<AutoexecJobParamVo> outputParamList = new ArrayList<>();
                             List<AutoexecJobParamVo> finalOutputParamList = outputParamList;
                             paramContentVoList.forEach(o -> {
-                                if(Objects.equals(operationVo.getParamHash(),o.getHash())) {
+                                if (Objects.equals(operationVo.getParamHash(), o.getHash())) {
                                     JSONObject json = JSONObject.parseObject(o.getContent());
                                     JSONArray outputArray = json.getJSONArray("outputParamList");
                                     for (Object output : outputArray) {
                                         AutoexecJobParamVo outputVo = new AutoexecJobParamVo(JSONObject.parseObject(output.toString()));
                                         JSONObject valueJson = outputParamJson.getJSONObject(operationVo.getName() + "_" + operationVo.getId());
-                                        if(valueJson != null){
+                                        if (valueJson != null) {
                                             outputVo.setValue(valueJson.getString(outputVo.getKey()));
                                         }
                                         finalOutputParamList.add(outputVo);
@@ -464,10 +464,10 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                             });
                             outputParamList = outputParamList.stream().sorted(Comparator.comparing(AutoexecJobParamVo::getSort)).collect(Collectors.toList());
                             put("paramList", outputParamList);
-                        }});
-                    }
-                }};
-            }
+                        }
+                    }});
+                }
+            }};
         }
         return operationOutputParamArray;
     }

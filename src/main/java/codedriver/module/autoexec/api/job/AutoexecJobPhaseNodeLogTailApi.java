@@ -8,6 +8,7 @@ package codedriver.module.autoexec.api.job;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
+import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeOperationStatusVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
@@ -72,34 +73,39 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject paramObj) throws Exception {
         JSONObject result;
         AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobNodeId(paramObj.getLong("nodeId"));
-        if(nodeVo == null){
-            throw new AutoexecJobPhaseNodeNotFoundException(StringUtils.EMPTY,paramObj.getString("nodeId"));
+        if (nodeVo == null) {
+            throw new AutoexecJobPhaseNodeNotFoundException(StringUtils.EMPTY, paramObj.getString("nodeId"));
         }
-        AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(nodeVo.getJobId(),nodeVo.getJobPhaseId());
-        paramObj.put("jobId",nodeVo.getJobId());
-        paramObj.put("phase",nodeVo.getJobPhaseName());
-        paramObj.put("phaseId",nodeVo.getJobPhaseId());
-        paramObj.put("ip",nodeVo.getHost());
-        paramObj.put("port",nodeVo.getPort());
-        paramObj.put("runnerUrl",nodeVo.getRunnerUrl());
-        paramObj.put("execMode",phaseVo.getExecMode());
-        paramObj.put("direction","down");
+        AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(nodeVo.getJobId(), nodeVo.getJobPhaseId());
+        paramObj.put("jobId", nodeVo.getJobId());
+        paramObj.put("phase", nodeVo.getJobPhaseName());
+        paramObj.put("phaseId", nodeVo.getJobPhaseId());
+        paramObj.put("ip", nodeVo.getHost());
+        paramObj.put("port", nodeVo.getPort());
+        paramObj.put("runnerUrl", nodeVo.getRunnerUrl());
+        paramObj.put("execMode", phaseVo.getExecMode());
+        paramObj.put("direction", "down");
         result = autoexecJobActionService.tailNodeLog(paramObj);
-        result.put("isRefresh",0);
+        result.put("isRefresh", 0);
         List<AutoexecJobPhaseNodeOperationStatusVo> operationStatusVos = autoexecJobActionService.getNodeOperationStatus(paramObj);
-        for(AutoexecJobPhaseNodeOperationStatusVo statusVo : operationStatusVos){
-            //如果存在pending 或 running 的节点则继续tail
-            if(Objects.equals(statusVo.getStatus(), JobNodeStatus.PENDING.getValue()) || Objects.equals(statusVo.getStatus(), JobNodeStatus.RUNNING.getValue())){
-                result.put("isRefresh",1);
+        for (AutoexecJobPhaseNodeOperationStatusVo statusVo : operationStatusVos) {
+            //如果存在pending|running 的节点|阶段 则继续tail
+            //如果operation的状态为null，表示还没刷新结果，继续tail
+            if (Objects.equals(phaseVo.getStatus(), JobPhaseStatus.PENDING.getValue())
+                    || Objects.equals(phaseVo.getStatus(), JobPhaseStatus.RUNNING.getValue())
+                    || StringUtils.isBlank(statusVo.getStatus())
+                    || Objects.equals(statusVo.getStatus(), JobNodeStatus.PENDING.getValue())
+                    || Objects.equals(statusVo.getStatus(), JobNodeStatus.RUNNING.getValue())) {
+                result.put("isRefresh", 1);
                 break;
             }
             //如果存在失败停止策略的操作节点，则停止tail
-            if(Objects.equals(statusVo.getStatus(), JobNodeStatus.FAILED.getValue())&&Objects.equals(statusVo.getFailIgnore(),0)){
-                result.put("isRefresh",0);
+            if (Objects.equals(statusVo.getStatus(), JobNodeStatus.FAILED.getValue()) && Objects.equals(statusVo.getFailIgnore(), 0)) {
+                result.put("isRefresh", 0);
                 break;
             }
         }
-        result.put("operationStatusList",operationStatusVos);
+        result.put("operationStatusList", operationStatusVos);
         return result;
     }
 

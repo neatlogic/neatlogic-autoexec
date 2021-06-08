@@ -775,6 +775,7 @@
         SET `status` = #{status}
         <if test="status == 'running'">
             ,`start_time` = NOW(3)
+            ,`end_time` = NULL
         </if>
         <if test="errorMsg != null and errorMsg != ''">
             ,`error_msg` = #{errorMsg}
