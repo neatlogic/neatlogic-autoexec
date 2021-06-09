@@ -102,6 +102,7 @@
         `is_active` as isActive
         from `autoexec_tool`
         <include refid="searchToolCondition"/>
+        order by `lcd` desc
         <if test="needPage == true">
             LIMIT #{startNum}, #{pageSize}
         </if>
