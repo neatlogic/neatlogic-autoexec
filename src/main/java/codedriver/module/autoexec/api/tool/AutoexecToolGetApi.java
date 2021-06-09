@@ -12,7 +12,7 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.autoexec.constvalue.ScriptAndToolOperate;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
-import codedriver.framework.autoexec.dto.OperateVo;
+import codedriver.framework.dto.OperateVo;
 import codedriver.framework.autoexec.exception.AutoexecToolNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;

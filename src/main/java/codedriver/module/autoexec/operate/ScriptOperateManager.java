@@ -10,7 +10,7 @@ import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.*;
 import codedriver.framework.autoexec.constvalue.ScriptAndToolOperate;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
-import codedriver.framework.autoexec.dto.OperateVo;
+import codedriver.framework.dto.OperateVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;

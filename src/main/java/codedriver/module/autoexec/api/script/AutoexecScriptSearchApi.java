@@ -7,7 +7,7 @@ package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
-import codedriver.framework.autoexec.dto.OperateVo;
+import codedriver.framework.dto.OperateVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
