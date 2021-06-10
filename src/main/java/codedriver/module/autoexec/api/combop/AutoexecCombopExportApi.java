@@ -15,10 +15,10 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
 import codedriver.framework.util.FileUtil;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
-import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
-import org.springframework.beans.factory.annotation.Autowired;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -40,11 +40,10 @@ import java.util.zip.ZipOutputStream;
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase {
 
-    @Autowired
-    private AutoexecCombopMapper autoexecCombopMapper;
+    private final static Logger logger = LoggerFactory.getLogger(AutoexecCombopExportApi.class);
 
     @Resource
-    private AutoexecCombopService autoexecCombopService;
+    private AutoexecCombopMapper autoexecCombopMapper;
 
     @Override
     public String getToken() {
@@ -68,7 +67,7 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         List<Long> idList = paramObj.getJSONArray("idList").toJavaList(Long.class);
-        if(CollectionUtils.isEmpty(idList)){
+        if (CollectionUtils.isEmpty(idList)) {
             throw new ParamNotExistsException("idList");
         }
         List<Long> existIdList = autoexecCombopMapper.checkAutoexecCombopIdListIsExists(idList);
@@ -85,24 +84,26 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
             System.out.println(stringBuilder.length());
             throw new AutoexecCombopNotFoundException(stringBuilder.toString());
         }
+        List<AutoexecCombopVo> autoexecCombopVoList = new ArrayList<>();
+        for (Long id : existIdList) {
+            AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
+            List<AutoexecCombopParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
+            autoexecCombopVo.setRuntimeParamList(runtimeParamList);
+            autoexecCombopVoList.add(autoexecCombopVo);
+        }
         //设置导出文件名
         String fileName = FileUtil.getEncodedFileName(request.getHeader("User-Agent"), "组合工具." + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak");
         response.setContentType("aplication/zip");
         response.setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
 
         try (ZipOutputStream zipos = new ZipOutputStream(response.getOutputStream())) {
-            for (Long id : existIdList) {
-                AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
-                autoexecCombopService.setOperableButtonList(autoexecCombopVo);
-//                if (autoexecCombopVo.getEditable() == 0) {
-//                    continue;
-//                }
-                List<AutoexecCombopParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
-                autoexecCombopVo.setRuntimeParamList(runtimeParamList);
+            for (AutoexecCombopVo autoexecCombopVo : autoexecCombopVoList) {
                 zipos.putNextEntry(new ZipEntry(autoexecCombopVo.getName() + ".json"));
                 zipos.write(JSONObject.toJSONBytes(autoexecCombopVo));
                 zipos.closeEntry();
             }
+        } catch (Exception e) {
+            logger.error(e.getMessage(), e);
         }
         return null;
     }
