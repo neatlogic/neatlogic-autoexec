@@ -133,31 +133,41 @@
             </foreach>
         </if>
         <if test="keyword != null and keyword != ''">
-            and (an.`name` like concat('%',#{keyword},'%') or ajpn.`host` like concat('%',#{keyword},'%'))
+            and (rai.`name` like concat('%',#{keyword},'%') or ajpn.`host` like concat('%',#{keyword},'%'))
         </if>
     </sql>
 
     <select id="searchJobPhaseNode" resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
         SELECT
         ajpn.`id`,
-        ajpn.`job_phase_id` as jobPhaseId,
+        ajpn.`job_phase_id` AS jobPhaseId,
         ajpn.`host`,
         ajpn.`port`,
-        ajpn.`start_time` as startTime,
-        ajpn.`end_time` as endTime,
+        ajpn.`start_time` AS startTime,
+        ajpn.`end_time` AS endTime,
         ajpn.`status`,
-        ap.`id` as runnerId,
-        an.`id` as nodeId,
-        an.`name` AS nodeName,
-        an.`type` as nodeType,
-        an.`user_name` as userName,
-        an.`password`,
+        ap.`id` AS runnerId,
+        rai.`id` AS nodeId,
+        rai.name AS nodeName,
+        cra.`protocol` AS nodeType,
+        ajpn.`user_name` AS userName,
+        cra.`password`,
         ap.`url` AS runnerUrl
         FROM
         `autoexec_job_phase_node` ajpn
-        LEFT JOIN `autoexec_job_phase` ajp on ajpn.`job_phase_id` = ajp.`id`
-        LEFT JOIN `autoexec_node` an ON ajpn.`host` = an.`host` AND ajpn.`port` = an.`port`
-        LEFT JOIN `autoexec_job_phase_node_runner` ajpnr on ajpn.id = ajpnr.`node_id`
+        LEFT JOIN
+        (
+        SELECT ra.id,ra.name,rai.`ip` FROM `codedriver_develop_data`.`resource_appinstance_ip` rai
+        LEFT JOIN `codedriver_develop_data`.`resource_appinstance` ra ON ra.`id` = rai.`app_instance_id`
+        UNION
+        SELECT rd.id,rd.name,rdi.`ip` FROM `codedriver_develop_data`.`resource_dbinstance_ip` rdi
+        LEFT JOIN `codedriver_develop_data`.`resource_dbinstance` rd ON rd.`id` = rdi.`db_instance_id`
+        ) rai ON ajpn.host = rai.ip
+        LEFT JOIN `cmdb_resourcecenter_resource_account` crra ON rai.id = crra.resource_id
+        LEFT JOIN `cmdb_resourcecenter_account` cra ON crra.`account_id` = cra.`id` AND ajpn.`user_name` = cra.`account`
+        AND ajpn.`protocol` = cra.`protocol`
+        LEFT JOIN `autoexec_job_phase` ajp ON ajpn.`job_phase_id` = ajp.`id`
+        LEFT JOIN `autoexec_job_phase_node_runner` ajpnr ON ajpn.id = ajpnr.`node_id`
         LEFT JOIN `autoexec_runner` ap ON ajpnr.`runner_id` = ap.`id`
         <where>
             <include refid="searchJobPhaseNodeSql"/>
@@ -171,7 +181,14 @@
         FROM
         `autoexec_job_phase_node` ajpn
         LEFT JOIN `autoexec_job_phase` ajp on ajpn.`job_phase_id` = ajp.`id`
-        LEFT JOIN `autoexec_node` an ON ajpn.`host` = an.`host` AND ajpn.`port` = an.`port`
+        LEFT JOIN
+        (
+        SELECT ra.id,ra.name,rai.`ip` FROM `codedriver_develop_data`.`resource_appinstance_ip` rai
+        LEFT JOIN `codedriver_develop_data`.`resource_appinstance` ra ON ra.`id` = rai.`app_instance_id`
+        UNION
+        SELECT rd.id,rd.name,rdi.`ip` FROM `codedriver_develop_data`.`resource_dbinstance_ip` rdi
+        LEFT JOIN `codedriver_develop_data`.`resource_dbinstance` rd ON rd.`id` = rdi.`db_instance_id`
+        ) rai ON ajpn.host = rai.ip
         <where>
             <include refid="searchJobPhaseNodeSql"/>
         </where>
@@ -424,14 +441,28 @@
     <select id="searchJobNodeByJobId" resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
         SELECT ajn.`id`,
                ajn.`host`,
-               ajn.`port`,
-               an.`id`        as nodeId,
-               an.`name`      AS nodeName,
-               an.`type`      as nodeType,
-               an.`user_name` as userName,
-               an.`password`
+               ajn.port,
+               rai.`id` AS nodeId,
+               rai.`name`     AS nodeName,
+               ajn.`protocol` AS nodeType,
+               cra.`account`  AS userName,
+               cra.`password`
         FROM `autoexec_job_node` ajn
-                 LEFT JOIN `autoexec_node` an ON ajn.`host` = an.`host` AND ajn.`port` = an.`port`
+                 LEFT JOIN
+             (
+                 SELECT ra.id, ra.name, rai.`ip`
+                 FROM `codedriver_develop_data`.`resource_appinstance_ip` rai
+                          LEFT JOIN `codedriver_develop_data`.`resource_appinstance` ra
+                                    ON ra.`id` = rai.`app_instance_id`
+                 UNION
+                 SELECT rd.id, rd.name, rdi.`ip`
+                 FROM `codedriver_develop_data`.`resource_dbinstance_ip` rdi
+                          LEFT JOIN `codedriver_develop_data`.`resource_dbinstance` rd ON rd.`id` = rdi.`db_instance_id`
+             ) rai ON ajn.host = rai.ip
+                 LEFT JOIN `cmdb_resourcecenter_resource_account` crra ON rai.id = crra.resource_id
+                 LEFT JOIN `cmdb_resourcecenter_account` cra
+                           ON crra.`account_id` = cra.`id` AND ajn.`user_name` = cra.`account` AND
+                              ajn.`protocol` = cra.`protocol`
         where ajn.job_id = #{jobId}
         limit #{startNum}, #{pageSize}
     </select>
@@ -523,25 +554,38 @@
     <select id="getJobPhaseNodeInfoByJobNodeId"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
         SELECT ajpn.`id`,
-               ajpn.`job_id`       as jobId,
-               ajpn.`job_phase_id` as jobPhaseId,
+               ajpn.`job_id`       AS jobId,
+               ajpn.`job_phase_id` AS jobPhaseId,
                ajpn.`host`,
-               ajpn.`port`,
-               ajpn.`start_time`   as startTime,
-               ajpn.`end_time`     as endTime,
+               ajpn.port,
+               ajpn.`start_time`   AS startTime,
+               ajpn.`end_time`     AS endTime,
                ajpn.`status`,
-               ajp.`name`          as jobPhaseName,
-               an.`id`             as nodeId,
-               an.`name`           AS nodeName,
-               an.`type`           as nodeType,
-               an.`user_name`      as userName,
-               an.`password`,
-               ap.`id`             as runnerId,
+               ajp.`name`          AS jobPhaseName,
+               rai.`name`          AS nodeName,
+               ajpn.`protocol`     AS nodeType,
+               cra.`account`       AS userName,
+               cra.`password`,
+               ap.`id`             AS runnerId,
                ap.`url`            AS runnerUrl
         FROM `autoexec_job_phase_node` ajpn
-                 LEFT JOIN `autoexec_job_phase` ajp on ajpn.`job_phase_id` = ajp.`id`
-                 LEFT JOIN `autoexec_node` an ON ajpn.`host` = an.`host` AND ajpn.`port` = an.`port`
-                 LEFT JOIN `autoexec_job_phase_node_runner` ajpnr on ajpn.id = ajpnr.`node_id`
+                 LEFT JOIN `autoexec_job_phase` ajp ON ajpn.`job_phase_id` = ajp.`id`
+                 LEFT JOIN
+             (
+                 SELECT ra.id, ra.name, rai.`ip`
+                 FROM `codedriver_develop_data`.`resource_appinstance_ip` rai
+                          LEFT JOIN `codedriver_develop_data`.`resource_appinstance` ra
+                                    ON ra.`id` = rai.`app_instance_id`
+                 UNION
+                 SELECT rd.id, rd.name, rdi.`ip`
+                 FROM `codedriver_develop_data`.`resource_dbinstance_ip` rdi
+                          LEFT JOIN `codedriver_develop_data`.`resource_dbinstance` rd ON rd.`id` = rdi.`db_instance_id`
+             ) rai ON ajpn.host = rai.ip
+                 LEFT JOIN `cmdb_resourcecenter_resource_account` crra ON rai.id = crra.resource_id
+                 LEFT JOIN `cmdb_resourcecenter_account` cra
+                           ON crra.`account_id` = cra.`id` AND ajpn.`user_name` = cra.`account` AND
+                              ajpn.`protocol` = cra.`protocol`
+                 LEFT JOIN `autoexec_job_phase_node_runner` ajpnr ON ajpn.id = ajpnr.`node_id`
                  LEFT JOIN `autoexec_runner` ap ON ajpnr.`runner_id` = ap.`id`
         where ajpn.`id` = #{value}
     </select>
@@ -644,6 +688,24 @@
             #{hash}
         </foreach>
     </select>
+    <select id="getJobPhaseNodePortByIpAndUserNameAndProtocol" resultType="codedriver.framework.autoexec.dto.job.AutoexecJobNodeVo">
+        SELECT
+            cra.port,rai.ip
+        FROM
+            (
+                SELECT ra.id,ra.name,rai.`ip` FROM `codedriver_develop_data`.`resource_appinstance_ip` rai
+                                                       LEFT JOIN `codedriver_develop_data`.`resource_appinstance` ra ON ra.`id` = rai.`app_instance_id`
+                UNION
+                SELECT rd.id,rd.name,rdi.`ip` FROM `codedriver_develop_data`.`resource_dbinstance_ip` rdi
+                                                       LEFT JOIN `codedriver_develop_data`.`resource_dbinstance` rd ON rd.`id` = rdi.`db_instance_id`
+            ) rai
+                LEFT JOIN `cmdb_resourcecenter_resource_account` crra ON rai.id = crra.resource_id
+                LEFT JOIN `cmdb_resourcecenter_account` cra ON crra.`account_id` = cra.`id`
+        WHERE  cra.`account` = #{userName} AND cra.`protocol` = #{protocol}  AND rai.ip in
+        <foreach collection="ipList" item="ip" open="(" separator="," close=")">
+            #{ip}
+        </foreach>
+    </select>
 
     <insert id="insertJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
         INSERT INTO `autoexec_job` (`id`,
@@ -700,6 +762,7 @@
                                                `job_phase_id`,
                                                `host`,
                                                `port`,
+                                               `protocol`,
                                                `user_name`,
                                                `status`)
         VALUES (#{id},
@@ -707,6 +770,7 @@
                 #{jobPhaseId},
                 #{host},
                 #{port},
+                #{protocol},
                 #{userName},
                 #{status});
     </insert>
@@ -753,6 +817,20 @@
             parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeRunnerVo">
         INSERT INTO `autoexec_job_phase_node_runner` (`node_id`, `runner_id`)
         VALUES (#{nodeId}, #{runnerId});
+    </insert>
+    <insert id="insertJobNode">
+        INSERT INTO `autoexec_job_node` (`id`,
+                                         `job_id`,
+                                         `host`,
+                                         `port`,
+                                         `user_name`,
+                                         `protocol`)
+        VALUES (#{id},
+                #{jobId},
+                #{host},
+                #{port},
+                #{userName},
+                #{protocol});
     </insert>
 
     <update id="updateJobPhaseStatus" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
@@ -833,7 +911,8 @@
           , `start_time` = NULL
 
           , `end_time`   = NULL
-        WHERE `job_id` = #{jobId} and `status` != 'failed'
+        WHERE `job_id` = #{jobId}
+          and `status` != 'failed'
     </update>
 
     <delete id="deleteJobParamContentByHash" parameterType="java.lang.String">

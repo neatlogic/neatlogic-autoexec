@@ -83,6 +83,8 @@ public interface AutoexecJobMapper {
 
     int checkIsHasRunningNode(Long id);
 
+    List<AutoexecJobNodeVo> getJobPhaseNodePortByIpAndUserNameAndProtocol(@Param("ipList") List<String> ip,@Param("userName") String userName,@Param("protocol") String protocol);
+
     //jobPhaseOperation
     List<AutoexecJobPhaseOperationVo> getJobPhaseOperationByJobId(Long jobId);
 
@@ -109,6 +111,8 @@ public interface AutoexecJobMapper {
     Integer insertJob(AutoexecJobVo jobVo);
 
     Integer insertJobPhase(AutoexecJobPhaseVo jobVo);
+
+    Integer insertJobNode(AutoexecJobNodeVo jobNodeVo);
 
     Integer insertJobPhaseNode(AutoexecJobPhaseNodeVo jobVo);
 

@@ -10,6 +10,7 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeStatusCountVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -64,6 +65,9 @@ public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
         Long jobId = jsonObj.getLong("jobId");
         //作业基本信息
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        if(jobVo == null){
+            throw new AutoexecJobNotFoundException(jobId.toString());
+        }
         //剧本列表
         List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobId);
         List<AutoexecJobPhaseNodeStatusCountVo> statusCountVoList = autoexecJobMapper.getJobPhaseNodeStatusCount(jobId);
