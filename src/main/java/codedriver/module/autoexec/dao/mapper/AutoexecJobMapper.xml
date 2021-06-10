@@ -690,7 +690,7 @@
     </select>
     <select id="getJobPhaseNodePortByIpAndUserNameAndProtocol" resultType="codedriver.framework.autoexec.dto.job.AutoexecJobNodeVo">
         SELECT
-            cra.port,rai.ip
+            cra.port,rai.ip as host
         FROM
             (
                 SELECT ra.id,ra.name,rai.`ip` FROM `codedriver_develop_data`.`resource_appinstance_ip` rai
