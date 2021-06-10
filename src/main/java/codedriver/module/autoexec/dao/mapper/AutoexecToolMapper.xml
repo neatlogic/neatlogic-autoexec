@@ -79,6 +79,7 @@
         <id column="id" property="id"/>
         <result column="name" property="name"/>
         <result column="execMode" property="execMode"/>
+        <result column="description" property="description"/>
         <result column="typeId" property="typeId"/>
         <result column="typeName" property="typeName"/>
         <result column="isActive" property="isActive"/>
@@ -94,6 +95,7 @@
         `id`,
         `name`,
         `exec_mode` as execMode,
+        `description`,
         `type_id` as typeId,
         (select `name` from `autoexec_type` where `type_id` = `id`) as typeName,
         `risk_id` as riskId,
