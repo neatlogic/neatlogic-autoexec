@@ -18,6 +18,8 @@ import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -39,6 +41,8 @@ import java.util.zip.ZipOutputStream;
 @AuthAction(action = AUTOEXEC_COMBOP_ADD.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase {
+
+    private final static Logger logger = LoggerFactory.getLogger(AutoexecCombopExportApi.class);
 
     @Autowired
     private AutoexecCombopMapper autoexecCombopMapper;
@@ -85,24 +89,27 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
             System.out.println(stringBuilder.length());
             throw new AutoexecCombopNotFoundException(stringBuilder.toString());
         }
+        List<AutoexecCombopVo> autoexecCombopVoList = new ArrayList<>();
+        for (Long id : existIdList) {
+            AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
+            List<AutoexecCombopParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
+            autoexecCombopVo.setRuntimeParamList(runtimeParamList);
+            autoexecCombopVoList.add(autoexecCombopVo);
+        }
         //设置导出文件名
         String fileName = FileUtil.getEncodedFileName(request.getHeader("User-Agent"), "组合工具." + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak");
         response.setContentType("aplication/zip");
         response.setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
 
         try (ZipOutputStream zipos = new ZipOutputStream(response.getOutputStream())) {
-            for (Long id : existIdList) {
-                AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
-                autoexecCombopService.setOperableButtonList(autoexecCombopVo);
-//                if (autoexecCombopVo.getEditable() == 0) {
-//                    continue;
-//                }
-                List<AutoexecCombopParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
-                autoexecCombopVo.setRuntimeParamList(runtimeParamList);
+            for (AutoexecCombopVo autoexecCombopVo : autoexecCombopVoList) {
                 zipos.putNextEntry(new ZipEntry(autoexecCombopVo.getName() + ".json"));
                 zipos.write(JSONObject.toJSONBytes(autoexecCombopVo));
                 zipos.closeEntry();
             }
+        } catch (Exception e){
+            logger.error(e.getMessage(), e);
+            throw e;
         }
         return null;
     }
