@@ -15,12 +15,10 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
 import codedriver.framework.util.FileUtil;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
-import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -44,11 +42,8 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
 
     private final static Logger logger = LoggerFactory.getLogger(AutoexecCombopExportApi.class);
 
-    @Autowired
-    private AutoexecCombopMapper autoexecCombopMapper;
-
     @Resource
-    private AutoexecCombopService autoexecCombopService;
+    private AutoexecCombopMapper autoexecCombopMapper;
 
     @Override
     public String getToken() {
@@ -72,7 +67,7 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         List<Long> idList = paramObj.getJSONArray("idList").toJavaList(Long.class);
-        if(CollectionUtils.isEmpty(idList)){
+        if (CollectionUtils.isEmpty(idList)) {
             throw new ParamNotExistsException("idList");
         }
         List<Long> existIdList = autoexecCombopMapper.checkAutoexecCombopIdListIsExists(idList);
@@ -107,9 +102,8 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
                 zipos.write(JSONObject.toJSONBytes(autoexecCombopVo));
                 zipos.closeEntry();
             }
-        } catch (Exception e){
+        } catch (Exception e) {
             logger.error(e.getMessage(), e);
-            throw e;
         }
         return null;
     }
