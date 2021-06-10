@@ -9,6 +9,7 @@ import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.autoexec.constvalue.ScriptAndToolOperate;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
@@ -78,6 +79,10 @@ public class AutoexecToolGetApi extends PrivateApiComponentBase {
                 generateToCombop.setDisabled(1);
                 generateToCombop.setDisabledReason("当前工具未激活，无法发布为组合工具");
             }
+        }
+        if (AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
+            operateList.add(new OperateVo(ScriptAndToolOperate.TEST.getValue(), ScriptAndToolOperate.TEST.getText()));
+            operateList.add(new OperateVo(ScriptAndToolOperate.ACTIVE.getValue(), ScriptAndToolOperate.ACTIVE.getText()));
         }
         return tool;
     }

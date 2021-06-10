@@ -220,9 +220,9 @@ public class ScriptOperateManager {
                     generateToCombop.setDisabledReason("当前自定义工具未有激活版本，无法发布为组合工具");
                 }
                 operateList.add(generateToCombop);
+                operateList.add(new OperateVo(ScriptAndToolOperate.COPY.getValue(), ScriptAndToolOperate.COPY.getText()));
             }
             if (hasSearchAuth) {
-                operateList.add(new OperateVo(ScriptAndToolOperate.COPY.getValue(), ScriptAndToolOperate.COPY.getText()));
                 operateList.add(new OperateVo(ScriptAndToolOperate.EXPORT.getValue(), ScriptAndToolOperate.EXPORT.getText()));
             }
             if (hasManageAuth) {
