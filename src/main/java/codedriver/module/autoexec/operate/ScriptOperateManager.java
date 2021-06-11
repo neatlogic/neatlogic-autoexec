@@ -42,113 +42,156 @@ public class ScriptOperateManager {
     public void init() {
 
         operateMap.put(ScriptAndToolOperate.DELETE, (id) -> {
-            if (AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())) {
-                OperateVo vo = new OperateVo(ScriptAndToolOperate.DELETE.getValue(), ScriptAndToolOperate.DELETE.getText());
-                if (autoexecScriptMapper.getReferenceCountByScriptId(id) > 0) {
+            OperateVo vo = new OperateVo(ScriptAndToolOperate.DELETE.getValue(), ScriptAndToolOperate.DELETE.getText());
+            if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())) {
+                vo.setDisabled(1);
+                vo.setDisabledReason("无权限，请联系管理员");
+            } else if (autoexecScriptMapper.getReferenceCountByScriptId(id) > 0) {
+                vo.setDisabled(1);
+                vo.setDisabledReason("当前自定义工具已被组合工具引用，无法删除");
+            }
+            return vo;
+        });
+
+        operateMap.put(ScriptAndToolOperate.VERSIONDELETE, (id) -> {
+            // 只剩一个版本或当前版本处于激活状态时，不可删除
+            AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(id);
+            if (version != null) {
+                OperateVo vo = new OperateVo(ScriptAndToolOperate.VERSIONDELETE.getValue(), ScriptAndToolOperate.VERSIONDELETE.getText());
+                int versionCount = autoexecScriptMapper.getVersionCountByScriptId(version.getScriptId());
+                if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())) {
                     vo.setDisabled(1);
-                    vo.setDisabledReason("当前自定义工具已被组合工具引用，无法删除");
+                    vo.setDisabledReason("无权限，请联系管理员");
+                } else if (versionCount <= 1 || Objects.equals(version.getIsActive(), 1)) {
+                    vo.setDisabled(1);
+                    vo.setDisabledReason("只剩一个版本或当前版本处于激活状态时，不可删除");
                 }
                 return vo;
             }
             return null;
         });
 
-        operateMap.put(ScriptAndToolOperate.VERSIONDELETE, (id) -> {
-            // 只剩一个版本或当前版本处于激活状态时，不可删除
-            if (AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())) {
-                AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(id);
-                if (version != null) {
-                    int versionCount = autoexecScriptMapper.getVersionCountByScriptId(version.getScriptId());
-                    if (versionCount > 1 && !Objects.equals(version.getIsActive(), 1)) {
-                        return new OperateVo(ScriptAndToolOperate.VERSIONDELETE.getValue(), ScriptAndToolOperate.VERSIONDELETE.getText());
-                    }
-                }
-            }
-            return null;
-        });
-
         operateMap.put(ScriptAndToolOperate.COPY, (id) -> {
-            if (AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
-                return new OperateVo(ScriptAndToolOperate.COPY.getValue(), ScriptAndToolOperate.COPY.getText());
+            OperateVo vo = new OperateVo(ScriptAndToolOperate.COPY.getValue(), ScriptAndToolOperate.COPY.getText());
+            if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
+                vo.setDisabled(1);
+                vo.setDisabledReason("无权限，请联系管理员");
             }
-            return null;
+            return vo;
         });
 
         operateMap.put(ScriptAndToolOperate.TEST, (id) -> {
-            if (AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
-                return new OperateVo(ScriptAndToolOperate.TEST.getValue(), ScriptAndToolOperate.TEST.getText());
+            OperateVo vo = new OperateVo(ScriptAndToolOperate.TEST.getValue(), ScriptAndToolOperate.TEST.getText());
+            if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
+                vo.setDisabled(1);
+                vo.setDisabledReason("无权限，请联系管理员");
             }
-            return null;
+            return vo;
         });
 
         operateMap.put(ScriptAndToolOperate.COMPARE, (id) -> {
-            if (AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_SEARCH.class.getSimpleName())) {
-                return new OperateVo(ScriptAndToolOperate.COMPARE.getValue(), ScriptAndToolOperate.COMPARE.getText());
+            OperateVo vo = new OperateVo(ScriptAndToolOperate.COMPARE.getValue(), ScriptAndToolOperate.COMPARE.getText());
+            if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_SEARCH.class.getSimpleName())) {
+                vo.setDisabled(1);
+                vo.setDisabledReason("无权限，请联系管理员");
             }
-            return null;
+            return vo;
         });
 
         operateMap.put(ScriptAndToolOperate.VALIDATE, (id) -> {
             // 拥有脚本审核或维护权限，且处于编辑中、已驳回状态才能校验
-            if (AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
-                AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(id);
-                if (version != null && (Objects.equals(ScriptVersionStatus.DRAFT.getValue(), version.getStatus())
-                        || Objects.equals(ScriptVersionStatus.REJECTED.getValue(), version.getStatus()))) {
-                    return new OperateVo(ScriptAndToolOperate.VALIDATE.getValue(), ScriptAndToolOperate.VALIDATE.getText());
+            AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(id);
+            if (version != null) {
+                OperateVo vo = new OperateVo(ScriptAndToolOperate.VALIDATE.getValue(), ScriptAndToolOperate.VALIDATE.getText());
+                if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
+                    vo.setDisabled(1);
+                    vo.setDisabledReason("无权限，请联系管理员");
+                } else if (!Objects.equals(ScriptVersionStatus.DRAFT.getValue(), version.getStatus())
+                        && !Objects.equals(ScriptVersionStatus.REJECTED.getValue(), version.getStatus())) {
+                    vo.setDisabled(1);
+                    vo.setDisabledReason("版本处于编辑中或已驳回状态才能校验");
                 }
+                return vo;
             }
             return null;
         });
 
         operateMap.put(ScriptAndToolOperate.SAVE, (id) -> {
             // 拥有脚本审核或维护权限，且处于编辑中、已驳回状态才能保存
-            if (AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
-                AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(id);
-                if (version != null && (Objects.equals(ScriptVersionStatus.DRAFT.getValue(), version.getStatus())
-                        || Objects.equals(ScriptVersionStatus.REJECTED.getValue(), version.getStatus()))) {
-                    return new OperateVo(ScriptAndToolOperate.SAVE.getValue(), ScriptAndToolOperate.SAVE.getText());
+            AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(id);
+            if (version != null) {
+                OperateVo vo = new OperateVo(ScriptAndToolOperate.SAVE.getValue(), ScriptAndToolOperate.SAVE.getText());
+                if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
+                    vo.setDisabled(1);
+                    vo.setDisabledReason("无权限，请联系管理员");
+                } else if (!Objects.equals(ScriptVersionStatus.DRAFT.getValue(), version.getStatus())
+                        && !Objects.equals(ScriptVersionStatus.REJECTED.getValue(), version.getStatus())) {
+                    vo.setDisabled(1);
+                    vo.setDisabledReason("版本处于编辑中或已驳回状态才能保存");
                 }
+                return vo;
             }
             return null;
         });
 
         operateMap.put(ScriptAndToolOperate.SUBMIT, (id) -> {
             // 拥有脚本审核或维护权限，且处于编辑中、已驳回状态才能提交审核
-            if (AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
-                AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(id);
-                if (version != null && (Objects.equals(ScriptVersionStatus.DRAFT.getValue(), version.getStatus())
-                        || Objects.equals(ScriptVersionStatus.REJECTED.getValue(), version.getStatus()))) {
-                    return new OperateVo(ScriptAndToolOperate.SUBMIT.getValue(), ScriptAndToolOperate.SUBMIT.getText());
+            AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(id);
+            if (version != null) {
+                OperateVo vo = new OperateVo(ScriptAndToolOperate.SUBMIT.getValue(), ScriptAndToolOperate.SUBMIT.getText());
+                if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
+                    vo.setDisabled(1);
+                    vo.setDisabledReason("无权限，请联系管理员");
+                } else if (!Objects.equals(ScriptVersionStatus.DRAFT.getValue(), version.getStatus())
+                        && !Objects.equals(ScriptVersionStatus.REJECTED.getValue(), version.getStatus())) {
+                    vo.setDisabled(1);
+                    vo.setDisabledReason("版本处于编辑中或已驳回状态才能提交审核");
                 }
+                return vo;
             }
             return null;
         });
 
         operateMap.put(ScriptAndToolOperate.PASS, (id) -> {
             // 拥有脚本审核权限，且处于待审核状态才能通过
-            if (AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())) {
-                AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(id);
-                if (version != null && Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), version.getStatus())) {
-                    return new OperateVo(ScriptAndToolOperate.PASS.getValue(), ScriptAndToolOperate.PASS.getText());
+            AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(id);
+            if (version != null) {
+                OperateVo vo = new OperateVo(ScriptAndToolOperate.PASS.getValue(), ScriptAndToolOperate.PASS.getText());
+                if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())) {
+                    vo.setDisabled(1);
+                    vo.setDisabledReason("无权限，请联系管理员");
+                } else if (!Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), version.getStatus())) {
+                    vo.setDisabled(1);
+                    vo.setDisabledReason("版本处于待审核状态才能审核通过");
                 }
+                return vo;
             }
             return null;
         });
 
         operateMap.put(ScriptAndToolOperate.REJECT, (id) -> {
             // 拥有脚本审核权限，且处于待审核状态才能驳回
-            if (AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())) {
-                AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(id);
-                if (version != null && Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), version.getStatus())) {
-                    return new OperateVo(ScriptAndToolOperate.REJECT.getValue(), ScriptAndToolOperate.REJECT.getText());
+            AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(id);
+            if (version != null) {
+                OperateVo vo = new OperateVo(ScriptAndToolOperate.REJECT.getValue(), ScriptAndToolOperate.REJECT.getText());
+                if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())) {
+                    vo.setDisabled(1);
+                    vo.setDisabledReason("无权限，请联系管理员");
+                } else if (!Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), version.getStatus())) {
+                    vo.setDisabled(1);
+                    vo.setDisabledReason("版本处于待审核状态才能驳回");
                 }
+                return vo;
             }
             return null;
         });
 
         operateMap.put(ScriptAndToolOperate.GENERATETOCOMBOP, (id) -> {
-            if (AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_COMBOP_ADD.class.getSimpleName())) {
-                OperateVo vo = new OperateVo(ScriptAndToolOperate.GENERATETOCOMBOP.getValue(), ScriptAndToolOperate.GENERATETOCOMBOP.getText());
+            OperateVo vo = new OperateVo(ScriptAndToolOperate.GENERATETOCOMBOP.getValue(), ScriptAndToolOperate.GENERATETOCOMBOP.getText());
+            if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_COMBOP_ADD.class.getSimpleName())) {
+                vo.setDisabled(1);
+                vo.setDisabledReason("无权限，请联系管理员");
+            } else {
                 int hasBeenGeneratedToCombop = autoexecScriptMapper.checkScriptHasBeenGeneratedToCombop(id);
                 Integer currentVersion = autoexecScriptMapper.getActiveVersionNumberByScriptId(id);
                 if (hasBeenGeneratedToCombop > 0) {
@@ -158,14 +201,15 @@ public class ScriptOperateManager {
                     vo.setDisabled(1);
                     vo.setDisabledReason("当前自定义工具未有激活版本，无法发布为组合工具");
                 }
-                return vo;
             }
-            return null;
+            return vo;
         });
 
         operateMap.put(ScriptAndToolOperate.EXPORT, (id) -> {
-            if (AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_SEARCH.class.getSimpleName())) {
-                return new OperateVo(ScriptAndToolOperate.EXPORT.getValue(), ScriptAndToolOperate.EXPORT.getText());
+            OperateVo vo = new OperateVo(ScriptAndToolOperate.EXPORT.getValue(), ScriptAndToolOperate.EXPORT.getText());
+            if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_SEARCH.class.getSimpleName())) {
+                vo.setDisabled(1);
+                vo.setDisabledReason("无权限，请联系管理员");
             }
             return null;
         });
@@ -190,6 +234,7 @@ public class ScriptOperateManager {
         Boolean hasManageAuth = AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName());
         Boolean hasModifyAuth = AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName());
         Boolean hasSearchAuth = AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_SEARCH.class.getSimpleName());
+        Boolean hasCombopAddAuth = AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_COMBOP_ADD.class.getSimpleName());
         // 查询脚本是否被组合工具引用
         List<AutoexecScriptVo> referenceCountList = autoexecScriptMapper.getReferenceCountListByScriptIdList(idList);
         // 查询脚本是否已经被发布为组合工具
@@ -210,8 +255,15 @@ public class ScriptOperateManager {
         }
         for (Long id : idList) {
             List<OperateVo> operateList = new ArrayList<>();
-            if (hasModifyAuth) {
-                OperateVo generateToCombop = new OperateVo(ScriptAndToolOperate.GENERATETOCOMBOP.getValue(), ScriptAndToolOperate.GENERATETOCOMBOP.getText());
+            OperateVo generateToCombop = new OperateVo(ScriptAndToolOperate.GENERATETOCOMBOP.getValue(), ScriptAndToolOperate.GENERATETOCOMBOP.getText());
+            OperateVo copy = new OperateVo(ScriptAndToolOperate.COPY.getValue(), ScriptAndToolOperate.COPY.getText());
+            OperateVo export = new OperateVo(ScriptAndToolOperate.EXPORT.getValue(), ScriptAndToolOperate.EXPORT.getText());
+            OperateVo delete = new OperateVo(ScriptAndToolOperate.DELETE.getValue(), ScriptAndToolOperate.DELETE.getText());
+            operateList.add(generateToCombop);
+            operateList.add(copy);
+            operateList.add(export);
+            operateList.add(delete);
+            if (hasCombopAddAuth) {
                 if (MapUtils.isNotEmpty(hasBeenGeneratedToCombopMap) && Objects.equals(hasBeenGeneratedToCombopMap.get(id), true)) {
                     generateToCombop.setDisabled(1);
                     generateToCombop.setDisabledReason("已发布为组合工具");
@@ -219,19 +271,26 @@ public class ScriptOperateManager {
                     generateToCombop.setDisabled(1);
                     generateToCombop.setDisabledReason("当前自定义工具未有激活版本，无法发布为组合工具");
                 }
-                operateList.add(generateToCombop);
-                operateList.add(new OperateVo(ScriptAndToolOperate.COPY.getValue(), ScriptAndToolOperate.COPY.getText()));
+            } else {
+                generateToCombop.setDisabled(1);
+                generateToCombop.setDisabledReason("无权限，请联系管理员");
             }
-            if (hasSearchAuth) {
-                operateList.add(new OperateVo(ScriptAndToolOperate.EXPORT.getValue(), ScriptAndToolOperate.EXPORT.getText()));
+            if (!hasModifyAuth) {
+                copy.setDisabled(1);
+                copy.setDisabledReason("无权限，请联系管理员");
+            }
+            if (!hasSearchAuth) {
+                export.setDisabled(1);
+                export.setDisabledReason("无权限，请联系管理员");
             }
             if (hasManageAuth) {
-                OperateVo delete = new OperateVo(ScriptAndToolOperate.DELETE.getValue(), ScriptAndToolOperate.DELETE.getText());
                 if (MapUtils.isNotEmpty(referenceCountMap) && Objects.equals(referenceCountMap.get(id), true)) {
                     delete.setDisabled(1);
                     delete.setDisabledReason("当前自定义工具已被组合工具引用，无法删除");
                 }
-                operateList.add(delete);
+            } else {
+                delete.setDisabled(1);
+                delete.setDisabledReason("无权限，请联系管理员");
             }
             if (CollectionUtils.isNotEmpty(operateList)) {
                 resultMap.put(id, operateList);
