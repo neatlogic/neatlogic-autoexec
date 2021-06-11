@@ -54,7 +54,8 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
     @CacheControl(cacheControlType = CacheControlType.MAXAGE, maxAge = 30000)
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
-            @Param(name = "phase", type = ApiParamType.STRING, desc = "剧本")
+            @Param(name = "phase", type = ApiParamType.STRING, desc = "剧本"),
+            @Param(name = "lastModified", type = ApiParamType.DOUBLE, desc = "最后修改时间（秒，支持小数位）")
     })
     @Description(desc = "下载作业剧本节点")
     @Override
@@ -73,7 +74,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
             if(jobVo == null){
                 throw new AutoexecJobPhaseNotFoundException(phaseName);
             }
-            //TODO 判断作业剧本节点是否和作业节点剧本一致，一致则返回304
+            //TODO 判断作业剧本节点是否配置，没有配置返回 205
             count = autoexecJobMapper.searchJobPhaseNodeCount(nodeParamVo);
             pageCount = PageUtil.getPageCount(count,nodeParamVo.getPageSize());
         }else{
@@ -94,8 +95,8 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
             }
             for (AutoexecJobPhaseNodeVo nodeVo : autoexecJobPhaseNodeVoList){
                 JSONObject nodeJson = new JSONObject(){{
-                    //TODO 待资源中心完善，需补充
                     put("nodeId",nodeVo.getId());
+                    put("nodeName",nodeVo.getNodeName());
                     put("nodeType",nodeVo.getNodeType());
                     put("host",nodeVo.getHost());
                     put("port",nodeVo.getPort());

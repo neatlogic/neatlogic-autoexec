@@ -162,7 +162,7 @@
         UNION
         SELECT rd.id,rd.name,rdi.`ip` FROM `codedriver_develop_data`.`resource_dbinstance_ip` rdi
         LEFT JOIN `codedriver_develop_data`.`resource_dbinstance` rd ON rd.`id` = rdi.`db_instance_id`
-        ) rai ON ajpn.host = rai.ip
+        ) rai ON ajpn.host = rai.ip AND ajpn.name = rai.name
         LEFT JOIN `cmdb_resourcecenter_resource_account` crra ON rai.id = crra.resource_id
         LEFT JOIN `cmdb_resourcecenter_account` cra ON crra.`account_id` = cra.`id` AND ajpn.`user_name` = cra.`account`
         AND ajpn.`protocol` = cra.`protocol`
@@ -188,7 +188,7 @@
         UNION
         SELECT rd.id,rd.name,rdi.`ip` FROM `codedriver_develop_data`.`resource_dbinstance_ip` rdi
         LEFT JOIN `codedriver_develop_data`.`resource_dbinstance` rd ON rd.`id` = rdi.`db_instance_id`
-        ) rai ON ajpn.host = rai.ip
+        ) rai ON ajpn.host = rai.ip AND ajpn.name = rai.name
         <where>
             <include refid="searchJobPhaseNodeSql"/>
         </where>
@@ -442,7 +442,7 @@
         SELECT ajn.`id`,
                ajn.`host`,
                ajn.port,
-               rai.`id` AS nodeId,
+               rai.`id`       AS nodeId,
                rai.`name`     AS nodeName,
                ajn.`protocol` AS nodeType,
                cra.`account`  AS userName,
@@ -546,7 +546,7 @@
     </select>
     <select id="getJobPhaseListByJobIdAndSort"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
-        select `job_id` as jobId, `name`
+        select `job_id` as jobId, `name`, `exec_mode` as execMode, `id`
         from `autoexec_job_phase`
         where `job_id` = #{jobId}
           and `sort` = #{sort}
@@ -562,7 +562,7 @@
                ajpn.`end_time`     AS endTime,
                ajpn.`status`,
                ajp.`name`          AS jobPhaseName,
-               rai.`name`          AS nodeName,
+               ajpn.`name`         AS nodeName,
                ajpn.`protocol`     AS nodeType,
                cra.`account`       AS userName,
                cra.`password`,
@@ -580,7 +580,7 @@
                  SELECT rd.id, rd.name, rdi.`ip`
                  FROM `codedriver_develop_data`.`resource_dbinstance_ip` rdi
                           LEFT JOIN `codedriver_develop_data`.`resource_dbinstance` rd ON rd.`id` = rdi.`db_instance_id`
-             ) rai ON ajpn.host = rai.ip
+             ) rai ON ajpn.host = rai.ip AND ajpn.name = rai.name
                  LEFT JOIN `cmdb_resourcecenter_resource_account` crra ON rai.id = crra.resource_id
                  LEFT JOIN `cmdb_resourcecenter_account` cra
                            ON crra.`account_id` = cra.`id` AND ajpn.`user_name` = cra.`account` AND
@@ -688,20 +688,21 @@
             #{hash}
         </foreach>
     </select>
-    <select id="getJobPhaseNodePortByIpAndUserNameAndProtocol" resultType="codedriver.framework.autoexec.dto.job.AutoexecJobNodeVo">
+    <select id="getJobPhaseNodePortByIpAndUserNameAndProtocol"
+            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobNodeVo">
         SELECT
-            cra.port,rai.ip as host
+        cra.port,rai.ip as host,rai.name as nodeName
         FROM
-            (
-                SELECT ra.id,ra.name,rai.`ip` FROM `codedriver_develop_data`.`resource_appinstance_ip` rai
-                                                       LEFT JOIN `codedriver_develop_data`.`resource_appinstance` ra ON ra.`id` = rai.`app_instance_id`
-                UNION
-                SELECT rd.id,rd.name,rdi.`ip` FROM `codedriver_develop_data`.`resource_dbinstance_ip` rdi
-                                                       LEFT JOIN `codedriver_develop_data`.`resource_dbinstance` rd ON rd.`id` = rdi.`db_instance_id`
-            ) rai
-                LEFT JOIN `cmdb_resourcecenter_resource_account` crra ON rai.id = crra.resource_id
-                LEFT JOIN `cmdb_resourcecenter_account` cra ON crra.`account_id` = cra.`id`
-        WHERE  cra.`account` = #{userName} AND cra.`protocol` = #{protocol}  AND rai.ip in
+        (
+        SELECT ra.id,ra.name,rai.`ip` FROM `codedriver_develop_data`.`resource_appinstance_ip` rai
+        LEFT JOIN `codedriver_develop_data`.`resource_appinstance` ra ON ra.`id` = rai.`app_instance_id`
+        UNION
+        SELECT rd.id,rd.name,rdi.`ip` FROM `codedriver_develop_data`.`resource_dbinstance_ip` rdi
+        LEFT JOIN `codedriver_develop_data`.`resource_dbinstance` rd ON rd.`id` = rdi.`db_instance_id`
+        ) rai
+        LEFT JOIN `cmdb_resourcecenter_resource_account` crra ON rai.id = crra.resource_id
+        LEFT JOIN `cmdb_resourcecenter_account` cra ON crra.`account_id` = cra.`id`
+        WHERE cra.`account` = #{userName} AND cra.`protocol` = #{protocol} AND rai.ip in
         <foreach collection="ipList" item="ip" open="(" separator="," close=")">
             #{ip}
         </foreach>
@@ -763,6 +764,7 @@
                                                `host`,
                                                `port`,
                                                `protocol`,
+                                               `name`,
                                                `user_name`,
                                                `status`)
         VALUES (#{id},
@@ -771,6 +773,7 @@
                 #{host},
                 #{port},
                 #{protocol},
+                #{nodeName},
                 #{userName},
                 #{status});
     </insert>
