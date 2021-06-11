@@ -835,6 +835,10 @@
                 #{userName},
                 #{protocol});
     </insert>
+    <insert id="insertJobPhaseRunner">
+        INSERT IGNORE INTO `autoexec_job_phase_runner` (`job_phase_id`, `runner_id`)
+        VALUES (#{jobPhaseId}, #{runnerId});
+    </insert>
 
     <update id="updateJobPhaseStatus" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
         UPDATE `autoexec_job_phase`

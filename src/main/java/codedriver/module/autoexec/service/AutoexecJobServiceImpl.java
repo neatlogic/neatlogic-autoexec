@@ -108,6 +108,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), jobPhaseVo.getId(), autoexecRunnerVo.getHost(), JobNodeStatus.PENDING.getValue(), userName);
                 autoexecJobMapper.insertJobPhaseNode(nodeVo);
                 autoexecJobMapper.insertJobPhaseNodeRunner(nodeVo.getId(), autoexecRunnerVo.getId());
+                autoexecJobMapper.insertJobPhaseRunner(nodeVo.getJobPhaseId(),autoexecRunnerVo.getId());
             }
             //jobPhaseOperation
             List<AutoexecJobPhaseOperationVo> jobPhaseOperationVoList = new ArrayList<>();
@@ -271,6 +272,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                             jobPhaseNodeVo.setRunnerId(getRunnerByIp(jobPhaseNodeVo.getHost()));
                             autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
                             autoexecJobMapper.insertJobPhaseNodeRunner(jobPhaseNodeVo.getId(), jobPhaseNodeVo.getRunnerId());
+                            autoexecJobMapper.insertJobPhaseRunner(jobPhaseNodeVo.getJobPhaseId(),jobPhaseNodeVo.getRunnerId());
                             isHasNode = 1;
                         } else {
                             //TODO 没有意义？ 作业的执行节点，因为有tag，节点可能会变
@@ -287,6 +289,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                         jobPhaseNodeVo.setRunnerId(getRunnerByIp(jobPhaseNodeVo.getHost()));
                         autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
                         autoexecJobMapper.insertJobPhaseNodeRunner(jobPhaseNodeVo.getId(), jobPhaseNodeVo.getRunnerId());
+                        autoexecJobMapper.insertJobPhaseRunner(jobPhaseNodeVo.getJobPhaseId(),jobPhaseNodeVo.getRunnerId());
                         isHasNode = 1;
                     } else {
                         //TODO 没有意义？ 作业的执行节点，因为有tag，节点可能会变
