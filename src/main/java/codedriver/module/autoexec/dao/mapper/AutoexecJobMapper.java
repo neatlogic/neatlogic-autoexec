@@ -64,6 +64,8 @@ public interface AutoexecJobMapper {
 
     Integer checkIsHasActivePhaseFailed(Long jobId);
 
+    int getJobPhaseRunnerNotCompletedCount(@Param("jobPhaseId") Long jobPhaseId,@Param("runnerId") Integer runnerId);
+
     //jobPhaseNode
     List<AutoexecJobPhaseNodeVo> searchJobPhaseNode(AutoexecJobPhaseNodeVo jobPhaseNodeVo);
 
@@ -129,6 +131,8 @@ public interface AutoexecJobMapper {
     Integer updateJobPhaseStatusBatch(@Param("phaseIdList") List<Long> phaseIdList, @Param("status") String phaseStatus, @Param("errorMsg") String errorMsg);
 
     void updateJobPhaseStatusByJobId(@Param("jobId") Long id, @Param("status") String value);
+
+    Integer updateJobPhaseRunnerStatus(@Param("jobPhaseId") Long jobPhaseId,@Param("runnerId") Integer runnerId,@Param("status") String status);
 
     void deleteJobParamContentByHash(String paramHash);
 

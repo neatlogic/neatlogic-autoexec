@@ -690,6 +690,15 @@
         </foreach>
     </select>
 
+    <select id="getJobPhaseRunnerNotCompletedCount" resultType="java.lang.Integer">
+        SELECT
+            COUNT(1)
+        FROM
+            `autoexec_job_phase_runner`
+        WHERE `job_phase_id` = #{jobPhaseId} and `runner_id` = #{runnerId} and `status` != 'completed'
+
+    </select>
+
     <insert id="insertJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
         INSERT INTO `autoexec_job` (`id`,
         `name`,
@@ -902,6 +911,14 @@
           , `end_time`   = NULL
         WHERE `job_id` = #{jobId}
           and `status` != 'failed'
+    </update>
+    <update id="updateJobPhaseRunnerStatus">
+        UPDATE
+            `autoexec_job_phase_runner`
+        SET
+            `status` = #{status}
+        WHERE `job_phase_id` = #{jobPhaseId}
+          AND `runner_id` = #{runnerId};
     </update>
 
     <delete id="deleteJobParamContentByHash" parameterType="java.lang.String">
