@@ -5,10 +5,10 @@
 
 package codedriver.module.autoexec.api.tool;
 
-import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.autoexec.constvalue.ScriptAndToolOperate;
@@ -68,9 +68,13 @@ public class AutoexecToolGetApi extends PrivateApiComponentBase {
         tool.setCombopList(autoexecToolMapper.getReferenceListByToolId(id));
         List<OperateVo> operateList = new ArrayList<>();
         tool.setOperateList(operateList);
-        if (AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_COMBOP_ADD.class.getSimpleName())) {
-            OperateVo generateToCombop = new OperateVo(ScriptAndToolOperate.GENERATETOCOMBOP.getValue(), ScriptAndToolOperate.GENERATETOCOMBOP.getText());
-            operateList.add(generateToCombop);
+        OperateVo test = new OperateVo(ScriptAndToolOperate.TEST.getValue(), ScriptAndToolOperate.TEST.getText());
+        OperateVo active = new OperateVo(ScriptAndToolOperate.ACTIVE.getValue(), ScriptAndToolOperate.ACTIVE.getText());
+        OperateVo generateToCombop = new OperateVo(ScriptAndToolOperate.GENERATETOCOMBOP.getValue(), ScriptAndToolOperate.GENERATETOCOMBOP.getText());
+        operateList.add(test);
+        operateList.add(active);
+        operateList.add(generateToCombop);
+        if (AuthActionChecker.check(AUTOEXEC_COMBOP_ADD.class.getSimpleName())) {
             if (autoexecToolMapper.checkToolHasBeenGeneratedToCombop(id) > 0) {
                 tool.setHasBeenGeneratedToCombop(1);
                 generateToCombop.setDisabled(1);
@@ -79,10 +83,17 @@ public class AutoexecToolGetApi extends PrivateApiComponentBase {
                 generateToCombop.setDisabled(1);
                 generateToCombop.setDisabledReason("当前工具未激活，无法发布为组合工具");
             }
+        } else {
+            generateToCombop.setDisabled(1);
+            generateToCombop.setDisabledReason("无权限，请联系管理员");
         }
-        if (AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
-            operateList.add(new OperateVo(ScriptAndToolOperate.TEST.getValue(), ScriptAndToolOperate.TEST.getText()));
-            operateList.add(new OperateVo(ScriptAndToolOperate.ACTIVE.getValue(), ScriptAndToolOperate.ACTIVE.getText()));
+        if (!AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
+            test.setDisabled(1);
+            test.setDisabledReason("无权限，请联系管理员");
+        }
+        if (!AuthActionChecker.check(AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())) {
+            active.setDisabled(1);
+            active.setDisabledReason("无权限，请联系管理员");
         }
         return tool;
     }
