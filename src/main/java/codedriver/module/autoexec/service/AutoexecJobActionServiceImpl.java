@@ -81,6 +81,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             List<String> authErrorList = new ArrayList<>();
             for (AutoexecRunnerVo runner : runnerVos) {
                 String url = runner.getUrl() + "api/rest/job/exec";
+                paramJson.put("passThroughEnv",new JSONObject(){{
+                    put("runnerId",runner.getId());
+                }});
                 RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
                 String result = RestUtil.sendRequest(restVo);
                 JSONObject resultJson = null;

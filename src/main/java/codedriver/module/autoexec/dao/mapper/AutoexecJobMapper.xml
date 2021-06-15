@@ -135,6 +135,9 @@
         <if test="keyword != null and keyword != ''">
             and (rai.`name` like concat('%',#{keyword},'%') or ajpn.`host` like concat('%',#{keyword},'%'))
         </if>
+        <if test="runnerId != null" >
+            and ajpnr.runner_id = #{runnerId}
+        </if>
     </sql>
 
     <select id="searchJobPhaseNode" resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
@@ -157,12 +160,9 @@
         `autoexec_job_phase_node` ajpn
         LEFT JOIN
         (
-        SELECT ra.id,ra.name,rai.`ip` FROM `codedriver_develop_data`.`resource_appinstance_ip` rai
-        LEFT JOIN `codedriver_develop_data`.`resource_appinstance` ra ON ra.`id` = rai.`app_instance_id`
-        UNION
-        SELECT rd.id,rd.name,rdi.`ip` FROM `codedriver_develop_data`.`resource_dbinstance_ip` rdi
-        LEFT JOIN `codedriver_develop_data`.`resource_dbinstance` rd ON rd.`id` = rdi.`db_instance_id`
-        ) rai ON ajpn.host = rai.ip AND ajpn.name = rai.name
+        SELECT ri.id AS id, ri.name ,rii.`ip` FROM ${schemaName}.`resource_ipobject_ip` rii
+        LEFT JOIN ${schemaName}.`resource_ipobject` ri ON rii.`resource_id` = ri.`id`
+        ) rai ON rai.`ip` = ajpn.`host`  AND ajpn.name = rai.name
         LEFT JOIN `cmdb_resourcecenter_resource_account` crra ON rai.id = crra.resource_id
         LEFT JOIN `cmdb_resourcecenter_account` cra ON crra.`account_id` = cra.`id` AND ajpn.`user_name` = cra.`account`
         AND ajpn.`protocol` = cra.`protocol`
@@ -183,12 +183,10 @@
         LEFT JOIN `autoexec_job_phase` ajp on ajpn.`job_phase_id` = ajp.`id`
         LEFT JOIN
         (
-        SELECT ra.id,ra.name,rai.`ip` FROM `codedriver_develop_data`.`resource_appinstance_ip` rai
-        LEFT JOIN `codedriver_develop_data`.`resource_appinstance` ra ON ra.`id` = rai.`app_instance_id`
-        UNION
-        SELECT rd.id,rd.name,rdi.`ip` FROM `codedriver_develop_data`.`resource_dbinstance_ip` rdi
-        LEFT JOIN `codedriver_develop_data`.`resource_dbinstance` rd ON rd.`id` = rdi.`db_instance_id`
+            SELECT ri.id AS id, ri.name ,rii.`ip` FROM ${schemaName}.`resource_ipobject_ip` rii
+            LEFT JOIN ${schemaName}.`resource_ipobject` ri ON rii.`resource_id` = ri.`id`
         ) rai ON ajpn.host = rai.ip AND ajpn.name = rai.name
+        LEFT JOIN `autoexec_job_phase_node_runner` ajpnr ON ajpn.id = ajpnr.`node_id`
         <where>
             <include refid="searchJobPhaseNodeSql"/>
         </where>
@@ -450,14 +448,9 @@
         FROM `autoexec_job_node` ajn
                  LEFT JOIN
              (
-                 SELECT ra.id, ra.name, rai.`ip`
-                 FROM `codedriver_develop_data`.`resource_appinstance_ip` rai
-                          LEFT JOIN `codedriver_develop_data`.`resource_appinstance` ra
-                                    ON ra.`id` = rai.`app_instance_id`
-                 UNION
-                 SELECT rd.id, rd.name, rdi.`ip`
-                 FROM `codedriver_develop_data`.`resource_dbinstance_ip` rdi
-                          LEFT JOIN `codedriver_develop_data`.`resource_dbinstance` rd ON rd.`id` = rdi.`db_instance_id`
+                 SELECT ri.id AS id, ri.name, rii.`ip`
+                 FROM ${schemaName}.`resource_ipobject_ip` rii
+                          LEFT JOIN ${schemaName}.`resource_ipobject` ri ON rii.`resource_id` = ri.`id`
              ) rai ON ajn.host = rai.ip
                  LEFT JOIN `cmdb_resourcecenter_resource_account` crra ON rai.id = crra.resource_id
                  LEFT JOIN `cmdb_resourcecenter_account` cra
@@ -572,22 +565,17 @@
                  LEFT JOIN `autoexec_job_phase` ajp ON ajpn.`job_phase_id` = ajp.`id`
                  LEFT JOIN
              (
-                 SELECT ra.id, ra.name, rai.`ip`
-                 FROM `codedriver_develop_data`.`resource_appinstance_ip` rai
-                          LEFT JOIN `codedriver_develop_data`.`resource_appinstance` ra
-                                    ON ra.`id` = rai.`app_instance_id`
-                 UNION
-                 SELECT rd.id, rd.name, rdi.`ip`
-                 FROM `codedriver_develop_data`.`resource_dbinstance_ip` rdi
-                          LEFT JOIN `codedriver_develop_data`.`resource_dbinstance` rd ON rd.`id` = rdi.`db_instance_id`
-             ) rai ON ajpn.host = rai.ip AND ajpn.name = rai.name
+                 SELECT ri.id AS id, ri.name, rii.`ip`
+                 FROM ${schemaName}.`resource_ipobject_ip` rii
+                          LEFT JOIN ${schemaName}.`resource_ipobject` ri ON rii.`resource_id` = ri.`id`
+             ) rai ON rai.`ip` = ajpn.`host` AND ajpn.name = rai.name
                  LEFT JOIN `cmdb_resourcecenter_resource_account` crra ON rai.id = crra.resource_id
                  LEFT JOIN `cmdb_resourcecenter_account` cra
-                           ON crra.`account_id` = cra.`id` AND ajpn.`user_name` = cra.`account` AND
-                              ajpn.`protocol` = cra.`protocol`
+                           ON crra.`account_id` = cra.`id` AND ajpn.`user_name` = cra.`account`
+                               AND ajpn.`protocol` = cra.`protocol`
                  LEFT JOIN `autoexec_job_phase_node_runner` ajpnr ON ajpn.id = ajpnr.`node_id`
                  LEFT JOIN `autoexec_runner` ap ON ajpnr.`runner_id` = ap.`id`
-        where ajpn.`id` = #{value}
+        where ajpn.`id` = #{nodeId}
     </select>
 
     <select id="getJobPhaseRunnerNodeByJobIdAndPhaseId"
@@ -617,7 +605,7 @@
         WHERE `job_id` = #{jobId}
           and `id` = #{jobPhaseId}
     </select>
-    <select id="getJobPhaseNodeListByJobIdAndPhaseNameAndExceptStatus"
+    <select id="getJobPhaseNodeListByJobIdAndPhaseNameAndExceptStatusAndRunnerId"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
         SELECT ajpn.`id`,
         ajpn.`job_id` as jobId,
@@ -632,7 +620,7 @@
         FROM `autoexec_job_phase_node` ajpn
         LEFT JOIN `autoexec_job_phase_node_runner` ajpnr on ajpn.id = ajpnr.`node_id`
         LEFT JOIN `autoexec_job_phase` ajp on ajpn.`job_phase_id` = ajp.`id`
-        where ajpn.`job_id` = #{jobId} and ajp.`name` = #{phaseName} and ajpn.`status` not in
+        where ajpn.`job_id` = #{jobId} and ajp.`name` = #{phaseName} and ajpnr.`runner_id` = #{runnerId} and ajpn.`status` not in
         <foreach collection="exceptStatus" item="status" separator="," open="(" close=")">
             #{status}
         </foreach>
@@ -691,18 +679,12 @@
     <select id="getJobPhaseNodePortByIpAndUserNameAndProtocol"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobNodeVo">
         SELECT
-        cra.port,rai.ip as host,rai.name as nodeName
-        FROM
-        (
-        SELECT ra.id,ra.name,rai.`ip` FROM `codedriver_develop_data`.`resource_appinstance_ip` rai
-        LEFT JOIN `codedriver_develop_data`.`resource_appinstance` ra ON ra.`id` = rai.`app_instance_id`
-        UNION
-        SELECT rd.id,rd.name,rdi.`ip` FROM `codedriver_develop_data`.`resource_dbinstance_ip` rdi
-        LEFT JOIN `codedriver_develop_data`.`resource_dbinstance` rd ON rd.`id` = rdi.`db_instance_id`
-        ) rai
-        LEFT JOIN `cmdb_resourcecenter_resource_account` crra ON rai.id = crra.resource_id
+        cra.port,rii.ip AS HOST,ri.name AS nodeName
+        FROM ${schemaName}.`resource_ipobject_ip` rii
+        LEFT JOIN ${schemaName}.`resource_ipobject` ri ON rii.`resource_id` = ri.`id`
+        LEFT JOIN `cmdb_resourcecenter_resource_account` crra ON rii.`resource_id` = crra.resource_id
         LEFT JOIN `cmdb_resourcecenter_account` cra ON crra.`account_id` = cra.`id`
-        WHERE cra.`account` = #{userName} AND cra.`protocol` = #{protocol} AND rai.ip in
+        WHERE cra.`account` = #{userName} AND cra.`protocol` = #{protocol} AND rii.ip in
         <foreach collection="ipList" item="ip" open="(" separator="," close=")">
             #{ip}
         </foreach>
