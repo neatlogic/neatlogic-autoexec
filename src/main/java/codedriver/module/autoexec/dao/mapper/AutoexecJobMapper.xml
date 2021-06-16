@@ -135,7 +135,7 @@
         <if test="keyword != null and keyword != ''">
             and (rai.`name` like concat('%',#{keyword},'%') or ajpn.`host` like concat('%',#{keyword},'%'))
         </if>
-        <if test="runnerId != null" >
+        <if test="runnerId != null">
             and ajpnr.runner_id = #{runnerId}
         </if>
     </sql>
@@ -162,7 +162,7 @@
         (
         SELECT ri.id AS id, ri.name ,rii.`ip` FROM ${schemaName}.`resource_ipobject_ip` rii
         LEFT JOIN ${schemaName}.`resource_ipobject` ri ON rii.`resource_id` = ri.`id`
-        ) rai ON rai.`ip` = ajpn.`host`  AND ajpn.name = rai.name
+        ) rai ON rai.`ip` = ajpn.`host` AND ajpn.name = rai.name
         LEFT JOIN `cmdb_resourcecenter_resource_account` crra ON rai.id = crra.resource_id
         LEFT JOIN `cmdb_resourcecenter_account` cra ON crra.`account_id` = cra.`id` AND ajpn.`user_name` = cra.`account`
         AND ajpn.`protocol` = cra.`protocol`
@@ -183,8 +183,8 @@
         LEFT JOIN `autoexec_job_phase` ajp on ajpn.`job_phase_id` = ajp.`id`
         LEFT JOIN
         (
-            SELECT ri.id AS id, ri.name ,rii.`ip` FROM ${schemaName}.`resource_ipobject_ip` rii
-            LEFT JOIN ${schemaName}.`resource_ipobject` ri ON rii.`resource_id` = ri.`id`
+        SELECT ri.id AS id, ri.name ,rii.`ip` FROM ${schemaName}.`resource_ipobject_ip` rii
+        LEFT JOIN ${schemaName}.`resource_ipobject` ri ON rii.`resource_id` = ri.`id`
         ) rai ON ajpn.host = rai.ip AND ajpn.name = rai.name
         LEFT JOIN `autoexec_job_phase_node_runner` ajpnr ON ajpn.id = ajpnr.`node_id`
         <where>
@@ -539,7 +539,7 @@
     </select>
     <select id="getJobPhaseListByJobIdAndSort"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
-        select `job_id` as jobId, `name`, `exec_mode` as execMode, `id`
+        select `job_id` as jobId, `name`, `exec_mode` as execMode, `id`,`status`
         from `autoexec_job_phase`
         where `job_id` = #{jobId}
           and `sort` = #{sort}
@@ -620,7 +620,8 @@
         FROM `autoexec_job_phase_node` ajpn
         LEFT JOIN `autoexec_job_phase_node_runner` ajpnr on ajpn.id = ajpnr.`node_id`
         LEFT JOIN `autoexec_job_phase` ajp on ajpn.`job_phase_id` = ajp.`id`
-        where ajpn.`job_id` = #{jobId} and ajp.`name` = #{phaseName} and ajpnr.`runner_id` = #{runnerId} and ajpn.`status` not in
+        where ajpn.`job_id` = #{jobId} and ajp.`name` = #{phaseName} and ajpnr.`runner_id` = #{runnerId} and
+        ajpn.`status` not in
         <foreach collection="exceptStatus" item="status" separator="," open="(" close=")">
             #{status}
         </foreach>
@@ -690,13 +691,37 @@
         </foreach>
     </select>
 
-    <select id="getJobPhaseRunnerNotCompletedCount" resultType="java.lang.Integer">
+    <select id="getJobPhaseRunnerByNotStatusCount" resultType="java.lang.Integer">
         SELECT
-            COUNT(1)
+        COUNT(1)
         FROM
-            `autoexec_job_phase_runner`
-        WHERE `job_phase_id` = #{jobPhaseId} and `runner_id` = #{runnerId} and `status` != 'completed'
-
+        `autoexec_job_phase_runner`
+        WHERE `job_phase_id` in
+        <foreach collection="jobPhaseIdList" separator="," open="(" close=")" item="jobPhaseId">
+            #{jobPhaseId}
+        </foreach>
+        and `status` != #{status}
+    </select>
+    <select id="getJobPhaseRunnerCountByJobIdAndStatus"
+            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
+        SELECT ajpr.job_phase_id,
+               COUNT(1) as `count`
+        FROM `autoexec_job_phase_runner` ajpr
+                 LEFT JOIN `autoexec_job_phase` ajp ON ajpr.`job_phase_id` = ajp.`id`
+        WHERE ajp.`job_id` = #{jobId}
+          AND ajpr.`status` = #{status}
+        GROUP BY ajpr.job_phase_id
+    </select>
+    <select id="getJobPhaseRunnerByStatusCount" resultType="java.lang.Integer">
+        SELECT
+        COUNT(1)
+        FROM
+        `autoexec_job_phase_runner`
+        WHERE `job_phase_id` in
+        <foreach collection="jobPhaseIdList" separator="," open="(" close=")" item="jobPhaseId">
+            #{jobPhaseId}
+        </foreach>
+        and `status` = #{status}
     </select>
 
     <insert id="insertJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
@@ -914,11 +939,20 @@
     </update>
     <update id="updateJobPhaseRunnerStatus">
         UPDATE
-            `autoexec_job_phase_runner`
+        `autoexec_job_phase_runner`
         SET
-            `status` = #{status}
+        `status` = #{status}
+        WHERE `job_phase_id` in
+        <foreach collection="jobPhaseIdList" item="phaseId" separator="," open="(" close=")">
+            #{phaseId}
+        </foreach>
+        AND `runner_id` = #{runnerId};
+    </update>
+    <update id="updateBatchJobPhaseRunnerStatus">
+        UPDATE
+            `autoexec_job_phase_runner`
+        SET `status` = #{status}
         WHERE `job_phase_id` = #{jobPhaseId}
-          AND `runner_id` = #{runnerId};
     </update>
 
     <delete id="deleteJobParamContentByHash" parameterType="java.lang.String">

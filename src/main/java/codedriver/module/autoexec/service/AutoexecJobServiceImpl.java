@@ -210,7 +210,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
      * @param ip 目标ip
      * @return runnerId
      */
-    private Long getRunnerByIp(String ip) {
+    private Integer getRunnerByIp(String ip) {
         List<AutoexecRunnerGroupNetworkVo> networkVoList = autoexecRunnerMapper.getAllNetworkMask();
         for (AutoexecRunnerGroupNetworkVo networkVo : networkVoList) {
             if (IpUtil.isBelongSegment(ip, networkVo.getNetworkIp(), networkVo.getMask())) {

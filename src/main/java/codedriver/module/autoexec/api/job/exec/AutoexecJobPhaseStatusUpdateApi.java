@@ -119,10 +119,10 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
             }
         }
         //更新phase_runner 状态
-        autoexecJobMapper.updateJobPhaseRunnerStatus(jobPhaseVo.getId(),runnerId,status);
+        autoexecJobMapper.updateJobPhaseRunnerStatus(Collections.singletonList(jobPhaseVo.getId()), runnerId, status);
 
         //判断所有该phase的runner 都是completed状态，phase 状态更改为completed
-        if(Objects.equals(status, JobPhaseStatus.FAILED.getValue())||autoexecJobMapper.getJobPhaseRunnerNotCompletedCount(jobPhaseVo.getId(),runnerId) == 0) {
+        if (Objects.equals(status, JobPhaseStatus.FAILED.getValue()) || Objects.equals(status, JobPhaseStatus.RUNNING.getValue()) ||autoexecJobMapper.getJobPhaseRunnerByNotStatusCount(Collections.singletonList(jobPhaseVo.getId()), JobPhaseStatus.COMPLETED.getValue()) == 0) {
             autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), status));
         }
         //判断所有phase是否都已跑完（completed），如果是则需要更新job状态

@@ -68,7 +68,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         if (jobVo.getIsCanJobFire() == 1 || jobVo.getIsCanJobReFire() == 1) {
             jobVo.setStatus(JobStatus.RUNNING.getValue());
             autoexecJobMapper.updateJobStatus(jobVo);
+            Integer phaseSort = 0;
             for (AutoexecJobPhaseVo jobPhase : jobVo.getPhaseList()) {
+                phaseSort = jobPhase.getSort();
                 jobPhase.setStatus(JobPhaseStatus.WAITING.getValue());
                 autoexecJobMapper.updateJobPhaseStatus(jobPhase);
             }
@@ -79,10 +81,12 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             List<AutoexecRunnerVo> runnerVos = autoexecJobMapper.getJobRunnerListByJobId(jobVo.getId());
             List<String> refusedErrorList = new ArrayList<>();
             List<String> authErrorList = new ArrayList<>();
+            Integer finalPhaseSort = phaseSort;
             for (AutoexecRunnerVo runner : runnerVos) {
                 String url = runner.getUrl() + "api/rest/job/exec";
                 paramJson.put("passThroughEnv",new JSONObject(){{
                     put("runnerId",runner.getId());
+                    put("phaseSort", finalPhaseSort);
                 }});
                 RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
                 String result = RestUtil.sendRequest(restVo);
@@ -275,6 +279,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                 if (Objects.equals(jobPhase.getStatus(), JobPhaseStatus.RUNNING.getValue())) {
                     jobPhase.setStatus(JobPhaseStatus.ABORTING.getValue());
                     autoexecJobMapper.updateJobPhaseStatus(jobPhase);
+                    autoexecJobMapper.updateBatchJobPhaseRunnerStatus(jobPhase.getId(),JobPhaseStatus.ABORTING.getValue());
                 }
             }
             List<AutoexecRunnerVo> runnerVos = autoexecJobMapper.getJobRunnerListByJobId(jobVo.getId());
@@ -282,7 +287,6 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             paramJson.put("jobId", jobVo.getId());
             paramJson.put("tenant", TenantContext.get().getTenantUuid());
             paramJson.put("execUser", UserContext.get().getUserUuid(true));
-            paramJson.put("passThroughEnv", null); //回调需要的返回的参数
             //TODO 校验连通性
             RestVo restVo = null;
             String result = StringUtils.EMPTY;
@@ -294,15 +298,6 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                     JSONObject resultJson = JSONObject.parseObject(result);
                     if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
                         throw new AutoexecJobRunnerConnectAuthException(restVo.getUrl() + ":" + resultJson.getString("Message"));
-                    } else {
-                        jobVo.setStatus(JobStatus.ABORTED.getValue());
-                        autoexecJobMapper.updateJobStatus(jobVo);
-                        for (AutoexecJobPhaseVo jobPhase : jobVo.getPhaseList()) {
-                            if (Objects.equals(jobPhase.getStatus(), JobPhaseStatus.ABORTING.getValue())) {
-                                jobPhase.setStatus(JobPhaseStatus.ABORTED.getValue());
-                                autoexecJobMapper.updateJobPhaseStatus(jobPhase);
-                            }
-                        }
                     }
                 }
             } catch (Exception ex) {

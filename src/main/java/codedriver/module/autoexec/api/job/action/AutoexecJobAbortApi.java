@@ -16,6 +16,7 @@ import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.module.autoexec.service.AutoexecJobActionService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 
@@ -25,6 +26,7 @@ import javax.annotation.Resource;
  **/
 
 @Service
+@Transactional
 @AuthAction(action = AUTOEXEC_JOB_MODIFY.class)
 @OperationType(type = OperationTypeEnum.OPERATE)
 public class AutoexecJobAbortApi extends PrivateApiComponentBase {
