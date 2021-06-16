@@ -5,10 +5,10 @@
 
 package codedriver.module.autoexec.api.tool;
 
-import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.autoexec.constvalue.ScriptAndToolOperate;
@@ -84,24 +84,36 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
                 hasBeenGeneratedToCombopList.stream().forEach(o -> hasBeenGeneratedToCombopMap.put(o.getId(), o.getHasBeenGeneratedToCombop() > 0 ? true : false));
             }
             // 获取操作按钮
-            Boolean hasScriptModifyAuth = AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName());
-            Boolean hasCombopModifyAuth = AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_COMBOP_ADD.class.getSimpleName());
+            Boolean hasScriptModifyAuth = AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName());
+            Boolean hasScriptManageAuth = AuthActionChecker.check(AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName());
+            Boolean hasCombopAddAuth = AuthActionChecker.check(AUTOEXEC_COMBOP_ADD.class.getSimpleName());
             toolVoList.stream().forEach(o -> {
                 List<OperateVo> operateList = new ArrayList<>();
-                if (hasScriptModifyAuth) {
-                    operateList.add(new OperateVo(ScriptAndToolOperate.TEST.getValue(), ScriptAndToolOperate.TEST.getText()));
-                    operateList.add(new OperateVo(ScriptAndToolOperate.ACTIVE.getValue(), ScriptAndToolOperate.ACTIVE.getText()));
+                OperateVo test = new OperateVo(ScriptAndToolOperate.TEST.getValue(), ScriptAndToolOperate.TEST.getText());
+                OperateVo active = new OperateVo(ScriptAndToolOperate.ACTIVE.getValue(), ScriptAndToolOperate.ACTIVE.getText());
+                OperateVo generateToCombop = new OperateVo(ScriptAndToolOperate.GENERATETOCOMBOP.getValue(), ScriptAndToolOperate.GENERATETOCOMBOP.getText());
+                operateList.add(test);
+                operateList.add(active);
+                operateList.add(generateToCombop);
+                if (!hasScriptManageAuth) {
+                    active.setDisabled(1);
+                    active.setDisabledReason("无权限，请联系管理员");
                 }
-                if (hasCombopModifyAuth) {
-                    OperateVo vo = new OperateVo(ScriptAndToolOperate.GENERATETOCOMBOP.getValue(), ScriptAndToolOperate.GENERATETOCOMBOP.getText());
+                if (!hasScriptModifyAuth) {
+                    test.setDisabled(1);
+                    test.setDisabledReason("无权限，请联系管理员");
+                }
+                if (hasCombopAddAuth) {
                     if (MapUtils.isNotEmpty(hasBeenGeneratedToCombopMap) && Objects.equals(hasBeenGeneratedToCombopMap.get(o.getId()), true)) {
-                        vo.setDisabled(1);
-                        vo.setDisabledReason("已发布为组合工具");
+                        generateToCombop.setDisabled(1);
+                        generateToCombop.setDisabledReason("已发布为组合工具");
                     } else if (!Objects.equals(o.getIsActive(), 1)) {
-                        vo.setDisabled(1);
-                        vo.setDisabledReason("当前工具未激活，无法发布为组合工具");
+                        generateToCombop.setDisabled(1);
+                        generateToCombop.setDisabledReason("当前工具未激活，无法发布为组合工具");
                     }
-                    operateList.add(vo);
+                } else {
+                    generateToCombop.setDisabled(1);
+                    generateToCombop.setDisabledReason("无权限，请联系管理员");
                 }
                 if (CollectionUtils.isNotEmpty(operateList)) {
                     o.setOperateList(operateList);

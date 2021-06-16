@@ -64,6 +64,8 @@ public interface AutoexecJobMapper {
 
     Integer checkIsHasActivePhaseFailed(Long jobId);
 
+    int getJobPhaseRunnerNotCompletedCount(@Param("jobPhaseId") Long jobPhaseId,@Param("runnerId") Integer runnerId);
+
     //jobPhaseNode
     List<AutoexecJobPhaseNodeVo> searchJobPhaseNode(AutoexecJobPhaseNodeVo jobPhaseNodeVo);
 
@@ -75,15 +77,15 @@ public interface AutoexecJobMapper {
 
     int updateJobPhaseNodeStatus(AutoexecJobPhaseNodeVo nodeVo);
 
-    AutoexecJobPhaseNodeVo getJobPhaseNodeInfoByJobNodeId(Long nodeId);
+    AutoexecJobPhaseNodeVo getJobPhaseNodeInfoByJobNodeId(@Param("nodeId") Long nodeId, @Param("schemaName") String schemaName);
 
     AutoexecJobPhaseNodeVo getJobPhaseRunnerNodeByJobIdAndPhaseId(@Param("jobId") Long jobId, @Param("phaseId") Long phaseId);
 
-    List<AutoexecJobPhaseNodeVo> getJobPhaseNodeListByJobIdAndPhaseNameAndExceptStatus(@Param("jobId") Long jobId, @Param("phaseName") String phaseName, @Param("exceptStatus") List<String> exceptStatus);
+    List<AutoexecJobPhaseNodeVo> getJobPhaseNodeListByJobIdAndPhaseNameAndExceptStatusAndRunnerId(@Param("jobId") Long jobId, @Param("phaseName") String phaseName, @Param("exceptStatus") List<String> exceptStatus,@Param("runnerId")Integer runnerId );
 
     int checkIsHasRunningNode(Long id);
 
-    List<AutoexecJobNodeVo> getJobPhaseNodePortByIpAndUserNameAndProtocol(@Param("ipList") List<String> ip,@Param("userName") String userName,@Param("protocol") String protocol);
+    List<AutoexecJobNodeVo> getJobPhaseNodePortByIpAndUserNameAndProtocol(@Param("ipList") List<String> ip, @Param("userName") String userName, @Param("protocol") String protocol, @Param("schemaName") String schemaName);
 
     //jobPhaseOperation
     List<AutoexecJobPhaseOperationVo> getJobPhaseOperationByJobId(Long jobId);
@@ -108,7 +110,7 @@ public interface AutoexecJobMapper {
 
     Integer insertJobPhaseNodeRunner(@Param("nodeId") Long nodeId, @Param("runnerId") Long runnerId);
 
-    Integer insertJobPhaseRunner(@Param("jobPhaseId")Long jobPhaseId,@Param("runnerId") Long runnerId);
+    Integer insertJobPhaseRunner(@Param("jobPhaseId") Long jobPhaseId, @Param("runnerId") Long runnerId);
 
     Integer insertJob(AutoexecJobVo jobVo);
 
@@ -124,11 +126,13 @@ public interface AutoexecJobMapper {
 
     Integer updateJobPhaseStatus(AutoexecJobPhaseVo autoexecJobPhaseVo);
 
-    Integer updateJobPhaseFailedNodeStatusByJobId(@Param("jobId") Long id,@Param("status") String value);
+    Integer updateJobPhaseFailedNodeStatusByJobId(@Param("jobId") Long id, @Param("status") String value);
 
     Integer updateJobPhaseStatusBatch(@Param("phaseIdList") List<Long> phaseIdList, @Param("status") String phaseStatus, @Param("errorMsg") String errorMsg);
 
-    void updateJobPhaseStatusByJobId(@Param("jobId") Long id,@Param("status") String value);
+    void updateJobPhaseStatusByJobId(@Param("jobId") Long id, @Param("status") String value);
+
+    Integer updateJobPhaseRunnerStatus(@Param("jobPhaseId") Long jobPhaseId,@Param("runnerId") Integer runnerId,@Param("status") String status);
 
     void deleteJobParamContentByHash(String paramHash);
 

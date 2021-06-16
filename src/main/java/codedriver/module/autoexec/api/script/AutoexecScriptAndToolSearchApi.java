@@ -61,7 +61,7 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
             @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target", desc = "执行方式"),
             @Param(name = "typeIdList", type = ApiParamType.JSONARRAY, desc = "分类ID列表"),
             @Param(name = "riskIdList", type = ApiParamType.JSONARRAY, desc = "操作级别ID列表"),
-            @Param(name = "valueList", type = ApiParamType.JSONARRAY, desc = "用于回显的工具或脚本ID列表"),
+            @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "用于回显的工具或脚本ID列表"),
             @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
             @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
             @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
@@ -78,10 +78,10 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
         List<AutoexecToolAndScriptVo> tbodyList = new ArrayList<>();
         result.put("tbodyList", tbodyList);
         AutoexecToolAndScriptVo searchVo = JSON.toJavaObject(jsonObj, AutoexecToolAndScriptVo.class);
-        JSONArray valueList = jsonObj.getJSONArray("valueList");
-        if (CollectionUtils.isNotEmpty(valueList)) {
+        JSONArray defaultValue = searchVo.getDefaultValue();
+        if (CollectionUtils.isNotEmpty(defaultValue)) {
             List<AutoexecToolAndScriptVo> toolAndScriptList = new ArrayList<>();
-            List<Long> idList = valueList.toJavaList(Long.class);
+            List<Long> idList = defaultValue.toJavaList(Long.class);
             List<AutoexecToolAndScriptVo> toolList = autoexecToolMapper.getToolListByIdList(idList);
             List<AutoexecToolAndScriptVo> scriptList = autoexecScriptMapper.getScriptListByIdList(idList);
             toolAndScriptList.addAll(toolList);

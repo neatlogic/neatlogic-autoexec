@@ -9,6 +9,7 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.constvalue.CacheControlType;
 import codedriver.framework.common.util.PageUtil;
@@ -17,6 +18,7 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicBinaryStreamApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,12 +57,22 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
             @Param(name = "phase", type = ApiParamType.STRING, desc = "剧本"),
-            @Param(name = "lastModified", type = ApiParamType.DOUBLE, desc = "最后修改时间（秒，支持小数位）")
+            @Param(name = "lastModified", type = ApiParamType.DOUBLE, desc = "最后修改时间（秒，支持小数位）"),
+            @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数")
     })
     @Description(desc = "下载作业剧本节点")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         Long jobId = paramObj.getLong("jobId");
+        JSONObject passThroughEnv = paramObj.getJSONObject("passThroughEnv");
+        Long runnerId = 0L;
+        if(MapUtils.isNotEmpty(passThroughEnv)){
+            if(!passThroughEnv.containsKey("runnerId")){
+                throw new AutoexecJobRunnerNotFoundException("runnerId");
+            }else {
+                runnerId = passThroughEnv.getLong("runnerId");
+            }
+        }
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
         if(jobVo == null){
             throw new AutoexecJobNotFoundException(jobId.toString());
@@ -68,7 +80,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
         String phaseName = paramObj.getString("phase");
         int count = 0;
         int pageCount = 0;
-        AutoexecJobPhaseNodeVo nodeParamVo = new AutoexecJobPhaseNodeVo(paramObj.getLong("jobId"),paramObj.getString("phase"));
+        AutoexecJobPhaseNodeVo nodeParamVo = new AutoexecJobPhaseNodeVo(paramObj.getLong("jobId"),paramObj.getString("phase"),runnerId);
         if(StringUtils.isNotBlank(phaseName)){
             jobVo = autoexecJobMapper.getJobDetailByJobIdAndPhaseName(jobId,phaseName);
             if(jobVo == null){

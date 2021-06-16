@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.service;
 
+import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
@@ -255,7 +256,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             //ssh 需根据IP protocol 和 username 获取对应的port 和 name
             if(Objects.equals(Protocol.SSH.getValue(),protocol)){
                 List<String> nodeIpList = new ArrayList<String>();
-                List<AutoexecJobNodeVo> autoexecJobVoList = autoexecJobMapper.getJobPhaseNodePortByIpAndUserNameAndProtocol(nodeVoList.stream().map(AutoexecNodeVo::getIp).collect(Collectors.toList()), userName, protocol);
+                List<AutoexecJobNodeVo> autoexecJobVoList = autoexecJobMapper.getJobPhaseNodePortByIpAndUserNameAndProtocol(nodeVoList.stream().map(AutoexecNodeVo::getIp).collect(Collectors.toList()), userName, protocol, TenantContext.get().getDataDbName());
                 Map<String,Integer> nodePortMap = new HashMap<>();
                 Map<String,String> nodeNameMap = new HashMap<>();
                 autoexecJobVoList.forEach(o->{
