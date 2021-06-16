@@ -7,6 +7,7 @@ package codedriver.module.autoexec.dao.mapper;
 
 import codedriver.framework.autoexec.dto.AutoexecRiskVo;
 import codedriver.framework.common.dto.ValueTextVo;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -23,4 +24,24 @@ public interface AutoexecRiskMapper {
     int searchRiskCount(AutoexecRiskVo vo);
 
     List<AutoexecRiskVo> searchRisk(AutoexecRiskVo vo);
+
+    Integer getMaxSort();
+
+    int checkRiskNameIsRepeats(AutoexecRiskVo vo);
+
+    int checkRiskHasBeenReferredById(Long id);
+
+    List<AutoexecRiskVo> getReferenceCountListForTool(List<Long> idList);
+
+    List<AutoexecRiskVo> getReferenceCountListForScript(List<Long> idList);
+
+    int updateRisk(AutoexecRiskVo vo);
+
+    int updateSortDecrement(@Param("fromSort")Integer fromSort, @Param("toSort")Integer toSort);
+
+    int updateSortIncrement(@Param("fromSort")Integer fromSort, @Param("toSort")Integer toSort);
+
+    int insertRisk(AutoexecRiskVo vo);
+
+    int deleteRiskById(Long id);
 }
