@@ -86,9 +86,9 @@
 
     <select id="checkRiskHasBeenReferredById" parameterType="java.lang.Long" resultType="int">
         select sum(refCount)
-		from
-		(
-		select
+        from
+        (
+        select
         count(`id`) as refCount
         from `autoexec_tool`
         where `risk_id` = #{value}
@@ -97,7 +97,7 @@
         count(`id`) as refCount
         from `autoexec_script`
         where `risk_id` = #{value}
-		) a
+        ) a
     </select>
 
     <select id="getReferenceCountListForTool" parameterType="java.util.List" resultType="codedriver.framework.autoexec.dto.AutoexecRiskVo">
