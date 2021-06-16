@@ -19,4 +19,8 @@ public interface AutoexecRiskMapper {
     List<ValueTextVo> getAllActiveRisk();
 
     AutoexecRiskVo getAutoexecRiskById(Long riskId);
+
+    int searchRiskCount(AutoexecRiskVo vo);
+
+    List<AutoexecRiskVo> searchRisk(AutoexecRiskVo vo);
 }
