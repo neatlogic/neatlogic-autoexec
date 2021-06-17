@@ -253,8 +253,8 @@
                     #{item}
                 </foreach>
             </if>
-            <if test="isReviewing == 1">
-                and exists (select 1 from `autoexec_script_version` b where b.`script_id` = a.`id` and b.`status` = 'submitted')
+            <if test="versionStatus != null and versionStatus != ''">
+                and exists (select 1 from `autoexec_script_version` b where b.`script_id` = a.`id` and b.`status` = #{versionStatus})
             </if>
         </where>
     </sql>
@@ -290,14 +290,14 @@
         `exec_mode` as execMode,
         (select `name` from `autoexec_type` where a.`type_id` = `id`) as typeName,
         (select `name` from `autoexec_risk` where a.`risk_id` = `id`) as riskName,
-        (select `color` from `autoexec_risk` where a.`risk_id` = `id`) as riskColor,
-        (select `version` from `autoexec_script_version` where a.`id` = `script_id` and `is_active` = 1)
-        as currentVersion,
-        (select count(`id`) from `autoexec_script_version` where a.`id` = `script_id`) as versionCount,
-        (select count(`id`) from `autoexec_script_version` where a.`id` = `script_id` and `status` = 'submitted')
-        as submittedVersionCount,
-        (select count(`id`) from `autoexec_script_version` where a.`id` = `script_id` and `status` = 'passed')
-        as passedVersionCount
+        (select `color` from `autoexec_risk` where a.`risk_id` = `id`) as riskColor
+--         (select `version` from `autoexec_script_version` where a.`id` = `script_id` and `is_active` = 1)
+--         as currentVersion,
+--         (select count(`id`) from `autoexec_script_version` where a.`id` = `script_id`) as versionCount,
+--         (select count(`id`) from `autoexec_script_version` where a.`id` = `script_id` and `status` = 'submitted')
+--         as submittedVersionCount,
+--         (select count(`id`) from `autoexec_script_version` where a.`id` = `script_id` and `status` = 'passed')
+--         as passedVersionCount
         from `autoexec_script` a
         <include refid="searchScriptCondition"/>
         order by `id` desc
