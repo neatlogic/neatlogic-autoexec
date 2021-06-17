@@ -182,6 +182,38 @@
         limit 1
     </select>
 
+    <select id="getNotPassedVersionListByScriptId" parameterType="java.lang.Long" resultMap="scriptVersionMap">
+        select
+        `id`,
+        `version`,
+        `status`,
+        `reviewer`,
+        `is_active` as isActive,
+        `lcu`,
+        (select `user_name` from `user` where `uuid` = `lcu`) as userName,
+        `lcd`
+        from `autoexec_script_version`
+        where `script_id` = #{scriptId}
+        and `status` != 'passed'
+        order by `id` desc
+    </select>
+
+    <select id="getHistoricalVersionListByScriptId" parameterType="java.lang.Long" resultMap="scriptVersionMap">
+        select
+        `id`,
+        `version`,
+        `status`,
+        `reviewer`,
+        `is_active` as isActive,
+        `lcu`,
+        (select `user_name` from `user` where `uuid` = `lcu`) as userName,
+        `lcd`
+        from `autoexec_script_version`
+        where `script_id` = #{scriptId}
+        and `status` = 'passed'
+        order by `version` desc
+    </select>
+
     <select id="getParamListByVersionId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo">
         select
         `script_version_id` as scriptVersionId,
