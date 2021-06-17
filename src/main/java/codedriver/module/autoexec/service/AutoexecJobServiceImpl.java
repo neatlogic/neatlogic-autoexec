@@ -18,6 +18,7 @@ import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
+import codedriver.framework.autoexec.exception.AutoexecJobNodeSshCountNotFoundException;
 import codedriver.framework.cmdb.enums.resourcecenter.Protocol;
 import codedriver.framework.util.IpUtil;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
@@ -269,6 +270,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                         nodeIpList.add(nodeVo.getIp());
                         if (phaseId != null) {
                             AutoexecJobPhaseNodeVo jobPhaseNodeVo = new AutoexecJobPhaseNodeVo(nodeVo, jobId, phaseId, JobNodeStatus.PENDING.getValue(), userName, protocol);
+                            if(!nodePortMap.containsKey(nodeVo.getIp())){
+                                throw new AutoexecJobNodeSshCountNotFoundException(userName+"@"+nodeVo.getIp());
+                            }
                             jobPhaseNodeVo.setPort(nodePortMap.get(nodeVo.getIp()));
                             jobPhaseNodeVo.setNodeName(nodeNameMap.get(nodeVo.getIp()));
                             jobPhaseNodeVo.setRunnerMapId(getRunnerByIp(jobPhaseNodeVo.getHost()));
