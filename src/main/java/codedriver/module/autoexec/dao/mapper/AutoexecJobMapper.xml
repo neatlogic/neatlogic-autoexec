@@ -136,7 +136,7 @@
             and (rai.`name` like concat('%',#{keyword},'%') or ajpn.`host` like concat('%',#{keyword},'%'))
         </if>
         <if test="runnerId != null">
-            and ajpnr.runner_id = #{runnerId}
+            and arm.runner_id = #{runnerId}
         </if>
     </sql>
 
@@ -149,7 +149,7 @@
         ajpn.`start_time` AS startTime,
         ajpn.`end_time` AS endTime,
         ajpn.`status`,
-        ap.`id` AS runnerId,
+        arm.`runner_id` AS runnerId,
         rai.`id` AS nodeId,
         rai.name AS nodeName,
         cra.`protocol` AS nodeType,
@@ -168,7 +168,8 @@
         AND ajpn.`protocol` = cra.`protocol`
         LEFT JOIN `autoexec_job_phase` ajp ON ajpn.`job_phase_id` = ajp.`id`
         LEFT JOIN `autoexec_job_phase_node_runner` ajpnr ON ajpn.id = ajpnr.`node_id`
-        LEFT JOIN `autoexec_runner` ap ON ajpnr.`runner_id` = ap.`id`
+        LEFT JOIN `autoexec_runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
+        LEFT JOIN `autoexec_runner` ap ON arm.`runner_id` = ap.`id`
         <where>
             <include refid="searchJobPhaseNodeSql"/>
         </where>
@@ -187,6 +188,7 @@
         LEFT JOIN ${schemaName}.`resource_ipobject` ri ON rii.`resource_id` = ri.`id`
         ) rai ON ajpn.host = rai.ip AND ajpn.name = rai.name
         LEFT JOIN `autoexec_job_phase_node_runner` ajpnr ON ajpn.id = ajpnr.`node_id`
+        LEFT JOIN `autoexec_runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
         <where>
             <include refid="searchJobPhaseNodeSql"/>
         </where>
@@ -574,7 +576,8 @@
                            ON crra.`account_id` = cra.`id` AND ajpn.`user_name` = cra.`account`
                                AND ajpn.`protocol` = cra.`protocol`
                  LEFT JOIN `autoexec_job_phase_node_runner` ajpnr ON ajpn.id = ajpnr.`node_id`
-                 LEFT JOIN `autoexec_runner` ap ON ajpnr.`runner_id` = ap.`id`
+                 LEFT JOIN `autoexec_runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
+                 LEFT JOIN `autoexec_runner` ap ON arm.`runner_id` = ap.`id`
         where ajpn.`id` = #{nodeId}
     </select>
 
@@ -589,9 +592,10 @@
                ajpn.`start_time`   as startTime,
                ajpn.`end_time`     as endTime,
                ajpn.`status`,
-               ajpnr.`runner_id`   as runnerId
+               arm.`runner_id`   as runnerId
         FROM `autoexec_job_phase_node` ajpn
                  LEFT JOIN `autoexec_job_phase_node_runner` ajpnr on ajpn.id = ajpnr.`node_id`
+                 LEFT JOIN `autoexec_runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
         WHERE `job_id` = #{jobId}
           AND `job_phase_id` = #{phaseId}
     </select>
@@ -608,29 +612,31 @@
     <select id="getJobPhaseNodeListByJobIdAndPhaseNameAndExceptStatusAndRunnerId"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
         SELECT ajpn.`id`,
-        ajpn.`job_id` as jobId,
-        ajpn.`job_phase_id` as jobPhaseId,
+        ajpn.`job_id` AS jobId,
+        ajpn.`job_phase_id` AS jobPhaseId,
         ajpn.`host`,
         ajpn.`port`,
-        ajpn.`start_time` as startTime,
-        ajpn.`end_time` as endTime,
+        ajpn.`start_time` AS startTime,
+        ajpn.`end_time` AS endTime,
         ajpn.`status`,
-        ajpnr.`runner_id` as runnerId,
-        ajp.`name` as jobPhaseName
+        arm.`runner_id` AS runnerId,
+        ajp.`name` AS jobPhaseName
         FROM `autoexec_job_phase_node` ajpn
-        LEFT JOIN `autoexec_job_phase_node_runner` ajpnr on ajpn.id = ajpnr.`node_id`
-        LEFT JOIN `autoexec_job_phase` ajp on ajpn.`job_phase_id` = ajp.`id`
-        where ajpn.`job_id` = #{jobId} and ajp.`name` = #{phaseName} and ajpnr.`runner_id` = #{runnerId} and
+        LEFT JOIN `autoexec_job_phase_node_runner` ajpnr ON ajpn.id = ajpnr.`node_id`
+        LEFT JOIN `autoexec_job_phase` ajp ON ajpn.`job_phase_id` = ajp.`id`
+        LEFT JOIN `autoexec_runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
+        where ajpn.`job_id` = #{jobId} and ajp.`name` = #{phaseName} and arm.`runner_id` = #{runnerId} and
         ajpn.`status` not in
         <foreach collection="exceptStatus" item="status" separator="," open="(" close=")">
             #{status}
         </foreach>
     </select>
     <select id="getJobRunnerListByJobId" resultType="codedriver.framework.autoexec.dto.AutoexecRunnerVo">
-        SELECT DISTINCT ap.`id`, ap.`name`, ap.`url`, ap.`host`, ap.`port`
+        SELECT DISTINCT ar.`id`, ar.`name`, ar.`url`, ar.`host`, ar.`port`
         FROM `autoexec_job_phase_node` ajpn
-                 LEFT JOIN `autoexec_job_phase_node_runner` ajpnr on ajpn.id = ajpnr.`node_id`
-                 LEFT JOIN `autoexec_runner` ap ON ajpnr.`runner_id` = ap.`id`
+                 LEFT JOIN `autoexec_job_phase_node_runner` ajpnr ON ajpn.id = ajpnr.`node_id`
+                 LEFT JOIN `autoexec_runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
+                 LEFT JOIN `autoexec_runner` ar ON arm.`runner_id` = ar.`id`
         WHERE ajpn.`job_id` = #{value}
     </select>
 
@@ -647,8 +653,8 @@
         </association>
     </resultMap>
     <select id="getJobRunnerByJobIdAndPhaseId" resultMap="jobPhaseNodeMap">
-        SELECT ar.`id`   as runnerId,
-               ar.`name` as runnerName,
+        SELECT ar.`id`   AS runnerId,
+               ar.`name` AS runnerName,
                ar.`url`,
                ar.`host`,
                ar.`port`,
@@ -657,7 +663,8 @@
                ajpn.`id`
         FROM `autoexec_job_phase_node` ajpn
                  LEFT JOIN `autoexec_job_phase_node_runner` ajpnr ON ajpn.`id` = ajpnr.`node_id`
-                 LEFT JOIN `autoexec_runner` ar ON ajpnr.`runner_id` = ar.`id`
+                 LEFT JOIN `autoexec_runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
+                 LEFT JOIN `autoexec_runner` ar ON arm.`runner_id` = ar.`id`
         WHERE ajpn.`job_id` = #{jobId}
           and ajpn.`job_phase_id` = #{jobPhaseId}
     </select>
@@ -834,8 +841,8 @@
 
     <insert id="insertJobPhaseNodeRunner"
             parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeRunnerVo">
-        INSERT INTO `autoexec_job_phase_node_runner` (`node_id`, `runner_id`)
-        VALUES (#{nodeId}, #{runnerId});
+        INSERT INTO `autoexec_job_phase_node_runner` (`node_id`, `runner_map_id`)
+        VALUES (#{nodeId}, #{runnerMapId});
     </insert>
     <insert id="insertJobNode">
         INSERT INTO `autoexec_job_node` (`id`,
@@ -852,8 +859,8 @@
                 #{protocol});
     </insert>
     <insert id="insertJobPhaseRunner">
-        INSERT IGNORE INTO `autoexec_job_phase_runner` (`job_phase_id`, `runner_id`)
-        VALUES (#{jobPhaseId}, #{runnerId});
+        INSERT IGNORE INTO `autoexec_job_phase_runner` (`job_phase_id`, `runner_map_id`)
+        VALUES (#{jobPhaseId}, #{runnerMapId});
     </insert>
 
     <update id="updateJobPhaseStatus" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
@@ -946,7 +953,7 @@
         <foreach collection="jobPhaseIdList" item="phaseId" separator="," open="(" close=")">
             #{phaseId}
         </foreach>
-        AND `runner_id` = #{runnerId};
+        AND `runner_map_id` = #{runnerId};
     </update>
     <update id="updateBatchJobPhaseRunnerStatus">
         UPDATE

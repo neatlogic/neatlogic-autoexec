@@ -12,7 +12,7 @@ import codedriver.framework.autoexec.constvalue.JobNodeStatus;
 import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.dto.AutoexecRunnerGroupNetworkVo;
 import codedriver.framework.autoexec.dto.AutoexecRunnerGroupVo;
-import codedriver.framework.autoexec.dto.AutoexecRunnerVo;
+import codedriver.framework.autoexec.dto.AutoexecRunnerMapVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
@@ -102,14 +102,15 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                     getJobNodeList(nodeConfigVo, jobVo.getId(), jobPhaseVo.getId(),jobVo.getOperationId(), userName, protocol);
                 }
             } else {
-                List<AutoexecRunnerVo> runnerList = autoexecRunnerMapper.getAllRunner();
+                List<AutoexecRunnerMapVo> runnerMapList = autoexecRunnerMapper.getAllRunnerMap();
                 //TODO 负载均衡
-                int runnerIndex = (int) (Math.random() * runnerList.size());
-                AutoexecRunnerVo autoexecRunnerVo = runnerList.get(runnerIndex);
-                AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), jobPhaseVo.getId(), autoexecRunnerVo.getHost(), JobNodeStatus.PENDING.getValue(), userName);
+                int runnerMapIndex = (int) (Math.random() * runnerMapList.size());
+                AutoexecRunnerMapVo autoexecRunnerMapVo = runnerMapList.get(runnerMapIndex);
+                AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), jobPhaseVo.getId(), autoexecRunnerMapVo.getHost(), JobNodeStatus.PENDING.getValue(), userName);
                 autoexecJobMapper.insertJobPhaseNode(nodeVo);
-                autoexecJobMapper.insertJobPhaseNodeRunner(nodeVo.getId(), autoexecRunnerVo.getId());
-                autoexecJobMapper.insertJobPhaseRunner(nodeVo.getJobPhaseId(),autoexecRunnerVo.getId());
+                autoexecRunnerMapper.insertRunnerMap(autoexecRunnerMapVo);
+                autoexecJobMapper.insertJobPhaseNodeRunner(nodeVo.getId(), autoexecRunnerMapVo.getRunnerMapId());
+                autoexecJobMapper.insertJobPhaseRunner(nodeVo.getJobPhaseId(),autoexecRunnerMapVo.getRunnerMapId());
             }
             //jobPhaseOperation
             List<AutoexecJobPhaseOperationVo> jobPhaseOperationVoList = new ArrayList<>();
@@ -215,9 +216,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         for (AutoexecRunnerGroupNetworkVo networkVo : networkVoList) {
             if (IpUtil.isBelongSegment(ip, networkVo.getNetworkIp(), networkVo.getMask())) {
                 AutoexecRunnerGroupVo groupVo = autoexecRunnerMapper.getRunnerGroupById(networkVo.getGroupId());
-                int runnerIndex = (int) (Math.random() * groupVo.getRunnerList().size());
-                AutoexecRunnerVo runnerVo = groupVo.getRunnerList().get(runnerIndex);
-                return runnerVo.getId();
+                int runnerMapIndex = (int) (Math.random() * groupVo.getRunnerMapList().size());
+                AutoexecRunnerMapVo runnerMapVo = groupVo.getRunnerMapList().get(runnerMapIndex);
+                return runnerMapVo.getRunnerMapId();
             }
         }
         return null;
@@ -270,10 +271,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                             AutoexecJobPhaseNodeVo jobPhaseNodeVo = new AutoexecJobPhaseNodeVo(nodeVo, jobId, phaseId, JobNodeStatus.PENDING.getValue(), userName, protocol);
                             jobPhaseNodeVo.setPort(nodePortMap.get(nodeVo.getIp()));
                             jobPhaseNodeVo.setNodeName(nodeNameMap.get(nodeVo.getIp()));
-                            jobPhaseNodeVo.setRunnerId(getRunnerByIp(jobPhaseNodeVo.getHost()));
+                            jobPhaseNodeVo.setRunnerMapId(getRunnerByIp(jobPhaseNodeVo.getHost()));
                             autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
-                            autoexecJobMapper.insertJobPhaseNodeRunner(jobPhaseNodeVo.getId(), jobPhaseNodeVo.getRunnerId());
-                            autoexecJobMapper.insertJobPhaseRunner(jobPhaseNodeVo.getJobPhaseId(),jobPhaseNodeVo.getRunnerId());
+                            autoexecJobMapper.insertJobPhaseNodeRunner(jobPhaseNodeVo.getId(), jobPhaseNodeVo.getRunnerMapId());
+                            autoexecJobMapper.insertJobPhaseRunner(jobPhaseNodeVo.getJobPhaseId(),jobPhaseNodeVo.getRunnerMapId());
                             isHasNode = 1;
                         } else {
                             //TODO 没有意义？ 作业的执行节点，因为有tag，节点可能会变
@@ -287,10 +288,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 for (AutoexecNodeVo nodeVo : nodeVoList) {
                     if (phaseId != null) {
                         AutoexecJobPhaseNodeVo jobPhaseNodeVo = new AutoexecJobPhaseNodeVo(nodeVo, jobId, phaseId, JobNodeStatus.PENDING.getValue(), userName, protocol);
-                        jobPhaseNodeVo.setRunnerId(getRunnerByIp(jobPhaseNodeVo.getHost()));
+                        jobPhaseNodeVo.setRunnerMapId(getRunnerByIp(jobPhaseNodeVo.getHost()));
                         autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
-                        autoexecJobMapper.insertJobPhaseNodeRunner(jobPhaseNodeVo.getId(), jobPhaseNodeVo.getRunnerId());
-                        autoexecJobMapper.insertJobPhaseRunner(jobPhaseNodeVo.getJobPhaseId(),jobPhaseNodeVo.getRunnerId());
+                        autoexecJobMapper.insertJobPhaseNodeRunner(jobPhaseNodeVo.getId(), jobPhaseNodeVo.getRunnerMapId());
+                        autoexecJobMapper.insertJobPhaseRunner(jobPhaseNodeVo.getJobPhaseId(),jobPhaseNodeVo.getRunnerMapId());
                         isHasNode = 1;
                     } else {
                         //TODO 没有意义？ 作业的执行节点，因为有tag，节点可能会变
