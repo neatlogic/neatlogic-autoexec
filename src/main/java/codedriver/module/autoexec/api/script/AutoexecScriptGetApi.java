@@ -13,12 +13,11 @@ import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
-import codedriver.framework.autoexec.exception.AutoexecScriptHasNotAnyVersionException;
-import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
+import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.ValueTextVo;
 import codedriver.framework.dao.mapper.UserMapper;
+import codedriver.framework.exception.type.ParamNotExistsException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -32,6 +31,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @AuthAction(action = AUTOEXEC_SCRIPT_SEARCH.class)
@@ -65,6 +65,7 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
     @Input({
             @Param(name = "id", type = ApiParamType.LONG, desc = "脚本ID，表示不指定版本查看，两个参数二选一"),
             @Param(name = "versionId", type = ApiParamType.LONG, desc = "脚本版本ID，表示指定版本查看"),
+            @Param(name = "status", type = ApiParamType.ENUM, rule = "draft,passed,rejected", desc = "状态(传id而非versionId时，表示从列表查看脚本，此时必须传status参数)"),
     })
     @Output({
             @Param(name = "script", explode = AutoexecScriptVo[].class, desc = "脚本内容"),
@@ -79,19 +80,35 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         AutoexecScriptVersionVo version = null;
         Long id = jsonObj.getLong("id");
         Long versionId = jsonObj.getLong("versionId");
+        String status = jsonObj.getString("status");
         if (id != null) { // 不指定版本
+            if (StringUtils.isBlank(status)) {
+                throw new ParamNotExistsException("status");
+            }
             if (autoexecScriptMapper.checkScriptIsExistsById(id) == 0) {
                 throw new AutoexecScriptNotFoundException(id);
             }
-            AutoexecScriptVersionVo activeVersion = autoexecScriptMapper.getActiveVersionByScriptId(id);
-            if (activeVersion != null) { // 有激活版本
-                version = activeVersion;
-            } else { // 没有激活版本，拿最新的版本
-                AutoexecScriptVersionVo latestVersion = autoexecScriptMapper.getLatestVersionByScriptId(id);
-                if (latestVersion == null) {
-                    throw new AutoexecScriptHasNotAnyVersionException();
+            if (Objects.equals(ScriptVersionStatus.PASSED.getValue(), status)) {
+                AutoexecScriptVersionVo activeVersion = autoexecScriptMapper.getActiveVersionByScriptId(id);
+                if (activeVersion != null) {
+                    version = activeVersion;
+                } else {
+                    throw new AutoexecScriptVersionHasNoActivedException();
                 }
-                version = latestVersion;
+            } else if (Objects.equals(ScriptVersionStatus.DRAFT.getValue(), status)) {
+                AutoexecScriptVersionVo recentlyDraftVersion = autoexecScriptMapper.getRecentlyVersionByScriptIdAndStatus(id, ScriptVersionStatus.DRAFT.getValue());
+                if (recentlyDraftVersion != null) {
+                    version = recentlyDraftVersion;
+                } else {
+                    throw new AutoexecScriptHasNoDraftVersionException();
+                }
+            } else if (Objects.equals(ScriptVersionStatus.REJECTED.getValue(), status)) {
+                AutoexecScriptVersionVo recentlyRejectedVersion = autoexecScriptMapper.getRecentlyVersionByScriptIdAndStatus(id, ScriptVersionStatus.DRAFT.getValue());
+                if (recentlyRejectedVersion != null) {
+                    version = recentlyRejectedVersion;
+                } else {
+                    throw new AutoexecScriptHasNoRejectedVersionException();
+                }
             }
         } else if (versionId != null) { // 指定查看某个版本
             AutoexecScriptVersionVo currentVersion = autoexecScriptMapper.getVersionByVersionId(versionId);
@@ -124,6 +141,7 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
                 }
             }
         }
+        // todo 按钮待修改
         // 获取操作按钮
         ScriptOperateManager manager = new ScriptOperateManager();
         ScriptOperateManager.Builder scriptOperateBuilder = manager.new Builder();
