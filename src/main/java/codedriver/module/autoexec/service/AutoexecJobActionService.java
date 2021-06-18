@@ -18,6 +18,13 @@ import java.util.List;
  **/
 public interface AutoexecJobActionService {
     /**
+     * 作业执行动作权限校验
+     *
+     * @param jobVo 作业
+     */
+    void executeAuthCheck(AutoexecJobVo jobVo);
+
+    /**
      * 第一次执行
      *
      * @param jobVo 作业
@@ -53,6 +60,13 @@ public interface AutoexecJobActionService {
      * @param jobVo 作业
      */
     void pause(AutoexecJobVo jobVo);
+
+    /**
+     * 继续作业
+     *
+     * @param jobVo 作业
+     */
+    void goon(AutoexecJobVo jobVo);
 
     /**
      * 中止作业

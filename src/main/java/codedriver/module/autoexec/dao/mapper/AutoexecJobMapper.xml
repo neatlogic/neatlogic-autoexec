@@ -541,7 +541,7 @@
     </select>
     <select id="getJobPhaseListByJobIdAndSort"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
-        select `job_id` as jobId, `name`, `exec_mode` as execMode, `id`,`status`
+        select `job_id` as jobId, `name`, `exec_mode` as execMode, `id`, `status`
         from `autoexec_job_phase`
         where `job_id` = #{jobId}
           and `sort` = #{sort}
@@ -592,7 +592,7 @@
                ajpn.`start_time`   as startTime,
                ajpn.`end_time`     as endTime,
                ajpn.`status`,
-               arm.`runner_id`   as runnerId
+               arm.`runner_id`     as runnerId
         FROM `autoexec_job_phase_node` ajpn
                  LEFT JOIN `autoexec_job_phase_node_runner` ajpnr on ajpn.id = ajpnr.`node_id`
                  LEFT JOIN `autoexec_runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
@@ -730,6 +730,22 @@
         </foreach>
         and `status` = #{status}
     </select>
+    <select id="getJobPhaseByJobIdAndPhaseStatus"
+            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
+        SELECT `id`,
+               `job_id`     as jobId,
+               `status`,
+               `start_time` as startTime,
+               `end_time`   as endTime,
+               `exec_user`  as execUser,
+               `exec_mode`  as execMode,
+               `name`       as name,
+               `error_msg`  as errorMsg,
+               `sort`,
+               `uk`         as uk
+        FROM `autoexec_job_phase`
+        where `job_id` = #{jobId} and `status` = #{status}
+    </select>
 
     <insert id="insertJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
         INSERT INTO `autoexec_job` (`id`,
@@ -859,8 +875,8 @@
                 #{protocol});
     </insert>
     <insert id="insertJobPhaseRunner">
-        INSERT IGNORE INTO `autoexec_job_phase_runner` (`job_phase_id`, `runner_map_id`)
-        VALUES (#{jobPhaseId}, #{runnerMapId});
+        INSERT IGNORE INTO `autoexec_job_phase_runner` (`job_id`,`job_phase_id`, `runner_map_id`)
+        VALUES (#{jobId},#{jobPhaseId}, #{runnerMapId});
     </insert>
 
     <update id="updateJobPhaseStatus" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
@@ -1005,6 +1021,16 @@
         <foreach collection="jobPhaseIdList" item="phaseId" open="(" close=")" separator=",">
             #{phaseId}
         </foreach>
+    </delete>
+    <delete id="deleteJobPhaseRunnerByJobId">
+        DELETE
+        FROM `autoexec_job_phase_runner`
+        WHERE `job_id` = #{value};
+    </delete>
+    <delete id="deleteJobPhaseNodeRunnerByJobId">
+        DELETE
+        FROM `autoexec_job_phase_node_runner`
+        WHERE `job_id` = #{value};
     </delete>
 
 
