@@ -127,7 +127,7 @@ public class AutoexecJobAuthActionManager {
     public static class Builder {
         private final List<String> actionList = new ArrayList<>();
 
-        public Builder addAuthPauseJob() {
+        public Builder addPauseJob() {
             this.actionList.add("pauseJob");
             return this;
         }

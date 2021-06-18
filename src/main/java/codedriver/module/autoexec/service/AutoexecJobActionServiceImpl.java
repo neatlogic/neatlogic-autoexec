@@ -11,6 +11,7 @@ import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dto.AutoexecRunnerVo;
 import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.exception.AutoexecJobCanNotAbortException;
+import codedriver.framework.autoexec.exception.AutoexecJobCanNotPauseException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerConnectAuthException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerConnectRefusedException;
 import codedriver.framework.dao.mapper.UserMapper;
@@ -261,7 +262,13 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
      */
     @Override
     public void pause(AutoexecJobVo jobVo) {
+        new AutoexecJobAuthActionManager.Builder().addPauseJob().build().setAutoexecJobAction(jobVo);
+        if (jobVo.getIsCanJobPause() == 1) {
+            abortOrPauseService(jobVo,JobStatus.PAUSING.getValue(),JobPhaseStatus.PAUSING.getValue(),"pause");
 
+        } else {
+            throw new AutoexecJobCanNotPauseException();
+        }
     }
 
     /**
@@ -273,13 +280,28 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     public void abort(AutoexecJobVo jobVo) {
         new AutoexecJobAuthActionManager.Builder().addAbortJob().build().setAutoexecJobAction(jobVo);
         if (jobVo.getIsCanJobAbort() == 1) {
-            jobVo.setStatus(JobStatus.ABORTING.getValue());
+            abortOrPauseService(jobVo,JobStatus.ABORTING.getValue(),JobPhaseStatus.ABORTING.getValue(),"abort");
+
+        } else {
+            throw new AutoexecJobCanNotAbortException();
+        }
+    }
+
+    /**
+     * 执行取消|暂停逻辑
+     * @param jobVo 作业vo
+     * @param jobStatus 作业状态
+     * @param phaseStatus 作业剧本状态
+     * @param action 执行动作 取消|暂停
+     */
+    private void abortOrPauseService(AutoexecJobVo jobVo,String jobStatus,String phaseStatus,String action){
+            jobVo.setStatus(jobStatus);
             autoexecJobMapper.updateJobStatus(jobVo);
             for (AutoexecJobPhaseVo jobPhase : jobVo.getPhaseList()) {
                 if (Objects.equals(jobPhase.getStatus(), JobPhaseStatus.RUNNING.getValue())) {
-                    jobPhase.setStatus(JobPhaseStatus.ABORTING.getValue());
+                    jobPhase.setStatus(phaseStatus);
                     autoexecJobMapper.updateJobPhaseStatus(jobPhase);
-                    autoexecJobMapper.updateBatchJobPhaseRunnerStatus(jobPhase.getId(),JobPhaseStatus.ABORTING.getValue());
+                    autoexecJobMapper.updateBatchJobPhaseRunnerStatus(jobPhase.getId(),phaseStatus);
                 }
             }
             List<AutoexecRunnerVo> runnerVos = autoexecJobMapper.getJobRunnerListByJobId(jobVo.getId());
@@ -292,7 +314,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             String result = StringUtils.EMPTY;
             try {
                 for (AutoexecRunnerVo runner : runnerVos) {
-                    String url = runner.getUrl() + "api/rest/job/abort";
+                    String url = runner.getUrl() + "api/rest/job/"+action;
                     restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
                     result = RestUtil.sendRequest(restVo);
                     JSONObject resultJson = JSONObject.parseObject(result);
@@ -304,9 +326,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                 logger.error(ex.getMessage(), ex);
                 throw new AutoexecJobRunnerConnectRefusedException(restVo.getUrl() + " " + result);
             }
-        } else {
-            throw new AutoexecJobCanNotAbortException();
-        }
+
     }
 
     /**

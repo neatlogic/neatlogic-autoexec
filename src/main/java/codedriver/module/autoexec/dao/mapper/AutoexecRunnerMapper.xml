@@ -19,9 +19,10 @@
             <result column="networkIp" property="networkIp"/>
             <result column="mask" property="mask"/>
         </collection>
-        <collection property="runnerList" ofType="codedriver.framework.autoexec.dto.AutoexecRunnerVo">
+        <collection property="runnerMapList" ofType="codedriver.framework.autoexec.dto.AutoexecRunnerMapVo">
             <id column="runnerId" property="id"/>
             <result column="runnerName" property="name"/>
+            <result column="runnerMapId" property="runnerMapId"/>
             <result column="url" property="url"/>
             <result column="accessKey" property="accessKey"/>
             <result column="accessSecret" property="accessSecret"/>
@@ -30,37 +31,41 @@
     </resultMap>
 
     <select id="getRunnerGroupById" resultMap="runnerGroupMap">
-        SELECT a.id              id,
-               a.name            groupName,
-               c.id           AS runnerId,
-               c.`auth_type`  AS authType,
-               c.`access_key` AS accessKey,
+        SELECT a.id                                  id,
+               a.name                                groupName,
+               c.id                               AS runnerId,
+               IF(d.`id` IS NULL, c.`id`, d.`id`) AS runnerMapId,
+               c.`auth_type`                      AS authType,
+               c.`access_key`                     AS accessKey,
                c.`access_secret`
-                              AS accessSecret,
-               c.`url`        AS url,
-               c.`name`       AS runnerName,
-               b.id              networkId,
-               b.group_id        groupId,
-               b.network_ip      networkIp,
-               b.mask            mask
+                                                  AS accessSecret,
+               c.`url`                            AS url,
+               c.`name`                           AS runnerName,
+               b.id                                  networkId,
+               b.group_id                            groupId,
+               b.network_ip                          networkIp,
+               b.mask                                mask
         FROM `autoexec_runnergroup` a
                  LEFT JOIN `autoexec_runnergroup_network` b ON a.id = b.group_id
                  LEFT JOIN `autoexec_runner` c ON a.id = c.group_id
+                 LEFT JOIN `autoexec_runner_map` d ON c.id = d.`runner_id`
         WHERE a.id = #{id}
     </select>
-    <select id="getAllRunner" resultType="codedriver.framework.autoexec.dto.AutoexecRunnerVo">
-        SELECT `id`,
-               `name`,
-               `url`,
-               `host`,
-               `port`,
-               `access_key`    as accessKey,
-               `access_secret` as accessSecret,
-               `auth_type`     as authType,
-               `public_key`    as publicKey,
-               `private_key`   as privateKey,
-               `group_id`      as groupId
-        FROM `autoexec_runner`
+    <select id="getAllRunnerMap" resultType="codedriver.framework.autoexec.dto.AutoexecRunnerMapVo">
+        SELECT ar.`id`,
+               ar.`name`,
+               ar.`url`,
+               ar.`host`,
+               ar.`port`,
+               ar.`access_key`                         AS accessKey,
+               ar.`access_secret`                      AS accessSecret,
+               ar.`auth_type`                          AS authType,
+               ar.`public_key`                         AS publicKey,
+               ar.`private_key`                        AS privateKey,
+               ar.`group_id`                           AS groupId,
+               IF(arm.`id` IS NULL, ar.`id`, arm.`id`) AS runnerMapId
+        FROM `autoexec_runner` ar
+                 LEFT JOIN `autoexec_runner_map` arm ON ar.`id` = arm.`runner_id`
     </select>
 
     <select id="getRunnerById" resultType="codedriver.framework.autoexec.dto.AutoexecRunnerVo">
@@ -75,7 +80,13 @@
                `public_key`    as publicKey,
                `private_key`   as privateKey,
                `group_id`      as groupId
-        FROM `autoexec_runner` WHERE `id` = #{value}
+        FROM `autoexec_runner`
+        WHERE `id` = #{value}
     </select>
+
+    <insert id="insertRunnerMap">
+        INSERT IGNORE INTO `autoexec_runner_map` (`id`, `runner_id`)
+        VALUES (#{runnerMapId}, #{id});
+    </insert>
 </mapper>
 
