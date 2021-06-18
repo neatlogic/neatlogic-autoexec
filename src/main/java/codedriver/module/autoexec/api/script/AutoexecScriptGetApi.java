@@ -103,7 +103,7 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
                     throw new AutoexecScriptHasNoDraftVersionException();
                 }
             } else if (Objects.equals(ScriptVersionStatus.REJECTED.getValue(), status)) {
-                AutoexecScriptVersionVo recentlyRejectedVersion = autoexecScriptMapper.getRecentlyVersionByScriptIdAndStatus(id, ScriptVersionStatus.DRAFT.getValue());
+                AutoexecScriptVersionVo recentlyRejectedVersion = autoexecScriptMapper.getRecentlyVersionByScriptIdAndStatus(id, ScriptVersionStatus.REJECTED.getValue());
                 if (recentlyRejectedVersion != null) {
                     version = recentlyRejectedVersion;
                 } else {
