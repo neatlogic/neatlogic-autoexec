@@ -7,6 +7,7 @@ package codedriver.module.autoexec.dao.mapper;
 
 import codedriver.framework.autoexec.dto.AutoexecRunnerGroupNetworkVo;
 import codedriver.framework.autoexec.dto.AutoexecRunnerGroupVo;
+import codedriver.framework.autoexec.dto.AutoexecRunnerMapVo;
 import codedriver.framework.autoexec.dto.AutoexecRunnerVo;
 
 import java.util.List;
@@ -17,7 +18,9 @@ public interface AutoexecRunnerMapper {
 
     AutoexecRunnerGroupVo getRunnerGroupById(Long groupId);
 
-    List<AutoexecRunnerVo> getAllRunner();
+    List<AutoexecRunnerMapVo> getAllRunnerMap();
 
     AutoexecRunnerVo getRunnerById(Integer runnerId);
+
+    Integer insertRunnerMap(AutoexecRunnerMapVo autoexecRunnerMapVo);
 }
