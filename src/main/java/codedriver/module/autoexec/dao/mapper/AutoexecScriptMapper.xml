@@ -165,6 +165,23 @@
         and `is_active` = 1
     </select>
 
+    <select id="getActiveVersionLockByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
+        select
+        `id`,
+        `script_id` as scriptId,
+        `version`,
+        `parser`,
+        `status`,
+        `reviewer`,
+        `is_active` as isActive,
+        `lcd`,
+        `lcu`
+        from `autoexec_script_version`
+        where `script_id` = #{value}
+        and `is_active` = 1
+        for update
+    </select>
+
     <select id="getLatestVersionByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
         select
         `id`,
@@ -606,6 +623,12 @@
         and `is_active` = 1
     </select>
 
+    <select id="checkScriptHasSubmittedVersionByScriptId" parameterType="java.lang.Long" resultType="int">
+        select count(1)
+        from `autoexec_script_version`
+        where `script_id` = #{value} and `status` = 'submitted'
+    </select>
+
     <update id="updateScriptBaseInfo" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
         update `autoexec_script` set
         `name` = #{name},
@@ -625,6 +648,9 @@
         </if>
         <if test="reviewer != null">
             `reviewer` = #{reviewer},
+        </if>
+        <if test="version != null">
+            `version` = #{version},
         </if>
         <if test="isActive != null">
             `is_active` = #{isActive},

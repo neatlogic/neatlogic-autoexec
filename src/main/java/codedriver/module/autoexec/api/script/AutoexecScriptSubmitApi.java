@@ -12,6 +12,7 @@ import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
+import codedriver.framework.autoexec.exception.AutoexecScriptHasSubmittedVersionException;
 import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionCannotSubmitException;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -74,6 +75,9 @@ public class AutoexecScriptSubmitApi extends PrivateApiComponentBase {
         if (!Objects.equals(ScriptVersionStatus.DRAFT.getValue(), version.getStatus())
                 && !Objects.equals(ScriptVersionStatus.REJECTED.getValue(), version.getStatus())) {
             throw new AutoexecScriptVersionCannotSubmitException();
+        }
+        if (autoexecScriptMapper.checkScriptHasSubmittedVersionByScriptId(script.getId()) > 0) {
+            throw new AutoexecScriptHasSubmittedVersionException();
         }
 
         // todo 校验脚本内容
