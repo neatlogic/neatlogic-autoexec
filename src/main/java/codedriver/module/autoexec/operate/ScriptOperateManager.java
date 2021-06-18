@@ -53,11 +53,11 @@ public class ScriptOperateManager {
             return vo;
         });
 
-        operateMap.put(ScriptAndToolOperate.VERSIONDELETE, (id) -> {
+        operateMap.put(ScriptAndToolOperate.VERSION_DELETE, (id) -> {
             // 只剩一个版本或当前版本处于激活状态时，不可删除
             AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(id);
             if (version != null) {
-                OperateVo vo = new OperateVo(ScriptAndToolOperate.VERSIONDELETE.getValue(), ScriptAndToolOperate.VERSIONDELETE.getText());
+                OperateVo vo = new OperateVo(ScriptAndToolOperate.VERSION_DELETE.getValue(), ScriptAndToolOperate.VERSION_DELETE.getText());
                 int versionCount = autoexecScriptMapper.getVersionCountByScriptId(version.getScriptId());
                 if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())) {
                     vo.setDisabled(1);
@@ -344,7 +344,7 @@ public class ScriptOperateManager {
 
         public Builder setVersionDelete(Long versionId) {
             if (versionId != null) {
-                OperateVo vo = getOperateMap().get(ScriptAndToolOperate.VERSIONDELETE).apply(versionId);
+                OperateVo vo = getOperateMap().get(ScriptAndToolOperate.VERSION_DELETE).apply(versionId);
                 if (vo != null) {
                     operateList.add(vo);
                 }
