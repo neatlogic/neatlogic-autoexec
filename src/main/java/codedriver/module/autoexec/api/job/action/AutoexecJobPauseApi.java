@@ -6,7 +6,7 @@
 package codedriver.module.autoexec.api.job.action;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_JOB_MODIFY;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
@@ -25,7 +25,7 @@ import javax.annotation.Resource;
  **/
 
 @Service
-@AuthAction(action = AUTOEXEC_JOB_MODIFY.class)
+@AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.OPERATE)
 public class AutoexecJobPauseApi extends PrivateApiComponentBase {
     @Resource
@@ -52,7 +52,8 @@ public class AutoexecJobPauseApi extends PrivateApiComponentBase {
     @Description(desc = "暂停作业")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jsonObj.getLong("jobId"));
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jsonObj.getLong("jobId"));
+        autoexecJobActionService.executeAuthCheck(jobVo);
         jobVo.setPhaseList(autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId()));
         autoexecJobActionService.pause(jobVo);
         return null;

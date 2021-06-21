@@ -28,6 +28,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -77,7 +78,7 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
         List<AutoexecScriptVo> scriptVoList = autoexecScriptMapper.searchScript(scriptVo);
         result.put("tbodyList", scriptVoList);
         // 获取操作权限
-        if (CollectionUtils.isNotEmpty(scriptVoList)) {
+        if (Objects.equals(ScriptVersionStatus.PASSED.getValue(), scriptVo.getVersionStatus()) && CollectionUtils.isNotEmpty(scriptVoList)) {
             List<Long> idList = scriptVoList.stream().map(AutoexecScriptVo::getId).collect(Collectors.toList());
             ScriptOperateManager.Builder builder = new ScriptOperateManager().new Builder();
             builder.addScriptId(idList.toArray(new Long[idList.size()]));

@@ -106,6 +106,11 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
             throw new AutoexecScriptNotFoundException(id);
         }
         script.setVersionVo(version);
+        AutoexecScriptVersionVo currentVersion = autoexecScriptMapper.getActiveVersionByScriptId(id);
+        if (currentVersion != null) {
+            currentVersion.setLcuVo(userMapper.getUserBaseInfoByUuid(currentVersion.getLcu()));
+        }
+        script.setCurrentVersionVo(currentVersion);
         version.setParamList(autoexecScriptMapper.getParamListByVersionId(version.getId()));
         version.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
         List<AutoexecCombopVo> combopList = autoexecScriptMapper.getReferenceListByScriptId(id);

@@ -6,7 +6,7 @@
 package codedriver.module.autoexec.api.job.action;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_JOB_MODIFY;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
@@ -29,7 +29,7 @@ import javax.annotation.Resource;
 
 @Service
 @Transactional
-@AuthAction(action = AUTOEXEC_JOB_MODIFY.class)
+@AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.OPERATE)
 public class AutoexecJobReFireApi extends PrivateApiComponentBase {
     @Resource
@@ -61,6 +61,7 @@ public class AutoexecJobReFireApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
+        autoexecJobActionService.executeAuthCheck(jobVo);
         autoexecJobService.getAutoexecJobDetail(jobVo,0);
         autoexecJobActionService.refire(jobVo);
         return null;

@@ -7,46 +7,48 @@ package codedriver.module.autoexec.api.job.action;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
-import codedriver.module.autoexec.service.AutoexecCombopService;
 import codedriver.module.autoexec.service.AutoexecJobActionService;
+import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
+import java.util.List;
 
 /**
+ * 仅允许phase 和 node 状态都不是running的情况下才能执行重跑动作
  * @author lvzk
- * @since 2021/4/21 15:20
+ * @since 2021/6/2 15:20
  **/
 
 @Service
 @Transactional
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.OPERATE)
-public class AutoexecJobAbortApi extends PrivateApiComponentBase {
+public class AutoexecJobGoonApi extends PrivateApiComponentBase {
     @Resource
     AutoexecJobActionService autoexecJobActionService;
 
     @Resource
-    AutoexecCombopService autoexecCombopService;
+    AutoexecJobService autoexecJobService;
 
     @Resource
     AutoexecJobMapper autoexecJobMapper;
 
-    @Resource
-    AutoexecCombopMapper autoexecCombopMapper;
-
     @Override
     public String getName() {
-        return "中止作业";
+        return "继续作业";
     }
 
     @Override
@@ -59,18 +61,34 @@ public class AutoexecJobAbortApi extends PrivateApiComponentBase {
     })
     @Output({
     })
-    @Description(desc = "中止作业")
+    @Description(desc = "继续作业")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jsonObj.getLong("jobId"));
+        Long jobId = jsonObj.getLong("jobId");
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         autoexecJobActionService.executeAuthCheck(jobVo);
-        jobVo.setPhaseList(autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId()));
-        autoexecJobActionService.abort(jobVo);
+        int sort = 0;
+        /*寻找中止|暂停的phase
+         * 1、优先寻找aborted|paused phase
+         * 2、没有满足1条件的，再寻找pending 最小sort phase
+         */
+        List<AutoexecJobPhaseVo> autoexecJobPhaseVos = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobVo.getId(), Arrays.asList(JobPhaseStatus.ABORTED.getValue(),JobPhaseStatus.PAUSED.getValue()));
+        if(CollectionUtils.isNotEmpty(autoexecJobPhaseVos)){
+            sort = autoexecJobPhaseVos.get(0).getSort();
+        }else{
+            AutoexecJobPhaseVo phase = autoexecJobMapper.getJobPhaseByJobIdAndPhaseStatus(jobVo.getId(),JobPhaseStatus.PENDING.getValue());
+            if(phase != null){
+                sort = phase.getSort();
+            }
+        }
+        jobVo.setCurrentPhaseSort(sort);
+        autoexecJobService.getAutoexecJobDetail(jobVo,sort);
+        autoexecJobActionService.goon(jobVo);
         return null;
     }
 
     @Override
     public String getToken() {
-        return "autoexec/job/abort";
+        return "autoexec/job/goon";
     }
 }

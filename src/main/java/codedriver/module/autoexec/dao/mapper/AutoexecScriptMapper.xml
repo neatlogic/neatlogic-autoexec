@@ -96,6 +96,8 @@
 
     <resultMap id="scriptVersionMap" type="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
         <result column="id" property="id"/>
+        <result column="scriptId" property="scriptId"/>
+        <result column="title" property="title"/>
         <result column="version" property="version"/>
         <result column="status" property="status"/>
         <result column="reviewer" property="reviewer"/>
@@ -197,6 +199,51 @@
         where `script_id` = #{value}
         order by `id` desc
         limit 1
+    </select>
+
+    <sql id="searchHistoricalVersion">
+        from `autoexec_script_version`
+        where `script_id` = #{scriptId}
+        and `is_active` = 0
+        <choose>
+            <when test="status == 'notPassed'">
+                and `status` != 'passed'
+            </when>
+            <when test="status == 'passed'">
+                and `status` = 'passed'
+            </when>
+        </choose>
+    </sql>
+
+    <select id="searchHistoricalVersionCountByScriptIdAndStatus" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo" resultType="int">
+        select count(1)
+        <include refid="searchHistoricalVersion"/>
+    </select>
+
+    <select id="searchHistoricalVersionListByScriptIdAndStatus" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo" resultMap="scriptVersionMap">
+        select
+        `id`,
+        `script_id` as scriptId,
+        `title`,
+        `version`,
+        `status`,
+        `reviewer`,
+        `is_active` as isActive,
+        `lcu`,
+        (select `user_name` from `user` where `uuid` = `lcu`) as userName,
+        `lcd`
+        <include refid="searchHistoricalVersion"/>
+        <choose>
+            <when test="status == 'notPassed'">
+                order by `lcd` desc
+            </when>
+            <when test="status == 'passed'">
+                order by `version` desc
+            </when>
+        </choose>
+        <if test="needPage">
+            limit #{startNum}, #{pageSize}
+        </if>
     </select>
 
     <select id="getParamListByVersionId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo">

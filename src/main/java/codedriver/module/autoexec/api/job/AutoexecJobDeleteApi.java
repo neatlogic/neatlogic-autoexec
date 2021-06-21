@@ -6,18 +6,16 @@
 package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_JOB_MODIFY;
 import codedriver.framework.autoexec.dto.job.AutoexecJobParamContentVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseOperationVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.module.autoexec.core.AutoexecJobAuthActionManager;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.module.autoexec.service.AutoexecJobActionService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,7 +39,7 @@ public class AutoexecJobDeleteApi extends PrivateApiComponentBase {
     AutoexecJobMapper autoexecJobMapper;
 
     @Resource
-    AutoexecJobAuthActionManager autoexecJobAuthActionManager;
+    AutoexecJobActionService autoexecJobActionService;
 
     @Override
     public String getName() {
@@ -62,11 +60,8 @@ public class AutoexecJobDeleteApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
-        //TODO 权限校验
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
-        if (jobVo == null) {
-            throw new AutoexecJobNotFoundException(jobId.toString());
-        }
+        autoexecJobActionService.executeAuthCheck(jobVo);
         //删除jobParamContent
         Set<String> hashSet = new HashSet<>();
         hashSet.add(jobVo.getParamHash());
@@ -85,7 +80,8 @@ public class AutoexecJobDeleteApi extends PrivateApiComponentBase {
             }
         }
         //else
-        autoexecJobMapper.deleteJobUserByJobId(jobId);
+        autoexecJobMapper.deleteJobPhaseRunnerByJobId(jobId);
+        autoexecJobMapper.deleteJobPhaseNodeRunnerByJobId(jobId);
         autoexecJobMapper.deleteJobPhaseOperationByJobId(jobId);
         autoexecJobMapper.deleteJobPhaseNodeByJobId(jobId);
         autoexecJobMapper.deleteJobPhaseByJobId(jobId);
