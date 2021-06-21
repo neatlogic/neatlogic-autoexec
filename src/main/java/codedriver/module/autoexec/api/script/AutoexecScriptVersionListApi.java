@@ -71,13 +71,13 @@ public class AutoexecScriptVersionListApi extends PrivateApiComponentBase {
         if (autoexecScriptMapper.checkScriptIsExistsById(vo.getScriptId()) == 0) {
             throw new AutoexecScriptNotFoundException(vo.getScriptId());
         }
-        int rowNum;
+        int rowNum = 0;
         List<AutoexecScriptVersionVo> list = new ArrayList<>();
         // 没有编辑权限，则不显示未审批通过版本列表
         if (Objects.equals(vo.getStatus(), "notPassed") && AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
             rowNum = autoexecScriptMapper.searchHistoricalVersionCountByScriptIdAndStatus(vo);
             list = autoexecScriptMapper.searchHistoricalVersionListByScriptIdAndStatus(vo);
-        } else {
+        } else if (Objects.equals(vo.getStatus(), "passed")) {
             rowNum = autoexecScriptMapper.searchHistoricalVersionCountByScriptIdAndStatus(vo);
             list = autoexecScriptMapper.searchHistoricalVersionListByScriptIdAndStatus(vo);
             if (CollectionUtils.isNotEmpty(list)) {
