@@ -9,17 +9,16 @@ import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dto.AutoexecRunnerVo;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.*;
-import codedriver.framework.autoexec.exception.AutoexecJobCanNotAbortException;
-import codedriver.framework.autoexec.exception.AutoexecJobCanNotPauseException;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerConnectAuthException;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerConnectRefusedException;
+import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.dao.mapper.UserMapper;
 import codedriver.framework.dto.RestVo;
 import codedriver.framework.integration.authentication.costvalue.AuthenticateType;
 import codedriver.framework.util.RestUtil;
 import codedriver.module.autoexec.config.AutoexecConfig;
 import codedriver.module.autoexec.core.AutoexecJobAuthActionManager;
+import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -31,10 +30,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -46,16 +42,34 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     private static final Logger logger = LoggerFactory.getLogger(AutoexecJobActionServiceImpl.class);
 
     @Resource
-    AutoexecJobAuthActionManager autoexecJobAuthActionManager;
-
-    @Resource
     AutoexecJobMapper autoexecJobMapper;
 
     @Resource
     AutoexecJobServiceImpl autoexecJobService;
 
     @Resource
+    AutoexecCombopService autoexecCombopService;
+
+    @Resource
+    AutoexecCombopMapper autoexecCombopMapper;
+
+    @Resource
     UserMapper userMapper;
+
+
+    @Override
+    public void executeAuthCheck(AutoexecJobVo jobVo){
+        if(Objects.equals(jobVo.getOperationType(), CombopOperationType.COMBOP.getValue())) {
+            AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(jobVo.getOperationId());
+            if (combopVo == null) {
+                throw new AutoexecCombopNotFoundException(jobVo.getOperationId());
+            }
+            autoexecCombopService.setOperableButtonList(combopVo);
+            if (combopVo.getExecutable() != 1) {
+                throw new AutoexecCombopCannotExecuteException(combopVo.getName());
+            }
+        }
+    }
 
     /**
      * 第一次执行/重跑/继续作业
@@ -118,6 +132,11 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         autoexecJobMapper.updateJobPhaseStatusByJobId(jobVo.getId(),JobPhaseStatus.PENDING.getValue());//重置phase状态为pending
         autoexecJobMapper.updateJobPhaseFailedNodeStatusByJobId(jobVo.getId(),JobNodeStatus.PENDING.getValue());//重置失败的节点的状态为pending
         jobVo.setCurrentPhaseSort(0);//重头开始跑
+        fire(jobVo);
+    }
+
+    @Override
+    public void goon(AutoexecJobVo jobVo) {
         fire(jobVo);
     }
 
@@ -298,7 +317,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             jobVo.setStatus(jobStatus);
             autoexecJobMapper.updateJobStatus(jobVo);
             for (AutoexecJobPhaseVo jobPhase : jobVo.getPhaseList()) {
-                if (Objects.equals(jobPhase.getStatus(), JobPhaseStatus.RUNNING.getValue())) {
+                if (Objects.equals(jobPhase.getStatus(), JobPhaseStatus.RUNNING.getValue())||Objects.equals(jobPhase.getStatus(), JobPhaseStatus.WAITING.getValue())) {
                     jobPhase.setStatus(phaseStatus);
                     autoexecJobMapper.updateJobPhaseStatus(jobPhase);
                     autoexecJobMapper.updateBatchJobPhaseRunnerStatus(jobPhase.getId(),phaseStatus);
