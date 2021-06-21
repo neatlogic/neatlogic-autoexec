@@ -99,7 +99,7 @@ public class ScriptOperateManager {
         });
 
         operateMap.put(ScriptAndToolOperate.VALIDATE, (id) -> {
-            // 拥有脚本审核或维护权限，且处于编辑中、已驳回状态才能校验
+            // 拥有脚本审核或维护权限，且处于草稿、已驳回状态才能校验
             AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(id);
             if (version != null) {
                 OperateVo vo = new OperateVo(ScriptAndToolOperate.VALIDATE.getValue(), ScriptAndToolOperate.VALIDATE.getText());
@@ -109,7 +109,7 @@ public class ScriptOperateManager {
                 } else if (!Objects.equals(ScriptVersionStatus.DRAFT.getValue(), version.getStatus())
                         && !Objects.equals(ScriptVersionStatus.REJECTED.getValue(), version.getStatus())) {
                     vo.setDisabled(1);
-                    vo.setDisabledReason("版本处于编辑中或已驳回状态才能校验");
+                    vo.setDisabledReason("版本处于草稿或已驳回状态才能校验");
                 }
                 return vo;
             }
@@ -117,7 +117,7 @@ public class ScriptOperateManager {
         });
 
         operateMap.put(ScriptAndToolOperate.SAVE, (id) -> {
-            // 拥有脚本审核或维护权限，且处于编辑中、已驳回状态才能保存
+            // 拥有脚本审核或维护权限，且处于草稿、已驳回状态才能保存
             AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(id);
             if (version != null) {
                 OperateVo vo = new OperateVo(ScriptAndToolOperate.SAVE.getValue(), ScriptAndToolOperate.SAVE.getText());
@@ -127,7 +127,7 @@ public class ScriptOperateManager {
                 } else if (!Objects.equals(ScriptVersionStatus.DRAFT.getValue(), version.getStatus())
                         && !Objects.equals(ScriptVersionStatus.REJECTED.getValue(), version.getStatus())) {
                     vo.setDisabled(1);
-                    vo.setDisabledReason("版本处于编辑中或已驳回状态才能保存");
+                    vo.setDisabledReason("版本处于草稿或已驳回状态才能保存");
                 }
                 return vo;
             }
@@ -135,7 +135,7 @@ public class ScriptOperateManager {
         });
 
         operateMap.put(ScriptAndToolOperate.SUBMIT, (id) -> {
-            // 拥有脚本审核或维护权限，且处于编辑中、已驳回状态才能提交审核
+            // 拥有脚本审核或维护权限，且处于草稿、已驳回状态才能提交审核
             AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(id);
             if (version != null) {
                 OperateVo vo = new OperateVo(ScriptAndToolOperate.SUBMIT.getValue(), ScriptAndToolOperate.SUBMIT.getText());
@@ -145,7 +145,7 @@ public class ScriptOperateManager {
                 } else if (!Objects.equals(ScriptVersionStatus.DRAFT.getValue(), version.getStatus())
                         && !Objects.equals(ScriptVersionStatus.REJECTED.getValue(), version.getStatus())) {
                     vo.setDisabled(1);
-                    vo.setDisabledReason("版本处于编辑中或已驳回状态才能提交审核");
+                    vo.setDisabledReason("版本处于草稿或已驳回状态才能提交审核");
                 }
                 return vo;
             }

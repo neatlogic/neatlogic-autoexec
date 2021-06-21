@@ -8,6 +8,7 @@ package codedriver.module.autoexec.api.script;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.autoexec.constvalue.ScriptAndToolOperate;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
@@ -72,6 +73,11 @@ public class AutoexecScriptVersionListApi extends PrivateApiComponentBase {
         }
         int rowNum = autoexecScriptMapper.searchHistoricalVersionCountByScriptIdAndStatus(vo);
         List<AutoexecScriptVersionVo> list = autoexecScriptMapper.searchHistoricalVersionListByScriptIdAndStatus(vo);
+        // 没有编辑权限，则不显示未审批通过版本列表
+        if (Objects.equals(vo.getStatus(), "notPassed") && !AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
+            rowNum = 0;
+            list.clear();
+        }
         if (Objects.equals(vo.getStatus(), "passed") && CollectionUtils.isNotEmpty(list)) {
             Boolean hasManageAuth = AuthActionChecker.check(AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName());
             Iterator<AutoexecScriptVersionVo> iterator = list.iterator();
