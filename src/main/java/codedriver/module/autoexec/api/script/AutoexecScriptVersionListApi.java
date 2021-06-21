@@ -83,11 +83,7 @@ public class AutoexecScriptVersionListApi extends PrivateApiComponentBase {
             Iterator<AutoexecScriptVersionVo> iterator = list.iterator();
             while (iterator.hasNext()) {
                 AutoexecScriptVersionVo next = iterator.next();
-                // 在历史版本列表中移除当前激活版本
-                if (Objects.equals(next.getIsActive(), 1)) {
-                    iterator.remove();
-                    continue;
-                }
+                next.setTitle(null);// 已通过版本不显示标题
                 List<OperateVo> operateList = new ArrayList<>();
                 next.setOperateList(operateList);
                 OperateVo switchVersion = new OperateVo(ScriptAndToolOperate.SWITCH_VERSION.getValue(), ScriptAndToolOperate.SWITCH_VERSION.getText());
