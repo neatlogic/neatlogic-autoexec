@@ -71,32 +71,35 @@ public class AutoexecScriptVersionListApi extends PrivateApiComponentBase {
         if (autoexecScriptMapper.checkScriptIsExistsById(vo.getScriptId()) == 0) {
             throw new AutoexecScriptNotFoundException(vo.getScriptId());
         }
-        int rowNum = autoexecScriptMapper.searchHistoricalVersionCountByScriptIdAndStatus(vo);
-        List<AutoexecScriptVersionVo> list = autoexecScriptMapper.searchHistoricalVersionListByScriptIdAndStatus(vo);
+        int rowNum;
+        List<AutoexecScriptVersionVo> list = new ArrayList<>();
         // 没有编辑权限，则不显示未审批通过版本列表
-        if (Objects.equals(vo.getStatus(), "notPassed") && !AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
-            rowNum = 0;
-            list.clear();
-        }
-        if (Objects.equals(vo.getStatus(), "passed") && CollectionUtils.isNotEmpty(list)) {
-            Boolean hasManageAuth = AuthActionChecker.check(AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName());
-            Iterator<AutoexecScriptVersionVo> iterator = list.iterator();
-            while (iterator.hasNext()) {
-                AutoexecScriptVersionVo next = iterator.next();
-                next.setTitle(null);// 已通过版本不显示标题
-                List<OperateVo> operateList = new ArrayList<>();
-                next.setOperateList(operateList);
-                OperateVo switchVersion = new OperateVo(ScriptAndToolOperate.SWITCH_VERSION.getValue(), ScriptAndToolOperate.SWITCH_VERSION.getText());
-                OperateVo compare = new OperateVo(ScriptAndToolOperate.COMPARE.getValue(), ScriptAndToolOperate.COMPARE.getText());
-                OperateVo delete = new OperateVo(ScriptAndToolOperate.VERSION_DELETE.getValue(), ScriptAndToolOperate.VERSION_DELETE.getText());
-                operateList.add(switchVersion);
-                operateList.add(compare);
-                operateList.add(delete);
-                if (!hasManageAuth) {
-                    switchVersion.setDisabled(1);
-                    switchVersion.setDisabledReason("无权限，请联系管理员");
-                    delete.setDisabled(1);
-                    delete.setDisabledReason("无权限，请联系管理员");
+        if (Objects.equals(vo.getStatus(), "notPassed") && AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
+            rowNum = autoexecScriptMapper.searchHistoricalVersionCountByScriptIdAndStatus(vo);
+            list = autoexecScriptMapper.searchHistoricalVersionListByScriptIdAndStatus(vo);
+        } else {
+            rowNum = autoexecScriptMapper.searchHistoricalVersionCountByScriptIdAndStatus(vo);
+            list = autoexecScriptMapper.searchHistoricalVersionListByScriptIdAndStatus(vo);
+            if (CollectionUtils.isNotEmpty(list)) {
+                Boolean hasManageAuth = AuthActionChecker.check(AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName());
+                Iterator<AutoexecScriptVersionVo> iterator = list.iterator();
+                while (iterator.hasNext()) {
+                    AutoexecScriptVersionVo next = iterator.next();
+                    next.setTitle(null);// 已通过版本不显示标题
+                    List<OperateVo> operateList = new ArrayList<>();
+                    next.setOperateList(operateList);
+                    OperateVo switchVersion = new OperateVo(ScriptAndToolOperate.SWITCH_VERSION.getValue(), ScriptAndToolOperate.SWITCH_VERSION.getText());
+                    OperateVo compare = new OperateVo(ScriptAndToolOperate.COMPARE.getValue(), ScriptAndToolOperate.COMPARE.getText());
+                    OperateVo delete = new OperateVo(ScriptAndToolOperate.VERSION_DELETE.getValue(), ScriptAndToolOperate.VERSION_DELETE.getText());
+                    operateList.add(switchVersion);
+                    operateList.add(compare);
+                    operateList.add(delete);
+                    if (!hasManageAuth) {
+                        switchVersion.setDisabled(1);
+                        switchVersion.setDisabledReason("无权限，请联系管理员");
+                        delete.setDisabled(1);
+                        delete.setDisabledReason("无权限，请联系管理员");
+                    }
                 }
             }
         }
