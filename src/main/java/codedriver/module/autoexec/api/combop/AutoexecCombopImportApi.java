@@ -28,6 +28,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,7 +38,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.ByteArrayOutputStream;
-import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
@@ -122,7 +122,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                     }
                     out.reset();
                 }
-            } catch (IOException e) {
+            } catch (Exception e) {
                 throw new FileExtNotAllowedException(multipartFile.getOriginalFilename());
             }
         }
@@ -136,9 +136,27 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
     private JSONObject save(AutoexecCombopVo autoexecCombopVo) {
         Long id = autoexecCombopVo.getId();
         String oldName = autoexecCombopVo.getName();
+        if (StringUtils.isBlank(oldName)) {
+            throw new ClassCastException();
+        }
+        if (autoexecCombopVo.getTypeId() == null){
+            throw new ClassCastException();
+        }
+        if (autoexecCombopVo.getIsActive() == null){
+            throw new ClassCastException();
+        }
+        if (StringUtils.isBlank(autoexecCombopVo.getOperationType())){
+            throw new ClassCastException();
+        }
+        if (StringUtils.isBlank(autoexecCombopVo.getOwner())){
+            throw new ClassCastException();
+        }
+        if (autoexecCombopVo.getConfig() == null){
+            throw new ClassCastException();
+        }
         AutoexecCombopVo oldAutoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
         if (oldAutoexecCombopVo != null) {
-            if (Objects.equals(oldAutoexecCombopVo.getConfigStr(), autoexecCombopVo.getConfigStr())) {
+            if (equals(oldAutoexecCombopVo, autoexecCombopVo)) {
                 List<AutoexecCombopParamVo> autoexecCombopParamVoList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
                 if (Objects.equals(JSONObject.toJSONString(autoexecCombopParamVoList), JSONObject.toJSONString(autoexecCombopVo.getRuntimeParamList()))) {
                     return null;
@@ -241,5 +259,33 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
             resultObj.put("list", failureReasonSet);
             return resultObj;
         }
+    }
+
+    private boolean equals(AutoexecCombopVo obj1, AutoexecCombopVo obj2){
+        if (!Objects.equals(obj1.getName(), obj2.getName())) {
+            return false;
+        }
+        if (!Objects.equals(obj1.getDescription(), obj2.getDescription())) {
+            return false;
+        }
+        if (!Objects.equals(obj1.getTypeId(), obj2.getTypeId())) {
+            return false;
+        }
+        if (!Objects.equals(obj1.getIsActive(), obj2.getIsActive())) {
+            return false;
+        }
+        if (!Objects.equals(obj1.getOperationType(), obj2.getOperationType())) {
+            return false;
+        }
+        if (!Objects.equals(obj1.getNotifyPolicyId(), obj2.getNotifyPolicyId())) {
+            return false;
+        }
+        if (!Objects.equals(obj1.getOwner(), obj2.getOwner())) {
+            return false;
+        }
+        if (!Objects.equals(obj1.getConfigStr(), obj2.getConfigStr())) {
+            return false;
+        }
+        return true;
     }
 }
