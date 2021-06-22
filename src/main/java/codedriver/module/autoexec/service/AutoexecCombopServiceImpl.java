@@ -203,8 +203,22 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                             }
                             Object valueObj = paramMappingVo.getValue();
                             if (Objects.equals(mappingMode, ParamMappingMode.CONSTANT.getValue())) {
-                                if (valueObj == null && Objects.equals(inputParamVo.getIsRequired(), 1)) {
-                                    throw new AutoexecParamMappingIncorrectException(key);
+                                if (Objects.equals(inputParamVo.getIsRequired(), 1)) {
+                                    if (valueObj == null) {
+                                        throw new AutoexecParamMappingIncorrectException(key);
+                                    } else if (valueObj instanceof String) {
+                                        if (StringUtils.isBlank((String) valueObj)) {
+                                            throw new AutoexecParamMappingIncorrectException(key);
+                                        }
+                                    } else if (valueObj instanceof JSONArray) {
+                                        if (CollectionUtils.isNotEmpty((JSONArray) valueObj)) {
+                                            throw new AutoexecParamMappingIncorrectException(key);
+                                        }
+                                    } else if (valueObj instanceof JSONObject) {
+                                        if (MapUtils.isNotEmpty((JSONObject) valueObj)) {
+                                            throw new AutoexecParamMappingIncorrectException(key);
+                                        }
+                                    }
                                 }
                                 continue;
                             }
