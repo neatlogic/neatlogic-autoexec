@@ -687,6 +687,9 @@
 
     <update id="updateScriptVersion" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
         update `autoexec_script_version` set
+        <if test="title != null">
+            `title` = #{title},
+        </if>
         <if test="parser != null">
             `parser` = #{parser},
         </if>
@@ -731,6 +734,7 @@
         insert into `autoexec_script_version` (
         `id`,
         `script_id`,
+        `title`,
         `version`,
         `parser`,
         `status`,
@@ -740,6 +744,7 @@
         )values (
         #{id},
         #{scriptId},
+        #{title},
         #{version},
         #{parser},
         #{status},
