@@ -33,6 +33,8 @@ public interface AutoexecCombopMapper {
 
     List<AutoexecCombopParamVo> getAutoexecCombopParamListByCombopId(Long combopId);
 
+    AutoexecCombopParamVo getAutoexecCombopParamByCombopIdAndKey(@Param("combopId") Long combopId, @Param("key") String key);
+
     List<String> getAutoexecCombopAuthorityListByCombopIdAndUserUuidAndTeamUuidListAndRoleUuidList(
             @Param("combopId") Long combopId,
             @Param("userUuid") String userUuid,

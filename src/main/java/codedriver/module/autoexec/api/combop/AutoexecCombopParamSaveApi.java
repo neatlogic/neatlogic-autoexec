@@ -13,6 +13,9 @@ import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.util.RC4Util;
+import codedriver.framework.dependency.core.DependencyHandlerFactory;
+import codedriver.framework.dependency.core.DependencyManager;
+import codedriver.framework.dependency.core.IDependencyHandler;
 import codedriver.framework.exception.type.ParamIrregularException;
 import codedriver.framework.exception.type.ParamNotExistsException;
 import codedriver.framework.exception.type.PermissionDeniedException;
@@ -23,10 +26,12 @@ import codedriver.framework.restful.annotation.Param;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.module.autoexec.dependency.MatrixAutoexecCombopParamDependencyHandler;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -87,7 +92,11 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
             throw new PermissionDeniedException();
         }
         List<AutoexecCombopParamVo> autoexecCombopParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopId);
-        autoexecCombopMapper.deleteAutoexecCombopParamByCombopId(combopId);
+        if (CollectionUtils.isNotEmpty(autoexecCombopParamList)) {
+            autoexecCombopMapper.deleteAutoexecCombopParamByCombopId(combopId);
+            DependencyManager.delete(MatrixAutoexecCombopParamDependencyHandler.class, combopId);
+        }
+
         List<AutoexecCombopParamVo> autoexecCombopParamVoList = new ArrayList<>();
         Pattern keyPattern = Pattern.compile("^[A-Za-z_\\d]+$");
         Pattern namePattern = Pattern.compile("^[A-Za-z_\\d\\u4e00-\\u9fa5]+$");
@@ -131,6 +140,17 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
                         }
                     } else {
                         autoexecCombopParamVo.setDefaultValue(RC4Util.encrypt((String) value));
+                    }
+                } else if (paramType == ParamType.SELECT || paramType == ParamType.MULTISELECT || paramType == ParamType.CHECKBOX || paramType == ParamType.RADIO) {
+                    JSONObject config = autoexecCombopParamVo.getConfig();
+                    if (MapUtils.isNotEmpty(config)) {
+                        String matrixUuid = config.getString("matrixUuid");
+                        if (StringUtils.isNotBlank(matrixUuid)) {
+                            JSONArray callers = new JSONArray();
+                            callers.add(combopId);
+                            callers.add(key);
+                            DependencyManager.insert(MatrixAutoexecCombopParamDependencyHandler.class, matrixUuid, callers);
+                        }
                     }
                 }
                 autoexecCombopParamVo.setCombopId(combopId);
