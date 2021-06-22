@@ -68,7 +68,7 @@ public class AutoexecScriptReviewApi extends PrivateApiComponentBase {
         Long versionId = jsonObj.getLong("versionId");
         String action = jsonObj.getString("action");
         String content = jsonObj.getString("content");
-        AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(versionId);
+        AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionIdForUpdate(versionId);
         if (version == null) {
             throw new AutoexecScriptVersionNotFoundException(versionId);
         }
