@@ -49,6 +49,8 @@ public interface AutoexecScriptMapper {
 
     AutoexecScriptVersionVo getLatestVersionByScriptId(Long scriptId);
 
+    AutoexecScriptVersionVo getRecentlyVersionByScriptIdAndStatus(@Param("scriptId") Long scriptId, @Param("status") String status);
+
     int searchHistoricalVersionCountByScriptIdAndStatus(AutoexecScriptVersionVo versionVo);
 
     List<AutoexecScriptVersionVo> searchHistoricalVersionListByScriptIdAndStatus(AutoexecScriptVersionVo versionVo);
