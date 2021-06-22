@@ -67,6 +67,11 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
         return null;
     }
 
+    @Override
+    public boolean disableReturnCircularReferenceDetect() {
+        return true;
+    }
+
     @Input({
             @Param(name = "sourceVersionId", type = ApiParamType.LONG, isRequired = true, desc = "源版本ID"),
             @Param(name = "targetVersionId", type = ApiParamType.LONG, desc = "目标版本ID(查看待审核版本时，默认进入对比页，故无需传目标版本ID，只有手动对比时才需要)"),
