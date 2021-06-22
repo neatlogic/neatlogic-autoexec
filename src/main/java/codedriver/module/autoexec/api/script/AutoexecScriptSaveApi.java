@@ -109,7 +109,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
                 scriptVo.setFcu(UserContext.get().getUserUuid());
                 autoexecScriptMapper.insertScript(scriptVo);
                 versionVo.setScriptId(scriptVo.getId());
-                versionVo.setVersion(1);
+                //versionVo.setVersion(1);
                 versionVo.setIsActive(0);
                 autoexecScriptMapper.insertScriptVersion(versionVo);
                 scriptVo.setVersionId(versionVo.getId());
@@ -129,18 +129,18 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
                 newVersion.setLineList(scriptVo.getLineList());
                 needSave = autoexecScriptService.checkScriptVersionNeedToUpdate(currentVersion, newVersion);
                 if (needSave) {
-                    versionVo.setId(currentVersion.getId());
                     autoexecScriptMapper.deleteParamByVersionId(currentVersion.getId());
                     autoexecScriptMapper.deleteScriptLineByVersionId(currentVersion.getId());
-                    autoexecScriptMapper.updateScriptVersion(versionVo);
                 }
+                versionVo.setId(currentVersion.getId());
+                autoexecScriptMapper.updateScriptVersion(versionVo);
             }
         } else { // 新增版本
             if (autoexecScriptMapper.checkScriptIsExistsById(scriptVo.getId()) == 0) {
                 throw new AutoexecScriptNotFoundException(scriptVo.getId());
             }
-            Integer maxVersion = autoexecScriptMapper.getMaxVersionByScriptId(scriptVo.getId());
-            versionVo.setVersion(maxVersion != null ? maxVersion + 1 : 1);
+            //Integer maxVersion = autoexecScriptMapper.getMaxVersionByScriptId(scriptVo.getId());
+            //versionVo.setVersion(maxVersion != null ? maxVersion + 1 : 1);
             versionVo.setScriptId(scriptVo.getId());
             versionVo.setIsActive(0);
             autoexecScriptMapper.insertScriptVersion(versionVo);

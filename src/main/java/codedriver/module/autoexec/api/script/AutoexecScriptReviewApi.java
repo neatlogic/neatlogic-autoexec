@@ -68,19 +68,33 @@ public class AutoexecScriptReviewApi extends PrivateApiComponentBase {
         Long versionId = jsonObj.getLong("versionId");
         String action = jsonObj.getString("action");
         String content = jsonObj.getString("content");
-        AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(versionId);
+        AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionIdForUpdate(versionId);
         if (version == null) {
             throw new AutoexecScriptVersionNotFoundException(versionId);
         }
         if (!Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), version.getStatus())) {
             throw new AutoexecScriptVersionCannotReviewException();
         }
+        boolean isPass = Objects.equals(ScriptAction.PASS.getValue(), action);
         AutoexecScriptVersionVo updateVo = new AutoexecScriptVersionVo();
         updateVo.setId(versionId);
-        updateVo.setStatus(Objects.equals(ScriptAction.PASS.getValue(), action)
-                ? ScriptVersionStatus.PASSED.getValue() : ScriptVersionStatus.REJECTED.getValue());
         updateVo.setReviewer(UserContext.get().getUserUuid());
         updateVo.setLcu(UserContext.get().getUserUuid());
+        // 如果审批通过，那么该版本成为当前激活版本，生成最新版本号
+        if (isPass) {
+            updateVo.setStatus(ScriptVersionStatus.PASSED.getValue());
+            Integer maxVersion = autoexecScriptMapper.getMaxVersionByScriptId(version.getScriptId());
+            updateVo.setVersion(maxVersion != null ? maxVersion + 1 : 1);
+            updateVo.setIsActive(1);
+            // 禁用之前的激活版本
+            AutoexecScriptVersionVo activeVersion = autoexecScriptMapper.getActiveVersionLockByScriptId(version.getScriptId());
+            if (activeVersion != null) {
+                activeVersion.setIsActive(0);
+                autoexecScriptMapper.updateScriptVersion(activeVersion);
+            }
+        } else {
+            updateVo.setStatus(ScriptVersionStatus.REJECTED.getValue());
+        }
         autoexecScriptMapper.updateScriptVersion(updateVo);
 
         JSONObject auditContent = new JSONObject();
