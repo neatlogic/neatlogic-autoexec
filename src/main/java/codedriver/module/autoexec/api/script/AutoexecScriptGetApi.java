@@ -120,6 +120,10 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
             if (currentVersion == null) {
                 throw new AutoexecScriptVersionNotFoundException(versionId);
             }
+            // 已通过版本不显示标题
+            if (Objects.equals(currentVersion.getStatus(), ScriptVersionStatus.PASSED.getValue())) {
+                currentVersion.setTitle(null);
+            }
             version = currentVersion;
             id = version.getScriptId();
         }

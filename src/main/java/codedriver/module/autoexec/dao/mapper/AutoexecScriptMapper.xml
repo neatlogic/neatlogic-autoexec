@@ -51,6 +51,7 @@
         select
         `id`,
         `script_id` as scriptId,
+        `title`,
         `version`,
         `parser`,
         `status`,
@@ -250,6 +251,7 @@
         select
         `id`,
         `script_id` as scriptId,
+        `title`,
         `version`,
         `parser`,
         `status`,
