@@ -66,12 +66,12 @@ public class MatrixAutoexecCombopParamDependencyHandler extends DependencyHandle
             AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
             if (autoexecCombopVo != null) {
                 String key = (String) map.get("key");
-                AutoexecCombopParamVo autoexecCombopParamVo = autoexecCombopMapper.getAutoexecCombopParamByCombopIdAndKey(combopId, key);
+                AutoexecCombopParamVo autoexecCombopParamVo = autoexecCombopMapper.getAutoexecCombopParamByCombopIdAndKey(autoexecCombopVo.getId(), key);
                 if (autoexecCombopParamVo != null) {
-                    valueTextVo.setValue(combopId);
+                    valueTextVo.setValue(autoexecCombopVo.getId());
                     String text = String.format("<a href=\"/%s/autoexec.html#/action-detail-%s\" target=\"_blank\">%s</a>",
                             TenantContext.get().getTenantUuid(),
-                            combopId,
+                            autoexecCombopVo.getId(),
                             autoexecCombopVo.getName() + "-运行参数-" + autoexecCombopParamVo.getName());
                     valueTextVo.setText(text);
                     return valueTextVo;
