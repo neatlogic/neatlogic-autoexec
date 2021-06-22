@@ -43,6 +43,8 @@ public interface AutoexecScriptMapper {
 
     AutoexecScriptVersionVo getActiveVersionByScriptId(Long scriptId);
 
+    AutoexecScriptVersionVo getActiveVersionLockByScriptId(Long scriptId);
+
     Integer getActiveVersionNumberByScriptId(Long scriptId);
 
     List<AutoexecScriptVo> getActiveVersionNumberListByScriptIdList(List<Long> idList);
@@ -90,6 +92,8 @@ public interface AutoexecScriptMapper {
     List<AutoexecScriptVo> checkScriptListHasBeenGeneratedToCombop(List<Long> scriptIdList);
 
     List<AutoexecScriptVo> getReferenceCountListByScriptIdList(List<Long> scriptIdList);
+
+    int checkScriptHasSubmittedVersionByScriptId(Long scriptId);
 
     int updateScriptBaseInfo(AutoexecScriptVo scriptVo);
 
