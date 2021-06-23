@@ -15,15 +15,14 @@ import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.common.constvalue.ApiParamType;
-import codedriver.framework.common.dto.ValueTextVo;
 import codedriver.framework.dao.mapper.UserMapper;
 import codedriver.framework.exception.type.ParamNotExistsException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
-import codedriver.module.autoexec.operate.ScriptOperateManager;
 import codedriver.module.autoexec.service.AutoexecCombopService;
+import codedriver.module.autoexec.service.AutoexecScriptService;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
 import org.apache.commons.lang3.StringUtils;
@@ -43,6 +42,9 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopService autoexecCombopService;
+
+    @Resource
+    private AutoexecScriptService autoexecScriptService;
 
     @Resource
     private UserMapper userMapper;
@@ -74,8 +76,6 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
     })
     @Output({
             @Param(name = "script", explode = AutoexecScriptVo[].class, desc = "脚本内容"),
-            @Param(name = "scriptOperateList", explode = ValueTextVo[].class, desc = "脚本按钮列表"),
-            @Param(name = "versionOperateList", explode = ValueTextVo[].class, desc = "版本按钮列表"),
     })
     @Description(desc = "查看脚本")
     @Override
@@ -93,6 +93,11 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
             if (autoexecScriptMapper.checkScriptIsExistsById(id) == 0) {
                 throw new AutoexecScriptNotFoundException(id);
             }
+            /**
+             * 如果是从已通过列表进入详情页，则取当前激活版本
+             * 如果是从草稿或已驳回列表进入，则取最近修改的草稿或已驳回版本
+             * 从待审批列表进入，调compare接口
+             */
             if (Objects.equals(ScriptVersionStatus.PASSED.getValue(), status)) {
                 AutoexecScriptVersionVo activeVersion = autoexecScriptMapper.getActiveVersionByScriptId(id);
                 if (activeVersion != null) {
@@ -155,14 +160,8 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
                 }
             }
         }
-        // todo 按钮待修改
         // 获取操作按钮
-        ScriptOperateManager manager = new ScriptOperateManager();
-        ScriptOperateManager.Builder scriptOperateBuilder = manager.new Builder();
-        ScriptOperateManager.Builder versionOperateBuilder = manager.new Builder();
-        script.setOperateList(scriptOperateBuilder.setGenerateToCombop(script.getId()).setCopy().setExport().setDelete(script.getId()).build());
-        version.setOperateList(versionOperateBuilder.setVersionDelete(version.getId()).setCopy().setCompare().setTest().setValidate(version.getId())
-                .setSave(version.getId()).setSubmit(version.getId()).setPass(version.getId()).setReject(version.getId()).build());
+        version.setOperateList(autoexecScriptService.getOperateListForScriptVersion(version));
         result.put("script", script);
         return result;
     }

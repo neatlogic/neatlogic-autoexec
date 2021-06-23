@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.service;
 
 import codedriver.framework.autoexec.dto.script.*;
+import codedriver.framework.dto.OperateVo;
 
 import java.util.List;
 
@@ -42,6 +43,13 @@ public interface AutoexecScriptService {
      * @return 是否有变更
      */
     boolean checkScriptVersionNeedToUpdate(AutoexecScriptVersionVo before, AutoexecScriptVersionVo after);
+
+    /**
+     * 获取版本操作列表
+     * @param version
+     * @return
+     */
+    List<OperateVo> getOperateListForScriptVersion(AutoexecScriptVersionVo version);
 
     void saveParamList(Long versionId, List<AutoexecScriptVersionParamVo> oldParamList, List<AutoexecScriptVersionParamVo> newParamList);
 

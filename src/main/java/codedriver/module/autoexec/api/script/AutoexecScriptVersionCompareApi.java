@@ -9,6 +9,7 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.autoexec.constvalue.ChangeType;
+import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
@@ -126,6 +127,9 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
             if (!Objects.equals(sourceVersionId, targetVersionId)) {
                 compareScriptVersion(targetVersion, sourceVersion);
             }
+        }
+        if (Objects.equals(sourceVersion.getStatus(), ScriptVersionStatus.SUBMITTED.getValue())) {
+            sourceVersion.setOperateList(autoexecScriptService.getOperateListForScriptVersion(sourceVersion));
         }
         return result;
     }
