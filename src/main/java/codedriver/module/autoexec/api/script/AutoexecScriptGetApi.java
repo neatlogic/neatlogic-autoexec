@@ -75,7 +75,7 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
             @Param(name = "status", type = ApiParamType.ENUM, rule = "draft,passed,rejected", desc = "状态(传id而非versionId时，表示从列表查看脚本，此时必须传status参数)"),
     })
     @Output({
-            @Param(name = "script", explode = AutoexecScriptVo[].class, desc = "脚本内容"),
+            @Param(name = "script", explode = AutoexecScriptVo.class, desc = "脚本内容"),
     })
     @Description(desc = "查看脚本")
     @Override
