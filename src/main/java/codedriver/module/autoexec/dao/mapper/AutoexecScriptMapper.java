@@ -37,7 +37,11 @@ public interface AutoexecScriptMapper {
 
     List<AutoexecScriptVersionVo> getVersionList(AutoexecScriptVersionVo versionVo);
 
-    List<AutoexecScriptVersionVo> getVersionListByScriptId(Long id);
+    List<AutoexecScriptVersionVo> getVersionListByScriptId(AutoexecScriptVersionVo vo);
+
+    int searchVersionCountForSelect(AutoexecScriptVersionVo vo);
+
+    List<AutoexecScriptVersionVo> searchVersionListForSelect(AutoexecScriptVersionVo vo);
 
     List<ValueTextVo> getVersionNumberListByScriptId(Long id);
 

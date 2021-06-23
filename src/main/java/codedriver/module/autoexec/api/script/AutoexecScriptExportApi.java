@@ -7,6 +7,7 @@ package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
+import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
@@ -78,7 +79,8 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
         try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
             for (Long id : existedIdList) {
                 AutoexecScriptVo script = autoexecScriptMapper.getScriptBaseInfoById(id);
-                List<AutoexecScriptVersionVo> versionList = autoexecScriptService.getScriptVersionDetailListByScriptId(id);
+                List<AutoexecScriptVersionVo> versionList = autoexecScriptService
+                        .getScriptVersionDetailListByScriptId(new AutoexecScriptVersionVo(id, ScriptVersionStatus.PASSED.getValue()));
                 script.setVersionList(versionList);
                 zos.putNextEntry(new ZipEntry(script.getName() + ".json"));
                 zos.write(JSONObject.toJSONBytes(script));

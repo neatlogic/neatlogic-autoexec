@@ -67,12 +67,12 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
     }
 
     @Override
-    public List<AutoexecScriptVersionVo> getScriptVersionDetailListByScriptId(Long scriptId) {
-        List<AutoexecScriptVersionVo> versionList = autoexecScriptMapper.getVersionListByScriptId(scriptId);
+    public List<AutoexecScriptVersionVo> getScriptVersionDetailListByScriptId(AutoexecScriptVersionVo vo) {
+        List<AutoexecScriptVersionVo> versionList = autoexecScriptMapper.getVersionListByScriptId(vo);
         if (CollectionUtils.isNotEmpty(versionList)) {
-            for (AutoexecScriptVersionVo vo : versionList) {
-                vo.setParamList(autoexecScriptMapper.getParamListByVersionId(vo.getId()));
-                vo.setLineList(autoexecScriptMapper.getLineListByVersionId(vo.getId()));
+            for (AutoexecScriptVersionVo version : versionList) {
+                version.setParamList(autoexecScriptMapper.getParamListByVersionId(vo.getId()));
+                version.setLineList(autoexecScriptMapper.getLineListByVersionId(vo.getId()));
             }
         }
         return versionList;
@@ -161,7 +161,12 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
             if (Objects.equals(version.getStatus(), ScriptVersionStatus.DRAFT.getValue())) {
                 if (hasModifyAuth) {
                     operateList.add(new OperateVo(ScriptAndToolOperate.SAVE.getValue(), ScriptAndToolOperate.SAVE.getText()));
-                    operateList.add(new OperateVo(ScriptAndToolOperate.SUBMIT.getValue(), ScriptAndToolOperate.SUBMIT.getText()));
+                    OperateVo submit = new OperateVo(ScriptAndToolOperate.SUBMIT.getValue(), ScriptAndToolOperate.SUBMIT.getText());
+                    if (autoexecScriptMapper.checkScriptHasSubmittedVersionByScriptId(version.getScriptId()) > 0) {
+                        submit.setDisabled(1);
+                        submit.setDisabledReason("当前自定义工具已经有其他待审核版本");
+                    }
+                    operateList.add(submit);
                     operateList.add(new OperateVo(ScriptAndToolOperate.VALIDATE.getValue(), ScriptAndToolOperate.VALIDATE.getText()));
                     operateList.add(new OperateVo(ScriptAndToolOperate.TEST.getValue(), ScriptAndToolOperate.TEST.getText()));
                     operateList.add(new OperateVo(ScriptAndToolOperate.COMPARE.getValue(), ScriptAndToolOperate.COMPARE.getText()));
@@ -178,14 +183,24 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
             } else if (Objects.equals(version.getStatus(), ScriptVersionStatus.REJECTED.getValue())) {
                 if (hasModifyAuth) {
                     operateList.add(new OperateVo(ScriptAndToolOperate.SAVE.getValue(), ScriptAndToolOperate.SAVE.getText()));
-                    operateList.add(new OperateVo(ScriptAndToolOperate.SUBMIT.getValue(), ScriptAndToolOperate.SUBMIT.getText()));
+                    OperateVo submit = new OperateVo(ScriptAndToolOperate.SUBMIT.getValue(), ScriptAndToolOperate.SUBMIT.getText());
+                    if (autoexecScriptMapper.checkScriptHasSubmittedVersionByScriptId(version.getScriptId()) > 0) {
+                        submit.setDisabled(1);
+                        submit.setDisabledReason("当前自定义工具已经有其他待审核版本");
+                    }
+                    operateList.add(submit);
                     operateList.add(new OperateVo(ScriptAndToolOperate.TEST.getValue(), ScriptAndToolOperate.TEST.getText()));
                     operateList.add(new OperateVo(ScriptAndToolOperate.COMPARE.getValue(), ScriptAndToolOperate.COMPARE.getText()));
                     operateList.add(new OperateVo(ScriptAndToolOperate.VERSION_DELETE.getValue(), ScriptAndToolOperate.VERSION_DELETE.getText()));
                 }
             } else if (Objects.equals(version.getStatus(), ScriptVersionStatus.PASSED.getValue())) {
-                if (Objects.equals(version.getIsActive(), 1) && hasModifyAuth) {
-                    operateList.add(new OperateVo(ScriptAndToolOperate.EDIT.getValue(), ScriptAndToolOperate.EDIT.getText()));
+                if (Objects.equals(version.getIsActive(), 1)) {
+                    if (hasSearchAuth) {
+                        operateList.add(new OperateVo(ScriptAndToolOperate.COMPARE.getValue(), ScriptAndToolOperate.COMPARE.getText()));
+                    }
+                    if (hasModifyAuth) {
+                        operateList.add(new OperateVo(ScriptAndToolOperate.EDIT.getValue(), ScriptAndToolOperate.EDIT.getText()));
+                    }
                 } else if (!Objects.equals(version.getIsActive(), 1)) {
                     if (hasSearchAuth) {
                         operateList.add(new OperateVo(ScriptAndToolOperate.COMPARE.getValue(), ScriptAndToolOperate.COMPARE.getText()));

@@ -8,6 +8,7 @@ package codedriver.module.autoexec.api.script;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
+import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
@@ -81,7 +82,8 @@ public class AutoexecScriptCopyApi extends PrivateApiComponentBase {
         autoexecScriptMapper.insertScript(targetScript);
 
         // 复制所有版本
-        List<AutoexecScriptVersionVo> sourceVersionList = autoexecScriptService.getScriptVersionDetailListByScriptId(sourceScript.getId());
+        List<AutoexecScriptVersionVo> sourceVersionList = autoexecScriptService
+                .getScriptVersionDetailListByScriptId(new AutoexecScriptVersionVo(sourceScript.getId(), ScriptVersionStatus.PASSED.getValue()));
         if (CollectionUtils.isNotEmpty(sourceVersionList)) {
             List<AutoexecScriptVersionVo> targetVersionList = new ArrayList<>();
             List<AutoexecScriptVersionParamVo> paramList = new ArrayList<>();

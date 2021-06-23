@@ -21,12 +21,12 @@ public interface AutoexecScriptService {
     AutoexecScriptVersionVo getScriptVersionDetailByVersionId(Long versionId);
 
     /**
-     * 根据脚本ID获取所有版本的详细信息，包括参数、脚本内容
+     * 获取版本列表的详细信息，包括参数、脚本内容
      *
-     * @param scriptId
+     * @param vo
      * @return
      */
-    List<AutoexecScriptVersionVo> getScriptVersionDetailListByScriptId(Long scriptId);
+    List<AutoexecScriptVersionVo> getScriptVersionDetailListByScriptId(AutoexecScriptVersionVo vo);
 
     /**
      * 校验脚本的基本信息，包括name、uk、分类、操作级别
@@ -46,6 +46,7 @@ public interface AutoexecScriptService {
 
     /**
      * 获取版本操作列表
+     *
      * @param version
      * @return
      */
