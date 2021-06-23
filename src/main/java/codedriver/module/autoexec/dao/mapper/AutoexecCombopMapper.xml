@@ -115,6 +115,22 @@
         ORDER BY `sort`
     </select>
 
+    <select id="getAutoexecCombopParamByCombopIdAndKey" resultType="codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo">
+        SELECT
+            `combop_id` AS combopId,
+            `key`,
+            `name`,
+            `default_value` AS defaultValue,
+            `description`,
+            `is_required` AS isRequired,
+            `type`,
+            `sort`,
+            `config`
+        FROM `autoexec_combop_param`
+        WHERE `combop_id` = #{combopId}
+        AND `key` = #{key}
+    </select>
+
     <select id="getAutoexecCombopAuthorityListByCombopIdAndUserUuidAndTeamUuidListAndRoleUuidList" resultType="java.lang.String">
         SELECT
             `action`
