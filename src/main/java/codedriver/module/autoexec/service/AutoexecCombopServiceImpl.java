@@ -210,11 +210,11 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                                         throw new AutoexecParamMappingIncorrectException(key);
                                     }
                                 } else if (valueObj instanceof JSONArray) {
-                                    if (CollectionUtils.isNotEmpty((JSONArray) valueObj)) {
+                                    if (CollectionUtils.isEmpty((JSONArray) valueObj)) {
                                         throw new AutoexecParamMappingIncorrectException(key);
                                     }
                                 } else if (valueObj instanceof JSONObject) {
-                                    if (MapUtils.isNotEmpty((JSONObject) valueObj)) {
+                                    if (MapUtils.isEmpty((JSONObject) valueObj)) {
                                         throw new AutoexecParamMappingIncorrectException(key);
                                     }
                                 }
