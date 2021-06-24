@@ -6,8 +6,6 @@
 package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.auth.core.AuthActionChecker;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
@@ -21,26 +19,24 @@ import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 @AuthAction(action = AUTOEXEC_SCRIPT_SEARCH.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
-public class AutoexecScriptVersionListApi extends PrivateApiComponentBase {
+public class AutoexecScriptVersionListForSelectApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
 
     @Override
     public String getToken() {
-        return "autoexec/script/version/list";
+        return "autoexec/script/version/list/forselect";
     }
 
     @Override
     public String getName() {
-        return "获取脚本版本列表";
+        return "获取脚本版本号列表(下拉)";
     }
 
     @Override
@@ -50,15 +46,15 @@ public class AutoexecScriptVersionListApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "scriptId", type = ApiParamType.LONG, isRequired = true, desc = "脚本ID"),
-            @Param(name = "status", type = ApiParamType.ENUM, rule = "notPassed,passed", isRequired = true, desc = "是否已经审核通过"),
+            @Param(name = "excludeList", type = ApiParamType.JSONARRAY, desc = "需要排除的版本ID列表"),
             @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
             @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
             @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true")
     })
     @Output({
-            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecScriptVersionVo[].class, desc = "根据status返回未通过版本列表或历史版本列表"),
+            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecScriptVersionVo[].class, desc = "版本号列表"),
     })
-    @Description(desc = "获取脚本版本列表")
+    @Description(desc = "获取脚本版本号列表(下拉)")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
@@ -66,23 +62,18 @@ public class AutoexecScriptVersionListApi extends PrivateApiComponentBase {
         if (autoexecScriptMapper.checkScriptIsExistsById(vo.getScriptId()) == 0) {
             throw new AutoexecScriptNotFoundException(vo.getScriptId());
         }
-        int rowNum = 0;
-        List<AutoexecScriptVersionVo> list = new ArrayList<>();
-        // 没有编辑权限，则不显示未审批通过版本列表
-        if (Objects.equals(vo.getStatus(), "notPassed") && AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
-            rowNum = autoexecScriptMapper.searchHistoricalVersionCountByScriptIdAndStatus(vo);
-            list = autoexecScriptMapper.searchHistoricalVersionListByScriptIdAndStatus(vo);
-        } else if (Objects.equals(vo.getStatus(), "passed")) {
-            rowNum = autoexecScriptMapper.searchHistoricalVersionCountByScriptIdAndStatus(vo);
-            list = autoexecScriptMapper.searchHistoricalVersionListByScriptIdAndStatus(vo);
+        if (jsonObj.getInteger("pageSize") == null) {
+            vo.setPageSize(100);
         }
+        int rowNum = autoexecScriptMapper.searchVersionCountForSelect(vo);
+        List<AutoexecScriptVersionVo> list = autoexecScriptMapper.searchVersionListForSelect(vo);
         vo.setRowNum(rowNum);
         result.put("currentPage", vo.getCurrentPage());
         result.put("pageSize", vo.getPageSize());
         result.put("pageCount", PageUtil.getPageCount(rowNum, vo.getPageSize()));
         result.put("rowNum", vo.getRowNum());
         result.put("tbodyList", list);
-
         return result;
     }
+
 }

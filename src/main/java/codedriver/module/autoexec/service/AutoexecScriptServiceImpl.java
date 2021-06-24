@@ -6,14 +6,21 @@
 package codedriver.module.autoexec.service;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
+import codedriver.framework.auth.core.AuthActionChecker;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.autoexec.constvalue.ParamMode;
 import codedriver.framework.autoexec.constvalue.ParamType;
+import codedriver.framework.autoexec.constvalue.ScriptAndToolOperate;
+import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dto.script.*;
 import codedriver.framework.autoexec.exception.AutoexecRiskNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScriptNameOrUkRepeatException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
 import codedriver.framework.common.util.RC4Util;
+import codedriver.framework.dto.OperateVo;
 import codedriver.module.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
@@ -60,12 +67,12 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
     }
 
     @Override
-    public List<AutoexecScriptVersionVo> getScriptVersionDetailListByScriptId(Long scriptId) {
-        List<AutoexecScriptVersionVo> versionList = autoexecScriptMapper.getVersionListByScriptId(scriptId);
+    public List<AutoexecScriptVersionVo> getScriptVersionDetailListByScriptId(AutoexecScriptVersionVo vo) {
+        List<AutoexecScriptVersionVo> versionList = autoexecScriptMapper.getVersionListByScriptId(vo);
         if (CollectionUtils.isNotEmpty(versionList)) {
-            for (AutoexecScriptVersionVo vo : versionList) {
-                vo.setParamList(autoexecScriptMapper.getParamListByVersionId(vo.getId()));
-                vo.setLineList(autoexecScriptMapper.getLineListByVersionId(vo.getId()));
+            for (AutoexecScriptVersionVo version : versionList) {
+                version.setParamList(autoexecScriptMapper.getParamListByVersionId(vo.getId()));
+                version.setLineList(autoexecScriptMapper.getLineListByVersionId(vo.getId()));
             }
         }
         return versionList;
@@ -135,6 +142,77 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
             }
         }
         return false;
+    }
+
+    /**
+     * 获取版本操作列表
+     *
+     * @param version
+     * @return
+     */
+    @Override
+    public List<OperateVo> getOperateListForScriptVersion(AutoexecScriptVersionVo version) {
+        List<OperateVo> operateList = null;
+        if (version != null) {
+            operateList = new ArrayList<>();
+            Boolean hasSearchAuth = AuthActionChecker.check(AUTOEXEC_SCRIPT_SEARCH.class.getSimpleName());
+            Boolean hasModifyAuth = AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName());
+            Boolean hasManageAuth = AuthActionChecker.check(AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName());
+            if (Objects.equals(version.getStatus(), ScriptVersionStatus.DRAFT.getValue())) {
+                if (hasModifyAuth) {
+                    operateList.add(new OperateVo(ScriptAndToolOperate.SAVE.getValue(), ScriptAndToolOperate.SAVE.getText()));
+                    OperateVo submit = new OperateVo(ScriptAndToolOperate.SUBMIT.getValue(), ScriptAndToolOperate.SUBMIT.getText());
+                    if (autoexecScriptMapper.checkScriptHasSubmittedVersionByScriptId(version.getScriptId()) > 0) {
+                        submit.setDisabled(1);
+                        submit.setDisabledReason("当前自定义工具已经有其他待审核版本");
+                    }
+                    operateList.add(submit);
+                    operateList.add(new OperateVo(ScriptAndToolOperate.VALIDATE.getValue(), ScriptAndToolOperate.VALIDATE.getText()));
+                    operateList.add(new OperateVo(ScriptAndToolOperate.TEST.getValue(), ScriptAndToolOperate.TEST.getText()));
+                    operateList.add(new OperateVo(ScriptAndToolOperate.COMPARE.getValue(), ScriptAndToolOperate.COMPARE.getText()));
+                    operateList.add(new OperateVo(ScriptAndToolOperate.VERSION_DELETE.getValue(), ScriptAndToolOperate.VERSION_DELETE.getText()));
+                }
+            } else if (Objects.equals(version.getStatus(), ScriptVersionStatus.SUBMITTED.getValue())) {
+                if (hasManageAuth) {
+                    operateList.add(new OperateVo(ScriptAndToolOperate.PASS.getValue(), ScriptAndToolOperate.PASS.getText()));
+                    operateList.add(new OperateVo(ScriptAndToolOperate.REJECT.getValue(), ScriptAndToolOperate.REJECT.getText()));
+                }
+                if (hasModifyAuth) {
+                    operateList.add(new OperateVo(ScriptAndToolOperate.REVOKE.getValue(), ScriptAndToolOperate.REVOKE.getText()));
+                }
+            } else if (Objects.equals(version.getStatus(), ScriptVersionStatus.REJECTED.getValue())) {
+                if (hasModifyAuth) {
+                    operateList.add(new OperateVo(ScriptAndToolOperate.SAVE.getValue(), ScriptAndToolOperate.SAVE.getText()));
+                    OperateVo submit = new OperateVo(ScriptAndToolOperate.SUBMIT.getValue(), ScriptAndToolOperate.SUBMIT.getText());
+                    if (autoexecScriptMapper.checkScriptHasSubmittedVersionByScriptId(version.getScriptId()) > 0) {
+                        submit.setDisabled(1);
+                        submit.setDisabledReason("当前自定义工具已经有其他待审核版本");
+                    }
+                    operateList.add(submit);
+                    operateList.add(new OperateVo(ScriptAndToolOperate.TEST.getValue(), ScriptAndToolOperate.TEST.getText()));
+                    operateList.add(new OperateVo(ScriptAndToolOperate.COMPARE.getValue(), ScriptAndToolOperate.COMPARE.getText()));
+                    operateList.add(new OperateVo(ScriptAndToolOperate.VERSION_DELETE.getValue(), ScriptAndToolOperate.VERSION_DELETE.getText()));
+                }
+            } else if (Objects.equals(version.getStatus(), ScriptVersionStatus.PASSED.getValue())) {
+                if (Objects.equals(version.getIsActive(), 1)) {
+                    if (hasSearchAuth) {
+                        operateList.add(new OperateVo(ScriptAndToolOperate.COMPARE.getValue(), ScriptAndToolOperate.COMPARE.getText()));
+                    }
+                    if (hasModifyAuth) {
+                        operateList.add(new OperateVo(ScriptAndToolOperate.EDIT.getValue(), ScriptAndToolOperate.EDIT.getText()));
+                    }
+                } else if (!Objects.equals(version.getIsActive(), 1)) {
+                    if (hasSearchAuth) {
+                        operateList.add(new OperateVo(ScriptAndToolOperate.COMPARE.getValue(), ScriptAndToolOperate.COMPARE.getText()));
+                    }
+                    if (hasManageAuth) {
+                        operateList.add(new OperateVo(ScriptAndToolOperate.SWITCH_VERSION.getValue(), ScriptAndToolOperate.SWITCH_VERSION.getText()));
+                        operateList.add(new OperateVo(ScriptAndToolOperate.VERSION_DELETE.getValue(), ScriptAndToolOperate.VERSION_DELETE.getText()));
+                    }
+                }
+            }
+        }
+        return operateList;
     }
 
     @Override

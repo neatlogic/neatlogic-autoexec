@@ -51,6 +51,7 @@
         select
         `id`,
         `script_id` as scriptId,
+        `title`,
         `version`,
         `parser`,
         `status`,
@@ -127,7 +128,7 @@
         </if>
     </select>
 
-    <select id="getVersionListByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
+    <select id="getVersionListByScriptId" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
         select
         `id`,
         `script_id` as scriptId,
@@ -140,6 +141,9 @@
         `lcd`
         from `autoexec_script_version`
         where `script_id` = #{scriptId}
+        <if test="status != null and status != ''">
+            and `status` = #{status}
+        </if>
     </select>
 
     <select id="getVersionNumberListByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.common.dto.ValueTextVo">
@@ -149,6 +153,43 @@
         from `autoexec_script_version`
         where `script_id` = #{value}
         order by version desc
+    </select>
+
+    <select id="searchVersionCountForSelect" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo" resultType="int">
+        select
+        count(`id`)
+        from `autoexec_script_version`
+        where `script_id` = #{scriptId}
+        <if test="excludeList != null and excludeList.size() > 0">
+            and `id` not in
+            <foreach collection="excludeList" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="searchVersionListForSelect" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo" resultMap="scriptVersionMap">
+        select
+        `id`,
+        `script_id` as scriptId,
+        `title`,
+        `version`,
+        `status`,
+        `lcu`,
+        (select `user_name` from `user` where `uuid` = `lcu`) as userName,
+        `lcd`
+        from `autoexec_script_version`
+        where `script_id` = #{scriptId}
+        <if test="excludeList != null and excludeList.size() > 0">
+            and `id` not in
+            <foreach collection="excludeList" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
+        order by `lcd` desc
+        <if test="needPage == true">
+            limit #{startNum}, #{pageSize}
+        </if>
     </select>
 
     <select id="getActiveVersionByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
@@ -246,6 +287,24 @@
         </if>
     </select>
 
+    <select id="getRecentlyVersionByScriptIdAndStatus" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
+        select
+        `id`,
+        `script_id` as scriptId,
+        `title`,
+        `version`,
+        `parser`,
+        `status`,
+        `reviewer`,
+        `is_active` as isActive,
+        `lcd`,
+        `lcu`
+        from `autoexec_script_version`
+        where `script_id` = #{scriptId} and `status` = #{status}
+        order by `lcd` desc
+        limit 1
+    </select>
+
     <select id="getParamListByVersionId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo">
         select
         `script_version_id` as scriptVersionId,
@@ -335,10 +394,10 @@
         <result column="name" property="name"/>
         <result column="execMode" property="execMode"/>
         <result column="typeName" property="typeName"/>
-        <result column="currentVersion" property="currentVersion"/>
-        <result column="versionCount" property="versionCount"/>
-        <result column="submittedVersionCount" property="submittedVersionCount"/>
-        <result column="passedVersionCount" property="passedVersionCount"/>
+        <result column="submittedVersionId" property="submittedVersionId"/>
+        <!--<result column="currentVersion" property="currentVersion"/>-->
+        <!--<result column="versionCount" property="versionCount"/>-->
+        <!--<result column="passedVersionCount" property="passedVersionCount"/>-->
         <association property="riskVo" javaType="codedriver.framework.autoexec.dto.AutoexecRiskVo">
             <result property="id" column="riskId"/>
             <result property="name" column="riskName"/>
@@ -354,12 +413,12 @@
         `exec_mode` as execMode,
         (select `name` from `autoexec_type` where a.`type_id` = `id`) as typeName,
         (select `name` from `autoexec_risk` where a.`risk_id` = `id`) as riskName,
-        (select `color` from `autoexec_risk` where a.`risk_id` = `id`) as riskColor
+        (select `color` from `autoexec_risk` where a.`risk_id` = `id`) as riskColor,
+        (select `id` from `autoexec_script_version` where a.`id` = `script_id` and `status` = 'submitted')
+        as submittedVersionId
 --         (select `version` from `autoexec_script_version` where a.`id` = `script_id` and `is_active` = 1)
 --         as currentVersion,
 --         (select count(`id`) from `autoexec_script_version` where a.`id` = `script_id`) as versionCount,
---         (select count(`id`) from `autoexec_script_version` where a.`id` = `script_id` and `status` = 'submitted')
---         as submittedVersionCount,
 --         (select count(`id`) from `autoexec_script_version` where a.`id` = `script_id` and `status` = 'passed')
 --         as passedVersionCount
         from `autoexec_script` a
@@ -687,6 +746,9 @@
 
     <update id="updateScriptVersion" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo">
         update `autoexec_script_version` set
+        <if test="title != null">
+            `title` = #{title},
+        </if>
         <if test="parser != null">
             `parser` = #{parser},
         </if>
@@ -731,6 +793,7 @@
         insert into `autoexec_script_version` (
         `id`,
         `script_id`,
+        `title`,
         `version`,
         `parser`,
         `status`,
@@ -740,6 +803,7 @@
         )values (
         #{id},
         #{scriptId},
+        #{title},
         #{version},
         #{parser},
         #{status},

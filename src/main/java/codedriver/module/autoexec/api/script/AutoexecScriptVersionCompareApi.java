@@ -6,16 +6,24 @@
 package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.autoexec.constvalue.ChangeType;
+import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.dao.mapper.RoleMapper;
+import codedriver.framework.dao.mapper.UserMapper;
+import codedriver.framework.dto.RoleVo;
+import codedriver.framework.dto.UserVo;
+import codedriver.framework.dto.WorkAssignmentUnitVo;
 import codedriver.framework.lcs.*;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.service.AutoexecScriptService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -36,6 +44,15 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
     @Resource
     private AutoexecScriptService autoexecScriptService;
 
+    @Resource
+    private AutoexecScriptMapper autoexecScriptMapper;
+
+    @Resource
+    private UserMapper userMapper;
+
+    @Resource
+    private RoleMapper roleMapper;
+
     @Override
     public String getToken() {
         return "autoexec/script/version/compare";
@@ -51,9 +68,15 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
         return null;
     }
 
+    @Override
+    public boolean disableReturnCircularReferenceDetect() {
+        return true;
+    }
+
     @Input({
             @Param(name = "sourceVersionId", type = ApiParamType.LONG, isRequired = true, desc = "源版本ID"),
-            @Param(name = "targetVersionId", type = ApiParamType.LONG, isRequired = true, desc = "目标版本ID"),
+            @Param(name = "targetVersionId", type = ApiParamType.LONG, desc = "目标版本ID(查看待审核版本时，默认进入对比页，故无需传目标版本ID，只有手动对比时才需要)"),
+            @Param(name = "needToCompare", type = ApiParamType.ENUM, rule = "0,1", desc = "是否需要对比(不传时默认开启对比，值为0时关闭对比，但targetVersionId不为空时，一定会对比)"),
     })
     @Output({
             @Param(name = "sourceVersion", explode = AutoexecScriptVersionVo[].class, desc = "源版本"),
@@ -62,15 +85,53 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
     @Description(desc = "脚本版本对比")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
+        /**
+         * 如果targetVersionId不为空，表示点击对比按钮调用的此接口
+         * 如果targetVersionId为空，表示查看待审批版本，显示对比页，
+         * 此时对比目标为当前激活版本，如果没有当前激活版本，那么不返回targetVersion
+         */
         JSONObject result = new JSONObject();
         Long sourceVersionId = jsonObj.getLong("sourceVersionId");
         Long targetVersionId = jsonObj.getLong("targetVersionId");
+        Integer needToCompare = jsonObj.getInteger("needToCompare");
         AutoexecScriptVersionVo sourceVersion = autoexecScriptService.getScriptVersionDetailByVersionId(sourceVersionId);
-        AutoexecScriptVersionVo targetVersion = autoexecScriptService.getScriptVersionDetailByVersionId(targetVersionId);
+        AutoexecScriptVersionVo targetVersion = null;
+        if (targetVersionId != null) {
+            targetVersion = autoexecScriptService.getScriptVersionDetailByVersionId(targetVersionId);
+        } else if (targetVersionId == null && !Objects.equals(needToCompare, 0)) {
+            sourceVersion.setLcuVo(userMapper.getUserBaseInfoByUuid(sourceVersion.getLcu()));
+            // 查询拥有脚本审批权限的人和角色
+            List<RoleVo> roleList = roleMapper.getRoleListByAuthName(AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName());
+            List<UserVo> userList = userMapper.searchUserByAuth(AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName());
+            if (CollectionUtils.isNotEmpty(roleList) || CollectionUtils.isNotEmpty(userList)) {
+                List<WorkAssignmentUnitVo> reviewerVoList = new ArrayList<>();
+                sourceVersion.setReviewerVoList(reviewerVoList);
+                if (CollectionUtils.isNotEmpty(roleList)) {
+                    for (RoleVo vo : roleList) {
+                        reviewerVoList.add(new WorkAssignmentUnitVo(vo));
+                    }
+                }
+                if (CollectionUtils.isNotEmpty(userList)) {
+                    for (UserVo vo : userList) {
+                        reviewerVoList.add(new WorkAssignmentUnitVo(vo));
+                    }
+                }
+            }
+            // 查询当前激活版本作为对比目标
+            AutoexecScriptVersionVo activeVersion = autoexecScriptMapper.getActiveVersionByScriptId(sourceVersion.getScriptId());
+            if (activeVersion != null) {
+                targetVersion = autoexecScriptService.getScriptVersionDetailByVersionId(activeVersion.getId());
+            }
+        }
         result.put("sourceVersion", sourceVersion);
-        result.put("targetVersion", targetVersion);
-        if (!Objects.equals(sourceVersionId, targetVersionId)) {
-            compareScriptVersion(targetVersion, sourceVersion);
+        if (targetVersion != null) {
+            result.put("targetVersion", targetVersion);
+            if (!Objects.equals(sourceVersionId, targetVersionId)) {
+                compareScriptVersion(targetVersion, sourceVersion);
+            }
+        }
+        if (Objects.equals(sourceVersion.getStatus(), ScriptVersionStatus.SUBMITTED.getValue())) {
+            sourceVersion.setOperateList(autoexecScriptService.getOperateListForScriptVersion(sourceVersion));
         }
         return result;
     }

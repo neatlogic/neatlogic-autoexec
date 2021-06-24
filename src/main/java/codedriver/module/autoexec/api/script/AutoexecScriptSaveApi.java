@@ -73,6 +73,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target", desc = "执行方式", isRequired = true),
             @Param(name = "typeId", type = ApiParamType.LONG, desc = "脚本分类ID", isRequired = true),
             @Param(name = "riskId", type = ApiParamType.LONG, desc = "操作级别ID", isRequired = true),
+            @Param(name = "title", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", maxLength = 50, isRequired = true, xss = true, desc = "版本标题"),
             @Param(name = "paramList", type = ApiParamType.JSONARRAY, desc = "参数列表"),
             @Param(name = "parser", type = ApiParamType.ENUM, rule = "python,ruby,vbscript,shell,perl,powershell,cmd,bash,ksh,csh,sh,javascript,xml", desc = "脚本解析器"),
             @Param(name = "lineList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "脚本内容行数据列表,e.g:[{\"content\":\"#!/usr/bin/env bash\"},{\"content\":\"show_ascii_berry()\"}]"),
@@ -97,6 +98,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
          * 没有id有versionId，表示编辑某个版本，脚本基本信息不作修改
          */
         AutoexecScriptVersionVo versionVo = new AutoexecScriptVersionVo();
+        versionVo.setTitle(jsonObj.getString("title"));
         versionVo.setParser(scriptVo.getParser());
         versionVo.setLcu(UserContext.get().getUserUuid());
         versionVo.setStatus(ScriptVersionStatus.DRAFT.getValue());
