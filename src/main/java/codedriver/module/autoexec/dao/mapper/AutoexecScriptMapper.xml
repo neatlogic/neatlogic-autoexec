@@ -160,6 +160,12 @@
         count(`id`)
         from `autoexec_script_version`
         where `script_id` = #{scriptId}
+        <if test="excludeList != null and excludeList.size() > 0">
+            and `id` not in
+            <foreach collection="excludeList" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
     </select>
 
     <select id="searchVersionListForSelect" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo" resultMap="scriptVersionMap">
@@ -174,6 +180,12 @@
         `lcd`
         from `autoexec_script_version`
         where `script_id` = #{scriptId}
+        <if test="excludeList != null and excludeList.size() > 0">
+            and `id` not in
+            <foreach collection="excludeList" item="item" open="(" separator="," close=")">
+                #{item}
+            </foreach>
+        </if>
         order by `lcd` desc
         <if test="needPage == true">
             limit #{startNum}, #{pageSize}
