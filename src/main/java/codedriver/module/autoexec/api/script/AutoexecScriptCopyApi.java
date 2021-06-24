@@ -81,7 +81,7 @@ public class AutoexecScriptCopyApi extends PrivateApiComponentBase {
         autoexecScriptService.validateScriptBaseInfo(targetScript);
         autoexecScriptMapper.insertScript(targetScript);
 
-        // 复制所有版本
+        // 复制所有已通过版本
         List<AutoexecScriptVersionVo> sourceVersionList = autoexecScriptService
                 .getScriptVersionDetailListByScriptId(new AutoexecScriptVersionVo(sourceScript.getId(), ScriptVersionStatus.PASSED.getValue()));
         if (CollectionUtils.isNotEmpty(sourceVersionList)) {
