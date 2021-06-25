@@ -6,6 +6,8 @@
 package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.auth.core.AuthActionChecker;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.dto.OperateVo;
@@ -103,24 +105,26 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
             this.put("value", ScriptVersionStatus.PASSED.getValue());
             this.put("count", autoexecScriptMapper.searchScriptCount(scriptVo));
         }});
-        scriptVo.setVersionStatus(ScriptVersionStatus.DRAFT.getValue());
-        statusList.add(new JSONObject() {{
-            this.put("text", ScriptVersionStatus.DRAFT.getText());
-            this.put("value", ScriptVersionStatus.DRAFT.getValue());
-            this.put("count", autoexecScriptMapper.searchScriptCount(scriptVo));
-        }});
-        scriptVo.setVersionStatus(ScriptVersionStatus.SUBMITTED.getValue());
-        statusList.add(new JSONObject() {{
-            this.put("text", ScriptVersionStatus.SUBMITTED.getText());
-            this.put("value", ScriptVersionStatus.SUBMITTED.getValue());
-            this.put("count", autoexecScriptMapper.searchScriptCount(scriptVo));
-        }});
-        scriptVo.setVersionStatus(ScriptVersionStatus.REJECTED.getValue());
-        statusList.add(new JSONObject() {{
-            this.put("text", ScriptVersionStatus.REJECTED.getText());
-            this.put("value", ScriptVersionStatus.REJECTED.getValue());
-            this.put("count", autoexecScriptMapper.searchScriptCount(scriptVo));
-        }});
+        if (AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
+            scriptVo.setVersionStatus(ScriptVersionStatus.DRAFT.getValue());
+            statusList.add(new JSONObject() {{
+                this.put("text", ScriptVersionStatus.DRAFT.getText());
+                this.put("value", ScriptVersionStatus.DRAFT.getValue());
+                this.put("count", autoexecScriptMapper.searchScriptCount(scriptVo));
+            }});
+            scriptVo.setVersionStatus(ScriptVersionStatus.SUBMITTED.getValue());
+            statusList.add(new JSONObject() {{
+                this.put("text", ScriptVersionStatus.SUBMITTED.getText());
+                this.put("value", ScriptVersionStatus.SUBMITTED.getValue());
+                this.put("count", autoexecScriptMapper.searchScriptCount(scriptVo));
+            }});
+            scriptVo.setVersionStatus(ScriptVersionStatus.REJECTED.getValue());
+            statusList.add(new JSONObject() {{
+                this.put("text", ScriptVersionStatus.REJECTED.getText());
+                this.put("value", ScriptVersionStatus.REJECTED.getValue());
+                this.put("count", autoexecScriptMapper.searchScriptCount(scriptVo));
+            }});
+        }
         result.put("statusList", statusList);
         return result;
     }

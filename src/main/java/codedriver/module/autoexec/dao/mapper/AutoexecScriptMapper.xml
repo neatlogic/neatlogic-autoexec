@@ -169,17 +169,24 @@
         order by version desc
     </select>
 
-    <select id="searchVersionCountForSelect" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo" resultType="int">
-        select
-        count(`id`)
+    <sql id="searchVersionForSelect">
         from `autoexec_script_version`
         where `script_id` = #{scriptId}
+        <if test="status != null and status != ''">
+            and `status` = #{status}
+        </if>
         <if test="excludeList != null and excludeList.size() > 0">
             and `id` not in
             <foreach collection="excludeList" item="item" open="(" separator="," close=")">
                 #{item}
             </foreach>
         </if>
+    </sql>
+
+    <select id="searchVersionCountForSelect" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo" resultType="int">
+        select
+        count(1)
+        <include refid="searchVersionForSelect"/>
     </select>
 
     <select id="searchVersionListForSelect" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo" resultMap="scriptVersionMap">
@@ -192,14 +199,7 @@
         `lcu`,
         (select `user_name` from `user` where `uuid` = `lcu`) as userName,
         `lcd`
-        from `autoexec_script_version`
-        where `script_id` = #{scriptId}
-        <if test="excludeList != null and excludeList.size() > 0">
-            and `id` not in
-            <foreach collection="excludeList" item="item" open="(" separator="," close=")">
-                #{item}
-            </foreach>
-        </if>
+        <include refid="searchVersionForSelect"/>
         order by `lcd` desc
         <if test="needPage == true">
             limit #{startNum}, #{pageSize}
