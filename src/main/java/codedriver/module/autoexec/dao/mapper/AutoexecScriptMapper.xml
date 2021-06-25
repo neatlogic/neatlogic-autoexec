@@ -196,6 +196,7 @@
         `title`,
         `version`,
         `status`,
+        `is_active` as isActive,
         `lcu`,
         (select `user_name` from `user` where `uuid` = `lcu`) as userName,
         `lcd`
