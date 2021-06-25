@@ -73,10 +73,10 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
 
     @Input({
             @Param(name = "opName", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", maxLength = 50, isRequired = true, desc = "工具名称"),
-            @Param(name = "opType", type = ApiParamType.ENUM, rule = "runner,target,runner_target", isRequired = true, desc = "执行方式"),
+            @Param(name = "opType", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sql", isRequired = true, desc = "执行方式"),
             @Param(name = "typeName", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", maxLength = 50, isRequired = true, desc = "工具分类名称"),
             @Param(name = "riskName", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", maxLength = 50, isRequired = true, desc = "操作级别名称"),
-            @Param(name = "interpreter", type = ApiParamType.ENUM, rule = "python,ruby,vbscript,shell,perl,powershell,cmd,bash,ksh,csh,sh,javascript,xml", isRequired = true, desc = "解析器"),
+            @Param(name = "interpreter", type = ApiParamType.ENUM, rule = "python,ruby,vbscript,shell,perl,powershell,cmd,bash,ksh,csh,sh,javascript,xml,sql", isRequired = true, desc = "解析器"),
             @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
             @Param(name = "desc", type = ApiParamType.JSONOBJECT,
                     desc = "入参(当控件类型为[select,multiselect,radio,checkbox]时，需要在config字段填写矩阵数据源，格式如下：{\"matrixUuid\":\"f32f82d97e3148e79ab6a4bb7b69a65d\",\"matrixValue\":\"e46e10986ffe42edaf3163424377cdeb\"}，matrixUuid代表矩阵uuid，matrixValue代表矩阵属性uuid)"),

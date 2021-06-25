@@ -6,7 +6,10 @@
 package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.auth.core.AuthActionChecker;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
+import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -64,6 +67,9 @@ public class AutoexecScriptVersionListForSelectApi extends PrivateApiComponentBa
         }
         if (jsonObj.getInteger("pageSize") == null) {
             vo.setPageSize(100);
+        }
+        if (!AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
+            vo.setStatus(ScriptVersionStatus.PASSED.getValue());
         }
         int rowNum = autoexecScriptMapper.searchVersionCountForSelect(vo);
         List<AutoexecScriptVersionVo> list = autoexecScriptMapper.searchVersionListForSelect(vo);
