@@ -17,6 +17,8 @@ public interface AutoexecScriptMapper {
 
     AutoexecScriptVo getScriptBaseInfoById(Long id);
 
+    AutoexecScriptVo getScriptLockById(Long id);
+
     int checkScriptIsExistsById(Long id);
 
     int checkScriptNameIsExists(AutoexecScriptVo vo);
