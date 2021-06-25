@@ -32,18 +32,18 @@
     </select>
 
     <select id="checkScriptIsExistsById" parameterType="java.lang.Long" resultType="int">
-        select count(`id`)
+        select count(1)
         from `autoexec_script` where `id` = #{value}
     </select>
 
     <select id="checkScriptNameIsExists" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo"
             resultType="int">
-        select count(`id`) from `autoexec_script` where `name` = #{name} and `id` != #{id}
+        select count(1) from `autoexec_script` where `name` = #{name} and `id` != #{id}
     </select>
 
     <select id="checkScriptUkIsExists" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo"
             resultType="int">
-        select count(`id`) from `autoexec_script` where `uk` = #{uk} and `id` != #{id}
+        select count(1) from `autoexec_script` where `uk` = #{uk} and `id` != #{id}
     </select>
 
     <select id="checkScriptIdListExists" parameterType="java.util.List" resultType="java.lang.Long">
@@ -56,7 +56,7 @@
     </select>
 
     <select id="checkScriptLineContentHashIsExists" parameterType="java.lang.String" resultType="int">
-        select count(`hash`)
+        select count(1)
         from `autoexec_script_line_content`
         where `hash` = #{value}
     </select>
@@ -104,7 +104,7 @@
     
     <select id="getVersionCountByScriptId" parameterType="java.lang.Long" resultType="int">
         select
-        count(`id`)
+        count(1)
         from `autoexec_script_version`
         where `script_id` = #{value}
     </select>
