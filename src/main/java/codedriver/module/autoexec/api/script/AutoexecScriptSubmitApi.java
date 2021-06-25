@@ -67,7 +67,7 @@ public class AutoexecScriptSubmitApi extends PrivateApiComponentBase {
         JSONObject result = new JSONObject();
         Long versionId = jsonObj.getLong("versionId");
         AutoexecScriptVersionVo version = autoexecScriptService.getScriptVersionDetailByVersionId(versionId);
-        AutoexecScriptVo script = autoexecScriptMapper.getScriptBaseInfoById(version.getScriptId());
+        AutoexecScriptVo script = autoexecScriptMapper.getScriptLockById(version.getScriptId());
         if (script == null) {
             throw new AutoexecScriptNotFoundException(version.getScriptId());
         }

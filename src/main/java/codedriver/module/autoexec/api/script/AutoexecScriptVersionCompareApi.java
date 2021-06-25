@@ -19,7 +19,13 @@ import codedriver.framework.dao.mapper.UserMapper;
 import codedriver.framework.dto.RoleVo;
 import codedriver.framework.dto.UserVo;
 import codedriver.framework.dto.WorkAssignmentUnitVo;
-import codedriver.framework.lcs.*;
+import codedriver.framework.lcs.LCSUtil;
+import codedriver.framework.lcs.SegmentPair;
+import codedriver.framework.lcs.SegmentRange;
+import codedriver.framework.matrix.dao.mapper.MatrixAttributeMapper;
+import codedriver.framework.matrix.dao.mapper.MatrixMapper;
+import codedriver.framework.matrix.dto.MatrixAttributeVo;
+import codedriver.framework.matrix.dto.MatrixVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -27,6 +33,7 @@ import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.service.AutoexecScriptService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -34,6 +41,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -46,6 +54,12 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
+
+    @Resource
+    private MatrixMapper matrixMapper;
+
+    @Resource
+    private MatrixAttributeMapper matrixAttributeMapper;
 
     @Resource
     private UserMapper userMapper;
@@ -129,10 +143,12 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
             if (!Objects.equals(sourceVersionId, targetVersionId)) {
                 compareScriptVersion(targetVersion, sourceVersion);
             }
+            convertMatrixText(targetVersion.getParamList());
         }
         if (Objects.equals(sourceVersion.getStatus(), ScriptVersionStatus.SUBMITTED.getValue())) {
             sourceVersion.setOperateList(autoexecScriptService.getOperateListForScriptVersion(sourceVersion));
         }
+        convertMatrixText(sourceVersion.getParamList());
         return result;
     }
 
@@ -297,6 +313,33 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
         fillBlankLine.setChangeType(ChangeType.FILLBLANK.getValue());
         fillBlankLine.setContent(line.getContent());
         return fillBlankLine;
+    }
+
+    /**
+     * 将参数中的矩阵配置，转化成“矩阵名称.矩阵列名称”的格式，赋值到defaultValue中
+     *
+     * @param paramList
+     */
+    private void convertMatrixText(List<AutoexecScriptVersionParamVo> paramList) {
+        if (CollectionUtils.isNotEmpty(paramList)) {
+            for (AutoexecScriptVersionParamVo vo : paramList) {
+                JSONObject config = vo.getConfig();
+                if (MapUtils.isNotEmpty(config)) {
+                    String matrixUuid = config.getString("matrixUuid");
+                    String matrixValue = config.getString("matrixValue");
+                    if (StringUtils.isNotBlank(matrixUuid) && StringUtils.isNotBlank(matrixValue)) {
+                        MatrixVo matrix = matrixMapper.getMatrixByUuid(matrixUuid);
+                        if (matrix != null) {
+                            List<MatrixAttributeVo> attributeList = matrixAttributeMapper.getMatrixAttributeByMatrixUuid(matrixUuid);
+                            Optional<MatrixAttributeVo> first = attributeList.stream().filter(o -> Objects.equals(o.getUuid(), matrixValue)).findFirst();
+                            if (first != null && first.isPresent()) {
+                                vo.setDefaultValue(matrix.getName() + "." + first.get().getName());
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
 
