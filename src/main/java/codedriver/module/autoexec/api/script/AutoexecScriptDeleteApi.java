@@ -99,11 +99,12 @@ public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
             if (Objects.equals(version.getIsActive(), 1)) {
                 throw new AutoexecScriptVersionHasBeenActivedException();
             }
+            boolean hasOnlyOneVersion = autoexecScriptMapper.getVersionCountByScriptId(version.getScriptId()) == 1;
             autoexecScriptMapper.deleteParamByVersionId(versionId);
             autoexecScriptMapper.deleteScriptLineByVersionId(versionId);
             autoexecScriptMapper.deleteVersionByVersionId(versionId);
             // 只剩一个版本时，直接删除整个脚本
-            if (autoexecScriptMapper.getVersionCountByScriptId(version.getScriptId()) == 1) {
+            if (hasOnlyOneVersion) {
                 autoexecScriptMapper.deleteScriptById(version.getScriptId());
             } else {
                 JSONObject auditContent = new JSONObject();
