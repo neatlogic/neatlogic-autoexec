@@ -22,7 +22,6 @@ import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,7 +29,10 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.text.ParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -92,38 +94,34 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             autoexecJobService.refreshJobPhaseNodeList(jobVo.getId(), jobVo.getCurrentPhaseSort());
             JSONObject paramJson = new JSONObject();
             getFireParamJson(paramJson, jobVo);
-            paramJson.put("isFirstFire",jobVo.getCurrentPhaseSort() == 0?1:0);
+            paramJson.put("isFirstFire", jobVo.getCurrentPhaseSort() == 0 ? 1 : 0);
             List<AutoexecRunnerVo> runnerVos = autoexecJobMapper.getJobRunnerListByJobId(jobVo.getId());
-            List<String> refusedErrorList = new ArrayList<>();
-            List<String> authErrorList = new ArrayList<>();
             Integer finalPhaseSort = phaseSort;
-            for (AutoexecRunnerVo runner : runnerVos) {
-                String url = runner.getUrl() + "api/rest/job/exec";
-                paramJson.put("passThroughEnv",new JSONObject(){{
-                    put("runnerId",runner.getId());
-                    put("phaseSort", finalPhaseSort);
-                }});
-                RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
-                String result = RestUtil.sendRequest(restVo);
-                JSONObject resultJson = null;
-                try {
+            RestVo restVo = null;
+            String result = StringUtils.EMPTY;
+            try {
+                //test runner 联通性
+                for (AutoexecRunnerVo runner : runnerVos) {
+
+                }
+                for (AutoexecRunnerVo runner : runnerVos) {
+                    String url = runner.getUrl() + "api/rest/job/exec";
+                    paramJson.put("passThroughEnv", new JSONObject() {{
+                        put("runnerId", runner.getId());
+                        put("phaseSort", finalPhaseSort);
+                    }});
+                    restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
+                    result = RestUtil.sendRequest(restVo);
+                    JSONObject resultJson = null;
                     resultJson = JSONObject.parseObject(result);
                     if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                        authErrorList.add(restVo.getUrl() + ":" + resultJson.getString("Message"));
+                        throw new AutoexecJobRunnerConnectAuthException(restVo.getUrl() + ":" + resultJson.getString("Message"));
                     }
-                } catch (Exception ex) {
-                    logger.error(ex.getMessage(), ex);
-                    refusedErrorList.add(restVo.getUrl() + " " + result);
                 }
+            } catch (Exception ex) {
+                assert restVo != null;
+                throw new AutoexecJobRunnerConnectRefusedException(restVo.getUrl() + " " + result);
             }
-            if (CollectionUtils.isNotEmpty(refusedErrorList)) {
-                throw new AutoexecJobRunnerConnectRefusedException(String.join(";", refusedErrorList));
-            }
-
-            if (CollectionUtils.isNotEmpty(authErrorList)) {
-                throw new AutoexecJobRunnerConnectAuthException(String.join(";", authErrorList));
-            }
-
         }
     }
 
@@ -343,6 +341,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                 }
             } catch (Exception ex) {
                 logger.error(ex.getMessage(), ex);
+                assert restVo != null;
                 throw new AutoexecJobRunnerConnectRefusedException(restVo.getUrl() + " " + result);
             }
 
