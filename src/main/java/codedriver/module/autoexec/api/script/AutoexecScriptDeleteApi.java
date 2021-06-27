@@ -6,16 +6,18 @@
 package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.constvalue.ScriptAction;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.dto.FieldValidResultVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
+import codedriver.framework.restful.core.IValid;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.service.AutoexecScriptService;
 import com.alibaba.fastjson.JSONObject;
@@ -31,7 +33,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
-@AuthAction(action = AUTOEXEC_SCRIPT_MANAGE.class)
+@AuthAction(action = AUTOEXEC_SCRIPT_MODIFY.class)
 @OperationType(type = OperationTypeEnum.DELETE)
 public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
 
@@ -68,7 +70,7 @@ public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
         Long id = jsonObj.getLong("id");
         Long versionId = jsonObj.getLong("versionId");
         if (id != null) { // 删除脚本
-            if (autoexecScriptMapper.checkScriptIsExistsById(id) == 0) {
+            if (autoexecScriptMapper.getScriptLockById(id) == null) {
                 throw new AutoexecScriptNotFoundException(id);
             }
             // 检查脚本是否被组合工具引用
@@ -91,23 +93,45 @@ public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
             if (version == null) {
                 throw new AutoexecScriptVersionNotFoundException(versionId);
             }
+            if (autoexecScriptMapper.getScriptLockById(version.getScriptId()) == null) {
+                throw new AutoexecScriptNotFoundException(version.getScriptId());
+            }
             if (Objects.equals(version.getIsActive(), 1)) {
                 throw new AutoexecScriptVersionHasBeenActivedException();
-            }
-            if (autoexecScriptMapper.getVersionCountByScriptId(version.getScriptId()) == 1) {
-                throw new AutoexecScriptVersionCannotDeleteException();
             }
             autoexecScriptMapper.deleteParamByVersionId(versionId);
             autoexecScriptMapper.deleteScriptLineByVersionId(versionId);
             autoexecScriptMapper.deleteVersionByVersionId(versionId);
-
-            JSONObject auditContent = new JSONObject();
-            auditContent.put("version", version.getVersion());
-            AutoexecScriptAuditVo auditVo = new AutoexecScriptAuditVo(version.getScriptId()
-                    , version.getId(), ScriptAction.DELETE.getValue(), auditContent);
-            autoexecScriptService.audit(auditVo);
+            // 只剩一个版本时，直接删除整个脚本
+            if (autoexecScriptMapper.getVersionCountByScriptId(version.getScriptId()) == 1) {
+                autoexecScriptMapper.deleteScriptById(version.getScriptId());
+            } else {
+                JSONObject auditContent = new JSONObject();
+                auditContent.put("version", version.getVersion());
+                AutoexecScriptAuditVo auditVo = new AutoexecScriptAuditVo(version.getScriptId()
+                        , version.getId(), ScriptAction.DELETE.getValue(), auditContent);
+                autoexecScriptService.audit(auditVo);
+            }
         }
         return null;
+    }
+
+    /**
+     * 检查脚本是否只有一个版本
+     *
+     * @return
+     */
+    public IValid id() {
+        return value -> {
+            Long id = value.getLong("id");
+            if (autoexecScriptMapper.checkScriptIsExistsById(id) == 0) {
+                return new FieldValidResultVo(new AutoexecScriptNotFoundException(id));
+            }
+            if (autoexecScriptMapper.getVersionCountByScriptId(id) == 1) {
+                return new FieldValidResultVo(new AutoexecScriptVersionCannotDeleteException());
+            }
+            return new FieldValidResultVo();
+        };
     }
 
 

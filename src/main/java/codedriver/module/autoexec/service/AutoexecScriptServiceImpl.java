@@ -207,6 +207,8 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
                     }
                     if (hasManageAuth) {
                         operateList.add(new OperateVo(ScriptAndToolOperate.SWITCH_VERSION.getValue(), ScriptAndToolOperate.SWITCH_VERSION.getText()));
+                    }
+                    if (hasModifyAuth) {
                         operateList.add(new OperateVo(ScriptAndToolOperate.VERSION_DELETE.getValue(), ScriptAndToolOperate.VERSION_DELETE.getText()));
                     }
                 }

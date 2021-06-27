@@ -11,6 +11,7 @@ import codedriver.framework.autoexec.constvalue.ScriptAction;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
+import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionCannotActiveException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -62,16 +63,19 @@ public class AutoexecScriptVersionSwitchApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long versionId = jsonObj.getLong("versionId");
-        AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionIdForUpdate(versionId);
+        AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(versionId);
         if (version == null) {
             throw new AutoexecScriptVersionNotFoundException(versionId);
+        }
+        if (autoexecScriptMapper.getScriptLockById(version.getScriptId()) == null) {
+            throw new AutoexecScriptNotFoundException(version.getScriptId());
         }
         if (!Objects.equals(ScriptVersionStatus.PASSED.getValue(), version.getStatus())) {
             throw new AutoexecScriptVersionCannotActiveException();
         }
         AutoexecScriptVersionVo updateVo = new AutoexecScriptVersionVo();
         // 禁用当前激活版本
-        AutoexecScriptVersionVo activeVersion = autoexecScriptMapper.getActiveVersionLockByScriptId(version.getScriptId());
+        AutoexecScriptVersionVo activeVersion = autoexecScriptMapper.getActiveVersionByScriptId(version.getScriptId());
         updateVo.setId(activeVersion.getId());
         updateVo.setIsActive(0);
         autoexecScriptMapper.updateScriptVersion(updateVo);

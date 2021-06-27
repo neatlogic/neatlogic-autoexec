@@ -70,12 +70,12 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             @Param(name = "versionId", type = ApiParamType.LONG, desc = "脚本版本ID"),
 //            @Param(name = "uk", type = ApiParamType.REGEX, rule = "^[A-Za-z]+$", isRequired = true, xss = true, desc = "唯一标识"),
             @Param(name = "name", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", maxLength = 50, isRequired = true, xss = true, desc = "名称"),
-            @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target", desc = "执行方式", isRequired = true),
+            @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sql", desc = "执行方式", isRequired = true),
             @Param(name = "typeId", type = ApiParamType.LONG, desc = "脚本分类ID", isRequired = true),
             @Param(name = "riskId", type = ApiParamType.LONG, desc = "操作级别ID", isRequired = true),
             @Param(name = "title", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", maxLength = 50, isRequired = true, xss = true, desc = "版本标题"),
             @Param(name = "paramList", type = ApiParamType.JSONARRAY, desc = "参数列表"),
-            @Param(name = "parser", type = ApiParamType.ENUM, rule = "python,ruby,vbscript,shell,perl,powershell,cmd,bash,ksh,csh,sh,javascript,xml", desc = "脚本解析器"),
+            @Param(name = "parser", type = ApiParamType.ENUM, rule = "python,ruby,vbscript,shell,perl,powershell,cmd,bash,ksh,csh,sh,javascript,xml,sql", desc = "脚本解析器"),
             @Param(name = "lineList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "脚本内容行数据列表,e.g:[{\"content\":\"#!/usr/bin/env bash\"},{\"content\":\"show_ascii_berry()\"}]"),
     })
     @Output({

@@ -11,6 +11,7 @@ import codedriver.framework.autoexec.constvalue.ScriptAction;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.exception.*;
@@ -23,8 +24,10 @@ import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import codedriver.module.autoexec.service.AutoexecScriptService;
+import codedriver.module.autoexec.service.AutoexecService;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -45,6 +48,9 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptService autoexecScriptService;
+
+    @Resource
+    private AutoexecService autoexecService;
 
     @Resource
     private UserMapper userMapper;
@@ -142,7 +148,13 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
             currentVersion.setLcuVo(userMapper.getUserBaseInfoByUuid(currentVersion.getLcu()));
         }
         script.setCurrentVersionVo(currentVersion);
-        version.setParamList(autoexecScriptMapper.getParamListByVersionId(version.getId()));
+        List<AutoexecScriptVersionParamVo> paramList = autoexecScriptMapper.getParamListByVersionId(version.getId());
+        version.setParamList(paramList);
+        if (CollectionUtils.isNotEmpty(paramList)) {
+            for (AutoexecScriptVersionParamVo vo : paramList) {
+                autoexecService.mergeConfig(vo);
+            }
+        }
         version.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
         List<AutoexecCombopVo> combopList = autoexecScriptMapper.getReferenceListByScriptId(id);
         script.setCombopList(combopList);

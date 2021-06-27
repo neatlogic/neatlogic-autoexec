@@ -17,19 +17,33 @@
         where `id` = #{value}
     </select>
 
+    <select id="getScriptLockById" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
+        select
+        `id`,
+        `name`,
+        `exec_mode` as execMode,
+        `type_id` as typeId,
+        `risk_id` as riskId,
+        `fcu`,
+        `fcd`
+        from `autoexec_script` a
+        where `id` = #{value}
+        for update
+    </select>
+
     <select id="checkScriptIsExistsById" parameterType="java.lang.Long" resultType="int">
-        select count(`id`)
+        select count(1)
         from `autoexec_script` where `id` = #{value}
     </select>
 
     <select id="checkScriptNameIsExists" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo"
             resultType="int">
-        select count(`id`) from `autoexec_script` where `name` = #{name} and `id` != #{id}
+        select count(1) from `autoexec_script` where `name` = #{name} and `id` != #{id}
     </select>
 
     <select id="checkScriptUkIsExists" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo"
             resultType="int">
-        select count(`id`) from `autoexec_script` where `uk` = #{uk} and `id` != #{id}
+        select count(1) from `autoexec_script` where `uk` = #{uk} and `id` != #{id}
     </select>
 
     <select id="checkScriptIdListExists" parameterType="java.util.List" resultType="java.lang.Long">
@@ -42,7 +56,7 @@
     </select>
 
     <select id="checkScriptLineContentHashIsExists" parameterType="java.lang.String" resultType="int">
-        select count(`hash`)
+        select count(1)
         from `autoexec_script_line_content`
         where `hash` = #{value}
     </select>
@@ -90,7 +104,7 @@
     
     <select id="getVersionCountByScriptId" parameterType="java.lang.Long" resultType="int">
         select
-        count(`id`)
+        count(1)
         from `autoexec_script_version`
         where `script_id` = #{value}
     </select>
@@ -155,17 +169,24 @@
         order by version desc
     </select>
 
-    <select id="searchVersionCountForSelect" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo" resultType="int">
-        select
-        count(`id`)
+    <sql id="searchVersionForSelect">
         from `autoexec_script_version`
         where `script_id` = #{scriptId}
+        <if test="status != null and status != ''">
+            and `status` = #{status}
+        </if>
         <if test="excludeList != null and excludeList.size() > 0">
             and `id` not in
             <foreach collection="excludeList" item="item" open="(" separator="," close=")">
                 #{item}
             </foreach>
         </if>
+    </sql>
+
+    <select id="searchVersionCountForSelect" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo" resultType="int">
+        select
+        count(1)
+        <include refid="searchVersionForSelect"/>
     </select>
 
     <select id="searchVersionListForSelect" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo" resultMap="scriptVersionMap">
@@ -175,17 +196,11 @@
         `title`,
         `version`,
         `status`,
+        `is_active` as isActive,
         `lcu`,
         (select `user_name` from `user` where `uuid` = `lcu`) as userName,
         `lcd`
-        from `autoexec_script_version`
-        where `script_id` = #{scriptId}
-        <if test="excludeList != null and excludeList.size() > 0">
-            and `id` not in
-            <foreach collection="excludeList" item="item" open="(" separator="," close=")">
-                #{item}
-            </foreach>
-        </if>
+        <include refid="searchVersionForSelect"/>
         order by `lcd` desc
         <if test="needPage == true">
             limit #{startNum}, #{pageSize}

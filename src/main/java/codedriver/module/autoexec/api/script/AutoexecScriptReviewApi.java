@@ -7,17 +7,18 @@ package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
 import codedriver.framework.autoexec.constvalue.ScriptAction;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
+import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionCannotReviewException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.service.AutoexecScriptService;
 import com.alibaba.fastjson.JSONObject;
@@ -68,9 +69,12 @@ public class AutoexecScriptReviewApi extends PrivateApiComponentBase {
         Long versionId = jsonObj.getLong("versionId");
         String action = jsonObj.getString("action");
         String content = jsonObj.getString("content");
-        AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionIdForUpdate(versionId);
+        AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(versionId);
         if (version == null) {
             throw new AutoexecScriptVersionNotFoundException(versionId);
+        }
+        if (autoexecScriptMapper.getScriptLockById(version.getScriptId()) == null) {
+            throw new AutoexecScriptNotFoundException(version.getScriptId());
         }
         if (!Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), version.getStatus())) {
             throw new AutoexecScriptVersionCannotReviewException();
@@ -87,7 +91,7 @@ public class AutoexecScriptReviewApi extends PrivateApiComponentBase {
             updateVo.setVersion(maxVersion != null ? maxVersion + 1 : 1);
             updateVo.setIsActive(1);
             // 禁用之前的激活版本
-            AutoexecScriptVersionVo activeVersion = autoexecScriptMapper.getActiveVersionLockByScriptId(version.getScriptId());
+            AutoexecScriptVersionVo activeVersion = autoexecScriptMapper.getActiveVersionByScriptId(version.getScriptId());
             if (activeVersion != null) {
                 activeVersion.setIsActive(0);
                 autoexecScriptMapper.updateScriptVersion(activeVersion);
