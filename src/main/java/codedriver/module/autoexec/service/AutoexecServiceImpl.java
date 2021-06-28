@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.service;
 
+import codedriver.framework.autoexec.constvalue.ParamDataSource;
 import codedriver.framework.autoexec.constvalue.ParamMode;
 import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
@@ -97,9 +98,14 @@ public class AutoexecServiceImpl implements AutoexecService {
                 paramTypeConfig.put("isRequired", true);
             }
             JSONObject config = autoexecParamVo.getConfig();
-            if(config == null){
+            if (config == null) {
                 autoexecParamVo.setConfig(paramTypeConfig.toJSONString());
             } else {
+                if (Objects.equals(config.getString("dataSource"), ParamDataSource.STATIC.getValue())) {
+                    paramTypeConfig.remove("url");
+                    paramTypeConfig.remove("dynamicUrl");
+                    paramTypeConfig.remove("rootName");
+                }
                 config.putAll(paramTypeConfig);
             }
         }

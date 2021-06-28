@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.api.tool;
 
+import codedriver.framework.autoexec.constvalue.ParamDataSource;
 import codedriver.framework.autoexec.constvalue.ParamMode;
 import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
@@ -180,7 +181,7 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                                 }
                             }
                             JSONObject config = new JSONObject();
-                            config.put("dataSource", "static");
+                            config.put("dataSource", ParamDataSource.STATIC.getValue());
                             config.put("dataList", dataList);
                             param.put("config", config);
                         }
