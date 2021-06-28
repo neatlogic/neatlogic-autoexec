@@ -55,7 +55,7 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sql", desc = "执行方式"),
+            @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sqlfile", desc = "执行方式"),
             @Param(name = "typeIdList", type = ApiParamType.JSONARRAY, desc = "分类ID列表"),
             @Param(name = "riskIdList", type = ApiParamType.JSONARRAY, desc = "操作级别ID列表"),
             @Param(name = "isActive", type = ApiParamType.INTEGER, desc = "是否激活"),
