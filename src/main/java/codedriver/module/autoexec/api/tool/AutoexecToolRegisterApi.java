@@ -183,7 +183,7 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                             JSONObject config = new JSONObject();
                             config.put("dataSource", "static");
                             config.put("dataList", dataList);
-                            param.put("config", config.toJSONString());
+                            param.put("config", config);
                         }
                     } else {
                         throw new ParamTypeNotFoundException(type);
