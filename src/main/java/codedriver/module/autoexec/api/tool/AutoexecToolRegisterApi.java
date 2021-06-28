@@ -152,7 +152,7 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                     ParamType paramType = ParamType.getParamType(type);
                     if (paramType != null) {
                         type = paramType.getValue();
-                        if (paramType.getNeedDatasource()) {
+                        if (paramType.getNeedDataSource()) {
                             if (defaultValue == null) {
                                 throw new AutoexecToolParamDatasourceEmptyException(key);
                             }
@@ -166,8 +166,7 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                             JSONArray dataList = new JSONArray();
                             for (Object o : list) {
                                 JSONObject object = (JSONObject) o;
-                                String selected = object.getString("selected");
-                                if (Objects.equals(selected, "true")) {
+                                if (Objects.equals(object.getString("selected"), "true")) {
                                     defaultValueList.add(object.get("value"));
                                     object.remove("selected");
                                 }
