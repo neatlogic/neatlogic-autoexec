@@ -179,6 +179,8 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                                 } else if (Objects.equals(paramType, ParamType.MULTISELECT) || Objects.equals(paramType, ParamType.CHECKBOX)) {
                                     defaultValue = defaultValueList;
                                 }
+                            } else {
+                                defaultValue = null;
                             }
                             JSONObject config = new JSONObject();
                             config.put("dataSource", ParamDataSource.STATIC.getValue());
