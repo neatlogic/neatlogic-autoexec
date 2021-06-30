@@ -75,7 +75,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             @Param(name = "riskId", type = ApiParamType.LONG, desc = "操作级别ID", isRequired = true),
             @Param(name = "title", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", maxLength = 50, isRequired = true, xss = true, desc = "版本标题"),
             @Param(name = "paramList", type = ApiParamType.JSONARRAY, desc = "参数列表"),
-            @Param(name = "parser", type = ApiParamType.ENUM, rule = "python,ruby,vbscript,shell,perl,powershell,cmd,bash,ksh,csh,sh,javascript,xml,sql", desc = "脚本解析器"),
+            @Param(name = "parser", type = ApiParamType.ENUM, rule = "python,ruby,vbscript,perl,powershell,cmd,bash,ksh,csh,sh,javascript", desc = "脚本解析器"),
             @Param(name = "lineList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "脚本内容行数据列表,e.g:[{\"content\":\"#!/usr/bin/env bash\"},{\"content\":\"show_ascii_berry()\"}]"),
     })
     @Output({
