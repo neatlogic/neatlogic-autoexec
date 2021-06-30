@@ -26,13 +26,10 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Iterator;
-import java.util.Map;
 import java.util.Objects;
 
 @Service
@@ -70,9 +67,9 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
             @Param(name = "riskName", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", maxLength = 50, isRequired = true, desc = "操作级别名称"),
             @Param(name = "interpreter", type = ApiParamType.ENUM, rule = "python,ruby,vbscript,perl,powershell,cmd,bash,ksh,csh,sh,javascript", isRequired = true, desc = "解析器"),
             @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
-            @Param(name = "desc", type = ApiParamType.JSONOBJECT,
+            @Param(name = "desc", type = ApiParamType.JSONARRAY,
                     desc = "入参(当控件类型为[select,multiselect,radio,checkbox]时，需要在defaultValue字段填写数据源，格式如下：[{\"text\":\"否\",\"value\":\"0\",\"selected\":\"true\"},{\"text\":\"是\",\"value\":\"1\"}])"),
-            @Param(name = "output", type = ApiParamType.JSONOBJECT, desc = "出参"),
+            @Param(name = "output", type = ApiParamType.JSONARRAY, desc = "出参"),
     })
     @Output({
     })
@@ -85,8 +82,8 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
         String riskName = jsonObj.getString("riskName");
         String interpreter = jsonObj.getString("interpreter");
         String description = jsonObj.getString("description");
-        JSONObject desc = jsonObj.getJSONObject("desc");
-        JSONObject output = jsonObj.getJSONObject("output");
+        JSONArray desc = jsonObj.getJSONArray("desc");
+        JSONArray output = jsonObj.getJSONArray("output");
         Long typeId = autoexecTypeMapper.getTypeIdByName(typeName);
         Long riskId = autoexecRiskMapper.getRiskIdByName(riskName);
         AutoexecToolVo oldTool = autoexecToolMapper.getToolByName(opName);
@@ -120,16 +117,16 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
         return null;
     }
 
-    private JSONArray getParamList(JSONObject desc, JSONObject output) {
+    private JSONArray getParamList(JSONArray desc, JSONArray output) {
         JSONArray paramList = new JSONArray();
-        if (MapUtils.isNotEmpty(desc)) {
-            Iterator<Map.Entry<String, Object>> iterator = desc.entrySet().iterator();
-            int i = 0;
-            while (iterator.hasNext()) {
+        if (CollectionUtils.isNotEmpty(desc)) {
+            for (int i = 0; i < desc.size(); i++) {
                 JSONObject param = new JSONObject();
-                Map.Entry<String, Object> next = iterator.next();
-                String key = next.getKey();
-                JSONObject value = (JSONObject) next.getValue();
+                JSONObject value = desc.getJSONObject(i);
+                String key = value.getString("opt");
+                if (StringUtils.isBlank(key)) {
+                    throw new ParamNotExistsException("desc[" + i + ".opt]");
+                }
                 String name = value.getString("name");
                 if (StringUtils.isBlank(name)) {
                     throw new ParamNotExistsException("[" + key + ".name]");
@@ -193,21 +190,21 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                 }
                 param.put("defaultValue", defaultValue);
                 param.put("type", type);
-                param.put("sort", i++);
+                param.put("sort", i);
                 paramList.add(param);
             }
         }
-        if (MapUtils.isNotEmpty(output)) {
-            Iterator<Map.Entry<String, Object>> iterator = output.entrySet().iterator();
-            int i = 0;
-            while (iterator.hasNext()) {
+        if (CollectionUtils.isNotEmpty(output)) {
+            for (int i = 0; i < output.size(); i++) {
                 JSONObject param = new JSONObject();
-                Map.Entry<String, Object> next = iterator.next();
-                String key = next.getKey();
-                JSONObject value = (JSONObject) next.getValue();
+                JSONObject value = output.getJSONObject(i);
+                String key = value.getString("opt");
+                if (StringUtils.isBlank(key)) {
+                    throw new ParamNotExistsException("desc[" + i + ".opt]");
+                }
                 String name = value.getString("name");
                 if (StringUtils.isBlank(name)) {
-                    throw new ParamNotExistsException("[" + key + ".name]");
+                    throw new ParamNotExistsException("output[" + key + ".name]");
                 }
                 param.put("key", key);
                 param.put("name", name);
@@ -215,7 +212,7 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                 param.put("mode", ParamMode.OUTPUT.getValue());
                 param.put("defaultValue", value.get("defaultValue"));
                 param.put("description", value.getString("help"));
-                param.put("sort", i++);
+                param.put("sort", i);
                 paramList.add(param);
             }
         }
