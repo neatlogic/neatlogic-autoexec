@@ -98,6 +98,6 @@ public class ShellScriptCheckHandler extends ScriptCheckHandlerBase {
 
     @Override
     public String getType() {
-        return ScriptParser.SHELL.getValue();
+        return ScriptParser.SH.getValue();
     }
 }
