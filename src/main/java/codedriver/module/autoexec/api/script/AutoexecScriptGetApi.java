@@ -92,6 +92,9 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         Long id = jsonObj.getLong("id");
         Long versionId = jsonObj.getLong("versionId");
         String status = jsonObj.getString("status");
+        if (id == null && versionId == null) {
+            throw new ParamNotExistsException("id", "versionId");
+        }
         if (id != null) { // 不指定版本
             if (StringUtils.isBlank(status)) {
                 throw new ParamNotExistsException("status");

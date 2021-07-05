@@ -95,11 +95,11 @@ public class AutoexecScriptCopyApi extends PrivateApiComponentBase {
                 target.setScriptId(targetScript.getId());
                 targetVersionList.add(target);
                 if (CollectionUtils.isNotEmpty(source.getParamList())) {
-                    source.getParamList().stream().forEach(o -> o.setScriptVersionId(target.getId()));
+                    source.getParamList().forEach(o -> o.setScriptVersionId(target.getId()));
                     paramList.addAll(source.getParamList());
                 }
                 if (CollectionUtils.isNotEmpty(source.getLineList())) {
-                    source.getLineList().stream().forEach(o -> {
+                    source.getLineList().forEach(o -> {
                         o.setId(null);
                         o.setScriptId(targetScript.getId());
                         o.setScriptVersionId(target.getId());
