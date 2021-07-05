@@ -13,6 +13,7 @@ import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundExceptio
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.constvalue.CacheControlType;
 import codedriver.framework.common.util.PageUtil;
+import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicBinaryStreamApiComponentBase;
@@ -113,7 +114,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                     put("host",nodeVo.getHost());
                     put("port",nodeVo.getPort());
                     put("username",nodeVo.getUserName());
-                    put("password",nodeVo.getPassword());
+                    put("password", RC4Util.decrypt(nodeVo.getPassword()));
                 }};
                 response.setContentType("application/json");
                 response.setHeader("Content-Disposition", " attachment; filename=nodes.json");
