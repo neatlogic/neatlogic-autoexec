@@ -760,6 +760,10 @@
         where `script_id` = #{value} and `status` = 'submitted'
     </select>
 
+    <select id="getVersionIdList" resultType="java.lang.Long">
+        select `id` from `autoexec_script_version`
+    </select>
+
     <update id="updateScriptBaseInfo" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
         update `autoexec_script` set
         `name` = #{name},

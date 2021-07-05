@@ -292,7 +292,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
             int begin = 0;
             int end = begin + batchSize;
             while (paramList.size() - 1 >= begin) {
-                autoexecScriptMapper.insertScriptVersionParamList(paramList.subList(begin, paramList.size() >= end ? end : paramList.size()));
+                autoexecScriptMapper.insertScriptVersionParamList(paramList.subList(begin, Math.min(paramList.size(), end)));
                 begin = end;
                 end = begin + batchSize;
             }
@@ -311,7 +311,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
             int begin = 0;
             int end = begin + batchSize;
             while (lineList.size() - 1 >= begin) {
-                autoexecScriptMapper.insertScriptLineList(lineList.subList(begin, lineList.size() >= end ? end : lineList.size()));
+                autoexecScriptMapper.insertScriptLineList(lineList.subList(begin, Math.min(lineList.size(), end)));
                 begin = end;
                 end = begin + batchSize;
             }
