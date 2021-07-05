@@ -86,7 +86,7 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
             builder.addScriptId(idList.toArray(new Long[idList.size()]));
             Map<Long, List<OperateVo>> operateListMap = builder.managerBuild().getOperateListMap();
             if (MapUtils.isNotEmpty(operateListMap)) {
-                scriptVoList.stream().forEach(o -> o.setOperateList(operateListMap.get(o.getId())));
+                scriptVoList.forEach(o -> o.setOperateList(operateListMap.get(o.getId())));
             }
         }
         if (scriptVo.getNeedPage()) {

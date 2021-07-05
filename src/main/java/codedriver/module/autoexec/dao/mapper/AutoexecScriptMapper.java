@@ -103,6 +103,8 @@ public interface AutoexecScriptMapper {
 
     int checkScriptHasSubmittedVersionByScriptId(Long scriptId);
 
+    List<Long> getVersionIdList();
+
     int updateScriptBaseInfo(AutoexecScriptVo scriptVo);
 
     int updateScriptVersion(AutoexecScriptVersionVo versionVo);

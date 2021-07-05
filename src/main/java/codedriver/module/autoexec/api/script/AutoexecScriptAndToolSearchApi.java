@@ -98,9 +98,7 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
             if (CollectionUtils.isNotEmpty(toolAndScriptList)) {
                 for (Long id : idList) {
                     Optional<AutoexecToolAndScriptVo> first = toolAndScriptList.stream().filter(o -> Objects.equals(o.getId(), id)).findFirst();
-                    if (first != null && first.isPresent()) {
-                        tbodyList.add(first.get());
-                    }
+                    first.ifPresent(tbodyList::add);
                 }
             }
             return result;

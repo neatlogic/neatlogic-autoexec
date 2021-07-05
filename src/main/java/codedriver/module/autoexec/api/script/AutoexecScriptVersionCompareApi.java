@@ -186,9 +186,9 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
     private void compareParamList(List<AutoexecScriptVersionParamVo> source, List<AutoexecScriptVersionParamVo> target) {
         if (source.size() != target.size()) {
             if (CollectionUtils.isEmpty(source)) {
-                target.stream().forEach(o -> o.setChangeType(ChangeType.DELETE.getValue()));
+                target.forEach(o -> o.setChangeType(ChangeType.DELETE.getValue()));
             } else if (CollectionUtils.isEmpty(target)) {
-                source.stream().forEach(o -> o.setChangeType(ChangeType.INSERT.getValue()));
+                source.forEach(o -> o.setChangeType(ChangeType.INSERT.getValue()));
             } else {
                 // 对比行数相等部分的参数
                 compareSameOrderParamList(source, target);
@@ -216,7 +216,7 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
      * @param target
      */
     private void compareSameOrderParamList(List<AutoexecScriptVersionParamVo> source, List<AutoexecScriptVersionParamVo> target) {
-        int size = source.size() <= target.size() ? source.size() : target.size();
+        int size = Math.min(source.size(), target.size());
         for (int i = 0; i < size; i++) {
             AutoexecScriptVersionParamVo beforeNextParam = source.get(i);
             AutoexecScriptVersionParamVo afterNextParam = target.get(i);
@@ -332,9 +332,7 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
                         if (matrix != null) {
                             List<MatrixAttributeVo> attributeList = matrixAttributeMapper.getMatrixAttributeByMatrixUuid(matrixUuid);
                             Optional<MatrixAttributeVo> first = attributeList.stream().filter(o -> Objects.equals(o.getUuid(), matrixValue)).findFirst();
-                            if (first != null && first.isPresent()) {
-                                vo.setDefaultValue(matrix.getName() + "." + first.get().getName());
-                            }
+                            first.ifPresent(matrixAttributeVo -> vo.setDefaultValue(matrix.getName() + "." + matrixAttributeVo.getName()));
                         }
                     }
                 }

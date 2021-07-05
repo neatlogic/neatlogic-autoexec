@@ -374,7 +374,17 @@
     <sql id="searchScriptCondition">
         <where>
             <if test="keyword != null and keyword != ''">
-                and `name` like CONCAT('%', #{keyword}, '%')
+                and (
+                `name` like CONCAT('%', #{keyword}, '%')
+                or exists (select 1 from `fulltextindex_word` fw
+                join `fulltextindex_field_autoexec` ff on fw.`id` = ff.`word_id`
+                join `autoexec_script_version` asv on ff.`target_id` = asv.`id`
+                where a.`id` = asv.`script_id` and fw.`word` in
+                <foreach collection="keywordList" item="k" open="(" separator="," close=")">
+                    #{k}
+                </foreach>
+                )
+                )
             </if>
             <if test="execMode != null and execMode != ''">
                 and `exec_mode` = #{execMode}
@@ -748,6 +758,10 @@
         select count(1)
         from `autoexec_script_version`
         where `script_id` = #{value} and `status` = 'submitted'
+    </select>
+
+    <select id="getVersionIdList" resultType="java.lang.Long">
+        select `id` from `autoexec_script_version`
     </select>
 
     <update id="updateScriptBaseInfo" parameterType="codedriver.framework.autoexec.dto.script.AutoexecScriptVo">
