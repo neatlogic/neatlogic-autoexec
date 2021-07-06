@@ -141,13 +141,10 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
         String name = scriptVo.getName();
         List<AutoexecScriptVersionVo> versionList = scriptVo.getVersionList();
         AutoexecScriptVo oldScriptVo = autoexecScriptMapper.getScriptBaseInfoById(id);
-        autoexecScriptMapper.checkScriptNameIsExists(scriptVo);
-        if (autoexecScriptMapper.checkScriptNameIsExists(scriptVo) > 0) {
-            String newName = scriptVo.getName() + UuidUtil.randomUuid().substring(0, 5);
-            if (newName.length() > 50) {
-                newName = newName.substring(0, 50);
-            }
-            scriptVo.setName(newName);
+        int index = 0;
+        while (autoexecScriptMapper.checkScriptNameIsExists(scriptVo) > 0) {
+            index++;
+            scriptVo.setName(name + "_" + index);
         }
         if (autoexecTypeMapper.checkTypeIsExistsById(scriptVo.getTypeId()) == 0) {
             failReasonList.add("不存在的工具类型：" + scriptVo.getTypeId());
