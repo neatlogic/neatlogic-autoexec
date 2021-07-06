@@ -7,6 +7,7 @@ package codedriver.module.autoexec.api.job.action;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
@@ -63,6 +64,7 @@ public class AutoexecJobReFireApi extends PrivateApiComponentBase {
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         autoexecJobActionService.executeAuthCheck(jobVo);
         autoexecJobService.getAutoexecJobDetail(jobVo,0);
+        jobVo.setAction(JobAction.REFIRE.getValue());
         autoexecJobActionService.refire(jobVo);
         return null;
     }

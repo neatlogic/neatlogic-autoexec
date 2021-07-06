@@ -112,7 +112,7 @@ public interface AutoexecJobMapper {
     //runner
     List<AutoexecRunnerVo> getJobRunnerListByJobId(Long jobId);
 
-    AutoexecJobPhaseNodeVo getJobRunnerByJobIdAndPhaseId(@Param("jobId") Long jobId, @Param("jobPhaseId") Long jobPhaseId);
+    List<AutoexecRunnerVo> getJobPhaseRunnerByJobIdAndPhaseIdList(@Param("jobId") Long jobId, @Param("jobPhaseIdList") List<Long> jobPhaseId);
 
     Integer insertJobPhaseNodeRunner(@Param("nodeId") Long nodeId, @Param("runnerMapId") Integer runnerMapId);
 

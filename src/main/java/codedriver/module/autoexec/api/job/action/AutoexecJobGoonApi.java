@@ -7,8 +7,7 @@ package codedriver.module.autoexec.api.job.action;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
-import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
-import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
+import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
@@ -18,13 +17,10 @@ import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.module.autoexec.service.AutoexecJobActionService;
 import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * 仅允许phase 和 node 状态都不是running的情况下才能执行重跑动作
@@ -67,22 +63,8 @@ public class AutoexecJobGoonApi extends PrivateApiComponentBase {
         Long jobId = jsonObj.getLong("jobId");
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         autoexecJobActionService.executeAuthCheck(jobVo);
-        int sort = 0;
-        /*寻找中止|暂停的phase
-         * 1、优先寻找aborted|paused phase
-         * 2、没有满足1条件的，再寻找pending 最小sort phase
-         */
-        List<AutoexecJobPhaseVo> autoexecJobPhaseVos = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobVo.getId(), Arrays.asList(JobPhaseStatus.ABORTED.getValue(),JobPhaseStatus.PAUSED.getValue()));
-        if(CollectionUtils.isNotEmpty(autoexecJobPhaseVos)){
-            sort = autoexecJobPhaseVos.get(0).getSort();
-        }else{
-            AutoexecJobPhaseVo phase = autoexecJobMapper.getJobPhaseByJobIdAndPhaseStatus(jobVo.getId(),JobPhaseStatus.PENDING.getValue());
-            if(phase != null){
-                sort = phase.getSort();
-            }
-        }
-        jobVo.setCurrentPhaseSort(sort);
-        autoexecJobService.getAutoexecJobDetail(jobVo,sort);
+
+        jobVo.setAction(JobAction.GOON.getValue());
         autoexecJobActionService.goon(jobVo);
         return null;
     }

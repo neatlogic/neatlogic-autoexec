@@ -8,7 +8,6 @@ package codedriver.module.autoexec.api.job;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dto.AutoexecRunnerVo;
-import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
@@ -16,10 +15,13 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author lvzk
@@ -55,11 +57,11 @@ public class AutoexecJobPhaseRunnerGetApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
         Long jobPhaseId = jsonObj.getLong("jobPhaseId");
-        AutoexecJobPhaseNodeVo NodeVo = autoexecJobMapper.getJobRunnerByJobIdAndPhaseId(jobId,jobPhaseId);
-        if(NodeVo == null){
+        List<AutoexecRunnerVo> runnerVoList = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobId, Collections.singletonList(jobPhaseId));
+        if(CollectionUtils.isEmpty(runnerVoList)){
             throw  new AutoexecJobRunnerNotFoundException(StringUtils.EMPTY);
         }
-        return NodeVo;
+        return runnerVoList;
     }
 
     @Override

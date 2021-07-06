@@ -7,6 +7,7 @@ package codedriver.module.autoexec.api.job.action;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
@@ -101,6 +102,7 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
             throw new AutoexecJobThreadCountException();
         }
         AutoexecJobVo jobVo = autoexecJobService.saveAutoexecCombopJob(combopVo, jsonObj.getString("source"), threadCount, paramJson);
+        jobVo.setAction(JobAction.FIRE.getValue());
         autoexecJobActionService.fire(jobVo);
         return new JSONObject(){{
             put("jobId",jobVo.getId());

@@ -640,33 +640,20 @@
         WHERE ajpn.`job_id` = #{value}
     </select>
 
-    <resultMap id="jobPhaseNodeMap" type="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
-        <id column="id" property="id"/>
-        <result column="start_time" property="startTime"/>
-        <result column="end_time" property="endTime"/>
-        <association property="autoexecRunnerVo" javaType="codedriver.framework.autoexec.dto.AutoexecRunnerVo">
-            <id column="runnerId" property="id"/>
-            <result column="runnerName" property="name"/>
-            <result column="url" property="url"/>
-            <result column="host" property="host"/>
-            <result column="port" property="port"/>
-        </association>
-    </resultMap>
-    <select id="getJobRunnerByJobIdAndPhaseId" resultMap="jobPhaseNodeMap">
-        SELECT ar.`id`   AS runnerId,
-               ar.`name` AS runnerName,
+    <select id="getJobPhaseRunnerByJobIdAndPhaseIdList" resultType="codedriver.framework.autoexec.dto.AutoexecRunnerVo">
+        SELECT ar.`id`,
+               ar.`name`,
                ar.`url`,
                ar.`host`,
-               ar.`port`,
-               ajpn.`start_time`,
-               ajpn.`end_time`,
-               ajpn.`id`
-        FROM `autoexec_job_phase_node` ajpn
-                 LEFT JOIN `autoexec_job_phase_node_runner` ajpnr ON ajpn.`id` = ajpnr.`node_id`
-                 LEFT JOIN `autoexec_runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
+               ar.`port`
+        FROM `autoexec_job_phase_runner` ajpr
+                 LEFT JOIN `autoexec_runner_map` arm ON ajpr.`runner_map_id` = arm.`id`
                  LEFT JOIN `autoexec_runner` ar ON arm.`runner_id` = ar.`id`
-        WHERE ajpn.`job_id` = #{jobId}
-          and ajpn.`job_phase_id` = #{jobPhaseId}
+        WHERE ajpr.`job_id` = #{jobId}
+          and ajpr.`job_phase_id` in
+              <foreach collection="jobPhaseIdList" item="jobPhaseId" close=")" open="(" separator=",">
+                  #{jobPhaseId}
+              </foreach>
     </select>
     <select id="checkIsHasRunningNode" resultType="java.lang.Integer">
         select count(1)
@@ -984,12 +971,6 @@
         WHERE `hash` = #{value};
     </delete>
 
-    <delete id="deleteJobUserByJobId" parameterType="java.lang.Long">
-        DELETE
-        FROM `codedriver_develop`.`autoexec_job_user`
-        WHERE `job_id` = #{value}
-    </delete>
-
     <delete id="deleteJobPhaseOperationByJobId" parameterType="java.lang.Long">
         DELETE
         FROM `autoexec_job_phase_operation`
@@ -1028,9 +1009,10 @@
         WHERE `job_id` = #{value};
     </delete>
     <delete id="deleteJobPhaseNodeRunnerByJobId">
-        DELETE
-        FROM `autoexec_job_phase_node_runner`
-        WHERE `job_id` = #{value};
+        DELETE ajpnr
+        FROM `autoexec_job_phase_node_runner` ajpnr
+        LEFT JOIN `autoexec_job_phase_node` ajpn ON ajpnr.`node_id` = ajpn.`id`
+        WHERE ajpn.`job_id` = #{value};
     </delete>
 
 
