@@ -181,7 +181,7 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
         AutoexecCombopPhaseVo combopPhaseVo = new AutoexecCombopPhaseVo();
         combopPhaseVo.setUuid(UuidUtil.randomUuid());
 //            combopPhaseVo.setUk(autoexecScriptVo.getUk());
-        combopPhaseVo.setName(autoexecToolAndScriptVo.getName());
+        combopPhaseVo.setName("phase-run");
         combopPhaseVo.setExecMode(autoexecToolAndScriptVo.getExecMode());
         combopPhaseVo.setSort(0);
         AutoexecCombopPhaseConfigVo combopPhaseConfig = new AutoexecCombopPhaseConfigVo();
