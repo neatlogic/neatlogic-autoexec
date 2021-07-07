@@ -45,25 +45,25 @@ public class AutoexecJobAuthActionManager {
     @PostConstruct
     public void actionDispatcherInit() {
         actionMap.put("fireJob", (jobVo) -> {
-            if (JobStatus.PENDING.getValue().equalsIgnoreCase(jobVo.getStatus()) || jobVo.getPhaseList().stream().allMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.PENDING.getValue()))) {
+            if (Objects.equals(JobStatus.PENDING.getValue(),jobVo.getStatus()) || jobVo.getPhaseList().stream().allMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.PENDING.getValue()))) {
                 jobVo.setIsCanJobFire(1);
             }
         });
 
         actionMap.put("pauseJob", (jobVo) -> {
-            if (JobStatus.RUNNING.getValue().equalsIgnoreCase(jobVo.getStatus())) {
+            if (Objects.equals(JobStatus.RUNNING.getValue(),jobVo.getStatus())) {
                 jobVo.setIsCanJobPause(1);
             }
         });
 
         actionMap.put("abortJob", (jobVo) -> {
-            if (JobStatus.RUNNING.getValue().equalsIgnoreCase(jobVo.getStatus())) {
+            if (Objects.equals(JobStatus.RUNNING.getValue(),jobVo.getStatus())) {
                 jobVo.setIsCanJobAbort(1);
             }
         });
 
         actionMap.put("goonJob", (jobVo) -> {
-            if (JobStatus.ABORTED.getValue().equalsIgnoreCase(jobVo.getStatus()) || JobStatus.PAUSED.getValue().equalsIgnoreCase(jobVo.getStatus())) {
+            if (Objects.equals(JobStatus.ABORTED.getValue(),jobVo.getStatus()) || Objects.equals(JobStatus.PAUSED.getValue(),jobVo.getStatus())) {
                 jobVo.setIsCanJobGoon(1);
             }
         });
@@ -78,13 +78,13 @@ public class AutoexecJobAuthActionManager {
         });
 
         actionMap.put("resetJobNode", (jobVo) -> {
-            if (JobStatus.ABORTED.getValue().equalsIgnoreCase(jobVo.getStatus()) || JobStatus.PAUSED.getValue().equalsIgnoreCase(jobVo.getStatus())) {
+            if (Objects.equals(JobStatus.ABORTED.getValue(),jobVo.getStatus()) || Objects.equals(JobStatus.PAUSED.getValue(),jobVo.getStatus()) || Objects.equals(JobStatus.COMPLETED.getValue(),jobVo.getStatus())) {
                 jobVo.setIsCanJobNodeReset(1);
             }
         });
 
         actionMap.put("ignoreJobNode", (jobVo) -> {
-            if (JobStatus.ABORTED.getValue().equalsIgnoreCase(jobVo.getStatus()) || JobStatus.PAUSED.getValue().equalsIgnoreCase(jobVo.getStatus())) {
+            if (Objects.equals(JobStatus.ABORTED.getValue(),jobVo.getStatus()) || Objects.equals(JobStatus.PAUSED.getValue(),jobVo.getStatus()) || Objects.equals(JobStatus.COMPLETED.getValue(),jobVo.getStatus())) {
                 jobVo.setIsCanJobNodeIgnore(1);
             }
         });
