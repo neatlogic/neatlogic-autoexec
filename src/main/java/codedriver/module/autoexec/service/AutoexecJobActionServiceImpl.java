@@ -80,7 +80,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         RestVo restVo = null;
         String result = StringUtils.EMPTY;
         try {
-            runnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobVo.getId(),jobVo.getPhaseList().stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()));
+            runnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobVo.getId(),jobVo.getPhaseIdList());
             for (AutoexecRunnerVo runner : runnerVos) {
                 String url = runner.getUrl() + "api/rest/health/check";
                 restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), new JSONObject());
@@ -103,42 +103,40 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
      */
     private void execute(AutoexecJobVo jobVo){
         autoexecJobMapper.getJobLockByJobId(jobVo.getId());
-        if (jobVo.getIsCanJobFire() == 1 || jobVo.getIsCanJobReFire() == 1) {
-            jobVo.setStatus(JobStatus.RUNNING.getValue());
-            autoexecJobMapper.updateJobStatus(jobVo);
-            Integer phaseSort = 0;
-            for (AutoexecJobPhaseVo jobPhase : jobVo.getPhaseList()) {
-                phaseSort = jobPhase.getSort();
-                jobPhase.setStatus(JobPhaseStatus.WAITING.getValue());
-                autoexecJobMapper.updateJobPhaseStatus(jobPhase);
-            }
-            autoexecJobService.refreshJobPhaseNodeList(jobVo.getId(), jobVo.getCurrentPhaseSort());
-            JSONObject paramJson = new JSONObject();
-            getFireParamJson(paramJson, jobVo);
-            paramJson.put("isFirstFire", jobVo.getCurrentPhaseSort() == 0 ? 1 : 0);
+        jobVo.setStatus(JobStatus.RUNNING.getValue());
+        autoexecJobMapper.updateJobStatus(jobVo);
+        Integer phaseSort = 0;
+        for (AutoexecJobPhaseVo jobPhase : jobVo.getPhaseList()) {
+            phaseSort = jobPhase.getSort();
+            jobPhase.setStatus(JobPhaseStatus.WAITING.getValue());
+            autoexecJobMapper.updateJobPhaseStatus(jobPhase);
+        }
+        autoexecJobService.refreshJobPhaseNodeList(jobVo.getId(), jobVo.getCurrentPhaseSort());
+        JSONObject paramJson = new JSONObject();
+        getFireParamJson(paramJson, jobVo);
+        paramJson.put("isFirstFire", jobVo.getCurrentPhaseSort() == 0 ? 1 : 0);
 
-            Integer finalPhaseSort = phaseSort;
-            RestVo restVo = null;
-            String result = StringUtils.EMPTY;
-            try {
-                List<AutoexecRunnerVo> runnerVos = checkRunnerHealth(jobVo);
-                for (AutoexecRunnerVo runner : runnerVos) {
-                    String url = runner.getUrl() + "api/rest/job/exec";
-                    paramJson.put("passThroughEnv", new JSONObject() {{
-                        put("runnerId", runner.getId());
-                        put("phaseSort", finalPhaseSort);
-                    }});
-                    restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
-                    result = RestUtil.sendRequest(restVo);
-                    JSONObject resultJson = JSONObject.parseObject(result);
-                    if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                        throw new AutoexecJobRunnerConnectAuthException(restVo.getUrl() + ":" + resultJson.getString("Message"));
-                    }
+        Integer finalPhaseSort = phaseSort;
+        RestVo restVo = null;
+        String result = StringUtils.EMPTY;
+        try {
+            List<AutoexecRunnerVo> runnerVos = checkRunnerHealth(jobVo);
+            for (AutoexecRunnerVo runner : runnerVos) {
+                String url = runner.getUrl() + "api/rest/job/exec";
+                paramJson.put("passThroughEnv", new JSONObject() {{
+                    put("runnerId", runner.getId());
+                    put("phaseSort", finalPhaseSort);
+                }});
+                restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
+                result = RestUtil.sendRequest(restVo);
+                JSONObject resultJson = JSONObject.parseObject(result);
+                if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
+                    throw new AutoexecJobRunnerConnectAuthException(restVo.getUrl() + ":" + resultJson.getString("Message"));
                 }
-            } catch (Exception ex) {
-                assert restVo != null;
-                throw new AutoexecJobRunnerConnectRefusedException(restVo.getUrl() + " " + result);
             }
+        } catch (Exception ex) {
+            assert restVo != null;
+            throw new AutoexecJobRunnerConnectRefusedException(restVo.getUrl() + " " + result);
         }
     }
 
@@ -326,12 +324,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     @Override
     public void pause(AutoexecJobVo jobVo) {
         new AutoexecJobAuthActionManager.Builder().addPauseJob().build().setAutoexecJobAction(jobVo);
-        if (jobVo.getIsCanJobPause() == 1) {
-            abortOrPauseService(jobVo,JobStatus.PAUSING.getValue(),JobPhaseStatus.PAUSING.getValue(),"pause");
-
-        } else {
-            throw new AutoexecJobCanNotPauseException();
-        }
+        abortOrPauseService(jobVo,JobStatus.PAUSING.getValue(),JobPhaseStatus.PAUSING.getValue(),"pause");
     }
 
     /**
@@ -342,12 +335,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     @Override
     public void abort(AutoexecJobVo jobVo) {
         new AutoexecJobAuthActionManager.Builder().addAbortJob().build().setAutoexecJobAction(jobVo);
-        if (jobVo.getIsCanJobAbort() == 1) {
-            abortOrPauseService(jobVo,JobStatus.ABORTING.getValue(),JobPhaseStatus.ABORTING.getValue(),"abort");
-
-        } else {
-            throw new AutoexecJobCanNotAbortException();
-        }
+        abortOrPauseService(jobVo,JobStatus.ABORTING.getValue(),JobPhaseStatus.ABORTING.getValue(),"abort");
     }
 
     /**
@@ -372,7 +360,6 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             paramJson.put("jobId", jobVo.getId());
             paramJson.put("tenant", TenantContext.get().getTenantUuid());
             paramJson.put("execUser", UserContext.get().getUserUuid(true));
-            //TODO 校验连通性
             RestVo restVo = null;
             String result = StringUtils.EMPTY;
             try {
@@ -396,11 +383,37 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     /**
      * 重置作业节点
      *
-     * @param jobPhaseNode 重置作业节点
+     * @param jobVo 作业
      */
     @Override
-    public void reset(AutoexecJobPhaseNodeVo jobPhaseNode) {
-
+    public void resetNode(AutoexecJobVo jobVo) {
+        //更新节点状态
+        autoexecJobMapper.updateJobPhaseNodeListStatus(jobVo.getJobPhaseNodeList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()),JobNodeStatus.PENDING.getValue());
+        //清除runner node状态
+        List<AutoexecRunnerVo> runnerVos = checkRunnerHealth(jobVo);
+        RestVo restVo = null;
+        String result = StringUtils.EMPTY;
+        try {
+            JSONObject paramJson = new JSONObject();
+            paramJson.put("jobId", jobVo.getId());
+            paramJson.put("tenant", TenantContext.get().getTenantUuid());
+            paramJson.put("execUser", UserContext.get().getUserUuid(true));
+            paramJson.put("phaseName", jobVo.getPhaseList().get(0).getName());
+            paramJson.put("phaseNodeList",jobVo.getJobPhaseNodeList());
+            for (AutoexecRunnerVo runner : runnerVos) {
+                String url = runner.getUrl() + "api/rest/job/resetNode";
+                restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
+                result = RestUtil.sendRequest(restVo);
+                JSONObject resultJson = JSONObject.parseObject(result);
+                if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
+                    throw new AutoexecJobRunnerConnectAuthException(restVo.getUrl() + ":" + resultJson.getString("Message"));
+                }
+            }
+        } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
+            assert restVo != null;
+            throw new AutoexecJobRunnerConnectRefusedException(restVo.getUrl() + " " + result);
+        }
     }
 
     /**

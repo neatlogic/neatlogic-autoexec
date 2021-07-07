@@ -8,6 +8,7 @@ package codedriver.module.autoexec.api.job.action;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -52,7 +53,11 @@ public class AutoexecJobPauseApi extends PrivateApiComponentBase {
     @Description(desc = "暂停作业")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jsonObj.getLong("jobId"));
+        Long jobId = jsonObj.getLong("jobId");
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
+        if(jobVo == null){
+            throw new AutoexecJobNotFoundException(jobId.toString());
+        }
         autoexecJobActionService.executeAuthCheck(jobVo);
         jobVo.setPhaseList(autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId()));
         autoexecJobActionService.pause(jobVo);

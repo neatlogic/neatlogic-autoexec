@@ -9,6 +9,7 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -61,9 +62,11 @@ public class AutoexecJobGoonApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
-        AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        if(jobVo == null){
+            throw new AutoexecJobNotFoundException(jobId.toString());
+        }
         autoexecJobActionService.executeAuthCheck(jobVo);
-
         jobVo.setAction(JobAction.GOON.getValue());
         autoexecJobActionService.goon(jobVo);
         return null;

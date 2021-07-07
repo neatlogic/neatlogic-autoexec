@@ -13,6 +13,7 @@ import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.dto.AutoexecRunnerGroupNetworkVo;
 import codedriver.framework.autoexec.dto.AutoexecRunnerGroupVo;
 import codedriver.framework.autoexec.dto.AutoexecRunnerMapVo;
+import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
@@ -21,10 +22,7 @@ import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNodeSshCountNotFoundException;
 import codedriver.framework.cmdb.enums.resourcecenter.Protocol;
 import codedriver.framework.util.IpUtil;
-import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
-import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
-import codedriver.module.autoexec.dao.mapper.AutoexecRunnerMapper;
-import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.module.autoexec.dao.mapper.*;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -44,6 +42,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     AutoexecJobMapper autoexecJobMapper;
     @Resource
     AutoexecScriptMapper autoexecScriptMapper;
+    @Resource
+    AutoexecToolMapper autoexecToolMapper;
     @Resource
     private AutoexecCombopService autoexecCombopService;
     @Resource
@@ -125,10 +125,14 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                     AutoexecScriptVo scriptVo = autoexecScriptMapper.getScriptBaseInfoById(operationId);
                     AutoexecScriptVersionVo scriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(operationId);
                     jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, scriptVo, scriptVersionVo, autoexecCombopService.getOperationActiveVersionScriptByOperationId(operationId), jobPhaseVoList);
-                    autoexecJobMapper.insertJobPhaseOperation(jobPhaseOperationVo);
-                    autoexecJobMapper.insertJobParamContent(new AutoexecJobParamContentVo(jobPhaseOperationVo.getParamHash(), jobPhaseOperationVo.getParamStr()));
-                    jobPhaseOperationVoList.add(jobPhaseOperationVo);
+                }else if (CombopOperationType.TOOL.getValue().equalsIgnoreCase(operationType)){
+                    AutoexecToolVo toolVo = autoexecToolMapper.getToolById(operationId);
+                    jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, toolVo, jobPhaseVoList);
                 }
+                autoexecJobMapper.insertJobPhaseOperation(jobPhaseOperationVo);
+                assert jobPhaseOperationVo != null;
+                autoexecJobMapper.insertJobParamContent(new AutoexecJobParamContentVo(jobPhaseOperationVo.getParamHash(), jobPhaseOperationVo.getParamStr()));
+                jobPhaseOperationVoList.add(jobPhaseOperationVo);
             }
         }
         return jobVo;

@@ -642,18 +642,18 @@
 
     <select id="getJobPhaseRunnerByJobIdAndPhaseIdList" resultType="codedriver.framework.autoexec.dto.AutoexecRunnerVo">
         SELECT ar.`id`,
-               ar.`name`,
-               ar.`url`,
-               ar.`host`,
-               ar.`port`
+        ar.`name`,
+        ar.`url`,
+        ar.`host`,
+        ar.`port`
         FROM `autoexec_job_phase_runner` ajpr
-                 LEFT JOIN `autoexec_runner_map` arm ON ajpr.`runner_map_id` = arm.`id`
-                 LEFT JOIN `autoexec_runner` ar ON arm.`runner_id` = ar.`id`
+        LEFT JOIN `autoexec_runner_map` arm ON ajpr.`runner_map_id` = arm.`id`
+        LEFT JOIN `autoexec_runner` ar ON arm.`runner_id` = ar.`id`
         WHERE ajpr.`job_id` = #{jobId}
-          and ajpr.`job_phase_id` in
-              <foreach collection="jobPhaseIdList" item="jobPhaseId" close=")" open="(" separator=",">
-                  #{jobPhaseId}
-              </foreach>
+        and ajpr.`job_phase_id` in
+        <foreach collection="jobPhaseIdList" item="jobPhaseId" close=")" open="(" separator=",">
+            #{jobPhaseId}
+        </foreach>
     </select>
     <select id="checkIsHasRunningNode" resultType="java.lang.Integer">
         select count(1)
@@ -731,7 +731,35 @@
                `sort`,
                `uk`         as uk
         FROM `autoexec_job_phase`
-        where `job_id` = #{jobId} and `status` = #{status}
+        where `job_id` = #{jobId}
+          and `status` = #{status}
+    </select>
+    <select id="getJobCurrentPhase" resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
+        SELECT `name`
+        FROM `autoexec_job_phase`
+        WHERE job_id = #{value}
+        ORDER BY CASE
+                     WHEN `status` = 'running' THEN 1
+                     WHEN `status` = 'failed' THEN 2
+                     ELSE 3 END ASC,
+                 sort ASC, id ASC
+        LIMIT 1
+    </select>
+    <select id="getJobPhaseNodeListByNodeIdList"
+            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
+        SELECT ajpn.`id`,
+               ajpn.`job_id` AS jobId,
+               ajpn.`job_phase_id` AS jobPhaseId,
+               ajpn.`host`,
+               ajpn.`port`,
+               ajpn.`start_time` AS startTime,
+               ajpn.`end_time` AS endTime,
+               ajpn.`status`
+        FROM `autoexec_job_phase_node` ajpn
+        where ajpn.`id` in
+        <foreach collection="nodeIdList" item="nodeId" separator="," open="(" close=")" >
+            #{nodeId}
+        </foreach>
     </select>
 
     <insert id="insertJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
@@ -862,8 +890,8 @@
                 #{protocol});
     </insert>
     <insert id="insertJobPhaseRunner">
-        INSERT IGNORE INTO `autoexec_job_phase_runner` (`job_id`,`job_phase_id`, `runner_map_id`)
-        VALUES (#{jobId},#{jobPhaseId}, #{runnerMapId});
+        INSERT IGNORE INTO `autoexec_job_phase_runner` (`job_id`, `job_phase_id`, `runner_map_id`)
+        VALUES (#{jobId}, #{jobPhaseId}, #{runnerMapId});
     </insert>
 
     <update id="updateJobPhaseStatus" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
@@ -964,6 +992,16 @@
         SET `status` = #{status}
         WHERE `job_phase_id` = #{jobPhaseId}
     </update>
+    <update id="updateJobPhaseNodeListStatus">
+        UPDATE
+            `autoexec_job_phase_node`
+        SET
+            `status` = #{status}
+        WHERE `id` in 
+        <foreach collection="nodeIdList" item="nodeId" open="(" close=")" separator=",">
+            #{nodeId}
+        </foreach>
+    </update>
 
     <delete id="deleteJobParamContentByHash" parameterType="java.lang.String">
         DELETE
@@ -1011,7 +1049,7 @@
     <delete id="deleteJobPhaseNodeRunnerByJobId">
         DELETE ajpnr
         FROM `autoexec_job_phase_node_runner` ajpnr
-        LEFT JOIN `autoexec_job_phase_node` ajpn ON ajpnr.`node_id` = ajpn.`id`
+                 LEFT JOIN `autoexec_job_phase_node` ajpn ON ajpnr.`node_id` = ajpn.`id`
         WHERE ajpn.`job_id` = #{value};
     </delete>
 
