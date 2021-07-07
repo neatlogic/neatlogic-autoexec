@@ -9,11 +9,13 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.dependency.core.DependencyManager;
 import codedriver.framework.exception.type.PermissionDeniedException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.module.autoexec.dependency.MatrixAutoexecCombopParamDependencyHandler;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -74,6 +76,7 @@ public class AutoexecCombopDeleteApi extends PrivateApiComponentBase {
             autoexecCombopMapper.deleteAutoexecCombopById(id);
             autoexecCombopMapper.deleteAutoexecCombopAuthorityByCombopId(id);
             autoexecCombopMapper.deleteAutoexecCombopParamByCombopId(id);
+            DependencyManager.delete(MatrixAutoexecCombopParamDependencyHandler.class, id);
             if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
                 autoexecCombopMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
             }
