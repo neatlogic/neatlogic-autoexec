@@ -7,22 +7,27 @@ package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.constvalue.CombopOperationType;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeStatusCountVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.module.autoexec.core.AutoexecJobAuthActionManager;
+import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.module.autoexec.service.AutoexecCombopService;
 import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author lvzk
@@ -37,10 +42,13 @@ public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
     AutoexecJobMapper autoexecJobMapper;
 
     @Resource
-    AutoexecJobAuthActionManager autoexecJobAuthActionManager;
+    AutoexecCombopMapper autoexecCombopMapper;
 
     @Resource
     AutoexecJobService autoexecJobService;
+
+    @Resource
+    AutoexecCombopService autoexecCombopService;
 
     @Override
     public String getName() {
@@ -68,6 +76,8 @@ public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
         if(jobVo == null){
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
+        //获取当前phase
+        AutoexecJobPhaseVo jobCurrentPhaseVo = autoexecJobMapper.getJobCurrentPhase(jobId);
         //剧本列表
         List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobId);
         List<AutoexecJobPhaseNodeStatusCountVo> statusCountVoList = autoexecJobMapper.getJobPhaseNodeStatusCount(jobId);
@@ -79,11 +89,21 @@ public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
             }
         }
         jobVo.setPhaseList(jobPhaseVoList);
-        //操作按钮
-        autoexecJobAuthActionManager.setAutoexecJobAction(jobVo);
+        //判断是否有执行权限
+        if(Objects.equals(jobVo.getOperationType(), CombopOperationType.COMBOP.getValue())) {
+            AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(jobVo.getOperationId());
+            if (combopVo == null) {
+                throw new AutoexecCombopNotFoundException(jobVo.getOperationId());
+            }
+            autoexecCombopService.setOperableButtonList(combopVo);
+            if (combopVo.getExecutable() == 1) {
+                jobVo.setIsCanExecute(1);
+            }
+        }
         JSONObject result = JSONObject.parseObject(JSONObject.toJSON(jobVo).toString());
         //判断是否停止刷新作业详细
         autoexecJobService.setIsRefresh(result, jobId);
+        result.put("jobCurrentPhaseName",jobCurrentPhaseVo.getName());
         return result;
     }
 

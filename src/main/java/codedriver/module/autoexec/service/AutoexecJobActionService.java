@@ -88,9 +88,9 @@ public interface AutoexecJobActionService {
     /**
      * 重置作业节点
      *
-     * @param jobPhaseNode 重置作业节点
+     * @param jobPhaseNodeList 重置作业节点
      */
-    void reset(AutoexecJobPhaseNodeVo jobPhaseNode);
+    void resetNode(AutoexecJobVo jobVo);
 
     /**
      * 忽略作业节点

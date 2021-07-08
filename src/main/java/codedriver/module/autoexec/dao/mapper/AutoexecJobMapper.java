@@ -72,6 +72,7 @@ public interface AutoexecJobMapper {
 
     AutoexecJobPhaseVo getJobPhaseByJobIdAndPhaseStatus(@Param("jobId") Long id, @Param("status") String status);
 
+    AutoexecJobPhaseVo getJobCurrentPhase(Long jobId);
     //jobPhaseNode
     List<AutoexecJobPhaseNodeVo> searchJobPhaseNode(AutoexecJobPhaseNodeVo jobPhaseNodeVo);
 
@@ -92,6 +93,10 @@ public interface AutoexecJobMapper {
     int checkIsHasRunningNode(Long id);
 
     List<AutoexecJobNodeVo> getJobPhaseNodePortByIpAndUserNameAndProtocol(@Param("ipList") List<String> ip, @Param("userName") String userName, @Param("protocol") String protocol, @Param("schemaName") String schemaName);
+
+    List<AutoexecJobPhaseNodeVo> getJobPhaseNodeListByNodeIdList(@Param("nodeIdList") List<Long> nodeIdList);
+
+    int updateJobPhaseNodeListStatus(@Param("nodeIdList") List<Long> jobPhaseNodeIdList, @Param("status") String status);
 
     //jobPhaseOperation
     List<AutoexecJobPhaseOperationVo> getJobPhaseOperationByJobId(Long jobId);

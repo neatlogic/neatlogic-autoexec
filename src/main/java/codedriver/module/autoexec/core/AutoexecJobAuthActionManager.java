@@ -9,6 +9,7 @@ import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.dao.mapper.TeamMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import org.apache.commons.collections4.CollectionUtils;
@@ -46,25 +47,25 @@ public class AutoexecJobAuthActionManager {
     public void actionDispatcherInit() {
         actionMap.put("fireJob", (jobVo) -> {
             if (Objects.equals(JobStatus.PENDING.getValue(),jobVo.getStatus()) || jobVo.getPhaseList().stream().allMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.PENDING.getValue()))) {
-                jobVo.setIsCanJobFire(1);
+                throw new AutoexecJobCanNotFireException(jobVo.getId().toString());
             }
         });
 
         actionMap.put("pauseJob", (jobVo) -> {
             if (Objects.equals(JobStatus.RUNNING.getValue(),jobVo.getStatus())) {
-                jobVo.setIsCanJobPause(1);
+                throw new AutoexecJobCanNotPauseException(jobVo.getId().toString());
             }
         });
 
         actionMap.put("abortJob", (jobVo) -> {
             if (Objects.equals(JobStatus.RUNNING.getValue(),jobVo.getStatus())) {
-                jobVo.setIsCanJobAbort(1);
+                throw new AutoexecJobCanNotAbortException(jobVo.getId().toString());
             }
         });
 
         actionMap.put("goonJob", (jobVo) -> {
             if (Objects.equals(JobStatus.ABORTED.getValue(),jobVo.getStatus()) || Objects.equals(JobStatus.PAUSED.getValue(),jobVo.getStatus())) {
-                jobVo.setIsCanJobGoon(1);
+                throw new AutoexecJobCanNotGoonException(jobVo.getId().toString());
             }
         });
 
@@ -73,19 +74,22 @@ public class AutoexecJobAuthActionManager {
                 jobVo.setPhaseList(autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId()));
             }
             if (jobVo.getPhaseList().stream().noneMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.RUNNING.getValue())) && autoexecJobMapper.checkIsHasRunningNode(jobVo.getId()) == 0) {
-                jobVo.setIsCanJobReFire(1);
+                throw new AutoexecJobCanNotRefireException(jobVo.getId().toString());
             }
         });
 
         actionMap.put("resetJobNode", (jobVo) -> {
-            if (Objects.equals(JobStatus.ABORTED.getValue(),jobVo.getStatus()) || Objects.equals(JobStatus.PAUSED.getValue(),jobVo.getStatus()) || Objects.equals(JobStatus.COMPLETED.getValue(),jobVo.getStatus())) {
-                jobVo.setIsCanJobNodeReset(1);
-            }
         });
 
         actionMap.put("ignoreJobNode", (jobVo) -> {
             if (Objects.equals(JobStatus.ABORTED.getValue(),jobVo.getStatus()) || Objects.equals(JobStatus.PAUSED.getValue(),jobVo.getStatus()) || Objects.equals(JobStatus.COMPLETED.getValue(),jobVo.getStatus())) {
-                jobVo.setIsCanJobNodeIgnore(1);
+                throw new AutoexecJobCanNotIgnoreJobNodeException(jobVo.getNodeId().toString());
+            }
+        });
+
+        actionMap.put("refireJobNode", (jobVo) -> {
+            if (Objects.equals(JobStatus.ABORTED.getValue(),jobVo.getStatus()) || Objects.equals(JobStatus.PAUSED.getValue(),jobVo.getStatus()) || Objects.equals(JobStatus.COMPLETED.getValue(),jobVo.getStatus())) {
+                throw new AutoexecJobCanNotRefireJobNodeException(jobVo.getNodeId().toString());
             }
         });
     }
@@ -149,6 +153,11 @@ public class AutoexecJobAuthActionManager {
 
         public Builder addReFireJob() {
             this.actionList.add("reFireJob");
+            return this;
+        }
+
+        public Builder addResetJobNode() {
+            this.actionList.add("resetJobNode");
             return this;
         }
 
