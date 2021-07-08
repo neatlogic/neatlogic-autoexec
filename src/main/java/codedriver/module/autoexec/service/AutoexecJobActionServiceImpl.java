@@ -311,7 +311,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         String execMode = paramJson.getString("execMode");
         String url = String.format("%s/api/binary/job/phase/node/log/download?jobId=%s&phase=%s&ip=%s&port=%s&execMode=%s", runnerUrl, jobId, phase, ip, port, execMode);
         RestVo restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD());
-        RestUtil.sendGetRequest(restVo, response);
+        RestUtil.sendGetRequestForStream(restVo, response);
     }
 
     @Override
