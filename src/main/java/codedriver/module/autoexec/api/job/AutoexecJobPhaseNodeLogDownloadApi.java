@@ -27,8 +27,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.OutputStream;
-import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -60,8 +58,6 @@ public class AutoexecJobPhaseNodeLogDownloadApi extends PrivateBinaryStreamApiCo
 
     @Input({
             @Param(name = "nodeId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本节点Id"),
-            @Param(name = "logPos", type = ApiParamType.LONG, isRequired = true, desc = "日志读取位置,-1:获取最新的数据"),
-            @Param(name = "direction", type = ApiParamType.ENUM, rule = "up,down", isRequired = true, desc = "读取方向，up:向上读，down:向下读")
     })
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
@@ -72,25 +68,15 @@ public class AutoexecJobPhaseNodeLogDownloadApi extends PrivateBinaryStreamApiCo
         AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(nodeVo.getJobId(), nodeVo.getJobPhaseId());
         paramObj.put("jobId", nodeVo.getJobId());
         paramObj.put("phase", nodeVo.getJobPhaseName());
-        paramObj.put("phaseId", nodeVo.getJobPhaseId());
         paramObj.put("ip", nodeVo.getHost());
         paramObj.put("port", nodeVo.getPort());
         paramObj.put("runnerUrl", nodeVo.getRunnerUrl());
         paramObj.put("execMode", phaseVo.getExecMode());
-        paramObj.put("direction", "down");
-        JSONObject result = autoexecJobActionService.tailNodeLog(paramObj);
-        String tailContent = result.getString("tailContent");
-        if (StringUtils.isNotBlank(tailContent)) {
-            tailContent = tailContent.replaceAll("<div><span class='text-tip'>", "")
-                    .replaceAll("</span> <span class=''>", " ")
-                    .replaceAll("</span></div>", "\n");
-            String fileName = FileUtil.getEncodedFileName(request.getHeader("User-Agent"),
-                    nodeVo.getJobPhaseName() + "-" + nodeVo.getHost() + "-" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".log");
-            response.setContentType("text/plain");
-            response.setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
-            OutputStream os = response.getOutputStream();
-            os.write(tailContent.getBytes(StandardCharsets.UTF_8));
-        }
+        String fileName = FileUtil.getEncodedFileName(request.getHeader("User-Agent"),
+                nodeVo.getJobPhaseName() + "-" + nodeVo.getHost() + "-" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".log");
+        response.setContentType("text/plain");
+        response.setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
+        autoexecJobActionService.downloadNodeLog(paramObj, response);
         return null;
     }
 
