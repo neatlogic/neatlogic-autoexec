@@ -53,6 +53,7 @@ public class AutoexecScriptBaseInfoSaveApi extends PrivateApiComponentBase {
             @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sqlfile", desc = "执行方式", isRequired = true),
             @Param(name = "typeId", type = ApiParamType.LONG, desc = "脚本分类ID", isRequired = true),
             @Param(name = "riskId", type = ApiParamType.LONG, desc = "操作级别ID", isRequired = true),
+            @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
     })
     @Output({
     })
