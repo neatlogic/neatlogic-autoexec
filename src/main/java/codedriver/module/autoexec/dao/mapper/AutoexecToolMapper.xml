@@ -15,6 +15,7 @@
         <result column="execMode" property="execMode"/>
         <result column="typeId" property="typeId"/>
         <result column="typeName" property="typeName"/>
+        <result column="description" property="description"/>
         <result column="configStr" property="configStr"/>
         <association property="riskVo" javaType="codedriver.framework.autoexec.dto.AutoexecRiskVo">
             <result column="riskId" property="id"/>
@@ -34,6 +35,7 @@
         `risk_id` as riskId,
         (select `name` from `autoexec_risk` where `risk_id` = `id`) as riskName,
         (select `color` from `autoexec_risk` where `risk_id` = `id`) as riskColor,
+        `description`,
         `config` as configStr
         from `autoexec_tool`
         where `is_active` = 1

@@ -11,6 +11,7 @@
         `risk_id` as riskId,
         (select `name` from `autoexec_type` where a.`type_id` = `id`) as typeName,
         (select `name` from `autoexec_risk` where a.`risk_id` = `id`) as riskName,
+        `description`,
         `fcu`,
         `fcd`
         from `autoexec_script` a
@@ -419,6 +420,7 @@
         <result column="name" property="name"/>
         <result column="execMode" property="execMode"/>
         <result column="typeName" property="typeName"/>
+        <result column="description" property="description"/>
         <result column="submittedVersionId" property="submittedVersionId"/>
         <!--<result column="currentVersion" property="currentVersion"/>-->
         <!--<result column="versionCount" property="versionCount"/>-->
@@ -436,6 +438,7 @@
         `id`,
         `name`,
         `exec_mode` as execMode,
+        `description`,
         (select `name` from `autoexec_type` where a.`type_id` = `id`) as typeName,
         (select `name` from `autoexec_risk` where a.`risk_id` = `id`) as riskName,
         (select `color` from `autoexec_risk` where a.`risk_id` = `id`) as riskColor,
@@ -536,7 +539,8 @@
         a.`typeName`,
         a.`riskId`,
         a.`riskName`,
-        a.`riskColor`
+        a.`riskColor`,
+        a.`description`
         from
         (
         <if test="(type == null or type == '') or (type != null and type != '' and type == 'tool')">
@@ -549,7 +553,8 @@
             (select `name` from `autoexec_type` where `id` = `type_id`) as typeName,
             `risk_id` as riskId,
             (select `name` from `autoexec_risk` where `id` = `risk_id`) as riskName,
-            (select `color` from `autoexec_risk` where `id` = `risk_id`) as riskColor
+            (select `color` from `autoexec_risk` where `id` = `risk_id`) as riskColor,
+            `description`
             <include refid="searchToolAndScriptConditionForTool"/>
         </if>
         <if test="type == null or type == ''">
@@ -565,7 +570,8 @@
             (select `name` from `autoexec_type` where `id` = `type_id`) as typeName,
             `risk_id` as riskId,
             (select `name` from `autoexec_risk` where `id` = `risk_id`) as riskName,
-            (select `color` from `autoexec_risk` where `id` = `risk_id`) as riskColor
+            (select `color` from `autoexec_risk` where `id` = `risk_id`) as riskColor,
+            a.`description`
             <include refid="searchToolAndScriptConditionForScript"/>
         </if>
         ) a
@@ -582,6 +588,7 @@
         <result column="execMode" property="execMode"/>
         <result column="typeId" property="typeId"/>
         <result column="typeName" property="typeName"/>
+        <result column="description" property="description"/>
         <result column="configStr" property="configStr"/>
         <association property="riskVo" javaType="codedriver.framework.autoexec.dto.AutoexecRiskVo">
             <result column="riskId" property="id"/>
@@ -612,6 +619,7 @@
         a.`risk_id` as riskId,
         (select `name` from `autoexec_risk` where a.`risk_id` = `id`) as riskName,
         (select `color` from `autoexec_risk` where a.`risk_id` = `id`) as riskColor,
+        a.`description`,
         c.`key`,
         c.`name` as paramName,
         c.`default_value` as defaultValue,
@@ -769,7 +777,8 @@
         `name` = #{name},
         `exec_mode` = #{execMode},
         `type_id` = #{typeId},
-        `risk_id` = #{riskId}
+        `risk_id` = #{riskId},
+        `description` = #{description}
         where `id` = #{id}
     </update>
 
@@ -805,6 +814,7 @@
         `type_id`,
         `risk_id`,
         `exec_mode`,
+        `description`,
         `fcu`,
         `fcd`
         )values (
@@ -813,6 +823,7 @@
         #{typeId},
         #{riskId},
         #{execMode},
+        #{description},
         #{fcu},
         now(3)
         )
