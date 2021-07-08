@@ -12,6 +12,9 @@ import codedriver.framework.autoexec.constvalue.ToolType;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
+import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecToolNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -65,18 +68,27 @@ public class AutoexecScriptOrToolInputParamGetApi extends PrivateApiComponentBas
             @Param(name = "type", type = ApiParamType.ENUM, rule = "script,tool", isRequired = true, desc = "工具或自定义工具"),
     })
     @Output({
-            @Param(name = "Return", explode = AutoexecParamVo[].class, desc = "输入参数"),
+            @Param(name = "name", type = ApiParamType.STRING, desc = "名称"),
+            @Param(name = "inputParamList", explode = AutoexecParamVo[].class, desc = "输入参数"),
     })
     @Description(desc = "获取工具或自定义工具输入参数")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
+        JSONObject result = new JSONObject();
         Long id = jsonObj.getLong("id");
         String type = jsonObj.getString("type");
+        String name;
         List<AutoexecParamVo> inputParamList = null;
         if (ToolType.SCRIPT.getValue().equals(type)) {
-            if (autoexecScriptMapper.getVersionByVersionId(id) == null) {
+            AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(id);
+            if (version == null) {
                 throw new AutoexecScriptVersionNotFoundException(id);
             }
+            AutoexecScriptVo script = autoexecScriptMapper.getScriptBaseInfoById(version.getScriptId());
+            if (script == null) {
+                throw new AutoexecScriptNotFoundException(version.getScriptId());
+            }
+            name = script.getName();
             List<AutoexecScriptVersionParamVo> paramList = autoexecScriptMapper.getParamListByVersionId(id);
             if (CollectionUtils.isNotEmpty(paramList)) {
                 inputParamList = paramList.stream()
@@ -89,6 +101,7 @@ public class AutoexecScriptOrToolInputParamGetApi extends PrivateApiComponentBas
             if (tool == null) {
                 throw new AutoexecToolNotFoundException(id);
             }
+            name = tool.getName();
             inputParamList = tool.getInputParamList();
         }
         if (CollectionUtils.isNotEmpty(inputParamList)) {
@@ -96,7 +109,9 @@ public class AutoexecScriptOrToolInputParamGetApi extends PrivateApiComponentBas
                 autoexecService.mergeConfig(autoexecParamVo);
             }
         }
-        return inputParamList;
+        result.put("name", name);
+        result.put("inputParamList", inputParamList);
+        return result;
     }
 
 }
