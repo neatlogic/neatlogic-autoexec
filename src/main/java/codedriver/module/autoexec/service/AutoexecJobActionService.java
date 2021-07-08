@@ -9,6 +9,8 @@ import codedriver.framework.autoexec.dto.job.*;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
+import javax.servlet.http.HttpServletResponse;
+import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
 
@@ -53,6 +55,14 @@ public interface AutoexecJobActionService {
      * @return 执行日志
      */
     JSONObject tailNodeLog(JSONObject paramJson);
+
+    /**
+     * 下载剧本节点执行日志
+     * @param paramJson 入参
+     * @param response
+     * @throws IOException
+     */
+    void downloadNodeLog(JSONObject paramJson, HttpServletResponse response) throws IOException;
 
     /**
      * 暂停作业
