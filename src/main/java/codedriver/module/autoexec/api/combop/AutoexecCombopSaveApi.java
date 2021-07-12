@@ -152,12 +152,12 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
                 autoexecCombopMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
             }
             autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
-            int iSort = 0;
+//            int iSort = 0;
             List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
             for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
                 if (autoexecCombopPhaseVo != null) {
                     autoexecCombopPhaseVo.setCombopId(id);
-                    autoexecCombopPhaseVo.setSort(iSort++);
+//                    autoexecCombopPhaseVo.setSort(iSort++);
                     AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
                     List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
                     Long combopPhaseId = autoexecCombopPhaseVo.getId();
