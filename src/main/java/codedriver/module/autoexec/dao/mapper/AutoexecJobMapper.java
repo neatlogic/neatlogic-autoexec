@@ -90,9 +90,9 @@ public interface AutoexecJobMapper {
 
     List<AutoexecJobPhaseNodeVo> getJobPhaseNodeListByJobIdAndPhaseNameAndExceptStatusAndRunnerId(@Param("jobId") Long jobId, @Param("phaseName") String phaseName, @Param("exceptStatus") List<String> exceptStatus, @Param("runnerId") Integer runnerId);
 
-    int checkIsHasRunningNode(Long id);
+    List<AutoexecJobPhaseNodeVo> getJobPhaseNodeListByJobIdAndPhaseIdAndExceptStatus(@Param("jobId") Long jobId, @Param("phaseId") Long phaseId, @Param("exceptStatus") List<String> exceptStatus);
 
-    List<AutoexecJobNodeVo> getJobPhaseNodePortByIpAndUserNameAndProtocol(@Param("ipList") List<String> ip, @Param("userName") String userName, @Param("protocol") String protocol, @Param("schemaName") String schemaName);
+    int checkIsHasRunningNode(Long id);
 
     List<AutoexecJobPhaseNodeVo> getJobPhaseNodeListByNodeIdList(@Param("nodeIdList") List<Long> nodeIdList);
 

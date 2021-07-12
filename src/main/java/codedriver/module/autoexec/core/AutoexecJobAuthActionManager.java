@@ -46,25 +46,25 @@ public class AutoexecJobAuthActionManager {
     @PostConstruct
     public void actionDispatcherInit() {
         actionMap.put("fireJob", (jobVo) -> {
-            if (Objects.equals(JobStatus.PENDING.getValue(),jobVo.getStatus()) || jobVo.getPhaseList().stream().allMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.PENDING.getValue()))) {
+            if (!Objects.equals(JobStatus.PENDING.getValue(),jobVo.getStatus()) && !jobVo.getPhaseList().stream().allMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.PENDING.getValue()))) {
                 throw new AutoexecJobCanNotFireException(jobVo.getId().toString());
             }
         });
 
         actionMap.put("pauseJob", (jobVo) -> {
-            if (Objects.equals(JobStatus.RUNNING.getValue(),jobVo.getStatus())) {
+            if (!Objects.equals(JobStatus.RUNNING.getValue(),jobVo.getStatus())) {
                 throw new AutoexecJobCanNotPauseException(jobVo.getId().toString());
             }
         });
 
         actionMap.put("abortJob", (jobVo) -> {
-            if (Objects.equals(JobStatus.RUNNING.getValue(),jobVo.getStatus())) {
+            if (!Objects.equals(JobStatus.RUNNING.getValue(),jobVo.getStatus())) {
                 throw new AutoexecJobCanNotAbortException(jobVo.getId().toString());
             }
         });
 
         actionMap.put("goonJob", (jobVo) -> {
-            if (Objects.equals(JobStatus.ABORTED.getValue(),jobVo.getStatus()) || Objects.equals(JobStatus.PAUSED.getValue(),jobVo.getStatus())) {
+            if (!Objects.equals(JobStatus.ABORTED.getValue(),jobVo.getStatus()) && !Objects.equals(JobStatus.PAUSED.getValue(),jobVo.getStatus())) {
                 throw new AutoexecJobCanNotGoonException(jobVo.getId().toString());
             }
         });
@@ -73,7 +73,7 @@ public class AutoexecJobAuthActionManager {
             if(CollectionUtils.isEmpty(jobVo.getPhaseList())){
                 jobVo.setPhaseList(autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId()));
             }
-            if (jobVo.getPhaseList().stream().noneMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.RUNNING.getValue())) && autoexecJobMapper.checkIsHasRunningNode(jobVo.getId()) == 0) {
+            if (jobVo.getPhaseList().stream().anyMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.RUNNING.getValue())) || autoexecJobMapper.checkIsHasRunningNode(jobVo.getId()) != 0) {
                 throw new AutoexecJobCanNotRefireException(jobVo.getId().toString());
             }
         });
@@ -82,13 +82,13 @@ public class AutoexecJobAuthActionManager {
         });
 
         actionMap.put("ignoreJobNode", (jobVo) -> {
-            if (Objects.equals(JobStatus.ABORTED.getValue(),jobVo.getStatus()) || Objects.equals(JobStatus.PAUSED.getValue(),jobVo.getStatus()) || Objects.equals(JobStatus.COMPLETED.getValue(),jobVo.getStatus())) {
+            if (!Objects.equals(JobStatus.ABORTED.getValue(),jobVo.getStatus()) && !Objects.equals(JobStatus.PAUSED.getValue(),jobVo.getStatus()) && !Objects.equals(JobStatus.COMPLETED.getValue(),jobVo.getStatus())) {
                 throw new AutoexecJobCanNotIgnoreJobNodeException(jobVo.getNodeId().toString());
             }
         });
 
         actionMap.put("refireJobNode", (jobVo) -> {
-            if (Objects.equals(JobStatus.ABORTED.getValue(),jobVo.getStatus()) || Objects.equals(JobStatus.PAUSED.getValue(),jobVo.getStatus()) || Objects.equals(JobStatus.COMPLETED.getValue(),jobVo.getStatus())) {
+            if (!Objects.equals(JobStatus.ABORTED.getValue(),jobVo.getStatus()) && !Objects.equals(JobStatus.PAUSED.getValue(),jobVo.getStatus()) && !Objects.equals(JobStatus.COMPLETED.getValue(),jobVo.getStatus())) {
                 throw new AutoexecJobCanNotRefireJobNodeException(jobVo.getNodeId().toString());
             }
         });

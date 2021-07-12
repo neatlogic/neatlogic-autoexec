@@ -149,24 +149,19 @@
         ajpn.`start_time` AS startTime,
         ajpn.`end_time` AS endTime,
         ajpn.`status`,
-        arm.`runner_id` AS runnerId,
         rai.`id` AS nodeId,
         rai.name AS nodeName,
-        cra.`protocol` AS nodeType,
+        arm.`runner_id` AS runnerId,
         ajpn.`user_name` AS userName,
-        cra.`password`,
         ap.`url` AS runnerUrl
         FROM
         `autoexec_job_phase_node` ajpn
+        LEFT JOIN `autoexec_job_phase` ajp ON ajpn.`job_phase_id` = ajp.`id`
         LEFT JOIN
         (
         SELECT ri.id AS id, ri.name ,rii.`ip` FROM ${schemaName}.`resource_ipobject_ip` rii
         LEFT JOIN ${schemaName}.`resource_ipobject` ri ON rii.`resource_id` = ri.`id`
-        ) rai ON rai.`ip` = ajpn.`host` AND ajpn.name = rai.name
-        LEFT JOIN `cmdb_resourcecenter_resource_account` crra ON rai.id = crra.resource_id
-        LEFT JOIN `cmdb_resourcecenter_account` cra ON crra.`account_id` = cra.`id` AND ajpn.`user_name` = cra.`account`
-        AND ajpn.`protocol` = cra.`protocol`
-        LEFT JOIN `autoexec_job_phase` ajp ON ajpn.`job_phase_id` = ajp.`id`
+        ) rai ON ajpn.resource_id = rai.id
         LEFT JOIN `autoexec_job_phase_node_runner` ajpnr ON ajpn.id = ajpnr.`node_id`
         LEFT JOIN `autoexec_runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
         LEFT JOIN `autoexec_runner` ap ON arm.`runner_id` = ap.`id`
@@ -186,7 +181,7 @@
         (
         SELECT ri.id AS id, ri.name ,rii.`ip` FROM ${schemaName}.`resource_ipobject_ip` rii
         LEFT JOIN ${schemaName}.`resource_ipobject` ri ON rii.`resource_id` = ri.`id`
-        ) rai ON ajpn.host = rai.ip AND ajpn.name = rai.name
+        ) rai ON ajpn.resource_id = rai.id
         LEFT JOIN `autoexec_job_phase_node_runner` ajpnr ON ajpn.id = ajpnr.`node_id`
         LEFT JOIN `autoexec_runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
         <where>
@@ -442,22 +437,8 @@
         SELECT ajn.`id`,
                ajn.`host`,
                ajn.port,
-               rai.`id`       AS nodeId,
-               rai.`name`     AS nodeName,
-               ajn.`protocol` AS nodeType,
-               cra.`account`  AS userName,
-               cra.`password`
+               ajn.`protocol` AS nodeType
         FROM `autoexec_job_node` ajn
-                 LEFT JOIN
-             (
-                 SELECT ri.id AS id, ri.name, rii.`ip`
-                 FROM ${schemaName}.`resource_ipobject_ip` rii
-                          LEFT JOIN ${schemaName}.`resource_ipobject` ri ON rii.`resource_id` = ri.`id`
-             ) rai ON ajn.host = rai.ip
-                 LEFT JOIN `cmdb_resourcecenter_resource_account` crra ON rai.id = crra.resource_id
-                 LEFT JOIN `cmdb_resourcecenter_account` cra
-                           ON crra.`account_id` = cra.`id` AND ajn.`user_name` = cra.`account` AND
-                              ajn.`protocol` = cra.`protocol`
         where ajn.job_id = #{jobId}
         limit #{startNum}, #{pageSize}
     </select>
@@ -559,22 +540,10 @@
                ajp.`name`          AS jobPhaseName,
                ajpn.`name`         AS nodeName,
                ajpn.`protocol`     AS nodeType,
-               cra.`account`       AS userName,
-               cra.`password`,
                ap.`id`             AS runnerId,
                ap.`url`            AS runnerUrl
         FROM `autoexec_job_phase_node` ajpn
                  LEFT JOIN `autoexec_job_phase` ajp ON ajpn.`job_phase_id` = ajp.`id`
-                 LEFT JOIN
-             (
-                 SELECT ri.id AS id, ri.name, rii.`ip`
-                 FROM ${schemaName}.`resource_ipobject_ip` rii
-                          LEFT JOIN ${schemaName}.`resource_ipobject` ri ON rii.`resource_id` = ri.`id`
-             ) rai ON rai.`ip` = ajpn.`host` AND ajpn.name = rai.name
-                 LEFT JOIN `cmdb_resourcecenter_resource_account` crra ON rai.id = crra.resource_id
-                 LEFT JOIN `cmdb_resourcecenter_account` cra
-                           ON crra.`account_id` = cra.`id` AND ajpn.`user_name` = cra.`account`
-                               AND ajpn.`protocol` = cra.`protocol`
                  LEFT JOIN `autoexec_job_phase_node_runner` ajpnr ON ajpn.id = ajpnr.`node_id`
                  LEFT JOIN `autoexec_runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
                  LEFT JOIN `autoexec_runner` ap ON arm.`runner_id` = ap.`id`
@@ -631,6 +600,25 @@
             #{status}
         </foreach>
     </select>
+
+    <select id="getJobPhaseNodeListByJobIdAndPhaseIdAndExceptStatus"
+            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
+        SELECT ajpn.`id`,
+        ajpn.`job_id` AS jobId,
+        ajpn.`job_phase_id` AS jobPhaseId,
+        ajpn.`host`,
+        ajpn.`port`,
+        ajpn.`start_time` AS startTime,
+        ajpn.`end_time` AS endTime,
+        ajpn.`status`,
+        FROM `autoexec_job_phase_node` ajpn
+        where ajpn.`job_id` = #{jobId} and ajpn.`job_phase_id` = #{phaseId} and
+        ajpn.`status` not in
+        <foreach collection="exceptStatus" item="status" separator="," open="(" close=")">
+            #{status}
+        </foreach>
+    </select>
+
     <select id="getJobRunnerListByJobId" resultType="codedriver.framework.autoexec.dto.AutoexecRunnerVo">
         SELECT DISTINCT ar.`id`, ar.`name`, ar.`url`, ar.`host`, ar.`port`
         FROM `autoexec_job_phase_node` ajpn
@@ -669,19 +657,6 @@
         where `hash` in
         <foreach collection="hashList" separator="," open="(" close=")" item="hash">
             #{hash}
-        </foreach>
-    </select>
-    <select id="getJobPhaseNodePortByIpAndUserNameAndProtocol"
-            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobNodeVo">
-        SELECT
-        cra.port,rii.ip AS HOST,ri.name AS nodeName
-        FROM ${schemaName}.`resource_ipobject_ip` rii
-        LEFT JOIN ${schemaName}.`resource_ipobject` ri ON rii.`resource_id` = ri.`id`
-        LEFT JOIN `cmdb_resourcecenter_resource_account` crra ON rii.`resource_id` = crra.resource_id
-        LEFT JOIN `cmdb_resourcecenter_account` cra ON crra.`account_id` = cra.`id`
-        WHERE cra.`account` = #{userName} AND cra.`protocol` = #{protocol} AND rii.ip in
-        <foreach collection="ipList" item="ip" open="(" separator="," close=")">
-            #{ip}
         </foreach>
     </select>
 
@@ -820,6 +795,7 @@
                                                `protocol`,
                                                `name`,
                                                `user_name`,
+                                               `resource_id`,
                                                `status`)
         VALUES (#{id},
                 #{jobId},
@@ -829,6 +805,7 @@
                 #{protocol},
                 #{nodeName},
                 #{userName},
+                #{resourceId},
                 #{status});
     </insert>
 

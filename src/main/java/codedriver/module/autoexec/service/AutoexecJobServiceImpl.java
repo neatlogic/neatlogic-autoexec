@@ -19,8 +19,10 @@ import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
-import codedriver.framework.autoexec.exception.AutoexecJobNodeSshCountNotFoundException;
-import codedriver.framework.cmdb.enums.resourcecenter.Protocol;
+import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
+import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
+import codedriver.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
+import codedriver.framework.cmdb.dto.resourcecenter.ResourceVo;
 import codedriver.framework.util.IpUtil;
 import codedriver.module.autoexec.dao.mapper.*;
 import com.alibaba.fastjson.JSON;
@@ -31,6 +33,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 /**
@@ -50,6 +53,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     AutoexecCombopMapper autoexecCombopMapper;
     @Resource
     AutoexecRunnerMapper autoexecRunnerMapper;
+
+    @Resource
+    ResourceCenterMapper resourceCenterMapper;
 
     @Override
     public AutoexecJobVo saveAutoexecCombopJob(AutoexecCombopVo combopVo, String source, Integer threadCount, JSONObject paramJson) {
@@ -86,7 +92,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             //如果是target 则获取执行目标，否则随机分配runner
             if (Objects.equals(autoexecCombopPhaseVo.getExecMode(), ExecMode.TARGET.getValue())) {
                 AutoexecCombopExecuteConfigVo executeConfigVo = phaseConfigVo.getExecuteConfig();
-                int isPhaseSetNode = 0;
+                boolean isPhaseSetNode = false;
                 if (executeConfigVo != null) {
                     if (StringUtils.isNotBlank(executeConfigVo.getExecuteUser())) {
                         userName = executeConfigVo.getExecuteUser();
@@ -95,11 +101,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                         protocol = executeConfigVo.getProtocol();
                     }
                     if (executeConfigVo.getExecuteNodeConfig() != null) {
-                        isPhaseSetNode = getJobNodeList(executeConfigVo, jobVo.getId(), jobPhaseVo.getId(), jobVo.getOperationId(), userName, protocol);
+                        isPhaseSetNode = getJobNodeList(executeConfigVo, jobVo.getId(), jobPhaseVo.getId(), jobVo.getOperationId(), userName, protocol).get();
                     }
                 }
                 //如果阶段没有设置执行目标，则使用节点执行目标
-                if (nodeConfigVo != null && isPhaseSetNode == 0) {
+                if (nodeConfigVo != null && !isPhaseSetNode) {
                     getJobNodeList(nodeConfigVo, jobVo.getId(), jobPhaseVo.getId(), jobVo.getOperationId(), userName, protocol);
                 }
             } else {
@@ -168,7 +174,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                     AutoexecJobPhaseVo jobPhaseVo = jobPhaseVos.get(0);
                     jobPhaseVo.setCombopId(jobVo.getOperationId());
                     AutoexecCombopExecuteConfigVo executeConfigVo = phaseConfigVo.getExecuteConfig();
-                    int isPhaseSetNode = 0;
+                    boolean isPhaseSetNode = false;
                     if (executeConfigVo != null) {
                         if (StringUtils.isNotBlank(executeConfigVo.getExecuteUser())) {
                             userName = executeConfigVo.getExecuteUser();
@@ -177,10 +183,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                             protocol = executeConfigVo.getProtocol();
                         }
                         if (executeConfigVo.getExecuteNodeConfig() != null) {
-                            isPhaseSetNode = getJobNodeList(executeConfigVo, jobVo.getId(), jobPhaseVo.getId(), jobVo.getOperationId(), userName, protocol);
+                            isPhaseSetNode = getJobNodeList(executeConfigVo, jobVo.getId(), jobPhaseVo.getId(), jobVo.getOperationId(), userName, protocol).get();
                         }
                     }
-                    if (nodeConfigVo != null && isPhaseSetNode == 0) {
+                    if (nodeConfigVo != null && !isPhaseSetNode) {
                         getJobNodeList(nodeConfigVo, jobVo.getId(), jobPhaseVo.getId(), jobVo.getOperationId(), userName, protocol);
                     }
                 }
@@ -242,75 +248,35 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
      * @param protocol     连接node 协议
      * @return 是否有node
      */
-    private int getJobNodeList(AutoexecCombopExecuteConfigVo nodeConfigVo, Long jobId, Long phaseId, Long combopId, String userName, String protocol) {
-        int isHasNode = 0;
-
+    private AtomicBoolean getJobNodeList(AutoexecCombopExecuteConfigVo nodeConfigVo, Long jobId, Long phaseId, Long combopId, String userName, String protocol) {
+        AtomicBoolean isHasNode = new AtomicBoolean(false);
+        Map<Long, ResourceVo> resourceMap = new HashMap<>();
+        List<Long> resourceIdList = new ArrayList<>();
         AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = nodeConfigVo.getExecuteNodeConfig();
         //tagList
-        List<Long> tagList = executeNodeConfigVo.getTagList();
-        if (CollectionUtils.isNotEmpty(tagList)) {
-            for (Long tag : tagList) {
-                //TODO 待资源中心完成后，继续实现标签逻辑
+        List<Long> tagIdList = executeNodeConfigVo.getTagList();
+        if (CollectionUtils.isNotEmpty(tagIdList)) {
+            List<Long> resourceIdListTmp = resourceCenterMapper.getResourceIdListByTagIdList(new ResourceSearchVo(tagIdList));
+            if(CollectionUtils.isNotEmpty(resourceIdList)){
+                resourceIdList.addAll(resourceIdListTmp);
             }
-            isHasNode = 1;
         }
-
         //inputNodeList、selectNodeList
         if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getInputNodeList()) || CollectionUtils.isNotEmpty(executeNodeConfigVo.getSelectNodeList())) {
             List<AutoexecNodeVo> nodeVoList = executeNodeConfigVo.getInputNodeList();
             nodeVoList.addAll(executeNodeConfigVo.getSelectNodeList());
-            //ssh 需根据IP protocol 和 username 获取对应的port 和 name
-            if (Objects.equals(Protocol.SSH.getValue(), protocol)) {
-                List<String> nodeIpList = new ArrayList<String>();
-                List<AutoexecJobNodeVo> autoexecJobVoList = autoexecJobMapper.getJobPhaseNodePortByIpAndUserNameAndProtocol(nodeVoList.stream().map(AutoexecNodeVo::getIp).collect(Collectors.toList()), userName, protocol, TenantContext.get().getDataDbName());
-                Map<String, Integer> nodePortMap = new HashMap<>();
-                Map<String, String> nodeNameMap = new HashMap<>();
-                autoexecJobVoList.forEach(o -> {
-                    nodePortMap.put(o.getHost(), o.getPort());
-                    nodeNameMap.put(o.getHost(), o.getNodeName());
+            List<ResourceVo> resourceVoList = resourceCenterMapper.getResourceListByIpList(nodeVoList.stream().map(AutoexecNodeVo::getIp).collect(Collectors.toList()), TenantContext.get().getDataDbName());
+            if(CollectionUtils.isNotEmpty(resourceVoList)){
+                resourceVoList.forEach(o->{
+                    resourceMap.put(o.getId(),o);
                 });
-                for (AutoexecNodeVo nodeVo : nodeVoList) {
-                    if (!nodeIpList.contains(nodeVo.getIp())) {
-                        nodeIpList.add(nodeVo.getIp());
-                        if (phaseId != null) {
-                            AutoexecJobPhaseNodeVo jobPhaseNodeVo = new AutoexecJobPhaseNodeVo(nodeVo, jobId, phaseId, JobNodeStatus.PENDING.getValue(), userName, protocol);
-                            if (!nodePortMap.containsKey(nodeVo.getIp())) {
-                                throw new AutoexecJobNodeSshCountNotFoundException(userName + "@" + nodeVo.getIp());
-                            }
-                            jobPhaseNodeVo.setPort(nodePortMap.get(nodeVo.getIp()));
-                            jobPhaseNodeVo.setNodeName(nodeNameMap.get(nodeVo.getIp()));
-                            jobPhaseNodeVo.setRunnerMapId(getRunnerByIp(jobPhaseNodeVo.getHost()));
-                            autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
-                            autoexecJobMapper.insertJobPhaseNodeRunner(jobPhaseNodeVo.getId(), jobPhaseNodeVo.getRunnerMapId());
-                            autoexecJobMapper.insertJobPhaseRunner(jobPhaseNodeVo.getJobId(), jobPhaseNodeVo.getJobPhaseId(), jobPhaseNodeVo.getRunnerMapId());
-                            isHasNode = 1;
-                        } else {
-                            //TODO 没有意义？ 作业的执行节点，因为有tag，节点可能会变
-//                            AutoexecJobNodeVo jobNodeVo = new AutoexecJobNodeVo(nodeVo.getIp(), jobId, userName, protocol);
-//                            autoexecJobMapper.insertJobNode(jobNodeVo);
-                        }
-                    }
-
-                }
-            } else {//TODO 其它协议
-                for (AutoexecNodeVo nodeVo : nodeVoList) {
-                    if (phaseId != null) {
-                        AutoexecJobPhaseNodeVo jobPhaseNodeVo = new AutoexecJobPhaseNodeVo(nodeVo, jobId, phaseId, JobNodeStatus.PENDING.getValue(), userName, protocol);
-                        jobPhaseNodeVo.setRunnerMapId(getRunnerByIp(jobPhaseNodeVo.getHost()));
-                        autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
-                        autoexecJobMapper.insertJobPhaseNodeRunner(jobPhaseNodeVo.getId(), jobPhaseNodeVo.getRunnerMapId());
-                        autoexecJobMapper.insertJobPhaseRunner(jobPhaseNodeVo.getJobId(), jobPhaseNodeVo.getJobPhaseId(), jobPhaseNodeVo.getRunnerMapId());
-                        isHasNode = 1;
-                    } else {
-                        //TODO 没有意义？ 作业的执行节点，因为有tag，节点可能会变
-//                            AutoexecJobNodeVo jobNodeVo = new AutoexecJobNodeVo(nodeVo.getIp(), jobId, userName, protocol);
-//                            autoexecJobMapper.insertJobNode(jobNodeVo);
-                    }
+                List<Long> resourceIdListTmp = resourceVoList.stream().map(ResourceVo::getId).collect(Collectors.toList());
+                if(CollectionUtils.isNotEmpty(resourceIdListTmp)){
+                    resourceIdList.addAll(resourceIdListTmp);
                 }
             }
-
-
         }
+
         //paramList
         List<String> paramList = executeNodeConfigVo.getParamList();
         if (CollectionUtils.isNotEmpty(paramList)) {
@@ -320,9 +286,27 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 /*if (!nodeIpList.contains(jobPhaseNodeVoTmp.getHost())) {
                     nodeIpList.add(jobPhaseNodeVoTmp.getHost());
                 }*/
+                //TODO
             }
-            isHasNode = 1;
         }
+
+        //找到资源账号的才存到db
+        if(CollectionUtils.isNotEmpty(resourceIdList)) {
+            List<AccountVo> accountVoList = resourceCenterMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIdList, protocol, userName);
+            accountVoList.forEach(o -> {
+                if (resourceMap.containsKey(o.getResourceId())) {
+                    ResourceVo resourceVo = resourceMap.get(o.getResourceId());
+                    AutoexecJobPhaseNodeVo jobPhaseNodeVo = new AutoexecJobPhaseNodeVo(resourceVo, jobId, phaseId, JobNodeStatus.PENDING.getValue(), userName, protocol);
+                    jobPhaseNodeVo.setPort(o.getPort());
+                    jobPhaseNodeVo.setRunnerMapId(getRunnerByIp(jobPhaseNodeVo.getHost()));
+                    autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
+                    autoexecJobMapper.insertJobPhaseNodeRunner(jobPhaseNodeVo.getId(), jobPhaseNodeVo.getRunnerMapId());
+                    autoexecJobMapper.insertJobPhaseRunner(jobPhaseNodeVo.getJobId(), jobPhaseNodeVo.getJobPhaseId(), jobPhaseNodeVo.getRunnerMapId());
+                    isHasNode.set(true);
+                }
+            });
+        }
+
         return isHasNode;
     }
 

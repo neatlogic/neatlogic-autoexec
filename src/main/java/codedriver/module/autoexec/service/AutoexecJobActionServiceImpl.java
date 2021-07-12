@@ -405,7 +405,17 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
      */
     @Override
     public void resetNode(AutoexecJobVo jobVo) {
-        //更新节点状态
+        //更新阶段状态
+        AutoexecJobPhaseVo currentPhaseVo = jobVo.getPhaseList().get(0);
+        List<String> exceptStatus = Arrays.asList(JobNodeStatus.IGNORED.getValue(), JobNodeStatus.FAILED.getValue(), JobNodeStatus.SUCCEED.getValue());
+        List<AutoexecJobPhaseNodeVo> jobPhaseNodeVoList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseIdAndExceptStatus(currentPhaseVo.getJobId(), currentPhaseVo.getId(), exceptStatus);
+        if(CollectionUtils.isNotEmpty(jobPhaseNodeVoList)&&jobPhaseNodeVoList.size() == 1){//如果该阶段只有一个节点
+            currentPhaseVo.setStatus(JobPhaseStatus.PENDING.getValue());
+        }else{
+            currentPhaseVo.setStatus(JobPhaseStatus.RUNNING.getValue());
+        }
+        autoexecJobMapper.updateJobPhaseStatus(currentPhaseVo);
+        //更新节点状态为
         autoexecJobMapper.updateJobPhaseNodeListStatus(jobVo.getJobPhaseNodeList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()), JobNodeStatus.PENDING.getValue());
         //清除runner node状态
         List<AutoexecRunnerVo> runnerVos = checkRunnerHealth(jobVo);
@@ -416,7 +426,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             paramJson.put("jobId", jobVo.getId());
             paramJson.put("tenant", TenantContext.get().getTenantUuid());
             paramJson.put("execUser", UserContext.get().getUserUuid(true));
-            paramJson.put("phaseName", jobVo.getPhaseList().get(0).getName());
+            paramJson.put("phaseName", currentPhaseVo.getName());
             paramJson.put("phaseNodeList", jobVo.getJobPhaseNodeList());
             for (AutoexecRunnerVo runner : runnerVos) {
                 String url = runner.getUrl() + "api/rest/job/resetNode";

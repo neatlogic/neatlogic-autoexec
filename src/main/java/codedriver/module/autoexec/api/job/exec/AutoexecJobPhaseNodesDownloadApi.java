@@ -10,6 +10,8 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
+import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
+import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.constvalue.CacheControlType;
 import codedriver.framework.common.util.PageUtil;
@@ -25,11 +27,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 
@@ -38,6 +43,9 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
 
     @Autowired
     private AutoexecJobMapper autoexecJobMapper;
+
+    @Resource
+    ResourceCenterMapper resourceCenterMapper;
 
     @Override
     public String getToken() {
@@ -106,15 +114,22 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
             }else{
                 autoexecJobPhaseNodeVoList = autoexecJobMapper.searchJobNodeByJobId(nodeParamVo);
             }
+            String protocol = autoexecJobPhaseNodeVoList.get(0).getProtocol();
+            String userName = autoexecJobPhaseNodeVoList.get(0).getUserName();
+            List<Long> resourceIdList = autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getResourceId).collect(Collectors.toList());
+            //List<ResourceVo> resourceVoList = resourceCenterMapper.getResourceListByIdList(resourceIdList, TenantContext.get().getDataDbName());
+            List<AccountVo> accountVoList = resourceCenterMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIdList, protocol,userName);
             for (AutoexecJobPhaseNodeVo nodeVo : autoexecJobPhaseNodeVoList){
                 JSONObject nodeJson = new JSONObject(){{
-                    put("nodeId",nodeVo.getId());
+                    AccountVo accountVoTmp = (AccountVo) accountVoList.stream().filter(o-> Objects.equals(o.getResourceId(),nodeVo.getResourceId()));
+                    //ResourceVo resourceVo = (ResourceVo) resourceVoList.stream().filter(o-> Objects.equals(o.getId(),nodeVo.getResourceId()));
+                    put("nodeId",nodeVo.getNodeId());
                     put("nodeName",nodeVo.getNodeName());
-                    put("nodeType",nodeVo.getNodeType());
+                    put("nodeType",accountVoTmp.getProtocol());
                     put("host",nodeVo.getHost());
                     put("port",nodeVo.getPort());
-                    put("username",nodeVo.getUserName());
-                    put("password", RC4Util.decrypt(nodeVo.getPassword()));
+                    put("username",accountVoTmp.getAccount());
+                    put("password", RC4Util.decrypt(accountVoTmp.getPassword()));
                 }};
                 response.setContentType("application/json");
                 response.setHeader("Content-Disposition", " attachment; filename=nodes.json");

@@ -8,6 +8,8 @@ package codedriver.module.autoexec.api.job;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
+import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
+import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
 import codedriver.framework.common.util.PageUtil;
@@ -17,10 +19,13 @@ import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author lvzk
@@ -36,6 +41,9 @@ public class AutoexecJobPhaseNodeSearchApi extends PrivateApiComponentBase {
 
     @Resource
     AutoexecJobService autoexecJobService;
+
+    @Resource
+    ResourceCenterMapper resourceCenterMapper;
 
     @Override
     public String getName() {
@@ -66,6 +74,17 @@ public class AutoexecJobPhaseNodeSearchApi extends PrivateApiComponentBase {
         JSONObject result = new JSONObject();
         AutoexecJobPhaseNodeVo jobPhaseNodeVo = JSONObject.toJavaObject(jsonObj, AutoexecJobPhaseNodeVo.class);
         List<AutoexecJobPhaseNodeVo> jobPhaseNodeVoList = autoexecJobMapper.searchJobPhaseNode(jobPhaseNodeVo);
+        String protocol = jobPhaseNodeVoList.get(0).getProtocol();
+        String userName = jobPhaseNodeVoList.get(0).getUserName();
+        List<Long> resourceIdList = jobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getResourceId).collect(Collectors.toList());
+        List<AccountVo> accountVoList = resourceCenterMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIdList, protocol,userName);
+        jobPhaseNodeVoList.forEach(o->{
+            List<AccountVo> accountVoTmpList = accountVoList.stream().filter(a-> Objects.equals(a.getResourceId(),o.getResourceId())).collect(Collectors.toList());
+            if(CollectionUtils.isNotEmpty(accountVoTmpList)) {
+                o.setUserName(accountVoTmpList.get(0).getAccount());
+                o.setPassword(accountVoTmpList.get(0).getPassword());
+            }
+        });
         result.put("tbodyList", jobPhaseNodeVoList);
         if (jobPhaseNodeVo.getNeedPage()) {
             int rowNum = autoexecJobMapper.searchJobPhaseNodeCount(jobPhaseNodeVo);
