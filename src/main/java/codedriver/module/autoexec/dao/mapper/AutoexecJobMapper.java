@@ -84,7 +84,7 @@ public interface AutoexecJobMapper {
 
     int updateJobPhaseNodeStatus(AutoexecJobPhaseNodeVo nodeVo);
 
-    AutoexecJobPhaseNodeVo getJobPhaseNodeInfoByJobNodeId(@Param("nodeId") Long nodeId, @Param("schemaName") String schemaName);
+    AutoexecJobPhaseNodeVo getJobPhaseNodeInfoByJobNodeId(@Param("nodeId") Long nodeId);
 
     AutoexecJobPhaseNodeVo getJobPhaseRunnerNodeByJobIdAndPhaseId(@Param("jobId") Long jobId, @Param("phaseId") Long phaseId);
 
@@ -116,6 +116,8 @@ public interface AutoexecJobMapper {
 
     //runner
     List<AutoexecRunnerVo> getJobRunnerListByJobId(Long jobId);
+
+    AutoexecRunnerVo getJobRunnerById(Integer runnerId);
 
     List<AutoexecRunnerVo> getJobPhaseRunnerByJobIdAndPhaseIdList(@Param("jobId") Long jobId, @Param("jobPhaseIdList") List<Long> jobPhaseId);
 

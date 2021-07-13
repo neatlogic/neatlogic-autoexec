@@ -61,16 +61,16 @@ public class AutoexecJobPhaseNodeStatusUpdateApi extends PublicApiComponentBase 
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
         Long nodeId = jsonObj.getLong("nodeId");
-        if(nodeId != null && nodeId > 0) {
+        if (nodeId != null && nodeId > 0) {
             Integer failIgnore = jsonObj.getInteger("failIgnore");
-            AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(jsonObj);
-            AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(nodeVo.getJobId(), nodeVo.getJobPhaseName());
+            String phaseName = jsonObj.getString("phase");
+            AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(jsonObj.getLong("jobId"), phaseName);
             if (jobPhaseVo == null) {
-                throw new AutoexecJobPhaseNotFoundException(nodeVo.getJobPhaseName());
+                throw new AutoexecJobPhaseNotFoundException(phaseName);
             }
-            nodeVo.setJobPhaseId(jobPhaseVo.getId());
-            if (autoexecJobMapper.checkIsJobPhaseNodeExist(nodeVo) == 0) {
-                throw new AutoexecJobPhaseNodeNotFoundException(nodeVo.getJobPhaseName(), nodeVo.getHost() + ":" + nodeVo.getPort());
+            AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobNodeId(nodeId);
+            if (nodeVo == null) {
+                throw new AutoexecJobPhaseNodeNotFoundException(phaseName, nodeId);
             }
             //如果节点失败且failIgnore等于0，则表明失败中止;如果节点成功，则需要查询是否存在失败的phase
             if (Objects.equals(nodeVo.getStatus(), JobNodeStatus.FAILED.getValue()) && Objects.equals(failIgnore, 0)) {

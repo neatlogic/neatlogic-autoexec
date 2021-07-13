@@ -58,7 +58,7 @@ public class AutoexecJobPhaseNodeOutputParamGetApi extends PrivateApiComponentBa
     @Description(desc = "获取作业节点输出参数")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobNodeId(paramObj.getLong("nodeId"), TenantContext.get().getDataDbName());
+        AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobNodeId(paramObj.getLong("nodeId"));
         if(nodeVo == null){
             throw new AutoexecJobPhaseNodeNotFoundException(StringUtils.EMPTY,paramObj.getString("nodeId"));
         }

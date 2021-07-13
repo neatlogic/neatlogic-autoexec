@@ -129,12 +129,15 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                             put("nodeType", accountVoTmp.getProtocol());
                             put("username", accountVoTmp.getAccount());
                             put("password", RC4Util.decrypt(accountVoTmp.getPassword()));
+                            put("protocolPort", accountVoTmp.getPort());
                             put("port", accountVoTmp.getPort());
                         }
                         //ResourceVo resourceVo = (ResourceVo) resourceVoList.stream().filter(o-> Objects.equals(o.getId(),nodeVo.getResourceId()));
-                        put("nodeId", nodeVo.getNodeId());
+                        put("nodeId", nodeVo.getId());
                         put("nodeName", nodeVo.getNodeName());
                         put("host", nodeVo.getHost());
+                        //TODO
+                        //put("port", nodeVo.getPort());
                     }};
                     response.setContentType("application/json");
                     response.setHeader("Content-Disposition", " attachment; filename=nodes.json");

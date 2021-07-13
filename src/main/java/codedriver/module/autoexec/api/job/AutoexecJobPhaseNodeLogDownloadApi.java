@@ -5,7 +5,6 @@
 
 package codedriver.module.autoexec.api.job;
 
-import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
@@ -61,7 +60,7 @@ public class AutoexecJobPhaseNodeLogDownloadApi extends PrivateBinaryStreamApiCo
     })
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
-        AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobNodeId(paramObj.getLong("nodeId"), TenantContext.get().getDataDbName());
+        AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobNodeId(paramObj.getLong("nodeId"));
         if (nodeVo == null) {
             throw new AutoexecJobPhaseNodeNotFoundException(StringUtils.EMPTY, paramObj.getString("nodeId"));
         }

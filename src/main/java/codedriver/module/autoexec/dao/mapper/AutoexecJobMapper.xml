@@ -205,7 +205,8 @@
                `sort`,
                `uk`         as uk
         FROM `autoexec_job_phase`
-        where `job_id` = #{value} ORDER BY `sort`,`name` ASC
+        where `job_id` = #{value}
+        ORDER BY `sort`, `name` ASC
     </select>
 
     <select id="getJobPhaseListByJobIdAndPhaseStatus"
@@ -532,18 +533,19 @@
     <select id="getJobPhaseNodeInfoByJobNodeId"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
         SELECT ajpn.`id`,
-               ajpn.`job_id`       AS jobId,
-               ajpn.`job_phase_id` AS jobPhaseId,
+               ajpn.`job_id`        AS jobId,
+               ajpn.`job_phase_id`  AS jobPhaseId,
                ajpn.`host`,
                ajpn.port,
-               ajpn.`start_time`   AS startTime,
-               ajpn.`end_time`     AS endTime,
+               ajpn.`start_time`    AS startTime,
+               ajpn.`end_time`      AS endTime,
                ajpn.`status`,
-               ajp.`name`          AS jobPhaseName,
-               ajpn.`name`         AS nodeName,
-               ajpn.`protocol`     AS nodeType,
-               ap.`id`             AS runnerId,
-               ap.`url`            AS runnerUrl
+               ajp.`name`           AS jobPhaseName,
+               ajpn.`name`          AS nodeName,
+               ajpn.`protocol`      AS nodeType,
+               ajpn.`protocol_port` AS protocolPort,
+               ap.`id`              AS runnerId,
+               ap.`url`             AS runnerUrl
         FROM `autoexec_job_phase_node` ajpn
                  LEFT JOIN `autoexec_job_phase` ajp ON ajpn.`job_phase_id` = ajp.`id`
                  LEFT JOIN `autoexec_job_phase_node_runner` ajpnr ON ajpn.id = ajpnr.`node_id`
@@ -738,6 +740,11 @@
             #{nodeId}
         </foreach>
     </select>
+    <select id="getJobRunnerById" resultType="codedriver.framework.autoexec.dto.AutoexecRunnerVo">
+        SELECT ar.`id`, ar.`name`, ar.`url`, ar.`host`, ar.`port`
+        FROM `autoexec_runner` ar
+        WHERE ar.`id` = #{value}
+    </select>
 
     <insert id="insertJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
         INSERT INTO `autoexec_job` (`id`,
@@ -795,6 +802,7 @@
                                                `host`,
                                                `port`,
                                                `protocol`,
+                                               `protocol_port`,
                                                `name`,
                                                `user_name`,
                                                `resource_id`,
@@ -805,6 +813,7 @@
                 #{host},
                 #{port},
                 #{protocol},
+                #{protocolPort},
                 #{nodeName},
                 #{userName},
                 #{resourceId},
