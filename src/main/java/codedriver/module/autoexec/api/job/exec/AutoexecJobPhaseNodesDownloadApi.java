@@ -21,6 +21,7 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicBinaryStreamApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -114,28 +115,33 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
             }else{
                 autoexecJobPhaseNodeVoList = autoexecJobMapper.searchJobNodeByJobId(nodeParamVo);
             }
-            String protocol = autoexecJobPhaseNodeVoList.get(0).getProtocol();
-            String userName = autoexecJobPhaseNodeVoList.get(0).getUserName();
-            List<Long> resourceIdList = autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getResourceId).collect(Collectors.toList());
-            //List<ResourceVo> resourceVoList = resourceCenterMapper.getResourceListByIdList(resourceIdList, TenantContext.get().getDataDbName());
-            List<AccountVo> accountVoList = resourceCenterMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIdList, protocol,userName);
-            for (AutoexecJobPhaseNodeVo nodeVo : autoexecJobPhaseNodeVoList){
-                JSONObject nodeJson = new JSONObject(){{
-                    AccountVo accountVoTmp = (AccountVo) accountVoList.stream().filter(o-> Objects.equals(o.getResourceId(),nodeVo.getResourceId()));
-                    //ResourceVo resourceVo = (ResourceVo) resourceVoList.stream().filter(o-> Objects.equals(o.getId(),nodeVo.getResourceId()));
-                    put("nodeId",nodeVo.getNodeId());
-                    put("nodeName",nodeVo.getNodeName());
-                    put("nodeType",accountVoTmp.getProtocol());
-                    put("host",nodeVo.getHost());
-                    put("port",nodeVo.getPort());
-                    put("username",accountVoTmp.getAccount());
-                    put("password", RC4Util.decrypt(accountVoTmp.getPassword()));
-                }};
-                response.setContentType("application/json");
-                response.setHeader("Content-Disposition", " attachment; filename=nodes.json");
-                IOUtils.copyLarge(IOUtils.toInputStream(nodeJson.toString()+"\n", StandardCharsets.UTF_8), os);
-                if (os != null) {
-                    os.flush();
+            if(CollectionUtils.isNotEmpty(autoexecJobPhaseNodeVoList)) {
+                String protocol = autoexecJobPhaseNodeVoList.get(0).getProtocol();
+                String userName = autoexecJobPhaseNodeVoList.get(0).getUserName();
+                List<Long> resourceIdList = autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getResourceId).collect(Collectors.toList());
+                //List<ResourceVo> resourceVoList = resourceCenterMapper.getResourceListByIdList(resourceIdList, TenantContext.get().getDataDbName());
+                List<AccountVo> accountVoList = resourceCenterMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIdList, protocol, userName);
+                for (AutoexecJobPhaseNodeVo nodeVo : autoexecJobPhaseNodeVoList) {
+                    JSONObject nodeJson = new JSONObject() {{
+                        List<AccountVo> accountVoTmpList = accountVoList.stream().filter(o -> Objects.equals(o.getResourceId(), nodeVo.getResourceId())).collect(Collectors.toList());
+                        if (CollectionUtils.isNotEmpty(accountVoTmpList)) {
+                            AccountVo accountVoTmp = accountVoTmpList.get(0);
+                            put("nodeType", accountVoTmp.getProtocol());
+                            put("username", accountVoTmp.getAccount());
+                            put("password", RC4Util.decrypt(accountVoTmp.getPassword()));
+                            put("port", accountVoTmp.getPort());
+                        }
+                        //ResourceVo resourceVo = (ResourceVo) resourceVoList.stream().filter(o-> Objects.equals(o.getId(),nodeVo.getResourceId()));
+                        put("nodeId", nodeVo.getNodeId());
+                        put("nodeName", nodeVo.getNodeName());
+                        put("host", nodeVo.getHost());
+                    }};
+                    response.setContentType("application/json");
+                    response.setHeader("Content-Disposition", " attachment; filename=nodes.json");
+                    IOUtils.copyLarge(IOUtils.toInputStream(nodeJson.toString() + "\n", StandardCharsets.UTF_8), os);
+                    if (os != null) {
+                        os.flush();
+                    }
                 }
             }
         }

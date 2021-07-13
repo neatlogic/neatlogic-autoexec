@@ -19,6 +19,7 @@ import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
+import codedriver.framework.autoexec.exception.AutoexecJobPhaseNodeNotFoundException;
 import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
 import codedriver.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
@@ -81,7 +82,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
         for (int i = 0; i < combopPhaseList.size(); i++) {
             AutoexecCombopPhaseVo autoexecCombopPhaseVo = combopPhaseList.get(i);
-            AutoexecJobPhaseVo jobPhaseVo = new AutoexecJobPhaseVo(autoexecCombopPhaseVo, i, jobVo.getId());
+            AutoexecJobPhaseVo jobPhaseVo = new AutoexecJobPhaseVo(autoexecCombopPhaseVo, jobVo.getId());
             autoexecJobMapper.insertJobPhase(jobPhaseVo);
             if (jobPhaseVo.getSort() == 0) {//只需要第一个剧本，供后续激活执行
                 jobPhaseVoList.add(jobPhaseVo);
@@ -187,7 +188,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                         }
                     }
                     if (nodeConfigVo != null && !isPhaseSetNode) {
-                        getJobNodeList(nodeConfigVo, jobVo.getId(), jobPhaseVo.getId(), jobVo.getOperationId(), userName, protocol);
+                        isPhaseSetNode = getJobNodeList(nodeConfigVo, jobVo.getId(), jobPhaseVo.getId(), jobVo.getOperationId(), userName, protocol).get();
+                    }
+                    //如果该阶段没有可以执行的node
+                    if(!isPhaseSetNode){
+                        throw new AutoexecJobPhaseNodeNotFoundException(jobPhaseVo.getName(),StringUtils.EMPTY);
                     }
                 }
             }
@@ -297,7 +302,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 if (resourceMap.containsKey(o.getResourceId())) {
                     ResourceVo resourceVo = resourceMap.get(o.getResourceId());
                     AutoexecJobPhaseNodeVo jobPhaseNodeVo = new AutoexecJobPhaseNodeVo(resourceVo, jobId, phaseId, JobNodeStatus.PENDING.getValue(), userName, protocol);
-                    jobPhaseNodeVo.setPort(o.getPort());
+                    jobPhaseNodeVo.setPort(resourceVo.getPort());
                     jobPhaseNodeVo.setRunnerMapId(getRunnerByIp(jobPhaseNodeVo.getHost()));
                     autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
                     autoexecJobMapper.insertJobPhaseNodeRunner(jobPhaseNodeVo.getId(), jobPhaseNodeVo.getRunnerMapId());

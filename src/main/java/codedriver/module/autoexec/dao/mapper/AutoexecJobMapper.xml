@@ -149,6 +149,8 @@
         ajpn.`start_time` AS startTime,
         ajpn.`end_time` AS endTime,
         ajpn.`status`,
+        ajpn.`protocol`,
+        ajpn.`resource_id` AS resourceId,
         rai.`id` AS nodeId,
         rai.name AS nodeName,
         arm.`runner_id` AS runnerId,
@@ -203,7 +205,7 @@
                `sort`,
                `uk`         as uk
         FROM `autoexec_job_phase`
-        where `job_id` = #{value}
+        where `job_id` = #{value} ORDER BY `sort`,`name` ASC
     </select>
 
     <select id="getJobPhaseListByJobIdAndPhaseStatus"
@@ -723,16 +725,16 @@
     <select id="getJobPhaseNodeListByNodeIdList"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
         SELECT ajpn.`id`,
-               ajpn.`job_id` AS jobId,
-               ajpn.`job_phase_id` AS jobPhaseId,
-               ajpn.`host`,
-               ajpn.`port`,
-               ajpn.`start_time` AS startTime,
-               ajpn.`end_time` AS endTime,
-               ajpn.`status`
+        ajpn.`job_id` AS jobId,
+        ajpn.`job_phase_id` AS jobPhaseId,
+        ajpn.`host`,
+        ajpn.`port`,
+        ajpn.`start_time` AS startTime,
+        ajpn.`end_time` AS endTime,
+        ajpn.`status`
         FROM `autoexec_job_phase_node` ajpn
         where ajpn.`id` in
-        <foreach collection="nodeIdList" item="nodeId" separator="," open="(" close=")" >
+        <foreach collection="nodeIdList" item="nodeId" separator="," open="(" close=")">
             #{nodeId}
         </foreach>
     </select>
@@ -971,10 +973,10 @@
     </update>
     <update id="updateJobPhaseNodeListStatus">
         UPDATE
-            `autoexec_job_phase_node`
+        `autoexec_job_phase_node`
         SET
-            `status` = #{status}
-        WHERE `id` in 
+        `status` = #{status}
+        WHERE `id` in
         <foreach collection="nodeIdList" item="nodeId" open="(" close=")" separator=",">
             #{nodeId}
         </foreach>
