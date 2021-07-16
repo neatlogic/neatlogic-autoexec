@@ -30,6 +30,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -65,7 +66,7 @@ public class AutoexecJobNodeResetApi extends PrivateApiComponentBase {
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
             @Param(name = "jobPhaseId", type = ApiParamType.STRING, desc = "作业阶段Id", isRequired = true),
             @Param(name = "nodeIdList", type = ApiParamType.JSONARRAY, desc = "作业节点idList"),
-            @Param(name = "isAll", type = ApiParamType.INTEGER, desc = "是否全部重置,1:是 0:否,则nodeIdList不能为空", isRequired = true),
+            @Param(name = "isAll", type = ApiParamType.INTEGER, desc = "是否全部重置,1:是 0:否,则nodeIdList不能为空"),
 
     })
     @Output({
@@ -75,22 +76,25 @@ public class AutoexecJobNodeResetApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
         Long jobPhaseId = jsonObj.getLong("jobPhaseId");
+        Integer isAll = jsonObj.getInteger("isAll");
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
-        if(jobVo == null){
+        if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
-        AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(jobId,jobPhaseId);
-        if(phaseVo == null){
+        AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(jobId, jobPhaseId);
+        if (phaseVo == null) {
             throw new AutoexecJobPhaseNotFoundException(jobPhaseId.toString());
         }
-        List<Long> nodeIdList = JSONObject.parseArray(jsonObj.getJSONArray("nodeIdList").toJSONString(), Long.class);
-        autoexecJobActionService.executeAuthCheck(jobVo);
-        jobVo.setAction(JobAction.RESET_NODE.getValue());
-        List<AutoexecJobPhaseNodeVo> nodeVoList = autoexecJobMapper.getJobPhaseNodeListByNodeIdList(nodeIdList);
-        if (CollectionUtils.isEmpty(nodeVoList)) {
-            throw new AutoexecJobPhaseNodeNotFoundException(StringUtils.EMPTY, nodeIdList.stream().map(Object::toString).collect(Collectors.joining(",")));
+        if (!Objects.equals(isAll,1)) {
+            List<Long> nodeIdList = JSONObject.parseArray(jsonObj.getJSONArray("nodeIdList").toJSONString(), Long.class);
+            autoexecJobActionService.executeAuthCheck(jobVo);
+            jobVo.setAction(JobAction.RESET_NODE.getValue());
+            List<AutoexecJobPhaseNodeVo> nodeVoList = autoexecJobMapper.getJobPhaseNodeListByNodeIdList(nodeIdList);
+            if (CollectionUtils.isEmpty(nodeVoList)) {
+                throw new AutoexecJobPhaseNodeNotFoundException(StringUtils.EMPTY, nodeIdList.stream().map(Object::toString).collect(Collectors.joining(",")));
+            }
+            jobVo.setJobPhaseNodeList(nodeVoList);
         }
-        jobVo.setJobPhaseNodeList(nodeVoList);
         jobVo.setPhaseList(Collections.singletonList(phaseVo));
         autoexecJobActionService.resetNode(jobVo);
         return null;

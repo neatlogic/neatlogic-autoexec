@@ -576,6 +576,7 @@
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
         SELECT id,
                job_id      as jobId,
+               `name`,
                `exec_mode` as execMode,
                `status`
         FROM `autoexec_job_phase`
@@ -614,7 +615,7 @@
         ajpn.`port`,
         ajpn.`start_time` AS startTime,
         ajpn.`end_time` AS endTime,
-        ajpn.`status`,
+        ajpn.`status`
         FROM `autoexec_job_phase_node` ajpn
         where ajpn.`job_id` = #{jobId} and ajpn.`job_phase_id` = #{phaseId} and
         ajpn.`status` not in

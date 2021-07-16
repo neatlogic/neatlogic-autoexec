@@ -405,6 +405,8 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
      */
     @Override
     public void resetNode(AutoexecJobVo jobVo) {
+        //更新作业状态
+        autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobVo.getId(),JobStatus.RUNNING.getValue()));
         //更新阶段状态
         AutoexecJobPhaseVo currentPhaseVo = jobVo.getPhaseList().get(0);
         List<String> exceptStatus = Arrays.asList(JobNodeStatus.IGNORED.getValue(), JobNodeStatus.FAILED.getValue(), JobNodeStatus.SUCCEED.getValue());
@@ -427,9 +429,10 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             paramJson.put("tenant", TenantContext.get().getTenantUuid());
             paramJson.put("execUser", UserContext.get().getUserUuid(true));
             paramJson.put("phaseName", currentPhaseVo.getName());
+            paramJson.put("execMode", currentPhaseVo.getExecMode());
             paramJson.put("phaseNodeList", jobVo.getJobPhaseNodeList());
             for (AutoexecRunnerVo runner : runnerVos) {
-                String url = runner.getUrl() + "api/rest/job/resetNode";
+                String url = runner.getUrl() + "api/rest/job/phase/node/status/reset";
                 restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
                 result = RestUtil.sendRequest(restVo);
                 JSONObject resultJson = JSONObject.parseObject(result);
