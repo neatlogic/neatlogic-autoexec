@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.api.job.exec;
 
+import codedriver.framework.autoexec.constvalue.JobNodeStatus;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
@@ -33,6 +34,7 @@ import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -91,6 +93,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
         int count = 0;
         int pageCount = 0;
         AutoexecJobPhaseNodeVo nodeParamVo = new AutoexecJobPhaseNodeVo(paramObj.getLong("jobId"),paramObj.getString("phase"),runnerId);
+        nodeParamVo.setStatusList(Arrays.asList(JobNodeStatus.PENDING.getValue(),JobNodeStatus.RUNNING.getValue(),JobNodeStatus.FAILED.getValue(),JobNodeStatus.ABORTED.getValue()));
         if(StringUtils.isNotBlank(phaseName)){
             jobVo = autoexecJobMapper.getJobDetailByJobIdAndPhaseName(jobId,phaseName);
             if(jobVo == null){

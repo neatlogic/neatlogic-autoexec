@@ -62,7 +62,7 @@ public class AutoexecJobProcessStatusUpdateApi extends PublicApiComponentBase {
         Integer status = jsonObj.getInteger("status");
         String jobAction = jsonObj.getJSONObject("command").getString("action");
         String errorMsg = jsonObj.getString("errorMsg");
-        String jobStatus = null;
+        String jobStatus = JobPhaseStatus.RUNNING.getValue();
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         if (jobVo == null) {
             throw new AutoexecJobPhaseNotFoundException(jobId.toString());
@@ -73,7 +73,7 @@ public class AutoexecJobProcessStatusUpdateApi extends PublicApiComponentBase {
                 jobStatus = JobPhaseStatus.PAUSED.getValue();
             }else if(JobAction.ABORT.getValue().equalsIgnoreCase(jobAction)) {
                 jobStatus = JobPhaseStatus.ABORTED.getValue();
-                jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobId, Collections.singletonList(JobPhaseStatus.RUNNING.getValue()));
+                jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobId, Collections.singletonList(JobPhaseStatus.ABORTING.getValue()));
             }
         }else {
             jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobId, Arrays.asList(JobPhaseStatus.WAITING.getValue(), JobPhaseStatus.RUNNING.getValue()));

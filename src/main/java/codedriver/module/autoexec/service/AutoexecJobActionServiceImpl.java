@@ -11,7 +11,10 @@ import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dto.AutoexecRunnerVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.*;
-import codedriver.framework.autoexec.exception.*;
+import codedriver.framework.autoexec.exception.AutoexecCombopCannotExecuteException;
+import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecJobRunnerConnectAuthException;
+import codedriver.framework.autoexec.exception.AutoexecJobRunnerConnectRefusedException;
 import codedriver.framework.dao.mapper.UserMapper;
 import codedriver.framework.dto.RestVo;
 import codedriver.framework.integration.authentication.costvalue.AuthenticateType;
@@ -109,9 +112,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         autoexecJobMapper.getJobLockByJobId(jobVo.getId());
         jobVo.setStatus(JobStatus.RUNNING.getValue());
         autoexecJobMapper.updateJobStatus(jobVo);
-        Integer phaseSort = 0;
         for (AutoexecJobPhaseVo jobPhase : jobVo.getPhaseList()) {
-            phaseSort = jobPhase.getSort();
             jobPhase.setStatus(JobPhaseStatus.WAITING.getValue());
             autoexecJobMapper.updateJobPhaseStatus(jobPhase);
         }
@@ -120,7 +121,6 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         getFireParamJson(paramJson, jobVo);
         paramJson.put("isFirstFire", jobVo.getCurrentPhaseSort() == 0 ? 1 : 0);
 
-        Integer finalPhaseSort = phaseSort;
         RestVo restVo = null;
         String result = StringUtils.EMPTY;
         try {
@@ -129,7 +129,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                 String url = runner.getUrl() + "api/rest/job/exec";
                 paramJson.put("passThroughEnv", new JSONObject() {{
                     put("runnerId", runner.getId());
-                    put("phaseSort", finalPhaseSort);
+                    put("phaseSort", jobVo.getCurrentPhaseSort());
                 }});
                 restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
                 result = RestUtil.sendRequest(restVo);
@@ -156,12 +156,33 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     }
 
     @Override
-    public void refire(AutoexecJobVo jobVo) {
-        autoexecJobMapper.updateJobPhaseStatusByJobId(jobVo.getId(), JobPhaseStatus.PENDING.getValue());//重置phase状态为pending
-        autoexecJobMapper.updateJobPhaseFailedNodeStatusByJobId(jobVo.getId(), JobNodeStatus.PENDING.getValue());//重置失败的节点的状态为pending
-        jobVo.setCurrentPhaseSort(0);//重头开始跑
-        new AutoexecJobAuthActionManager.Builder().addReFireJob().build().setAutoexecJobAction(jobVo);
-        execute(jobVo);
+    public void refire(AutoexecJobVo jobVo,String type) {
+        if(Objects.equals(type , "refireResetAll")) {
+            autoexecJobService.getAutoexecJobDetail(jobVo, 0);
+            autoexecJobMapper.updateJobPhaseStatusByJobId(jobVo.getId(), JobPhaseStatus.PENDING.getValue());//重置phase状态为pending
+            autoexecJobMapper.updateJobPhaseFailedNodeStatusByJobId(jobVo.getId(), JobNodeStatus.PENDING.getValue());//重置失败的节点的状态为pending
+            jobVo.setCurrentPhaseSort(0);
+        }else if(Objects.equals(type , "refireAll")){
+            //找到失败、已暂停或已中止的阶段sort
+            List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobVo.getId(),Arrays.asList(JobPhaseStatus.FAILED.getValue(), JobPhaseStatus.PAUSED.getValue(),JobPhaseStatus.ABORTED.getValue()));
+            if(CollectionUtils.isNotEmpty(jobPhaseVoList)){
+                //更新剧本状态
+                autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(jobPhaseVoList.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()),JobPhaseStatus.RUNNING.getValue());
+                List<Long> jobPhaseIdList = jobPhaseVoList.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList());
+                Integer sort = jobPhaseVoList.get(0).getSort();
+                jobVo.setCurrentPhaseSort(sort);
+                autoexecJobService.getAutoexecJobDetail(jobVo, sort);
+                //补充配置，只保留满足条件（该sort下，失败、已暂停或已中止）的phase
+                jobVo.setPhaseList(jobVo.getPhaseList().stream().filter(o->jobPhaseIdList.contains(o.getId())).collect(Collectors.toList()));
+
+            }
+        }
+        if(Objects.equals(type,"refireNode")){
+
+        }else{
+            new AutoexecJobAuthActionManager.Builder().addReFireJob().build().setAutoexecJobAction(jobVo);
+            execute(jobVo);
+        }
     }
 
     @Override
@@ -221,7 +242,6 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                                 put("isScript", Objects.equals(operationVo.getType(), ToolType.SCRIPT.getValue()) ? 1 : 0);
                                 put("scriptId", operationVo.getScriptId());
                                 put("interpreter", operationVo.getParser());
-                                //TODO tool 暂未实现
                                 //put("script", operationVo.getScript());
                                 JSONObject param = operationVo.getParam();
                                 put("arg", new JSONObject() {{
@@ -365,13 +385,21 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
      */
     private void abortOrPauseService(AutoexecJobVo jobVo, String jobStatus, String phaseStatus, String action) {
         jobVo.setStatus(jobStatus);
+        //更新job状态 为中止中
         autoexecJobMapper.updateJobStatus(jobVo);
+        //更新phase状态 为中止中
         for (AutoexecJobPhaseVo jobPhase : jobVo.getPhaseList()) {
             if (Objects.equals(jobPhase.getStatus(), JobPhaseStatus.RUNNING.getValue()) || Objects.equals(jobPhase.getStatus(), JobPhaseStatus.WAITING.getValue())) {
                 jobPhase.setStatus(phaseStatus);
                 autoexecJobMapper.updateJobPhaseStatus(jobPhase);
                 autoexecJobMapper.updateBatchJobPhaseRunnerStatus(jobPhase.getId(), phaseStatus);
             }
+        }
+        //更新node状态 为中止中
+        List<AutoexecJobPhaseNodeVo> nodeVoList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndNodeStatusList(jobVo.getId(), Collections.singletonList(JobNodeStatus.RUNNING.getValue()));
+        for(AutoexecJobPhaseNodeVo nodeVo : nodeVoList){
+            nodeVo.setStatus(JobNodeStatus.ABORTING.getValue());
+            autoexecJobMapper.updateJobPhaseNodeStatus(nodeVo);
         }
         List<AutoexecRunnerVo> runnerVos = checkRunnerHealth(jobVo);
         JSONObject paramJson = new JSONObject();
@@ -409,7 +437,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobVo.getId(),JobStatus.RUNNING.getValue()));
         //更新阶段状态
         AutoexecJobPhaseVo currentPhaseVo = jobVo.getPhaseList().get(0);
-        List<String> exceptStatus = Arrays.asList(JobNodeStatus.IGNORED.getValue(), JobNodeStatus.FAILED.getValue(), JobNodeStatus.SUCCEED.getValue());
+        List<String> exceptStatus = Collections.singletonList(JobNodeStatus.IGNORED.getValue());
         List<AutoexecJobPhaseNodeVo> jobPhaseNodeVoList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseIdAndExceptStatus(currentPhaseVo.getJobId(), currentPhaseVo.getId(), exceptStatus);
         if(CollectionUtils.isNotEmpty(jobPhaseNodeVoList)&&jobPhaseNodeVoList.size() == 1){//如果该阶段只有一个节点
             currentPhaseVo.setStatus(JobPhaseStatus.PENDING.getValue());
@@ -417,8 +445,15 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             currentPhaseVo.setStatus(JobPhaseStatus.RUNNING.getValue());
         }
         autoexecJobMapper.updateJobPhaseStatus(currentPhaseVo);
-        //更新节点状态为
+        //重置节点 (status、starttime、endtime)
+        for(AutoexecJobPhaseNodeVo nodeVo : jobVo.getJobPhaseNodeList()){
+            nodeVo.setStatus(JobNodeStatus.PENDING.getValue());
+            nodeVo.setStartTime(null);
+            nodeVo.setEndTime(null);
+            autoexecJobMapper.updateJobPhaseNode(nodeVo);
+        }
         autoexecJobMapper.updateJobPhaseNodeListStatus(jobVo.getJobPhaseNodeList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()), JobNodeStatus.PENDING.getValue());
+
         //清除runner node状态
         List<AutoexecRunnerVo> runnerVos = checkRunnerHealth(jobVo);
         RestVo restVo = null;

@@ -8,6 +8,8 @@ package codedriver.module.autoexec.api.job;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
+import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -73,6 +75,10 @@ public class AutoexecJobPhaseNodeSearchApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
         AutoexecJobPhaseNodeVo jobPhaseNodeVo = JSONObject.toJavaObject(jsonObj, AutoexecJobPhaseNodeVo.class);
+        AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByPhaseId(jobPhaseNodeVo.getJobPhaseId());
+        if(phaseVo == null){
+            throw new AutoexecJobPhaseNotFoundException(jobPhaseNodeVo.getJobPhaseId().toString());
+        }
         List<AutoexecJobPhaseNodeVo> jobPhaseNodeVoList = autoexecJobMapper.searchJobPhaseNode(jobPhaseNodeVo);
         String protocol = jobPhaseNodeVoList.get(0).getProtocol();
         String userName = jobPhaseNodeVoList.get(0).getUserName();
@@ -95,7 +101,7 @@ public class AutoexecJobPhaseNodeSearchApi extends PrivateApiComponentBase {
             result.put("rowNum", jobPhaseNodeVo.getRowNum());
         }
         //判断是否停止刷新作业详细
-        autoexecJobService.setIsRefresh(result, jobPhaseNodeVo.getJobId());
+        autoexecJobService.setIsRefresh(result, phaseVo.getJobId());
         return result;
     }
 

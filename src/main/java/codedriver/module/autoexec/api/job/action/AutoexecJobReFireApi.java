@@ -25,6 +25,7 @@ import javax.annotation.Resource;
 
 /**
  * 仅允许phase 和 node 状态都不是running的情况下才能执行重跑动作
+ *
  * @author lvzk
  * @since 2021/6/2 15:20
  **/
@@ -55,6 +56,7 @@ public class AutoexecJobReFireApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
+            @Param(name = "type", type = ApiParamType.ENUM, rule = "refireResetAll,refireAll,refireNode", desc = "重跑类型：   重置并重跑所有：refireResetAll；重跑所有：refireAll", isRequired = true)
     })
     @Output({
     })
@@ -62,14 +64,16 @@ public class AutoexecJobReFireApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
+        String type = jsonObj.getString("type");
+
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
-        if(jobVo == null){
+        if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
         autoexecJobActionService.executeAuthCheck(jobVo);
-        autoexecJobService.getAutoexecJobDetail(jobVo,0);
+
         jobVo.setAction(JobAction.REFIRE.getValue());
-        autoexecJobActionService.refire(jobVo);
+        autoexecJobActionService.refire(jobVo,type);
         return null;
     }
 

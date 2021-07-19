@@ -35,10 +35,10 @@ public interface AutoexecJobActionService {
 
     /**
      * 重跑
-     *
+     * @param type 重跑类型：   重置并重跑所有：refireResetAll；重跑所有：refireAll
      * @param jobVo 作业
      */
-    void refire(AutoexecJobVo jobVo);
+    void refire(AutoexecJobVo jobVo, String type);
 
     /**
      * 拼装给runner的param
@@ -58,6 +58,7 @@ public interface AutoexecJobActionService {
 
     /**
      * 下载剧本节点执行日志
+     *
      * @param paramJson 入参
      * @param response
      * @throws IOException
@@ -88,7 +89,7 @@ public interface AutoexecJobActionService {
     /**
      * 重置作业节点
      *
-     * @param jobPhaseNodeList 重置作业节点
+     * @param jobVo 重置作业节点
      */
     void resetNode(AutoexecJobVo jobVo);
 

@@ -103,6 +103,7 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
         }
         AutoexecJobVo jobVo = autoexecJobService.saveAutoexecCombopJob(combopVo, jsonObj.getString("source"), threadCount, paramJson);
         jobVo.setAction(JobAction.FIRE.getValue());
+        jobVo.setCurrentPhaseSort(0);
         autoexecJobActionService.fire(jobVo);
         return new JSONObject(){{
             put("jobId",jobVo.getId());

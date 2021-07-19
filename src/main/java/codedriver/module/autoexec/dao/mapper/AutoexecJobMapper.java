@@ -50,6 +50,8 @@ public interface AutoexecJobMapper {
 
     AutoexecJobPhaseVo getJobPhaseLockByPhaseId(Long jobPhaseId);
 
+    AutoexecJobPhaseVo getJobPhaseByPhaseId(Long jobPhaseId);
+
     AutoexecJobPhaseVo getJobPhaseLockByJobIdAndPhaseName(@Param("jobId") Long jobId, @Param("jobPhaseName") String jobPhaseName);
 
     AutoexecJobPhaseVo getJobPhaseByJobIdAndPhaseId(@Param("jobId") Long jobId, @Param("jobPhaseId") Long jobPhaseId);
@@ -73,6 +75,7 @@ public interface AutoexecJobMapper {
     AutoexecJobPhaseVo getJobPhaseByJobIdAndPhaseStatus(@Param("jobId") Long id, @Param("status") String status);
 
     AutoexecJobPhaseVo getJobCurrentPhase(Long jobId);
+
     //jobPhaseNode
     List<AutoexecJobPhaseNodeVo> searchJobPhaseNode(AutoexecJobPhaseNodeVo jobPhaseNodeVo);
 
@@ -92,9 +95,11 @@ public interface AutoexecJobMapper {
 
     List<AutoexecJobPhaseNodeVo> getJobPhaseNodeListByJobIdAndPhaseIdAndExceptStatus(@Param("jobId") Long jobId, @Param("phaseId") Long phaseId, @Param("exceptStatus") List<String> exceptStatus);
 
-    int checkIsHasRunningNode(Long id);
-
     List<AutoexecJobPhaseNodeVo> getJobPhaseNodeListByNodeIdList(@Param("nodeIdList") List<Long> nodeIdList);
+
+    List<AutoexecJobPhaseNodeVo> getJobPhaseNodeListByJobIdAndNodeStatusList(@Param("jobId") Long jobId, @Param("statusList") List<String> statusList);
+
+    int checkIsHasRunningNode(Long id);
 
     int updateJobPhaseNodeListStatus(@Param("nodeIdList") List<Long> jobPhaseNodeIdList, @Param("status") String status);
 
@@ -148,6 +153,10 @@ public interface AutoexecJobMapper {
     Integer updateJobPhaseRunnerStatus(@Param("jobPhaseIdList") List<Long> jobPhaseIdList, @Param("runnerId") Integer runnerId, @Param("status") String status);
 
     Integer updateBatchJobPhaseRunnerStatus(@Param("jobPhaseId") Long jobPhaseId, @Param("status") String status);
+
+    Integer updateJobPhaseStatusByPhaseIdList(@Param("phaseIdList") List<Long> phaseIdList, @Param("status") String status);
+
+    Integer updateJobPhaseNode(AutoexecJobPhaseNodeVo nodeVo);
 
     void deleteJobParamContentByHash(String paramHash);
 

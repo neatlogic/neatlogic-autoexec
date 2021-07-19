@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.api.job.exec;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
+import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
@@ -90,6 +91,8 @@ public class AutoexecJobNextPhaseFireApi extends PublicApiComponentBase {
                 autoexecJobService.getAutoexecJobDetail(jobVo, sort);
                 jobVo.setCurrentPhaseSort(sort);
                 autoexecJobActionService.fire(jobVo);
+            }else{//说明没有可以执行的phase，更新job 状态为 completed
+                autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobId, JobStatus.COMPLETED.getValue()));
             }
         }
         return null;
