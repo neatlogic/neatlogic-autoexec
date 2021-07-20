@@ -646,10 +646,12 @@
         LEFT JOIN `autoexec_runner_map` arm ON ajpr.`runner_map_id` = arm.`id`
         LEFT JOIN `autoexec_runner` ar ON arm.`runner_id` = ar.`id`
         WHERE ajpr.`job_id` = #{jobId}
-        and ajpr.`job_phase_id` in
-        <foreach collection="jobPhaseIdList" item="jobPhaseId" close=")" open="(" separator=",">
-            #{jobPhaseId}
-        </foreach>
+        <if test="jobPhaseIdList != null and jobPhaseIdList.size() > 0">
+            and ajpr.`job_phase_id` in
+            <foreach collection="jobPhaseIdList" item="jobPhaseId" close=")" open="(" separator=",">
+                #{jobPhaseId}
+            </foreach>
+        </if>
     </select>
     <select id="checkIsHasRunningNode" resultType="java.lang.Integer">
         select count(1)
@@ -1030,8 +1032,10 @@
     <update id="updateJobPhaseNode">
         UPDATE
             `autoexec_job_phase_node`
-        SET `status` = #{status} , `start_time` = #{startTime} , `end_time` = #{endTime}
-        WHERE `id` =  #{id}
+        SET `status`     = #{status},
+            `start_time` = #{startTime},
+            `end_time`   = #{endTime}
+        WHERE `id` = #{id}
     </update>
 
     <delete id="deleteJobParamContentByHash" parameterType="java.lang.String">

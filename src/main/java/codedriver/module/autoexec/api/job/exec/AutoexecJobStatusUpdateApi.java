@@ -18,7 +18,6 @@ import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,13 +59,15 @@ public class AutoexecJobStatusUpdateApi extends PublicApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
         String status = jsonObj.getString("status");
-        String statusIng = StringUtils.EMPTY;
+        String statusIng;
         if(Objects.equals(status,JobStatus.ABORTED.getValue())){
             statusIng = JobStatus.ABORTING.getValue();
+        }if(Objects.equals(status,JobStatus.PAUSED.getValue())){
+            statusIng = JobStatus.PAUSING.getValue();
         }else{
-            statusIng = JobStatus.PENDING.getValue();
+            statusIng = status;
         }
-        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }

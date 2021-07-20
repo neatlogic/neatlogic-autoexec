@@ -7,6 +7,7 @@ package codedriver.module.autoexec.api.job.runner;
 
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
+import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
@@ -17,6 +18,7 @@ import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -24,6 +26,7 @@ import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -62,7 +65,7 @@ public class AutoexecJobProcessStatusUpdateApi extends PublicApiComponentBase {
         Integer status = jsonObj.getInteger("status");
         String jobAction = jsonObj.getJSONObject("command").getString("action");
         String errorMsg = jsonObj.getString("errorMsg");
-        String jobStatus = JobPhaseStatus.RUNNING.getValue();
+        String jobStatus = null;
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         if (jobVo == null) {
             throw new AutoexecJobPhaseNotFoundException(jobId.toString());
@@ -74,6 +77,8 @@ public class AutoexecJobProcessStatusUpdateApi extends PublicApiComponentBase {
             }else if(JobAction.ABORT.getValue().equalsIgnoreCase(jobAction)) {
                 jobStatus = JobPhaseStatus.ABORTED.getValue();
                 jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobId, Collections.singletonList(JobPhaseStatus.ABORTING.getValue()));
+            }else if(Objects.equals(jobVo.getStatus(), JobStatus.PENDING.getValue())){//避免作业跑的太快，导致autoexec回调快于此接口
+                jobStatus = JobPhaseStatus.RUNNING.getValue();
             }
         }else {
             jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobId, Arrays.asList(JobPhaseStatus.WAITING.getValue(), JobPhaseStatus.RUNNING.getValue()));
@@ -83,7 +88,9 @@ public class AutoexecJobProcessStatusUpdateApi extends PublicApiComponentBase {
             List<Long> jobPhaseIdList = jobPhaseVoList.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList());
             autoexecJobMapper.updateJobPhaseStatusBatch(jobPhaseIdList, jobStatus, errorMsg);
         }
-        autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobId,jobStatus));
+        if(StringUtils.isNotBlank(jobStatus)){
+            autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobId,jobStatus));
+        }
         return null;
     }
 

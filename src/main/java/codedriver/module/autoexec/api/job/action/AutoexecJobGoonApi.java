@@ -62,7 +62,7 @@ public class AutoexecJobGoonApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
-        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         if(jobVo == null){
             throw new AutoexecJobNotFoundException(jobId.toString());
         }

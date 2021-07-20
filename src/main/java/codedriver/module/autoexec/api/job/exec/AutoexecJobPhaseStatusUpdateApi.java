@@ -79,7 +79,7 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
                 runnerId = passThroughEnv.getInteger("runnerId");
             }
         }
-        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
