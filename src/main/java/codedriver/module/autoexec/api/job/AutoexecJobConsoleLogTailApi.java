@@ -90,7 +90,7 @@ public class AutoexecJobConsoleLogTailApi extends PrivateApiComponentBase {
         paramObj.put("runnerUrl", runnerVo.getUrl());
         paramObj.put("direction", paramObj.getString("direction"));
         JSONObject result = autoexecJobActionService.tailConsoleLog(paramObj);
-        autoexecJobService.setIsRefresh(result, jobId);
+        autoexecJobService.setIsRefresh(result, jobVo);
         return result;
     }
 

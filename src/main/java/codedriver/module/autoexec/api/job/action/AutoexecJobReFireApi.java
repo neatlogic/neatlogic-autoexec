@@ -56,7 +56,7 @@ public class AutoexecJobReFireApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
-            @Param(name = "type", type = ApiParamType.ENUM, rule = "refireResetAll,refireAll,refireNode", desc = "重跑类型：   重置并重跑所有：refireResetAll；重跑所有：refireAll", isRequired = true)
+            @Param(name = "type", type = ApiParamType.ENUM, rule = "refireResetAll,refireAll", desc = "重跑类型：   重置并重跑所有：refireResetAll；重跑所有：refireAll", isRequired = true)
     })
     @Output({
     })
@@ -71,7 +71,6 @@ public class AutoexecJobReFireApi extends PrivateApiComponentBase {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
         autoexecJobActionService.executeAuthCheck(jobVo);
-
         jobVo.setAction(JobAction.REFIRE.getValue());
         autoexecJobActionService.refire(jobVo,type);
         return null;

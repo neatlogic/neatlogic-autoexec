@@ -6,7 +6,10 @@
 package codedriver.module.autoexec.service;
 
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
-import codedriver.framework.autoexec.constvalue.*;
+import codedriver.framework.autoexec.constvalue.CombopOperationType;
+import codedriver.framework.autoexec.constvalue.ExecMode;
+import codedriver.framework.autoexec.constvalue.JobNodeStatus;
+import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dto.AutoexecRunnerGroupNetworkVo;
 import codedriver.framework.autoexec.dto.AutoexecRunnerGroupVo;
 import codedriver.framework.autoexec.dto.AutoexecRunnerMapVo;
@@ -16,7 +19,6 @@ import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
-import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNodeNotFoundException;
 import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
@@ -337,11 +339,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     }
 
     @Override
-    public void setIsRefresh(JSONObject paramObj, Long jobId) {
-        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
-        if(jobVo == null){
-            throw new AutoexecJobNotFoundException(jobId.toString());
-        }
+    public void setIsRefresh(JSONObject paramObj, AutoexecJobVo jobVo) {
         paramObj.put("isRefresh", 1);
         if (Objects.equals(jobVo.getStatus(), JobStatus.COMPLETED.getValue())
                 || Objects.equals(jobVo.getStatus(), JobStatus.FAILED.getValue())

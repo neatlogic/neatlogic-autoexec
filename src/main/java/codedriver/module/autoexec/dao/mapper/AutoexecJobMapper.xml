@@ -545,8 +545,10 @@
                ajpn.`status`,
                ajp.`name`           AS jobPhaseName,
                ajpn.`name`          AS nodeName,
-               ajpn.`protocol`      AS nodeType,
+               ajpn.`user_name`     as userName,
+               ajpn.`protocol`      AS protocol,
                ajpn.`protocol_port` AS protocolPort,
+               ajpn.`resource_id`   as resourceId,
                ap.`id`              AS runnerId,
                ap.`url`             AS runnerUrl
         FROM `autoexec_job_phase_node` ajpn
@@ -581,6 +583,7 @@
                job_id      as jobId,
                `name`,
                `exec_mode` as execMode,
+               `sort`,
                `status`
         FROM `autoexec_job_phase`
         WHERE `job_id` = #{jobId}
@@ -718,6 +721,8 @@
         FROM `autoexec_job_phase`
         where `job_id` = #{jobId}
           and `status` = #{status}
+        order by `sort`, `name` asc
+        limit 1
     </select>
     <select id="getJobCurrentPhase" resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
         SELECT `name`
@@ -739,6 +744,10 @@
         ajpn.`port`,
         ajpn.`start_time` AS startTime,
         ajpn.`end_time` AS endTime,
+        ajpn.`resource_id` AS resourceId,
+        ajpn.`user_name` as userName,
+        ajpn.`name` as nodeName,
+        ajpn.`protocol`,
         ajpn.`status`
         FROM `autoexec_job_phase_node` ajpn
         where ajpn.`id` in

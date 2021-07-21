@@ -54,6 +54,6 @@ public interface AutoexecJobService {
      * @param paramObj 结果json
      * @param jobId    作业id
      */
-    void setIsRefresh(JSONObject paramObj, Long jobId);
+    void setIsRefresh(JSONObject paramObj, AutoexecJobVo JobVo);
 
 }
