@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 2021 TechSureCo.,Ltd.AllRightsReserved.
+ * Copyright(c) 2021 TechSure Co., Ltd. All Rights Reserved.
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  */
 
@@ -31,7 +31,6 @@ public class AutoexecCombopNotifyPolicyHandler extends NotifyPolicyHandlerBase {
 
     /**
      * 绑定权限，每种handler对应不同的权限
-     * @return
      */
     @Override
     public String getAuthName() {
