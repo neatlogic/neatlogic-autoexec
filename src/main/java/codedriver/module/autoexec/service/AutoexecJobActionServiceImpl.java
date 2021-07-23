@@ -300,6 +300,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         }};
         //工具库测试|重跑节点
         if (CollectionUtils.isNotEmpty(jobVo.getNodeVoList())) {
+            paramJson.put("noFireNext",1);
             List<AutoexecJobPhaseNodeVo> nodeVoList = jobVo.getNodeVoList();
             String protocol = nodeVoList.get(0).getProtocol();
             String userName = nodeVoList.get(0).getUserName();
@@ -356,15 +357,19 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                                     }
                                 }});
                                 put("desc", new JSONObject() {{
-                                    for (Object arg : param.getJSONArray("inputParamList")) {
-                                        JSONObject argJson = JSONObject.parseObject(arg.toString());
-                                        put(argJson.getString("key"), argJson.getString("type"));
+                                    if(CollectionUtils.isNotEmpty(param.getJSONArray("inputParamList"))) {
+                                        for (Object arg : param.getJSONArray("inputParamList")) {
+                                            JSONObject argJson = JSONObject.parseObject(arg.toString());
+                                            put(argJson.getString("key"), argJson.getString("type"));
+                                        }
                                     }
                                 }});
                                 put("output", new JSONObject() {{
-                                    for (Object arg : param.getJSONArray("outputParamList")) {
-                                        JSONObject argJson = JSONObject.parseObject(arg.toString());
-                                        put(argJson.getString("key"), argJson.getString("value"));
+                                    if(CollectionUtils.isNotEmpty(param.getJSONArray("outputParamList"))) {
+                                        for (Object arg : param.getJSONArray("outputParamList")) {
+                                            JSONObject argJson = JSONObject.parseObject(arg.toString());
+                                            put(argJson.getString("key"), argJson.getString("value"));
+                                        }
                                     }
                                 }});
 

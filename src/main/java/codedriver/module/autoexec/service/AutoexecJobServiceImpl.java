@@ -61,8 +61,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     @Override
     public AutoexecJobVo saveAutoexecCombopJob(AutoexecCombopVo combopVo, String source, Integer threadCount, JSONObject paramJson) {
         AutoexecCombopConfigVo config = combopVo.getConfig();
-        combopVo.setRuntimeParamList(autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopVo.getId()));
-        AutoexecJobVo jobVo = new AutoexecJobVo(combopVo, CombopOperationType.COMBOP.getValue(), source, threadCount, paramJson);
+        if (combopVo.getIsTest() == null || !combopVo.getIsTest()) {
+            combopVo.setOperationType(CombopOperationType.COMBOP.getValue());
+            combopVo.setRuntimeParamList(autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopVo.getId()));
+        }
+        AutoexecJobVo jobVo = new AutoexecJobVo(combopVo, source, threadCount, paramJson);
         //保存作业基本信息
         autoexecJobMapper.insertJob(jobVo);
         autoexecJobMapper.insertJobParamContent(new AutoexecJobParamContentVo(jobVo.getParamHash(), jobVo.getParamStr()));
@@ -133,9 +136,19 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 Long operationId = autoexecCombopPhaseOperationVo.getOperationId();
                 AutoexecJobPhaseOperationVo jobPhaseOperationVo = null;
                 if (CombopOperationType.SCRIPT.getValue().equalsIgnoreCase(operationType)) {
-                    AutoexecScriptVo scriptVo = autoexecScriptMapper.getScriptBaseInfoById(operationId);
-                    AutoexecScriptVersionVo scriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(operationId);
-                    jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, scriptVo, scriptVersionVo, autoexecCombopService.getOperationActiveVersionScriptByOperationId(operationId), jobPhaseVoList);
+                    AutoexecScriptVo scriptVo = null;
+                    AutoexecScriptVersionVo scriptVersionVo = null;
+                    String script = StringUtils.EMPTY;
+                    if (combopVo.getIsTest() != null && combopVo.getIsTest()) {
+                        scriptVersionVo = autoexecScriptMapper.getVersionByVersionId(operationId);
+                        scriptVo = autoexecScriptMapper.getScriptBaseInfoById(scriptVersionVo.getScriptId());
+                        script = autoexecCombopService.getOperationActiveVersionScriptByOperation(scriptVersionVo);
+                    } else {
+                        scriptVo = autoexecScriptMapper.getScriptBaseInfoById(operationId);
+                        scriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(operationId);
+                        script = autoexecCombopService.getOperationActiveVersionScriptByOperationId(operationId);
+                    }
+                    jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, scriptVo, scriptVersionVo, script, jobPhaseVoList);
                 } else if (CombopOperationType.TOOL.getValue().equalsIgnoreCase(operationType)) {
                     AutoexecToolVo toolVo = autoexecToolMapper.getToolById(operationId);
                     jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, toolVo, jobPhaseVoList);
@@ -272,9 +285,14 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             }
         }
         //inputNodeList、selectNodeList
-        if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getInputNodeList()) || CollectionUtils.isNotEmpty(executeNodeConfigVo.getSelectNodeList())) {
-            List<AutoexecNodeVo> nodeVoList = executeNodeConfigVo.getInputNodeList();
+        List<AutoexecNodeVo> nodeVoList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getInputNodeList())) {
+            nodeVoList.addAll(executeNodeConfigVo.getInputNodeList());
+        }
+        if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getSelectNodeList())) {
             nodeVoList.addAll(executeNodeConfigVo.getSelectNodeList());
+        }
+        if (CollectionUtils.isNotEmpty(nodeVoList)) {
             List<ResourceVo> ipPortList = new ArrayList<>();
             nodeVoList.forEach(o -> {
                 ipPortList.add(new ResourceVo(o.getIp(), o.getPort()));

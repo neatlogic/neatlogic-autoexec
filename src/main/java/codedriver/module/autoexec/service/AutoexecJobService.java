@@ -52,7 +52,7 @@ public interface AutoexecJobService {
      * 设置是否需要定时刷新
      *
      * @param paramObj 结果json
-     * @param jobId    作业id
+     * @param JobVo    作业
      */
     void setIsRefresh(JSONObject paramObj, AutoexecJobVo JobVo);
 

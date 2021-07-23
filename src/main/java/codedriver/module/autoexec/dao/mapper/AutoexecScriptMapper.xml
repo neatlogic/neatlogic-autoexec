@@ -338,6 +338,23 @@
         order by `sort`
     </select>
 
+    <select id="getParamListByVersionIdAndMode" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo">
+        select
+        `script_version_id` as scriptVersionId,
+        `key`,
+        `name`,
+        `default_value` as defaultValue,
+        `type`,
+        `mode`,
+        `is_required` as isRequired,
+        `description`,
+        `sort`,
+        `config`
+        from `autoexec_script_version_param`
+        where `script_version_id` = #{versionId} and `mode` = #{mode}
+        order by `sort`
+    </select>
+
     <select id="getParamListByScriptId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo">
         select
         a.`script_version_id` as scriptVersionId,

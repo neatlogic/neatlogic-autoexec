@@ -6,10 +6,14 @@
 package codedriver.module.autoexec.api.job.action;
 
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.constvalue.JobAction;
+import codedriver.framework.autoexec.constvalue.JobSource;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecOperationHasNoModifyAuthException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -22,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Objects;
 
 /**
  * 仅允许phase 和 node 状态都不是running的情况下才能执行重跑动作
@@ -70,7 +75,13 @@ public class AutoexecJobReFireApi extends PrivateApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
-        autoexecJobActionService.executeAuthCheck(jobVo);
+        if(Objects.equals(jobVo.getSource(), JobSource.TEST.getValue())){//测试仅需判断是否有脚本维护权限即可
+            if(!AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class)){
+               throw new AutoexecOperationHasNoModifyAuthException();
+            }
+        }else {
+            autoexecJobActionService.executeAuthCheck(jobVo);
+        }
         jobVo.setAction(JobAction.REFIRE.getValue());
         autoexecJobActionService.refire(jobVo,type);
         return null;
