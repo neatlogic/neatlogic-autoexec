@@ -38,6 +38,8 @@ public interface AutoexecJobMapper {
 
     void updateJobStatus(AutoexecJobVo jobVo);
 
+    AutoexecJobVo getJobLockByOperationId(Long operationId);
+
     //jobNodes
     int getJobPhaseNodeCountByJobId(AutoexecJobPhaseNodeVo nodeParamVo);
 

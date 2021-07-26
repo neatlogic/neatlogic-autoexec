@@ -20,6 +20,7 @@ import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNodeNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
 import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
 import codedriver.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
@@ -141,6 +142,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                     String script = StringUtils.EMPTY;
                     if (combopVo.getIsTest() != null && combopVo.getIsTest()) {
                         scriptVersionVo = autoexecScriptMapper.getVersionByVersionId(operationId);
+                        if(scriptVersionVo == null){
+                            throw new AutoexecScriptVersionNotFoundException(operationId);
+                        }
                         scriptVo = autoexecScriptMapper.getScriptBaseInfoById(scriptVersionVo.getScriptId());
                         script = autoexecCombopService.getOperationActiveVersionScriptByOperation(scriptVersionVo);
                     } else {
@@ -372,5 +376,33 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 break;
             }
         }*/
+    }
+
+    @Override
+    public void deleteJob(Long jobId){
+        //删除jobParamContent
+        /*Set<String> hashSet = new HashSet<>();
+        hashSet.add(jobVo.getParamHash());
+        List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobId(jobId);
+        for (AutoexecJobPhaseOperationVo operationVo : operationVoList) {
+            hashSet.add(operationVo.getParamHash());
+        }
+        for (String hash : hashSet) {
+            AutoexecJobParamContentVo paramContentVo = autoexecJobMapper.getJobParamContentLock(hash);
+            if(paramContentVo != null) {
+                int jobParamReferenceCount = autoexecJobMapper.checkIsJobParamReference(jobId, hash);
+                int jobPhaseOperationParamReferenceCount = autoexecJobMapper.checkIsJobPhaseOperationParamReference(jobId, hash);
+                if (jobParamReferenceCount == 0 && jobPhaseOperationParamReferenceCount == 0) {
+                    autoexecJobMapper.deleteJobParamContentByHash(hash);
+                }
+            }
+        }*/
+        //else
+        autoexecJobMapper.deleteJobPhaseRunnerByJobId(jobId);
+        autoexecJobMapper.deleteJobPhaseNodeRunnerByJobId(jobId);
+        autoexecJobMapper.deleteJobPhaseOperationByJobId(jobId);
+        autoexecJobMapper.deleteJobPhaseNodeByJobId(jobId);
+        autoexecJobMapper.deleteJobPhaseByJobId(jobId);
+        autoexecJobMapper.deleteJobByJobId(jobId);
     }
 }

@@ -7,8 +7,6 @@ package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_JOB_MODIFY;
-import codedriver.framework.autoexec.dto.job.AutoexecJobParamContentVo;
-import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseOperationVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
@@ -16,14 +14,12 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.module.autoexec.service.AutoexecJobActionService;
+import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 
 /**
  * @author lvzk
@@ -37,6 +33,9 @@ import java.util.Set;
 public class AutoexecJobDeleteApi extends PrivateApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
+
+    @Resource
+    AutoexecJobService jobService;
 
     @Resource
     AutoexecJobActionService autoexecJobActionService;
@@ -62,30 +61,7 @@ public class AutoexecJobDeleteApi extends PrivateApiComponentBase {
         Long jobId = jsonObj.getLong("jobId");
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         autoexecJobActionService.executeAuthCheck(jobVo);
-        //删除jobParamContent
-        Set<String> hashSet = new HashSet<>();
-        hashSet.add(jobVo.getParamHash());
-        List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobId(jobId);
-        for (AutoexecJobPhaseOperationVo operationVo : operationVoList) {
-            hashSet.add(operationVo.getParamHash());
-        }
-        for (String hash : hashSet) {
-            AutoexecJobParamContentVo paramContentVo = autoexecJobMapper.getJobParamContentLock(hash);
-            if(paramContentVo != null) {
-                int jobParamReferenceCount = autoexecJobMapper.checkIsJobParamReference(jobId, hash);
-                int jobPhaseOperationParamReferenceCount = autoexecJobMapper.checkIsJobPhaseOperationParamReference(jobId, hash);
-                if (jobParamReferenceCount == 0 && jobPhaseOperationParamReferenceCount == 0) {
-                    autoexecJobMapper.deleteJobParamContentByHash(hash);
-                }
-            }
-        }
-        //else
-        autoexecJobMapper.deleteJobPhaseRunnerByJobId(jobId);
-        autoexecJobMapper.deleteJobPhaseNodeRunnerByJobId(jobId);
-        autoexecJobMapper.deleteJobPhaseOperationByJobId(jobId);
-        autoexecJobMapper.deleteJobPhaseNodeByJobId(jobId);
-        autoexecJobMapper.deleteJobPhaseByJobId(jobId);
-        autoexecJobMapper.deleteJobByJobId(jobId);
+        jobService.deleteJob(jobId);
         return null;
     }
 

@@ -56,4 +56,10 @@ public interface AutoexecJobService {
      */
     void setIsRefresh(JSONObject paramObj, AutoexecJobVo JobVo);
 
+    /**
+     * 删除作业
+     * @param jobId 作业id
+     */
+    void deleteJob(Long jobId);
+
 }

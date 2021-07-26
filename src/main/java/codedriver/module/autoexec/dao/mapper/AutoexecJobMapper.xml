@@ -783,6 +783,24 @@
         FROM `autoexec_job_phase`
         WHERE id = #{value}
     </select>
+    <select id="getJobLockByOperationId" resultType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
+        SELECT aj.`id`,
+               aj.`name`,
+               aj.`status`,
+               aj.`error_msg`       as errorMsg,
+               aj.`plan_start_time` as planStartTime,
+               aj.`start_time`      as startTime,
+               aj.`end_time`        as endTime,
+               aj.`operation_id`    as operationId,
+               aj.`operation_type`  as operationType,
+               aj.`exec_user`       as execUser,
+               aj.`source`,
+               aj.`thread_count`    as threadCount,
+               aj.`param_hash`      as paramHash,
+               aj.`config`          as configStr
+        FROM `autoexec_job` aj
+        WHERE aj.`operation_id` = #{value} for update
+    </select>
 
     <insert id="insertJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
         INSERT INTO `autoexec_job` (`id`,
