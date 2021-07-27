@@ -129,7 +129,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                         List<AccountVo> accountVoTmpList = accountVoList.stream().filter(o -> Objects.equals(o.getResourceId(), nodeVo.getResourceId())).collect(Collectors.toList());
                         if (CollectionUtils.isNotEmpty(accountVoTmpList)) {
                             AccountVo accountVoTmp = accountVoTmpList.get(0);
-                            put("nodeType", accountVoTmp.getProtocol());
+                            put("protocol", accountVoTmp.getProtocol());
                             put("username", accountVoTmp.getAccount());
                             put("password", RC4Util.decrypt(accountVoTmp.getPassword()));
                             put("protocolPort", accountVoTmp.getPort());
