@@ -313,7 +313,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                 for (AutoexecJobPhaseNodeVo nodeVo : nodeVoList){
                     add(new JSONObject() {{
                         AccountVo accountVo = resourceAccountMap.get(nodeVo.getResourceId());
-                        put("nodeType", accountVo.getProtocol());
+                        put("protocol", accountVo.getProtocol());
                         put("username", accountVo.getAccount());
                         put("password", RC4Util.decrypt(accountVo.getPassword()));
                         put("protocolPort", accountVo.getPort());
@@ -334,7 +334,12 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                             add(new JSONObject() {{
                                 put("opId", operationVo.getName() + "_" + operationVo.getId());
                                 put("opName", operationVo.getName());
-                                put("opType", operationVo.getExecMode());
+                                //sqlfile 是 runner 执行
+                                if(Objects.equals(ExecMode.SQL.getValue(),operationVo.getExecMode())){
+                                    put("opType", ExecMode.RUNNER.getValue());
+                                }else {
+                                    put("opType", operationVo.getExecMode());
+                                }
                                 put("failIgnore", operationVo.getFailIgnore());
                                 put("isScript", Objects.equals(operationVo.getType(), ToolType.SCRIPT.getValue()) ? 1 : 0);
                                 put("scriptId", operationVo.getScriptId());

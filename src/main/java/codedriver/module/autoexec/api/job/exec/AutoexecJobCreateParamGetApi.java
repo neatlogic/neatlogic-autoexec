@@ -27,7 +27,7 @@ import javax.annotation.Resource;
 @Service
 @Transactional
 @OperationType(type = OperationTypeEnum.SEARCH)
-public class AutoexecJobRuntimeParamGetApi extends PublicApiComponentBase {
+public class AutoexecJobCreateParamGetApi extends PublicApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
 

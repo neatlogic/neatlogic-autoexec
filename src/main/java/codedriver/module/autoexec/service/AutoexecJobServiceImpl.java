@@ -25,6 +25,7 @@ import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
 import codedriver.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import codedriver.framework.cmdb.dto.resourcecenter.ResourceVo;
+import codedriver.framework.cmdb.exception.resourcecenter.ResourceCenterResourceHasRepeatAccount;
 import codedriver.framework.util.IpUtil;
 import codedriver.module.autoexec.dao.mapper.*;
 import com.alibaba.fastjson.JSON;
@@ -95,7 +96,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             AutoexecCombopPhaseConfigVo phaseConfigVo = autoexecCombopPhaseVo.getConfig();
             //jobPhaseNode
             //如果是target 则获取执行目标，否则随机分配runner
-            if (Objects.equals(autoexecCombopPhaseVo.getExecMode(), ExecMode.TARGET.getValue())) {
+            if (Arrays.asList(ExecMode.TARGET.getValue(),ExecMode.SQL.getValue()).contains(autoexecCombopPhaseVo.getExecMode())) {
                 AutoexecCombopExecuteConfigVo executeConfigVo = phaseConfigVo.getExecuteConfig();
                 boolean isPhaseSetNode = false;
                 if (executeConfigVo != null) {
@@ -172,7 +173,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         AutoexecCombopConfigVo configVo = JSON.toJavaObject(jobVo.getConfig(), AutoexecCombopConfigVo.class);
         //获取当前所有target阶段
         List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndSort(jobId, sort);
-        List<AutoexecJobPhaseVo> targetPhaseList = jobPhaseVoList.stream().filter(o -> Objects.equals(o.getExecMode(), ExecMode.TARGET.getValue())).collect(Collectors.toList());
+        List<AutoexecJobPhaseVo> targetPhaseList = jobPhaseVoList.stream().filter(o -> Arrays.asList(ExecMode.TARGET.getValue(),ExecMode.SQL.getValue()).contains(o.getExecMode())).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(targetPhaseList)) {
             //获取组合工具执行目标 执行用户和协议
             AutoexecCombopExecuteConfigVo nodeConfigVo = configVo.getExecuteConfig();
@@ -329,8 +330,13 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         //找到资源账号的才存到db
         if (CollectionUtils.isNotEmpty(resourceIdList)) {
             List<AccountVo> accountVoList = resourceCenterMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIdList, protocol, userName);
+            List<String> checkRepeatList = new ArrayList<>();
             accountVoList.forEach(o -> {
                 if (resourceMap.containsKey(o.getResourceId())) {
+                    String key =o.getResourceId().toString()+o.getProtocol()+o.getAccount();
+                    if(checkRepeatList.contains(key)){
+                        throw new ResourceCenterResourceHasRepeatAccount(o.getResourceId().toString(),o.getProtocol(),o.getAccount());
+                    }
                     isHasNode.set(true);
                     ResourceVo resourceVo = resourceMap.get(o.getResourceId());
                     AutoexecJobPhaseNodeVo jobPhaseNodeVo = new AutoexecJobPhaseNodeVo(resourceVo, jobId, phaseId, JobNodeStatus.PENDING.getValue(), userName, protocol, o.getPort());
@@ -339,6 +345,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                     autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
                     autoexecJobMapper.insertJobPhaseNodeRunner(jobPhaseNodeVo.getId(), jobPhaseNodeVo.getRunnerMapId());
                     autoexecJobMapper.insertJobPhaseRunner(jobPhaseNodeVo.getJobId(), jobPhaseNodeVo.getJobPhaseId(), jobPhaseNodeVo.getRunnerMapId());
+                    checkRepeatList.add(key);
                 }
             });
         }

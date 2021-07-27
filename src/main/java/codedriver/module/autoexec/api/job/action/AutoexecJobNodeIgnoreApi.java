@@ -7,9 +7,13 @@ package codedriver.module.autoexec.api.job.action;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.constvalue.JobAction;
+import codedriver.framework.autoexec.constvalue.JobNodeStatus;
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecJobPhaseNodeNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
@@ -19,13 +23,18 @@ import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.module.autoexec.service.AutoexecJobActionService;
 import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * 仅允许phase 和 node 状态都不是running的情况下才能执行重跑动作
+ *
  * @author lvzk
  * @since 2021/6/2 15:20
  **/
@@ -57,7 +66,7 @@ public class AutoexecJobNodeIgnoreApi extends PrivateApiComponentBase {
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
             @Param(name = "jobPhaseId", type = ApiParamType.STRING, desc = "作业阶段Id", isRequired = true),
-            @Param(name = "nodeIdList", type = ApiParamType.JSONARRAY, desc = "作业节点idList",isRequired = true),
+            @Param(name = "nodeIdList", type = ApiParamType.JSONARRAY, desc = "作业节点idList", isRequired = true),
     })
     @Output({
     })
@@ -67,12 +76,25 @@ public class AutoexecJobNodeIgnoreApi extends PrivateApiComponentBase {
         Long jobId = jsonObj.getLong("jobId");
         Long jobPhaseId = jsonObj.getLong("jobPhaseId");
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
-        if(jobVo == null){
+        if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
-        AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(jobId,jobPhaseId);
-        if(phaseVo == null){
+        AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(jobId, jobPhaseId);
+        if (phaseVo == null) {
             throw new AutoexecJobPhaseNotFoundException(jobPhaseId.toString());
+        }
+        List<Long> nodeIdList = JSONObject.parseArray(jsonObj.getJSONArray("nodeIdList").toJSONString(), Long.class);
+        autoexecJobActionService.executeAuthCheck(jobVo);
+        jobVo.setAction(JobAction.IGNORE_NODE.getValue());
+        List<AutoexecJobPhaseNodeVo> nodeVoList = autoexecJobMapper.getJobPhaseNodeListByNodeIdList(nodeIdList);
+        if (CollectionUtils.isEmpty(nodeVoList)) {
+            throw new AutoexecJobPhaseNodeNotFoundException(StringUtils.EMPTY, nodeIdList.stream().map(Object::toString).collect(Collectors.joining(",")));
+        }
+        for (AutoexecJobPhaseNodeVo nodeVo : nodeVoList) {
+            nodeVo.setStatus(JobNodeStatus.IGNORED.getValue());
+            nodeVo.setStartTime(null);
+            nodeVo.setEndTime(null);
+            autoexecJobMapper.updateJobPhaseNode(nodeVo);
         }
         return null;
     }
