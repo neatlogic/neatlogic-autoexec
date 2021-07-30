@@ -69,6 +69,7 @@ public class AutoexecJobPhaseNodeAuditGetApi extends PrivateApiComponentBase {
         AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(nodeVo.getJobId(),nodeVo.getJobPhaseId());
         paramObj.put("jobId",nodeVo.getJobId());
         paramObj.put("phase",nodeVo.getJobPhaseName());
+        paramObj.put("nodeId", nodeVo.getJobId());
         paramObj.put("ip",nodeVo.getHost());
         paramObj.put("port",nodeVo.getPort());
         paramObj.put("runnerUrl",nodeVo.getRunnerUrl());

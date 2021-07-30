@@ -5,7 +5,6 @@
 
 package codedriver.module.autoexec.api.job;
 
-import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeOperationStatusVo;
@@ -66,6 +65,7 @@ public class AutoexecJobPhaseNodeOperationStatusGetApi extends PrivateApiCompone
         AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(nodeVo.getJobId(),nodeVo.getJobPhaseId());
         paramObj.put("jobId",nodeVo.getJobId());
         paramObj.put("phase",nodeVo.getJobPhaseName());
+        paramObj.put("nodeId", nodeVo.getJobId());
         paramObj.put("phaseId",nodeVo.getJobPhaseId());
         paramObj.put("ip",nodeVo.getHost());
         paramObj.put("port",nodeVo.getPort());
