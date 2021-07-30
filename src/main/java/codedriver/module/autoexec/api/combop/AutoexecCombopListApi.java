@@ -83,11 +83,6 @@ public class AutoexecCombopListApi extends PrivateApiComponentBase {
         JSONObject resultObj = new JSONObject();
         int pageCount = 0;
         AutoexecCombopVo searchVo = JSON.toJavaObject(jsonObj, AutoexecCombopVo.class);
-        String userUuid = UserContext.get().getUserUuid(true);
-        List<String> teamUuidList = teamMapper.getTeamUuidListByUserUuid(userUuid);
-        searchVo.setUserUuid(userUuid);
-        searchVo.setTeamUuidList(teamUuidList);
-        searchVo.setRoleUuidList(UserContext.get().getRoleUuidList());
         int rowNum = autoexecCombopMapper.getAutoexecCombopCount(searchVo);
         if (rowNum > 0) {
             pageCount = PageUtil.getPageCount(rowNum, searchVo.getPageSize());
