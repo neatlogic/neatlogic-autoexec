@@ -511,6 +511,10 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         String result = StringUtils.EMPTY;
         try {
             for (AutoexecRunnerVo runner : runnerVos) {
+                paramJson.put("passThroughEnv", new JSONObject() {{
+                    put("runnerId", runner.getId());
+                    put("phaseSort", jobVo.getCurrentPhaseSort());
+                }});
                 String url = runner.getUrl() + "api/rest/job/" + action;
                 restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), paramJson);
                 result = RestUtil.sendRequest(restVo);

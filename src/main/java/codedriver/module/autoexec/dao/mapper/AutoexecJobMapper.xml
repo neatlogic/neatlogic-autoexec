@@ -152,7 +152,8 @@
         ajpn.`protocol`,
         ajpn.`resource_id` AS resourceId,
         rai.`id` AS nodeId,
-        rai.name AS nodeName,
+        ajpn.name AS nodeName,
+        ajpn.type AS nodeType,
         arm.`runner_id` AS runnerId,
         ajpn.`user_name` AS userName,
         ap.`url` AS runnerUrl
@@ -442,7 +443,7 @@
         SELECT ajn.`id`,
                ajn.`host`,
                ajn.port,
-               ajn.`protocol` AS nodeType
+               ajn.`protocol`
         FROM `autoexec_job_node` ajn
         where ajn.job_id = #{jobId}
         limit #{startNum}, #{pageSize}
@@ -860,6 +861,7 @@
                                                `protocol`,
                                                `protocol_port`,
                                                `name`,
+                                               `type`,
                                                `user_name`,
                                                `resource_id`,
                                                `status`)
@@ -871,6 +873,7 @@
                 #{protocol},
                 #{protocolPort},
                 #{nodeName},
+                #{nodeType},
                 #{userName},
                 #{resourceId},
                 #{status});

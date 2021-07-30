@@ -137,6 +137,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                         //ResourceVo resourceVo = (ResourceVo) resourceVoList.stream().filter(o-> Objects.equals(o.getId(),nodeVo.getResourceId()));
                         put("nodeId", nodeVo.getId());
                         put("nodeName", nodeVo.getNodeName());
+                        put("nodeType", nodeVo.getNodeType());
                         put("host", nodeVo.getHost());
                         put("port", nodeVo.getPort());
                     }};
