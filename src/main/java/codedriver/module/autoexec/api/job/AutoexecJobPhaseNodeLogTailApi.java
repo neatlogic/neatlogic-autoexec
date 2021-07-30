@@ -79,6 +79,7 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
         AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(nodeVo.getJobId(), nodeVo.getJobPhaseId());
         paramObj.put("jobId", nodeVo.getJobId());
         paramObj.put("nodeId", nodeVo.getId());
+        paramObj.put("resourceId", nodeVo.getResourceId());
         paramObj.put("phase", nodeVo.getJobPhaseName());
         paramObj.put("phaseId", nodeVo.getJobPhaseId());
         paramObj.put("ip", nodeVo.getHost());

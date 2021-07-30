@@ -127,6 +127,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                 for (AutoexecJobPhaseNodeVo nodeVo : autoexecJobPhaseNodeVoList) {
                     JSONObject nodeJson = new JSONObject() {{
                         List<AccountVo> accountVoTmpList = accountVoList.stream().filter(o -> Objects.equals(o.getResourceId(), nodeVo.getResourceId())).collect(Collectors.toList());
+                        put("protocol", nodeVo.getProtocol());
                         if (CollectionUtils.isNotEmpty(accountVoTmpList)) {
                             AccountVo accountVoTmp = accountVoTmpList.get(0);
                             put("protocol", accountVoTmp.getProtocol());

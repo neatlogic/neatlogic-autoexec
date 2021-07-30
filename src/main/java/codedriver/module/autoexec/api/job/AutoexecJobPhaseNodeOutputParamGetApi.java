@@ -65,6 +65,7 @@ public class AutoexecJobPhaseNodeOutputParamGetApi extends PrivateApiComponentBa
         paramObj.put("jobId",nodeVo.getJobId());
         paramObj.put("phase",nodeVo.getJobPhaseName());
         paramObj.put("nodeId", nodeVo.getId());
+        paramObj.put("resourceId", nodeVo.getResourceId());
         paramObj.put("phaseId",nodeVo.getJobPhaseId());
         paramObj.put("ip",nodeVo.getHost());
         paramObj.put("port",nodeVo.getPort());

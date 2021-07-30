@@ -7,7 +7,6 @@ package codedriver.module.autoexec.api.job.action;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
-import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
@@ -89,7 +88,6 @@ public class AutoexecJobNodeReFireApi extends PrivateApiComponentBase {
         }
         jobVo.setNodeVoList(nodeVoList);
         autoexecJobActionService.executeAuthCheck(jobVo);
-        jobVo.setAction(JobAction.REFIRE.getValue());
         autoexecJobActionService.refire(jobVo,"refireNode");
         return null;
     }

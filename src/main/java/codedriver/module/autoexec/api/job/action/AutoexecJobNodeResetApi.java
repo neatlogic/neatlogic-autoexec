@@ -85,7 +85,7 @@ public class AutoexecJobNodeResetApi extends PrivateApiComponentBase {
         if (phaseVo == null) {
             throw new AutoexecJobPhaseNotFoundException(jobPhaseId.toString());
         }
-        if (!Objects.equals(isAll,1)) {
+        if (!Objects.equals(isAll, 1)) {
             List<Long> nodeIdList = JSONObject.parseArray(jsonObj.getJSONArray("nodeIdList").toJSONString(), Long.class);
             autoexecJobActionService.executeAuthCheck(jobVo);
             jobVo.setAction(JobAction.RESET_NODE.getValue());
@@ -94,6 +94,8 @@ public class AutoexecJobNodeResetApi extends PrivateApiComponentBase {
                 throw new AutoexecJobPhaseNodeNotFoundException(StringUtils.EMPTY, nodeIdList.stream().map(Object::toString).collect(Collectors.joining(",")));
             }
             jobVo.setJobPhaseNodeList(nodeVoList);
+        } else {
+            jobVo.setJobPhaseNodeList(autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseId(jobId, jobPhaseId));
         }
         jobVo.setPhaseList(Collections.singletonList(phaseVo));
         autoexecJobActionService.resetNode(jobVo);

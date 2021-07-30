@@ -762,6 +762,7 @@
         ajpn.`resource_id` AS resourceId,
         ajpn.`user_name` as userName,
         ajpn.`name` as nodeName,
+        ajpn.`type` as nodeType,
         ajpn.`protocol`,
         ajpn.`status`
         FROM `autoexec_job_phase_node` ajpn

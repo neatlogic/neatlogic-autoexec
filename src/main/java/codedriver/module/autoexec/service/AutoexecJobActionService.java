@@ -73,13 +73,6 @@ public interface AutoexecJobActionService {
     void pause(AutoexecJobVo jobVo);
 
     /**
-     * 继续作业
-     *
-     * @param jobVo 作业
-     */
-    void goon(AutoexecJobVo jobVo);
-
-    /**
      * 中止作业
      *
      * @param jobVo 作业

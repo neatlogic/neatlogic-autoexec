@@ -122,9 +122,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             jobPhase.setStatus(JobPhaseStatus.WAITING.getValue());
             autoexecJobMapper.updateJobPhaseStatus(jobPhase);
         }
-        if (CollectionUtils.isEmpty(jobVo.getNodeVoList())) {
-            autoexecJobService.refreshJobPhaseNodeList(jobVo.getId(), jobVo.getCurrentPhaseSort());
-        }
+
         JSONObject paramJson = new JSONObject();
         getFireParamJson(paramJson, jobVo);
         paramJson.put("isFirstFire", jobVo.getCurrentPhaseSort() == 0 ? 1 : 0);
@@ -166,18 +164,19 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
 
     @Override
     public void refire(AutoexecJobVo jobVo, String type) {
-        if (Objects.equals(type, "refireResetAll")) {
+        jobVo.setAction(type);
+        if (Objects.equals(type, JobAction.RESET_REFIRE.getValue())) {
             resetAll(jobVo);
+            autoexecJobService.refreshJobPhaseNodeList(jobVo.getId(), 0);
             autoexecJobService.getAutoexecJobDetail(jobVo, 0);
             autoexecJobMapper.updateJobPhaseStatusByJobId(jobVo.getId(), JobPhaseStatus.PENDING.getValue());//重置phase状态为pending
-            autoexecJobMapper.updateJobPhaseFailedNodeStatusByJobId(jobVo.getId(), JobNodeStatus.PENDING.getValue());//重置失败的节点的状态为pending
             jobVo.setCurrentPhaseSort(0);
             new AutoexecJobAuthActionManager.Builder().addReFireJob().build().setAutoexecJobAction(jobVo);
-        } else if (Objects.equals(type, "refireAll")) {
+        } else if (Objects.equals(type, JobAction.REFIRE.getValue())) {
             int sort = 0;
             /*寻找中止|暂停|失败的phase
-             * 1、优先寻找aborted|paused|failed phase
-             * 2、没有满足1条件的，再寻找pending 最小sort phase
+             * 1、优先寻找aborted|paused|failed phaseList
+             * 2、没有满足1条件的，再寻找pending 最小sort phaseList
              */
             List<AutoexecJobPhaseVo> autoexecJobPhaseVos = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobVo.getId(), Arrays.asList(JobPhaseStatus.ABORTED.getValue(), JobPhaseStatus.PAUSED.getValue(), JobPhaseStatus.FAILED.getValue()));
             List<Long> jobPhaseIdList = new ArrayList<>();
@@ -185,10 +184,11 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                 sort = autoexecJobPhaseVos.get(0).getSort();
                 jobPhaseIdList = autoexecJobPhaseVos.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList());
             } else {
-                AutoexecJobPhaseVo phase = autoexecJobMapper.getJobPhaseByJobIdAndPhaseStatus(jobVo.getId(), JobPhaseStatus.PENDING.getValue());
-                if (phase != null) {
-                    sort = phase.getSort();
-                    jobPhaseIdList.add(phase.getId());
+                List<AutoexecJobPhaseVo> phaseList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobVo.getId(), Collections.singletonList(JobPhaseStatus.PENDING.getValue()));
+                if (CollectionUtils.isNotEmpty(phaseList)) {
+                    sort = phaseList.get(0).getSort();
+                    int finalSort = sort;
+                    jobPhaseIdList = phaseList.stream().filter(o-> o.getSort() == finalSort).map(AutoexecJobPhaseVo::getId).collect(Collectors.toList());
                 }
             }
             jobVo.setCurrentPhaseSort(sort);
@@ -197,7 +197,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             List<Long> finalJobPhaseIdList = jobPhaseIdList;
             jobVo.setPhaseList(jobVo.getPhaseList().stream().filter(o -> finalJobPhaseIdList.contains(o.getId())).collect(Collectors.toList()));
             new AutoexecJobAuthActionManager.Builder().addReFireJob().build().setAutoexecJobAction(jobVo);
-        } else if (Objects.equals(type, "refireNode")) {
+        } else if (Objects.equals(type, JobAction.REFIRE_NODE.getValue())) {
             List<AutoexecJobPhaseNodeVo> nodeVoList = jobVo.getNodeVoList();
             AutoexecJobPhaseNodeVo nodeVo = nodeVoList.get(0);
             for (AutoexecJobPhaseNodeVo jobPhaseNodeVo : nodeVoList) {
@@ -249,34 +249,6 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         }
     }
 
-    @Override
-    public void goon(AutoexecJobVo jobVo) {
-        int sort = 0;
-        /*寻找中止|暂停的phase
-         * 1、优先寻找aborted|paused phase
-         * 2、没有满足1条件的，再寻找pending 最小sort phase
-         */
-        List<AutoexecJobPhaseVo> autoexecJobPhaseVos = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobVo.getId(), Arrays.asList(JobPhaseStatus.ABORTED.getValue(), JobPhaseStatus.PAUSED.getValue(), JobPhaseStatus.FAILED.getValue()));
-        List<Long> jobPhaseIdList = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(autoexecJobPhaseVos)) {
-            sort = autoexecJobPhaseVos.get(0).getSort();
-            jobPhaseIdList = autoexecJobPhaseVos.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList());
-        } else {
-            AutoexecJobPhaseVo phase = autoexecJobMapper.getJobPhaseByJobIdAndPhaseStatus(jobVo.getId(), JobPhaseStatus.PENDING.getValue());
-            if (phase != null) {
-                sort = phase.getSort();
-                jobPhaseIdList.add(phase.getId());
-            }
-        }
-        jobVo.setCurrentPhaseSort(sort);
-        autoexecJobService.getAutoexecJobDetail(jobVo, sort);
-        //补充配置，只保留满足条件（该sort下，失败、已暂停或已中止）的phase
-        List<Long> finalJobPhaseIdList = jobPhaseIdList;
-        jobVo.setPhaseList(jobVo.getPhaseList().stream().filter(o -> finalJobPhaseIdList.contains(o.getId())).collect(Collectors.toList()));
-        new AutoexecJobAuthActionManager.Builder().addFireJob().build().setAutoexecJobAction(jobVo);
-        execute(jobVo);
-    }
-
     /**
      * 拼装给proxy的param
      *
@@ -319,6 +291,8 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                         put("protocolPort", accountVo.getPort());
                         put("nodeId", nodeVo.getId());
                         put("nodeName", nodeVo.getNodeName());
+                        put("nodeType", nodeVo.getNodeType());
+                        put("resourceId", nodeVo.getResourceId());
                         put("host", nodeVo.getHost());
                         put("port", nodeVo.getPort());
                     }});

@@ -68,6 +68,7 @@ public class AutoexecJobPhaseNodeLogDownloadApi extends PrivateBinaryStreamApiCo
         paramObj.put("jobId", nodeVo.getJobId());
         paramObj.put("phase", nodeVo.getJobPhaseName());
         paramObj.put("nodeId", nodeVo.getId());
+        paramObj.put("resourceId", nodeVo.getResourceId());
         paramObj.put("ip", nodeVo.getHost());
         paramObj.put("port", nodeVo.getPort());
         paramObj.put("runnerUrl", nodeVo.getRunnerUrl());
