@@ -631,6 +631,20 @@
         </foreach>
     </select>
 
+    <select id="getJobPhaseNodeListByJobIdAndPhaseId"
+            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
+        SELECT ajpn.`id`,
+        ajpn.`job_id` AS jobId,
+        ajpn.`job_phase_id` AS jobPhaseId,
+        ajpn.`host`,
+        ajpn.`port`,
+        ajpn.`start_time` AS startTime,
+        ajpn.`end_time` AS endTime,
+        ajpn.`status`
+        FROM `autoexec_job_phase_node` ajpn
+        where ajpn.`job_id` = #{jobId} and ajpn.`job_phase_id` = #{phaseId}
+    </select>
+
     <select id="getJobRunnerListByJobId" resultType="codedriver.framework.autoexec.dto.AutoexecRunnerVo">
         SELECT DISTINCT ar.`id`, ar.`name`, ar.`url`, ar.`host`, ar.`port`
         FROM `autoexec_job_phase_node` ajpn
