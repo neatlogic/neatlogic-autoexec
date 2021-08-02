@@ -14,6 +14,7 @@ import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.exception.*;
+import codedriver.framework.dao.mapper.RoleMapper;
 import codedriver.framework.dao.mapper.TeamMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
@@ -26,10 +27,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -51,6 +49,9 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
     @Resource
     private TeamMapper teamMapper;
 
+    @Resource
+    private RoleMapper roleMapper;
+
     /**
      * 设置当前用户可操作按钮权限列表
      *
@@ -67,8 +68,13 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
             autoexecCombopVo.setOwnerEditable(1);
         } else {
             autoexecCombopVo.setOwnerEditable(0);
-            List<String> roleUuidList = UserContext.get().getRoleUuidList();
             List<String> teamUuidList = teamMapper.getTeamUuidListByUserUuid(userUuid);
+            List<String> userRoleUuidList = UserContext.get().getRoleUuidList();
+            List<String> teamRoleUuidList = roleMapper.getRoleUuidListByTeamUuidList(teamUuidList);
+            Set<String> roleUuidSet = new HashSet<>();
+            roleUuidSet.addAll(userRoleUuidList);
+            roleUuidSet.addAll(teamRoleUuidList);
+            List<String> roleUuidList = new ArrayList<>(roleUuidSet);
             List<String> authorityList = autoexecCombopMapper.getAutoexecCombopAuthorityListByCombopIdAndUserUuidAndTeamUuidListAndRoleUuidList(autoexecCombopVo.getId(), userUuid, teamUuidList, roleUuidList);
 //            if (authorityList.contains(CombopAuthorityAction.VIEW.getValue())) {
 //                autoexecCombopVo.setViewable(1);
