@@ -96,7 +96,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             AutoexecCombopPhaseConfigVo phaseConfigVo = autoexecCombopPhaseVo.getConfig();
             //jobPhaseNode
             //如果是target 则获取执行目标，否则随机分配runner
-            if (Arrays.asList(ExecMode.TARGET.getValue(), ExecMode.SQL.getValue()).contains(autoexecCombopPhaseVo.getExecMode())) {
+            if (Arrays.asList(ExecMode.TARGET.getValue(),ExecMode.RUNNER_TARGET.getValue(), ExecMode.SQL.getValue()).contains(autoexecCombopPhaseVo.getExecMode())) {
                 AutoexecCombopExecuteConfigVo executeConfigVo = phaseConfigVo.getExecuteConfig();
                 boolean isPhaseSetNode = false;
                 if (executeConfigVo != null) {

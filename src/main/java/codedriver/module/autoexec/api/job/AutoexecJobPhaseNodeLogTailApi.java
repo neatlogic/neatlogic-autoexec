@@ -56,7 +56,8 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "nodeId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本节点Id"),
+            @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本Id"),
+            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id"),
             @Param(name = "logPos", type = ApiParamType.LONG, isRequired = true, desc = "日志读取位置,-1:获取最新的数据"),
             @Param(name = "direction", type = ApiParamType.ENUM, rule = "up,down", isRequired = true, desc = "读取方向，up:向上读，down:向下读")
     })
@@ -72,9 +73,11 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         JSONObject result;
-        AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobNodeId(paramObj.getLong("nodeId"));
+        Long phaseId = paramObj.getLong("jobPhaseId");
+        Long resourceId = paramObj.getLong("resourceId");
+        AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobPhaseIdAndResourceId(phaseId,resourceId);
         if (nodeVo == null) {
-            throw new AutoexecJobPhaseNodeNotFoundException(StringUtils.EMPTY, paramObj.getString("nodeId"));
+            throw new AutoexecJobPhaseNodeNotFoundException(phaseId.toString(), resourceId == null?StringUtils.EMPTY:resourceId.toString());
         }
         AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(nodeVo.getJobId(), nodeVo.getJobPhaseId());
         paramObj.put("jobId", nodeVo.getJobId());

@@ -634,15 +634,16 @@
     <select id="getJobPhaseNodeListByJobIdAndPhaseId"
             resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
         SELECT ajpn.`id`,
-        ajpn.`job_id` AS jobId,
-        ajpn.`job_phase_id` AS jobPhaseId,
-        ajpn.`host`,
-        ajpn.`port`,
-        ajpn.`start_time` AS startTime,
-        ajpn.`end_time` AS endTime,
-        ajpn.`status`
+               ajpn.`job_id`       AS jobId,
+               ajpn.`job_phase_id` AS jobPhaseId,
+               ajpn.`host`,
+               ajpn.`port`,
+               ajpn.`start_time`   AS startTime,
+               ajpn.`end_time`     AS endTime,
+               ajpn.`status`
         FROM `autoexec_job_phase_node` ajpn
-        where ajpn.`job_id` = #{jobId} and ajpn.`job_phase_id` = #{phaseId}
+        where ajpn.`job_id` = #{jobId}
+          and ajpn.`job_phase_id` = #{phaseId}
     </select>
 
     <select id="getJobRunnerListByJobId" resultType="codedriver.framework.autoexec.dto.AutoexecRunnerVo">
@@ -815,7 +816,40 @@
                aj.`param_hash`      as paramHash,
                aj.`config`          as configStr
         FROM `autoexec_job` aj
-        WHERE aj.`operation_id` = #{value} for update
+        WHERE aj.`operation_id` = #{value} for
+        update
+    </select>
+    <select id="getJobPhaseNodeInfoByJobPhaseIdAndResourceId"
+            resultType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo">
+        SELECT ajpn.`id`,
+        ajpn.`job_id` AS jobId,
+        ajpn.`job_phase_id` AS jobPhaseId,
+        ajpn.`host`,
+        ajpn.port,
+        ajpn.`start_time` AS startTime,
+        ajpn.`end_time` AS endTime,
+        ajpn.`status`,
+        ajp.`name` AS jobPhaseName,
+        ajpn.`name` AS nodeName,
+        ajpn.`user_name` as userName,
+        ajpn.`protocol` AS protocol,
+        ajpn.`protocol_port` AS protocolPort,
+        ajpn.`resource_id` as resourceId,
+        ap.`id` AS runnerId,
+        ap.`url` AS runnerUrl
+        FROM `autoexec_job_phase_node` ajpn
+        LEFT JOIN `autoexec_job_phase` ajp ON ajpn.`job_phase_id` = ajp.`id`
+        LEFT JOIN `autoexec_job_phase_node_runner` ajpnr ON ajpn.id = ajpnr.`node_id`
+        LEFT JOIN `autoexec_runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
+        LEFT JOIN `autoexec_runner` ap ON arm.`runner_id` = ap.`id`
+        where ajpn.`job_phase_id` = #{jobPhaseId}
+        <if test="resourceId == null">
+            and ajpn.`resource_id` is null
+        </if>
+        <if test="resourceId != null">
+            and ajpn.`resource_id` = #{resourceId}
+        </if>
+
     </select>
 
     <insert id="insertJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">

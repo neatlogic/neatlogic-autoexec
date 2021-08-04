@@ -56,13 +56,16 @@ public class AutoexecJobPhaseNodeLogDownloadApi extends PrivateBinaryStreamApiCo
     }
 
     @Input({
-            @Param(name = "nodeId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本节点Id"),
+            @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本Id"),
+            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id"),
     })
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
-        AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobNodeId(paramObj.getLong("nodeId"));
+        Long phaseId = paramObj.getLong("jobPhaseId");
+        Long resourceId = paramObj.getLong("resourceId");
+        AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobPhaseIdAndResourceId(phaseId,resourceId);
         if (nodeVo == null) {
-            throw new AutoexecJobPhaseNodeNotFoundException(StringUtils.EMPTY, paramObj.getString("nodeId"));
+            throw new AutoexecJobPhaseNodeNotFoundException(phaseId.toString(), resourceId == null?StringUtils.EMPTY:resourceId.toString());
         }
         AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(nodeVo.getJobId(), nodeVo.getJobPhaseId());
         paramObj.put("jobId", nodeVo.getJobId());

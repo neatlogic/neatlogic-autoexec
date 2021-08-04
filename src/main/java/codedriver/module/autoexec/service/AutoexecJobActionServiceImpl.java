@@ -92,10 +92,11 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         List<AutoexecRunnerVo> runnerVos = null;
         RestVo restVo = null;
         String result = StringUtils.EMPTY;
+        String url = StringUtils.EMPTY;
         try {
             runnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobVo.getId(), jobVo.getPhaseIdList());
             for (AutoexecRunnerVo runner : runnerVos) {
-                String url = runner.getUrl() + "api/rest/health/check";
+                url = runner.getUrl() + "api/rest/health/check";
                 restVo = new RestVo(url, AuthenticateType.BASIC.getValue(), AutoexecConfig.PROXY_BASIC_USER_NAME(), AutoexecConfig.PROXY_BASIC_PASSWORD(), new JSONObject());
                 result = RestUtil.sendRequest(restVo);
                 JSONObject resultJson = JSONObject.parseObject(result);
@@ -104,8 +105,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                 }
             }
         } catch (Exception ex) {
-            assert restVo != null;
-            throw new AutoexecJobRunnerConnectRefusedException(restVo.getUrl() + " " + result);
+            throw new AutoexecJobRunnerConnectRefusedException(url + " " + result);
         }
         return runnerVos;
     }
@@ -167,9 +167,8 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         jobVo.setAction(type);
         if (Objects.equals(type, JobAction.RESET_REFIRE.getValue())) {
             resetAll(jobVo);
-            autoexecJobService.refreshJobPhaseNodeList(jobVo.getId(), 0);
-            autoexecJobService.getAutoexecJobDetail(jobVo, 0);
             autoexecJobMapper.updateJobPhaseStatusByJobId(jobVo.getId(), JobPhaseStatus.PENDING.getValue());//重置phase状态为pending
+            autoexecJobService.getAutoexecJobDetail(jobVo, 0);
             jobVo.setCurrentPhaseSort(0);
             new AutoexecJobAuthActionManager.Builder().addReFireJob().build().setAutoexecJobAction(jobVo);
         } else if (Objects.equals(type, JobAction.REFIRE.getValue())) {
@@ -213,6 +212,10 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         }
 
         if (CollectionUtils.isNotEmpty(jobVo.getPhaseList())) {
+            //判断是否需要重刷phaseNode (如果存在已经跑过的phase，则该sort的phase都不会刷新)
+            if(jobVo.getPhaseList().stream().allMatch(o-> Objects.equals(o.getStatus(),JobPhaseStatus.PENDING.getValue()))){
+                autoexecJobService.refreshJobPhaseNodeList(jobVo.getId(),jobVo.getCurrentPhaseSort());
+            };
             execute(jobVo);
         }
 

@@ -50,7 +50,8 @@ public class AutoexecJobPhaseNodeAuditGetApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "nodeId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本节点Id")
+            @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本Id"),
+            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id")
     })
     @Output({
             @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecJobPhaseNodeAuditVo[].class, desc = "节点操作记录列表")
@@ -59,9 +60,11 @@ public class AutoexecJobPhaseNodeAuditGetApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         JSONObject result = new JSONObject();
-        AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobNodeId(paramObj.getLong("nodeId"));
-        if(nodeVo == null){
-            throw new AutoexecJobPhaseNodeNotFoundException(StringUtils.EMPTY,paramObj.getString("nodeId"));
+        Long phaseId = paramObj.getLong("jobPhaseId");
+        Long resourceId = paramObj.getLong("resourceId");
+        AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobPhaseIdAndResourceId(phaseId,resourceId);
+        if (nodeVo == null) {
+            throw new AutoexecJobPhaseNodeNotFoundException(phaseId.toString(), resourceId == null?StringUtils.EMPTY:resourceId.toString());
         }
         if(StringUtils.isBlank(nodeVo.getRunnerUrl())){
             throw new AutoexecJobHostPortRunnerNotFoundException(nodeVo.getHost()+":"+nodeVo.getPort());
