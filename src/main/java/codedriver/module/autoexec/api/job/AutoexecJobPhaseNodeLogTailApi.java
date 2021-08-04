@@ -9,6 +9,7 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
 import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
+import codedriver.framework.autoexec.dto.job.AutoexecJobNodeSqlStatusVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeOperationStatusVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
@@ -58,6 +59,7 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
     @Input({
             @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本Id"),
             @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id"),
+            @Param(name = "sqlName", type = ApiParamType.STRING, desc = "sql名"),
             @Param(name = "logPos", type = ApiParamType.LONG, isRequired = true, desc = "日志读取位置,-1:获取最新的数据"),
             @Param(name = "direction", type = ApiParamType.ENUM, rule = "up,down", isRequired = true, desc = "读取方向，up:向上读，down:向下读")
     })
@@ -75,6 +77,7 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
         JSONObject result;
         Long phaseId = paramObj.getLong("jobPhaseId");
         Long resourceId = paramObj.getLong("resourceId");
+        String sqlName = paramObj.getString("sqlName");
         AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobPhaseIdAndResourceId(phaseId,resourceId);
         if (nodeVo == null) {
             throw new AutoexecJobPhaseNodeNotFoundException(phaseId.toString(), resourceId == null?StringUtils.EMPTY:resourceId.toString());
@@ -83,6 +86,7 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
         paramObj.put("jobId", nodeVo.getJobId());
         paramObj.put("nodeId", nodeVo.getId());
         paramObj.put("resourceId", nodeVo.getResourceId());
+        paramObj.put("sqlName",sqlName);
         paramObj.put("phase", nodeVo.getJobPhaseName());
         paramObj.put("phaseId", nodeVo.getJobPhaseId());
         paramObj.put("ip", nodeVo.getHost());
@@ -92,25 +96,32 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
         paramObj.put("direction", "down");
         result = autoexecJobActionService.tailNodeLog(paramObj);
         result.put("isRefresh", 0);
-        List<AutoexecJobPhaseNodeOperationStatusVo> operationStatusVos = autoexecJobActionService.getNodeOperationStatus(paramObj);
-        for (AutoexecJobPhaseNodeOperationStatusVo statusVo : operationStatusVos) {
-            //如果存在pending|running 的节点|阶段 则继续tail
-            //如果operation的状态为null，表示还没刷新结果，继续tail
-            if (Objects.equals(phaseVo.getStatus(), JobPhaseStatus.PENDING.getValue())
-                    || Objects.equals(phaseVo.getStatus(), JobPhaseStatus.RUNNING.getValue())
-                    || StringUtils.isBlank(statusVo.getStatus())
-                    || Objects.equals(statusVo.getStatus(), JobNodeStatus.PENDING.getValue())
-                    || Objects.equals(statusVo.getStatus(), JobNodeStatus.RUNNING.getValue())) {
-                result.put("isRefresh", 1);
-                break;
+        if(StringUtils.isBlank(sqlName)) {//获取node节点的状态（包括operation status）
+            List<AutoexecJobPhaseNodeOperationStatusVo> operationStatusVos = autoexecJobActionService.getNodeOperationStatus(paramObj);
+            for (AutoexecJobPhaseNodeOperationStatusVo statusVo : operationStatusVos) {
+                //如果存在pending|running 的节点|阶段 则继续tail
+                //如果operation的状态为null，表示还没刷新结果，继续tail
+                if (Objects.equals(phaseVo.getStatus(), JobPhaseStatus.PENDING.getValue())
+                        || Objects.equals(phaseVo.getStatus(), JobPhaseStatus.RUNNING.getValue())
+                        || StringUtils.isBlank(statusVo.getStatus())
+                        || Objects.equals(statusVo.getStatus(), JobNodeStatus.PENDING.getValue())
+                        || Objects.equals(statusVo.getStatus(), JobNodeStatus.RUNNING.getValue())) {
+                    result.put("isRefresh", 1);
+                    break;
+                }
+                //如果存在失败停止策略的操作节点，则停止tail
+                if (Objects.equals(statusVo.getStatus(), JobNodeStatus.FAILED.getValue()) && Objects.equals(statusVo.getFailIgnore(), 0)) {
+                    result.put("isRefresh", 0);
+                    break;
+                }
             }
-            //如果存在失败停止策略的操作节点，则停止tail
-            if (Objects.equals(statusVo.getStatus(), JobNodeStatus.FAILED.getValue()) && Objects.equals(statusVo.getFailIgnore(), 0)) {
-                result.put("isRefresh", 0);
-                break;
+            result.put("operationStatusList", operationStatusVos);
+        }else{//获取sql 状态
+            AutoexecJobNodeSqlStatusVo sqlStatusVo = autoexecJobActionService.getNodeSqlStatus(paramObj);
+            if(sqlStatusVo != null && !Objects.equals(sqlStatusVo.getStatus(), JobNodeStatus.SUCCEED.getValue())){
+                result.put("isRefresh", 1);
             }
         }
-        result.put("operationStatusList", operationStatusVos);
         return result;
     }
 

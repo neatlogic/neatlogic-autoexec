@@ -133,4 +133,11 @@ public interface AutoexecJobActionService {
      */
     JSONArray getNodeOutputParam(JSONObject paramJson);
 
+    /**
+     * 获取执行sql状态
+     *
+     * @param paramObj 参数
+     * @return sql执行状态
+     */
+    AutoexecJobNodeSqlStatusVo getNodeSqlStatus(JSONObject paramObj);
 }

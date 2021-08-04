@@ -156,6 +156,8 @@
         ajpn.type AS nodeType,
         arm.`runner_id` AS runnerId,
         ajpn.`user_name` AS userName,
+        ap.`host` as runnerHost,
+        ap.`port` as runnerPort,
         ap.`url` AS runnerUrl
         FROM
         `autoexec_job_phase_node` ajpn
