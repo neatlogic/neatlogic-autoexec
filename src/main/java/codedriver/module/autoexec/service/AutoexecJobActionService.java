@@ -35,7 +35,8 @@ public interface AutoexecJobActionService {
 
     /**
      * 重跑
-     * @param type 重跑类型：   重置并重跑所有：refireResetAll；重跑所有：refireAll
+     *
+     * @param type  重跑类型：   重置并重跑所有：refireResetAll；重跑所有：refireAll
      * @param jobVo 作业
      */
     void refire(AutoexecJobVo jobVo, String type);
@@ -139,5 +140,13 @@ public interface AutoexecJobActionService {
      * @param paramObj 参数
      * @return sql执行状态
      */
-    AutoexecJobNodeSqlStatusVo getNodeSqlStatus(JSONObject paramObj);
+    AutoexecJobNodeSqlVo getNodeSqlStatus(JSONObject paramObj);
+
+    /**
+     * 获取node sql列表
+     *
+     * @param paramObj 参数
+     * @return sql列表
+     */
+    List<AutoexecJobNodeSqlVo> getNodeSqlList(JSONObject paramObj);
 }

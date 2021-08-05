@@ -665,12 +665,25 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
      * @return sql执行状态
      */
     @Override
-    public AutoexecJobNodeSqlStatusVo getNodeSqlStatus(JSONObject paramJson) {
+    public AutoexecJobNodeSqlVo getNodeSqlStatus(JSONObject paramJson) {
         String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/status/get";
         JSONObject statusJson = JSONObject.parseObject(requestRunner(url, paramJson));
         if (MapUtils.isNotEmpty(statusJson)) {
-            return new AutoexecJobNodeSqlStatusVo(statusJson);
+            return new AutoexecJobNodeSqlVo(statusJson);
         }
         return null;
+    }
+
+    /**
+     * 获取node sql列表
+     *
+     * @param paramObj 参数
+     * @return sql列表
+     */
+    @Override
+    public List<AutoexecJobNodeSqlVo> getNodeSqlList(JSONObject paramObj) {
+        String url = paramObj.getString("runnerUrl") + "/api/rest/job/phase/node/sql/list";
+        JSONArray sqlArray = JSONObject.parseArray(requestRunner(url, paramObj));
+        return sqlArray.toJavaList(AutoexecJobNodeSqlVo.class);
     }
 }

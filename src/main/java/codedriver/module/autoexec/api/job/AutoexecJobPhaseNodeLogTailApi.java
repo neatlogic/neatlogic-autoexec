@@ -9,7 +9,7 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
 import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
-import codedriver.framework.autoexec.dto.job.AutoexecJobNodeSqlStatusVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobNodeSqlVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeOperationStatusVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
@@ -117,7 +117,7 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
             }
             result.put("operationStatusList", operationStatusVos);
         }else{//获取sql 状态
-            AutoexecJobNodeSqlStatusVo sqlStatusVo = autoexecJobActionService.getNodeSqlStatus(paramObj);
+            AutoexecJobNodeSqlVo sqlStatusVo = autoexecJobActionService.getNodeSqlStatus(paramObj);
             if(sqlStatusVo != null && !Objects.equals(sqlStatusVo.getStatus(), JobNodeStatus.SUCCEED.getValue())){
                 result.put("isRefresh", 1);
             }

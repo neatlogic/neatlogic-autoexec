@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  2021 TechSure Co.,Ltd.  All Rights Reserved.
+ * Copyright(c) 2021. TechSure Co., Ltd. All Rights Reserved.
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  */
 
@@ -7,47 +7,50 @@ package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.constvalue.JobNodeStatus;
+import codedriver.framework.autoexec.dto.job.AutoexecJobNodeSqlVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNodeNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
-import codedriver.framework.restful.annotation.Input;
-import codedriver.framework.restful.annotation.OperationType;
-import codedriver.framework.restful.annotation.Param;
+import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
-import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
-import codedriver.framework.util.FileUtil;
+import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.module.autoexec.service.AutoexecJobActionService;
+import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.util.List;
+import java.util.Objects;
+
+/**
+ * @author lvzk
+ * @since 2021/8/5 11:20
+ **/
 
 @Service
+@Transactional
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
-public class AutoexecJobPhaseNodeLogDownloadApi extends PrivateBinaryStreamApiComponentBase {
+public class AutoexecJobNodeSqlListApi extends PrivateApiComponentBase {
+    @Resource
+    AutoexecJobMapper autoexecJobMapper;
+
+    @Resource
+    AutoexecJobService jobService;
 
     @Resource
     AutoexecJobActionService autoexecJobActionService;
 
-    @Resource
-    AutoexecJobMapper autoexecJobMapper;
-
-    @Override
-    public String getToken() {
-        return "/autoexec/job/phase/node/log/download";
-    }
-
     @Override
     public String getName() {
-        return "下载剧本节点执行日志";
+        return "获取作业节点sql列表";
     }
 
     @Override
@@ -57,33 +60,41 @@ public class AutoexecJobPhaseNodeLogDownloadApi extends PrivateBinaryStreamApiCo
 
     @Input({
             @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本Id"),
-            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id"),
-            @Param(name = "sqlName", type = ApiParamType.STRING, desc = "sql名")
+            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id")
     })
+    @Output({
+    })
+    @Description(desc = "获取作业节点sql列表")
     @Override
-    public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
+    public Object myDoService(JSONObject paramObj) throws Exception {
+        JSONObject result = new JSONObject();
         Long phaseId = paramObj.getLong("jobPhaseId");
         Long resourceId = paramObj.getLong("resourceId");
         AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobPhaseIdAndResourceId(phaseId,resourceId);
         if (nodeVo == null) {
-            throw new AutoexecJobPhaseNodeNotFoundException(phaseId.toString(), resourceId == null?StringUtils.EMPTY:resourceId.toString());
+            throw new AutoexecJobPhaseNodeNotFoundException(phaseId.toString(), resourceId == null? StringUtils.EMPTY:resourceId.toString());
         }
         AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(nodeVo.getJobId(), nodeVo.getJobPhaseId());
         paramObj.put("jobId", nodeVo.getJobId());
-        paramObj.put("phase", nodeVo.getJobPhaseName());
         paramObj.put("nodeId", nodeVo.getId());
         paramObj.put("resourceId", nodeVo.getResourceId());
-        paramObj.put("sqlName", paramObj.getString("sqlName"));
+        paramObj.put("phase", nodeVo.getJobPhaseName());
+        paramObj.put("phaseId", nodeVo.getJobPhaseId());
         paramObj.put("ip", nodeVo.getHost());
         paramObj.put("port", nodeVo.getPort());
         paramObj.put("runnerUrl", nodeVo.getRunnerUrl());
         paramObj.put("execMode", phaseVo.getExecMode());
-        String fileName = FileUtil.getEncodedFileName(request.getHeader("User-Agent"),
-                nodeVo.getJobPhaseName() + "-" + nodeVo.getHost() + "-" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".log");
-        response.setContentType("text/plain");
-        response.setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
-        autoexecJobActionService.downloadNodeLog(paramObj, response);
-        return null;
+        result.put("isRefresh", 1);
+        List<AutoexecJobNodeSqlVo> sqlList = autoexecJobActionService.getNodeSqlList(paramObj);
+        if(CollectionUtils.isNotEmpty(sqlList)&&sqlList.stream().allMatch(o->Objects.equals(o.getStatus(),JobNodeStatus.SUCCEED.getValue()))){
+            result.put("isRefresh", 0);
+        }
+        result.put("nodeSqlList",sqlList);
+        return result;
     }
 
+    @Override
+    public String getToken() {
+        return "autoexec/job/node/sql/list";
+    }
 }

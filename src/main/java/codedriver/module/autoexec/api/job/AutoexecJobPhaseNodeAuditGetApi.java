@@ -51,7 +51,8 @@ public class AutoexecJobPhaseNodeAuditGetApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本Id"),
-            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id")
+            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id"),
+            @Param(name = "sqlName", type = ApiParamType.STRING, desc = "sql名")
     })
     @Output({
             @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecJobPhaseNodeAuditVo[].class, desc = "节点操作记录列表")
@@ -62,22 +63,23 @@ public class AutoexecJobPhaseNodeAuditGetApi extends PrivateApiComponentBase {
         JSONObject result = new JSONObject();
         Long phaseId = paramObj.getLong("jobPhaseId");
         Long resourceId = paramObj.getLong("resourceId");
-        AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobPhaseIdAndResourceId(phaseId,resourceId);
+        AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobPhaseIdAndResourceId(phaseId, resourceId);
         if (nodeVo == null) {
-            throw new AutoexecJobPhaseNodeNotFoundException(phaseId.toString(), resourceId == null?StringUtils.EMPTY:resourceId.toString());
+            throw new AutoexecJobPhaseNodeNotFoundException(phaseId.toString(), resourceId == null ? StringUtils.EMPTY : resourceId.toString());
         }
-        if(StringUtils.isBlank(nodeVo.getRunnerUrl())){
-            throw new AutoexecJobHostPortRunnerNotFoundException(nodeVo.getHost()+":"+nodeVo.getPort());
+        if (StringUtils.isBlank(nodeVo.getRunnerUrl())) {
+            throw new AutoexecJobHostPortRunnerNotFoundException(nodeVo.getHost() + ":" + nodeVo.getPort());
         }
-        AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(nodeVo.getJobId(),nodeVo.getJobPhaseId());
-        paramObj.put("jobId",nodeVo.getJobId());
-        paramObj.put("phase",nodeVo.getJobPhaseName());
+        AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(nodeVo.getJobId(), nodeVo.getJobPhaseId());
+        paramObj.put("jobId", nodeVo.getJobId());
+        paramObj.put("phase", nodeVo.getJobPhaseName());
         paramObj.put("nodeId", nodeVo.getId());
         paramObj.put("resourceId", nodeVo.getResourceId());
-        paramObj.put("ip",nodeVo.getHost());
-        paramObj.put("port",nodeVo.getPort());
-        paramObj.put("runnerUrl",nodeVo.getRunnerUrl());
-        paramObj.put("execMode",phaseVo.getExecMode());
+        paramObj.put("sqlName", paramObj.getString("sqlName"));
+        paramObj.put("ip", nodeVo.getHost());
+        paramObj.put("port", nodeVo.getPort());
+        paramObj.put("runnerUrl", nodeVo.getRunnerUrl());
+        paramObj.put("execMode", phaseVo.getExecMode());
         result.put("tbodyList", autoexecJobActionService.getNodeAudit(paramObj));
         return result;
     }
