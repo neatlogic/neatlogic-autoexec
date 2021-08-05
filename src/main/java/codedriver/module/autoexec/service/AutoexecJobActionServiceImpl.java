@@ -686,4 +686,16 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         JSONArray sqlArray = JSONObject.parseArray(requestRunner(url, paramObj));
         return sqlArray.toJavaList(AutoexecJobNodeSqlVo.class);
     }
+
+    /**
+     * 获取sql文件 内容
+     *
+     * @param paramObj 参数
+     * @return sql文件 内容
+     */
+    @Override
+    public String getNodeSqlContent(JSONObject paramObj) {
+        String url = paramObj.getString("runnerUrl") + "/api/rest/job/phase/node/sql/content/get";
+        return requestRunner(url, paramObj);
+    }
 }

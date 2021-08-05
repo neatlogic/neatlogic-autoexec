@@ -149,4 +149,12 @@ public interface AutoexecJobActionService {
      * @return sql列表
      */
     List<AutoexecJobNodeSqlVo> getNodeSqlList(JSONObject paramObj);
+
+    /**
+     * 获取sql文件 内容
+     *
+     * @param paramObj 参数
+     * @return sql文件 内容
+     */
+    String getNodeSqlContent(JSONObject paramObj);
 }
