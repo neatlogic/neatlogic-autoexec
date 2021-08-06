@@ -1118,6 +1118,24 @@
             `end_time`   = #{endTime}
         WHERE `id` = #{id}
     </update>
+    <update id="updateJobPhaseNodeStatusByJobIdAndJobPhaseIdList">
+        UPDATE
+        `autoexec_job_phase_node`
+        SET
+        <if test="status == 'running'">
+            `start_time` = NOW(3),
+        </if>
+        <if test="status == 'succeed' or status == 'failed'">
+            `end_time` = NOW(3),
+        </if>
+        `status` = #{status}
+        WHERE `job_id` = #{jobId}
+        AND `job_phase_id` in
+        <foreach collection="jobPhaseIdList" item="jobPhaseId" separator="," open="(" close=")">
+            #{jobPhaseId}
+        </foreach>
+        and `status` in ('pausing','aborting')
+    </update>
 
     <delete id="deleteJobParamContentByHash" parameterType="java.lang.String">
         DELETE

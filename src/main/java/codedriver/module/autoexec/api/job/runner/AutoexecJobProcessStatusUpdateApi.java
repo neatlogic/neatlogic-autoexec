@@ -74,6 +74,7 @@ public class AutoexecJobProcessStatusUpdateApi extends PublicApiComponentBase {
         if (status != null && status == 1) {
             if(JobAction.PAUSE.getValue().equalsIgnoreCase(jobAction)) {
                 jobStatus = JobPhaseStatus.PAUSED.getValue();
+                jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobId, Collections.singletonList(JobPhaseStatus.PAUSING.getValue()));
             }else if(JobAction.ABORT.getValue().equalsIgnoreCase(jobAction)) {
                 jobStatus = JobPhaseStatus.ABORTED.getValue();
                 jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobId, Collections.singletonList(JobPhaseStatus.ABORTING.getValue()));
@@ -87,6 +88,7 @@ public class AutoexecJobProcessStatusUpdateApi extends PublicApiComponentBase {
         if(CollectionUtils.isNotEmpty(jobPhaseVoList)) {
             List<Long> jobPhaseIdList = jobPhaseVoList.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList());
             autoexecJobMapper.updateJobPhaseStatusBatch(jobPhaseIdList, jobStatus, errorMsg);
+            autoexecJobMapper.updateJobPhaseNodeStatusByJobIdAndJobPhaseIdList(jobId,jobPhaseIdList,jobStatus);
         }
         if(StringUtils.isNotBlank(jobStatus)){
             autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobId,jobStatus));

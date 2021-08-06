@@ -209,6 +209,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(nodeVo.getJobId(), nodeVo.getJobPhaseId());
             jobVo.setCurrentPhaseSort(phaseVo.getSort());
             autoexecJobService.getAutoexecJobDetail(jobVo, phaseVo.getSort());
+            //过滤仅需要当前phase的配置
             jobVo.setPhaseList(jobVo.getPhaseList().stream().filter(o -> Objects.equals(phaseVo.getId(), o.getId())).collect(Collectors.toList()));
             //new AutoexecJobAuthActionManager.Builder().addReFireJob().build().setAutoexecJobAction(jobVo);
         }
