@@ -483,8 +483,8 @@
         </if>
         <if test="execMode != null and execMode != ''">
             <choose>
-                <when test="execMode == 'runner' or execMode == 'runner_target'">
-                    and `exec_mode` in ('runner','runner_target')
+                <when test="execMode == 'target' or execMode == 'runner_target'">
+                    and `exec_mode` in ('target','runner_target')
                 </when>
                 <otherwise>
                     and `exec_mode` = #{execMode}
@@ -516,8 +516,8 @@
         </if>
         <if test="execMode != null and execMode != ''">
             <choose>
-                <when test="execMode == 'runner' or execMode == 'runner_target'">
-                    and a.`exec_mode` in ('runner','runner_target')
+                <when test="execMode == 'target' or execMode == 'runner_target'">
+                    and a.`exec_mode` in ('target','runner_target')
                 </when>
                 <otherwise>
                     and a.`exec_mode` = #{execMode}
