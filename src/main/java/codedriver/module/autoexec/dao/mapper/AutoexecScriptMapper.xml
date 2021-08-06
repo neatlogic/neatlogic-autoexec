@@ -482,7 +482,14 @@
             and `name` like CONCAT('%', #{keyword}, '%')
         </if>
         <if test="execMode != null and execMode != ''">
-            and `exec_mode` = #{execMode}
+            <choose>
+                <when test="execMode == 'target' or execMode == 'runner_target'">
+                    and `exec_mode` in ('target','runner_target')
+                </when>
+                <otherwise>
+                    and `exec_mode` = #{execMode}
+                </otherwise>
+            </choose>
         </if>
         <if test="typeIdList != null and typeIdList.size() != 0">
             and `type_id` in
@@ -508,7 +515,14 @@
             and a.`name` like CONCAT('%', #{keyword}, '%')
         </if>
         <if test="execMode != null and execMode != ''">
-            and a.`exec_mode` = #{execMode}
+            <choose>
+                <when test="execMode == 'target' or execMode == 'runner_target'">
+                    and a.`exec_mode` in ('target','runner_target')
+                </when>
+                <otherwise>
+                    and a.`exec_mode` = #{execMode}
+                </otherwise>
+            </choose>
         </if>
         <if test="typeIdList != null and typeIdList.size() != 0">
             and a.`type_id` in
