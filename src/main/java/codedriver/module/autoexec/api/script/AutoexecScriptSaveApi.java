@@ -26,7 +26,7 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.IValid;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
-import codedriver.module.autoexec.fulltextindex.FullTextIndexType;
+import codedriver.module.autoexec.fulltextindex.AutoexecFullTextIndexType;
 import codedriver.module.autoexec.service.AutoexecScriptService;
 import codedriver.module.autoexec.service.AutoexecService;
 import com.alibaba.fastjson.JSON;
@@ -162,7 +162,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             // 保存脚本内容
             autoexecScriptService.saveLineList(scriptVo.getId(), scriptVo.getVersionId(), scriptVo.getLineList());
             // 创建全文索引
-            IFullTextIndexHandler fullTextIndexHandler = FullTextIndexHandlerFactory.getComponent(FullTextIndexType.SCRIPT_DOCUMENT_VERSION);
+            IFullTextIndexHandler fullTextIndexHandler = FullTextIndexHandlerFactory.getComponent(AutoexecFullTextIndexType.SCRIPT_DOCUMENT_VERSION);
             if (fullTextIndexHandler != null) {
                 fullTextIndexHandler.createIndex(versionVo.getId());
             }

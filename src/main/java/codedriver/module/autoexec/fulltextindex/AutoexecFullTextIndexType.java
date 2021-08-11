@@ -2,13 +2,13 @@ package codedriver.module.autoexec.fulltextindex;
 
 import codedriver.framework.fulltextindex.core.IFullTextIndexType;
 
-public enum FullTextIndexType implements IFullTextIndexType {
+public enum AutoexecFullTextIndexType implements IFullTextIndexType {
     SCRIPT_DOCUMENT_VERSION("script_document_version", "自定义工具版本");
 
     private final String type;
     private final String typeName;
 
-    FullTextIndexType(String _type, String _typeName) {
+    AutoexecFullTextIndexType(String _type, String _typeName) {
         type = _type;
         typeName = _typeName;
     }
@@ -25,7 +25,7 @@ public enum FullTextIndexType implements IFullTextIndexType {
 
     @Override
     public String getTypeName(String type) {
-        for (FullTextIndexType t : values()) {
+        for (AutoexecFullTextIndexType t : values()) {
             if (t.getType().equals(type)) {
                 return t.getTypeName();
             }

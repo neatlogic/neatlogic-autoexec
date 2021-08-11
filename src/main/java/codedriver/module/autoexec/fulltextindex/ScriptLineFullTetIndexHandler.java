@@ -40,7 +40,7 @@ public class ScriptLineFullTetIndexHandler extends FullTextIndexHandlerBase {
 
     @Override
     public IFullTextIndexType getType() {
-        return FullTextIndexType.SCRIPT_DOCUMENT_VERSION;
+        return AutoexecFullTextIndexType.SCRIPT_DOCUMENT_VERSION;
     }
 
     @Override
