@@ -89,7 +89,7 @@ public interface AutoexecJobMapper {
 
     int updateJobPhaseNodeStatus(AutoexecJobPhaseNodeVo nodeVo);
 
-    int updateJobPhaseNodeStatusByJobIdAndJobPhaseIdList(@Param("jobId") Long jobId,@Param("jobPhaseIdList") List<Long> jobPhaseIdList,@Param("jobStatus") String jobStatus);
+    int updateJobPhaseNodeStatusByJobIdAndJobPhaseIdList(@Param("jobId") Long jobId,@Param("jobPhaseIdList") List<Long> jobPhaseIdList,@Param("status") String jobStatus);
 
     AutoexecJobPhaseNodeVo getJobPhaseNodeInfoByJobNodeId(@Param("nodeId") Long nodeId);
 
