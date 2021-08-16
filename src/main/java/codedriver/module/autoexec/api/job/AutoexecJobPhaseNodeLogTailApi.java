@@ -97,7 +97,8 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
         result = autoexecJobActionService.tailNodeLog(paramObj);
         result.put("isRefresh", 0);
         if(StringUtils.isBlank(sqlName)) {//获取node节点的状态（包括operation status）
-            List<AutoexecJobPhaseNodeOperationStatusVo> operationStatusVos = autoexecJobActionService.getNodeOperationStatus(paramObj);
+            AutoexecJobPhaseNodeVo phaseNodeVo = autoexecJobActionService.getNodeOperationStatus(paramObj);
+            List<AutoexecJobPhaseNodeOperationStatusVo> operationStatusVos = phaseNodeVo.getOperationStatusVoList();
             for (AutoexecJobPhaseNodeOperationStatusVo statusVo : operationStatusVos) {
                 //如果存在pending|running 的节点|阶段 则继续tail
                 //如果operation的状态为null，表示还没刷新结果，继续tail
@@ -116,6 +117,7 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
                 }
             }
             result.put("operationStatusList", operationStatusVos);
+            result.put("interact",nodeVo.getInteract());
         }else{//获取sql 状态
             AutoexecJobNodeSqlVo sqlStatusVo = autoexecJobActionService.getNodeSqlStatus(paramObj);
             if(sqlStatusVo != null && !Objects.equals(sqlStatusVo.getStatus(), JobNodeStatus.SUCCEED.getValue())){

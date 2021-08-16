@@ -116,7 +116,7 @@ public interface AutoexecJobActionService {
      * @param paramObj 参数
      * @return 节点操作状态
      */
-    List<AutoexecJobPhaseNodeOperationStatusVo> getNodeOperationStatus(JSONObject paramObj);
+    AutoexecJobPhaseNodeVo getNodeOperationStatus(JSONObject paramObj);
 
     /**
      * 获取作业console日志
