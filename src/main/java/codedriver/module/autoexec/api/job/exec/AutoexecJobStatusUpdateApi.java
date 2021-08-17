@@ -62,7 +62,7 @@ public class AutoexecJobStatusUpdateApi extends PublicApiComponentBase {
         String statusIng;
         if(Objects.equals(status,JobStatus.ABORTED.getValue())){
             statusIng = JobStatus.ABORTING.getValue();
-        }if(Objects.equals(status,JobStatus.PAUSED.getValue())){
+        }else if(Objects.equals(status,JobStatus.PAUSED.getValue())){
             statusIng = JobStatus.PAUSING.getValue();
         }else{
             statusIng = status;
