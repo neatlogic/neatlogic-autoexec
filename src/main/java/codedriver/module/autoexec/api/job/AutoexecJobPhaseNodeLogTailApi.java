@@ -117,7 +117,7 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
                 }
             }
             result.put("operationStatusList", operationStatusVos);
-            result.put("interact",nodeVo.getInteract());
+            result.put("interact",phaseNodeVo.getInteract());
         }else{//获取sql 状态
             AutoexecJobNodeSqlVo sqlStatusVo = autoexecJobActionService.getNodeSqlStatus(paramObj);
             if(sqlStatusVo != null && !Objects.equals(sqlStatusVo.getStatus(), JobNodeStatus.SUCCEED.getValue())){

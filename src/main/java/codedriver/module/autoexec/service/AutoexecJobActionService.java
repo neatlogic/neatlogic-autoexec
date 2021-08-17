@@ -157,4 +157,10 @@ public interface AutoexecJobActionService {
      * @return sql文件 内容
      */
     String getNodeSqlContent(JSONObject paramObj);
+
+    /**
+     * 提交等待输入内容到 pipe
+     * @param paramObj 参数
+     */
+    void submitWaitInput(JSONObject paramObj);
 }

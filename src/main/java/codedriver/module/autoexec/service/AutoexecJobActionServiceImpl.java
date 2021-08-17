@@ -695,4 +695,10 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         String url = paramObj.getString("runnerUrl") + "/api/rest/job/phase/node/sql/content/get";
         return requestRunner(url, paramObj);
     }
+
+    @Override
+    public void submitWaitInput(JSONObject paramObj) {
+        String url = paramObj.getString("runnerUrl") + "/api/rest/job/phase/node/submit/waitInput";
+        requestRunner(url, paramObj);
+    }
 }
