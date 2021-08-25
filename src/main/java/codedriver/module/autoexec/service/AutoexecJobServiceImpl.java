@@ -26,6 +26,7 @@ import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
 import codedriver.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import codedriver.framework.cmdb.dto.resourcecenter.ResourceVo;
 import codedriver.framework.cmdb.exception.resourcecenter.ResourceCenterResourceHasRepeatAccount;
+import codedriver.framework.exception.core.ApiRuntimeException;
 import codedriver.framework.util.IpUtil;
 import codedriver.module.autoexec.dao.mapper.*;
 import com.alibaba.fastjson.JSON;
@@ -342,6 +343,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                     AutoexecJobPhaseNodeVo jobPhaseNodeVo = new AutoexecJobPhaseNodeVo(resourceVo, jobId, phaseId, JobNodeStatus.PENDING.getValue(), userName, protocol, o.getPort());
                     jobPhaseNodeVo.setPort(resourceVo.getPort());
                     jobPhaseNodeVo.setRunnerMapId(getRunnerByIp(jobPhaseNodeVo.getHost()));
+                    if(jobPhaseNodeVo.getRunnerMapId() == null){
+                        throw  new ApiRuntimeException("请配置runner网端映射");
+                    }
                     autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
                     autoexecJobMapper.insertJobPhaseNodeRunner(jobPhaseNodeVo.getId(), jobPhaseNodeVo.getRunnerMapId());
                     autoexecJobMapper.insertJobPhaseRunner(jobPhaseNodeVo.getJobId(), jobPhaseNodeVo.getJobPhaseId(), jobPhaseNodeVo.getRunnerMapId());

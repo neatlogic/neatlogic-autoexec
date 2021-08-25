@@ -317,7 +317,8 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                                 put("interpreter", operationVo.getParser());
                                 //put("script", operationVo.getScript());
                                 JSONObject param = operationVo.getParam();
-                                put("arg", new JSONObject() {{
+                                paramJson.put("arg", new JSONObject());
+                                put("opt", new JSONObject() {{
                                     for (Object arg : param.getJSONArray("inputParamList")) {
                                         JSONObject argJson = JSONObject.parseObject(arg.toString());
                                         String value = argJson.getString("value");
