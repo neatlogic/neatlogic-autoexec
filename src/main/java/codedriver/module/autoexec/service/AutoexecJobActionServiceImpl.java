@@ -300,7 +300,8 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                 }
             }});
         }
-        paramJson.put("arg", argJson);
+        paramJson.put("arg", new JSONObject());
+        paramJson.put("opt", argJson);
         paramJson.put("runFlow", new JSONArray() {{
             for (AutoexecJobPhaseVo jobPhase : jobVo.getPhaseList()) {
                 add(new JSONObject() {{
