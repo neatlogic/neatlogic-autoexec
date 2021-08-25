@@ -25,6 +25,7 @@ import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -67,8 +68,17 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
             @Param(name = "riskName", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", maxLength = 50, isRequired = true, desc = "操作级别名称"),
             @Param(name = "interpreter", type = ApiParamType.ENUM, rule = "python,ruby,vbscript,perl,powershell,cmd,bash,ksh,csh,sh,javascript", isRequired = true, desc = "解析器"),
             @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
-            @Param(name = "desc", type = ApiParamType.JSONARRAY,
+            @Param(name = "option", type = ApiParamType.JSONARRAY,
                     desc = "入参(当控件类型为[select,multiselect,radio,checkbox]时，需要在defaultValue字段填写数据源，格式如下：[{\"text\":\"否\",\"value\":\"0\",\"selected\":\"true\"},{\"text\":\"是\",\"value\":\"1\"}])"),
+            @Param(name = "argument", type = ApiParamType.JSONOBJECT, desc = "{\n" +
+                    "        \"name\":\"日志路径\",\n" +
+                    "        \"help\":\"日志路径，支持通配符和反引号\",\n" +
+                    "        \"type\":\"input\",\n" +
+                    "        \"isConst\":\"false\",\n" +
+                    "        \"defaultValue\":\"\",\n" +
+                    "        \"required\":\"true\",\n" +
+                    "        \"validate\":\"\"\n" +
+                    "    }"),
             @Param(name = "output", type = ApiParamType.JSONARRAY, desc = "出参"),
     })
     @Output({
@@ -82,7 +92,8 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
         String riskName = jsonObj.getString("riskName");
         String interpreter = jsonObj.getString("interpreter");
         String description = jsonObj.getString("description");
-        JSONArray desc = jsonObj.getJSONArray("desc");
+        JSONArray option = jsonObj.getJSONArray("option");
+        JSONObject argument = jsonObj.getJSONObject("argument");
         JSONArray output = jsonObj.getJSONArray("output");
         Long typeId = autoexecTypeMapper.getTypeIdByName(typeName);
         Long riskId = autoexecRiskMapper.getRiskIdByName(riskName);
@@ -93,7 +104,7 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
         if (riskId == null) {
             throw new AutoexecRiskNotFoundException(riskName);
         }
-        JSONArray paramList = getParamList(desc, output);
+        JSONArray paramList = getParamList(option, output);
         AutoexecToolVo vo = new AutoexecToolVo();
         if (oldTool != null) {
             vo.setId(oldTool.getId());
@@ -107,11 +118,14 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
         vo.setTypeId(typeId);
         vo.setRiskId(riskId);
         vo.setDescription(description);
+        JSONObject config = new JSONObject();
         if (CollectionUtils.isNotEmpty(paramList)) {
-            JSONObject config = new JSONObject();
             config.put("paramList", paramList);
-            vo.setConfigStr(config.toJSONString());
         }
+        if (MapUtils.isNotEmpty(argument)) {
+            config.put("argument", argument);
+        }
+        vo.setConfigStr(config.toJSONString());
         autoexecToolMapper.replaceTool(vo);
 
         return null;
