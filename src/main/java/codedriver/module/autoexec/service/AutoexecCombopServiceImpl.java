@@ -294,7 +294,9 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
         List<AutoexecScriptLineVo> scriptLineVoList = autoexecScriptMapper.getLineListByVersionId(scriptVersionVo.getId());
         StringBuilder scriptSb = new StringBuilder();
         for (AutoexecScriptLineVo lineVo : scriptLineVoList) {
-            scriptSb.append(lineVo.getContent()).append("\n");
+            if(StringUtils.isNotBlank(lineVo.getContent())) {
+                scriptSb.append(lineVo.getContent()).append("\n");
+            }
         }
         return scriptSb.toString();
     }
