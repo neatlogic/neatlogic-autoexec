@@ -7,14 +7,23 @@ package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.constvalue.CombopNodeSpecify;
+import codedriver.framework.autoexec.constvalue.ExecMode;
+import codedriver.framework.autoexec.dto.combop.*;
+import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author linbq
@@ -24,6 +33,9 @@ import java.util.ArrayList;
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase {
+
+    @Resource
+    private AutoexecCombopMapper autoexecCombopMapper;
 
     @Override
     public String getToken() {
@@ -50,9 +62,73 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
     @Description(desc = "查询组合工具授权信息")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
+        Long combopId = paramObj.getLong("combopId");
+        AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
+        if (autoexecCombopVo == null) {
+            throw new AutoexecCombopNotFoundException(combopId);
+        }
         JSONObject resultObj = new JSONObject();
-        resultObj.put("runtimeParamList", new ArrayList<>());
-        resultObj.put("executeParamList", new ArrayList<>());
+        List<AutoexecCombopParamVo> autoexecCombopParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopId);
+        if (CollectionUtils.isNotEmpty(autoexecCombopParamList)) {
+            JSONArray runtimeParamList = new JSONArray();
+            for (AutoexecCombopParamVo autoexecCombopParamVo : autoexecCombopParamList) {
+                JSONObject runtimeParamObj = new JSONObject();
+                runtimeParamObj.put("key", autoexecCombopParamVo.getKey());
+                runtimeParamObj.put("name", autoexecCombopParamVo.getName());
+                runtimeParamObj.put("mappingMode", "");
+                runtimeParamObj.put("value", "");
+                runtimeParamObj.put("isRequired", autoexecCombopParamVo.getIsRequired());
+                runtimeParamList.add(runtimeParamObj);
+            }
+            resultObj.put("runtimeParamList", runtimeParamList);
+        }
+        AutoexecCombopConfigVo autoexecCombopConfigVo = autoexecCombopVo.getConfig();
+        if (autoexecCombopConfigVo == null) {
+            return resultObj;
+        }
+        List<AutoexecCombopPhaseVo> combopPhaseList = autoexecCombopConfigVo.getCombopPhaseList();
+        if (CollectionUtils.isEmpty(combopPhaseList)) {
+            return resultObj;
+        }
+        boolean allRunner = true;
+        for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
+            String execMode = autoexecCombopPhaseVo.getExecMode();
+            if (!ExecMode.RUNNER.equals(execMode)) {
+                allRunner = false;
+            }
+        }
+        if (allRunner) {
+            return resultObj;
+        }
+        AutoexecCombopExecuteConfigVo executeConfigVo = autoexecCombopConfigVo.getExecuteConfig();
+        if (executeConfigVo != null) {
+            String whenToSpecify = executeConfigVo.getWhenToSpecify();
+            if (CombopNodeSpecify.RUNTIME.getValue().equals(whenToSpecify)) {
+                JSONArray executeParamList = new JSONArray();
+                JSONObject executeNode = new JSONObject();
+                executeNode.put("key", "executeNode");
+                executeNode.put("name", "执行目标");
+                executeNode.put("mappingMode", "");
+                executeNode.put("value", "");
+                executeNode.put("isRequired", 1);
+                executeParamList.add(executeNode);
+                JSONObject protocol = new JSONObject();
+                protocol.put("key", "protocol");
+                protocol.put("name", "连接协议");
+                protocol.put("mappingMode", "");
+                protocol.put("value", "");
+                protocol.put("isRequired", 1);
+                executeParamList.add(protocol);
+                JSONObject executeUser = new JSONObject();
+                executeUser.put("key", "executeUser");
+                executeUser.put("name", "执行用户");
+                executeUser.put("mappingMode", "");
+                executeUser.put("value", "");
+                executeUser.put("isRequired", 1);
+                executeParamList.add(executeUser);
+                resultObj.put("executeParamList", executeParamList);
+            }
+        }
         return resultObj;
     }
 }
