@@ -7,7 +7,7 @@ package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
-import codedriver.framework.autoexec.dto.AutoexecRunnerVo;
+import codedriver.framework.autoexec.dto.RunnerVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
@@ -19,7 +19,7 @@ import codedriver.framework.restful.annotation.Param;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
-import codedriver.module.autoexec.dao.mapper.AutoexecRunnerMapper;
+import codedriver.module.autoexec.dao.mapper.RunnerMapper;
 import codedriver.module.autoexec.service.AutoexecJobActionService;
 import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
@@ -43,7 +43,7 @@ public class AutoexecJobConsoleLogTailApi extends PrivateApiComponentBase {
     AutoexecJobService autoexecJobService;
 
     @Resource
-    AutoexecRunnerMapper autoexecRunnerMapper;
+    RunnerMapper runnerMapper;
 
     @Resource
     AutoexecJobMapper autoexecJobMapper;
@@ -80,7 +80,7 @@ public class AutoexecJobConsoleLogTailApi extends PrivateApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
-        AutoexecRunnerVo runnerVo = autoexecRunnerMapper.getRunnerById(runnerId);
+        RunnerVo runnerVo = runnerMapper.getRunnerById(runnerId);
         if (runnerVo == null) {
             throw new AutoexecJobRunnerNotFoundException(runnerId.toString());
         }

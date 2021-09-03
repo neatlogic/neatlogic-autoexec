@@ -10,9 +10,9 @@ import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
 import codedriver.framework.autoexec.constvalue.JobStatus;
-import codedriver.framework.autoexec.dto.AutoexecRunnerGroupNetworkVo;
-import codedriver.framework.autoexec.dto.AutoexecRunnerGroupVo;
-import codedriver.framework.autoexec.dto.AutoexecRunnerMapVo;
+import codedriver.framework.autoexec.dto.GroupNetworkVo;
+import codedriver.framework.autoexec.dto.RunnerGroupVo;
+import codedriver.framework.autoexec.dto.RunnerMapVo;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.job.*;
@@ -56,7 +56,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     @Resource
     AutoexecCombopMapper autoexecCombopMapper;
     @Resource
-    AutoexecRunnerMapper autoexecRunnerMapper;
+    RunnerMapper runnerMapper;
 
     @Resource
     ResourceCenterMapper resourceCenterMapper;
@@ -120,15 +120,15 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                     throw new AutoexecJobPhaseNodeNotFoundException(jobPhaseVo.getName());
                 }
             } else {
-                List<AutoexecRunnerMapVo> runnerMapList = autoexecRunnerMapper.getAllRunnerMap();
+                List<RunnerMapVo> runnerMapList = runnerMapper.getAllRunnerMap();
                 //TODO 负载均衡
                 int runnerMapIndex = (int) (Math.random() * runnerMapList.size());
-                AutoexecRunnerMapVo autoexecRunnerMapVo = runnerMapList.get(runnerMapIndex);
-                AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), jobPhaseVo.getId(), autoexecRunnerMapVo.getHost(), JobNodeStatus.PENDING.getValue(), userName, protocol);
+                RunnerMapVo runnerMapVo = runnerMapList.get(runnerMapIndex);
+                AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), jobPhaseVo.getId(), runnerMapVo.getHost(), JobNodeStatus.PENDING.getValue(), userName, protocol);
                 autoexecJobMapper.insertJobPhaseNode(nodeVo);
-                autoexecRunnerMapper.insertRunnerMap(autoexecRunnerMapVo);
-                autoexecJobMapper.insertJobPhaseNodeRunner(nodeVo.getId(), autoexecRunnerMapVo.getRunnerMapId());
-                autoexecJobMapper.insertJobPhaseRunner(nodeVo.getJobId(), nodeVo.getJobPhaseId(), autoexecRunnerMapVo.getRunnerMapId());
+                runnerMapper.insertRunnerMap(runnerMapVo);
+                autoexecJobMapper.insertJobPhaseNodeRunner(nodeVo.getId(), runnerMapVo.getRunnerMapId());
+                autoexecJobMapper.insertJobPhaseRunner(nodeVo.getJobId(), nodeVo.getJobPhaseId(), runnerMapVo.getRunnerMapId());
             }
             //jobPhaseOperation
             List<AutoexecJobPhaseOperationVo> jobPhaseOperationVoList = new ArrayList<>();
@@ -252,12 +252,12 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
      * @return runnerId
      */
     private Integer getRunnerByIp(String ip) {
-        List<AutoexecRunnerGroupNetworkVo> networkVoList = autoexecRunnerMapper.getAllNetworkMask();
-        for (AutoexecRunnerGroupNetworkVo networkVo : networkVoList) {
+        List<GroupNetworkVo> networkVoList = runnerMapper.getAllNetworkMask();
+        for (GroupNetworkVo networkVo : networkVoList) {
             if (IpUtil.isBelongSegment(ip, networkVo.getNetworkIp(), networkVo.getMask())) {
-                AutoexecRunnerGroupVo groupVo = autoexecRunnerMapper.getRunnerGroupById(networkVo.getGroupId());
+                RunnerGroupVo groupVo = runnerMapper.getRunnerGroupById(networkVo.getGroupId());
                 int runnerMapIndex = (int) (Math.random() * groupVo.getRunnerMapList().size());
-                AutoexecRunnerMapVo runnerMapVo = groupVo.getRunnerMapList().get(runnerMapIndex);
+                RunnerMapVo runnerMapVo = groupVo.getRunnerMapList().get(runnerMapIndex);
                 return runnerMapVo.getRunnerMapId();
             }
         }

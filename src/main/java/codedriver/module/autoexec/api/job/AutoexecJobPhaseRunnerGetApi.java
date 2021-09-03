@@ -7,7 +7,7 @@ package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
-import codedriver.framework.autoexec.dto.AutoexecRunnerVo;
+import codedriver.framework.autoexec.dto.RunnerVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -48,7 +48,7 @@ public class AutoexecJobPhaseRunnerGetApi extends PrivateApiComponentBase {
             @Param(name = "jobPhaseId", type = ApiParamType.LONG, desc = "作业剧本id", isRequired = true)
     })
     @Output({
-            @Param(explode = AutoexecRunnerVo.class,desc = "runner信息")
+            @Param(explode = RunnerVo.class,desc = "runner信息")
     })
     @Description(desc = "获取作业runner执行方式剧本的runner信息")
     @Override
@@ -59,7 +59,7 @@ public class AutoexecJobPhaseRunnerGetApi extends PrivateApiComponentBase {
         if(nodeVo == null){
             throw  new AutoexecJobRunnerNotFoundException(StringUtils.EMPTY);
         }
-        nodeVo.setAutoexecRunnerVo(autoexecJobMapper.getJobRunnerById(nodeVo.getRunnerId()));
+        nodeVo.setRunnerVo(autoexecJobMapper.getJobRunnerById(nodeVo.getRunnerId()));
         return nodeVo;
     }
 

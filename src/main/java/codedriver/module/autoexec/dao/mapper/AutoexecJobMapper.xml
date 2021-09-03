@@ -168,8 +168,8 @@
         LEFT JOIN ${schemaName}.`resource_ipobject` ri ON rii.`resource_id` = ri.`id`
         ) rai ON ajpn.resource_id = rai.id
         LEFT JOIN `autoexec_job_phase_node_runner` ajpnr ON ajpn.id = ajpnr.`node_id`
-        LEFT JOIN `autoexec_runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
-        LEFT JOIN `autoexec_runner` ap ON arm.`runner_id` = ap.`id`
+        LEFT JOIN `runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
+        LEFT JOIN `runner` ap ON arm.`runner_id` = ap.`id`
         <where>
             <include refid="searchJobPhaseNodeSql"/>
         </where>
@@ -188,7 +188,7 @@
         LEFT JOIN ${schemaName}.`resource_ipobject` ri ON rii.`resource_id` = ri.`id`
         ) rai ON ajpn.resource_id = rai.id
         LEFT JOIN `autoexec_job_phase_node_runner` ajpnr ON ajpn.id = ajpnr.`node_id`
-        LEFT JOIN `autoexec_runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
+        LEFT JOIN `runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
         <where>
             <include refid="searchJobPhaseNodeSql"/>
         </where>
@@ -557,8 +557,8 @@
         FROM `autoexec_job_phase_node` ajpn
                  LEFT JOIN `autoexec_job_phase` ajp ON ajpn.`job_phase_id` = ajp.`id`
                  LEFT JOIN `autoexec_job_phase_node_runner` ajpnr ON ajpn.id = ajpnr.`node_id`
-                 LEFT JOIN `autoexec_runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
-                 LEFT JOIN `autoexec_runner` ap ON arm.`runner_id` = ap.`id`
+                 LEFT JOIN `runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
+                 LEFT JOIN `runner` ap ON arm.`runner_id` = ap.`id`
         where ajpn.`id` = #{nodeId}
     </select>
 
@@ -576,7 +576,7 @@
                arm.`runner_id`     as runnerId
         FROM `autoexec_job_phase_node` ajpn
                  LEFT JOIN `autoexec_job_phase_node_runner` ajpnr on ajpn.id = ajpnr.`node_id`
-                 LEFT JOIN `autoexec_runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
+                 LEFT JOIN `runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
         WHERE `job_id` = #{jobId}
           AND `job_phase_id` = #{phaseId}
     </select>
@@ -607,7 +607,7 @@
         FROM `autoexec_job_phase_node` ajpn
         LEFT JOIN `autoexec_job_phase_node_runner` ajpnr ON ajpn.id = ajpnr.`node_id`
         LEFT JOIN `autoexec_job_phase` ajp ON ajpn.`job_phase_id` = ajp.`id`
-        LEFT JOIN `autoexec_runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
+        LEFT JOIN `runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
         where ajpn.`job_id` = #{jobId} and ajp.`name` = #{phaseName} and arm.`runner_id` = #{runnerId} and
         ajpn.`status` not in
         <foreach collection="exceptStatus" item="status" separator="," open="(" close=")">
@@ -648,24 +648,24 @@
           and ajpn.`job_phase_id` = #{phaseId}
     </select>
 
-    <select id="getJobRunnerListByJobId" resultType="codedriver.framework.autoexec.dto.AutoexecRunnerVo">
+    <select id="getJobRunnerListByJobId" resultType="codedriver.framework.autoexec.dto.RunnerVo">
         SELECT DISTINCT ar.`id`, ar.`name`, ar.`url`, ar.`host`, ar.`port`
         FROM `autoexec_job_phase_node` ajpn
                  LEFT JOIN `autoexec_job_phase_node_runner` ajpnr ON ajpn.id = ajpnr.`node_id`
-                 LEFT JOIN `autoexec_runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
-                 LEFT JOIN `autoexec_runner` ar ON arm.`runner_id` = ar.`id`
+                 LEFT JOIN `runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
+                 LEFT JOIN `runner` ar ON arm.`runner_id` = ar.`id`
         WHERE ajpn.`job_id` = #{value}
     </select>
 
-    <select id="getJobPhaseRunnerByJobIdAndPhaseIdList" resultType="codedriver.framework.autoexec.dto.AutoexecRunnerVo">
+    <select id="getJobPhaseRunnerByJobIdAndPhaseIdList" resultType="codedriver.framework.autoexec.dto.RunnerVo">
         SELECT ar.`id`,
         ar.`name`,
         ar.`url`,
         ar.`host`,
         ar.`port`
         FROM `autoexec_job_phase_runner` ajpr
-        LEFT JOIN `autoexec_runner_map` arm ON ajpr.`runner_map_id` = arm.`id`
-        LEFT JOIN `autoexec_runner` ar ON arm.`runner_id` = ar.`id`
+        LEFT JOIN `runner_map` arm ON ajpr.`runner_map_id` = arm.`id`
+        LEFT JOIN `runner` ar ON arm.`runner_id` = ar.`id`
         WHERE ajpr.`job_id` = #{jobId}
         <if test="jobPhaseIdList != null and jobPhaseIdList.size() > 0">
             and ajpr.`job_phase_id` in
@@ -774,9 +774,9 @@
             #{nodeId}
         </foreach>
     </select>
-    <select id="getJobRunnerById" resultType="codedriver.framework.autoexec.dto.AutoexecRunnerVo">
+    <select id="getJobRunnerById" resultType="codedriver.framework.autoexec.dto.RunnerVo">
         SELECT ar.`id`, ar.`name`, ar.`url`, ar.`host`, ar.`port`
-        FROM `autoexec_runner` ar
+        FROM `runner` ar
         WHERE ar.`id` = #{value}
     </select>
     <select id="getJobPhaseNodeListByJobIdAndNodeStatusList"
@@ -842,8 +842,8 @@
         FROM `autoexec_job_phase_node` ajpn
         LEFT JOIN `autoexec_job_phase` ajp ON ajpn.`job_phase_id` = ajp.`id`
         LEFT JOIN `autoexec_job_phase_node_runner` ajpnr ON ajpn.id = ajpnr.`node_id`
-        LEFT JOIN `autoexec_runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
-        LEFT JOIN `autoexec_runner` ap ON arm.`runner_id` = ap.`id`
+        LEFT JOIN `runner_map` arm ON ajpnr.`runner_map_id` = arm.`id`
+        LEFT JOIN `runner` ap ON arm.`runner_id` = ap.`id`
         where ajpn.`job_phase_id` = #{jobPhaseId}
         <if test="resourceId == null">
             and ajpn.`resource_id` is null

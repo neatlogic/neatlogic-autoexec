@@ -8,7 +8,7 @@ package codedriver.module.autoexec.service;
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.*;
-import codedriver.framework.autoexec.dto.AutoexecRunnerVo;
+import codedriver.framework.autoexec.dto.RunnerVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.exception.AutoexecCombopCannotExecuteException;
@@ -88,13 +88,13 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
      *
      * @return runners
      */
-    private List<AutoexecRunnerVo> checkRunnerHealth(AutoexecJobVo jobVo) {
-        List<AutoexecRunnerVo> runnerVos = null;
+    private List<RunnerVo> checkRunnerHealth(AutoexecJobVo jobVo) {
+        List<RunnerVo> runnerVos = null;
         RestVo restVo = null;
         String result = StringUtils.EMPTY;
         String url = StringUtils.EMPTY;
         runnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobVo.getId(), jobVo.getPhaseIdList());
-        for (AutoexecRunnerVo runner : runnerVos) {
+        for (RunnerVo runner : runnerVos) {
             url = runner.getUrl() + "api/rest/health/check";
             restVo = new RestVo(url, AuthenticateType.BUILDIN.getValue(), new JSONObject());
             result = RestUtil.sendRequest(restVo);
@@ -126,8 +126,8 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         RestVo restVo = null;
         String result = StringUtils.EMPTY;
         try {
-            List<AutoexecRunnerVo> runnerVos = checkRunnerHealth(jobVo);
-            for (AutoexecRunnerVo runner : runnerVos) {
+            List<RunnerVo> runnerVos = checkRunnerHealth(jobVo);
+            for (RunnerVo runner : runnerVos) {
                 String url = runner.getUrl() + "api/rest/job/exec";
                 paramJson.put("passThroughEnv", new JSONObject() {{
                     put("runnerId", runner.getId());
@@ -230,9 +230,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         paramJson.put("jobId", jobVo.getId());
         RestVo restVo = null;
         String result = StringUtils.EMPTY;
-        List<AutoexecRunnerVo> runnerVos = checkRunnerHealth(jobVo);
+        List<RunnerVo> runnerVos = checkRunnerHealth(jobVo);
         try {
-            for (AutoexecRunnerVo runner : runnerVos) {
+            for (RunnerVo runner : runnerVos) {
                 String url = runner.getUrl() + "api/rest/job/all/reset";
                 paramJson.put("passThroughEnv", new JSONObject() {{
                     put("runnerId", runner.getId());
@@ -453,7 +453,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             nodeVo.setStatus(JobNodeStatus.ABORTING.getValue());
             autoexecJobMapper.updateJobPhaseNodeStatus(nodeVo);
         }
-        List<AutoexecRunnerVo> runnerVos = checkRunnerHealth(jobVo);
+        List<RunnerVo> runnerVos = checkRunnerHealth(jobVo);
         JSONObject paramJson = new JSONObject();
         paramJson.put("jobId", jobVo.getId());
         paramJson.put("tenant", TenantContext.get().getTenantUuid());
@@ -461,7 +461,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         RestVo restVo = null;
         String result = StringUtils.EMPTY;
         try {
-            for (AutoexecRunnerVo runner : runnerVos) {
+            for (RunnerVo runner : runnerVos) {
                 paramJson.put("passThroughEnv", new JSONObject() {{
                     put("runnerId", runner.getId());
                     put("phaseSort", jobVo.getCurrentPhaseSort());
@@ -511,7 +511,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         autoexecJobMapper.updateJobPhaseNodeListStatus(jobVo.getJobPhaseNodeList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()), JobNodeStatus.PENDING.getValue());
 
         //清除runner node状态
-        List<AutoexecRunnerVo> runnerVos = checkRunnerHealth(jobVo);
+        List<RunnerVo> runnerVos = checkRunnerHealth(jobVo);
         RestVo restVo = null;
         String result = StringUtils.EMPTY;
         try {
@@ -522,7 +522,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             paramJson.put("phaseName", currentPhaseVo.getName());
             paramJson.put("execMode", currentPhaseVo.getExecMode());
             paramJson.put("phaseNodeList", jobVo.getJobPhaseNodeList());
-            for (AutoexecRunnerVo runner : runnerVos) {
+            for (RunnerVo runner : runnerVos) {
                 String url = runner.getUrl() + "api/rest/job/phase/node/status/reset";
                 restVo = new RestVo(url, AuthenticateType.BUILDIN.getValue(), paramJson);
                 result = RestUtil.sendRequest(restVo);

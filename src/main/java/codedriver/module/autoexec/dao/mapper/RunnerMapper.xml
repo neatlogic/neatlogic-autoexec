@@ -1,25 +1,25 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
-<mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecRunnerMapper">
+<mapper namespace="codedriver.module.autoexec.dao.mapper.RunnerMapper">
 
-    <select id="getAllNetworkMask" resultType="codedriver.framework.autoexec.dto.AutoexecRunnerGroupNetworkVo">
+    <select id="getAllNetworkMask" resultType="codedriver.framework.autoexec.dto.GroupNetworkVo">
         SELECT `id`,
                `group_id`   as groupId,
                `network_ip` as networkIp,
                `mask`
-        FROM `autoexec_runnergroup_network`
+        FROM `runnergroup_network`
     </select>
 
-    <resultMap id="runnerGroupMap" type="codedriver.framework.autoexec.dto.AutoexecRunnerGroupVo">
+    <resultMap id="runnerGroupMap" type="codedriver.framework.autoexec.dto.RunnerGroupVo">
         <id column="id" property="id"/>
         <result column="groupName" property="name"/>
-        <collection property="networkList" ofType="codedriver.framework.autoexec.dto.AutoexecRunnerGroupNetworkVo">
+        <collection property="networkList" ofType="codedriver.framework.autoexec.dto.GroupNetworkVo">
             <id column="networkId" property="id"/>
             <result column="groupId" property="groupId"/>
             <result column="networkIp" property="networkIp"/>
             <result column="mask" property="mask"/>
         </collection>
-        <collection property="runnerMapList" ofType="codedriver.framework.autoexec.dto.AutoexecRunnerMapVo">
+        <collection property="runnerMapList" ofType="codedriver.framework.autoexec.dto.RunnerMapVo">
             <id column="runnerId" property="id"/>
             <result column="runnerName" property="name"/>
             <result column="runnerMapId" property="runnerMapId"/>
@@ -45,13 +45,13 @@
                b.group_id                            groupId,
                b.network_ip                          networkIp,
                b.mask                                mask
-        FROM `autoexec_runnergroup` a
-                 LEFT JOIN `autoexec_runnergroup_network` b ON a.id = b.group_id
-                 LEFT JOIN `autoexec_runner` c ON a.id = c.group_id
-                 LEFT JOIN `autoexec_runner_map` d ON c.id = d.`runner_id`
+        FROM `runnergroup` a
+                 LEFT JOIN `runnergroup_network` b ON a.id = b.group_id
+                 LEFT JOIN `runner` c ON a.id = c.group_id
+                 LEFT JOIN `runner_map` d ON c.id = d.`runner_id`
         WHERE a.id = #{id}
     </select>
-    <select id="getAllRunnerMap" resultType="codedriver.framework.autoexec.dto.AutoexecRunnerMapVo">
+    <select id="getAllRunnerMap" resultType="codedriver.framework.autoexec.dto.RunnerMapVo">
         SELECT ar.`id`,
                ar.`name`,
                ar.`url`,
@@ -64,11 +64,11 @@
                ar.`private_key`                        AS privateKey,
                ar.`group_id`                           AS groupId,
                IF(arm.`id` IS NULL, ar.`id`, arm.`id`) AS runnerMapId
-        FROM `autoexec_runner` ar
-                 LEFT JOIN `autoexec_runner_map` arm ON ar.`id` = arm.`runner_id`
+        FROM `runner` ar
+                 LEFT JOIN `runner_map` arm ON ar.`id` = arm.`runner_id`
     </select>
 
-    <select id="getRunnerById" resultType="codedriver.framework.autoexec.dto.AutoexecRunnerVo">
+    <select id="getRunnerById" resultType="codedriver.framework.autoexec.dto.RunnerVo">
         SELECT `id`,
                `name`,
                `url`,
@@ -80,12 +80,12 @@
                `public_key`    as publicKey,
                `private_key`   as privateKey,
                `group_id`      as groupId
-        FROM `autoexec_runner`
+        FROM `runner`
         WHERE `id` = #{value}
     </select>
 
     <insert id="insertRunnerMap">
-        INSERT IGNORE INTO `autoexec_runner_map` (`id`, `runner_id`)
+        INSERT IGNORE INTO `runner_map` (`id`, `runner_id`)
         VALUES (#{runnerMapId}, #{id});
     </insert>
 </mapper>

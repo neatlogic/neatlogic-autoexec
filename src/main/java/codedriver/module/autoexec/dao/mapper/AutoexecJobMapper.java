@@ -5,7 +5,7 @@
 
 package codedriver.module.autoexec.dao.mapper;
 
-import codedriver.framework.autoexec.dto.AutoexecRunnerVo;
+import codedriver.framework.autoexec.dto.RunnerVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.*;
 import org.apache.ibatis.annotations.Param;
@@ -128,11 +128,11 @@ public interface AutoexecJobMapper {
     List<AutoexecJobParamContentVo> getJobParamContentList(@Param("hashList") List<String> hashList);
 
     //runner
-    List<AutoexecRunnerVo> getJobRunnerListByJobId(Long jobId);
+    List<RunnerVo> getJobRunnerListByJobId(Long jobId);
 
-    AutoexecRunnerVo getJobRunnerById(Integer runnerId);
+    RunnerVo getJobRunnerById(Integer runnerId);
 
-    List<AutoexecRunnerVo> getJobPhaseRunnerByJobIdAndPhaseIdList(@Param("jobId") Long jobId, @Param("jobPhaseIdList") List<Long> jobPhaseId);
+    List<RunnerVo> getJobPhaseRunnerByJobIdAndPhaseIdList(@Param("jobId") Long jobId, @Param("jobPhaseIdList") List<Long> jobPhaseId);
 
     Integer insertJobPhaseNodeRunner(@Param("nodeId") Long nodeId, @Param("runnerMapId") Integer runnerMapId);
 
