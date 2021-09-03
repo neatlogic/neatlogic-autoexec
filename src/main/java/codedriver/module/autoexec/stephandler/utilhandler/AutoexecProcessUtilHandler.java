@@ -174,7 +174,65 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
         if (autoexecConfig == null) {
             autoexecConfig = new JSONObject();
         }
-        autoexecObj.putAll(autoexecConfig);
+        String failPolicy = autoexecConfig.getString("failPolicy");
+        if (failPolicy == null) {
+            failPolicy = "";
+        }
+        autoexecObj.put("failPolicy", failPolicy);
+        Long autoexecTypeId = autoexecConfig.getLong("autoexecTypeId");
+        if (autoexecTypeId == null) {
+            autoexecObj.put("autoexecTypeId", autoexecTypeId);
+        }
+        Long autoexecCombopId = autoexecConfig.getLong("autoexecCombopId");
+        if (autoexecCombopId == null) {
+            autoexecObj.put("autoexecCombopId", autoexecCombopId);
+        }
+        JSONArray runtimeParamList = autoexecConfig.getJSONArray("runtimeParamList");
+        if (CollectionUtils.isNotEmpty(runtimeParamList)) {
+            JSONArray runtimeParamArray = new JSONArray();
+            for (int i = 0; i < runtimeParamList.size(); i++) {
+                JSONObject runtimeParamObj = runtimeParamList.getJSONObject(i);
+                if (MapUtils.isNotEmpty(runtimeParamObj)) {
+                    JSONObject runtimeParam = new JSONObject();
+                    runtimeParam.put("key", runtimeParamObj.getString("key"));
+                    runtimeParam.put("mappingMode", runtimeParamObj.getString("mappingMode"));
+                    runtimeParam.put("value", runtimeParamObj.getString("value"));
+                    runtimeParam.put("isRequired", runtimeParamObj.getInteger("isRequired"));
+                    runtimeParamArray.add(runtimeParam);
+                }
+            }
+            resultObj.put("runtimeParamList", runtimeParamArray);
+        }
+        JSONArray executeParamList = autoexecConfig.getJSONArray("executeParamList");
+        if (CollectionUtils.isNotEmpty(executeParamList)) {
+            JSONArray executeParamArray = new JSONArray();
+            for (int i = 0; i < executeParamList.size(); i++) {
+                JSONObject executeParamObj = executeParamList.getJSONObject(i);
+                if (MapUtils.isNotEmpty(executeParamObj)) {
+                    JSONObject executeParam = new JSONObject();
+                    executeParam.put("key", executeParamObj.getString("key"));
+                    executeParam.put("mappingMode", executeParamObj.getString("mappingMode"));
+                    executeParam.put("value", executeParamObj.getString("value"));
+                    executeParam.put("isRequired", executeParamObj.getInteger("isRequired"));
+                    executeParamArray.add(executeParam);
+                }
+            }
+            resultObj.put("executeParamList", executeParamArray);
+        }
+        JSONArray formAttributeList = autoexecConfig.getJSONArray("formAttributeList");
+        if (CollectionUtils.isNotEmpty(formAttributeList)) {
+            JSONArray formAttributeArray = new JSONArray();
+            for (int i = 0; i < formAttributeList.size(); i++) {
+                JSONObject formAttributeObj = formAttributeList.getJSONObject(i);
+                if (MapUtils.isNotEmpty(formAttributeObj)) {
+                    JSONObject formAttribute = new JSONObject();
+                    formAttribute.put("key", formAttributeObj.getString("key"));
+                    formAttribute.put("value", formAttributeObj.getString("value"));
+                    formAttributeArray.add(formAttribute);
+                }
+            }
+            resultObj.put("formAttributeList", formAttributeArray);
+        }
         resultObj.put("autoexecConfig", autoexecObj);
 
         /* 异常处理人 **/
