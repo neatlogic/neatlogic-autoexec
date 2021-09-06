@@ -5,7 +5,7 @@
 
 package codedriver.module.autoexec.dao.mapper;
 
-import codedriver.framework.autoexec.dto.RunnerVo;
+import codedriver.framework.dto.runner.RunnerVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.*;
 import org.apache.ibatis.annotations.Param;

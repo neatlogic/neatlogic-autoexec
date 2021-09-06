@@ -648,7 +648,7 @@
           and ajpn.`job_phase_id` = #{phaseId}
     </select>
 
-    <select id="getJobRunnerListByJobId" resultType="codedriver.framework.autoexec.dto.RunnerVo">
+    <select id="getJobRunnerListByJobId" resultType="codedriver.framework.dto.runner.RunnerVo">
         SELECT DISTINCT ar.`id`, ar.`name`, ar.`url`, ar.`host`, ar.`port`
         FROM `autoexec_job_phase_node` ajpn
                  LEFT JOIN `autoexec_job_phase_node_runner` ajpnr ON ajpn.id = ajpnr.`node_id`
@@ -657,7 +657,7 @@
         WHERE ajpn.`job_id` = #{value}
     </select>
 
-    <select id="getJobPhaseRunnerByJobIdAndPhaseIdList" resultType="codedriver.framework.autoexec.dto.RunnerVo">
+    <select id="getJobPhaseRunnerByJobIdAndPhaseIdList" resultType="codedriver.framework.dto.runner.RunnerVo">
         SELECT ar.`id`,
         ar.`name`,
         ar.`url`,
@@ -774,7 +774,7 @@
             #{nodeId}
         </foreach>
     </select>
-    <select id="getJobRunnerById" resultType="codedriver.framework.autoexec.dto.RunnerVo">
+    <select id="getJobRunnerById" resultType="codedriver.framework.dto.runner.RunnerVo">
         SELECT ar.`id`, ar.`name`, ar.`url`, ar.`host`, ar.`port`
         FROM `runner` ar
         WHERE ar.`id` = #{value}
