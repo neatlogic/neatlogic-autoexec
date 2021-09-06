@@ -205,6 +205,7 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
                 if (MapUtils.isNotEmpty(runtimeParamObj)) {
                     JSONObject runtimeParam = new JSONObject();
                     runtimeParam.put("key", runtimeParamObj.getString("key"));
+                    runtimeParam.put("name", runtimeParamObj.getString("name"));
                     runtimeParam.put("mappingMode", runtimeParamObj.getString("mappingMode"));
                     runtimeParam.put("value", runtimeParamObj.getString("value"));
                     runtimeParam.put("isRequired", runtimeParamObj.getInteger("isRequired"));
@@ -221,6 +222,7 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
                 if (MapUtils.isNotEmpty(executeParamObj)) {
                     JSONObject executeParam = new JSONObject();
                     executeParam.put("key", executeParamObj.getString("key"));
+                    executeParam.put("name", executeParamObj.getString("name"));
                     executeParam.put("mappingMode", executeParamObj.getString("mappingMode"));
                     executeParam.put("value", executeParamObj.getString("value"));
                     executeParam.put("isRequired", executeParamObj.getInteger("isRequired"));
@@ -237,6 +239,7 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
                 if (MapUtils.isNotEmpty(formAttributeObj)) {
                     JSONObject formAttribute = new JSONObject();
                     formAttribute.put("key", formAttributeObj.getString("key"));
+                    formAttribute.put("name", formAttributeObj.getString("name"));
                     formAttribute.put("value", formAttributeObj.getString("value"));
                     formAttributeArray.add(formAttribute);
                 }
