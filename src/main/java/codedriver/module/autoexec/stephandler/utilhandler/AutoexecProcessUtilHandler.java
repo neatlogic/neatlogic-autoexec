@@ -190,11 +190,11 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
         }
         autoexecObj.put("failPolicy", failPolicy);
         Long autoexecTypeId = autoexecConfig.getLong("autoexecTypeId");
-        if (autoexecTypeId == null) {
+        if (autoexecTypeId != null) {
             autoexecObj.put("autoexecTypeId", autoexecTypeId);
         }
         Long autoexecCombopId = autoexecConfig.getLong("autoexecCombopId");
-        if (autoexecCombopId == null) {
+        if (autoexecCombopId != null) {
             autoexecObj.put("autoexecCombopId", autoexecCombopId);
         }
         JSONArray runtimeParamList = autoexecConfig.getJSONArray("runtimeParamList");
@@ -211,7 +211,7 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
                     runtimeParamArray.add(runtimeParam);
                 }
             }
-            resultObj.put("runtimeParamList", runtimeParamArray);
+            autoexecObj.put("runtimeParamList", runtimeParamArray);
         }
         JSONArray executeParamList = autoexecConfig.getJSONArray("executeParamList");
         if (CollectionUtils.isNotEmpty(executeParamList)) {
@@ -227,7 +227,7 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
                     executeParamArray.add(executeParam);
                 }
             }
-            resultObj.put("executeParamList", executeParamArray);
+            autoexecObj.put("executeParamList", executeParamArray);
         }
         JSONArray formAttributeList = autoexecConfig.getJSONArray("formAttributeList");
         if (CollectionUtils.isNotEmpty(formAttributeList)) {
@@ -241,7 +241,7 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
                     formAttributeArray.add(formAttribute);
                 }
             }
-            resultObj.put("formAttributeList", formAttributeArray);
+            autoexecObj.put("formAttributeList", formAttributeArray);
         }
         resultObj.put("autoexecConfig", autoexecObj);
 
