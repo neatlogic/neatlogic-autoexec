@@ -125,7 +125,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 //TODO 负载均衡
                 int runnerMapIndex = (int) (Math.random() * runnerMapList.size());
                 RunnerMapVo runnerMapVo = runnerMapList.get(runnerMapIndex);
-                AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), jobPhaseVo.getId(), runnerMapVo.getHost(), JobNodeStatus.PENDING.getValue(), userName, protocol);
+                AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), jobPhaseVo.getId(), "runner", JobNodeStatus.PENDING.getValue(), userName, protocol);
                 autoexecJobMapper.insertJobPhaseNode(nodeVo);
                 runnerMapper.insertRunnerMap(runnerMapVo);
                 autoexecJobMapper.insertJobPhaseNodeRunner(nodeVo.getId(), runnerMapVo.getRunnerMapId());

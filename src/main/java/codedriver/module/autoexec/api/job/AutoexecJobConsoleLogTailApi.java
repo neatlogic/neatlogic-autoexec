@@ -85,8 +85,6 @@ public class AutoexecJobConsoleLogTailApi extends PrivateApiComponentBase {
             throw new AutoexecJobRunnerNotFoundException(runnerId.toString());
         }
         paramObj.put("jobId", jobId);
-        paramObj.put("ip", runnerVo.getHost());
-        paramObj.put("port", runnerVo.getPort());
         paramObj.put("runnerUrl", runnerVo.getUrl());
         paramObj.put("direction", paramObj.getString("direction"));
         JSONObject result = autoexecJobActionService.tailConsoleLog(paramObj);
