@@ -8,6 +8,7 @@ package codedriver.module.autoexec.stephandler.utilhandler;
 import codedriver.framework.process.constvalue.ProcessTaskOperationType;
 import codedriver.framework.process.dto.ProcessStepVo;
 import codedriver.framework.process.dto.ProcessTaskStepVo;
+import codedriver.framework.process.dto.processconfig.ActionConfigVo;
 import codedriver.framework.process.dto.processconfig.NotifyPolicyConfigVo;
 import codedriver.framework.process.stephandler.core.ProcessStepInternalHandlerBase;
 import codedriver.framework.process.util.ProcessConfigUtil;
@@ -149,6 +150,15 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
         }
         notifyPolicyConfigVo.setHandler(AutoexecCombopNotifyPolicyHandler.class.getName());
         resultObj.put("notifyPolicyConfig", notifyPolicyConfigVo);
+
+        /** 动作 **/
+        JSONObject actionConfig = configObj.getJSONObject("actionConfig");
+        ActionConfigVo actionConfigVo = JSONObject.toJavaObject(actionConfig, ActionConfigVo.class);
+        if (actionConfigVo == null) {
+            actionConfigVo = new ActionConfigVo();
+        }
+        actionConfigVo.setHandler(AutoexecCombopNotifyPolicyHandler.class.getName());
+        resultObj.put("actionConfig", actionConfigVo);
 
         /* 按钮映射列表 **/
         ProcessTaskOperationType[] stepButtons = {
