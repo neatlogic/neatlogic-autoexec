@@ -5,6 +5,8 @@
 
 package codedriver.module.autoexec.stephandler.component;
 
+import codedriver.framework.asynchronization.threadlocal.TenantContext;
+import codedriver.framework.autoexec.dto.job.AutoexecJobProcessTaskStepVo;
 import codedriver.framework.process.constvalue.ProcessStepMode;
 import codedriver.framework.process.constvalue.ProcessUserType;
 import codedriver.framework.process.dto.ProcessTaskFormAttributeDataVo;
@@ -14,8 +16,14 @@ import codedriver.framework.process.exception.core.ProcessTaskException;
 import codedriver.framework.process.stephandler.core.ProcessStepHandlerBase;
 import codedriver.framework.restful.core.MyApiComponent;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentFactory;
+import codedriver.framework.scheduler.core.IJob;
+import codedriver.framework.scheduler.core.SchedulerManager;
+import codedriver.framework.scheduler.dto.JobObject;
+import codedriver.framework.scheduler.exception.ScheduleHandlerNotFoundException;
 import codedriver.module.autoexec.api.job.action.AutoexecJobFromCombopCreateApi;
 import codedriver.module.autoexec.constvalue.AutoexecProcessStepHandlerType;
+import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.module.autoexec.schedule.plugin.AutoexecJobStatusMonitorJob;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
@@ -24,6 +32,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -34,6 +43,10 @@ import java.util.Set;
  **/
 @Service
 public class AutoexecProcessComponent extends ProcessStepHandlerBase {
+
+    @Resource
+    private AutoexecJobMapper autoexecJobMapper;
+
     @Override
     public String getHandler() {
         return AutoexecProcessStepHandlerType.AUTOEXEC.getHandler();
@@ -154,9 +167,26 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                 if (restComponent != null) {
                     try {
                         JSONObject result = (JSONObject) restComponent.myDoService(paramObj);
-                        Long jobId = result.getLong("jobId");
+                        Long autoexecJobId = result.getLong("jobId");
+                        if (autoexecJobId != null) {
+                            IJob jobHandler = SchedulerManager.getHandler(AutoexecJobStatusMonitorJob.class.getName());
+                            if(jobHandler == null) {
+                                throw new ScheduleHandlerNotFoundException(AutoexecJobStatusMonitorJob.class.getName());
+                            }
+                            AutoexecJobProcessTaskStepVo autoexecJobProcessTaskStepVo = new AutoexecJobProcessTaskStepVo();
+                            autoexecJobProcessTaskStepVo.setProcessTaskId(currentProcessTaskStepVo.getProcessTaskId());
+                            autoexecJobProcessTaskStepVo.setProcessTaskStepId(currentProcessTaskStepVo.getId());
+                            autoexecJobProcessTaskStepVo.setAutoexecJobId(autoexecJobId);
+                            autoexecJobProcessTaskStepVo.setNeedMonitorStatus(1);
+                            autoexecJobMapper.insertAutoexecJobProcessTaskStep(autoexecJobProcessTaskStepVo);
+                            JobObject.Builder jobObjectBuilder = new JobObject
+                                    .Builder(autoexecJobId.toString(), jobHandler.getGroupName(), jobHandler.getClassName(), TenantContext.get().getTenantUuid())
+                                    .addData("autoexecJobId", autoexecJobId);
+                            JobObject jobObject = jobObjectBuilder.build();
+                            jobHandler.reloadJob(jobObject);
+                        }
                     } catch (Exception e) {
-
+                        //TODO 如果创建作业时抛异常
                     }
                 }
             }

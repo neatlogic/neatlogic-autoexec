@@ -854,6 +854,27 @@
 
     </select>
 
+    <select id="getAutoexecJobProcessTaskStepByAutoexecJobId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.job.AutoexecJobProcessTaskStepVo">
+        SELECT
+            `processtask_id` AS processTaskId,
+            `processtask_step_id` AS processTaskStepId,
+            `autoexec_job_id` AS autoexecJobId,
+            `need_monitor_status` AS needMonitorStatus
+        FROM `autoexec_job_processtask_step`
+        WHERE `autoexec_job_id` = #{value}
+    </select>
+
+    <select id="getAllAutoexecJobStatusMonitorAutoexecJobId" resultType="java.lang.Long">
+        SELECT
+            `autoexec_job_id`
+        FROM `autoexec_job_processtask_step`
+        WHERE `need_monitor_status` = 1
+    </select>
+
+    <select id="getAutoexecJobIdByProcessTaskStepId" parameterType="java.lang.Long" resultType="java.lang.Long">
+        SELECT `autoexec_job_id` FROM `autoexec_job_processtask_step` WHERE `processtask_step_id` = #{value}
+    </select>
+
     <insert id="insertJob" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobVo">
         INSERT INTO `autoexec_job` (`id`,
         `name`,
@@ -990,6 +1011,11 @@
     <insert id="insertJobPhaseRunner">
         INSERT IGNORE INTO `autoexec_job_phase_runner` (`job_id`, `job_phase_id`, `runner_map_id`)
         VALUES (#{jobId}, #{jobPhaseId}, #{runnerMapId});
+    </insert>
+
+    <insert id="insertAutoexecJobProcessTaskStep" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobProcessTaskStepVo">
+        insert into `autoexec_job_processtask_step` (`processtask_id`, `processtask_step_id`, `autoexec_job_id`, `need_monitor_status`)
+        values (#{processTaskId}, #{processTaskStepId}, #{autoexecJobId}, #{needMonitorStatus})
     </insert>
 
     <update id="updateJobPhaseStatus" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">
@@ -1137,6 +1163,10 @@
         and `status` in ('pausing','aborting')
     </update>
 
+    <update id="updateAutoexecJobProcessTaskStepNoNeedMonitorStatusByAutoexecJobId" parameterType="java.lang.Long">
+        UPDATE `autoexec_job_processtask_step` SET `need_monitor_status` = 0 WHERE `autoexec_job_id` = #{value}
+    </update>
+
     <delete id="deleteJobParamContentByHash" parameterType="java.lang.String">
         DELETE
         FROM `autoexec_job_param_content`
@@ -1186,7 +1216,5 @@
                  LEFT JOIN `autoexec_job_phase_node` ajpn ON ajpnr.`node_id` = ajpn.`id`
         WHERE ajpn.`job_id` = #{value};
     </delete>
-
-
 </mapper>
 

@@ -6,10 +6,19 @@
 package codedriver.module.autoexec.schedule.plugin;
 
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
+import codedriver.framework.autoexec.constvalue.JobStatus;
+import codedriver.framework.autoexec.dto.job.AutoexecJobProcessTaskStepVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.scheduler.core.JobBase;
 import codedriver.framework.scheduler.dto.JobObject;
+import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import org.quartz.JobExecutionContext;
 import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
+import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author linbq
@@ -17,6 +26,10 @@ import org.springframework.stereotype.Component;
  **/
 @Component
 public class AutoexecJobStatusMonitorJob extends JobBase {
+
+    @Resource
+    private AutoexecJobMapper autoexecJobMapper;
+
     @Override
     public String getGroupName() {
         return TenantContext.get().getTenantUuid() + "-AUTOEXEC-JOB-STATUS-MONITOR";
@@ -24,21 +37,92 @@ public class AutoexecJobStatusMonitorJob extends JobBase {
 
     @Override
     public Boolean isHealthy(JobObject jobObject) {
-        return null;
+        Long autoexecJobId = (Long) jobObject.getData("autoexecJobId");
+        AutoexecJobProcessTaskStepVo autoexecJobProcessTaskStepVo = autoexecJobMapper.getAutoexecJobProcessTaskStepByAutoexecJobId(autoexecJobId);
+        if (autoexecJobProcessTaskStepVo == null) {
+            return false;
+        }
+        if (Objects.equals(autoexecJobProcessTaskStepVo.getNeedMonitorStatus(), 0)) {
+            return true;
+        }
+        return true;
     }
 
     @Override
     public void reloadJob(JobObject jobObject) {
+        String tenantUuid = jobObject.getTenantUuid();
+        TenantContext.get().switchTenant(tenantUuid);
+        Long autoexecJobId = (Long) jobObject.getData("autoexecJobId");
+        AutoexecJobProcessTaskStepVo autoexecJobProcessTaskStepVo = autoexecJobMapper.getAutoexecJobProcessTaskStepByAutoexecJobId(autoexecJobId);
+        if (autoexecJobProcessTaskStepVo != null && Objects.equals(autoexecJobProcessTaskStepVo.getNeedMonitorStatus(), 1)) {
+            AutoexecJobVo autoexecJobVo = autoexecJobMapper.getJobInfo(autoexecJobId);
+            if (autoexecJobVo != null) {
+                if (JobStatus.PENDING.getValue().equals(autoexecJobVo.getStatus())) {
 
+                } else if (JobStatus.RUNNING.getValue().equals(autoexecJobVo.getStatus())) {
+                    JobObject.Builder newJobObjectBuilder = new JobObject.Builder(autoexecJobId.toString(), this.getGroupName(), this.getClassName(), tenantUuid)
+                            .withBeginTime(new Date())
+                            .withIntervalInSeconds(60 * 60)
+                            .withRepeatCount(-1)
+                            .addData("autoexecJobId", autoexecJobId);
+                    JobObject newJobObject = newJobObjectBuilder.build();
+                    schedulerManager.loadJob(newJobObject);
+                } else if (JobStatus.PAUSING.getValue().equals(autoexecJobVo.getStatus())) {
+
+                } else if (JobStatus.PAUSED.getValue().equals(autoexecJobVo.getStatus())) {
+
+                } else if (JobStatus.ABORTING.getValue().equals(autoexecJobVo.getStatus())) {
+
+                } else if (JobStatus.ABORTED.getValue().equals(autoexecJobVo.getStatus())) {
+
+                } else if (JobStatus.COMPLETED.getValue().equals(autoexecJobVo.getStatus())) {
+
+                } else if (JobStatus.FAILED.getValue().equals(autoexecJobVo.getStatus())) {
+
+                }
+            } else {
+                autoexecJobMapper.updateAutoexecJobProcessTaskStepNoNeedMonitorStatusByAutoexecJobId(autoexecJobId);
+            }
+        }
     }
 
     @Override
     public void initJob(String tenantUuid) {
-
+        List<Long> autoexecJobIdList = autoexecJobMapper.getAllAutoexecJobStatusMonitorAutoexecJobId();
+        for (Long autoexecJobId : autoexecJobIdList) {
+            JobObject.Builder jobObjectBuilder = new JobObject
+                    .Builder(autoexecJobId.toString(), this.getGroupName(), this.getClassName(), TenantContext.get().getTenantUuid())
+                    .addData("autoexecJobId", autoexecJobId);
+            JobObject jobObject = jobObjectBuilder.build();
+            this.reloadJob(jobObject);
+        }
     }
 
     @Override
     public void executeInternal(JobExecutionContext context, JobObject jobObject) throws Exception {
+        Long autoexecJobId = (Long) jobObject.getData("autoexecJobId");
+        AutoexecJobProcessTaskStepVo autoexecJobProcessTaskStepVo = autoexecJobMapper.getAutoexecJobProcessTaskStepByAutoexecJobId(autoexecJobId);
+        if (autoexecJobProcessTaskStepVo != null && Objects.equals(autoexecJobProcessTaskStepVo.getNeedMonitorStatus(), 1)) {
+            AutoexecJobVo autoexecJobVo = autoexecJobMapper.getJobInfo(autoexecJobId);
+            if (autoexecJobVo != null) {
+                if (JobStatus.PENDING.getValue().equals(autoexecJobVo.getStatus())) {
 
+                } else if (JobStatus.RUNNING.getValue().equals(autoexecJobVo.getStatus())) {
+
+                } else if (JobStatus.PAUSING.getValue().equals(autoexecJobVo.getStatus())) {
+
+                } else if (JobStatus.PAUSED.getValue().equals(autoexecJobVo.getStatus())) {
+
+                } else if (JobStatus.ABORTING.getValue().equals(autoexecJobVo.getStatus())) {
+
+                } else if (JobStatus.ABORTED.getValue().equals(autoexecJobVo.getStatus())) {
+
+                } else if (JobStatus.COMPLETED.getValue().equals(autoexecJobVo.getStatus())) {
+
+                } else if (JobStatus.FAILED.getValue().equals(autoexecJobVo.getStatus())) {
+
+                }
+            }
+        }
     }
 }
