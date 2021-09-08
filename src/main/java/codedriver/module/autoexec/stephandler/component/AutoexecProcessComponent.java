@@ -14,6 +14,8 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobThreadCountException;
 import codedriver.framework.process.constvalue.ProcessStepMode;
+import codedriver.framework.process.constvalue.ProcessTaskAuditDetailType;
+import codedriver.framework.process.constvalue.ProcessTaskAuditType;
 import codedriver.framework.process.constvalue.ProcessUserType;
 import codedriver.framework.process.dto.ProcessTaskFormAttributeDataVo;
 import codedriver.framework.process.dto.ProcessTaskStepVo;
@@ -43,6 +45,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -296,7 +299,13 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     @Override
     protected int myCompleteAudit(ProcessTaskStepVo currentProcessTaskStepVo) {
-        return 0;
+        if(StringUtils.isNotBlank(currentProcessTaskStepVo.getError())) {
+            currentProcessTaskStepVo.getParamObj().put(ProcessTaskAuditDetailType.CAUSE.getParamName(), currentProcessTaskStepVo.getError());
+        }
+        /** 处理历史记录 **/
+        String action = currentProcessTaskStepVo.getParamObj().getString("action");
+        IProcessStepHandlerUtil.audit(currentProcessTaskStepVo, ProcessTaskAuditType.getProcessTaskAuditType(action));
+        return 1;
     }
 
     @Override
@@ -341,7 +350,21 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     @Override
     protected Set<ProcessTaskStepVo> myGetNext(ProcessTaskStepVo currentProcessTaskStepVo, List<ProcessTaskStepVo> nextStepList, Long nextStepId) throws ProcessTaskException {
-        return null;
+        Set<ProcessTaskStepVo> nextStepSet = new HashSet<>();
+        if (nextStepList.size() == 1) {
+            nextStepSet.add(nextStepList.get(0));
+        } else if (nextStepList.size() > 1) {
+            if(nextStepId == null) {
+                throw new ProcessTaskException("找到多个后续节点");
+            }
+            for (ProcessTaskStepVo processTaskStepVo : nextStepList) {
+                if (processTaskStepVo.getId().equals(nextStepId)) {
+                    nextStepSet.add(processTaskStepVo);
+                    break;
+                }
+            }
+        }
+        return nextStepSet;
     }
 
     @Override
