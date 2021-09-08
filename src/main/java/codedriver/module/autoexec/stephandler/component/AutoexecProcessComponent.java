@@ -6,7 +6,13 @@
 package codedriver.module.autoexec.stephandler.component;
 
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
+import codedriver.framework.autoexec.constvalue.JobAction;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobProcessTaskStepVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecJobThreadCountException;
 import codedriver.framework.process.constvalue.ProcessStepMode;
 import codedriver.framework.process.constvalue.ProcessUserType;
 import codedriver.framework.process.dto.ProcessTaskFormAttributeDataVo;
@@ -14,16 +20,18 @@ import codedriver.framework.process.dto.ProcessTaskStepVo;
 import codedriver.framework.process.dto.ProcessTaskStepWorkerVo;
 import codedriver.framework.process.exception.core.ProcessTaskException;
 import codedriver.framework.process.stephandler.core.ProcessStepHandlerBase;
-import codedriver.framework.restful.core.MyApiComponent;
-import codedriver.framework.restful.core.privateapi.PrivateApiComponentFactory;
 import codedriver.framework.scheduler.core.IJob;
 import codedriver.framework.scheduler.core.SchedulerManager;
 import codedriver.framework.scheduler.dto.JobObject;
 import codedriver.framework.scheduler.exception.ScheduleHandlerNotFoundException;
-import codedriver.module.autoexec.api.job.action.AutoexecJobFromCombopCreateApi;
 import codedriver.module.autoexec.constvalue.AutoexecProcessStepHandlerType;
+import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.module.autoexec.schedule.plugin.AutoexecJobStatusMonitorJob;
+import codedriver.module.autoexec.service.AutoexecCombopService;
+import codedriver.module.autoexec.service.AutoexecJobActionService;
+import codedriver.module.autoexec.service.AutoexecJobService;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
@@ -49,6 +57,17 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
     private final static Logger logger = LoggerFactory.getLogger(AutoexecProcessComponent.class);
     @Resource
     private AutoexecJobMapper autoexecJobMapper;
+    @Resource
+    private AutoexecJobService autoexecJobService;
+
+    @Resource
+    private AutoexecCombopMapper autoexecCombopMapper;
+
+    @Resource
+    private AutoexecCombopService autoexecCombopService;
+
+    @Resource
+    private AutoexecJobActionService autoexecJobActionService;
 
     @Override
     public String getHandler() {
@@ -166,32 +185,28 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                 paramObj.put("source", "itsm");
                 paramObj.put("threadCount", 1);
 
-                MyApiComponent restComponent = (MyApiComponent)PrivateApiComponentFactory.getInstance(AutoexecJobFromCombopCreateApi.class.getName());
-                if (restComponent != null) {
-                    try {
-                        JSONObject result = (JSONObject) restComponent.myDoService(paramObj);
-                        Long autoexecJobId = result.getLong("jobId");
-                        if (autoexecJobId != null) {
-                            IJob jobHandler = SchedulerManager.getHandler(AutoexecJobStatusMonitorJob.class.getName());
-                            if(jobHandler == null) {
-                                throw new ScheduleHandlerNotFoundException(AutoexecJobStatusMonitorJob.class.getName());
-                            }
-                            AutoexecJobProcessTaskStepVo autoexecJobProcessTaskStepVo = new AutoexecJobProcessTaskStepVo();
-                            autoexecJobProcessTaskStepVo.setProcessTaskId(currentProcessTaskStepVo.getProcessTaskId());
-                            autoexecJobProcessTaskStepVo.setProcessTaskStepId(currentProcessTaskStepVo.getId());
-                            autoexecJobProcessTaskStepVo.setAutoexecJobId(autoexecJobId);
-                            autoexecJobProcessTaskStepVo.setNeedMonitorStatus(1);
-                            autoexecJobMapper.insertAutoexecJobProcessTaskStep(autoexecJobProcessTaskStepVo);
-                            JobObject.Builder jobObjectBuilder = new JobObject
-                                    .Builder(autoexecJobId.toString(), jobHandler.getGroupName(), jobHandler.getClassName(), TenantContext.get().getTenantUuid())
-                                    .addData("autoexecJobId", autoexecJobId);
-                            JobObject jobObject = jobObjectBuilder.build();
-                            jobHandler.reloadJob(jobObject);
+                try {
+                    Long autoexecJobId = createJob(paramObj);
+                    if (autoexecJobId != null) {
+                        IJob jobHandler = SchedulerManager.getHandler(AutoexecJobStatusMonitorJob.class.getName());
+                        if(jobHandler == null) {
+                            throw new ScheduleHandlerNotFoundException(AutoexecJobStatusMonitorJob.class.getName());
                         }
-                    } catch (Exception e) {
-                        //TODO 如果创建作业时抛异常
-                        logger.error(e.getMessage(), e);
+                        AutoexecJobProcessTaskStepVo autoexecJobProcessTaskStepVo = new AutoexecJobProcessTaskStepVo();
+                        autoexecJobProcessTaskStepVo.setProcessTaskId(currentProcessTaskStepVo.getProcessTaskId());
+                        autoexecJobProcessTaskStepVo.setProcessTaskStepId(currentProcessTaskStepVo.getId());
+                        autoexecJobProcessTaskStepVo.setAutoexecJobId(autoexecJobId);
+                        autoexecJobProcessTaskStepVo.setNeedMonitorStatus(1);
+                        autoexecJobMapper.insertAutoexecJobProcessTaskStep(autoexecJobProcessTaskStepVo);
+                        JobObject.Builder jobObjectBuilder = new JobObject
+                                .Builder(autoexecJobId.toString(), jobHandler.getGroupName(), jobHandler.getClassName(), TenantContext.get().getTenantUuid())
+                                .addData("autoexecJobId", autoexecJobId);
+                        JobObject jobObject = jobObjectBuilder.build();
+                        jobHandler.reloadJob(jobObject);
                     }
+                } catch (Exception e) {
+                    //TODO 如果创建作业时抛异常
+                    logger.error(e.getMessage(), e);
                 }
             }
         }
@@ -211,6 +226,38 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             //TODO linbq 上游出参，暂不支持
         }
         return value;
+    }
+
+    private Long createJob(JSONObject jsonObj) {
+        Long combopId = jsonObj.getLong("combopId");
+        Integer threadCount = jsonObj.getInteger("threadCount");
+        JSONObject paramJson = jsonObj.getJSONObject("param");
+        AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
+        if (combopVo == null) {
+            throw new AutoexecCombopNotFoundException(combopId);
+        }
+        //作业执行权限校验
+//        autoexecCombopService.setOperableButtonList(combopVo);
+//        if(combopVo.getExecutable() != 1){
+//            throw new AutoexecCombopCannotExecuteException(combopVo.getName());
+//        }
+        //设置作业执行节点
+        if(combopVo.getConfig() != null && jsonObj.containsKey("executeConfig")){
+            AutoexecCombopExecuteConfigVo executeConfigVo = JSON.toJavaObject(jsonObj.getJSONObject("executeConfig"), AutoexecCombopExecuteConfigVo.class);
+            combopVo.getConfig().setExecuteConfig(executeConfigVo);
+        }
+        autoexecCombopService.verifyAutoexecCombopConfig(combopVo);
+        //TODO 校验执行参数
+
+        //并发数必须是2的n次方
+        if ((threadCount & (threadCount - 1)) != 0) {
+            throw new AutoexecJobThreadCountException();
+        }
+        AutoexecJobVo jobVo = autoexecJobService.saveAutoexecCombopJob(combopVo, jsonObj.getString("source"), threadCount, paramJson);
+        jobVo.setAction(JobAction.FIRE.getValue());
+        jobVo.setCurrentPhaseSort(0);
+        autoexecJobActionService.fire(jobVo);
+        return jobVo.getId();
     }
     @Override
     protected int myAssign(ProcessTaskStepVo currentProcessTaskStepVo, Set<ProcessTaskStepWorkerVo> workerSet) throws ProcessTaskException {

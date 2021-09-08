@@ -81,7 +81,7 @@ public class AutoexecJobStatusMonitorJob extends JobBase {
                 } else if (JobStatus.ABORTED.getValue().equals(autoexecJobVo.getStatus())) {
 
                 } else if (JobStatus.COMPLETED.getValue().equals(autoexecJobVo.getStatus())) {
-                    processTaskStepcomplete(autoexecJobProcessTaskStepVo);
+                    processTaskStepComplete(autoexecJobProcessTaskStepVo);
                 } else if (JobStatus.FAILED.getValue().equals(autoexecJobVo.getStatus())) {
 
                 }
@@ -123,7 +123,7 @@ public class AutoexecJobStatusMonitorJob extends JobBase {
                 } else if (JobStatus.ABORTED.getValue().equals(autoexecJobVo.getStatus())) {
 
                 } else if (JobStatus.COMPLETED.getValue().equals(autoexecJobVo.getStatus())) {
-                    processTaskStepcomplete(autoexecJobProcessTaskStepVo);
+                    processTaskStepComplete(autoexecJobProcessTaskStepVo);
                 } else if (JobStatus.FAILED.getValue().equals(autoexecJobVo.getStatus())) {
 
                 }
@@ -131,7 +131,7 @@ public class AutoexecJobStatusMonitorJob extends JobBase {
         }
     }
 
-    private void processTaskStepcomplete(AutoexecJobProcessTaskStepVo autoexecJobProcessTaskStepVo) {
+    private void processTaskStepComplete(AutoexecJobProcessTaskStepVo autoexecJobProcessTaskStepVo) {
         IProcessStepHandler handler = ProcessStepHandlerFactory.getHandler(AutoexecProcessStepHandlerType.AUTOEXEC.getHandler());
         if (handler != null) {
             try {
