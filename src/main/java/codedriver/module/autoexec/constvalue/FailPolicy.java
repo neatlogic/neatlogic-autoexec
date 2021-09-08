@@ -8,9 +8,7 @@ import java.util.List;
 
 public enum FailPolicy implements IEnum {
     HANG("hang", "人工处理"), 
-    KEEP_ON("keepon", "向后流转"),
-    BACK("back", "步骤回退"),
-    CANCEL("cancel", "取消工单")
+    KEEP_ON("keepon", "向后流转")
     ;
 
     private String value;

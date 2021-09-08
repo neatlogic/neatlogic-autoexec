@@ -248,13 +248,9 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
         }
         resultObj.put("autoexecConfig", autoexecObj);
 
-        /* 异常处理人 **/
-        JSONObject workerPolicyObj = new JSONObject();
+        /** 分配处理人 **/
         JSONObject workerPolicyConfig = configObj.getJSONObject("workerPolicyConfig");
-        if (MapUtils.isNotEmpty(workerPolicyConfig)) {
-            String defaultWorker = workerPolicyConfig.getString("defaultWorker");
-            workerPolicyObj.put("defaultWorker", defaultWorker);
-        }
+        JSONObject workerPolicyObj = ProcessConfigUtil.regulateWorkerPolicyConfig(workerPolicyConfig);
         resultObj.put("workerPolicyConfig", workerPolicyObj);
 
         JSONArray tagList = configObj.getJSONArray("tagList");
