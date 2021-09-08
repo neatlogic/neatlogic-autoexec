@@ -198,7 +198,7 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
             autoexecObj.put("autoexecCombopId", autoexecCombopId);
         }
         JSONArray runtimeParamList = autoexecConfig.getJSONArray("runtimeParamList");
-        if (CollectionUtils.isNotEmpty(runtimeParamList)) {
+        if (runtimeParamList != null) {
             JSONArray runtimeParamArray = new JSONArray();
             for (int i = 0; i < runtimeParamList.size(); i++) {
                 JSONObject runtimeParamObj = runtimeParamList.getJSONObject(i);
@@ -215,7 +215,7 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
             autoexecObj.put("runtimeParamList", runtimeParamArray);
         }
         JSONArray executeParamList = autoexecConfig.getJSONArray("executeParamList");
-        if (CollectionUtils.isNotEmpty(executeParamList)) {
+        if (executeParamList != null) {
             JSONArray executeParamArray = new JSONArray();
             for (int i = 0; i < executeParamList.size(); i++) {
                 JSONObject executeParamObj = executeParamList.getJSONObject(i);
@@ -232,7 +232,7 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
             autoexecObj.put("executeParamList", executeParamArray);
         }
         JSONArray formAttributeList = autoexecConfig.getJSONArray("formAttributeList");
-        if (CollectionUtils.isNotEmpty(formAttributeList)) {
+        if (formAttributeList != null) {
             JSONArray formAttributeArray = new JSONArray();
             for (int i = 0; i < formAttributeList.size(); i++) {
                 JSONObject formAttributeObj = formAttributeList.getJSONObject(i);
