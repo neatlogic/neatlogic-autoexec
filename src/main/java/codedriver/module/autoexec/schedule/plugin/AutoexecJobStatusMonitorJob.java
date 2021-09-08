@@ -9,8 +9,14 @@ import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dto.job.AutoexecJobProcessTaskStepVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.exception.type.PermissionDeniedException;
+import codedriver.framework.process.dto.ProcessTaskStepVo;
+import codedriver.framework.process.exception.processtask.ProcessTaskNoPermissionException;
+import codedriver.framework.process.stephandler.core.IProcessStepHandler;
+import codedriver.framework.process.stephandler.core.ProcessStepHandlerFactory;
 import codedriver.framework.scheduler.core.JobBase;
 import codedriver.framework.scheduler.dto.JobObject;
+import codedriver.module.autoexec.constvalue.AutoexecProcessStepHandlerType;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import org.quartz.JobExecutionContext;
 import org.springframework.stereotype.Component;
@@ -76,7 +82,7 @@ public class AutoexecJobStatusMonitorJob extends JobBase {
                 } else if (JobStatus.ABORTED.getValue().equals(autoexecJobVo.getStatus())) {
 
                 } else if (JobStatus.COMPLETED.getValue().equals(autoexecJobVo.getStatus())) {
-
+                    processTaskStepcomplete(autoexecJobProcessTaskStepVo);
                 } else if (JobStatus.FAILED.getValue().equals(autoexecJobVo.getStatus())) {
 
                 }
@@ -118,10 +124,24 @@ public class AutoexecJobStatusMonitorJob extends JobBase {
                 } else if (JobStatus.ABORTED.getValue().equals(autoexecJobVo.getStatus())) {
 
                 } else if (JobStatus.COMPLETED.getValue().equals(autoexecJobVo.getStatus())) {
-
+                    processTaskStepcomplete(autoexecJobProcessTaskStepVo);
                 } else if (JobStatus.FAILED.getValue().equals(autoexecJobVo.getStatus())) {
 
                 }
+            }
+        }
+    }
+
+    private void processTaskStepcomplete(AutoexecJobProcessTaskStepVo autoexecJobProcessTaskStepVo) {
+        IProcessStepHandler handler = ProcessStepHandlerFactory.getHandler(AutoexecProcessStepHandlerType.AUTOEXEC.getHandler());
+        if (handler != null) {
+            try {
+                ProcessTaskStepVo processTaskStepVo = new ProcessTaskStepVo();
+                processTaskStepVo.setProcessTaskId(autoexecJobProcessTaskStepVo.getProcessTaskId());
+                processTaskStepVo.setId(autoexecJobProcessTaskStepVo.getProcessTaskStepId());
+                handler.complete(processTaskStepVo);
+            } catch (ProcessTaskNoPermissionException e) {
+//                throw new PermissionDeniedException();
             }
         }
     }
