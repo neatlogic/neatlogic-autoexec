@@ -88,6 +88,7 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
             toolAndScriptList.addAll(scriptList);
             for (AutoexecToolAndScriptVo autoexecToolAndScriptVo : toolAndScriptList) {
                 List<AutoexecParamVo> paramList = autoexecToolAndScriptVo.getParamList();
+                autoexecToolAndScriptVo.getArgument();
                 if (CollectionUtils.isNotEmpty(paramList)) {
                     for (AutoexecParamVo autoexecParamVo : paramList) {
                         autoexecService.mergeConfig(autoexecParamVo);
