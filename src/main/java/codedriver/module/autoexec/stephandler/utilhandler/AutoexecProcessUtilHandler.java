@@ -217,7 +217,7 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
             autoexecObj.put("autoexecCombopId", autoexecCombopId);
         }
         JSONArray runtimeParamList = autoexecConfig.getJSONArray("runtimeParamList");
-        if (CollectionUtils.isNotEmpty(runtimeParamList)) {
+        if (runtimeParamList != null) {
             JSONArray runtimeParamArray = new JSONArray();
             for (int i = 0; i < runtimeParamList.size(); i++) {
                 JSONObject runtimeParamObj = runtimeParamList.getJSONObject(i);
@@ -234,7 +234,7 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
             autoexecObj.put("runtimeParamList", runtimeParamArray);
         }
         JSONArray executeParamList = autoexecConfig.getJSONArray("executeParamList");
-        if (CollectionUtils.isNotEmpty(executeParamList)) {
+        if (executeParamList != null) {
             JSONArray executeParamArray = new JSONArray();
             for (int i = 0; i < executeParamList.size(); i++) {
                 JSONObject executeParamObj = executeParamList.getJSONObject(i);
@@ -251,7 +251,7 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
             autoexecObj.put("executeParamList", executeParamArray);
         }
         JSONArray formAttributeList = autoexecConfig.getJSONArray("formAttributeList");
-        if (CollectionUtils.isNotEmpty(formAttributeList)) {
+        if (formAttributeList != null) {
             JSONArray formAttributeArray = new JSONArray();
             for (int i = 0; i < formAttributeList.size(); i++) {
                 JSONObject formAttributeObj = formAttributeList.getJSONObject(i);
@@ -267,13 +267,9 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
         }
         resultObj.put("autoexecConfig", autoexecObj);
 
-        /* 异常处理人 **/
-        JSONObject workerPolicyObj = new JSONObject();
+        /** 分配处理人 **/
         JSONObject workerPolicyConfig = configObj.getJSONObject("workerPolicyConfig");
-        if (MapUtils.isNotEmpty(workerPolicyConfig)) {
-            String defaultWorker = workerPolicyConfig.getString("defaultWorker");
-            workerPolicyObj.put("defaultWorker", defaultWorker);
-        }
+        JSONObject workerPolicyObj = ProcessConfigUtil.regulateWorkerPolicyConfig(workerPolicyConfig);
         resultObj.put("workerPolicyConfig", workerPolicyObj);
 
         JSONArray tagList = configObj.getJSONArray("tagList");
