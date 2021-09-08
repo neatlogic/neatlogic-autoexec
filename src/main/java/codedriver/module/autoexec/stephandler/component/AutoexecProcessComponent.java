@@ -30,6 +30,8 @@ import com.alibaba.fastjson.JSONPath;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -44,6 +46,7 @@ import java.util.Set;
 @Service
 public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
+    private final static Logger logger = LoggerFactory.getLogger(AutoexecProcessComponent.class);
     @Resource
     private AutoexecJobMapper autoexecJobMapper;
 
@@ -187,6 +190,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                         }
                     } catch (Exception e) {
                         //TODO 如果创建作业时抛异常
+                        logger.error(e.getMessage(), e);
                     }
                 }
             }
