@@ -264,17 +264,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
     }
     @Override
     protected int myAssign(ProcessTaskStepVo currentProcessTaskStepVo, Set<ProcessTaskStepWorkerVo> workerSet) throws ProcessTaskException {
-        String configHash = currentProcessTaskStepVo.getConfigHash();
-        if (StringUtils.isBlank(configHash)) {
-            currentProcessTaskStepVo = processTaskMapper.getProcessTaskStepBaseInfoById(currentProcessTaskStepVo.getId());
-            configHash = currentProcessTaskStepVo.getConfigHash();
-        }
-        String stepConfig = selectContentByHashMapper.getProcessTaskStepConfigByHash(configHash);
-        String defaultWorker = (String) JSONPath.read(stepConfig, "workerPolicyConfig.defaultWorker");
-        String[] split = defaultWorker.split("#");
-        workerSet.add(new ProcessTaskStepWorkerVo(currentProcessTaskStepVo.getProcessTaskId(),
-                currentProcessTaskStepVo.getId(), split[0], split[1], ProcessUserType.MAJOR.getValue()));
-        return 1;
+        return defaultAssign(currentProcessTaskStepVo, workerSet);
     }
 
     @Override
