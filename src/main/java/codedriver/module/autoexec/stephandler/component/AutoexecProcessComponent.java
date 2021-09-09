@@ -195,11 +195,13 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                         if(jobHandler == null) {
                             throw new ScheduleHandlerNotFoundException(AutoexecJobStatusMonitorJob.class.getName());
                         }
+                        String failPolicy = autoexecConfig.getString("failPolicy");
                         AutoexecJobProcessTaskStepVo autoexecJobProcessTaskStepVo = new AutoexecJobProcessTaskStepVo();
                         autoexecJobProcessTaskStepVo.setProcessTaskId(currentProcessTaskStepVo.getProcessTaskId());
                         autoexecJobProcessTaskStepVo.setProcessTaskStepId(currentProcessTaskStepVo.getId());
                         autoexecJobProcessTaskStepVo.setAutoexecJobId(autoexecJobId);
                         autoexecJobProcessTaskStepVo.setNeedMonitorStatus(1);
+                        autoexecJobProcessTaskStepVo.setFailPolicy(failPolicy);
                         autoexecJobMapper.insertAutoexecJobProcessTaskStep(autoexecJobProcessTaskStepVo);
                         JobObject.Builder jobObjectBuilder = new JobObject
                                 .Builder(autoexecJobId.toString(), jobHandler.getGroupName(), jobHandler.getClassName(), TenantContext.get().getTenantUuid())

@@ -859,7 +859,8 @@
             `processtask_id` AS processTaskId,
             `processtask_step_id` AS processTaskStepId,
             `autoexec_job_id` AS autoexecJobId,
-            `need_monitor_status` AS needMonitorStatus
+            `need_monitor_status` AS needMonitorStatus,
+            `fail_policy` AS failPolicy
         FROM `autoexec_job_processtask_step`
         WHERE `autoexec_job_id` = #{value}
     </select>
@@ -1014,8 +1015,8 @@
     </insert>
 
     <insert id="insertAutoexecJobProcessTaskStep" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobProcessTaskStepVo">
-        insert into `autoexec_job_processtask_step` (`processtask_id`, `processtask_step_id`, `autoexec_job_id`, `need_monitor_status`)
-        values (#{processTaskId}, #{processTaskStepId}, #{autoexecJobId}, #{needMonitorStatus})
+        insert into `autoexec_job_processtask_step` (`processtask_id`, `processtask_step_id`, `autoexec_job_id`, `need_monitor_status`, `fail_policy`)
+        values (#{processTaskId}, #{processTaskStepId}, #{autoexecJobId}, #{needMonitorStatus}, #{failPolicy})
     </insert>
 
     <update id="updateJobPhaseStatus" parameterType="codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo">

@@ -18,6 +18,7 @@ import codedriver.framework.process.stephandler.core.ProcessStepHandlerFactory;
 import codedriver.framework.scheduler.core.JobBase;
 import codedriver.framework.scheduler.dto.JobObject;
 import codedriver.module.autoexec.constvalue.AutoexecProcessStepHandlerType;
+import codedriver.module.autoexec.constvalue.FailPolicy;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import com.alibaba.fastjson.JSONObject;
 import org.quartz.JobExecutionContext;
@@ -67,9 +68,7 @@ public class AutoexecJobStatusMonitorJob extends JobBase {
         if (autoexecJobProcessTaskStepVo != null && Objects.equals(autoexecJobProcessTaskStepVo.getNeedMonitorStatus(), 1)) {
             AutoexecJobVo autoexecJobVo = autoexecJobMapper.getJobInfo(autoexecJobId);
             if (autoexecJobVo != null) {
-                if (JobStatus.PENDING.getValue().equals(autoexecJobVo.getStatus())) {
-
-                } else if (JobStatus.RUNNING.getValue().equals(autoexecJobVo.getStatus())) {
+                if (JobStatus.PENDING.getValue().equals(autoexecJobVo.getStatus()) || JobStatus.RUNNING.getValue().equals(autoexecJobVo.getStatus())) {
                     JobObject.Builder newJobObjectBuilder = new JobObject.Builder(autoexecJobId.toString(), this.getGroupName(), this.getClassName(), tenantUuid)
                             .withBeginTime(new Date())
                             .withIntervalInSeconds(60 * 60)
@@ -77,19 +76,17 @@ public class AutoexecJobStatusMonitorJob extends JobBase {
                             .addData("autoexecJobId", autoexecJobId);
                     JobObject newJobObject = newJobObjectBuilder.build();
                     schedulerManager.loadJob(newJobObject);
-                } else if (JobStatus.PAUSING.getValue().equals(autoexecJobVo.getStatus())) {
-
-                } else if (JobStatus.PAUSED.getValue().equals(autoexecJobVo.getStatus())) {
-
-                } else if (JobStatus.ABORTING.getValue().equals(autoexecJobVo.getStatus())) {
-
-                } else if (JobStatus.ABORTED.getValue().equals(autoexecJobVo.getStatus())) {
-
                 } else if (JobStatus.COMPLETED.getValue().equals(autoexecJobVo.getStatus())) {
                     processTaskStepComplete(autoexecJobProcessTaskStepVo);
                     autoexecJobMapper.updateAutoexecJobProcessTaskStepNoNeedMonitorStatusByAutoexecJobId(autoexecJobId);
-                } else if (JobStatus.FAILED.getValue().equals(autoexecJobVo.getStatus())) {
-
+                } else {
+                    //暂停中、已暂停、中止中、已中止、已完成、已失败都属于异常，根据失败策略处理
+                    if (FailPolicy.KEEP_ON.getValue().equals(autoexecJobProcessTaskStepVo.getFailPolicy())) {
+                        int flag = processTaskStepComplete(autoexecJobProcessTaskStepVo);
+                        if (flag == 1) {
+                            autoexecJobMapper.updateAutoexecJobProcessTaskStepNoNeedMonitorStatusByAutoexecJobId(autoexecJobId);
+                        }
+                    }
                 }
             } else {
                 autoexecJobMapper.updateAutoexecJobProcessTaskStepNoNeedMonitorStatusByAutoexecJobId(autoexecJobId);
@@ -116,29 +113,27 @@ public class AutoexecJobStatusMonitorJob extends JobBase {
         if (autoexecJobProcessTaskStepVo != null && Objects.equals(autoexecJobProcessTaskStepVo.getNeedMonitorStatus(), 1)) {
             AutoexecJobVo autoexecJobVo = autoexecJobMapper.getJobInfo(autoexecJobId);
             if (autoexecJobVo != null) {
-                if (JobStatus.PENDING.getValue().equals(autoexecJobVo.getStatus())) {
-
-                } else if (JobStatus.RUNNING.getValue().equals(autoexecJobVo.getStatus())) {
-
-                } else if (JobStatus.PAUSING.getValue().equals(autoexecJobVo.getStatus())) {
-
-                } else if (JobStatus.PAUSED.getValue().equals(autoexecJobVo.getStatus())) {
-
-                } else if (JobStatus.ABORTING.getValue().equals(autoexecJobVo.getStatus())) {
-
-                } else if (JobStatus.ABORTED.getValue().equals(autoexecJobVo.getStatus())) {
-
+                if (JobStatus.PENDING.getValue().equals(autoexecJobVo.getStatus()) || JobStatus.RUNNING.getValue().equals(autoexecJobVo.getStatus())) {
+                    //继续监听作业状态
                 } else if (JobStatus.COMPLETED.getValue().equals(autoexecJobVo.getStatus())) {
                     processTaskStepComplete(autoexecJobProcessTaskStepVo);
                     autoexecJobMapper.updateAutoexecJobProcessTaskStepNoNeedMonitorStatusByAutoexecJobId(autoexecJobId);
-                } else if (JobStatus.FAILED.getValue().equals(autoexecJobVo.getStatus())) {
-
+                    schedulerManager.unloadJob(jobObject);
+                } else {
+                    //暂停中、已暂停、中止中、已中止、已完成、已失败都属于异常，根据失败策略处理
+                    if (FailPolicy.KEEP_ON.getValue().equals(autoexecJobProcessTaskStepVo.getFailPolicy())) {
+                        int flag = processTaskStepComplete(autoexecJobProcessTaskStepVo);
+                        if (flag == 1) {
+                            autoexecJobMapper.updateAutoexecJobProcessTaskStepNoNeedMonitorStatusByAutoexecJobId(autoexecJobId);
+                            schedulerManager.unloadJob(jobObject);
+                        }
+                    }
                 }
             }
         }
     }
 
-    private void processTaskStepComplete(AutoexecJobProcessTaskStepVo autoexecJobProcessTaskStepVo) {
+    private int processTaskStepComplete(AutoexecJobProcessTaskStepVo autoexecJobProcessTaskStepVo) {
         List<ProcessTaskStepVo> processTaskStepList = processTaskService.getForwardNextStepListByProcessTaskStepId(autoexecJobProcessTaskStepVo.getProcessTaskStepId());
         if (processTaskStepList.size() == 1) {
             ProcessTaskStepVo nextStepVo = processTaskStepList.get(0);
@@ -153,10 +148,12 @@ public class AutoexecJobStatusMonitorJob extends JobBase {
                     paramObj.put("action", ProcessTaskOperationType.STEP_COMPLETE.getValue());
                     processTaskStepVo.setParamObj(paramObj);
                     handler.complete(processTaskStepVo);
+                    return 1;
                 } catch (ProcessTaskNoPermissionException e) {
 //                throw new PermissionDeniedException();
                 }
             }
         }
+        return 0;
     }
 }
