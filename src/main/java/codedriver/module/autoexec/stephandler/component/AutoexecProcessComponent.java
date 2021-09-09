@@ -13,10 +13,11 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobProcessTaskStepVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobThreadCountException;
+import codedriver.framework.exception.core.ApiException;
 import codedriver.framework.process.constvalue.ProcessStepMode;
 import codedriver.framework.process.constvalue.ProcessTaskAuditDetailType;
 import codedriver.framework.process.constvalue.ProcessTaskAuditType;
-import codedriver.framework.process.constvalue.ProcessUserType;
+import codedriver.framework.process.constvalue.ProcessTaskStepRemindType;
 import codedriver.framework.process.dto.ProcessTaskFormAttributeDataVo;
 import codedriver.framework.process.dto.ProcessTaskStepVo;
 import codedriver.framework.process.dto.ProcessTaskStepWorkerVo;
@@ -116,104 +117,111 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     @Override
     public Boolean isAllowStart() {
-        return true;
+        return false;
     }
 
     @Override
     protected int myActive(ProcessTaskStepVo currentProcessTaskStepVo) throws ProcessTaskException {
-        String configHash = currentProcessTaskStepVo.getConfigHash();
-        if (StringUtils.isBlank(configHash)) {
-            currentProcessTaskStepVo = processTaskMapper.getProcessTaskStepBaseInfoById(currentProcessTaskStepVo.getId());
-            configHash = currentProcessTaskStepVo.getConfigHash();
-        }
-        String config = selectContentByHashMapper.getProcessTaskStepConfigByHash(configHash);
-        if (StringUtils.isNotBlank(config)) {
-            JSONObject autoexecConfig = (JSONObject)JSONPath.read(config, "autoexecConfig");
-            if (MapUtils.isNotEmpty(autoexecConfig)) {
-                JSONObject paramObj = new JSONObject();
-                Long combopId = autoexecConfig.getLong("autoexecCombopId");
-                paramObj.put("combopId", combopId);
-                JSONArray runtimeParamList = autoexecConfig.getJSONArray("runtimeParamList");
-                if (CollectionUtils.isNotEmpty(runtimeParamList)) {
-                    JSONObject param = new JSONObject();
-                    for (int i =0; i < runtimeParamList.size(); i++) {
-                        JSONObject runtimeParamObj = runtimeParamList.getJSONObject(i);
-                        if (MapUtils.isNotEmpty(runtimeParamObj)) {
-                            String key = runtimeParamObj.getString("key");
-                            if (StringUtils.isNotBlank(key)) {
-                                String value = runtimeParamObj.getString("value");
-                                if (StringUtils.isNotBlank(value)) {
-                                    String mappingMode = runtimeParamObj.getString("mappingMode");
-                                    param.put(key, parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
-                                } else {
-                                    param.put(key, value);
+        Long autoexecJobId = autoexecJobMapper.getAutoexecJobIdByProcessTaskStepId(currentProcessTaskStepVo.getId());
+        if (autoexecJobId == null) {
+            String configHash = currentProcessTaskStepVo.getConfigHash();
+            if (StringUtils.isBlank(configHash)) {
+                ProcessTaskStepVo processTaskStepVo = processTaskMapper.getProcessTaskStepBaseInfoById(currentProcessTaskStepVo.getId());
+                configHash = processTaskStepVo.getConfigHash();
+            }
+            String config = selectContentByHashMapper.getProcessTaskStepConfigByHash(configHash);
+            if (StringUtils.isNotBlank(config)) {
+                JSONObject autoexecConfig = (JSONObject)JSONPath.read(config, "autoexecConfig");
+                if (MapUtils.isNotEmpty(autoexecConfig)) {
+                    JSONObject paramObj = new JSONObject();
+                    Long combopId = autoexecConfig.getLong("autoexecCombopId");
+                    paramObj.put("combopId", combopId);
+                    JSONArray runtimeParamList = autoexecConfig.getJSONArray("runtimeParamList");
+                    if (CollectionUtils.isNotEmpty(runtimeParamList)) {
+                        JSONObject param = new JSONObject();
+                        for (int i =0; i < runtimeParamList.size(); i++) {
+                            JSONObject runtimeParamObj = runtimeParamList.getJSONObject(i);
+                            if (MapUtils.isNotEmpty(runtimeParamObj)) {
+                                String key = runtimeParamObj.getString("key");
+                                if (StringUtils.isNotBlank(key)) {
+                                    String value = runtimeParamObj.getString("value");
+                                    if (StringUtils.isNotBlank(value)) {
+                                        String mappingMode = runtimeParamObj.getString("mappingMode");
+                                        param.put(key, parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
+                                    } else {
+                                        param.put(key, value);
+                                    }
                                 }
                             }
                         }
+                        paramObj.put("param", param);
                     }
-                    paramObj.put("param", param);
-                }
-                JSONArray executeParamList = autoexecConfig.getJSONArray("executeParamList");
-                if (CollectionUtils.isNotEmpty(executeParamList)) {
-                    JSONObject executeConfig = new JSONObject();
-                    for (int i = 0; i < executeParamList.size(); i++) {
-                        JSONObject executeParamObj = executeParamList.getJSONObject(i);
-                        if (MapUtils.isNotEmpty(executeParamObj)) {
-                            String key = executeParamObj.getString("key");
-                            String value = executeParamObj.getString("value");
-                            String mappingMode = executeParamObj.getString("mappingMode");
-                            if ("protocol".equals(key)) {
-                                if (StringUtils.isNotBlank(value)) {
-                                    executeConfig.put("protocol", parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
-                                } else {
-                                    executeConfig.put("protocol", value);
-                                }
-                            } else if ("executeUser".equals(key)) {
-                                if (StringUtils.isNotBlank(value)) {
-                                    executeConfig.put("executeUser", parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
-                                } else {
-                                    executeConfig.put("executeUser", value);
-                                }
-                            } else if ("executeNodeConfig".equals(key)) {
-                                if (StringUtils.isNotBlank(value)) {
-                                    executeConfig.put("executeNodeConfig", parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
-                                } else {
-                                    executeConfig.put("executeNodeConfig", value);
+                    JSONArray executeParamList = autoexecConfig.getJSONArray("executeParamList");
+                    if (CollectionUtils.isNotEmpty(executeParamList)) {
+                        JSONObject executeConfig = new JSONObject();
+                        for (int i = 0; i < executeParamList.size(); i++) {
+                            JSONObject executeParamObj = executeParamList.getJSONObject(i);
+                            if (MapUtils.isNotEmpty(executeParamObj)) {
+                                String key = executeParamObj.getString("key");
+                                String value = executeParamObj.getString("value");
+                                String mappingMode = executeParamObj.getString("mappingMode");
+                                if ("protocol".equals(key)) {
+                                    if (StringUtils.isNotBlank(value)) {
+                                        executeConfig.put("protocol", parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
+                                    } else {
+                                        executeConfig.put("protocol", value);
+                                    }
+                                } else if ("executeUser".equals(key)) {
+                                    if (StringUtils.isNotBlank(value)) {
+                                        executeConfig.put("executeUser", parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
+                                    } else {
+                                        executeConfig.put("executeUser", value);
+                                    }
+                                } else if ("executeNodeConfig".equals(key)) {
+                                    if (StringUtils.isNotBlank(value)) {
+                                        executeConfig.put("executeNodeConfig", parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
+                                    } else {
+                                        executeConfig.put("executeNodeConfig", value);
+                                    }
                                 }
                             }
                         }
+                        paramObj.put("executeConfig", executeConfig);
                     }
-                    paramObj.put("executeConfig", executeConfig);
-                }
-                paramObj.put("source", "itsm");
-                paramObj.put("threadCount", 1);
-
-                try {
-                    Long autoexecJobId = createJob(paramObj);
-                    if (autoexecJobId != null) {
-                        IJob jobHandler = SchedulerManager.getHandler(AutoexecJobStatusMonitorJob.class.getName());
-                        if(jobHandler == null) {
-                            throw new ScheduleHandlerNotFoundException(AutoexecJobStatusMonitorJob.class.getName());
-                        }
-                        String failPolicy = autoexecConfig.getString("failPolicy");
-                        AutoexecJobProcessTaskStepVo autoexecJobProcessTaskStepVo = new AutoexecJobProcessTaskStepVo();
-                        autoexecJobProcessTaskStepVo.setProcessTaskId(currentProcessTaskStepVo.getProcessTaskId());
-                        autoexecJobProcessTaskStepVo.setProcessTaskStepId(currentProcessTaskStepVo.getId());
-                        autoexecJobProcessTaskStepVo.setAutoexecJobId(autoexecJobId);
-                        autoexecJobProcessTaskStepVo.setNeedMonitorStatus(1);
-                        autoexecJobProcessTaskStepVo.setFailPolicy(failPolicy);
-                        autoexecJobMapper.insertAutoexecJobProcessTaskStep(autoexecJobProcessTaskStepVo);
-                        JobObject.Builder jobObjectBuilder = new JobObject
-                                .Builder(autoexecJobId.toString(), jobHandler.getGroupName(), jobHandler.getClassName(), TenantContext.get().getTenantUuid())
-                                .addData("autoexecJobId", autoexecJobId);
-                        JobObject jobObject = jobObjectBuilder.build();
-                        jobHandler.reloadJob(jobObject);
-                    }
-                } catch (Exception e) {
-                    //TODO 如果创建作业时抛异常
-                    logger.error(e.getMessage(), e);
+                    paramObj.put("source", "itsm");
+                    paramObj.put("threadCount", 1);
+                    autoexecJobId = createJob(paramObj);
+                    String failPolicy = autoexecConfig.getString("failPolicy");
+                    AutoexecJobProcessTaskStepVo autoexecJobProcessTaskStepVo = new AutoexecJobProcessTaskStepVo();
+                    autoexecJobProcessTaskStepVo.setProcessTaskId(currentProcessTaskStepVo.getProcessTaskId());
+                    autoexecJobProcessTaskStepVo.setProcessTaskStepId(currentProcessTaskStepVo.getId());
+                    autoexecJobProcessTaskStepVo.setAutoexecJobId(autoexecJobId);
+                    autoexecJobProcessTaskStepVo.setNeedMonitorStatus(1);
+                    autoexecJobProcessTaskStepVo.setFailPolicy(failPolicy);
+                    autoexecJobMapper.insertAutoexecJobProcessTaskStep(autoexecJobProcessTaskStepVo);
                 }
             }
+        } else {
+            //TODO linbq如果作业已存在，需要调用接口重新执行作业
+        }
+        try {
+            if (autoexecJobId != null) {
+                IJob jobHandler = SchedulerManager.getHandler(AutoexecJobStatusMonitorJob.class.getName());
+                if(jobHandler == null) {
+                    throw new ScheduleHandlerNotFoundException(AutoexecJobStatusMonitorJob.class.getName());
+                }
+
+                JobObject.Builder jobObjectBuilder = new JobObject
+                        .Builder(autoexecJobId.toString(), jobHandler.getGroupName(), jobHandler.getClassName(), TenantContext.get().getTenantUuid())
+                        .addData("autoexecJobId", autoexecJobId);
+                JobObject jobObject = jobObjectBuilder.build();
+                jobHandler.reloadJob(jobObject);
+            }
+        } catch (Exception e) {
+            /* 异常提醒 **/
+            IProcessStepHandlerUtil.saveStepRemind(currentProcessTaskStepVo,
+                    currentProcessTaskStepVo.getId(), "创建作业失败", ProcessTaskStepRemindType.ERROR);
+            logger.error(e.getMessage(), e);
         }
         return 0;
     }
@@ -248,7 +256,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 //        }
         //设置作业执行节点
         if(combopVo.getConfig() != null && jsonObj.containsKey("executeConfig")){
-            AutoexecCombopExecuteConfigVo executeConfigVo = JSON.toJavaObject(jsonObj.getJSONObject("executeConfig"), AutoexecCombopExecuteConfigVo.class);
+            AutoexecCombopExecuteConfigVo executeConfigVo = JSONObject.toJavaObject(jsonObj.getJSONObject("executeConfig"), AutoexecCombopExecuteConfigVo.class);
             combopVo.getConfig().setExecuteConfig(executeConfigVo);
         }
         autoexecCombopService.verifyAutoexecCombopConfig(combopVo);
@@ -264,6 +272,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         autoexecJobActionService.fire(jobVo);
         return jobVo.getId();
     }
+
     @Override
     protected int myAssign(ProcessTaskStepVo currentProcessTaskStepVo, Set<ProcessTaskStepWorkerVo> workerSet) throws ProcessTaskException {
         return defaultAssign(currentProcessTaskStepVo, workerSet);
