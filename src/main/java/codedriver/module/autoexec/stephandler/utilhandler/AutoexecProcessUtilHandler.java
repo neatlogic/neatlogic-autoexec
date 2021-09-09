@@ -5,6 +5,9 @@
 
 package codedriver.module.autoexec.stephandler.utilhandler;
 
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeStatusCountVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.process.constvalue.ProcessTaskOperationType;
 import codedriver.framework.process.dto.ProcessStepVo;
 import codedriver.framework.process.dto.ProcessTaskStepVo;
@@ -13,6 +16,7 @@ import codedriver.framework.process.dto.processconfig.NotifyPolicyConfigVo;
 import codedriver.framework.process.stephandler.core.ProcessStepInternalHandlerBase;
 import codedriver.framework.process.util.ProcessConfigUtil;
 import codedriver.module.autoexec.constvalue.AutoexecProcessStepHandlerType;
+import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.module.autoexec.notify.handler.AutoexecCombopNotifyPolicyHandler;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -20,6 +24,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -28,6 +34,10 @@ import java.util.Objects;
  **/
 @Service
 public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
+
+    @Resource
+    private AutoexecJobMapper autoexecJobMapper;
+
     @Override
     public String getHandler() {
         return AutoexecProcessStepHandlerType.AUTOEXEC.getHandler();
@@ -35,11 +45,20 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
 
     @Override
     public Object getHandlerStepInfo(ProcessTaskStepVo currentProcessTaskStepVo) {
-        return null;
+        return getHandlerStepInitInfo(currentProcessTaskStepVo);
     }
 
     @Override
     public Object getHandlerStepInitInfo(ProcessTaskStepVo currentProcessTaskStepVo) {
+        Long autoexecJobId = autoexecJobMapper.getAutoexecJobIdByProcessTaskStepId(currentProcessTaskStepVo.getId());
+        if (autoexecJobId != null) {
+            AutoexecJobVo autoexecJobVo = autoexecJobMapper.getJobInfo(autoexecJobId);
+            if (autoexecJobVo != null) {
+                List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobId(autoexecJobId);
+                autoexecJobVo.setPhaseList(jobPhaseVoList);
+                return autoexecJobVo;
+            }
+        }
         return null;
     }
 
