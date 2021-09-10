@@ -56,7 +56,7 @@ public class AutoexecOperateHandler extends OperationAuthHandlerBase {
                     if (autoexecJobVo == null) {
                         return true;
                     }
-                    if (JobStatus.RUNNING.getValue().equals(autoexecJobVo.getStatus())) {
+                    if (JobStatus.PENDING.getValue().equals(autoexecJobVo.getStatus()) || JobStatus.RUNNING.getValue().equals(autoexecJobVo.getStatus())) {
                         return false;
                     }
                     return true;
