@@ -48,21 +48,23 @@ public class AutoexecJobStatusMonitorJob extends JobBase {
 
     @Override
     public Boolean isHealthy(JobObject jobObject) {
-        Long autoexecJobId = (Long) jobObject.getData("autoexecJobId");
-        AutoexecJobProcessTaskStepVo autoexecJobProcessTaskStepVo = autoexecJobMapper.getAutoexecJobProcessTaskStepByAutoexecJobId(autoexecJobId);
-        if (autoexecJobProcessTaskStepVo == null) {
-            return false;
-        }
-        if (Objects.equals(autoexecJobProcessTaskStepVo.getNeedMonitorStatus(), 0)) {
-            return true;
-        }
+//        System.out.println("isHealthy");
+//        System.out.println(TenantContext.get().getTenantUuid());
+//        Long autoexecJobId = (Long) jobObject.getData("autoexecJobId");
+//        System.out.println(autoexecJobId);
+//        AutoexecJobProcessTaskStepVo autoexecJobProcessTaskStepVo = autoexecJobMapper.getAutoexecJobProcessTaskStepByAutoexecJobId(autoexecJobId);
+//        if (autoexecJobProcessTaskStepVo == null) {
+//            return false;
+//        }
+//        if (Objects.equals(autoexecJobProcessTaskStepVo.getNeedMonitorStatus(), 0)) {
+//            return true;
+//        }
         return true;
     }
 
     @Override
     public void reloadJob(JobObject jobObject) {
         String tenantUuid = jobObject.getTenantUuid();
-        TenantContext.get().switchTenant(tenantUuid);
         Long autoexecJobId = (Long) jobObject.getData("autoexecJobId");
         AutoexecJobProcessTaskStepVo autoexecJobProcessTaskStepVo = autoexecJobMapper.getAutoexecJobProcessTaskStepByAutoexecJobId(autoexecJobId);
         if (autoexecJobProcessTaskStepVo != null && Objects.equals(autoexecJobProcessTaskStepVo.getNeedMonitorStatus(), 1)) {
@@ -71,25 +73,24 @@ public class AutoexecJobStatusMonitorJob extends JobBase {
                 if (JobStatus.PENDING.getValue().equals(autoexecJobVo.getStatus()) || JobStatus.RUNNING.getValue().equals(autoexecJobVo.getStatus())) {
                     JobObject.Builder newJobObjectBuilder = new JobObject.Builder(autoexecJobId.toString(), this.getGroupName(), this.getClassName(), tenantUuid)
                             .withBeginTime(new Date())
-                            .withIntervalInSeconds(60 * 60)
-                            .withRepeatCount(-1)
+                            .withIntervalInSeconds(60)
                             .addData("autoexecJobId", autoexecJobId);
                     JobObject newJobObject = newJobObjectBuilder.build();
                     schedulerManager.loadJob(newJobObject);
                 } else if (JobStatus.COMPLETED.getValue().equals(autoexecJobVo.getStatus())) {
                     processTaskStepComplete(autoexecJobProcessTaskStepVo);
-                    autoexecJobMapper.updateAutoexecJobProcessTaskStepNoNeedMonitorStatusByAutoexecJobId(autoexecJobId);
+                    autoexecJobMapper.updateAutoexecJobProcessTaskStepNeedMonitorStatusByAutoexecJobId(autoexecJobId, 0);
                 } else {
                     //暂停中、已暂停、中止中、已中止、已完成、已失败都属于异常，根据失败策略处理
                     if (FailPolicy.KEEP_ON.getValue().equals(autoexecJobProcessTaskStepVo.getFailPolicy())) {
                         int flag = processTaskStepComplete(autoexecJobProcessTaskStepVo);
                         if (flag == 1) {
-                            autoexecJobMapper.updateAutoexecJobProcessTaskStepNoNeedMonitorStatusByAutoexecJobId(autoexecJobId);
+                            autoexecJobMapper.updateAutoexecJobProcessTaskStepNeedMonitorStatusByAutoexecJobId(autoexecJobId, 0);
                         }
                     }
                 }
             } else {
-                autoexecJobMapper.updateAutoexecJobProcessTaskStepNoNeedMonitorStatusByAutoexecJobId(autoexecJobId);
+                autoexecJobMapper.updateAutoexecJobProcessTaskStepNeedMonitorStatusByAutoexecJobId(autoexecJobId, 0);
             }
         }
     }
@@ -117,14 +118,14 @@ public class AutoexecJobStatusMonitorJob extends JobBase {
                     //继续监听作业状态
                 } else if (JobStatus.COMPLETED.getValue().equals(autoexecJobVo.getStatus())) {
                     processTaskStepComplete(autoexecJobProcessTaskStepVo);
-                    autoexecJobMapper.updateAutoexecJobProcessTaskStepNoNeedMonitorStatusByAutoexecJobId(autoexecJobId);
+                    autoexecJobMapper.updateAutoexecJobProcessTaskStepNeedMonitorStatusByAutoexecJobId(autoexecJobId, 0);
                     schedulerManager.unloadJob(jobObject);
                 } else {
                     //暂停中、已暂停、中止中、已中止、已完成、已失败都属于异常，根据失败策略处理
                     if (FailPolicy.KEEP_ON.getValue().equals(autoexecJobProcessTaskStepVo.getFailPolicy())) {
                         int flag = processTaskStepComplete(autoexecJobProcessTaskStepVo);
                         if (flag == 1) {
-                            autoexecJobMapper.updateAutoexecJobProcessTaskStepNoNeedMonitorStatusByAutoexecJobId(autoexecJobId);
+                            autoexecJobMapper.updateAutoexecJobProcessTaskStepNeedMonitorStatusByAutoexecJobId(autoexecJobId, 0);
                             schedulerManager.unloadJob(jobObject);
                         }
                     }

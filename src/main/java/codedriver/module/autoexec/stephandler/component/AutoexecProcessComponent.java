@@ -201,6 +201,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             }
         } else {
             //TODO linbq如果作业已存在，需要调用接口重新执行作业
+            autoexecJobMapper.updateAutoexecJobProcessTaskStepNeedMonitorStatusByAutoexecJobId(autoexecJobId, 1);
         }
         try {
             if (autoexecJobId != null) {
