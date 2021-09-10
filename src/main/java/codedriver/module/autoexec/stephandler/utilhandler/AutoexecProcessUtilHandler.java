@@ -10,7 +10,9 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.process.constvalue.ProcessTaskOperationType;
 import codedriver.framework.process.dto.ProcessStepVo;
+import codedriver.framework.process.dto.ProcessStepWorkerPolicyVo;
 import codedriver.framework.process.dto.ProcessTaskStepVo;
+import codedriver.framework.process.dto.processconfig.ActionConfigActionVo;
 import codedriver.framework.process.dto.processconfig.ActionConfigVo;
 import codedriver.framework.process.dto.processconfig.NotifyPolicyConfigVo;
 import codedriver.framework.process.stephandler.core.ProcessStepInternalHandlerBase;
@@ -22,9 +24,11 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -71,6 +75,45 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
             Long policyId = notifyPolicyConfigVo.getPolicyId();
             if (policyId != null) {
                 processStepVo.setNotifyPolicyId(policyId);
+            }
+        }
+
+        JSONObject actionConfig = stepConfigObj.getJSONObject("actionConfig");
+        ActionConfigVo actionConfigVo = JSONObject.toJavaObject(actionConfig, ActionConfigVo.class);
+        if (actionConfigVo != null) {
+            List<ActionConfigActionVo> actionList = actionConfigVo.getActionList();
+            if (CollectionUtils.isNotEmpty(actionList)) {
+                List<String> integrationUuidList = new ArrayList<>();
+                for (ActionConfigActionVo actionVo : actionList) {
+                    String integrationUuid = actionVo.getIntegrationUuid();
+                    if (StringUtils.isNotBlank(integrationUuid)) {
+                        integrationUuidList.add(integrationUuid);
+                    }
+                }
+                processStepVo.setIntegrationUuidList(integrationUuidList);
+            }
+        }
+
+        /** 组装分配策略 **/
+        JSONObject workerPolicyConfig = stepConfigObj.getJSONObject("workerPolicyConfig");
+        if (MapUtils.isNotEmpty(workerPolicyConfig)) {
+            JSONArray policyList = workerPolicyConfig.getJSONArray("policyList");
+            if (CollectionUtils.isNotEmpty(policyList)) {
+                List<ProcessStepWorkerPolicyVo> workerPolicyList = new ArrayList<>();
+                for (int k = 0; k < policyList.size(); k++) {
+                    JSONObject policyObj = policyList.getJSONObject(k);
+                    if (!"1".equals(policyObj.getString("isChecked"))) {
+                        continue;
+                    }
+                    ProcessStepWorkerPolicyVo processStepWorkerPolicyVo = new ProcessStepWorkerPolicyVo();
+                    processStepWorkerPolicyVo.setProcessUuid(processStepVo.getProcessUuid());
+                    processStepWorkerPolicyVo.setProcessStepUuid(processStepVo.getUuid());
+                    processStepWorkerPolicyVo.setPolicy(policyObj.getString("type"));
+                    processStepWorkerPolicyVo.setSort(k + 1);
+                    processStepWorkerPolicyVo.setConfig(policyObj.getString("config"));
+                    workerPolicyList.add(processStepWorkerPolicyVo);
+                }
+                processStepVo.setWorkerPolicyList(workerPolicyList);
             }
         }
 
