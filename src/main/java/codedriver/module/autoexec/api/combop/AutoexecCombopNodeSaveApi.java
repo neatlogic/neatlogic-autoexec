@@ -17,6 +17,9 @@ import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopExecuteNodeCannotBeEmptyException;
 import codedriver.framework.autoexec.exception.AutoexecCombopExecuteUserCannotBeEmptyException;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
+import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
+import codedriver.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
+import codedriver.framework.cmdb.exception.resourcecenter.ResourceCenterAccountProtocolNotFoundByNameException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.exception.type.PermissionDeniedException;
 import codedriver.framework.restful.annotation.Description;
@@ -52,6 +55,8 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
     private AutoexecCombopMapper autoexecCombopMapper;
     @Resource
     private AutoexecCombopService autoexecCombopService;
+    @Resource
+    private ResourceCenterMapper resourceCenterMapper;
 
     @Override
     public String getToken() {
@@ -70,7 +75,7 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "组合工具主键id"),
-            @Param(name = "protocol", type = ApiParamType.ENUM, rule = "application,database,tagent,ssh", desc = "连接协议"),
+            @Param(name = "protocolId", type = ApiParamType.LONG,isRequired = true, desc = "连接协议id"),
             @Param(name = "executeUser", type = ApiParamType.STRING, desc = "执行用户"),
             @Param(name = "whenToSpecify", type = ApiParamType.ENUM, rule = "now,runtime", isRequired = true, desc = "执行目标指定时机，现在指定/运行时再指定"),
             @Param(name = "executeNodeConfig", type = ApiParamType.JSONOBJECT, desc = "执行目标信息")
@@ -79,6 +84,11 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long combopId = jsonObj.getLong("combopId");
+        Long protocolId = jsonObj.getLong("protocolId");
+        AccountProtocolVo protocolVo = resourceCenterMapper.getAccountProtocolVoByProtocolId(protocolId);
+        if (resourceCenterMapper.checkAccountProtocolIsExists(protocolVo) == 0) {
+            throw new ResourceCenterAccountProtocolNotFoundByNameException(protocolVo.getName());
+        }
         AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
         if (autoexecCombopVo == null) {
             throw new AutoexecCombopNotFoundException(combopId);
@@ -92,7 +102,7 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
         String whenToSpecify = jsonObj.getString("whenToSpecify");
         executeConfig.setWhenToSpecify(whenToSpecify);
         if (Objects.equals(whenToSpecify, CombopNodeSpecify.NOW.getValue())) {
-            executeConfig.setProtocol(jsonObj.getString("protocol"));
+            executeConfig.setProtocol(protocolVo.getName());
             String executeUser = jsonObj.getString("executeUser");
             if (StringUtils.isBlank(executeUser)) {
                 throw new AutoexecCombopExecuteUserCannotBeEmptyException();
