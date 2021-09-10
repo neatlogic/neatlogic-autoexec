@@ -86,7 +86,7 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
         Long combopId = jsonObj.getLong("combopId");
         Long protocolId = jsonObj.getLong("protocolId");
         AccountProtocolVo protocolVo = resourceCenterMapper.getAccountProtocolVoByProtocolId(protocolId);
-        if (resourceCenterMapper.checkAccountProtocolIsExists(protocolVo) == 0) {
+        if (protocolVo==null) {
             throw new ResourceCenterAccountProtocolNotFoundByNameException(protocolVo.getName());
         }
         AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
