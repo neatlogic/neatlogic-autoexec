@@ -1164,8 +1164,8 @@
         and `status` in ('pausing','aborting')
     </update>
 
-    <update id="updateAutoexecJobProcessTaskStepNoNeedMonitorStatusByAutoexecJobId" parameterType="java.lang.Long">
-        UPDATE `autoexec_job_processtask_step` SET `need_monitor_status` = 0 WHERE `autoexec_job_id` = #{value}
+    <update id="updateAutoexecJobProcessTaskStepNeedMonitorStatusByAutoexecJobId">
+        UPDATE `autoexec_job_processtask_step` SET `need_monitor_status` = #{needMonitorStatus} WHERE `autoexec_job_id` = #{autoexecJobId}
     </update>
 
     <delete id="deleteJobParamContentByHash" parameterType="java.lang.String">
