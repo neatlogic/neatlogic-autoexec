@@ -89,6 +89,7 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long operationId = jsonObj.getLong("operationId");
         String operationType = jsonObj.getString("operationType");
+        AutoexecParamVo argumentParam = null;
         if (Objects.equals(operationType, CombopOperationType.SCRIPT.getValue())) {
             AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(operationId);
             if (autoexecScriptVo == null) {
@@ -99,7 +100,10 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
                 throw new AutoexecScriptVersionHasNoActivedException(autoexecScriptVo.getName());
             }
             List<AutoexecScriptVersionParamVo> autoexecScriptVersionParamVoList = autoexecScriptMapper.getParamListByScriptId(operationId);
-            return generate(jsonObj, new AutoexecToolAndScriptVo(autoexecScriptVo), autoexecScriptVersionParamVoList);
+
+            //TODO 后续自定义工具会支持自由参数
+
+            return generate(jsonObj, new AutoexecToolAndScriptVo(autoexecScriptVo), autoexecScriptVersionParamVoList,argumentParam);
         } else {
             AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(operationId);
             if (autoexecToolVo == null) {
@@ -115,8 +119,12 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
                 if (CollectionUtils.isNotEmpty(paramArray)) {
                     autoexecParamVoList = paramArray.toJavaList(AutoexecParamVo.class);
                 }
+                JSONObject argumentJson = toolConfig.getJSONObject("argument");
+                if(MapUtils.isNotEmpty(argumentJson)){
+                    argumentParam = JSONObject.toJavaObject(argumentJson,AutoexecParamVo.class);
+                }
             }
-            return generate(jsonObj, new AutoexecToolAndScriptVo(autoexecToolVo), autoexecParamVoList);
+            return generate(jsonObj, new AutoexecToolAndScriptVo(autoexecToolVo), autoexecParamVoList,argumentParam);
         }
     }
 
@@ -131,7 +139,7 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
         };
     }
 
-    private Long generate(JSONObject jsonObj, AutoexecToolAndScriptVo autoexecToolAndScriptVo, List<? extends AutoexecParamVo> autoexecParamVoList) {
+    private Long generate(JSONObject jsonObj, AutoexecToolAndScriptVo autoexecToolAndScriptVo, List<? extends AutoexecParamVo> autoexecParamVoList,AutoexecParamVo argumentParam) {
         if (autoexecCombopMapper.checkItHasBeenGeneratedToCombopByOperationId(autoexecToolAndScriptVo.getId()) != null) {
             throw new AutoexecCombopCannotBeRepeatReleaseExcepiton(autoexecToolAndScriptVo.getName());
         }
@@ -152,6 +160,7 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
         AutoexecRiskVo riskVo = autoexecRiskMapper.getAutoexecRiskById(autoexecToolAndScriptVo.getRiskId());
         phaseOperationVo.setRiskVo(riskVo);
         AutoexecCombopPhaseOperationConfigVo operationConfigVo = new AutoexecCombopPhaseOperationConfigVo();
+        //paramMappingList
         List<ParamMappingVo> paramMappingList = new ArrayList<>();
         operationConfigVo.setParamMappingList(paramMappingList);
         List<AutoexecParamVo> inputParamList = new ArrayList<>();
@@ -174,6 +183,12 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
                 autoexecCombopParamVoList.add(new AutoexecCombopParamVo(inputParamVo));
                 paramMappingList.add(new ParamMappingVo(inputParamVo.getKey(), ParamMappingMode.RUNTIME_PARAM.getValue(), inputParamVo.getKey()));
             }
+        }
+        //argumentMappingList
+        List<ParamMappingVo> argumentMappingList = new ArrayList<>();
+        operationConfigVo.setArgumentMappingList(argumentMappingList);
+        if(argumentParam != null) {
+            argumentMappingList.add(new ParamMappingVo(argumentParam.getKey(),ParamMappingMode.CONSTANT.getValue(), argumentParam.getKey()));
         }
         phaseOperationVo.setConfig(JSONObject.toJSONString(operationConfigVo));
 

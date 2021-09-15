@@ -10,9 +10,6 @@ import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
 import codedriver.framework.autoexec.constvalue.JobStatus;
-import codedriver.framework.dto.runner.GroupNetworkVo;
-import codedriver.framework.dto.runner.RunnerGroupVo;
-import codedriver.framework.dto.runner.RunnerMapVo;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.job.*;
@@ -20,6 +17,7 @@ import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNodeNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotMatchException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
 import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
@@ -27,9 +25,15 @@ import codedriver.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import codedriver.framework.cmdb.dto.resourcecenter.ResourceVo;
 import codedriver.framework.cmdb.exception.resourcecenter.ResourceCenterResourceHasRepeatAccount;
 import codedriver.framework.dao.mapper.runner.RunnerMapper;
+import codedriver.framework.dto.runner.GroupNetworkVo;
+import codedriver.framework.dto.runner.RunnerGroupVo;
+import codedriver.framework.dto.runner.RunnerMapVo;
 import codedriver.framework.exception.core.ApiRuntimeException;
 import codedriver.framework.util.IpUtil;
-import codedriver.module.autoexec.dao.mapper.*;
+import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecToolMapper;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -258,6 +262,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             if (IpUtil.isBelongSegment(ip, networkVo.getNetworkIp(), networkVo.getMask())) {
                 RunnerGroupVo groupVo = runnerMapper.getRunnerGroupById(networkVo.getGroupId());
                 int runnerMapIndex = (int) (Math.random() * groupVo.getRunnerMapList().size());
+                if(CollectionUtils.isEmpty(groupVo.getRunnerMapList())){
+                    throw new AutoexecJobRunnerNotMatchException(ip);
+                }
                 RunnerMapVo runnerMapVo = groupVo.getRunnerMapList().get(runnerMapIndex);
                 return runnerMapVo.getRunnerMapId();
             }

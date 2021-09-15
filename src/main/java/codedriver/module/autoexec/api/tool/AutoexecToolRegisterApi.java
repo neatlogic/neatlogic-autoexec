@@ -158,49 +158,45 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                 param.put("description", value.getString("help"));
                 String type = value.getString("type");
                 Object defaultValue = value.get("defaultValue");
-                if (Objects.equals(type, "input")) {
-                    type = ParamType.TEXT.getValue();
-                } else {
-                    ParamType paramType = ParamType.getParamType(type);
-                    if (paramType != null) {
-                        type = paramType.getValue();
-                        if (paramType.getNeedDataSource()) {
-                            if (defaultValue == null) {
-                                throw new AutoexecToolParamDatasourceEmptyException(key);
-                            }
-                            JSONArray list;
-                            try {
-                                list = JSONArray.parseArray(defaultValue.toString());
-                            } catch (JSONException ex) {
-                                throw new AutoexecToolParamDatasourceFormatIllegalException(key);
-                            }
-                            JSONArray defaultValueList = new JSONArray();
-                            JSONArray dataList = new JSONArray();
-                            for (Object o : list) {
-                                JSONObject object = (JSONObject) o;
-                                if (Objects.equals(object.getString("selected"), "true")) {
-                                    defaultValueList.add(object.get("value"));
-                                    object.remove("selected");
-                                }
-                                dataList.add(object);
-                            }
-                            if (defaultValueList.size() > 0) {
-                                if (Objects.equals(paramType, ParamType.SELECT) || Objects.equals(paramType, ParamType.RADIO)) {
-                                    defaultValue = defaultValueList.get(0);
-                                } else if (Objects.equals(paramType, ParamType.MULTISELECT) || Objects.equals(paramType, ParamType.CHECKBOX)) {
-                                    defaultValue = defaultValueList;
-                                }
-                            } else {
-                                defaultValue = null;
-                            }
-                            JSONObject config = new JSONObject();
-                            config.put("dataSource", ParamDataSource.STATIC.getValue());
-                            config.put("dataList", dataList);
-                            param.put("config", config);
+                ParamType paramType = ParamType.getParamType(type);
+                if (paramType != null) {
+                    type = paramType.getValue();
+                    if (paramType.getNeedDataSource()) {
+                        if (defaultValue == null) {
+                            throw new AutoexecToolParamDatasourceEmptyException(key);
                         }
-                    } else {
-                        throw new ParamTypeNotFoundException(type);
+                        JSONArray list;
+                        try {
+                            list = JSONArray.parseArray(defaultValue.toString());
+                        } catch (JSONException ex) {
+                            throw new AutoexecToolParamDatasourceFormatIllegalException(key);
+                        }
+                        JSONArray defaultValueList = new JSONArray();
+                        JSONArray dataList = new JSONArray();
+                        for (Object o : list) {
+                            JSONObject object = (JSONObject) o;
+                            if (Objects.equals(object.getString("selected"), "true")) {
+                                defaultValueList.add(object.get("value"));
+                                object.remove("selected");
+                            }
+                            dataList.add(object);
+                        }
+                        if (defaultValueList.size() > 0) {
+                            if (Objects.equals(paramType, ParamType.SELECT) || Objects.equals(paramType, ParamType.RADIO)) {
+                                defaultValue = defaultValueList.get(0);
+                            } else if (Objects.equals(paramType, ParamType.MULTISELECT) || Objects.equals(paramType, ParamType.CHECKBOX)) {
+                                defaultValue = defaultValueList;
+                            }
+                        } else {
+                            defaultValue = null;
+                        }
+                        JSONObject config = new JSONObject();
+                        config.put("dataSource", ParamDataSource.STATIC.getValue());
+                        config.put("dataList", dataList);
+                        param.put("config", config);
                     }
+                } else {
+                    throw new ParamTypeNotFoundException(type);
                 }
                 param.put("defaultValue", defaultValue);
                 param.put("type", type);

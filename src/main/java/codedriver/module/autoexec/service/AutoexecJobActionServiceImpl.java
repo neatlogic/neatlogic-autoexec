@@ -89,10 +89,10 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
      * @return runners
      */
     private List<RunnerVo> checkRunnerHealth(AutoexecJobVo jobVo) {
-        List<RunnerVo> runnerVos = null;
-        RestVo restVo = null;
-        String result = StringUtils.EMPTY;
-        String url = StringUtils.EMPTY;
+        List<RunnerVo> runnerVos;
+        RestVo restVo;
+        String result;
+        String url;
         runnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobVo.getId(), jobVo.getPhaseIdList());
         for (RunnerVo runner : runnerVos) {
             url = runner.getUrl() + "api/rest/health/check";
@@ -317,7 +317,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                                 put("interpreter", operationVo.getParser());
                                 //put("script", operationVo.getScript());
                                 JSONObject param = operationVo.getParam();
-                                put("arg", new JSONObject());
+                                put("arg", param.getJSONObject("argument"));
                                 put("opt", new JSONObject() {{
                                     for (Object arg : param.getJSONArray("inputParamList")) {
                                         JSONObject argJson = JSONObject.parseObject(arg.toString());
