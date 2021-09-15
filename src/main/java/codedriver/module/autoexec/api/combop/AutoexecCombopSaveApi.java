@@ -125,7 +125,7 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
         } else {
             String owner = autoexecCombopVo.getOwner();
             if (owner == null) {
-                throw new ParamNotExistsException("owner（维护人）");
+                throw new ParamNotExistsException("owner");
             }
             owner = owner.substring(GroupSearch.USER.getValuePlugin().length());
             if (userMapper.checkUserIsExists(owner) == 0) {
