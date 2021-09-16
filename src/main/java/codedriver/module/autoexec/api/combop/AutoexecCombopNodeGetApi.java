@@ -54,7 +54,9 @@ public class AutoexecCombopNodeGetApi extends PrivateApiComponentBase {
     @Output({
             @Param(name = "executeUser", type = ApiParamType.STRING, desc = "执行用户"),
             @Param(name = "whenToSpecify", type = ApiParamType.ENUM, rule = "now,runtime", desc = "执行目标指定时机，现在指定/运行时再指定"),
-            @Param(name = "executeNodeConfig", type = ApiParamType.JSONOBJECT, desc = "执行目标信息")
+            @Param(name = "executeNodeConfig", type = ApiParamType.JSONOBJECT, desc = "执行目标信息"),
+            @Param(name = "protocolId", type = ApiParamType.LONG, desc = "协议id")
+
     })
     @Description(desc = "查询组合工具执行目标信息")
     @Override
