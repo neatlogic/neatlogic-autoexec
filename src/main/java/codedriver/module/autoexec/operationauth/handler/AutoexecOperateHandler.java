@@ -5,17 +5,14 @@
 
 package codedriver.module.autoexec.operationauth.handler;
 
-import codedriver.framework.autoexec.constvalue.JobStatus;
-import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.process.constvalue.ProcessTaskOperationType;
 import codedriver.framework.process.dto.ProcessTaskStepVo;
 import codedriver.framework.process.dto.ProcessTaskVo;
 import codedriver.framework.process.operationauth.core.OperationAuthHandlerBase;
 import codedriver.framework.process.operationauth.core.TernaryPredicate;
-import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
+import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
-import javax.annotation.Resource;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -23,10 +20,8 @@ import java.util.Map;
  * @author linbq
  * @since 2021/9/8 17:48
  **/
+@Component
 public class AutoexecOperateHandler extends OperationAuthHandlerBase {
-
-    @Resource
-    private AutoexecJobMapper autoexecJobMapper;
 
     private final Map<ProcessTaskOperationType, TernaryPredicate<ProcessTaskVo, ProcessTaskStepVo, String>> operationBiPredicateMap = new HashMap<>();
 
@@ -46,21 +41,6 @@ public class AutoexecOperateHandler extends OperationAuthHandlerBase {
                 (processTaskVo, processTaskStepVo, userUuid) -> false);
         operationBiPredicateMap.put(ProcessTaskOperationType.SUBTASK_CREATE,
                 (processTaskVo, processTaskStepVo, userUuid) -> false);
-        operationBiPredicateMap.put(ProcessTaskOperationType.STEP_COMPLETE,
-                (processTaskVo, processTaskStepVo, userUuid) -> {
-                    Long autoexecJobId = autoexecJobMapper.getAutoexecJobIdByProcessTaskStepId(processTaskStepVo.getId());
-                    if (autoexecJobId == null) {
-                        return true;
-                    }
-                    AutoexecJobVo autoexecJobVo = autoexecJobMapper.getJobInfo(autoexecJobId);
-                    if (autoexecJobVo == null) {
-                        return true;
-                    }
-                    if (JobStatus.PENDING.getValue().equals(autoexecJobVo.getStatus()) || JobStatus.RUNNING.getValue().equals(autoexecJobVo.getStatus())) {
-                        return false;
-                    }
-                    return true;
-                });
     }
     @Override
     public Map<ProcessTaskOperationType, TernaryPredicate<ProcessTaskVo, ProcessTaskStepVo, String>> getOperationBiPredicateMap() {
