@@ -22,6 +22,8 @@ import codedriver.module.autoexec.constvalue.FailPolicy;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import com.alibaba.fastjson.JSONObject;
 import org.quartz.JobExecutionContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -36,6 +38,7 @@ import java.util.Objects;
 @Component
 public class AutoexecJobStatusMonitorJob extends JobBase {
 
+    private static Logger logger = LoggerFactory.getLogger(AutoexecJobStatusMonitorJob.class);
     @Resource
     private AutoexecJobMapper autoexecJobMapper;
     @Resource
@@ -64,31 +67,38 @@ public class AutoexecJobStatusMonitorJob extends JobBase {
 
     @Override
     public void reloadJob(JobObject jobObject) {
+//        schedulerManager.unloadJob(jobObject);
         String tenantUuid = jobObject.getTenantUuid();
         Long autoexecJobId = (Long) jobObject.getData("autoexecJobId");
         AutoexecJobProcessTaskStepVo autoexecJobProcessTaskStepVo = autoexecJobMapper.getAutoexecJobProcessTaskStepByAutoexecJobId(autoexecJobId);
         if (autoexecJobProcessTaskStepVo != null && Objects.equals(autoexecJobProcessTaskStepVo.getNeedMonitorStatus(), 1)) {
             AutoexecJobVo autoexecJobVo = autoexecJobMapper.getJobInfo(autoexecJobId);
             if (autoexecJobVo != null) {
-                if (JobStatus.PENDING.getValue().equals(autoexecJobVo.getStatus()) || JobStatus.RUNNING.getValue().equals(autoexecJobVo.getStatus())) {
-                    JobObject.Builder newJobObjectBuilder = new JobObject.Builder(autoexecJobId.toString(), this.getGroupName(), this.getClassName(), tenantUuid)
-                            .withBeginTime(new Date())
-                            .withIntervalInSeconds(60)
-                            .addData("autoexecJobId", autoexecJobId);
-                    JobObject newJobObject = newJobObjectBuilder.build();
-                    schedulerManager.loadJob(newJobObject);
-                } else if (JobStatus.COMPLETED.getValue().equals(autoexecJobVo.getStatus())) {
-                    processTaskStepComplete(autoexecJobProcessTaskStepVo);
-                    autoexecJobMapper.updateAutoexecJobProcessTaskStepNeedMonitorStatusByAutoexecJobId(autoexecJobId, 0);
-                } else {
-                    //暂停中、已暂停、中止中、已中止、已完成、已失败都属于异常，根据失败策略处理
-                    if (FailPolicy.KEEP_ON.getValue().equals(autoexecJobProcessTaskStepVo.getFailPolicy())) {
-                        int flag = processTaskStepComplete(autoexecJobProcessTaskStepVo);
-                        if (flag == 1) {
-                            autoexecJobMapper.updateAutoexecJobProcessTaskStepNeedMonitorStatusByAutoexecJobId(autoexecJobId, 0);
-                        }
-                    }
-                }
+                JobObject.Builder newJobObjectBuilder = new JobObject.Builder(autoexecJobId.toString(), this.getGroupName(), this.getClassName(), tenantUuid)
+                        .withBeginTime(new Date())
+                        .withIntervalInSeconds(60)
+                        .addData("autoexecJobId", autoexecJobId);
+                JobObject newJobObject = newJobObjectBuilder.build();
+                schedulerManager.loadJob(newJobObject);
+//                if (JobStatus.PENDING.getValue().equals(autoexecJobVo.getStatus()) || JobStatus.RUNNING.getValue().equals(autoexecJobVo.getStatus())) {
+//                    JobObject.Builder newJobObjectBuilder = new JobObject.Builder(autoexecJobId.toString(), this.getGroupName(), this.getClassName(), tenantUuid)
+//                            .withBeginTime(new Date())
+//                            .withIntervalInSeconds(60)
+//                            .addData("autoexecJobId", autoexecJobId);
+//                    JobObject newJobObject = newJobObjectBuilder.build();
+//                    schedulerManager.loadJob(newJobObject);
+//                } else if (JobStatus.COMPLETED.getValue().equals(autoexecJobVo.getStatus())) {
+//                    processTaskStepComplete(autoexecJobProcessTaskStepVo);
+//                    autoexecJobMapper.updateAutoexecJobProcessTaskStepNeedMonitorStatusByAutoexecJobId(autoexecJobId, 0);
+//                } else {
+//                    //暂停中、已暂停、中止中、已中止、已完成、已失败都属于异常，根据失败策略处理
+//                    if (FailPolicy.KEEP_ON.getValue().equals(autoexecJobProcessTaskStepVo.getFailPolicy())) {
+//                        int flag = processTaskStepComplete(autoexecJobProcessTaskStepVo);
+//                        if (flag == 1) {
+//                            autoexecJobMapper.updateAutoexecJobProcessTaskStepNeedMonitorStatusByAutoexecJobId(autoexecJobId, 0);
+//                        }
+//                    }
+//                }
             } else {
                 autoexecJobMapper.updateAutoexecJobProcessTaskStepNeedMonitorStatusByAutoexecJobId(autoexecJobId, 0);
             }
@@ -151,6 +161,7 @@ public class AutoexecJobStatusMonitorJob extends JobBase {
                     handler.complete(processTaskStepVo);
                     return 1;
                 } catch (ProcessTaskNoPermissionException e) {
+                    logger.error(e.getMessage(true), e);
 //                throw new PermissionDeniedException();
                 }
             }

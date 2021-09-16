@@ -294,7 +294,11 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     @Override
     protected int myComplete(ProcessTaskStepVo currentProcessTaskStepVo) throws ProcessTaskException {
-        return 0;
+        AutoexecJobProcessTaskStepVo autoexecJobProcessTaskStepVo = autoexecJobMapper.getAutoexecJobProcessTaskStepByAutoexecJobId(currentProcessTaskStepVo.getId());
+        if (autoexecJobProcessTaskStepVo != null && Objects.equals(autoexecJobProcessTaskStepVo.getNeedMonitorStatus(), 1)) {
+            autoexecJobMapper.updateAutoexecJobProcessTaskStepNeedMonitorStatusByAutoexecJobId(autoexecJobProcessTaskStepVo.getAutoexecJobId(), 0);
+        }
+        return 1;
     }
 
     @Override
