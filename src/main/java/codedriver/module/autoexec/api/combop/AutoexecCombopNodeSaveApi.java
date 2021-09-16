@@ -98,7 +98,7 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
             throw new PermissionDeniedException();
         }
         AutoexecCombopExecuteConfigVo executeConfig = new AutoexecCombopExecuteConfigVo();
-
+        executeConfig.setProtocolId(protocolId);
         String whenToSpecify = jsonObj.getString("whenToSpecify");
         executeConfig.setWhenToSpecify(whenToSpecify);
         if (Objects.equals(whenToSpecify, CombopNodeSpecify.NOW.getValue())) {
