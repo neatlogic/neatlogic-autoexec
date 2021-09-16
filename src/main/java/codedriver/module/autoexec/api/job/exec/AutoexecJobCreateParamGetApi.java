@@ -16,7 +16,6 @@ import codedriver.module.autoexec.service.AutoexecJobActionService;
 import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 
@@ -25,7 +24,6 @@ import javax.annotation.Resource;
  * @since 2021/5/19 14:15
  **/
 @Service
-@Transactional
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecJobCreateParamGetApi extends PublicApiComponentBase {
     @Resource

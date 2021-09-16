@@ -176,6 +176,8 @@ public interface AutoexecJobMapper {
 
     Integer updateAutoexecJobProcessTaskStepNeedMonitorStatusByAutoexecJobId(@Param("autoexecJobId") Long jobId, @Param("needMonitorStatus") int needMonitorStatus);
 
+    int replaceIntoJobEnv(AutoexecJobEnvVo jobEnvVo);
+
     void deleteJobParamContentByHash(String paramHash);
 
     void deleteJobPhaseOperationByJobId(Long jobId);
@@ -191,4 +193,5 @@ public interface AutoexecJobMapper {
     void deleteJobPhaseRunnerByJobId(Long jobId);
 
     void deleteJobPhaseNodeRunnerByJobId(Long jobId);
+
 }

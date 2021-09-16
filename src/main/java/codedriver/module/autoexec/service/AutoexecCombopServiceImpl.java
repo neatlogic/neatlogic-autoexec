@@ -168,8 +168,11 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                         if (CollectionUtils.isNotEmpty(paramArray)) {
                             autoexecParamVoList = paramArray.toJavaList(AutoexecParamVo.class);
                         }
+                        JSONObject argumentJson = toolConfig.getJSONObject("argument");
+                        if(MapUtils.isNotEmpty(argumentJson)) {
+                            argumentParam = new AutoexecParamVo(argumentJson);
+                        }
                     }
-                    argumentParam = new AutoexecParamVo(toolConfig.getJSONObject("argument"));
                 }
                 if (CollectionUtils.isNotEmpty(autoexecParamVoList)) {
                     for (AutoexecParamVo paramVo : autoexecParamVoList) {
