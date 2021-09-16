@@ -94,7 +94,7 @@ public class AutoexecJobPhaseNodeSearchApi extends PrivateApiComponentBase {
             List<AccountVo> accountVoTmpList = accountVoList.stream().filter(a-> Objects.equals(a.getResourceId(),o.getResourceId())).collect(Collectors.toList());
             if(CollectionUtils.isNotEmpty(accountVoTmpList)) {
                 o.setUserName(accountVoTmpList.get(0).getAccount());
-                o.setPassword(accountVoTmpList.get(0).getPassword());
+                o.setPassword(accountVoTmpList.get(0).getPasswordPlain());
             }
         });
         result.put("tbodyList", jobPhaseNodeVoList);

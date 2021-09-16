@@ -288,7 +288,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                         AccountVo accountVo = resourceAccountMap.get(nodeVo.getResourceId());
                         put("protocol", accountVo.getProtocol());
                         put("username", accountVo.getAccount());
-                        put("password", RC4Util.decrypt(accountVo.getPassword()));
+                        put("password", accountVo.getPasswordPlain());
                         put("protocolPort", accountVo.getPort());
                         put("nodeId", nodeVo.getId());
                         put("nodeName", nodeVo.getNodeName());
