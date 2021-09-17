@@ -8,7 +8,6 @@ package codedriver.module.autoexec.service;
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.*;
-import codedriver.framework.dto.runner.RunnerVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.exception.AutoexecCombopCannotExecuteException;
@@ -17,9 +16,9 @@ import codedriver.framework.autoexec.exception.AutoexecJobRunnerConnectAuthExcep
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerConnectRefusedException;
 import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
-import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.dao.mapper.UserMapper;
 import codedriver.framework.dto.RestVo;
+import codedriver.framework.dto.runner.RunnerVo;
 import codedriver.framework.exception.type.ParamIrregularException;
 import codedriver.framework.integration.authentication.costvalue.AuthenticateType;
 import codedriver.framework.util.RestUtil;
@@ -28,6 +27,7 @@ import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.JSONValidator;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -98,9 +98,13 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             url = runner.getUrl() + "api/rest/health/check";
             restVo = new RestVo(url, AuthenticateType.BUILDIN.getValue(), new JSONObject());
             result = RestUtil.sendRequest(restVo);
-            JSONObject resultJson = JSONObject.parseObject(result);
-            if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                throw new AutoexecJobRunnerConnectAuthException(restVo.getUrl() + ":" + resultJson.getString("Message"));
+            if(JSONValidator.from(result).validate()) {
+                JSONObject resultJson = JSONObject.parseObject(result);
+                if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
+                    throw new AutoexecJobRunnerConnectAuthException(restVo.getUrl() + ":" + resultJson.getString("Message"));
+                }
+            }else{
+                throw new AutoexecJobRunnerConnectAuthException(restVo.getUrl() + ":" + result);
             }
         }
         return runnerVos;
@@ -163,6 +167,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         jobVo.setAction(type);
         if (Objects.equals(type, JobAction.RESET_REFIRE.getValue())) {
             resetAll(jobVo);
+            autoexecJobService.refreshJobPhaseNodeList(jobVo.getId(), jobVo.getCurrentPhaseSort(),null);
             autoexecJobMapper.updateJobPhaseStatusByJobId(jobVo.getId(), JobPhaseStatus.PENDING.getValue());//重置phase状态为pending
             autoexecJobMapper.updateJobPhaseFailedNodeStatusByJobId(jobVo.getId(), JobNodeStatus.PENDING.getValue());
             autoexecJobService.getAutoexecJobDetail(jobVo, 0);
@@ -210,11 +215,6 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         }
 
         if (CollectionUtils.isNotEmpty(jobVo.getPhaseList())) {
-            //判断是否需要重刷phaseNode (如果存在已经跑过的phase，则该sort的phase都不会刷新)
-            if (jobVo.getPhaseList().stream().allMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.PENDING.getValue()))) {
-                autoexecJobService.refreshJobPhaseNodeList(jobVo.getId(), jobVo.getCurrentPhaseSort());
-            }
-            ;
             execute(jobVo);
         }
 

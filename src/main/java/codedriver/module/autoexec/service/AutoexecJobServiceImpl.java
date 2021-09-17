@@ -17,18 +17,18 @@ import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNodeNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecJobRunnerGroupRunnerNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotMatchException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
 import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
 import codedriver.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import codedriver.framework.cmdb.dto.resourcecenter.ResourceVo;
-import codedriver.framework.cmdb.exception.resourcecenter.ResourceCenterResourceHasRepeatAccount;
+import codedriver.framework.cmdb.exception.resourcecenter.ResourceCenterResourceHasRepeatAccountException;
 import codedriver.framework.dao.mapper.runner.RunnerMapper;
 import codedriver.framework.dto.runner.GroupNetworkVo;
 import codedriver.framework.dto.runner.RunnerGroupVo;
 import codedriver.framework.dto.runner.RunnerMapVo;
-import codedriver.framework.exception.core.ApiRuntimeException;
 import codedriver.framework.util.IpUtil;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
@@ -91,8 +91,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         List<AutoexecJobPhaseVo> jobPhaseVoList = new ArrayList<>();
         jobVo.setPhaseList(jobPhaseVoList);
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
-        for (int i = 0; i < combopPhaseList.size(); i++) {
-            AutoexecCombopPhaseVo autoexecCombopPhaseVo = combopPhaseList.get(i);
+        for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
             AutoexecJobPhaseVo jobPhaseVo = new AutoexecJobPhaseVo(autoexecCombopPhaseVo, jobVo.getId());
             autoexecJobMapper.insertJobPhase(jobPhaseVo);
             if (jobPhaseVo.getSort() == 0) {//只需要第一个剧本，供后续激活执行
@@ -102,7 +101,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             AutoexecCombopPhaseConfigVo phaseConfigVo = autoexecCombopPhaseVo.getConfig();
             //jobPhaseNode
             //如果是target 则获取执行目标，否则随机分配runner
-            if (Arrays.asList(ExecMode.TARGET.getValue(),ExecMode.RUNNER_TARGET.getValue(), ExecMode.SQL.getValue()).contains(autoexecCombopPhaseVo.getExecMode())) {
+            if (Arrays.asList(ExecMode.TARGET.getValue(), ExecMode.RUNNER_TARGET.getValue(), ExecMode.SQL.getValue()).contains(autoexecCombopPhaseVo.getExecMode())) {
                 AutoexecCombopExecuteConfigVo executeConfigVo = phaseConfigVo.getExecuteConfig();
                 boolean isPhaseSetNode = false;
                 if (executeConfigVo != null) {
@@ -174,7 +173,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     }
 
     @Override
-    public void refreshJobPhaseNodeList(Long jobId, int sort) {
+    public void refreshJobPhaseNodeList(Long jobId, int sort,AutoexecCombopExecuteConfigVo executeConfigVo) {
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
         AutoexecCombopConfigVo configVo = JSON.toJavaObject(jobVo.getConfig(), AutoexecCombopConfigVo.class);
         //获取当前所有target阶段
@@ -182,12 +181,15 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         List<AutoexecJobPhaseVo> targetPhaseList = jobPhaseVoList.stream().filter(o -> Arrays.asList(ExecMode.TARGET.getValue(), ExecMode.SQL.getValue()).contains(o.getExecMode())).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(targetPhaseList)) {
             //获取组合工具执行目标 执行用户和协议
-            AutoexecCombopExecuteConfigVo nodeConfigVo = configVo.getExecuteConfig();
+            //非空场景，用于重跑替换执行配置（执行目标，用户，协议）
+            if(executeConfigVo == null) {
+                executeConfigVo = configVo.getExecuteConfig();
+            }
             String userName = StringUtils.EMPTY;
             String protocol = StringUtils.EMPTY;
-            if (nodeConfigVo != null) {
-                userName = nodeConfigVo.getExecuteUser();
-                protocol = nodeConfigVo.getProtocol();
+            if (executeConfigVo != null) {
+                userName = executeConfigVo.getExecuteUser();
+                protocol = executeConfigVo.getProtocol();
             }
             //删除所有target阶段的节点
             autoexecJobMapper.deleteJobPhaseNodeByJobPhaseIdList(targetPhaseList.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()));
@@ -202,22 +204,22 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 if (CollectionUtils.isNotEmpty(jobPhaseVos)) {
                     AutoexecJobPhaseVo jobPhaseVo = jobPhaseVos.get(0);
                     jobPhaseVo.setCombopId(jobVo.getOperationId());
-                    AutoexecCombopExecuteConfigVo executeConfigVo = phaseConfigVo.getExecuteConfig();
+                    AutoexecCombopExecuteConfigVo phaseExecuteConfigVo = phaseConfigVo.getExecuteConfig();
                     boolean isPhaseSetNode = false;
-                    if (executeConfigVo != null) {
-                        if (StringUtils.isNotBlank(executeConfigVo.getExecuteUser())) {
-                            userName = executeConfigVo.getExecuteUser();
+                    if (phaseExecuteConfigVo != null) {
+                        if (StringUtils.isNotBlank(phaseExecuteConfigVo.getExecuteUser())) {
+                            userName = phaseExecuteConfigVo.getExecuteUser();
                         }
-                        if (StringUtils.isNotBlank(executeConfigVo.getProtocol())) {
-                            protocol = executeConfigVo.getProtocol();
+                        if (StringUtils.isNotBlank(phaseExecuteConfigVo.getProtocol())) {
+                            protocol = phaseExecuteConfigVo.getProtocol();
                         }
-                        if (executeConfigVo.getExecuteNodeConfig() != null) {
-                            isPhaseSetNode = getJobNodeList(executeConfigVo, jobVo.getId(), jobPhaseVo.getId(), jobVo.getOperationId(), userName, protocol).get();
+                        if (phaseExecuteConfigVo.getExecuteNodeConfig() != null) {
+                            isPhaseSetNode = getJobNodeList(phaseExecuteConfigVo, jobVo.getId(), jobPhaseVo.getId(), jobVo.getOperationId(), userName, protocol).get();
                         }
                     }
 
-                    if (nodeConfigVo != null && (executeConfigVo == null || executeConfigVo.getExecuteNodeConfig() == null || (CollectionUtils.isEmpty(executeConfigVo.getExecuteNodeConfig().getInputNodeList()) && CollectionUtils.isEmpty(executeConfigVo.getExecuteNodeConfig().getSelectNodeList())))) {
-                        isPhaseSetNode = getJobNodeList(nodeConfigVo, jobVo.getId(), jobPhaseVo.getId(), jobVo.getOperationId(), userName, protocol).get();
+                    if (executeConfigVo != null && (phaseExecuteConfigVo == null || phaseExecuteConfigVo.getExecuteNodeConfig() == null || (CollectionUtils.isEmpty(phaseExecuteConfigVo.getExecuteNodeConfig().getInputNodeList()) && CollectionUtils.isEmpty(phaseExecuteConfigVo.getExecuteNodeConfig().getSelectNodeList())))) {
+                        isPhaseSetNode = getJobNodeList(executeConfigVo, jobVo.getId(), jobPhaseVo.getId(), jobVo.getOperationId(), userName, protocol).get();
                     }
                     //如果该阶段没有可以执行的node
                     if (!isPhaseSetNode) {
@@ -263,7 +265,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 RunnerGroupVo groupVo = runnerMapper.getRunnerGroupById(networkVo.getGroupId());
                 int runnerMapIndex = (int) (Math.random() * groupVo.getRunnerMapList().size());
                 if(CollectionUtils.isEmpty(groupVo.getRunnerMapList())){
-                    throw new AutoexecJobRunnerNotMatchException(ip);
+                    throw new AutoexecJobRunnerGroupRunnerNotFoundException(networkVo.getGroupId().toString());
                 }
                 RunnerMapVo runnerMapVo = groupVo.getRunnerMapList().get(runnerMapIndex);
                 return runnerMapVo.getRunnerMapId();
@@ -344,7 +346,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 if (resourceMap.containsKey(o.getResourceId())) {
                     String key = o.getResourceId().toString() + o.getProtocol() + o.getAccount();
                     if (checkRepeatList.contains(key)) {
-                        throw new ResourceCenterResourceHasRepeatAccount(o.getResourceId().toString(), o.getProtocol(), o.getAccount());
+                        throw new ResourceCenterResourceHasRepeatAccountException(o.getResourceId().toString(), o.getProtocol(), o.getAccount());
                     }
                     isHasNode.set(true);
                     ResourceVo resourceVo = resourceMap.get(o.getResourceId());
@@ -352,7 +354,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                     jobPhaseNodeVo.setPort(resourceVo.getPort());
                     jobPhaseNodeVo.setRunnerMapId(getRunnerByIp(jobPhaseNodeVo.getHost()));
                     if(jobPhaseNodeVo.getRunnerMapId() == null){
-                        throw  new ApiRuntimeException("请配置runner网端映射");
+                        throw new AutoexecJobRunnerNotMatchException(jobPhaseNodeVo.getHost());
                     }
                     autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
                     autoexecJobMapper.insertJobPhaseNodeRunner(jobPhaseNodeVo.getId(), jobPhaseNodeVo.getRunnerMapId());
