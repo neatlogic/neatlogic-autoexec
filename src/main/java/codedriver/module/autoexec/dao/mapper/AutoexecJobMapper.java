@@ -5,9 +5,10 @@
 
 package codedriver.module.autoexec.dao.mapper;
 
-import codedriver.framework.dto.runner.RunnerVo;
+import codedriver.framework.autoexec.annotation.AutoexecJobCallbackParam;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.*;
+import codedriver.framework.dto.runner.RunnerVo;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
@@ -35,8 +36,6 @@ public interface AutoexecJobMapper {
     AutoexecJobParamContentVo getJobParamContent(String hash);
 
     int checkIsJobParamReference(@Param("jobId") Long jobId, @Param("hash") String hash);
-
-    void updateJobStatus(AutoexecJobVo jobVo);
 
     AutoexecJobVo getJobLockByOperationId(Long operationId);
 
@@ -86,6 +85,9 @@ public interface AutoexecJobMapper {
     List<AutoexecJobPhaseNodeStatusCountVo> getJobPhaseNodeStatusCount(Long jobId);
 
     int checkIsJobPhaseNodeExist(AutoexecJobPhaseNodeVo nodeVo);
+
+    //@AutoexecJobCallback
+    int updateJobStatus(@AutoexecJobCallbackParam() AutoexecJobVo jobVo);
 
     int updateJobPhaseNodeStatus(AutoexecJobPhaseNodeVo nodeVo);
 
