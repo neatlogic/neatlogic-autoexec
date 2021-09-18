@@ -124,7 +124,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             }
             String config = selectContentByHashMapper.getProcessTaskStepConfigByHash(configHash);
             if (StringUtils.isNotBlank(config)) {
-                JSONObject autoexecConfig = (JSONObject)JSONPath.read(config, "autoexecConfig");
+                JSONObject autoexecConfig = (JSONObject) JSONPath.read(config, "autoexecConfig");
                 if (MapUtils.isNotEmpty(autoexecConfig)) {
                     JSONObject paramObj = new JSONObject();
                     Long combopId = autoexecConfig.getLong("autoexecCombopId");
@@ -132,7 +132,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     JSONArray runtimeParamList = autoexecConfig.getJSONArray("runtimeParamList");
                     if (CollectionUtils.isNotEmpty(runtimeParamList)) {
                         JSONObject param = new JSONObject();
-                        for (int i =0; i < runtimeParamList.size(); i++) {
+                        for (int i = 0; i < runtimeParamList.size(); i++) {
                             JSONObject runtimeParamObj = runtimeParamList.getJSONObject(i);
                             if (MapUtils.isNotEmpty(runtimeParamObj)) {
                                 String key = runtimeParamObj.getString("key");
@@ -183,6 +183,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     }
                     paramObj.put("source", "itsm");
                     paramObj.put("threadCount", 1);
+                    paramObj.put("invokeId", currentProcessTaskStepVo.getId());
                     autoexecJobId = createJob(paramObj);
                     String failPolicy = autoexecConfig.getString("failPolicy");
                     AutoexecJobProcessTaskStepVo autoexecJobProcessTaskStepVo = new AutoexecJobProcessTaskStepVo();
@@ -201,7 +202,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         try {
             if (autoexecJobId != null) {
                 IJob jobHandler = SchedulerManager.getHandler(AutoexecJobStatusMonitorJob.class.getName());
-                if(jobHandler == null) {
+                if (jobHandler == null) {
                     throw new ScheduleHandlerNotFoundException(AutoexecJobStatusMonitorJob.class.getName());
                 }
 
@@ -224,7 +225,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         if ("form".equals(mappingMode)) {
             List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataVoList = processTaskMapper.getProcessTaskStepFormAttributeDataByProcessTaskId(currentProcessTaskStepVo.getProcessTaskId());
             for (ProcessTaskFormAttributeDataVo attributeDataVo : processTaskFormAttributeDataVoList) {
-                if(Objects.equals(value, attributeDataVo.getAttributeUuid())) {
+                if (Objects.equals(value, attributeDataVo.getAttributeUuid())) {
                     return attributeDataVo.getDataObj();
                 }
             }
@@ -236,7 +237,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
     }
 
     private Long createJob(JSONObject jsonObj) {
-        AutoexecJobVo jobVo = autoexecJobActionService.validateCreateJobFromCombop(jsonObj,false);
+        AutoexecJobVo jobVo = autoexecJobActionService.validateCreateJobFromCombop(jsonObj, false);
         autoexecJobActionService.fire(jobVo);
         return jobVo.getId();
     }
@@ -272,7 +273,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     @Override
     protected int myCompleteAudit(ProcessTaskStepVo currentProcessTaskStepVo) {
-        if(StringUtils.isNotBlank(currentProcessTaskStepVo.getError())) {
+        if (StringUtils.isNotBlank(currentProcessTaskStepVo.getError())) {
             currentProcessTaskStepVo.getParamObj().put(ProcessTaskAuditDetailType.CAUSE.getParamName(), currentProcessTaskStepVo.getError());
         }
         /** 处理历史记录 **/
@@ -327,7 +328,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         if (nextStepList.size() == 1) {
             nextStepSet.add(nextStepList.get(0));
         } else if (nextStepList.size() > 1) {
-            if(nextStepId == null) {
+            if (nextStepId == null) {
                 throw new ProcessTaskException("找到多个后续节点");
             }
             for (ProcessTaskStepVo processTaskStepVo : nextStepList) {
