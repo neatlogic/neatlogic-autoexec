@@ -30,10 +30,10 @@ import codedriver.framework.dto.runner.GroupNetworkVo;
 import codedriver.framework.dto.runner.RunnerGroupVo;
 import codedriver.framework.dto.runner.RunnerMapVo;
 import codedriver.framework.util.IpUtil;
-import codedriver.module.autoexec.dao.mapper.AutoexecCombopMapper;
-import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
-import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
-import codedriver.module.autoexec.dao.mapper.AutoexecToolMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -67,13 +67,15 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     ResourceCenterMapper resourceCenterMapper;
 
     @Override
-    public AutoexecJobVo saveAutoexecCombopJob(AutoexecCombopVo combopVo, String source, Integer threadCount, JSONObject paramJson) {
+    public AutoexecJobVo saveAutoexecCombopJob(AutoexecCombopVo combopVo, AutoexecJobInvokeVo invokeVo, Integer threadCount, JSONObject paramJson) {
         AutoexecCombopConfigVo config = combopVo.getConfig();
         if (combopVo.getIsTest() == null || !combopVo.getIsTest()) {
             combopVo.setOperationType(CombopOperationType.COMBOP.getValue());
             combopVo.setRuntimeParamList(autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopVo.getId()));
         }
-        AutoexecJobVo jobVo = new AutoexecJobVo(combopVo, source, threadCount, paramJson);
+        AutoexecJobVo jobVo = new AutoexecJobVo(combopVo, invokeVo.getSource(), threadCount, paramJson);
+        invokeVo.setJobId(jobVo.getId());
+        autoexecJobMapper.insertIgnoreIntoJobInvoke(invokeVo);
         //保存作业基本信息
         autoexecJobMapper.insertJob(jobVo);
         autoexecJobMapper.insertJobParamContent(new AutoexecJobParamContentVo(jobVo.getParamHash(), jobVo.getParamStr()));

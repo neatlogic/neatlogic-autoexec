@@ -21,9 +21,9 @@ import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundExce
 import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
 import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.dto.OperateVo;
-import codedriver.module.autoexec.dao.mapper.AutoexecRiskMapper;
-import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
-import codedriver.module.autoexec.dao.mapper.AutoexecTypeMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;

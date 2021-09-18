@@ -11,7 +11,7 @@ import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptValidateVo;
 import codedriver.framework.autoexec.scriptcheck.ScriptCheckHandlerBase;
 import codedriver.framework.autoexec.util.ArgumentTokenizer;
-import codedriver.module.autoexec.dao.mapper.AutoexecScriptValidateMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecScriptValidateMapper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;

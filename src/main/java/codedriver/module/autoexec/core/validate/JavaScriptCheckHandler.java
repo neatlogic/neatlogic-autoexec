@@ -8,7 +8,7 @@ package codedriver.module.autoexec.core.validate;
 import codedriver.framework.autoexec.constvalue.ScriptParser;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import codedriver.framework.autoexec.scriptcheck.ScriptCheckHandlerBase;
-import codedriver.module.autoexec.dao.mapper.AutoexecScriptValidateMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecScriptValidateMapper;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;

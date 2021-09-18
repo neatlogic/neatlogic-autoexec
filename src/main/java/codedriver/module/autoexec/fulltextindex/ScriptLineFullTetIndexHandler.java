@@ -8,7 +8,7 @@ import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import codedriver.framework.fulltextindex.core.FullTextIndexHandlerBase;
 import codedriver.framework.fulltextindex.core.IFullTextIndexType;
 import codedriver.framework.fulltextindex.dto.FullTextIndexVo;
-import codedriver.module.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 

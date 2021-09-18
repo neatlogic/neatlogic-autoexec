@@ -19,7 +19,7 @@ import codedriver.framework.scheduler.core.JobBase;
 import codedriver.framework.scheduler.dto.JobObject;
 import codedriver.module.autoexec.constvalue.AutoexecProcessStepHandlerType;
 import codedriver.module.autoexec.constvalue.FailPolicy;
-import codedriver.module.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import com.alibaba.fastjson.JSONObject;
 import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;

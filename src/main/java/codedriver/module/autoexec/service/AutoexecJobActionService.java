@@ -163,4 +163,10 @@ public interface AutoexecJobActionService {
      * @param paramObj 参数
      */
     void submitWaitInput(JSONObject paramObj);
+
+    /**
+     * 校验根据组合工具创建的作业
+     * @param isNeedAuth 是否需要鉴权
+     */
+    AutoexecJobVo validateCreateJobFromCombop(JSONObject param,boolean isNeedAuth);
 }
