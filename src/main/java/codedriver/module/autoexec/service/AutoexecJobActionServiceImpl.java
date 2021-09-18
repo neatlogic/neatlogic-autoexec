@@ -395,7 +395,10 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         String execMode = paramJson.getString("execMode");
         String url = String.format("%s/api/binary/job/phase/node/log/download?jobId=%s&phase=%s&ip=%s&port=%s&execMode=%s", runnerUrl, jobId, phase, ip, port, execMode);
         RestVo restVo = new RestVo(url, AuthenticateType.BUILDIN.getValue(), paramJson);
-        RestUtil.sendGetRequestForStream(restVo, response);
+        String result = RestUtil.sendGetRequestForStream(restVo, response);
+        if(StringUtils.isNotBlank(result)) {
+            throw new AutoexecJobRunnerConnectAuthException(restVo.getUrl() + ":" + result);
+        }
     }
 
     @Override
