@@ -283,6 +283,16 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
     }
 
     @Override
+    protected int myReapproval(ProcessTaskStepVo currentProcessTaskStepVo) throws ProcessTaskException {
+        return 0;
+    }
+
+    @Override
+    protected int myReapprovalAudit(ProcessTaskStepVo currentProcessTaskStepVo) {
+        return 0;
+    }
+
+    @Override
     protected int myRetreat(ProcessTaskStepVo currentProcessTaskStepVo) throws ProcessTaskException {
         return 0;
     }
