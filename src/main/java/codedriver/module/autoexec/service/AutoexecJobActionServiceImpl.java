@@ -30,6 +30,7 @@ import com.alibaba.fastjson.JSONValidator;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.cxf.jaxrs.utils.HttpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -391,9 +392,13 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         Long jobId = paramJson.getLong("jobId");
         String phase = paramJson.getString("phase");
         String ip = paramJson.getString("ip");
-        Integer port = paramJson.getInteger("port");
+        String port = StringUtils.EMPTY;
         String execMode = paramJson.getString("execMode");
-        String url = String.format("%s/api/binary/job/phase/node/log/download?jobId=%s&phase=%s&ip=%s&port=%s&execMode=%s", runnerUrl, jobId, phase, ip, port, execMode);
+        String resourceId = paramJson.getString("resourceId");
+        if(paramJson.getInteger("port") != null){
+            port = "port="+paramJson.getInteger("port");
+        }
+        String url = String.format("%s/api/binary/job/phase/node/log/download?jobId=%s&phase=%s&ip=%s&%s&execMode=%s&resourceId=%s", runnerUrl, jobId, HttpUtils.urlEncode(phase), ip, port, execMode,resourceId);
         RestVo restVo = new RestVo(url, AuthenticateType.BUILDIN.getValue(), paramJson);
         String result = RestUtil.sendGetRequestForStream(restVo, response);
         if(StringUtils.isNotBlank(result)) {
