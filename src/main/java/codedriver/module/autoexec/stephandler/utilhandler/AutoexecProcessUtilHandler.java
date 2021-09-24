@@ -292,6 +292,20 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
             }
             autoexecObj.put("executeParamList", executeParamArray);
         }
+        JSONArray exportParamList = autoexecConfig.getJSONArray("exportParamList");
+        if (exportParamList != null) {
+            JSONArray exportParamArray = new JSONArray();
+            for (int i = 0; i < exportParamList.size(); i++) {
+                JSONObject exportParamObj = exportParamList.getJSONObject(i);
+                if (MapUtils.isNotEmpty(exportParamObj)) {
+                    JSONObject exportParam = new JSONObject();
+                    exportParam.put("value", exportParamObj.getString("value"));
+                    exportParam.put("text", exportParamObj.getString("text"));
+                    exportParamArray.add(exportParam);
+                }
+            }
+            autoexecObj.put("exportParamList", exportParamArray);
+        }
         JSONArray formAttributeList = autoexecConfig.getJSONArray("formAttributeList");
         if (formAttributeList != null) {
             JSONArray formAttributeArray = new JSONArray();
