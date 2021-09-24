@@ -83,12 +83,17 @@ public class ProcessTaskCallbackHandler extends AutoexecJobCallbackBase {
             if (StringUtils.isNotBlank(config)) {
                 JSONArray formAttributeList = (JSONArray) JSONPath.read(config, "autoexecConfig.formAttributeList");
                 if (CollectionUtils.isNotEmpty(formAttributeList)) {
+                    Map<String, String> autoexecJobEnvMap = new HashMap<>();
+                    List<AutoexecJobEnvVo> autoexecJobEnvList = autoexecJobMapper.getAutoexecJobEnvListByJobId(autoexecJobVo.getId());
+                    for (AutoexecJobEnvVo autoexecJobEnvVo : autoexecJobEnvList) {
+                        autoexecJobEnvMap.put(autoexecJobEnvVo.getName(), autoexecJobEnvVo.getValue());
+                    }
                     Map<String, Object> formAttributeNewDataMap = new HashMap<>();
                     for (int i = 0; i < formAttributeList.size(); i++) {
                         JSONObject formAttributeObj = formAttributeList.getJSONObject(i);
                         String key = formAttributeObj.getString("key");
                         String value = formAttributeObj.getString("value");
-                        formAttributeNewDataMap.put(key, getPreStepExportParamValue(processTaskStepVo.getProcessTaskId(), value));
+                        formAttributeNewDataMap.put(key, autoexecJobEnvMap.get(value));
                     }
                     List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskMapper.getProcessTaskStepFormAttributeDataByProcessTaskId(processTaskStepVo.getProcessTaskId());
                     for (ProcessTaskFormAttributeDataVo processTaskFormAttributeDataVo : processTaskFormAttributeDataList) {
@@ -146,22 +151,5 @@ public class ProcessTaskCallbackHandler extends AutoexecJobCallbackBase {
                 }
             }
         }
-    }
-
-    private String getPreStepExportParamValue(Long processTaskId, String paramKey) {
-        String split[] = paramKey.split("&&", 2);
-        String processStepUuid = split[0];
-        ProcessTaskStepVo processTaskStepVo = processTaskMapper.getProcessTaskStepBaseInfoByProcessTaskIdAndProcessStepUuid(processTaskId, processStepUuid);
-        if (processTaskStepVo != null) {
-            Long autoexecJobId = autoexecJobMapper.getJobIdByInvokeId(processTaskStepVo.getId());
-            if (autoexecJobId != null) {
-                String paramName = split[1];
-                AutoexecJobEnvVo autoexecJobEnvVo = new AutoexecJobEnvVo();
-                autoexecJobEnvVo.setJobId(autoexecJobId);
-                autoexecJobEnvVo.setName(paramName);
-                return autoexecJobMapper.getAutoexecJobEnvValueByJobIdAndName(autoexecJobEnvVo);
-            }
-        }
-        return null;
     }
 }
