@@ -5,10 +5,8 @@
 
 package codedriver.module.autoexec.stephandler.component;
 
-import codedriver.framework.asynchronization.threadlocal.TenantContext;
-import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
-import codedriver.framework.autoexec.dto.job.AutoexecJobProcessTaskStepVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobEnvVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.process.constvalue.ProcessStepMode;
 import codedriver.framework.process.constvalue.ProcessTaskAuditDetailType;
@@ -19,15 +17,8 @@ import codedriver.framework.process.dto.ProcessTaskStepVo;
 import codedriver.framework.process.dto.ProcessTaskStepWorkerVo;
 import codedriver.framework.process.exception.core.ProcessTaskException;
 import codedriver.framework.process.stephandler.core.ProcessStepHandlerBase;
-import codedriver.framework.scheduler.core.IJob;
-import codedriver.framework.scheduler.core.SchedulerManager;
-import codedriver.framework.scheduler.dto.JobObject;
-import codedriver.framework.scheduler.exception.ScheduleHandlerNotFoundException;
 import codedriver.module.autoexec.constvalue.AutoexecProcessStepHandlerType;
-import codedriver.module.autoexec.schedule.plugin.AutoexecJobStatusMonitorJob;
-import codedriver.module.autoexec.service.AutoexecCombopService;
 import codedriver.module.autoexec.service.AutoexecJobActionService;
-import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
@@ -54,14 +45,6 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
     private final static Logger logger = LoggerFactory.getLogger(AutoexecProcessComponent.class);
     @Resource
     private AutoexecJobMapper autoexecJobMapper;
-    @Resource
-    private AutoexecJobService autoexecJobService;
-
-    @Resource
-    private AutoexecCombopMapper autoexecCombopMapper;
-
-    @Resource
-    private AutoexecCombopService autoexecCombopService;
 
     @Resource
     private AutoexecJobActionService autoexecJobActionService;
@@ -115,7 +98,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     @Override
     protected int myActive(ProcessTaskStepVo currentProcessTaskStepVo) throws ProcessTaskException {
-        Long autoexecJobId = autoexecJobMapper.getAutoexecJobIdByProcessTaskStepId(currentProcessTaskStepVo.getId());
+        Long autoexecJobId = autoexecJobMapper.getJobIdByInvokeId(currentProcessTaskStepVo.getId());
         if (autoexecJobId == null) {
             String configHash = currentProcessTaskStepVo.getConfigHash();
             if (StringUtils.isBlank(configHash)) {
@@ -184,41 +167,19 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     paramObj.put("source", "itsm");
                     paramObj.put("threadCount", 1);
                     paramObj.put("invokeId", currentProcessTaskStepVo.getId());
-                    autoexecJobId = createJob(paramObj);
-                    String failPolicy = autoexecConfig.getString("failPolicy");
-                    AutoexecJobProcessTaskStepVo autoexecJobProcessTaskStepVo = new AutoexecJobProcessTaskStepVo();
-                    autoexecJobProcessTaskStepVo.setProcessTaskId(currentProcessTaskStepVo.getProcessTaskId());
-                    autoexecJobProcessTaskStepVo.setProcessTaskStepId(currentProcessTaskStepVo.getId());
-                    autoexecJobProcessTaskStepVo.setAutoexecJobId(autoexecJobId);
-                    autoexecJobProcessTaskStepVo.setNeedMonitorStatus(1);
-                    autoexecJobProcessTaskStepVo.setFailPolicy(failPolicy);
-                    autoexecJobMapper.insertAutoexecJobProcessTaskStep(autoexecJobProcessTaskStepVo);
-                }
-            }
-        } else {
-            //TODO linbq如果作业已存在，需要调用接口重新执行作业
-            autoexecJobMapper.updateAutoexecJobProcessTaskStepNeedMonitorStatusByAutoexecJobId(autoexecJobId, 1);
-        }
-        try {
-            if (autoexecJobId != null) {
-                IJob jobHandler = SchedulerManager.getHandler(AutoexecJobStatusMonitorJob.class.getName());
-                if (jobHandler == null) {
-                    throw new ScheduleHandlerNotFoundException(AutoexecJobStatusMonitorJob.class.getName());
-                }
 
-                JobObject.Builder jobObjectBuilder = new JobObject
-                        .Builder(autoexecJobId.toString(), jobHandler.getGroupName(), jobHandler.getClassName(), TenantContext.get().getTenantUuid())
-                        .addData("autoexecJobId", autoexecJobId);
-                JobObject jobObject = jobObjectBuilder.build();
-                jobHandler.reloadJob(jobObject);
+                    try {
+                        AutoexecJobVo jobVo = autoexecJobActionService.validateCreateJobFromCombop(paramObj, false);
+                        autoexecJobActionService.fire(jobVo);
+                    } catch (Exception e) {
+                        /* 异常提醒 **/
+                        IProcessStepHandlerUtil.saveStepRemind(currentProcessTaskStepVo, currentProcessTaskStepVo.getId(), "创建作业失败", ProcessTaskStepRemindType.ERROR);
+                        logger.error(e.getMessage(), e);
+                    }
+                }
             }
-        } catch (Exception e) {
-            /* 异常提醒 **/
-            IProcessStepHandlerUtil.saveStepRemind(currentProcessTaskStepVo,
-                    currentProcessTaskStepVo.getId(), "创建作业失败", ProcessTaskStepRemindType.ERROR);
-            logger.error(e.getMessage(), e);
         }
-        return 0;
+        return 1;
     }
 
     private Object parseMappingValue(ProcessTaskStepVo currentProcessTaskStepVo, String mappingMode, String value) {
@@ -231,15 +192,26 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             }
             return null;
         } else if ("prestepexportparam".equals(mappingMode)) {
-            //TODO linbq 上游出参，暂不支持
+            return getPreStepExportParamValue(currentProcessTaskStepVo.getProcessTaskId(), value);
         }
         return value;
     }
 
-    private Long createJob(JSONObject jsonObj) {
-        AutoexecJobVo jobVo = autoexecJobActionService.validateCreateJobFromCombop(jsonObj, false);
-        autoexecJobActionService.fire(jobVo);
-        return jobVo.getId();
+    private String getPreStepExportParamValue(Long processTaskId, String paramKey) {
+        String split[] = paramKey.split("&&", 2);
+        String processStepUuid = split[0];
+        ProcessTaskStepVo processTaskStepVo = processTaskMapper.getProcessTaskStepBaseInfoByProcessTaskIdAndProcessStepUuid(processTaskId, processStepUuid);
+        if (processTaskStepVo != null) {
+            Long autoexecJobId = autoexecJobMapper.getJobIdByInvokeId(processTaskStepVo.getId());
+            if (autoexecJobId != null) {
+                String paramName = split[1];
+                AutoexecJobEnvVo autoexecJobEnvVo = new AutoexecJobEnvVo();
+                autoexecJobEnvVo.setJobId(autoexecJobId);
+                autoexecJobEnvVo.setName(paramName);
+                return autoexecJobMapper.getAutoexecJobEnvValueByJobIdAndName(autoexecJobEnvVo);
+            }
+        }
+        return null;
     }
 
     @Override
@@ -264,11 +236,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     @Override
     protected int myComplete(ProcessTaskStepVo currentProcessTaskStepVo) throws ProcessTaskException {
-        AutoexecJobProcessTaskStepVo autoexecJobProcessTaskStepVo = autoexecJobMapper.getAutoexecJobProcessTaskStepByAutoexecJobId(currentProcessTaskStepVo.getId());
-        if (autoexecJobProcessTaskStepVo != null && Objects.equals(autoexecJobProcessTaskStepVo.getNeedMonitorStatus(), 1)) {
-            autoexecJobMapper.updateAutoexecJobProcessTaskStepNeedMonitorStatusByAutoexecJobId(autoexecJobProcessTaskStepVo.getAutoexecJobId(), 0);
-        }
-        return 1;
+        return 0;
     }
 
     @Override

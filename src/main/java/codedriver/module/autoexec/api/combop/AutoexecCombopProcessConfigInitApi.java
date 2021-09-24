@@ -22,6 +22,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -90,12 +91,39 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
             return resultObj;
         }
         boolean allRunner = true;
+        List<String> existedExportParamValueList = new ArrayList<>();
+        JSONArray exportParamList = new JSONArray();
         for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
             String execMode = autoexecCombopPhaseVo.getExecMode();
             if (!ExecMode.RUNNER.equals(execMode)) {
                 allRunner = false;
             }
+            AutoexecCombopPhaseConfigVo autoexecCombopPhaseConfigVo = autoexecCombopPhaseVo.getConfig();
+            if (autoexecCombopPhaseConfigVo != null) {
+                List<AutoexecCombopPhaseOperationVo> phaseOperationList = autoexecCombopPhaseConfigVo.getPhaseOperationList();
+                if (CollectionUtils.isNotEmpty(phaseOperationList)) {
+                    for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
+                        AutoexecCombopPhaseOperationConfigVo autoexecCombopPhaseOperationConfigVo = autoexecCombopPhaseOperationVo.getConfig();
+                        if (autoexecCombopPhaseOperationConfigVo != null) {
+                            List<ParamMappingVo> argumentMappingList = autoexecCombopPhaseOperationConfigVo.getArgumentMappingList();
+                            if (CollectionUtils.isNotEmpty(argumentMappingList)) {
+                                for (ParamMappingVo paramMappingVo : argumentMappingList) {
+                                    String value = (String) paramMappingVo.getValue();
+                                    if (existedExportParamValueList.contains(value)) {
+                                        continue;
+                                    }
+                                    JSONObject exportObj = new JSONObject();
+                                    exportObj.put("value", value);
+                                    exportObj.put("text", paramMappingVo.getName());
+                                    exportParamList.add(exportObj);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
+        resultObj.put("exportParamList", exportParamList);
         if (allRunner) {
             return resultObj;
         }
