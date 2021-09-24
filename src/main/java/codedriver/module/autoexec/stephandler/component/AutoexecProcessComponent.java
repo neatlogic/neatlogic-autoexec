@@ -5,11 +5,8 @@
 
 package codedriver.module.autoexec.stephandler.component;
 
-import codedriver.framework.asynchronization.threadlocal.TenantContext;
-import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobEnvVo;
-import codedriver.framework.autoexec.dto.job.AutoexecJobProcessTaskStepVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.process.constvalue.ProcessStepMode;
 import codedriver.framework.process.constvalue.ProcessTaskAuditDetailType;
@@ -20,15 +17,8 @@ import codedriver.framework.process.dto.ProcessTaskStepVo;
 import codedriver.framework.process.dto.ProcessTaskStepWorkerVo;
 import codedriver.framework.process.exception.core.ProcessTaskException;
 import codedriver.framework.process.stephandler.core.ProcessStepHandlerBase;
-import codedriver.framework.scheduler.core.IJob;
-import codedriver.framework.scheduler.core.SchedulerManager;
-import codedriver.framework.scheduler.dto.JobObject;
-import codedriver.framework.scheduler.exception.ScheduleHandlerNotFoundException;
 import codedriver.module.autoexec.constvalue.AutoexecProcessStepHandlerType;
-import codedriver.module.autoexec.schedule.plugin.AutoexecJobStatusMonitorJob;
-import codedriver.module.autoexec.service.AutoexecCombopService;
 import codedriver.module.autoexec.service.AutoexecJobActionService;
-import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
@@ -55,14 +45,6 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
     private final static Logger logger = LoggerFactory.getLogger(AutoexecProcessComponent.class);
     @Resource
     private AutoexecJobMapper autoexecJobMapper;
-    @Resource
-    private AutoexecJobService autoexecJobService;
-
-    @Resource
-    private AutoexecCombopMapper autoexecCombopMapper;
-
-    @Resource
-    private AutoexecCombopService autoexecCombopService;
 
     @Resource
     private AutoexecJobActionService autoexecJobActionService;
@@ -189,15 +171,6 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     try {
                         AutoexecJobVo jobVo = autoexecJobActionService.validateCreateJobFromCombop(paramObj, false);
                         autoexecJobActionService.fire(jobVo);
-//                        autoexecJobId = jobVo.getId();
-//                        String failPolicy = autoexecConfig.getString("failPolicy");
-//                        AutoexecJobProcessTaskStepVo autoexecJobProcessTaskStepVo = new AutoexecJobProcessTaskStepVo();
-//                        autoexecJobProcessTaskStepVo.setProcessTaskId(currentProcessTaskStepVo.getProcessTaskId());
-//                        autoexecJobProcessTaskStepVo.setProcessTaskStepId(currentProcessTaskStepVo.getId());
-//                        autoexecJobProcessTaskStepVo.setAutoexecJobId(autoexecJobId);
-//                        autoexecJobProcessTaskStepVo.setNeedMonitorStatus(1);
-//                        autoexecJobProcessTaskStepVo.setFailPolicy(failPolicy);
-//                        autoexecJobMapper.insertAutoexecJobProcessTaskStep(autoexecJobProcessTaskStepVo);
                     } catch (Exception e) {
                         /* 异常提醒 **/
                         IProcessStepHandlerUtil.saveStepRemind(currentProcessTaskStepVo, currentProcessTaskStepVo.getId(), "创建作业失败", ProcessTaskStepRemindType.ERROR);
@@ -263,11 +236,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     @Override
     protected int myComplete(ProcessTaskStepVo currentProcessTaskStepVo) throws ProcessTaskException {
-//        AutoexecJobProcessTaskStepVo autoexecJobProcessTaskStepVo = autoexecJobMapper.getAutoexecJobProcessTaskStepByAutoexecJobId(currentProcessTaskStepVo.getId());
-//        if (autoexecJobProcessTaskStepVo != null && Objects.equals(autoexecJobProcessTaskStepVo.getNeedMonitorStatus(), 1)) {
-//            autoexecJobMapper.updateAutoexecJobProcessTaskStepNeedMonitorStatusByAutoexecJobId(autoexecJobProcessTaskStepVo.getAutoexecJobId(), 0);
-//        }
-        return 1;
+        return 0;
     }
 
     @Override

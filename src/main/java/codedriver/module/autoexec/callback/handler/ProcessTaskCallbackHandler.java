@@ -9,7 +9,6 @@ import codedriver.framework.autoexec.callback.core.AutoexecJobCallbackBase;
 import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobEnvVo;
-import codedriver.framework.autoexec.dto.job.AutoexecJobProcessTaskStepVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.process.constvalue.ProcessTaskOperationType;
 import codedriver.framework.process.dao.mapper.ProcessTaskMapper;
@@ -26,7 +25,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,8 +75,6 @@ public class ProcessTaskCallbackHandler extends AutoexecJobCallbackBase {
     @Override
     public void doService(Long invokeId, AutoexecJobVo autoexecJobVo) {
         if (autoexecJobVo != null) {
-//            AutoexecJobProcessTaskStepVo autoexecJobProcessTaskStepVo = autoexecJobMapper.getAutoexecJobProcessTaskStepByAutoexecJobId(autoexecJobVo.getId());
-            autoexecJobMapper.getJobInvokeByJobId(autoexecJobVo.getId());
             String failPolicy = FailPolicy.HANG.getValue();
             List<String> hidecomponentList = new ArrayList<>();
             JSONArray formAttributeDataList = new JSONArray();
