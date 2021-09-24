@@ -53,7 +53,7 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
 
     @Override
     public Object getHandlerStepInitInfo(ProcessTaskStepVo currentProcessTaskStepVo) {
-        Long autoexecJobId = autoexecJobMapper.getAutoexecJobIdByProcessTaskStepId(currentProcessTaskStepVo.getId());
+        Long autoexecJobId = autoexecJobMapper.getJobIdByInvokeId(currentProcessTaskStepVo.getId());
         if (autoexecJobId != null) {
             AutoexecJobVo autoexecJobVo = autoexecJobMapper.getJobInfo(autoexecJobId);
             if (autoexecJobVo != null) {
