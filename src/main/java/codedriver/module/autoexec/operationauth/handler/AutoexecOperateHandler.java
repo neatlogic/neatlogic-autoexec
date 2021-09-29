@@ -39,8 +39,8 @@ public class AutoexecOperateHandler extends OperationAuthHandlerBase {
                 (processTaskVo, processTaskStepVo, userUuid) -> false);
         operationBiPredicateMap.put(ProcessTaskOperationType.STEP_COMMENT,
                 (processTaskVo, processTaskStepVo, userUuid) -> false);
-        operationBiPredicateMap.put(ProcessTaskOperationType.SUBTASK_CREATE,
-                (processTaskVo, processTaskStepVo, userUuid) -> false);
+//        operationBiPredicateMap.put(ProcessTaskOperationType.SUBTASK_CREATE,
+//                (processTaskVo, processTaskStepVo, userUuid) -> false);
     }
     @Override
     public Map<ProcessTaskOperationType, TernaryPredicate<ProcessTaskVo, ProcessTaskStepVo, String>> getOperationBiPredicateMap() {
