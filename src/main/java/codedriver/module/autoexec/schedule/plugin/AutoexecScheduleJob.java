@@ -7,7 +7,6 @@ package codedriver.module.autoexec.schedule.plugin;
 
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScheduleMapper;
-import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.dto.schedule.AutoexecScheduleVo;
 import codedriver.framework.scheduler.core.JobBase;
 import codedriver.framework.scheduler.dto.JobObject;
