@@ -180,11 +180,11 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             int sort = 0;
             /*寻找中止|暂停|失败的phase
              * 1、优先寻找pending|aborted|paused|failed phaseList
-             * 2、没有满足1条件的，再寻找pending node 最小sort phaseList
+             * 2、没有满足1条件的，再寻找pending|aborted|paused|failed node 最小sort phaseList
              */
             List<AutoexecJobPhaseVo> autoexecJobPhaseVos = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobVo.getId(), Arrays.asList(JobPhaseStatus.PENDING.getValue(),JobPhaseStatus.ABORTED.getValue(), JobPhaseStatus.PAUSED.getValue(), JobPhaseStatus.FAILED.getValue()));
             if (CollectionUtils.isEmpty(autoexecJobPhaseVos)) {
-                autoexecJobPhaseVos = autoexecJobMapper.getJobPhaseListByJobIdAndNodeStatusList(jobVo.getId(),Collections.singletonList(JobNodeStatus.PENDING.getValue()));
+                autoexecJobPhaseVos = autoexecJobMapper.getJobPhaseListByJobIdAndNodeStatusList(jobVo.getId(),Arrays.asList(JobPhaseStatus.PENDING.getValue(),JobPhaseStatus.ABORTED.getValue(), JobPhaseStatus.PAUSED.getValue(), JobPhaseStatus.FAILED.getValue()));
             }
             sort = autoexecJobPhaseVos.get(0).getSort();
             //int finalSort = sort;

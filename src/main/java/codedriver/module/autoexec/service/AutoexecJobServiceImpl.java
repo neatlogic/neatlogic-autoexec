@@ -86,7 +86,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         String protocol = StringUtils.EMPTY;
         if (nodeConfigVo != null) {
             userName = nodeConfigVo.getExecuteUser();
-            protocol = nodeConfigVo.getProtocol();
+            protocol = nodeConfigVo.getProtocolId().toString();
             //getJobNodeList(nodeConfigVo, jobVo.getId(), jobVo.getOperationId(), userName, protocol);
         }
         //保存阶段
@@ -110,8 +110,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                     if (StringUtils.isNotBlank(executeConfigVo.getExecuteUser())) {
                         userName = executeConfigVo.getExecuteUser();
                     }
-                    if (StringUtils.isNotBlank(executeConfigVo.getProtocol())) {
-                        protocol = executeConfigVo.getProtocol();
+                    if (executeConfigVo.getProtocolId() != null) {
+                        protocol = executeConfigVo.getProtocolId().toString();
                     }
                     if (executeConfigVo.getExecuteNodeConfig() != null) {
                         isPhaseSetNode = getJobNodeList(executeConfigVo, jobVo.getId(), jobPhaseVo.getId(), jobVo.getOperationId(), userName, protocol).get();
@@ -191,7 +191,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             String protocol = StringUtils.EMPTY;
             if (executeConfigVo != null) {
                 userName = executeConfigVo.getExecuteUser();
-                protocol = executeConfigVo.getProtocol();
+                protocol = executeConfigVo.getProtocolId().toString();
             }
             //删除所有target阶段的节点
             autoexecJobMapper.deleteJobPhaseNodeByJobPhaseIdList(targetPhaseList.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()));
@@ -212,8 +212,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                         if (StringUtils.isNotBlank(phaseExecuteConfigVo.getExecuteUser())) {
                             userName = phaseExecuteConfigVo.getExecuteUser();
                         }
-                        if (StringUtils.isNotBlank(phaseExecuteConfigVo.getProtocol())) {
-                            protocol = phaseExecuteConfigVo.getProtocol();
+                        if (phaseExecuteConfigVo.getProtocolId()!=null) {
+                            protocol = phaseExecuteConfigVo.getProtocolId().toString();
                         }
                         if (phaseExecuteConfigVo.getExecuteNodeConfig() != null) {
                             isPhaseSetNode = getJobNodeList(phaseExecuteConfigVo, jobVo.getId(), jobPhaseVo.getId(), jobVo.getOperationId(), userName, protocol).get();
