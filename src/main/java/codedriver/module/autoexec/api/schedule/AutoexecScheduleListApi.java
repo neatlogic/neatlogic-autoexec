@@ -57,18 +57,18 @@ public class AutoexecScheduleListApi extends PrivateApiComponentBase {
     @Description(desc = "查询定时作业列表")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        AutoexecScheduleVo autoexecScheduleVo = JSONObject.toJavaObject(paramObj, AutoexecScheduleVo.class);
-        Long autoexecCombopId = autoexecScheduleVo.getAutoexecCombopId();
+        AutoexecScheduleVo searchVo = JSONObject.toJavaObject(paramObj, AutoexecScheduleVo.class);
+        Long autoexecCombopId = searchVo.getAutoexecCombopId();
         if (autoexecCombopId != null) {
             if (autoexecCombopMapper.checkAutoexecCombopIsExists(autoexecCombopId) == 0) {
                 throw new AutoexecCombopNotFoundException(autoexecCombopId);
             }
         }
 
-        int rowNum = autoexecScheduleMapper.getAutoexecScheduleCount(autoexecScheduleVo);
-        autoexecScheduleVo.setRowNum(rowNum);
-        List<AutoexecScheduleVo> autoexecScheduleList = autoexecScheduleMapper.getAutoexecScheduleList(autoexecScheduleVo);
-        return TableResultUtil.getResult(autoexecScheduleList, autoexecScheduleVo);
+        int rowNum = autoexecScheduleMapper.getAutoexecScheduleCount(searchVo);
+        searchVo.setRowNum(rowNum);
+        List<AutoexecScheduleVo> autoexecScheduleList = autoexecScheduleMapper.getAutoexecScheduleList(searchVo);
+        return TableResultUtil.getResult(autoexecScheduleList, searchVo);
     }
 
 }

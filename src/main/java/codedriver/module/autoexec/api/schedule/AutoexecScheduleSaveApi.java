@@ -88,7 +88,7 @@ public class AutoexecScheduleSaveApi extends PrivateApiComponentBase {
                 .withCron(autoexecScheduleVo.getCron()).withBeginTime(autoexecScheduleVo.getBeginTime())
                 .withEndTime(autoexecScheduleVo.getEndTime())
 //                .needAudit(autoexecScheduleVo.getNeedAudit())
-                .setType("public")
+                .setType("private")
                 .build();
         if (autoexecScheduleVo.getIsActive().intValue() == 1) {
 //            schedulerManager.loadJob(jobObject);
