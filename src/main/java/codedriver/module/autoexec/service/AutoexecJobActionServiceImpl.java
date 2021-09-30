@@ -166,6 +166,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     public void refire(AutoexecJobVo jobVo, String type) {
         jobVo.setAction(type);
         if (Objects.equals(type, JobAction.RESET_REFIRE.getValue())) {
+            if(CollectionUtils.isEmpty(jobVo.getPhaseList())){
+                jobVo.setPhaseList(autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId()));
+            }
             new AutoexecJobAuthActionManager.Builder().addReFireJob().build().setAutoexecJobAction(jobVo);
             resetAll(jobVo);
             autoexecJobMapper.updateJobPhaseStatusByJobId(jobVo.getId(), JobPhaseStatus.PENDING.getValue());//重置phase状态为pending
