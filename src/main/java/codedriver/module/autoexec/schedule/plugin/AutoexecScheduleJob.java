@@ -15,6 +15,7 @@ import org.quartz.JobExecutionContext;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -75,7 +76,7 @@ public class AutoexecScheduleJob extends JobBase {
     public void executeInternal(JobExecutionContext context, JobObject jobObject) throws Exception {
         String uuid = jobObject.getJobName();
         AutoexecScheduleVo autoexecScheduleVo = autoexecScheduleMapper.getAutoexecScheduleByUuid(uuid);
-        System.out.println("执行定时作业：'" + autoexecScheduleVo.getName() + "'");
+        System.out.println(new Date() + "执行定时作业：'" + autoexecScheduleVo.getName() + "'");
 //        AutoexecJobVo jobVo = autoexecJobActionService.validateCreateJobFromCombop(paramObj, false);
 //        autoexecJobActionService.fire(jobVo);
     }

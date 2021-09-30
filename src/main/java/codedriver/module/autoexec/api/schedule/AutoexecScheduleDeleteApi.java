@@ -31,6 +31,8 @@ public class AutoexecScheduleDeleteApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScheduleMapper autoexecScheduleMapper;
+    @Resource
+    private SchedulerManager schedulerManager;
 
     @Override
     public String getToken() {
@@ -64,7 +66,7 @@ public class AutoexecScheduleDeleteApi extends PrivateApiComponentBase {
             throw new ScheduleHandlerNotFoundException(AutoexecScheduleJob.class.getName());
         }
         JobObject jobObject = new JobObject.Builder(uuid, jobHandler.getGroupName(), jobHandler.getClassName(), tenantUuid).build();
-//        schedulerManager.unloadJob(jobObject);
+        schedulerManager.unloadJob(jobObject);
 //        schedulerMapper.deleteJobAuditByJobUuid(jobUuid);
         autoexecScheduleMapper.deleteAutoexecScheduleByUuid(uuid);
         return null;
