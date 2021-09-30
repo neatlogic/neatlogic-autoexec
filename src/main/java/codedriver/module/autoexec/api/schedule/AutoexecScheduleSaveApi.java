@@ -6,6 +6,7 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecScheduleMapper;
 import codedriver.framework.autoexec.dto.schedule.AutoexecScheduleVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScheduleNameRepeatException;
+import codedriver.framework.autoexec.exception.AutoexecScheduleNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.dto.FieldValidResultVo;
 import codedriver.framework.restful.annotation.*;
@@ -36,6 +37,8 @@ public class AutoexecScheduleSaveApi extends PrivateApiComponentBase {
     private AutoexecScheduleMapper autoexecScheduleMapper;
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
+    @Resource
+    private SchedulerManager schedulerManager;
 
     @Override
     public String getToken() {
@@ -75,10 +78,21 @@ public class AutoexecScheduleSaveApi extends PrivateApiComponentBase {
         if (!CronExpression.isValidExpression(cron)) {
             throw new ScheduleIllegalParameterException(cron);
         }
-
         AutoexecScheduleVo autoexecScheduleVo = paramObj.toJavaObject(AutoexecScheduleVo.class);
+        if (autoexecScheduleMapper.checkAutoexecScheduleNameIsExists(autoexecScheduleVo) > 0) {
+            throw new ScheduleJobNameRepeatException(autoexecScheduleVo.getName());
+        }
+        String uuid = paramObj.getString("uuid");
+        if (uuid != null) {
+            AutoexecScheduleVo oldAutoexecScheduleVo = autoexecScheduleMapper.getAutoexecScheduleByUuid(uuid);
+            if (oldAutoexecScheduleVo == null) {
+                throw new AutoexecScheduleNotFoundException(uuid);
+            }
+            autoexecScheduleMapper.updateAutoexecSchedule(autoexecScheduleVo);
+        } else {
+            autoexecScheduleMapper.insertAutoexecSchedule(autoexecScheduleVo);
+        }
 
-        saveJob(autoexecScheduleVo);
         IJob jobHandler = SchedulerManager.getHandler(AutoexecScheduleJob.class.getName());
         if (jobHandler == null) {
             throw new ScheduleHandlerNotFoundException(AutoexecScheduleJob.class.getName());
@@ -91,28 +105,14 @@ public class AutoexecScheduleSaveApi extends PrivateApiComponentBase {
                 .setType("private")
                 .build();
         if (autoexecScheduleVo.getIsActive().intValue() == 1) {
-//            schedulerManager.loadJob(jobObject);
+            schedulerManager.loadJob(jobObject);
         } else {
-//            schedulerManager.unloadJob(jobObject);
+            schedulerManager.unloadJob(jobObject);
         }
 
         JSONObject resultObj = new JSONObject();
         resultObj.put("uuid", autoexecScheduleVo.getUuid());
         return resultObj;
-    }
-
-    private int saveJob(AutoexecScheduleVo autoexecScheduleVo) throws ScheduleJobNameRepeatException {
-        String uuid = autoexecScheduleVo.getUuid();
-        if (autoexecScheduleMapper.checkAutoexecScheduleNameIsExists(autoexecScheduleVo) > 0) {
-            throw new ScheduleJobNameRepeatException(autoexecScheduleVo.getName());
-        }
-        AutoexecScheduleVo oldAutoexecScheduleVo = autoexecScheduleMapper.getAutoexecScheduleByUuid(uuid);
-        if (oldAutoexecScheduleVo == null) {
-            autoexecScheduleMapper.insertAutoexecSchedule(autoexecScheduleVo);
-        } else {
-            autoexecScheduleMapper.updateAutoexecSchedule(autoexecScheduleVo);
-        }
-        return 1;
     }
 
     public IValid name() {
