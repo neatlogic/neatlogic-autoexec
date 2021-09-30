@@ -2,6 +2,7 @@ package codedriver.module.autoexec.api.schedule;
 
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScheduleMapper;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.schedule.AutoexecScheduleVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -14,7 +15,11 @@ import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 //@AuthAction(action = SCHEDULE_JOB_MODIFY.class)
@@ -64,10 +69,21 @@ public class AutoexecScheduleListApi extends PrivateApiComponentBase {
                 throw new AutoexecCombopNotFoundException(autoexecCombopId);
             }
         }
-
+        List<AutoexecScheduleVo> autoexecScheduleList = new ArrayList<>();
         int rowNum = autoexecScheduleMapper.getAutoexecScheduleCount(searchVo);
-        searchVo.setRowNum(rowNum);
-        List<AutoexecScheduleVo> autoexecScheduleList = autoexecScheduleMapper.getAutoexecScheduleList(searchVo);
+        if (rowNum > 0) {
+            searchVo.setRowNum(rowNum);
+            if (searchVo.getCurrentPage() <= searchVo.getPageCount()) {
+                autoexecScheduleList = autoexecScheduleMapper.getAutoexecScheduleList(searchVo);
+                Set<Long> autoexecCombopIdSet = autoexecScheduleList.stream().map(AutoexecScheduleVo::getAutoexecCombopId).collect(Collectors.toSet());
+                List<AutoexecCombopVo> autoexecCombopVoList = autoexecCombopMapper.getAutoexecCombopListByIdList(new ArrayList<>(autoexecCombopIdSet));
+                Map<Long, String> autoexecCombopNameMap = autoexecCombopVoList.stream().collect(Collectors.toMap(e -> e.getId(), e -> e.getName()));
+                for (AutoexecScheduleVo autoexecScheduleVo : autoexecScheduleList) {
+                    String autoexecCombopName = autoexecCombopNameMap.get(autoexecScheduleVo.getAutoexecCombopId());
+                    autoexecScheduleVo.setName(autoexecCombopName);
+                }
+            }
+        }
         return TableResultUtil.getResult(autoexecScheduleList, searchVo);
     }
 
