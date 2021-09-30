@@ -8,10 +8,10 @@ package codedriver.module.autoexec.core;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.constvalue.JobStatus;
+import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.dao.mapper.TeamMapper;
-import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -70,9 +70,6 @@ public class AutoexecJobAuthActionManager {
         });
 
         actionMap.put("reFireJob", (jobVo) -> {
-            if(CollectionUtils.isEmpty(jobVo.getPhaseList())){
-                jobVo.setPhaseList(autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId()));
-            }
             if (jobVo.getPhaseList().stream().anyMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.RUNNING.getValue())) || autoexecJobMapper.checkIsHasRunningNode(jobVo.getId()) != 0) {
                 throw new AutoexecJobCanNotRefireException(jobVo.getId().toString());
             }
