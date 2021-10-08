@@ -57,8 +57,7 @@ public class AutoexecScheduleListApi extends PrivateApiComponentBase {
             @Param(name = "isActive", type = ApiParamType.ENUM, rule = "0,1", desc = "是否启用"),
             @Param(name = "autoexecCombopId", type = ApiParamType.LONG, desc = "组合工具id"),
             @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页码"),
-            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "页大小"),
-            @Param(name = "keyword", type = ApiParamType.STRING, desc = "定时作业名称(支持模糊查询)")
+            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "页大小")
     })
     @Output({
             @Param(explode = BasePageVo.class),
