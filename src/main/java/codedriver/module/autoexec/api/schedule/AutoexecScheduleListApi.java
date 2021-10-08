@@ -87,7 +87,7 @@ public class AutoexecScheduleListApi extends PrivateApiComponentBase {
                 Map<Long, Integer> execCountMap = execCountList.stream().collect(Collectors.toMap(e -> e.getInvokeId(), e -> e.getCount()));
                 for (AutoexecScheduleVo autoexecScheduleVo : autoexecScheduleList) {
                     String autoexecCombopName = autoexecCombopNameMap.get(autoexecScheduleVo.getAutoexecCombopId());
-                    autoexecScheduleVo.setName(autoexecCombopName);
+                    autoexecScheduleVo.setAutoexecCombopName(autoexecCombopName);
                     Integer execCount = execCountMap.get(autoexecScheduleVo.getId());
                     if (execCount != null) {
                         autoexecScheduleVo.setExecCount(execCount);
