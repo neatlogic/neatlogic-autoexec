@@ -56,6 +56,7 @@ public class AutoexecScheduleSaveApi extends PrivateApiComponentBase {
     }
 
     @Input({
+            @Param(name = "id", type = ApiParamType.LONG, desc = "定时作业id"),
             @Param(name = "uuid", type = ApiParamType.STRING, desc = "定时作业uuid"),
             @Param(name = "name", type = ApiParamType.STRING, isRequired = true, desc = "定时作业名称"),
             @Param(name = "autoexecCombopId", type = ApiParamType.LONG, isRequired = true, desc = "组合工具id"),
@@ -65,7 +66,7 @@ public class AutoexecScheduleSaveApi extends PrivateApiComponentBase {
             @Param(name = "isActive", type = ApiParamType.ENUM, isRequired = true, rule = "0,1", desc = "是否激活(0:禁用，1：激活)")
     })
     @Output({
-            @Param(name = "uuid", type = ApiParamType.STRING, isRequired = true, desc = "定时作业uuid")
+            @Param(name = "id", type = ApiParamType.STRING, isRequired = true, desc = "定时作业id")
     })
     @Description(desc = "保存定时作业信息")
     @Override
@@ -82,11 +83,11 @@ public class AutoexecScheduleSaveApi extends PrivateApiComponentBase {
         if (autoexecScheduleMapper.checkAutoexecScheduleNameIsExists(autoexecScheduleVo) > 0) {
             throw new ScheduleJobNameRepeatException(autoexecScheduleVo.getName());
         }
-        String uuid = paramObj.getString("uuid");
-        if (uuid != null) {
-            AutoexecScheduleVo oldAutoexecScheduleVo = autoexecScheduleMapper.getAutoexecScheduleByUuid(uuid);
+        Long id = paramObj.getLong("id");
+        if (id != null) {
+            AutoexecScheduleVo oldAutoexecScheduleVo = autoexecScheduleMapper.getAutoexecScheduleById(id);
             if (oldAutoexecScheduleVo == null) {
-                throw new AutoexecScheduleNotFoundException(uuid);
+                throw new AutoexecScheduleNotFoundException(id);
             }
             autoexecScheduleMapper.updateAutoexecSchedule(autoexecScheduleVo);
         } else {
@@ -111,7 +112,7 @@ public class AutoexecScheduleSaveApi extends PrivateApiComponentBase {
         }
 
         JSONObject resultObj = new JSONObject();
-        resultObj.put("uuid", autoexecScheduleVo.getUuid());
+        resultObj.put("id", autoexecScheduleVo.getId());
         return resultObj;
     }
 

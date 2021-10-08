@@ -37,7 +37,7 @@ public class AutoexecScheduleGetApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "uuid", type = ApiParamType.STRING, isRequired = true, desc = "定时作业uuid")
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "定时作业id")
     })
     @Description(desc = "获取定时作业信息")
     @Output({
@@ -45,10 +45,10 @@ public class AutoexecScheduleGetApi extends PrivateApiComponentBase {
     })
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        String uuid = paramObj.getString("uuid");
-        AutoexecScheduleVo autoexecScheduleVo = autoexecScheduleMapper.getAutoexecScheduleByUuid(uuid);
+        Long id = paramObj.getLong("id");
+        AutoexecScheduleVo autoexecScheduleVo = autoexecScheduleMapper.getAutoexecScheduleById(id);
         if (autoexecScheduleVo == null) {
-            throw new AutoexecScheduleNotFoundException(uuid);
+            throw new AutoexecScheduleNotFoundException(id);
         }
         return autoexecScheduleVo;
     }

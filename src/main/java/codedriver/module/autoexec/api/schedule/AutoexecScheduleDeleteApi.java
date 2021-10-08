@@ -50,25 +50,25 @@ public class AutoexecScheduleDeleteApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "uuid", type = ApiParamType.STRING, isRequired = true, desc = "定时作业uuid")
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "定时作业id")
     })
     @Description(desc = "删除定时作业")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        String uuid = paramObj.getString("uuid");
-        AutoexecScheduleVo autoexecScheduleVo = autoexecScheduleMapper.getAutoexecScheduleByUuid(uuid);
+        Long id = paramObj.getLong("id");
+        AutoexecScheduleVo autoexecScheduleVo = autoexecScheduleMapper.getAutoexecScheduleById(id);
         if (autoexecScheduleVo == null) {
-            throw new AutoexecScheduleNotFoundException(uuid);
+            throw new AutoexecScheduleNotFoundException(id);
         }
         String tenantUuid = TenantContext.get().getTenantUuid();
         IJob jobHandler = SchedulerManager.getHandler(AutoexecScheduleJob.class.getName());
         if (jobHandler == null) {
             throw new ScheduleHandlerNotFoundException(AutoexecScheduleJob.class.getName());
         }
-        JobObject jobObject = new JobObject.Builder(uuid, jobHandler.getGroupName(), jobHandler.getClassName(), tenantUuid).build();
+        JobObject jobObject = new JobObject.Builder(autoexecScheduleVo.getUuid(), jobHandler.getGroupName(), jobHandler.getClassName(), tenantUuid).build();
         schedulerManager.unloadJob(jobObject);
 //        schedulerMapper.deleteJobAuditByJobUuid(jobUuid);
-        autoexecScheduleMapper.deleteAutoexecScheduleByUuid(uuid);
+        autoexecScheduleMapper.deleteAutoexecScheduleById(id);
         return null;
     }
 

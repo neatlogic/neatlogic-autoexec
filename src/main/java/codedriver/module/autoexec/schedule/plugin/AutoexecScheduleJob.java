@@ -7,9 +7,12 @@ package codedriver.module.autoexec.schedule.plugin;
 
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScheduleMapper;
+import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.dto.schedule.AutoexecScheduleVo;
 import codedriver.framework.scheduler.core.JobBase;
 import codedriver.framework.scheduler.dto.JobObject;
+import codedriver.module.autoexec.service.AutoexecJobActionService;
+import com.alibaba.fastjson.JSONObject;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.springframework.stereotype.Component;
@@ -28,6 +31,9 @@ public class AutoexecScheduleJob extends JobBase {
 
     @Resource
     private AutoexecScheduleMapper autoexecScheduleMapper;
+
+    @Resource
+    private AutoexecJobActionService autoexecJobActionService;
 
     @Override
     public String getGroupName() {
@@ -77,6 +83,64 @@ public class AutoexecScheduleJob extends JobBase {
         String uuid = jobObject.getJobName();
         AutoexecScheduleVo autoexecScheduleVo = autoexecScheduleMapper.getAutoexecScheduleByUuid(uuid);
         System.out.println(new Date() + "执行定时作业：'" + autoexecScheduleVo.getName() + "'");
+        JSONObject paramObj = new JSONObject();
+//        Long combopId = autoexecConfig.getLong("autoexecCombopId");
+        paramObj.put("combopId", autoexecScheduleVo.getAutoexecCombopId());
+//        JSONArray runtimeParamList = autoexecConfig.getJSONArray("runtimeParamList");
+//        if (CollectionUtils.isNotEmpty(runtimeParamList)) {
+//            JSONObject param = new JSONObject();
+//            for (int i = 0; i < runtimeParamList.size(); i++) {
+//                JSONObject runtimeParamObj = runtimeParamList.getJSONObject(i);
+//                if (MapUtils.isNotEmpty(runtimeParamObj)) {
+//                    String key = runtimeParamObj.getString("key");
+//                    if (StringUtils.isNotBlank(key)) {
+//                        String value = runtimeParamObj.getString("value");
+//                        if (StringUtils.isNotBlank(value)) {
+//                            String mappingMode = runtimeParamObj.getString("mappingMode");
+//                            param.put(key, parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
+//                        } else {
+//                            param.put(key, value);
+//                        }
+//                    }
+//                }
+//            }
+//            paramObj.put("param", param);
+//        }
+//        JSONArray executeParamList = autoexecConfig.getJSONArray("executeParamList");
+//        if (CollectionUtils.isNotEmpty(executeParamList)) {
+//            JSONObject executeConfig = new JSONObject();
+//            for (int i = 0; i < executeParamList.size(); i++) {
+//                JSONObject executeParamObj = executeParamList.getJSONObject(i);
+//                if (MapUtils.isNotEmpty(executeParamObj)) {
+//                    String key = executeParamObj.getString("key");
+//                    String value = executeParamObj.getString("value");
+//                    String mappingMode = executeParamObj.getString("mappingMode");
+//                    if ("protocol".equals(key)) {
+//                        if (StringUtils.isNotBlank(value)) {
+//                            executeConfig.put("protocol", parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
+//                        } else {
+//                            executeConfig.put("protocol", value);
+//                        }
+//                    } else if ("executeUser".equals(key)) {
+//                        if (StringUtils.isNotBlank(value)) {
+//                            executeConfig.put("executeUser", parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
+//                        } else {
+//                            executeConfig.put("executeUser", value);
+//                        }
+//                    } else if ("executeNodeConfig".equals(key)) {
+//                        if (StringUtils.isNotBlank(value)) {
+//                            executeConfig.put("executeNodeConfig", parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
+//                        } else {
+//                            executeConfig.put("executeNodeConfig", value);
+//                        }
+//                    }
+//                }
+//            }
+//            paramObj.put("executeConfig", executeConfig);
+//        }
+        paramObj.put("source", "autoexecSchedule");
+        paramObj.put("threadCount", 1);
+        paramObj.put("invokeId", autoexecScheduleVo.getId());
 //        AutoexecJobVo jobVo = autoexecJobActionService.validateCreateJobFromCombop(paramObj, false);
 //        autoexecJobActionService.fire(jobVo);
     }
