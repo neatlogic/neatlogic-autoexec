@@ -1,6 +1,7 @@
 package codedriver.module.autoexec.api.schedule;
 
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
+import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScheduleMapper;
 import codedriver.framework.autoexec.dto.schedule.AutoexecScheduleVo;
@@ -89,8 +90,10 @@ public class AutoexecScheduleSaveApi extends PrivateApiComponentBase {
             if (oldAutoexecScheduleVo == null) {
                 throw new AutoexecScheduleNotFoundException(id);
             }
+            autoexecScheduleVo.setLcu(UserContext.get().getUserUuid(true));
             autoexecScheduleMapper.updateAutoexecSchedule(autoexecScheduleVo);
         } else {
+            autoexecScheduleVo.setFcu(UserContext.get().getUserUuid(true));
             autoexecScheduleMapper.insertAutoexecSchedule(autoexecScheduleVo);
         }
 
