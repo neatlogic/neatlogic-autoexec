@@ -58,7 +58,6 @@ public class AutoexecScheduleSaveApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "id", type = ApiParamType.LONG, desc = "定时作业id"),
-            @Param(name = "uuid", type = ApiParamType.STRING, desc = "定时作业uuid"),
             @Param(name = "name", type = ApiParamType.STRING, isRequired = true, desc = "定时作业名称"),
             @Param(name = "autoexecCombopId", type = ApiParamType.LONG, isRequired = true, desc = "组合工具id"),
             @Param(name = "beginTime", type = ApiParamType.LONG, desc = "开始时间"),
