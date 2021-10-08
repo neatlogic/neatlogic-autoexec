@@ -98,7 +98,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     @Override
     protected int myActive(ProcessTaskStepVo currentProcessTaskStepVo) throws ProcessTaskException {
-        Long autoexecJobId = autoexecJobMapper.getJobIdByInvokeId(currentProcessTaskStepVo.getId());
+        Long autoexecJobId = autoexecJobMapper.getJobIdByInvokeIdLimitOne(currentProcessTaskStepVo.getId());
         if (autoexecJobId == null) {
             String configHash = currentProcessTaskStepVo.getConfigHash();
             if (StringUtils.isBlank(configHash)) {
@@ -202,7 +202,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         String processStepUuid = split[0];
         ProcessTaskStepVo processTaskStepVo = processTaskMapper.getProcessTaskStepBaseInfoByProcessTaskIdAndProcessStepUuid(processTaskId, processStepUuid);
         if (processTaskStepVo != null) {
-            Long autoexecJobId = autoexecJobMapper.getJobIdByInvokeId(processTaskStepVo.getId());
+            Long autoexecJobId = autoexecJobMapper.getJobIdByInvokeIdLimitOne(processTaskStepVo.getId());
             if (autoexecJobId != null) {
                 String paramName = split[1];
                 AutoexecJobEnvVo autoexecJobEnvVo = new AutoexecJobEnvVo();

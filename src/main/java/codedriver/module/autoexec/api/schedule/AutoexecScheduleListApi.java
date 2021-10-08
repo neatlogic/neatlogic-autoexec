@@ -1,8 +1,11 @@
 package codedriver.module.autoexec.api.schedule;
 
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScheduleMapper;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobInvokeVo;
 import codedriver.framework.autoexec.dto.schedule.AutoexecScheduleVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -31,6 +34,8 @@ public class AutoexecScheduleListApi extends PrivateApiComponentBase {
     private AutoexecScheduleMapper autoexecScheduleMapper;
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
+    @Resource
+    private AutoexecJobMapper autoexecJobMapper;
 
     @Override
     public String getToken() {
@@ -78,9 +83,16 @@ public class AutoexecScheduleListApi extends PrivateApiComponentBase {
                 Set<Long> autoexecCombopIdSet = autoexecScheduleList.stream().map(AutoexecScheduleVo::getAutoexecCombopId).collect(Collectors.toSet());
                 List<AutoexecCombopVo> autoexecCombopVoList = autoexecCombopMapper.getAutoexecCombopListByIdList(new ArrayList<>(autoexecCombopIdSet));
                 Map<Long, String> autoexecCombopNameMap = autoexecCombopVoList.stream().collect(Collectors.toMap(e -> e.getId(), e -> e.getName()));
+                List<Long> idList = autoexecScheduleList.stream().map(AutoexecScheduleVo::getId).collect(Collectors.toList());
+                List<AutoexecJobInvokeVo> execCountList = autoexecJobMapper.getJobIdCountListByInvokeIdList(idList);
+                Map<Long, Integer> execCountMap = execCountList.stream().collect(Collectors.toMap(e -> e.getInvokeId(), e -> e.getCount()));
                 for (AutoexecScheduleVo autoexecScheduleVo : autoexecScheduleList) {
                     String autoexecCombopName = autoexecCombopNameMap.get(autoexecScheduleVo.getAutoexecCombopId());
                     autoexecScheduleVo.setName(autoexecCombopName);
+                    Integer execCount = execCountMap.get(autoexecScheduleVo.getId());
+                    if (execCount != null) {
+                        autoexecScheduleVo.setExecCount(execCount);
+                    }
                 }
             }
         }
