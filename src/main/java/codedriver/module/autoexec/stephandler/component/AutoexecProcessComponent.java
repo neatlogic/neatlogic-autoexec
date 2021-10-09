@@ -7,17 +7,19 @@ package codedriver.module.autoexec.stephandler.component;
 
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobEnvVo;
-import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.process.constvalue.ProcessStepMode;
-import codedriver.framework.process.constvalue.ProcessTaskAuditDetailType;
-import codedriver.framework.process.constvalue.ProcessTaskAuditType;
-import codedriver.framework.process.constvalue.ProcessTaskStepRemindType;
+import codedriver.framework.process.constvalue.*;
 import codedriver.framework.process.dto.ProcessTaskFormAttributeDataVo;
 import codedriver.framework.process.dto.ProcessTaskStepVo;
 import codedriver.framework.process.dto.ProcessTaskStepWorkerVo;
 import codedriver.framework.process.exception.core.ProcessTaskException;
+import codedriver.framework.process.exception.processtask.ProcessTaskNoPermissionException;
+import codedriver.framework.process.service.ProcessTaskService;
+import codedriver.framework.process.stephandler.core.IProcessStepHandler;
 import codedriver.framework.process.stephandler.core.ProcessStepHandlerBase;
+import codedriver.framework.process.stephandler.core.ProcessStepHandlerFactory;
+import codedriver.framework.process.stephandler.core.ProcessStepThread;
 import codedriver.module.autoexec.constvalue.AutoexecProcessStepHandlerType;
+import codedriver.module.autoexec.constvalue.FailPolicy;
 import codedriver.module.autoexec.service.AutoexecJobActionService;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -30,10 +32,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author linbq
@@ -48,6 +47,8 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     @Resource
     private AutoexecJobActionService autoexecJobActionService;
+    @Resource
+    private ProcessTaskService processTaskService;
 
     @Override
     public String getHandler() {
@@ -169,12 +170,18 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     paramObj.put("invokeId", currentProcessTaskStepVo.getId());
 
                     try {
-                        AutoexecJobVo jobVo = autoexecJobActionService.validateCreateJobFromCombop(paramObj, false);
-                        autoexecJobActionService.fire(jobVo);
+                        autoexecJobActionService.validateCreateJob(paramObj, false);
+//                        AutoexecJobVo jobVo = autoexecJobActionService.validateCreateJobFromCombop(paramObj, false);
+//                        autoexecJobActionService.fire(jobVo);
                     } catch (Exception e) {
-                        /* 异常提醒 **/
-                        IProcessStepHandlerUtil.saveStepRemind(currentProcessTaskStepVo, currentProcessTaskStepVo.getId(), "创建作业失败", ProcessTaskStepRemindType.ERROR);
                         logger.error(e.getMessage(), e);
+                        String failPolicy = autoexecConfig.getString("failPolicy");
+                        if (FailPolicy.KEEP_ON.getValue().equals(failPolicy)) {
+                            processTaskStepComplete(currentProcessTaskStepVo.getId(), null);
+                        }
+                        /* 异常提醒 **/
+//                        IProcessStepHandlerUtil.saveStepRemind(currentProcessTaskStepVo, currentProcessTaskStepVo.getId(), "创建作业失败", ProcessTaskStepRemindType.ERROR);
+//                        throw new ProcessTaskException(e);
                     }
                 }
             }
@@ -182,6 +189,74 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         return 1;
     }
 
+    private void processTaskStepComplete(Long processTaskStepId, Long autoexecJobId) {
+        List<ProcessTaskStepVo> processTaskStepList = processTaskService.getForwardNextStepListByProcessTaskStepId(processTaskStepId);
+        if (processTaskStepList.size() == 1) {
+            ProcessTaskStepVo nextStepVo = processTaskStepList.get(0);
+            IProcessStepHandler handler = ProcessStepHandlerFactory.getHandler(AutoexecProcessStepHandlerType.AUTOEXEC.getHandler());
+            if (handler != null) {
+                try {
+                    List<String> hidecomponentList = new ArrayList<>();
+                    JSONArray formAttributeDataList = new JSONArray();
+                    ProcessTaskStepVo processTaskStepVo = processTaskMapper.getProcessTaskStepBaseInfoById(processTaskStepId);
+                    String config = selectContentByHashMapper.getProcessTaskStepConfigByHash(processTaskStepVo.getConfigHash());
+                    if (StringUtils.isNotBlank(config)) {
+                        JSONArray formAttributeList = (JSONArray) JSONPath.read(config, "autoexecConfig.formAttributeList");
+                        if (CollectionUtils.isNotEmpty(formAttributeList)) {
+                            Map<String, String> autoexecJobEnvMap = new HashMap<>();
+                            if (autoexecJobId != null) {
+                                List<AutoexecJobEnvVo> autoexecJobEnvList = autoexecJobMapper.getAutoexecJobEnvListByJobId(autoexecJobId);
+                                for (AutoexecJobEnvVo autoexecJobEnvVo : autoexecJobEnvList) {
+                                    autoexecJobEnvMap.put(autoexecJobEnvVo.getName(), autoexecJobEnvVo.getValue());
+                                }
+                            }
+                            Map<String, Object> formAttributeNewDataMap = new HashMap<>();
+                            for (int i = 0; i < formAttributeList.size(); i++) {
+                                JSONObject formAttributeObj = formAttributeList.getJSONObject(i);
+                                String key = formAttributeObj.getString("key");
+                                String value = formAttributeObj.getString("value");
+                                formAttributeNewDataMap.put(key, autoexecJobEnvMap.get(value));
+                            }
+                            List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskMapper.getProcessTaskStepFormAttributeDataByProcessTaskId(processTaskStepVo.getProcessTaskId());
+                            for (ProcessTaskFormAttributeDataVo processTaskFormAttributeDataVo : processTaskFormAttributeDataList) {
+                                JSONObject formAttributeDataObj = new JSONObject();
+                                String attributeUuid = processTaskFormAttributeDataVo.getAttributeUuid();
+                                formAttributeDataObj.put("attributeUuid", attributeUuid);
+                                formAttributeDataObj.put("handler", processTaskFormAttributeDataVo.getType());
+                                Object newData = formAttributeNewDataMap.get(attributeUuid);
+                                if (newData != null) {
+                                    formAttributeDataObj.put("dataList", newData);
+                                } else {
+                                    formAttributeDataObj.put("dataList", processTaskFormAttributeDataVo.getDataObj());
+                                    hidecomponentList.add(attributeUuid);
+                                }
+                                formAttributeDataList.add(formAttributeDataObj);
+                            }
+                        }
+                    }
+                    JSONObject paramObj = new JSONObject();
+                    paramObj.put("nextStepId", nextStepVo.getId());
+                    paramObj.put("action", ProcessTaskOperationType.STEP_COMPLETE.getValue());
+                    if (CollectionUtils.isNotEmpty(formAttributeDataList)) {
+                        paramObj.put("formAttributeDataList", formAttributeDataList);
+                    }
+                    if (CollectionUtils.isNotEmpty(hidecomponentList)) {
+                        paramObj.put("hidecomponentList", hidecomponentList);
+                    }
+                    processTaskStepVo.setParamObj(paramObj);
+                    /* 自动处理 **/
+                    doNext(ProcessTaskOperationType.STEP_COMPLETE, new ProcessStepThread(processTaskStepVo) {
+                        @Override
+                        public void myExecute() {
+                            handler.complete(processTaskStepVo);
+                        }
+                    });
+                } catch (ProcessTaskNoPermissionException e) {
+                    logger.error(e.getMessage(true), e);
+                }
+            }
+        }
+    }
     private Object parseMappingValue(ProcessTaskStepVo currentProcessTaskStepVo, String mappingMode, String value) {
         if ("form".equals(mappingMode)) {
             List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataVoList = processTaskMapper.getProcessTaskStepFormAttributeDataByProcessTaskId(currentProcessTaskStepVo.getProcessTaskId());

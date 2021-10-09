@@ -23,10 +23,7 @@ import codedriver.framework.exception.type.ParamIrregularException;
 import codedriver.framework.integration.authentication.costvalue.AuthenticateType;
 import codedriver.framework.util.RestUtil;
 import codedriver.module.autoexec.core.AutoexecJobAuthActionManager;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.JSONValidator;
+import com.alibaba.fastjson.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -34,6 +31,8 @@ import org.apache.cxf.jaxrs.utils.HttpUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
@@ -742,4 +741,12 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         jobVo.setCurrentPhaseSort(0);
         return jobVo;
     }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void validateCreateJob(JSONObject param, boolean isNeedAuth) {
+        AutoexecJobVo jobVo = validateCreateJobFromCombop(param, isNeedAuth);
+        fire(jobVo);
+    }
+
 }
