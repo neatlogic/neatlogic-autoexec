@@ -76,12 +76,12 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         Long jobId = paramObj.getLong("jobId");
         JSONObject passThroughEnv = paramObj.getJSONObject("passThroughEnv");
-        Integer runnerId = 0;
+        Long runnerId = 0L;
         if(MapUtils.isNotEmpty(passThroughEnv)){
             if(!passThroughEnv.containsKey("runnerId")){
                 throw new AutoexecJobRunnerNotFoundException("runnerId");
             }else {
-                runnerId = passThroughEnv.getInteger("runnerId");
+                runnerId = passThroughEnv.getLong("runnerId");
             }
         }
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);

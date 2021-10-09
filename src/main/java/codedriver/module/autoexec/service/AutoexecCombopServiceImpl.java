@@ -150,6 +150,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                 String operationName = autoexecCombopPhaseOperationVo.getName();
                 List<? extends AutoexecParamVo> autoexecParamVoList = null;
                 Map<String, AutoexecParamVo> inputParamMap = new HashMap<>();
+                Map<String, String> inputParamNameMap = new HashMap<>();
                 AutoexecParamVo argumentParam = null;
                 if (Objects.equals(autoexecCombopPhaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
                     if (autoexecScriptMapper.checkScriptIsExistsById(operationId) == 0) {
@@ -169,7 +170,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                             autoexecParamVoList = paramArray.toJavaList(AutoexecParamVo.class);
                         }
                         JSONObject argumentJson = toolConfig.getJSONObject("argument");
-                        if(MapUtils.isNotEmpty(argumentJson)) {
+                        if (MapUtils.isNotEmpty(argumentJson)) {
                             argumentParam = new AutoexecParamVo(argumentJson);
                         }
                     }
@@ -178,6 +179,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                     for (AutoexecParamVo paramVo : autoexecParamVoList) {
                         if (Objects.equals(paramVo.getMode(), ParamMode.INPUT.getValue())) {
                             inputParamMap.put(paramVo.getKey(), paramVo);
+                            inputParamNameMap.put(paramVo.getKey(), paramVo.getName());
                         } else if (Objects.equals(paramVo.getMode(), ParamMode.OUTPUT.getValue())) {
                             preNodeOutputParamMap.put(uuid + "&&" + operationName + "&&" + operationUuid + "&&" + paramVo.getKey(), paramVo);
                         }
@@ -188,13 +190,21 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                 if (operationConfig != null) {
                     //验证输入参数
                     List<ParamMappingVo> paramMappingList = operationConfig.getParamMappingList();
-                    validateParam(paramMappingList ,inputParamMap,null,runtimeParamMap,preNodeOutputParamMap);
+                    validateParam(paramMappingList, inputParamMap, null, runtimeParamMap, preNodeOutputParamMap);
                     //验证自由参数
                     List<ParamMappingVo> argumentMappingList = operationConfig.getArgumentMappingList();
-                    validateParam(argumentMappingList ,inputParamMap,argumentParam,runtimeParamMap,preNodeOutputParamMap);
+                    validateParam(argumentMappingList, inputParamMap, argumentParam, runtimeParamMap, preNodeOutputParamMap);
                 }
                 if (MapUtils.isNotEmpty(inputParamMap)) {
-                    throw new AutoexecParamMappingNotMappedException(String.join("、", inputParamMap.keySet()));
+                    Set<String> inputParamSet = new HashSet<>();
+                    for(String key : inputParamMap.keySet()){
+                        if(inputParamMap.containsKey(key)) {
+                            inputParamSet.add(inputParamNameMap.get(key) + "(" + key + ")");
+                        }else{
+                            inputParamSet.add(key);
+                        }
+                    }
+                    throw new AutoexecParamMappingNotMappedException(String.join("、", inputParamSet));
                 }
             }
         }
@@ -224,27 +234,28 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
 
     /**
      * 校验填写的入参值
-     * @param mappingList 入参|自由参
-     * @param inputParamMap 输入参数
-     * @param argumentParam 自由参数
-     * @param runtimeParamMap 运行参数
+     *
+     * @param mappingList           入参|自由参
+     * @param inputParamMap         输入参数
+     * @param argumentParam         自由参数
+     * @param runtimeParamMap       运行参数
      * @param preNodeOutputParamMap 上游节点出参
      */
-    private void validateParam(List<ParamMappingVo> mappingList ,Map<String, AutoexecParamVo> inputParamMap,AutoexecParamVo argumentParam,Map<String, AutoexecCombopParamVo> runtimeParamMap,Map<String, AutoexecParamVo> preNodeOutputParamMap){
+    private void validateParam(List<ParamMappingVo> mappingList, Map<String, AutoexecParamVo> inputParamMap, AutoexecParamVo argumentParam, Map<String, AutoexecCombopParamVo> runtimeParamMap, Map<String, AutoexecParamVo> preNodeOutputParamMap) {
         if (CollectionUtils.isNotEmpty(mappingList)) {
-            AutoexecParamVo inputParamVo ;
+            AutoexecParamVo inputParamVo;
             String key;
             for (ParamMappingVo paramMappingVo : mappingList) {
                 if (paramMappingVo == null) {
                     continue;
                 }
-                if(argumentParam == null) {
+                if (argumentParam == null) {
                     key = paramMappingVo.getKey();
                     inputParamVo = inputParamMap.remove(key);
                     if (inputParamVo == null) {
                         throw new AutoexecParamNotFoundException(key);
                     }
-                }else{
+                } else {
                     inputParamVo = argumentParam;
                     key = "argument";
                 }
@@ -310,7 +321,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
     }
 
     @Override
-    public String getOperationActiveVersionScriptByOperationId(Long operationId){
+    public String getOperationActiveVersionScriptByOperationId(Long operationId) {
         AutoexecScriptVersionVo scriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(operationId);
         if (scriptVersionVo == null) {
             throw new AutoexecScriptVersionHasNoActivedException(operationId.toString());
@@ -319,11 +330,11 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
     }
 
     @Override
-    public String getOperationActiveVersionScriptByOperation(AutoexecScriptVersionVo scriptVersionVo){
+    public String getOperationActiveVersionScriptByOperation(AutoexecScriptVersionVo scriptVersionVo) {
         List<AutoexecScriptLineVo> scriptLineVoList = autoexecScriptMapper.getLineListByVersionId(scriptVersionVo.getId());
         StringBuilder scriptSb = new StringBuilder();
         for (AutoexecScriptLineVo lineVo : scriptLineVoList) {
-            if(StringUtils.isNotBlank(lineVo.getContent())) {
+            if (StringUtils.isNotBlank(lineVo.getContent())) {
                 scriptSb.append(lineVo.getContent()).append("\n");
             }
         }
