@@ -1,3 +1,8 @@
+/*
+ * Copyright(c) 2021 TechSure Co., Ltd. All Rights Reserved.
+ * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
+ */
+
 package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
@@ -47,7 +52,7 @@ public class AutoexecScriptFulltextIndexRebuildApi extends PrivateApiComponentBa
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONArray versionIdArray = jsonObj.getJSONArray("versionIdList");
         List<Long> versionIdList;
-        IFullTextIndexHandler handler = FullTextIndexHandlerFactory.getComponent(AutoexecFullTextIndexType.SCRIPT_DOCUMENT_VERSION);
+        IFullTextIndexHandler handler = FullTextIndexHandlerFactory.getHandler(AutoexecFullTextIndexType.SCRIPT_DOCUMENT_VERSION);
         if (handler != null) {
             if (CollectionUtils.isNotEmpty(versionIdArray)) {
                 versionIdList = versionIdArray.toJavaList(Long.class);

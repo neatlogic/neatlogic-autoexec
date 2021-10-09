@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 2021. TechSure Co., Ltd. All Rights Reserved.
+ * Copyright(c) 2021 TechSure Co., Ltd. All Rights Reserved.
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  */
 
@@ -162,7 +162,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             // 保存脚本内容
             autoexecScriptService.saveLineList(scriptVo.getId(), scriptVo.getVersionId(), scriptVo.getLineList());
             // 创建全文索引
-            IFullTextIndexHandler fullTextIndexHandler = FullTextIndexHandlerFactory.getComponent(AutoexecFullTextIndexType.SCRIPT_DOCUMENT_VERSION);
+            IFullTextIndexHandler fullTextIndexHandler = FullTextIndexHandlerFactory.getHandler(AutoexecFullTextIndexType.SCRIPT_DOCUMENT_VERSION);
             if (fullTextIndexHandler != null) {
                 fullTextIndexHandler.createIndex(versionVo.getId());
             }
