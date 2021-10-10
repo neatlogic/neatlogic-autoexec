@@ -132,7 +132,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 RunnerMapVo runnerMapVo = runnerMapList.get(runnerMapIndex);
                 AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), jobPhaseVo.getId(), "runner", JobNodeStatus.PENDING.getValue(), userName, protocol);
                 autoexecJobMapper.insertJobPhaseNode(nodeVo);
-                runnerMapper.insertRunnerMap(runnerMapVo);
                 autoexecJobMapper.insertJobPhaseNodeRunner(nodeVo.getId(), runnerMapVo.getRunnerMapId());
                 autoexecJobMapper.insertJobPhaseRunner(nodeVo.getJobId(), nodeVo.getJobPhaseId(), runnerMapVo.getRunnerMapId());
             }
@@ -260,7 +259,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
      * @param ip 目标ip
      * @return runnerId
      */
-    private Integer getRunnerByIp(String ip) {
+    private Long getRunnerByIp(String ip) {
         List<GroupNetworkVo> networkVoList = runnerMapper.getAllNetworkMask();
         for (GroupNetworkVo networkVo : networkVoList) {
             if (IpUtil.isBelongSegment(ip, networkVo.getNetworkIp(), networkVo.getMask())) {
@@ -270,6 +269,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                     throw new AutoexecJobRunnerGroupRunnerNotFoundException(networkVo.getGroupId().toString());
                 }
                 RunnerMapVo runnerMapVo = groupVo.getRunnerMapList().get(runnerMapIndex);
+                if(runnerMapVo.getRunnerMapId() == null){
+                    runnerMapVo.setRunnerMapId(runnerMapVo.getId());
+                    runnerMapper.insertRunnerMap(runnerMapVo);
+                }
                 return runnerMapVo.getRunnerMapId();
             }
         }
