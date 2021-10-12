@@ -1,5 +1,7 @@
 package codedriver.module.autoexec.api.schedule;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScheduleMapper;
 import codedriver.framework.autoexec.dto.schedule.AutoexecScheduleVo;
 import codedriver.framework.autoexec.exception.AutoexecScheduleNotFoundException;
@@ -13,8 +15,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 
 @Service
-//@AuthAction(action = SCHEDULE_JOB_MODIFY.class)
-
+@AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecScheduleGetApi extends PrivateApiComponentBase {
 

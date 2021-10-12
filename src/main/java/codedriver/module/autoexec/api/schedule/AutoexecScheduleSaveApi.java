@@ -2,14 +2,18 @@ package codedriver.module.autoexec.api.schedule;
 
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScheduleMapper;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.schedule.AutoexecScheduleVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScheduleNameRepeatException;
 import codedriver.framework.autoexec.exception.AutoexecScheduleNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.dto.FieldValidResultVo;
+import codedriver.framework.exception.type.PermissionDeniedException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.IValid;
@@ -21,16 +25,18 @@ import codedriver.framework.scheduler.exception.ScheduleHandlerNotFoundException
 import codedriver.framework.scheduler.exception.ScheduleIllegalParameterException;
 import codedriver.framework.scheduler.exception.ScheduleJobNameRepeatException;
 import codedriver.module.autoexec.schedule.plugin.AutoexecScheduleJob;
+import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
+import org.checkerframework.checker.units.qual.A;
 import org.quartz.CronExpression;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Objects;
 
 @Service
-//@AuthAction(action = SCHEDULE_JOB_MODIFY.class)
-
+@AuthAction(action = AUTOEXEC_BASE.class)
 @Transactional
 @OperationType(type = OperationTypeEnum.CREATE)
 public class AutoexecScheduleSaveApi extends PrivateApiComponentBase {
@@ -38,6 +44,8 @@ public class AutoexecScheduleSaveApi extends PrivateApiComponentBase {
     private AutoexecScheduleMapper autoexecScheduleMapper;
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
+    @Resource
+    private AutoexecCombopService autoexecCombopService;
     @Resource
     private SchedulerManager schedulerManager;
 
@@ -63,7 +71,8 @@ public class AutoexecScheduleSaveApi extends PrivateApiComponentBase {
             @Param(name = "beginTime", type = ApiParamType.LONG, desc = "开始时间"),
             @Param(name = "endTime", type = ApiParamType.LONG, desc = "结束时间"),
             @Param(name = "cron", type = ApiParamType.STRING, isRequired = true, desc = "corn表达式"),
-            @Param(name = "isActive", type = ApiParamType.ENUM, isRequired = true, rule = "0,1", desc = "是否激活(0:禁用，1：激活)")
+            @Param(name = "isActive", type = ApiParamType.ENUM, isRequired = true, rule = "0,1", desc = "是否激活(0:禁用，1：激活)"),
+            @Param(name = "config", type = ApiParamType.JSONOBJECT, desc = "执行配置信息，包含param、executeConfig、threadCount等字段")
     })
     @Output({
             @Param(name = "id", type = ApiParamType.STRING, isRequired = true, desc = "定时作业id")
@@ -72,8 +81,13 @@ public class AutoexecScheduleSaveApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long autoexecCombopId = paramObj.getLong("autoexecCombopId");
-        if (autoexecCombopMapper.checkAutoexecCombopIsExists(autoexecCombopId) == 0) {
+        AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(autoexecCombopId);
+        if (autoexecCombopVo == null) {
             throw new AutoexecCombopNotFoundException(autoexecCombopId);
+        }
+        autoexecCombopService.setOperableButtonList(autoexecCombopVo);
+        if (Objects.equals(autoexecCombopVo.getExecutable(), 0)) {
+            throw new PermissionDeniedException();
         }
         String cron = paramObj.getString("cron");
         if (!CronExpression.isValidExpression(cron)) {

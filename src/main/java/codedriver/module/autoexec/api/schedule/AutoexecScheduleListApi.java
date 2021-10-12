@@ -1,5 +1,7 @@
 package codedriver.module.autoexec.api.schedule;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecMapper;
@@ -25,8 +27,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-//@AuthAction(action = SCHEDULE_JOB_MODIFY.class)
-
+@AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecScheduleListApi extends PrivateApiComponentBase {
 
