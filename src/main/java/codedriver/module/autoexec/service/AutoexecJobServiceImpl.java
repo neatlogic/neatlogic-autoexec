@@ -6,10 +6,7 @@
 package codedriver.module.autoexec.service;
 
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
-import codedriver.framework.autoexec.constvalue.CombopOperationType;
-import codedriver.framework.autoexec.constvalue.ExecMode;
-import codedriver.framework.autoexec.constvalue.JobNodeStatus;
-import codedriver.framework.autoexec.constvalue.JobStatus;
+import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
@@ -75,7 +72,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         }
         AutoexecJobVo jobVo = new AutoexecJobVo(combopVo, invokeVo.getSource(), threadCount, paramJson);
         invokeVo.setJobId(jobVo.getId());
-        autoexecJobMapper.insertIgnoreIntoJobInvoke(invokeVo);
+        if(!Objects.equals(JobSource.HUMAN.getValue(),invokeVo.getSource())) {
+            autoexecJobMapper.insertIgnoreIntoJobInvoke(invokeVo);
+        }
         //保存作业基本信息
         autoexecJobMapper.insertJob(jobVo);
         autoexecJobMapper.insertJobParamContent(new AutoexecJobParamContentVo(jobVo.getParamHash(), jobVo.getParamStr()));

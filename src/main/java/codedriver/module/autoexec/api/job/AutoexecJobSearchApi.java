@@ -7,15 +7,14 @@ package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
-import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
-import codedriver.module.autoexec.service.AutoexecCombopService;
+import codedriver.framework.util.TableResultUtil;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -36,12 +35,6 @@ public class AutoexecJobSearchApi extends PrivateApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
 
-    @Resource
-    AutoexecCombopMapper autoexecCombopMapper;
-
-    @Resource
-    AutoexecCombopService autoexecCombopService;
-
     @Override
     public String getName() {
         return "作业搜索（作业执行列表）";
@@ -58,6 +51,7 @@ public class AutoexecJobSearchApi extends PrivateApiComponentBase {
             @Param(name = "typeIdList", type = ApiParamType.JSONARRAY, desc = "组合工具类型"),
             @Param(name = "combopName", type = ApiParamType.STRING, desc = "组合工具"),
             @Param(name = "combopId", type = ApiParamType.LONG, desc = "组合工具Id"),
+            @Param(name = "scheduleId", type = ApiParamType.LONG, desc = "组合工具定时作业Id"),
             @Param(name = "startTime", type = ApiParamType.JSONOBJECT, desc = "时间过滤"),
             @Param(name = "execUserList", type = ApiParamType.JSONARRAY, desc = "操作人"),
             @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
@@ -71,14 +65,15 @@ public class AutoexecJobSearchApi extends PrivateApiComponentBase {
     @Description(desc = "作业搜索（作业执行视图）")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        JSONObject result = new JSONObject();
         AutoexecJobVo jobVo = new AutoexecJobVo(jsonObj);
-        List<Long> jobIdList = autoexecJobMapper.searchJobId(jobVo);
         List<AutoexecJobVo> jobVoList = new ArrayList<>();
-        if(CollectionUtils.isNotEmpty(jobIdList)) {
-            jobVoList = autoexecJobMapper.searchJob(jobIdList);
-        }
-      /*  jobVoList.forEach(j -> {
+        int rowNum = autoexecJobMapper.searchJobCount(jobVo);
+        if (rowNum > 0) {
+            jobVo.setRowNum(rowNum);
+            List<Long> jobIdList = autoexecJobMapper.searchJobId(jobVo);
+            if (CollectionUtils.isNotEmpty(jobIdList)) {
+                jobVoList = autoexecJobMapper.searchJob(jobIdList);
+                /*  jobVoList.forEach(j -> {
             //判断是否有编辑权限
             if(Objects.equals(j.getOperationType(), CombopOperationType.COMBOP.getValue())) {
                 AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(j.getOperationId());
@@ -91,16 +86,9 @@ public class AutoexecJobSearchApi extends PrivateApiComponentBase {
                 }
             }
         });*/
-        result.put("tbodyList", jobVoList);
-        if (jobVo.getNeedPage()) {
-            int rowNum = autoexecJobMapper.searchJobCount(jobVo);
-            jobVo.setRowNum(rowNum);
-            result.put("currentPage", jobVo.getCurrentPage());
-            result.put("pageSize", jobVo.getPageSize());
-            result.put("pageCount", jobVo.getPageCount());
-            result.put("rowNum", jobVo.getRowNum());
+            }
         }
-        return result;
+        return TableResultUtil.getResult(jobVoList, jobVo);
     }
 
     @Override
