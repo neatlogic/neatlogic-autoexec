@@ -27,7 +27,6 @@ import codedriver.framework.scheduler.exception.ScheduleJobNameRepeatException;
 import codedriver.module.autoexec.schedule.plugin.AutoexecScheduleJob;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
-import org.checkerframework.checker.units.qual.A;
 import org.quartz.CronExpression;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
