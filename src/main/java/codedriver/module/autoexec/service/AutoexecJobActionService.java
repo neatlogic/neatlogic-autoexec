@@ -61,10 +61,19 @@ public interface AutoexecJobActionService {
      * 下载剧本节点执行日志
      *
      * @param paramJson 入参
-     * @param response
-     * @throws IOException
+     * @param response 响应
+     * @throws IOException io异常
      */
     void downloadNodeLog(JSONObject paramJson, HttpServletResponse response) throws IOException;
+
+    /**
+     * 下载剧本节点执行记录
+     *
+     * @param paramJson 入参
+     * @param response 响应
+     * @throws IOException io异常
+     */
+    void downloadNodeAudit(JSONObject paramJson, HttpServletResponse response) throws IOException;
 
     /**
      * 暂停作业
@@ -93,14 +102,6 @@ public interface AutoexecJobActionService {
      * @param jobPhase 作业剧本
      */
     public void ignore(AutoexecJobPhaseVo jobPhase);
-
-    /**
-     * 下载作业剧本节点执行情况
-     *
-     * @param jobPhaseNode 作业剧本节点
-     * @param path         日志path
-     */
-    void logDownload(AutoexecJobPhaseNodeVo jobPhaseNode, String path);
 
     /**
      * 获取作业剧本节点执行记录

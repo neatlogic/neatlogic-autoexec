@@ -412,6 +412,16 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     }
 
     @Override
+    public void downloadNodeAudit(JSONObject paramJson, HttpServletResponse response) throws IOException {
+        String url = paramJson.getString("runnerUrl") + "/api/binary/job/phase/node/audit/download";
+        RestVo restVo = new RestVo(url, AuthenticateType.BUILDIN.getValue(), paramJson);
+        String result = RestUtil.sendGetRequestForStream(restVo, response);
+        if (StringUtils.isNotBlank(result)) {
+            throw new AutoexecJobRunnerConnectAuthException(restVo.getUrl() + ":" + result);
+        }
+    }
+
+    @Override
     public JSONObject tailConsoleLog(JSONObject paramJson) {
         String url = paramJson.getString("runnerUrl") + "/api/rest/job/console/log/tail";
         return JSONObject.parseObject(requestRunner(url, paramJson));
@@ -557,17 +567,6 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
      */
     @Override
     public void ignore(AutoexecJobPhaseVo jobPhase) {
-
-    }
-
-    /**
-     * 下载作业剧本节点执行情况
-     *
-     * @param jobPhaseNode 作业剧本节点
-     * @param path         日志path
-     */
-    @Override
-    public void logDownload(AutoexecJobPhaseNodeVo jobPhaseNode, String path) {
 
     }
 
@@ -726,9 +725,6 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             throw new AutoexecCombopNotFoundException(combopId);
         }
 
-        if(combopVo.getIsActive() != 1){
-            throw new AutoexecCombopNotActiveException(combopVo.getName());
-        }
         //作业执行权限校验
         if (isNeedAuth) {
             autoexecCombopService.setOperableButtonList(combopVo);
