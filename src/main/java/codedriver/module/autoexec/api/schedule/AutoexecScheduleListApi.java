@@ -15,6 +15,7 @@ import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.util.TableResultUtil;
+import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
@@ -36,6 +37,8 @@ public class AutoexecScheduleListApi extends PrivateApiComponentBase {
     private AutoexecCombopMapper autoexecCombopMapper;
     @Resource
     private AutoexecJobMapper autoexecJobMapper;
+    @Resource
+    private AutoexecCombopService autoexecCombopService;
 
     @Override
     public String getToken() {
@@ -81,13 +84,17 @@ public class AutoexecScheduleListApi extends PrivateApiComponentBase {
                 autoexecScheduleList = autoexecScheduleMapper.getAutoexecScheduleList(searchVo);
                 Set<Long> autoexecCombopIdSet = autoexecScheduleList.stream().map(AutoexecScheduleVo::getAutoexecCombopId).collect(Collectors.toSet());
                 List<AutoexecCombopVo> autoexecCombopVoList = autoexecCombopMapper.getAutoexecCombopListByIdList(new ArrayList<>(autoexecCombopIdSet));
-                Map<Long, String> autoexecCombopNameMap = autoexecCombopVoList.stream().collect(Collectors.toMap(e -> e.getId(), e -> e.getName()));
+                Map<Long, AutoexecCombopVo> autoexecCombopMap = autoexecCombopVoList.stream().collect(Collectors.toMap(e -> e.getId(), e -> e));
                 List<Long> idList = autoexecScheduleList.stream().map(AutoexecScheduleVo::getId).collect(Collectors.toList());
                 List<AutoexecJobInvokeVo> execCountList = autoexecJobMapper.getJobIdCountListByInvokeIdList(idList);
                 Map<Long, Integer> execCountMap = execCountList.stream().collect(Collectors.toMap(e -> e.getInvokeId(), e -> e.getCount()));
                 for (AutoexecScheduleVo autoexecScheduleVo : autoexecScheduleList) {
-                    String autoexecCombopName = autoexecCombopNameMap.get(autoexecScheduleVo.getAutoexecCombopId());
-                    autoexecScheduleVo.setAutoexecCombopName(autoexecCombopName);
+                    AutoexecCombopVo autoexecCombopVo = autoexecCombopMap.get(autoexecScheduleVo.getAutoexecCombopId());
+                    autoexecScheduleVo.setAutoexecCombopName(autoexecCombopVo.getName());
+                    autoexecCombopService.setOperableButtonList(autoexecCombopVo);
+                    Integer executable = autoexecCombopVo.getExecutable();
+                    autoexecScheduleVo.setDeletable(executable);
+                    autoexecScheduleVo.setEditable(executable);
                     Integer execCount = execCountMap.get(autoexecScheduleVo.getId());
                     if (execCount != null) {
                         autoexecScheduleVo.setExecCount(execCount);

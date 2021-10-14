@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.schedule.plugin;
 
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
+import codedriver.framework.autoexec.constvalue.JobSource;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScheduleMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
@@ -88,10 +89,10 @@ public class AutoexecScheduleJob extends JobBase {
     public void executeInternal(JobExecutionContext context, JobObject jobObject) throws Exception {
         String uuid = jobObject.getJobName();
         AutoexecScheduleVo autoexecScheduleVo = autoexecScheduleMapper.getAutoexecScheduleByUuid(uuid);
-        System.out.println(new Date() + "执行定时作业：'" + autoexecScheduleVo.getName() + "'");
+//        System.out.println(new Date() + "执行定时作业：'" + autoexecScheduleVo.getName() + "'");
         JSONObject paramObj = autoexecScheduleVo.getConfig();
         paramObj.put("combopId", autoexecScheduleVo.getAutoexecCombopId());
-        paramObj.put("source", "autoexecSchedule");
+        paramObj.put("source", JobSource.AUTOEXEC_SCHEDULE.getValue());
         paramObj.put("invokeId", autoexecScheduleVo.getId());
         UserContext.init(userMapper.getUserByUuid(autoexecScheduleVo.getFcu()), SystemUser.SYSTEM.getTimezone());
         AutoexecJobVo jobVo = autoexecJobActionService.validateCreateJobFromCombop(paramObj, false);
