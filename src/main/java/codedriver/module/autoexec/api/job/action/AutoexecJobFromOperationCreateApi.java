@@ -131,8 +131,6 @@ public class AutoexecJobFromOperationCreateApi extends PrivateApiComponentBase {
     private AutoexecCombopVo buildCombopVo(JSONObject jsonObj) {
         Long operationId = jsonObj.getLong("operationId");
         String type = jsonObj.getString("type");
-        JSONObject paramJson = jsonObj.getJSONObject("param");
-        String source = jsonObj.getString("source");
         AutoexecScriptVersionVo scriptVersionVo;
         AutoexecToolVo toolVo;
         AutoexecCombopVo combopVo = new AutoexecCombopVo();

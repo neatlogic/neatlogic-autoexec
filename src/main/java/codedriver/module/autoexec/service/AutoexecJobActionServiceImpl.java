@@ -97,7 +97,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         String url;
         runnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobVo.getId(), jobVo.getPhaseIdList());
         for (RunnerMapVo runner : runnerVos) {
-            if(runner.getId() == null){
+            if (runner.getId() == null) {
                 throw new AutoexecJobRunnerMapNotMatchRunnerException(runner.getRunnerMapId());
             }
             url = runner.getUrl() + "api/rest/health/check";
@@ -172,7 +172,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     public void refire(AutoexecJobVo jobVo, String type) {
         jobVo.setAction(type);
         if (Objects.equals(type, JobAction.RESET_REFIRE.getValue())) {
-            if(CollectionUtils.isEmpty(jobVo.getPhaseList())){
+            if (CollectionUtils.isEmpty(jobVo.getPhaseList())) {
                 jobVo.setPhaseList(autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId()));
             }
             new AutoexecJobAuthActionManager.Builder().addReFireJob().build().setAutoexecJobAction(jobVo);
@@ -188,9 +188,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
              * 1、优先寻找pending|aborted|paused|failed phaseList
              * 2、没有满足1条件的，再寻找pending|aborted|paused|failed node 最小sort phaseList
              */
-            List<AutoexecJobPhaseVo> autoexecJobPhaseVos = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobVo.getId(), Arrays.asList(JobPhaseStatus.PENDING.getValue(),JobPhaseStatus.ABORTED.getValue(), JobPhaseStatus.PAUSED.getValue(), JobPhaseStatus.FAILED.getValue()));
+            List<AutoexecJobPhaseVo> autoexecJobPhaseVos = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobVo.getId(), Arrays.asList(JobPhaseStatus.PENDING.getValue(), JobPhaseStatus.ABORTED.getValue(), JobPhaseStatus.PAUSED.getValue(), JobPhaseStatus.FAILED.getValue()));
             if (CollectionUtils.isEmpty(autoexecJobPhaseVos)) {
-                autoexecJobPhaseVos = autoexecJobMapper.getJobPhaseListByJobIdAndNodeStatusList(jobVo.getId(),Arrays.asList(JobPhaseStatus.PENDING.getValue(),JobPhaseStatus.ABORTED.getValue(), JobPhaseStatus.PAUSED.getValue(), JobPhaseStatus.FAILED.getValue()));
+                autoexecJobPhaseVos = autoexecJobMapper.getJobPhaseListByJobIdAndNodeStatusList(jobVo.getId(), Arrays.asList(JobPhaseStatus.PENDING.getValue(), JobPhaseStatus.ABORTED.getValue(), JobPhaseStatus.PAUSED.getValue(), JobPhaseStatus.FAILED.getValue()));
             }
             sort = autoexecJobPhaseVos.get(0).getSort();
             //int finalSort = sort;
@@ -199,7 +199,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             autoexecJobService.getAutoexecJobDetail(jobVo, sort);
             //补充配置，只保留满足条件（该sort下，未开始、失败、已暂停或已中止）的phase
             //jobVo.setPhaseList(jobVo.getPhaseList().stream().filter(o -> jobPhaseIdList.contains(o.getId())).collect(Collectors.toList()));
-            if(CollectionUtils.isNotEmpty(jobVo.getPhaseList())){
+            if (CollectionUtils.isNotEmpty(jobVo.getPhaseList())) {
                 new AutoexecJobAuthActionManager.Builder().addReFireJob().build().setAutoexecJobAction(jobVo);
             }
         } else if (Objects.equals(type, JobAction.REFIRE_NODE.getValue())) {
@@ -370,15 +370,17 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     private Object getValueByParamType(JSONObject param) {
         String type = param.getString("type");
         Object value = param.get("value");
-        if (Objects.equals(type, ParamType.FILE.getValue())) {
-            value = JSONObject.parseObject(value.toString()).getJSONArray("fileIdList");
-        } else if (Objects.equals(type, ParamType.NODE.getValue())) {
-            JSONArray nodeJsonArray = JSONObject.parseArray(value.toString());
-            for (Object node : nodeJsonArray) {
-                JSONObject nodeJson = (JSONObject) node;
-                nodeJson.put("ip", nodeJson.getString("host"));
+        if(value != null) {
+            if (Objects.equals(type, ParamType.FILE.getValue())) {
+                value = JSONObject.parseObject(value.toString()).getJSONArray("fileIdList");
+            } else if (Objects.equals(type, ParamType.NODE.getValue())) {
+                JSONArray nodeJsonArray = JSONObject.parseArray(value.toString());
+                for (Object node : nodeJsonArray) {
+                    JSONObject nodeJson = (JSONObject) node;
+                    nodeJson.put("ip", nodeJson.getString("host"));
+                }
+                value = nodeJsonArray;
             }
-            value = nodeJsonArray;
         }
         return value;
     }
@@ -398,13 +400,13 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         String port = StringUtils.EMPTY;
         String execMode = paramJson.getString("execMode");
         String resourceId = paramJson.getString("resourceId");
-        if(paramJson.getInteger("port") != null){
-            port = "port="+paramJson.getInteger("port");
+        if (paramJson.getInteger("port") != null) {
+            port = "port=" + paramJson.getInteger("port");
         }
-        String url = String.format("%s/api/binary/job/phase/node/log/download?jobId=%s&phase=%s&ip=%s&%s&execMode=%s&resourceId=%s", runnerUrl, jobId, HttpUtils.urlEncode(phase), ip, port, execMode,resourceId);
+        String url = String.format("%s/api/binary/job/phase/node/log/download?jobId=%s&phase=%s&ip=%s&%s&execMode=%s&resourceId=%s", runnerUrl, jobId, HttpUtils.urlEncode(phase), ip, port, execMode, resourceId);
         RestVo restVo = new RestVo(url, AuthenticateType.BUILDIN.getValue(), paramJson);
         String result = RestUtil.sendGetRequestForStream(restVo, response);
-        if(StringUtils.isNotBlank(result)) {
+        if (StringUtils.isNotBlank(result)) {
             throw new AutoexecJobRunnerConnectAuthException(restVo.getUrl() + ":" + result);
         }
     }
@@ -722,6 +724,10 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
         if (combopVo == null) {
             throw new AutoexecCombopNotFoundException(combopId);
+        }
+
+        if(combopVo.getIsActive() != 1){
+            throw new AutoexecCombopNotActiveException(combopVo.getName());
         }
         //作业执行权限校验
         if (isNeedAuth) {
