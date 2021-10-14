@@ -57,7 +57,7 @@ public class AutoexecJobPhaseNodeAuditDownloadApi extends PrivateBinaryStreamApi
             @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id", isRequired = true),
             @Param(name = "sqlName", type = ApiParamType.STRING, desc = "sql名"),
             @Param(name = "startTime", type = ApiParamType.STRING, desc = "执行开始时间", isRequired = true),
-            @Param(name = "endTime", type = ApiParamType.STRING, desc = "执行结束时间", isRequired = true),
+            @Param(name = "status", type = ApiParamType.STRING, desc = "执行状态", isRequired = true),
             @Param(name = "execUser", type = ApiParamType.STRING, desc = "执行用户", isRequired = true),
     })
     @Output({
@@ -91,7 +91,7 @@ public class AutoexecJobPhaseNodeAuditDownloadApi extends PrivateBinaryStreamApi
                 nodeVo.getJobPhaseName() + "-" + nodeVo.getHost() + "-" + nodeVo.getResourceId() + "-" + TimeUtil.convertStringToDate(startTime, TimeUtil.YYYYMMDD_HHMMSS) + "-" + execUser + ".txt");
         response.setContentType("text/plain");
         response.setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
-        autoexecJobActionService.downloadNodeLog(paramObj, response);
+        autoexecJobActionService.downloadNodeAudit(paramObj, response);
         return result;
     }
 

@@ -405,7 +405,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         }
         String url = String.format("%s/api/binary/job/phase/node/log/download?jobId=%s&phase=%s&ip=%s&%s&execMode=%s&resourceId=%s", runnerUrl, jobId, HttpUtils.urlEncode(phase), ip, port, execMode, resourceId);
         RestVo restVo = new RestVo(url, AuthenticateType.BUILDIN.getValue(), paramJson);
-        String result = RestUtil.sendGetRequestForStream(restVo, response);
+        String result = RestUtil.sendPostRequestForStream(restVo, response);
         if (StringUtils.isNotBlank(result)) {
             throw new AutoexecJobRunnerConnectAuthException(restVo.getUrl() + ":" + result);
         }
@@ -413,9 +413,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
 
     @Override
     public void downloadNodeAudit(JSONObject paramJson, HttpServletResponse response) throws IOException {
-        String url = paramJson.getString("runnerUrl") + "/api/binary/job/phase/node/audit/download";
+        String url = paramJson.getString("runnerUrl") + "/api/binary/job/phase/node/execute/audit/download";
         RestVo restVo = new RestVo(url, AuthenticateType.BUILDIN.getValue(), paramJson);
-        String result = RestUtil.sendGetRequestForStream(restVo, response);
+        String result = RestUtil.sendPostRequestForStream(restVo, response);
         if (StringUtils.isNotBlank(result)) {
             throw new AutoexecJobRunnerConnectAuthException(restVo.getUrl() + ":" + result);
         }
