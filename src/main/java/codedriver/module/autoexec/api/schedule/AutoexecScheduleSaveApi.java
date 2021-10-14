@@ -96,6 +96,13 @@ public class AutoexecScheduleSaveApi extends PrivateApiComponentBase {
         if (autoexecScheduleMapper.checkAutoexecScheduleNameIsExists(autoexecScheduleVo) > 0) {
             throw new ScheduleJobNameRepeatException(autoexecScheduleVo.getName());
         }
+
+        IJob jobHandler = SchedulerManager.getHandler(AutoexecScheduleJob.class.getName());
+        if (jobHandler == null) {
+            throw new ScheduleHandlerNotFoundException(AutoexecScheduleJob.class.getName());
+        }
+        String tenantUuid = TenantContext.get().getTenantUuid();
+
         Long id = paramObj.getLong("id");
         if (id != null) {
             AutoexecScheduleVo oldAutoexecScheduleVo = autoexecScheduleMapper.getAutoexecScheduleById(id);
@@ -103,27 +110,28 @@ public class AutoexecScheduleSaveApi extends PrivateApiComponentBase {
                 throw new AutoexecScheduleNotFoundException(id);
             }
             autoexecScheduleVo.setLcu(UserContext.get().getUserUuid(true));
+            autoexecScheduleVo.setUuid(oldAutoexecScheduleVo.getUuid());
             autoexecScheduleMapper.updateAutoexecSchedule(autoexecScheduleVo);
+            JobObject jobObject = new JobObject.Builder(autoexecScheduleVo.getUuid(), jobHandler.getGroupName(), jobHandler.getClassName(), tenantUuid)
+                    .withCron(autoexecScheduleVo.getCron()).withBeginTime(autoexecScheduleVo.getBeginTime())
+                    .withEndTime(autoexecScheduleVo.getEndTime())
+//                .needAudit(autoexecScheduleVo.getNeedAudit())
+                    .setType("private")
+                    .build();
+            schedulerManager.unloadJob(jobObject);
         } else {
             autoexecScheduleVo.setFcu(UserContext.get().getUserUuid(true));
             autoexecScheduleMapper.insertAutoexecSchedule(autoexecScheduleVo);
         }
 
-        IJob jobHandler = SchedulerManager.getHandler(AutoexecScheduleJob.class.getName());
-        if (jobHandler == null) {
-            throw new ScheduleHandlerNotFoundException(AutoexecScheduleJob.class.getName());
-        }
-        String tenantUuid = TenantContext.get().getTenantUuid();
-        JobObject jobObject = new JobObject.Builder(autoexecScheduleVo.getUuid(), jobHandler.getGroupName(), jobHandler.getClassName(), tenantUuid)
-                .withCron(autoexecScheduleVo.getCron()).withBeginTime(autoexecScheduleVo.getBeginTime())
-                .withEndTime(autoexecScheduleVo.getEndTime())
-//                .needAudit(autoexecScheduleVo.getNeedAudit())
-                .setType("private")
-                .build();
         if (autoexecScheduleVo.getIsActive().intValue() == 1) {
+            JobObject jobObject = new JobObject.Builder(autoexecScheduleVo.getUuid(), jobHandler.getGroupName(), jobHandler.getClassName(), tenantUuid)
+                    .withCron(autoexecScheduleVo.getCron()).withBeginTime(autoexecScheduleVo.getBeginTime())
+                    .withEndTime(autoexecScheduleVo.getEndTime())
+//                .needAudit(autoexecScheduleVo.getNeedAudit())
+                    .setType("private")
+                    .build();
             schedulerManager.loadJob(jobObject);
-        } else {
-            schedulerManager.unloadJob(jobObject);
         }
 
         JSONObject resultObj = new JSONObject();

@@ -67,6 +67,7 @@ public class AutoexecCombopExecutableListApi extends PrivateApiComponentBase {
             @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页条数")
     })
     @Output({
+            @Param(explode = BasePageVo.class),
             @Param(name = "tbodyList", explode = AutoexecCombopVo[].class, desc = "组合工具列表")
     })
     @Description(desc = "查询当前用户可执行的组合工具列表")
