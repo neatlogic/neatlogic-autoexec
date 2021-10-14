@@ -6,9 +6,12 @@
 package codedriver.module.autoexec.schedule.plugin;
 
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
+import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScheduleMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.dto.schedule.AutoexecScheduleVo;
+import codedriver.framework.common.constvalue.SystemUser;
+import codedriver.framework.dao.mapper.UserMapper;
 import codedriver.framework.scheduler.core.JobBase;
 import codedriver.framework.scheduler.dto.JobObject;
 import codedriver.module.autoexec.service.AutoexecJobActionService;
@@ -34,6 +37,9 @@ public class AutoexecScheduleJob extends JobBase {
 
     @Resource
     private AutoexecJobActionService autoexecJobActionService;
+
+    @Resource
+    UserMapper userMapper;
 
     @Override
     public String getGroupName() {
@@ -87,6 +93,7 @@ public class AutoexecScheduleJob extends JobBase {
         paramObj.put("combopId", autoexecScheduleVo.getAutoexecCombopId());
         paramObj.put("source", "autoexecSchedule");
         paramObj.put("invokeId", autoexecScheduleVo.getId());
+        UserContext.init(userMapper.getUserByUuid(autoexecScheduleVo.getFcu()), SystemUser.SYSTEM.getTimezone());
         AutoexecJobVo jobVo = autoexecJobActionService.validateCreateJobFromCombop(paramObj, false);
         autoexecJobActionService.fire(jobVo);
     }
