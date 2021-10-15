@@ -18,7 +18,7 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.service.AuthenticationInfoService;
 import codedriver.framework.util.TableResultUtil;
-import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -63,6 +63,7 @@ public class AutoexecCombopExecutableListApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "keyword", type = ApiParamType.STRING, desc = "模糊查询，支持名称或唯一标识"),
+            @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "默认值"),
             @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页数"),
             @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页条数")
     })
@@ -73,7 +74,15 @@ public class AutoexecCombopExecutableListApi extends PrivateApiComponentBase {
     @Description(desc = "查询当前用户可执行的组合工具列表")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        BasePageVo searchVo = JSON.toJavaObject(jsonObj, BasePageVo.class);
+        List<AutoexecCombopVo> autoexecCombopList = new ArrayList<>();
+        BasePageVo searchVo = JSONObject.toJavaObject(jsonObj, BasePageVo.class);
+        JSONArray defaultValue = searchVo.getDefaultValue();
+        if (CollectionUtils.isNotEmpty(defaultValue)) {
+            List<Long> idList = defaultValue.toJavaList(Long.class);
+            autoexecCombopList = autoexecCombopMapper.getAutoexecCombopListByIdList(idList);
+            searchVo.setRowNum(autoexecCombopList.size());
+            return TableResultUtil.getResult(autoexecCombopList, searchVo);
+        }
         String userUuid = UserContext.get().getUserUuid(true);
         AuthenticationInfoVo authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(userUuid);
         Set<Long> idSet = autoexecCombopMapper.getExecutableAutoexecCombopIdListByKeywordAndAuthenticationInfo(searchVo.getKeyword(), authenticationInfoVo);
@@ -81,7 +90,6 @@ public class AutoexecCombopExecutableListApi extends PrivateApiComponentBase {
         idList.sort(Comparator.reverseOrder());
         int rowNum = idList.size();
         searchVo.setRowNum(rowNum);
-        List<AutoexecCombopVo> autoexecCombopList = new ArrayList<>();
         if (searchVo.getCurrentPage() <= searchVo.getPageCount()) {
             int fromIndex = searchVo.getStartNum();
             int toIndex = fromIndex + searchVo.getPageSize();
