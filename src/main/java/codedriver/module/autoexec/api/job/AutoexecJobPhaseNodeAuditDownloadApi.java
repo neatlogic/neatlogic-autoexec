@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
 
 /**
  * @author lvzk
@@ -68,7 +69,7 @@ public class AutoexecJobPhaseNodeAuditDownloadApi extends PrivateBinaryStreamApi
         JSONObject result = new JSONObject();
         Long phaseId = paramObj.getLong("jobPhaseId");
         Long resourceId = paramObj.getLong("resourceId");
-        String startTime = paramObj.getString("startTime");
+        Long startTime = paramObj.getLong("startTime");
         String execUser = paramObj.getString("execUser");
         AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobPhaseIdAndResourceId(phaseId, resourceId);
         if (nodeVo == null) {
@@ -88,7 +89,7 @@ public class AutoexecJobPhaseNodeAuditDownloadApi extends PrivateBinaryStreamApi
         paramObj.put("runnerUrl", nodeVo.getRunnerUrl());
         paramObj.put("execMode", phaseVo.getExecMode());
         String fileName = FileUtil.getEncodedFileName(request.getHeader("User-Agent"),
-                nodeVo.getJobPhaseName() + "-" + nodeVo.getHost() + "-" + nodeVo.getResourceId() + "-" + TimeUtil.convertStringToDate(startTime, TimeUtil.YYYYMMDD_HHMMSS) + "-" + execUser + ".txt");
+                nodeVo.getJobPhaseName() + "-" + nodeVo.getHost() + "-" + nodeVo.getResourceId() + "-" + TimeUtil.convertDateToString(new Date(startTime), TimeUtil.YYYYMMDD_HHMMSS) + "-" + execUser + ".txt");
         response.setContentType("text/plain");
         response.setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
         autoexecJobActionService.downloadNodeAudit(paramObj, response);
