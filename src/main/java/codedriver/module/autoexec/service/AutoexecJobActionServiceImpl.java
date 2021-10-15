@@ -585,11 +585,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             JSONObject auditJson = (JSONObject) audit;
             AutoexecJobPhaseNodeAuditVo auditVo = new AutoexecJobPhaseNodeAuditVo(auditJson);
             auditVo.setExecUserVo(userMapper.getUserBaseInfoByUuidWithoutCache(auditVo.getExecUser()));
-            //TODO download
-            //auditVo.setDownloadPath(String.format(""));
             auditList.add(auditVo);
         }
-        return auditList;
+        return auditList.stream().sorted(Comparator.comparing(AutoexecJobPhaseNodeAuditVo::getStartTime).reversed()).collect(Collectors.toList());
     }
 
     @Override
