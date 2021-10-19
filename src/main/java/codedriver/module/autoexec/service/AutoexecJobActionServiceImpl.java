@@ -97,7 +97,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         String url;
         runnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobVo.getId(), jobVo.getPhaseIdList());
         for (RunnerMapVo runner : runnerVos) {
-            if (runner.getId() == null) {
+            if (runner.getRunnerMapId() == null) {
                 throw new AutoexecJobRunnerMapNotMatchRunnerException(runner.getRunnerMapId());
             }
             url = runner.getUrl() + "api/rest/health/check";
