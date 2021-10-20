@@ -84,8 +84,12 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         String userName = StringUtils.EMPTY;
         String protocol = StringUtils.EMPTY;
         if (nodeConfigVo != null) {
-            userName = nodeConfigVo.getExecuteUser();
-            protocol = nodeConfigVo.getProtocolId().toString();
+            if (StringUtils.isNotBlank(nodeConfigVo.getExecuteUser())) {
+                userName = nodeConfigVo.getExecuteUser();
+            }
+            if (nodeConfigVo.getProtocolId() != null) {
+                protocol = nodeConfigVo.getProtocolId().toString();
+            }
             //getJobNodeList(nodeConfigVo, jobVo.getId(), jobVo.getOperationId(), userName, protocol);
         }
         //保存阶段
