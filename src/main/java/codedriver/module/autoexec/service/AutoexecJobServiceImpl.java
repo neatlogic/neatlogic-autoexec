@@ -131,6 +131,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             } else {
                 List<RunnerMapVo> runnerMapList = runnerMapper.getAllRunnerMap();
                 //TODO 负载均衡
+                if(CollectionUtils.isEmpty(runnerMapList)) {
+                    throw new AutoexecJobRunnerNotMatchException();
+                }
                 int runnerMapIndex = (int) (Math.random() * runnerMapList.size());
                 RunnerMapVo runnerMapVo = runnerMapList.get(runnerMapIndex);
                 AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), jobPhaseVo.getId(), "runner", JobNodeStatus.PENDING.getValue(), userName, protocol);
