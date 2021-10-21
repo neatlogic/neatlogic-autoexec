@@ -78,14 +78,12 @@ public class AutoexecRiskSearchApi extends PrivateApiComponentBase {
             Map<Long, Integer> referenceCountForToolMap = new HashMap<>();
             Map<Long, Integer> referenceCountForScriptMap = new HashMap<>();
             if (CollectionUtils.isNotEmpty(referenceCountListForTool)) {
-                if (CollectionUtils.isNotEmpty(referenceCountListForTool)) {
-                    referenceCountForToolMap = referenceCountListForTool.stream()
-                            .collect(Collectors.toMap(AutoexecRiskVo::getId, AutoexecRiskVo::getReferenceCountForTool));
-                }
-                if (CollectionUtils.isNotEmpty(referenceCountListForScript)) {
-                    referenceCountForScriptMap = referenceCountListForScript.stream()
-                            .collect(Collectors.toMap(AutoexecRiskVo::getId, AutoexecRiskVo::getReferenceCountForScript));
-                }
+                referenceCountForToolMap = referenceCountListForTool.stream()
+                        .collect(Collectors.toMap(AutoexecRiskVo::getId, AutoexecRiskVo::getReferenceCountForTool));
+            }
+            if (CollectionUtils.isNotEmpty(referenceCountListForScript)) {
+                referenceCountForScriptMap = referenceCountListForScript.stream()
+                        .collect(Collectors.toMap(AutoexecRiskVo::getId, AutoexecRiskVo::getReferenceCountForScript));
             }
             for (AutoexecRiskVo riskVo : riskList) {
                 OperateVo edit = new OperateVo("edit", "编辑");
@@ -94,6 +92,8 @@ public class AutoexecRiskSearchApi extends PrivateApiComponentBase {
                 riskVo.getOperateList().add(delete);
                 Integer referenceCountForTool = referenceCountForToolMap.get(riskVo.getId());
                 Integer referenceCountForScript = referenceCountForScriptMap.get(riskVo.getId());
+                riskVo.setReferenceCountForTool(referenceCountForTool != null ? referenceCountForTool : 0);
+                riskVo.setReferenceCountForScript(referenceCountForScript != null ? referenceCountForScript : 0);
                 if (hasAuth) {
                     if ((referenceCountForTool != null && referenceCountForTool > 0) || (referenceCountForScript != null && referenceCountForScript > 0)) {
                         delete.setDisabled(1);
