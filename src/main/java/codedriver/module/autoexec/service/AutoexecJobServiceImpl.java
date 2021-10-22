@@ -270,10 +270,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         for (GroupNetworkVo networkVo : networkVoList) {
             if (IpUtil.isBelongSegment(ip, networkVo.getNetworkIp(), networkVo.getMask())) {
                 RunnerGroupVo groupVo = runnerMapper.getRunnerGroupById(networkVo.getGroupId());
-                int runnerMapIndex = (int) (Math.random() * groupVo.getRunnerMapList().size());
                 if(CollectionUtils.isEmpty(groupVo.getRunnerMapList())){
                     throw new AutoexecJobRunnerGroupRunnerNotFoundException(networkVo.getGroupId().toString());
                 }
+                int runnerMapIndex = (int) (Math.random() * groupVo.getRunnerMapList().size());
                 RunnerMapVo runnerMapVo = groupVo.getRunnerMapList().get(runnerMapIndex);
                 if(runnerMapVo.getRunnerMapId() == null){
                     runnerMapVo.setRunnerMapId(runnerMapVo.getId());
