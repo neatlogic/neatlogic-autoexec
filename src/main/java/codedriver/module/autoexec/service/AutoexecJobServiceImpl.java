@@ -72,7 +72,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         }
         AutoexecJobVo jobVo = new AutoexecJobVo(combopVo, invokeVo.getSource(), threadCount, paramJson);
         invokeVo.setJobId(jobVo.getId());
-        if(!Objects.equals(JobSource.HUMAN.getValue(),invokeVo.getSource())) {
+        if (!Objects.equals(JobSource.HUMAN.getValue(), invokeVo.getSource())) {
             autoexecJobMapper.insertIgnoreIntoJobInvoke(invokeVo);
         }
         //保存作业基本信息
@@ -131,7 +131,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             } else {
                 List<RunnerMapVo> runnerMapList = runnerMapper.getAllRunnerMap();
                 //TODO 负载均衡
-                if(CollectionUtils.isEmpty(runnerMapList)) {
+                if (CollectionUtils.isEmpty(runnerMapList)) {
                     throw new AutoexecJobRunnerNotMatchException();
                 }
                 int runnerMapIndex = (int) (Math.random() * runnerMapList.size());
@@ -180,7 +180,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     }
 
     @Override
-    public void refreshJobPhaseNodeList(Long jobId, int sort,AutoexecCombopExecuteConfigVo executeConfigVo) {
+    public void refreshJobPhaseNodeList(Long jobId, int sort, AutoexecCombopExecuteConfigVo executeConfigVo) {
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
         AutoexecCombopConfigVo configVo = JSON.toJavaObject(jobVo.getConfig(), AutoexecCombopConfigVo.class);
         //获取当前所有target阶段
@@ -189,7 +189,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         if (CollectionUtils.isNotEmpty(targetPhaseList)) {
             //获取组合工具执行目标 执行用户和协议
             //非空场景，用于重跑替换执行配置（执行目标，用户，协议）
-            if(executeConfigVo == null) {
+            if (executeConfigVo == null) {
                 executeConfigVo = configVo.getExecuteConfig();
             }
             String userName = StringUtils.EMPTY;
@@ -217,7 +217,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                         if (StringUtils.isNotBlank(phaseExecuteConfigVo.getExecuteUser())) {
                             userName = phaseExecuteConfigVo.getExecuteUser();
                         }
-                        if (phaseExecuteConfigVo.getProtocolId()!=null) {
+                        if (phaseExecuteConfigVo.getProtocolId() != null) {
                             protocol = phaseExecuteConfigVo.getProtocolId().toString();
                         }
                         if (phaseExecuteConfigVo.getExecuteNodeConfig() != null) {
@@ -269,13 +269,13 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         List<GroupNetworkVo> networkVoList = runnerMapper.getAllNetworkMask();
         for (GroupNetworkVo networkVo : networkVoList) {
             if (IpUtil.isBelongSegment(ip, networkVo.getNetworkIp(), networkVo.getMask())) {
-                RunnerGroupVo groupVo = runnerMapper.getRunnerGroupById(networkVo.getGroupId());
-                if(CollectionUtils.isEmpty(groupVo.getRunnerMapList())){
-                    throw new AutoexecJobRunnerGroupRunnerNotFoundException(networkVo.getGroupId().toString());
+                RunnerGroupVo groupVo = runnerMapper.getRunnerMapGroupById(networkVo.getGroupId());
+                if (CollectionUtils.isEmpty(groupVo.getRunnerMapList())) {
+                    throw new AutoexecJobRunnerGroupRunnerNotFoundException(groupVo.getName() + "(" + networkVo.getGroupId() + ") ");
                 }
                 int runnerMapIndex = (int) (Math.random() * groupVo.getRunnerMapList().size());
                 RunnerMapVo runnerMapVo = groupVo.getRunnerMapList().get(runnerMapIndex);
-                if(runnerMapVo.getRunnerMapId() == null){
+                if (runnerMapVo.getRunnerMapId() == null) {
                     runnerMapVo.setRunnerMapId(runnerMapVo.getId());
                     runnerMapper.insertRunnerMap(runnerMapVo);
                 }
@@ -364,7 +364,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                     AutoexecJobPhaseNodeVo jobPhaseNodeVo = new AutoexecJobPhaseNodeVo(resourceVo, jobId, phaseId, JobNodeStatus.PENDING.getValue(), userName, protocol, o.getPort());
                     jobPhaseNodeVo.setPort(resourceVo.getPort());
                     jobPhaseNodeVo.setRunnerMapId(getRunnerByIp(jobPhaseNodeVo.getHost()));
-                    if(jobPhaseNodeVo.getRunnerMapId() == null){
+                    if (jobPhaseNodeVo.getRunnerMapId() == null) {
                         throw new AutoexecJobRunnerNotMatchException(jobPhaseNodeVo.getHost());
                     }
                     autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
