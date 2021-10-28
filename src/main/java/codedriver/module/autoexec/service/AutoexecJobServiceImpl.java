@@ -382,7 +382,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     public boolean checkIsAllActivePhaseIsCompleted(Long jobId, Integer sort) {
         boolean isDone = false;
         Integer phaseNotCompletedCount = autoexecJobMapper.getJobPhaseNotCompletedCountByJobIdAndSort(jobId, sort);
-        Integer phaseRunnerNotCompletedCount = autoexecJobMapper.getJobPhaseRunnerNotCompletedCountByJobIdAndIsFireNext(jobId, sort);
+        Integer phaseRunnerNotCompletedCount = autoexecJobMapper.getJobPhaseRunnerNotCompletedCountByJobIdAndIsFireNext(jobId, 0, sort);
         if (phaseNotCompletedCount == 0 && phaseRunnerNotCompletedCount == 0) {
             isDone = true;
         }
