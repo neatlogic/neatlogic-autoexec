@@ -58,9 +58,9 @@ public class AutoexecJobAuthActionManager {
         });
 
         actionMap.put("abortJob", (jobVo) -> {
-            if (!Objects.equals(JobStatus.RUNNING.getValue(),jobVo.getStatus())) {
+            /*if (!Arrays.asList(JobStatus.ABORTED.getValue(),JobStatus.COMPLETED.getValue(),JobStatus.FAILED.getValue(),JobStatus.PAUSED.getValue()).contains(jobVo.getStatus())) {
                 throw new AutoexecJobCanNotAbortException(jobVo.getId().toString());
-            }
+            }*/
         });
 
         actionMap.put("goonJob", (jobVo) -> {

@@ -378,18 +378,15 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         return isHasNode;
     }
 
-    public void authParam(AutoexecCombopVo combopVo, JSONObject paramJson) {
-        List<AutoexecCombopParamVo> autoexecCombopParamVoList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopVo.getId());
-    }
-
     @Override
     public boolean checkIsAllActivePhaseIsCompleted(Long jobId, Integer sort) {
         boolean isDone = false;
-        Integer count = autoexecJobMapper.checkIsAllActivePhaseIsDone(jobId, sort);
-        if (count == 0) {
+        Integer phaseNotCompletedCount = autoexecJobMapper.getJobPhaseNotCompletedCountByJobIdAndSort(jobId, sort);
+        Integer phaseRunnerNotCompletedCount = autoexecJobMapper.getJobPhaseRunnerNotCompletedCountByJobIdAndIsFireNext(jobId, sort);
+        if (phaseNotCompletedCount == 0 && phaseRunnerNotCompletedCount == 0) {
             isDone = true;
         }
-        return true;
+        return isDone;
     }
 
     @Override

@@ -45,8 +45,8 @@ public interface AutoexecJobService {
     /**
      * 刷新激活剧本的所有节点信息
      *
-     * @param jobId 作业id
-     * @param sort  当前激活剧本顺序
+     * @param jobId           作业id
+     * @param sort            当前激活剧本顺序
      * @param executeConfigVo 执行时的参数（执行目标，用户，协议）
      */
     void refreshJobPhaseNodeList(Long jobId, int sort, AutoexecCombopExecuteConfigVo executeConfigVo);
@@ -61,6 +61,7 @@ public interface AutoexecJobService {
 
     /**
      * 删除作业
+     *
      * @param jobId 作业id
      */
     void deleteJob(Long jobId);

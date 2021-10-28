@@ -7,10 +7,12 @@ package codedriver.module.autoexec.api.job.exec;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.JobStatus;
+import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.dao.mapper.UserMapper;
 import codedriver.framework.dto.UserVo;
@@ -19,10 +21,10 @@ import codedriver.framework.filter.core.LoginAuthHandlerBase;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
-import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.module.autoexec.service.AutoexecJobActionService;
 import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,9 +73,18 @@ public class AutoexecJobNextPhaseFireApi extends PublicApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
         String lastPhase = jsonObj.getString("lastPhase");
-        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
+        }
+        JSONObject passThroughEnv = jsonObj.getJSONObject("passThroughEnv");
+        Integer runnerId = 0;
+        if (MapUtils.isNotEmpty(passThroughEnv)) {
+            if (!passThroughEnv.containsKey("runnerId")) {
+                throw new AutoexecJobRunnerNotFoundException("runnerId");
+            } else {
+                runnerId = passThroughEnv.getInteger("runnerId");
+            }
         }
         //初始化执行用户上下文
         UserVo execUser = userMapper.getUserBaseInfoByUuid(jobVo.getExecUser());
@@ -81,19 +92,24 @@ public class AutoexecJobNextPhaseFireApi extends PublicApiComponentBase {
             throw new UserNotFoundException(jobVo.getExecUser());
         }
         UserContext.init(execUser, "+8:00");
-        UserContext.get().setToken("GZIP_" +  LoginAuthHandlerBase.buildJwt(execUser).getCc());
+        UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(execUser).getCc());
         AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseLockByJobIdAndPhaseName(jobId, lastPhase);
         if (jobPhaseVo == null) {
             throw new AutoexecJobPhaseNotFoundException(jobId + ":" + lastPhase);
         }
-        //判断是否满足激活下个phase条件
+        autoexecJobMapper.updateJobPhaseRunnerFireNextByPhaseId(jobPhaseVo.getId(), 1, runnerId);
+        /*
+         *判断是否满足激活下个phase条件
+         * 1、当前sort的所有phase都completed
+         * 2、当前sort的所有phase的runner 都是completed，所有runner都触发了fireNext
+         */
         if (autoexecJobService.checkIsAllActivePhaseIsCompleted(jobId, jobPhaseVo.getSort())) {
             Integer sort = autoexecJobMapper.getNextJobPhaseSortByJobId(jobId, jobPhaseVo.getSort());
             if (sort != null) {
                 autoexecJobService.getAutoexecJobDetail(jobVo, sort);
                 jobVo.setCurrentPhaseSort(sort);
                 autoexecJobActionService.fire(jobVo);
-            }else{//说明没有可以执行的phase，更新job 状态为 completed
+            } else {//说明没有可以执行的phase，更新job 状态为 completed
                 autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobId, JobStatus.COMPLETED.getValue()));
             }
         }
