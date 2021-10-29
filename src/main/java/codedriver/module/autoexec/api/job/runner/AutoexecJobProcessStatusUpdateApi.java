@@ -7,26 +7,28 @@ package codedriver.module.autoexec.api.job.runner;
 
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
-import codedriver.framework.autoexec.constvalue.JobStatus;
+import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -54,7 +56,8 @@ public class AutoexecJobProcessStatusUpdateApi extends PrivateApiComponentBase {
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
             @Param(name = "status", type = ApiParamType.INTEGER, desc = "创建进程状态，1:创建成功 0:创建失败", isRequired = true),
             @Param(name = "errorMsg", type = ApiParamType.STRING, desc = "失败原因，如果失败则需要传改字段"),
-            @Param(name = "command", type = ApiParamType.JSONOBJECT, desc = "执行的命令"),
+            @Param(name = "command", type = ApiParamType.JSONOBJECT, desc = "执行的命令", isRequired = true),
+            @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "环境变量", isRequired = true),
     })
     @Output({
     })
@@ -62,37 +65,68 @@ public class AutoexecJobProcessStatusUpdateApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
-        Integer status = jsonObj.getInteger("status");
+        Integer statusParam = jsonObj.getInteger("status");
         String jobAction = jsonObj.getJSONObject("command").getString("action");
         String errorMsg = jsonObj.getString("errorMsg");
-        String jobStatus = null;
+        JSONObject passThroughEnv = jsonObj.getJSONObject("passThroughEnv");
+        Integer runnerId = null;
+        if (MapUtils.isNotEmpty(passThroughEnv)) {
+            if (MapUtils.isNotEmpty(passThroughEnv)) {
+                if (!passThroughEnv.containsKey("runnerId")) {
+                    throw new AutoexecJobRunnerNotFoundException("runnerId");
+                } else {
+                    runnerId = passThroughEnv.getInteger("runnerId");
+                }
+            }
+        }
+        String status = null;
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         if (jobVo == null) {
             throw new AutoexecJobPhaseNotFoundException(jobId.toString());
         }
         List<AutoexecJobPhaseVo> jobPhaseVoList = null;
-        if (status != null && status == 1) {
-            if(JobAction.PAUSE.getValue().equalsIgnoreCase(jobAction)) {
-                jobStatus = JobPhaseStatus.PAUSED.getValue();
-                jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobId, Collections.singletonList(JobPhaseStatus.PAUSING.getValue()));
-            }else if(JobAction.ABORT.getValue().equalsIgnoreCase(jobAction)) {
-                jobStatus = JobPhaseStatus.ABORTED.getValue();
+        if (statusParam != null && statusParam == 1) {
+            if (JobAction.ABORT.getValue().equalsIgnoreCase(jobAction)) {
+                status = JobPhaseStatus.ABORTED.getValue();
                 jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobId, Collections.singletonList(JobPhaseStatus.ABORTING.getValue()));
-            }else if(Objects.equals(jobVo.getStatus(), JobStatus.PENDING.getValue())){//避免作业跑的太快，导致autoexec回调快于此接口
-                jobStatus = JobPhaseStatus.RUNNING.getValue();
             }
-        }else {
-            jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobId, Arrays.asList(JobPhaseStatus.WAITING.getValue(), JobPhaseStatus.RUNNING.getValue()));
-            jobStatus = JobPhaseStatus.FAILED.getValue();
+            /*
+             * 1、更新所有该runnerId的autoexec_job_phase_runner的status 为 aborted
+             * 2、更新所有该runnerId的autoexec_job_phase_node的status 为aborted
+             * 3、更新所有满足所有runner的状态都是aborted的autoexec_job_phase状态 为aborted
+             * 4、如果所有autoexec_job_phase都不存在aborting状态，则跟新autoexec_job状态 为aborted
+             */
+            if (CollectionUtils.isNotEmpty(jobPhaseVoList)) {
+                List<Long> jobPhaseIdAbortedList = new ArrayList<>();
+                List<Long> jobPhaseIdList = jobPhaseVoList.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList());
+                //1
+                autoexecJobMapper.updateJobPhaseRunnerStatusBatch(jobPhaseIdList, status, runnerId);
+                //2
+                List<AutoexecJobPhaseNodeVo> jobPhaseNodeVoList = autoexecJobMapper.getAutoexecJobNodeListByJobPhaseIdListAndStatusAndRunnerId(jobPhaseIdList, JobPhaseStatus.ABORTING.getValue(), runnerId);
+                if (CollectionUtils.isNotEmpty(jobPhaseNodeVoList)) {
+                    autoexecJobMapper.updateJobPhaseNodeListStatus(jobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()), JobPhaseStatus.ABORTED.getValue());
+                }
+                //3
+                List<HashMap<String, String>> phaseAbortingCountMapList = autoexecJobMapper.getJobPhaseRunnerAbortingCountMapCountByJobId(jobId);
+                HashMap<String, Integer> phaseIdAbortingCountMap = new HashMap<>();
+                for (HashMap<String, String> phaseAbortingCountMap : phaseAbortingCountMapList) {
+                    phaseIdAbortingCountMap.put(phaseAbortingCountMap.get("job_phase_id"), Integer.valueOf(phaseAbortingCountMap.get("count")));
+                }
+                for (Long phaseId : jobPhaseIdList) {
+                    if (phaseIdAbortingCountMap.get(phaseId.toString()) == 0) {
+                        jobPhaseIdAbortedList.add(phaseId);
+                    }
+                }
+                autoexecJobMapper.updateJobPhaseRunnerStatusBatch(jobPhaseIdAbortedList, JobPhaseStatus.ABORTED.getValue(), runnerId);
+            }
+            if (StringUtils.isNotBlank(status)) {
+                //4
+                if (autoexecJobMapper.getJobPhaseNotStatusCountByJobIdAndStatus(jobId, JobPhaseStatus.ABORTING.getValue()) == 0) {
+                    autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobId, status));
+                }
+            }
         }
-        if(CollectionUtils.isNotEmpty(jobPhaseVoList)) {
-            List<Long> jobPhaseIdList = jobPhaseVoList.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList());
-            autoexecJobMapper.updateJobPhaseStatusBatch(jobPhaseIdList, jobStatus, errorMsg);
-            autoexecJobMapper.updateJobPhaseNodeStatusByJobIdAndJobPhaseIdList(jobId,jobPhaseIdList,jobStatus);
-        }
-        if(StringUtils.isNotBlank(jobStatus)){
-            autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobId,jobStatus));
-        }
+
         return null;
     }
 
