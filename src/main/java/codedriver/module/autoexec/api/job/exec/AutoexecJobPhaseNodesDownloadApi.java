@@ -101,9 +101,6 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
             //TODO 判断作业剧本节点是否配置，没有配置返回 205
             count = autoexecJobMapper.searchJobPhaseNodeCount(nodeParamVo);
             pageCount = PageUtil.getPageCount(count,nodeParamVo.getPageSize());
-        }else{
-            count = autoexecJobMapper.getJobPhaseNodeCountByJobId(nodeParamVo);
-            pageCount = PageUtil.getPageCount(count,nodeParamVo.getPageSize());
         }
 
         nodeParamVo.setPageCount(pageCount);
@@ -114,8 +111,6 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
             List<AutoexecJobPhaseNodeVo> autoexecJobPhaseNodeVoList = null;
             if(StringUtils.isNotBlank(phaseName)) {
                 autoexecJobPhaseNodeVoList = autoexecJobMapper.searchJobPhaseNode(nodeParamVo);
-            }else{
-                autoexecJobPhaseNodeVoList = autoexecJobMapper.searchJobNodeByJobId(nodeParamVo);
             }
             if(CollectionUtils.isNotEmpty(autoexecJobPhaseNodeVoList)) {
                 Long protocolId = autoexecJobPhaseNodeVoList.get(0).getProtocolId();

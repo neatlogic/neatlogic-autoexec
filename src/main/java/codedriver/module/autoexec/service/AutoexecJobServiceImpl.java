@@ -102,7 +102,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             //jobPhaseNode
             //如果是target 则获取执行目标，否则随机分配runner
             if (Arrays.asList(ExecMode.TARGET.getValue(), ExecMode.RUNNER_TARGET.getValue(), ExecMode.SQL.getValue()).contains(autoexecCombopPhaseVo.getExecMode())) {
-                initPhaseExecute(userName, protocolId, jobVo, jobPhaseVo, combopExecuteConfigVo, combopPhaseExecuteConfigVo);
+                initPhaseExecuteUserAndProtocolAndNode(userName, protocolId, jobVo, jobPhaseVo, combopExecuteConfigVo, combopPhaseExecuteConfigVo);
             } else {
                 List<RunnerMapVo> runnerMapList = runnerMapper.getAllRunnerMap();
                 //TODO 负载均衡
@@ -164,7 +164,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
      * @param combopExecuteConfigVo  作业设置的节点配置
      * @param combopPhaseExecuteConfigVo 阶段设置的节点配置
      */
-    private void initPhaseExecute(String userName, Long protocolId, AutoexecJobVo jobVo, AutoexecJobPhaseVo jobPhaseVo, AutoexecCombopExecuteConfigVo combopExecuteConfigVo, AutoexecCombopPhaseConfigVo combopPhaseExecuteConfigVo) {
+    private void initPhaseExecuteUserAndProtocolAndNode(String userName, Long protocolId, AutoexecJobVo jobVo, AutoexecJobPhaseVo jobPhaseVo, AutoexecCombopExecuteConfigVo combopExecuteConfigVo, AutoexecCombopPhaseConfigVo combopPhaseExecuteConfigVo) {
         AutoexecCombopExecuteConfigVo executeConfigVo = combopPhaseExecuteConfigVo.getExecuteConfig();
         boolean isPhaseSetNode = false;
         if (executeConfigVo != null) {
@@ -220,7 +220,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 if (CollectionUtils.isNotEmpty(jobPhaseVos)) {
                     AutoexecJobPhaseVo jobPhaseVo = jobPhaseVos.get(0);
                     jobPhaseVo.setCombopId(jobVo.getOperationId());
-                    initPhaseExecute(userName, protocolId, jobVo, jobPhaseVo, combopExecuteConfigVo, combopPhaseExecuteConfigVo);
+                    initPhaseExecuteUserAndProtocolAndNode(userName, protocolId, jobVo, jobPhaseVo, combopExecuteConfigVo, combopPhaseExecuteConfigVo);
                 }
             }
         }
