@@ -129,8 +129,12 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         }
 
         JSONObject paramJson = new JSONObject();
-        getFireParamJson(paramJson, jobVo);
-        paramJson.put("isFirstFire", jobVo.getCurrentPhaseSort() == 0 ? 1 : 0);
+        paramJson.put("jobId", jobVo.getId());
+        paramJson.put("tenant", TenantContext.get().getTenantUuid());
+        paramJson.put("isNoFireNext",jobVo.getIsNoFireNext());
+        paramJson.put("isFirstFire", jobVo.getIsFirstFire());
+        paramJson.put("jobPhaseIdList",jobVo.getPhaseIdList());
+        paramJson.put("jobPhaseNodeIdList",jobVo.getPhaseNodeIdList());
 
         RestVo restVo = null;
         String result = StringUtils.EMPTY;
@@ -203,7 +207,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                 new AutoexecJobAuthActionManager.Builder().addReFireJob().build().setAutoexecJobAction(jobVo);
             }
         } else if (Objects.equals(type, JobAction.REFIRE_NODE.getValue())) {
-            List<AutoexecJobPhaseNodeVo> nodeVoList = jobVo.getNodeVoList();
+            //重跑单个节点无需激活下个phase
+            jobVo.setIsNoFireNext(1);
+            List<AutoexecJobPhaseNodeVo> nodeVoList = jobVo.getPhaseNodeVoList();
             AutoexecJobPhaseNodeVo nodeVo = nodeVoList.get(0);
             for (AutoexecJobPhaseNodeVo jobPhaseNodeVo : nodeVoList) {
                 if (!Objects.equals(jobPhaseNodeVo.getJobPhaseId(), nodeVo.getJobPhaseId())) {
@@ -275,9 +281,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             }
         }};
         //工具库测试|重跑节点
-        if (CollectionUtils.isNotEmpty(jobVo.getNodeVoList())) {
+        if (CollectionUtils.isNotEmpty(jobVo.getPhaseNodeVoList())) {
             paramJson.put("noFireNext", 1);
-            List<AutoexecJobPhaseNodeVo> nodeVoList = jobVo.getNodeVoList();
+            List<AutoexecJobPhaseNodeVo> nodeVoList = jobVo.getPhaseNodeVoList();
             Long protocolId = nodeVoList.get(0).getProtocolId();
             String userName = nodeVoList.get(0).getUserName();
             paramJson.put("runNode", new JSONArray() {{

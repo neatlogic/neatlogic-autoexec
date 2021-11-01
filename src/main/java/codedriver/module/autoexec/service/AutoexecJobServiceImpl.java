@@ -90,13 +90,14 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         //保存阶段
         List<AutoexecJobPhaseVo> jobPhaseVoList = new ArrayList<>();
         jobVo.setPhaseList(jobPhaseVoList);
+        //创建作业当前phase为sort为0
+        jobVo.setCurrentPhaseSort(0);
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
         for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
             AutoexecJobPhaseVo jobPhaseVo = new AutoexecJobPhaseVo(autoexecCombopPhaseVo, jobVo.getId());
             autoexecJobMapper.insertJobPhase(jobPhaseVo);
             if (jobPhaseVo.getSort() == 0) {//只需要第一个剧本，供后续激活执行
                 jobPhaseVoList.add(jobPhaseVo);
-                jobVo.setCurrentPhaseSort(0);
             }
             AutoexecCombopPhaseConfigVo combopPhaseExecuteConfigVo = autoexecCombopPhaseVo.getConfig();
             //jobPhaseNode

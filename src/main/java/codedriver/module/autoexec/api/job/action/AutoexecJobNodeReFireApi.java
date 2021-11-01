@@ -86,7 +86,7 @@ public class AutoexecJobNodeReFireApi extends PrivateApiComponentBase {
         if(CollectionUtils.isNotEmpty(notExistNodeIdList)){
             throw new AutoexecJobPhaseNodeNotFoundException(StringUtils.EMPTY,notExistNodeIdList.toString());
         }
-        jobVo.setNodeVoList(nodeVoList);
+        jobVo.setPhaseNodeVoList(nodeVoList);
         autoexecJobActionService.executeAuthCheck(jobVo);
         autoexecJobActionService.refire(jobVo,"refireNode");
         return null;
