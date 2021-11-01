@@ -118,11 +118,11 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                 autoexecJobPhaseNodeVoList = autoexecJobMapper.searchJobNodeByJobId(nodeParamVo);
             }
             if(CollectionUtils.isNotEmpty(autoexecJobPhaseNodeVoList)) {
-                String protocol = autoexecJobPhaseNodeVoList.get(0).getProtocol();
+                Long protocolId = autoexecJobPhaseNodeVoList.get(0).getProtocolId();
                 String userName = autoexecJobPhaseNodeVoList.get(0).getUserName();
                 List<Long> resourceIdList = autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getResourceId).collect(Collectors.toList());
                 //List<ResourceVo> resourceVoList = resourceCenterMapper.getResourceListByIdList(resourceIdList, TenantContext.get().getDataDbName());
-                List<AccountVo> accountVoList = resourceCenterMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIdList, protocol, userName);
+                List<AccountVo> accountVoList = resourceCenterMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIdList, protocolId, userName);
                 for (AutoexecJobPhaseNodeVo nodeVo : autoexecJobPhaseNodeVoList) {
                     JSONObject nodeJson = new JSONObject() {{
                         List<AccountVo> accountVoTmpList = accountVoList.stream().filter(o -> Objects.equals(o.getResourceId(), nodeVo.getResourceId())).collect(Collectors.toList());

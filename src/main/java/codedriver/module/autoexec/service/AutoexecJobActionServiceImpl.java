@@ -278,11 +278,11 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         if (CollectionUtils.isNotEmpty(jobVo.getNodeVoList())) {
             paramJson.put("noFireNext", 1);
             List<AutoexecJobPhaseNodeVo> nodeVoList = jobVo.getNodeVoList();
-            String protocol = nodeVoList.get(0).getProtocol();
+            Long protocolId = nodeVoList.get(0).getProtocolId();
             String userName = nodeVoList.get(0).getUserName();
             paramJson.put("runNode", new JSONArray() {{
                 Map<Long, AccountVo> resourceAccountMap = new HashMap<>();
-                List<AccountVo> accountVoList = resourceCenterMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(nodeVoList.stream().map(AutoexecJobPhaseNodeVo::getResourceId).collect(Collectors.toList()), protocol, userName);
+                List<AccountVo> accountVoList = resourceCenterMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(nodeVoList.stream().map(AutoexecJobPhaseNodeVo::getResourceId).collect(Collectors.toList()), protocolId, userName);
                 accountVoList.forEach(o -> {
                     resourceAccountMap.put(o.getResourceId(), o);
                 });
