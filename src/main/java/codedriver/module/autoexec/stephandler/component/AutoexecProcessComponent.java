@@ -190,9 +190,9 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
     }
 
     private void processTaskStepComplete(Long processTaskStepId, Long autoexecJobId) {
-        List<ProcessTaskStepVo> processTaskStepList = processTaskService.getForwardNextStepListByProcessTaskStepId(processTaskStepId);
-        if (processTaskStepList.size() == 1) {
-            ProcessTaskStepVo nextStepVo = processTaskStepList.get(0);
+        List<Long> toProcessTaskStepIdList = processTaskMapper.getToProcessTaskStepIdListByFromIdAndType(processTaskStepId, ProcessFlowDirection.FORWARD.getValue());
+        if (toProcessTaskStepIdList.size() == 1) {
+            Long nextStepId = toProcessTaskStepIdList.get(0);
             IProcessStepHandler handler = ProcessStepHandlerFactory.getHandler(AutoexecProcessStepHandlerType.AUTOEXEC.getHandler());
             if (handler != null) {
                 try {
@@ -234,8 +234,8 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                             }
                         }
                     }
-                    JSONObject paramObj = new JSONObject();
-                    paramObj.put("nextStepId", nextStepVo.getId());
+                    JSONObject paramObj = processTaskStepVo.getParamObj();
+                    paramObj.put("nextStepId", nextStepId);
                     paramObj.put("action", ProcessTaskOperationType.STEP_COMPLETE.getValue());
                     if (CollectionUtils.isNotEmpty(formAttributeDataList)) {
                         paramObj.put("formAttributeDataList", formAttributeDataList);
@@ -243,7 +243,6 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     if (CollectionUtils.isNotEmpty(hidecomponentList)) {
                         paramObj.put("hidecomponentList", hidecomponentList);
                     }
-                    processTaskStepVo.setParamObj(paramObj);
                     /* 自动处理 **/
                     doNext(ProcessTaskOperationType.STEP_COMPLETE, new ProcessStepThread(processTaskStepVo) {
                         @Override
@@ -376,22 +375,8 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
     }
 
     @Override
-    protected Set<ProcessTaskStepVo> myGetNext(ProcessTaskStepVo currentProcessTaskStepVo, List<ProcessTaskStepVo> nextStepList, Long nextStepId) throws ProcessTaskException {
-        Set<ProcessTaskStepVo> nextStepSet = new HashSet<>();
-        if (nextStepList.size() == 1) {
-            nextStepSet.add(nextStepList.get(0));
-        } else if (nextStepList.size() > 1) {
-            if (nextStepId == null) {
-                throw new ProcessTaskException("找到多个后续节点");
-            }
-            for (ProcessTaskStepVo processTaskStepVo : nextStepList) {
-                if (processTaskStepVo.getId().equals(nextStepId)) {
-                    nextStepSet.add(processTaskStepVo);
-                    break;
-                }
-            }
-        }
-        return nextStepSet;
+    protected Set<Long> myGetNext(ProcessTaskStepVo currentProcessTaskStepVo, List<Long> nextStepIdList, Long nextStepId) throws ProcessTaskException {
+        return defaultGetNext(nextStepIdList, nextStepId);
     }
 
     @Override

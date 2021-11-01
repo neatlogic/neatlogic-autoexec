@@ -10,13 +10,13 @@ import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobEnvVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.process.constvalue.ProcessFlowDirection;
 import codedriver.framework.process.constvalue.ProcessTaskOperationType;
 import codedriver.framework.process.dao.mapper.ProcessTaskMapper;
 import codedriver.framework.process.dao.mapper.SelectContentByHashMapper;
 import codedriver.framework.process.dto.ProcessTaskFormAttributeDataVo;
 import codedriver.framework.process.dto.ProcessTaskStepVo;
 import codedriver.framework.process.exception.processtask.ProcessTaskNoPermissionException;
-import codedriver.framework.process.service.ProcessTaskService;
 import codedriver.framework.process.stephandler.core.IProcessStepHandler;
 import codedriver.framework.process.stephandler.core.ProcessStepHandlerFactory;
 import codedriver.module.autoexec.constvalue.AutoexecProcessStepHandlerType;
@@ -51,8 +51,6 @@ public class ProcessTaskCallbackHandler extends AutoexecJobCallbackBase {
     private ProcessTaskMapper processTaskMapper;
     @Resource
     private SelectContentByHashMapper selectContentByHashMapper;
-    @Resource
-    private ProcessTaskService processTaskService;
 
 
     @Override
@@ -114,28 +112,25 @@ public class ProcessTaskCallbackHandler extends AutoexecJobCallbackBase {
                 failPolicy = (String) JSONPath.read(config, "autoexecConfig.failPolicy");
             }
             if (JobStatus.COMPLETED.getValue().equals(autoexecJobVo.getStatus())) {
-                processTaskStepComplete(invokeId, formAttributeDataList, hidecomponentList);
+                processTaskStepComplete(processTaskStepVo, formAttributeDataList, hidecomponentList);
             } else {
                 //暂停中、已暂停、中止中、已中止、已完成、已失败都属于异常，根据失败策略处理
                 if (FailPolicy.KEEP_ON.getValue().equals(failPolicy)) {
-                    processTaskStepComplete(invokeId, formAttributeDataList, hidecomponentList);
+                    processTaskStepComplete(processTaskStepVo, formAttributeDataList, hidecomponentList);
                 }
             }
         }
     }
 
-    private void processTaskStepComplete(Long processTaskStepId, JSONArray formAttributeDataList, List<String> hidecomponentList) {
-        List<ProcessTaskStepVo> processTaskStepList = processTaskService.getForwardNextStepListByProcessTaskStepId(processTaskStepId);
-        if (processTaskStepList.size() == 1) {
-            ProcessTaskStepVo nextStepVo = processTaskStepList.get(0);
+    private void processTaskStepComplete(ProcessTaskStepVo processTaskStepVo, JSONArray formAttributeDataList, List<String> hidecomponentList) {
+        List<Long> toProcessTaskStepIdList = processTaskMapper.getToProcessTaskStepIdListByFromIdAndType(processTaskStepVo.getId(), ProcessFlowDirection.FORWARD.getValue());
+        if (toProcessTaskStepIdList.size() == 1) {
+            Long nextStepId = toProcessTaskStepIdList.get(0);
             IProcessStepHandler handler = ProcessStepHandlerFactory.getHandler(AutoexecProcessStepHandlerType.AUTOEXEC.getHandler());
             if (handler != null) {
                 try {
-                    ProcessTaskStepVo processTaskStepVo = new ProcessTaskStepVo();
-                    processTaskStepVo.setProcessTaskId(nextStepVo.getProcessTaskId());
-                    processTaskStepVo.setId(processTaskStepId);
-                    JSONObject paramObj = new JSONObject();
-                    paramObj.put("nextStepId", nextStepVo.getId());
+                    JSONObject paramObj = processTaskStepVo.getParamObj();
+                    paramObj.put("nextStepId", nextStepId);
                     paramObj.put("action", ProcessTaskOperationType.STEP_COMPLETE.getValue());
                     if (CollectionUtils.isNotEmpty(formAttributeDataList)) {
                         paramObj.put("formAttributeDataList", formAttributeDataList);
@@ -143,7 +138,6 @@ public class ProcessTaskCallbackHandler extends AutoexecJobCallbackBase {
                     if (CollectionUtils.isNotEmpty(hidecomponentList)) {
                         paramObj.put("hidecomponentList", hidecomponentList);
                     }
-                    processTaskStepVo.setParamObj(paramObj);
                     handler.complete(processTaskStepVo);
                 } catch (ProcessTaskNoPermissionException e) {
                     logger.error(e.getMessage(true), e);
