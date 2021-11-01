@@ -244,7 +244,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             jobVo.setParamStr(paramContentVo.getContent());
         }
         List<AutoexecJobPhaseVo> phaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId());
-        phaseVoList = phaseVoList.stream().filter(o -> Objects.equals(o.getSort(), sort)).collect(Collectors.toList());
+        if(sort != null) {
+            phaseVoList = phaseVoList.stream().filter(o -> Objects.equals(o.getSort(), sort)).collect(Collectors.toList());
+        }
         jobVo.setPhaseList(phaseVoList);
         for (AutoexecJobPhaseVo phaseVo : phaseVoList) {
             List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseId(jobVo.getId(), phaseVo.getId());
