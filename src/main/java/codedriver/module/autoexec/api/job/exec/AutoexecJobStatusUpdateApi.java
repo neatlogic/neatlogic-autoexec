@@ -76,7 +76,7 @@ public class AutoexecJobStatusUpdateApi extends PublicApiComponentBase {
         if (MapUtils.isEmpty(passThroughEnv)) {
             throw new ParamIrregularException("passThroughEnv");
         }
-        if (!passThroughEnv.containsKey("phaseSort")) {
+        if (!Objects.equals(status,JobStatus.ABORTED.getValue()) && !passThroughEnv.containsKey("phaseSort")) {
             throw new ParamIrregularException("phaseSort");
         } else {
             phaseSort = passThroughEnv.getInteger("phaseSort");
@@ -100,8 +100,8 @@ public class AutoexecJobStatusUpdateApi extends PublicApiComponentBase {
             }
         }
         //如果该job 没有一个aborting|pausing runner 则更新为 aborted|paused
-        int notStatusCount = autoexecJobMapper.getJobPhaseRunnerByStatusCount(jobPhaseIdList, statusIng);
-        if(notStatusCount == 0){
+        int statusIngCount = autoexecJobMapper.getJobPhaseStatusCountByJobIdAndStatus(jobVo.getId(), statusIng);
+        if(statusIngCount == 0){
             jobVo.setStatus(status);
             autoexecJobMapper.updateJobStatus(jobVo);
         }
