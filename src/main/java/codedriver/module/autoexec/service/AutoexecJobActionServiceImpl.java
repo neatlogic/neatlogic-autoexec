@@ -133,7 +133,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         paramJson.put("tenant", TenantContext.get().getTenantUuid());
         paramJson.put("isNoFireNext",jobVo.getIsNoFireNext());
         paramJson.put("isFirstFire", jobVo.getIsFirstFire());
-        paramJson.put("jobPhaseIdList",jobVo.getPhaseIdList());
+        paramJson.put("jobPhaseNameList",jobVo.getPhaseNameList());
         paramJson.put("jobPhaseNodeIdList",jobVo.getPhaseNodeIdList());
 
         RestVo restVo = null;
