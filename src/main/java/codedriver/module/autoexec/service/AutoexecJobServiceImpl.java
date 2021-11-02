@@ -115,7 +115,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), jobPhaseVo.getId(), "runner", JobNodeStatus.PENDING.getValue(), userName, protocolId);
                 autoexecJobMapper.insertJobPhaseNode(nodeVo);
                 autoexecJobMapper.insertJobPhaseNodeRunner(nodeVo.getId(), runnerMapVo.getRunnerMapId());
-                autoexecJobMapper.insertJobPhaseRunner(nodeVo.getJobId(), nodeVo.getJobPhaseId(), runnerMapVo.getRunnerMapId());
+                autoexecJobMapper.replaceIntoJobPhaseRunner(nodeVo.getJobId(), nodeVo.getJobPhaseId(), runnerMapVo.getRunnerMapId());
             }
             //jobPhaseOperation
             List<AutoexecJobPhaseOperationVo> jobPhaseOperationVoList = new ArrayList<>();
@@ -357,7 +357,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                     }
                     autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
                     autoexecJobMapper.insertJobPhaseNodeRunner(jobPhaseNodeVo.getId(), jobPhaseNodeVo.getRunnerMapId());
-                    autoexecJobMapper.insertJobPhaseRunner(jobPhaseNodeVo.getJobId(), jobPhaseNodeVo.getJobPhaseId(), jobPhaseNodeVo.getRunnerMapId());
+                    autoexecJobMapper.replaceIntoJobPhaseRunner(jobPhaseNodeVo.getJobId(), jobPhaseNodeVo.getJobPhaseId(), jobPhaseNodeVo.getRunnerMapId());
                     checkRepeatList.add(key);
                 }
             });

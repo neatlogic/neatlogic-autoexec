@@ -488,8 +488,6 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
 
         List<RunnerMapVo> runnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdListAndStatus(jobVo.getId(), jobVo.getPhaseIdList(),JobNodeStatus.ABORTING.getValue());
         if (CollectionUtils.isEmpty(runnerVos)) {
-            //如果这个job的所有phase都不存在aborting状态的runner，则直接更新这个job所有aborting状态的phase为aborted，job状态为aborted
-            autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(jobVo.getPhaseList().stream().filter(o->Objects.equals(o.getStatus(),JobPhaseStatus.ABORTING.getValue())).map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()), JobPhaseStatus.ABORTED.getValue());
             jobVo.setStatus(JobStatus.ABORTED.getValue());
             autoexecJobMapper.updateJobStatus(jobVo);
         }else {
