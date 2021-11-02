@@ -16,6 +16,7 @@ import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundExceptio
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.dao.mapper.UserMapper;
 import codedriver.framework.dto.UserVo;
+import codedriver.framework.exception.type.ParamIrregularException;
 import codedriver.framework.exception.user.UserNotFoundException;
 import codedriver.framework.filter.core.LoginAuthHandlerBase;
 import codedriver.framework.restful.annotation.*;
@@ -78,14 +79,16 @@ public class AutoexecJobNextPhaseFireApi extends PublicApiComponentBase {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
         JSONObject passThroughEnv = jsonObj.getJSONObject("passThroughEnv");
-        Integer runnerId = 0;
-        if (MapUtils.isNotEmpty(passThroughEnv)) {
-            if (!passThroughEnv.containsKey("runnerId")) {
-                throw new AutoexecJobRunnerNotFoundException("runnerId");
-            } else {
-                runnerId = passThroughEnv.getInteger("runnerId");
-            }
+        Integer runnerId = null;
+        if (MapUtils.isEmpty(passThroughEnv)) {
+            throw new ParamIrregularException("passThroughEnv");
         }
+        if (!passThroughEnv.containsKey("runnerId")) {
+            throw new AutoexecJobRunnerNotFoundException("runnerId");
+        } else {
+            runnerId = passThroughEnv.getInteger("runnerId");
+        }
+
         //初始化执行用户上下文
         UserVo execUser = userMapper.getUserBaseInfoByUuid(jobVo.getExecUser());
         if (execUser == null) {

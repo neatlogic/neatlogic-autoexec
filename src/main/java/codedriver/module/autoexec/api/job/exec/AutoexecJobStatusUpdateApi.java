@@ -94,7 +94,7 @@ public class AutoexecJobStatusUpdateApi extends PublicApiComponentBase {
         //如果该phase 没有一个 aborting|pausing runner 则更新为 aborted|paused
         List<AutoexecJobPhaseVo> jobPhaseAbortingRunnerCountList = autoexecJobMapper.getJobPhaseRunnerCountByJobIdAndStatus(jobVo.getId(),statusIng);
         for (AutoexecJobPhaseVo jobPhase : jobPhaseVoList) {
-            if (Objects.equals(jobPhase.getStatus(), statusIng)&& jobPhaseAbortingRunnerCountList.stream().noneMatch(o->Objects.equals(o.getId(),jobPhase.getId()))) {
+            if (!Objects.equals(jobPhase.getStatus(), statusIng)&& jobPhaseAbortingRunnerCountList.stream().noneMatch(o->Objects.equals(o.getId(),jobPhase.getId()))) {
                 jobPhase.setStatus(status);
                 autoexecJobMapper.updateJobPhaseStatus(jobPhase);
             }
