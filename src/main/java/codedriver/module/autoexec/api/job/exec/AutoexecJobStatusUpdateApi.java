@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.api.job.exec;
 
 import codedriver.framework.autoexec.constvalue.JobStatus;
+import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
@@ -15,7 +16,6 @@ import codedriver.framework.exception.type.ParamIrregularException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
-import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
@@ -73,21 +73,21 @@ public class AutoexecJobStatusUpdateApi extends PublicApiComponentBase {
         }
         JSONObject passThroughEnv = jsonObj.getJSONObject("passThroughEnv");
         Integer phaseSort = 0;
-        if (MapUtils.isNotEmpty(passThroughEnv)) {
-            if (!passThroughEnv.containsKey("phaseSort")) {
-                throw new ParamIrregularException("phaseSort");
-            } else {
-                phaseSort = passThroughEnv.getInteger("phaseSort");
-            }
+        if (MapUtils.isEmpty(passThroughEnv)) {
+            throw new ParamIrregularException("passThroughEnv");
         }
-        Integer runnerId = 0;
-        if (MapUtils.isNotEmpty(passThroughEnv)) {
-            if (!passThroughEnv.containsKey("runnerId")) {
-                throw new AutoexecJobRunnerNotFoundException("runnerId");
-            } else {
-                runnerId = passThroughEnv.getInteger("runnerId");
-            }
+        if (!passThroughEnv.containsKey("phaseSort")) {
+            throw new ParamIrregularException("phaseSort");
+        } else {
+            phaseSort = passThroughEnv.getInteger("phaseSort");
         }
+        Integer runnerId = null;
+        if (!passThroughEnv.containsKey("runnerId")) {
+            throw new AutoexecJobRunnerNotFoundException("runnerId");
+        } else {
+            runnerId = passThroughEnv.getInteger("runnerId");
+        }
+
         List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndSort(jobId,phaseSort);
         List<Long> jobPhaseIdList = jobPhaseVoList.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList());
         autoexecJobMapper.updateJobPhaseRunnerStatus(jobPhaseIdList, runnerId, status);
