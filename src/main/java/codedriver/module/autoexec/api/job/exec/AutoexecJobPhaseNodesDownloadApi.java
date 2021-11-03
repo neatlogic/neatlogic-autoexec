@@ -16,6 +16,7 @@ import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.constvalue.CacheControlType;
 import codedriver.framework.common.util.PageUtil;
+import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicBinaryStreamApiComponentBase;
@@ -42,7 +43,7 @@ import java.util.stream.Collectors;
 
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiComponentBase {
-
+    private static final String AUTOEXEC_RC4_KEY = "E!YO@JyjD^RIwe*OE739#Sdk%";
     @Autowired
     private AutoexecJobMapper autoexecJobMapper;
 
@@ -126,7 +127,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                             AccountVo accountVoTmp = accountVoTmpList.get(0);
                             put("protocol", accountVoTmp.getProtocol());
                             put("username", accountVoTmp.getAccount());
-                            put("password", accountVoTmp.getPasswordPlain());
+                            put("password", "{ENCRYPTED}"+RC4Util.encrypt(AUTOEXEC_RC4_KEY,accountVoTmp.getPasswordPlain()));
                             put("protocolPort", accountVoTmp.getPort());
                         }
                         //ResourceVo resourceVo = (ResourceVo) resourceVoList.stream().filter(o-> Objects.equals(o.getId(),nodeVo.getResourceId()));
