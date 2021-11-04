@@ -128,11 +128,8 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                 }
                 List<AccountVo> accountVoList = resourceCenterMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIdList, protocolId, userName);
                 List<AccountVo> allAccountVoList = resourceCenterMapper.getAccountListByIpList(autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getHost).collect(Collectors.toList()));
+                String finalUserName = autoexecJobPhaseNodeVoList.get(0).getUserName();
                 for (AutoexecJobPhaseNodeVo nodeVo : autoexecJobPhaseNodeVoList) {
-                    if(StringUtils.isBlank(userName)){
-                        userName = "nobody";
-                    }
-                    String finalUserName = userName;
                     JSONObject nodeJson = new JSONObject() {{
                         Optional<AccountVo> accountOp = accountVoList.stream().filter(o -> Objects.equals(o.getResourceId(), nodeVo.getResourceId())).findFirst();
                         //如果通过资产id+协议id+用户 找不到account 则通过资产ip匹配account
