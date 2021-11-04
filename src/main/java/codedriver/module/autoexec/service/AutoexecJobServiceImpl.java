@@ -386,6 +386,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
                 autoexecJobMapper.insertJobPhaseNodeRunner(jobPhaseNodeVo.getId(), jobPhaseNodeVo.getRunnerMapId());
                 autoexecJobMapper.replaceIntoJobPhaseRunner(jobPhaseNodeVo.getJobId(), jobPhaseNodeVo.getJobPhaseId(), jobPhaseNodeVo.getRunnerMapId());
+                isHasNode.set(true);
             });
         }
         return isHasNode.get();
