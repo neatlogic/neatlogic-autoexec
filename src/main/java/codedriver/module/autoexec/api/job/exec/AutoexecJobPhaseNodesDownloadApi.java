@@ -13,7 +13,9 @@ import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
+import codedriver.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
+import codedriver.framework.cmdb.enums.resourcecenter.Protocol;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.constvalue.CacheControlType;
 import codedriver.framework.common.util.PageUtil;
@@ -79,63 +81,71 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
         Long jobId = paramObj.getLong("jobId");
         JSONObject passThroughEnv = paramObj.getJSONObject("passThroughEnv");
         Long runnerId = 0L;
-        if(MapUtils.isNotEmpty(passThroughEnv)){
-            if(!passThroughEnv.containsKey("runnerId")){
+        if (MapUtils.isNotEmpty(passThroughEnv)) {
+            if (!passThroughEnv.containsKey("runnerId")) {
                 throw new AutoexecJobRunnerNotFoundException("runnerId");
-            }else {
+            } else {
                 runnerId = passThroughEnv.getLong("runnerId");
             }
         }
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
-        if(jobVo == null){
+        if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
         String phaseName = paramObj.getString("phase");
         int count = 0;
         int pageCount = 0;
-        AutoexecJobPhaseNodeVo nodeParamVo = new AutoexecJobPhaseNodeVo(paramObj.getLong("jobId"),paramObj.getString("phase"),runnerId);
-        nodeParamVo.setStatusList(Arrays.asList(JobNodeStatus.PENDING.getValue(),JobNodeStatus.RUNNING.getValue(),JobNodeStatus.FAILED.getValue(),JobNodeStatus.ABORTED.getValue()));
-        if(StringUtils.isNotBlank(phaseName)){
-            jobVo = autoexecJobMapper.getJobDetailByJobIdAndPhaseName(jobId,phaseName);
-            if(jobVo == null){
+        AutoexecJobPhaseNodeVo nodeParamVo = new AutoexecJobPhaseNodeVo(paramObj.getLong("jobId"), paramObj.getString("phase"), runnerId);
+        nodeParamVo.setStatusList(Arrays.asList(JobNodeStatus.PENDING.getValue(), JobNodeStatus.RUNNING.getValue(), JobNodeStatus.FAILED.getValue(), JobNodeStatus.ABORTED.getValue()));
+        if (StringUtils.isNotBlank(phaseName)) {
+            jobVo = autoexecJobMapper.getJobDetailByJobIdAndPhaseName(jobId, phaseName);
+            if (jobVo == null) {
                 throw new AutoexecJobPhaseNotFoundException(phaseName);
             }
             //TODO 判断作业剧本节点是否配置，没有配置返回 205
             count = autoexecJobMapper.searchJobPhaseNodeCount(nodeParamVo);
-            pageCount = PageUtil.getPageCount(count,nodeParamVo.getPageSize());
+            pageCount = PageUtil.getPageCount(count, nodeParamVo.getPageSize());
         }
 
         nodeParamVo.setPageCount(pageCount);
         ServletOutputStream os = response.getOutputStream();
+        List<AccountProtocolVo> protocolVoList = resourceCenterMapper.searchAccountProtocolListByProtocolName(new AccountProtocolVo());
         for (int i = 1; i <= pageCount; i++) {
             nodeParamVo.setCurrentPage(i);
             nodeParamVo.setStartNum(nodeParamVo.getStartNum());
             List<AutoexecJobPhaseNodeVo> autoexecJobPhaseNodeVoList = null;
-            if(StringUtils.isNotBlank(phaseName)) {
+            if (StringUtils.isNotBlank(phaseName)) {
                 autoexecJobPhaseNodeVoList = autoexecJobMapper.searchJobPhaseNode(nodeParamVo);
             }
-            if(CollectionUtils.isNotEmpty(autoexecJobPhaseNodeVoList)) {
+            if (CollectionUtils.isNotEmpty(autoexecJobPhaseNodeVoList)) {
                 //补充执行用户和账号信息（用户、密码）
                 Long protocolId = autoexecJobPhaseNodeVoList.get(0).getProtocolId();
                 String userName = autoexecJobPhaseNodeVoList.get(0).getUserName();
                 List<Long> resourceIdList = autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getResourceId).collect(Collectors.toList());
                 //List<ResourceVo> resourceVoList = resourceCenterMapper.getResourceListByIdList(resourceIdList, TenantContext.get().getDataDbName());
+                if (protocolVoList.stream().anyMatch(o -> Objects.equals(o.getId(), protocolId) && Objects.equals(o.getName(), Protocol.TAGENT.getValue()))) {
+                    userName = null;
+                }
                 List<AccountVo> accountVoList = resourceCenterMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIdList, protocolId, userName);
                 List<AccountVo> allAccountVoList = resourceCenterMapper.getAccountListByIpList(autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getHost).collect(Collectors.toList()));
                 for (AutoexecJobPhaseNodeVo nodeVo : autoexecJobPhaseNodeVoList) {
+                    if(StringUtils.isNotBlank(userName)){
+                        userName = "nobody";
+                    }
+                    String finalUserName = userName;
                     JSONObject nodeJson = new JSONObject() {{
                         Optional<AccountVo> accountOp = accountVoList.stream().filter(o -> Objects.equals(o.getResourceId(), nodeVo.getResourceId())).findFirst();
                         //如果通过资产id+协议id+用户 找不到account 则通过资产ip匹配account
-                        if(!accountOp.isPresent()){
-                            accountOp = allAccountVoList.stream().filter(o->Objects.equals(o.getIp(),nodeVo.getHost())).findFirst();
+                        if (!accountOp.isPresent()) {
+                            accountOp = allAccountVoList.stream().filter(o -> Objects.equals(o.getIp(), nodeVo.getHost())).findFirst();
                         }
                         if (accountOp.isPresent()) {
                             AccountVo accountVoTmp = accountOp.get();
                             put("protocol", accountVoTmp.getProtocol());
-                            put("username", userName);
-                            put("password", "{ENCRYPTED}"+RC4Util.encrypt(AUTOEXEC_RC4_KEY,accountVoTmp.getPasswordPlain()));
+                            put("username", finalUserName);
+                            put("password", "{ENCRYPTED}" + RC4Util.encrypt(AUTOEXEC_RC4_KEY, accountVoTmp.getPasswordPlain()));
                             put("protocolPort", accountVoTmp.getPort());
-                        }else{
+                        } else {
 
                             put("protocol", nodeVo.getProtocol());
                         }
@@ -157,7 +167,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
             }
         }
 
-        if(os != null) {
+        if (os != null) {
             os.close();
         }
         return null;
