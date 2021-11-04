@@ -69,6 +69,7 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
     @Output({
     })
     @Description(desc = "作业创建（来自组合工具）")
+    @ResubmitInterval(value = 2)
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecJobVo jobVo = autoexecJobActionService.validateCreateJobFromCombop(jsonObj,true);

@@ -71,6 +71,7 @@ public class AutoexecJobNodeSubmitWaitInputApi extends PrivateApiComponentBase {
     @Output({
     })
     @Description(desc = "提交作业节点waitInput接口")
+    @ResubmitInterval(value = 5)
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long jobId = paramObj.getLong("jobId");

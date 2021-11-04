@@ -51,6 +51,7 @@ public class AutoexecJobPauseApi extends PrivateApiComponentBase {
     @Output({
     })
     @Description(desc = "暂停作业")
+    @ResubmitInterval(value = 2)
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");

@@ -67,6 +67,7 @@ public class AutoexecJobNodeReFireApi extends PrivateApiComponentBase {
     @Output({
     })
     @Description(desc = "重跑作业节点")
+    @ResubmitInterval(value = 5)
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");

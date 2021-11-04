@@ -183,12 +183,12 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                     || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getInputNodeList())
                     || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getParamList())
             );
-            if (executeConfigVo.getExecuteNodeConfig() != null) {
+            if (isPhaseConfig) {
                 isHasNode = getJobNodeList(executeConfigVo, jobVo.getId(), jobPhaseVo, jobVo.getOperationId(), userName, protocolId, true);
             }
         }
         //如果阶段没有设置执行目标，则使用全局执行目标
-        if (!isPhaseConfig && combopExecuteConfigVo != null && combopExecuteConfigVo.getExecuteNodeConfig() != null) {
+        if (!isPhaseConfig) {
             isHasNode = getJobNodeList(combopExecuteConfigVo, jobVo.getId(), jobPhaseVo, jobVo.getOperationId(), userName, protocolId, false);
         }
 
@@ -296,10 +296,16 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
      * @param protocolId   连接node 协议Id
      */
     private boolean getJobNodeList(AutoexecCombopExecuteConfigVo nodeConfigVo, Long jobId, AutoexecJobPhaseVo jobPhaseVo, Long combopId, String userName, Long protocolId, boolean isPhaseConfig) {
+        if(nodeConfigVo == null){
+            return false;
+        }
         AtomicBoolean isHasNode = new AtomicBoolean(false);
         Map<Long, ResourceVo> resourceMap = new HashMap<>();
         List<Long> resourceIdList = new ArrayList<>();
         AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = nodeConfigVo.getExecuteNodeConfig();
+        if(executeNodeConfigVo == null){
+            return false;
+        }
         //tagList
         List<Long> tagIdList = executeNodeConfigVo.getTagList();
         if (CollectionUtils.isNotEmpty(tagIdList)) {
