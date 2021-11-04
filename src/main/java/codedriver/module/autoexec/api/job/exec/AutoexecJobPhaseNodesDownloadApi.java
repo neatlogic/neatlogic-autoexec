@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.api.job.exec;
 
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
+import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
@@ -20,7 +21,6 @@ import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicBinaryStreamApiComponentBase;
-import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -37,6 +37,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -114,21 +115,29 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                 autoexecJobPhaseNodeVoList = autoexecJobMapper.searchJobPhaseNode(nodeParamVo);
             }
             if(CollectionUtils.isNotEmpty(autoexecJobPhaseNodeVoList)) {
+                //补充执行用户和账号信息（用户、密码）
                 Long protocolId = autoexecJobPhaseNodeVoList.get(0).getProtocolId();
                 String userName = autoexecJobPhaseNodeVoList.get(0).getUserName();
                 List<Long> resourceIdList = autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getResourceId).collect(Collectors.toList());
                 //List<ResourceVo> resourceVoList = resourceCenterMapper.getResourceListByIdList(resourceIdList, TenantContext.get().getDataDbName());
                 List<AccountVo> accountVoList = resourceCenterMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIdList, protocolId, userName);
+                List<AccountVo> allAccountVoList = resourceCenterMapper.getAccountListByIpList(autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getHost).collect(Collectors.toList()));
                 for (AutoexecJobPhaseNodeVo nodeVo : autoexecJobPhaseNodeVoList) {
                     JSONObject nodeJson = new JSONObject() {{
-                        List<AccountVo> accountVoTmpList = accountVoList.stream().filter(o -> Objects.equals(o.getResourceId(), nodeVo.getResourceId())).collect(Collectors.toList());
-                        put("protocol", nodeVo.getProtocol());
-                        if (CollectionUtils.isNotEmpty(accountVoTmpList)) {
-                            AccountVo accountVoTmp = accountVoTmpList.get(0);
+                        Optional<AccountVo> accountOp = accountVoList.stream().filter(o -> Objects.equals(o.getResourceId(), nodeVo.getResourceId())).findFirst();
+                        //如果通过资产id+协议id+用户 找不到account 则通过资产ip匹配account
+                        if(!accountOp.isPresent()){
+                            accountOp = allAccountVoList.stream().filter(o->Objects.equals(o.getIp(),nodeVo.getHost())).findFirst();
+                        }
+                        if (accountOp.isPresent()) {
+                            AccountVo accountVoTmp = accountOp.get();
                             put("protocol", accountVoTmp.getProtocol());
-                            put("username", accountVoTmp.getAccount());
+                            put("username", userName);
                             put("password", "{ENCRYPTED}"+RC4Util.encrypt(AUTOEXEC_RC4_KEY,accountVoTmp.getPasswordPlain()));
                             put("protocolPort", accountVoTmp.getPort());
+                        }else{
+
+                            put("protocol", nodeVo.getProtocol());
                         }
                         //ResourceVo resourceVo = (ResourceVo) resourceVoList.stream().filter(o-> Objects.equals(o.getId(),nodeVo.getResourceId()));
                         put("nodeId", nodeVo.getId());
