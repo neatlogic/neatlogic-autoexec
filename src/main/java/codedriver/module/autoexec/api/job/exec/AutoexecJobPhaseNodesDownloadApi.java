@@ -129,7 +129,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                 List<AccountVo> accountVoList = resourceCenterMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIdList, protocolId, userName);
                 List<AccountVo> allAccountVoList = resourceCenterMapper.getAccountListByIpList(autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getHost).collect(Collectors.toList()));
                 for (AutoexecJobPhaseNodeVo nodeVo : autoexecJobPhaseNodeVoList) {
-                    if(StringUtils.isNotBlank(userName)){
+                    if(StringUtils.isBlank(userName)){
                         userName = "nobody";
                     }
                     String finalUserName = userName;
@@ -142,14 +142,18 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                         if (accountOp.isPresent()) {
                             AccountVo accountVoTmp = accountOp.get();
                             put("protocol", accountVoTmp.getProtocol());
-                            put("username", finalUserName);
                             put("password", "{ENCRYPTED}" + RC4Util.encrypt(AUTOEXEC_RC4_KEY, accountVoTmp.getPasswordPlain()));
                             put("protocolPort", accountVoTmp.getPort());
                         } else {
-
-                            put("protocol", nodeVo.getProtocol());
+                            Optional<AccountProtocolVo> protocolVo = protocolVoList.stream().filter(o -> Objects.equals(o.getId(), nodeVo.getProtocolId())).findFirst();
+                            if(protocolVo.isPresent()) {
+                                put("protocol", protocolVo.get());
+                            }else{
+                                put("protocol", "protocolNotExist");
+                            }
                         }
                         //ResourceVo resourceVo = (ResourceVo) resourceVoList.stream().filter(o-> Objects.equals(o.getId(),nodeVo.getResourceId()));
+                        put("username", finalUserName);
                         put("nodeId", nodeVo.getId());
                         put("nodeName", nodeVo.getNodeName());
                         put("nodeType", nodeVo.getNodeType());
