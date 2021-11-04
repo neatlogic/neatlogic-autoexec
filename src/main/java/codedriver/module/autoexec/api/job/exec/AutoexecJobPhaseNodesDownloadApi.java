@@ -147,7 +147,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                         } else {
                             Optional<AccountProtocolVo> protocolVo = protocolVoList.stream().filter(o -> Objects.equals(o.getId(), nodeVo.getProtocolId())).findFirst();
                             if(protocolVo.isPresent()) {
-                                put("protocol", protocolVo.get());
+                                put("protocol", protocolVo.get().getName());
                             }else{
                                 put("protocol", "protocolNotExist");
                             }
