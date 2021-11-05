@@ -70,7 +70,8 @@ public class AutoexecJobAuthActionManager {
         });
 
         actionMap.put("reFireJob", (jobVo) -> {
-            if (jobVo.getPhaseList().stream().anyMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.RUNNING.getValue())) || autoexecJobMapper.checkIsHasRunningNode(jobVo.getId()) != 0) {
+            if (Arrays.asList(JobStatus.RUNNING.getValue(),
+                    JobStatus.PENDING.getValue(),JobStatus.ABORTING.getValue()).contains(jobVo.getStatus())) {
                 throw new AutoexecJobCanNotRefireException(jobVo.getId().toString());
             }
         });
