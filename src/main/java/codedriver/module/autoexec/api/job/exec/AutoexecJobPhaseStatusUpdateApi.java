@@ -94,7 +94,7 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
              * 如果status = succeed 表示除了“已忽略”的节点，其它节点都已成功,将web端phase runner状态更新为completed
              * 如果status = failed 表示存在“失败中止”节点，将web端phase runner状态更新为failed,phase 状态也是failed
              */
-            if (Objects.equals(status, JobPhaseStatus.COMPLETED.getValue())) {
+            if (Arrays.asList(JobPhaseStatus.COMPLETED.getValue(),JobNodeStatus.SUCCEED.getValue()).contains(status)) {
                 List<String> exceptStatus = Arrays.asList(JobNodeStatus.IGNORED.getValue(), JobNodeStatus.FAILED.getValue(), JobNodeStatus.SUCCEED.getValue());
                 List<AutoexecJobPhaseNodeVo> jobPhaseNodeVoList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseNameAndExceptStatusAndRunnerId(jobId, phaseName, exceptStatus, runnerId);
                 if (CollectionUtils.isNotEmpty(jobPhaseNodeVoList)) {
@@ -105,12 +105,6 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
 //            for(AutoexecJobPhaseNodeVo jobPhaseNodeVo : jobPhaseNodeVoList){
 //                autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseIdAndOperationId()
 //            }
-            } else if (Objects.equals(status, JobNodeStatus.SUCCEED.getValue())) {
-                List<String> exceptStatus = Collections.singletonList(JobNodeStatus.SUCCEED.getValue());
-                List<AutoexecJobPhaseNodeVo> jobPhaseNodeVoList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseNameAndExceptStatusAndRunnerId(jobId, phaseName, exceptStatus, runnerId);
-                if (CollectionUtils.isNotEmpty(jobPhaseNodeVoList)) {
-                    throw new AutoexecJobPhaseNodeStatusException(phaseName, status, StringUtils.join(jobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()), ","));
-                }
                 status = JobPhaseStatus.COMPLETED.getValue();
             }
         } else {
