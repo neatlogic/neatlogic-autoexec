@@ -8,6 +8,7 @@ package codedriver.module.autoexec.api.combop;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.auth.core.AuthActionChecker;
+import codedriver.framework.auth.core.AuthFactory;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import codedriver.framework.autoexec.dto.combop.*;
@@ -116,7 +117,7 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
         Long id = jsonObj.getLong("id");
         if (id == null) {
             if(!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(true), AUTOEXEC_COMBOP_ADD.class.getSimpleName())){
-                throw new PermissionDeniedException();
+                throw new PermissionDeniedException(AuthFactory.getAuthInstance(AUTOEXEC_COMBOP_ADD.class.getSimpleName()).getAuthDisplayName());
             }
             autoexecCombopVo.setOperationType(CombopOperationType.COMBOP.getValue());
             autoexecCombopVo.setOwner(UserContext.get().getUserUuid(true));
