@@ -22,7 +22,6 @@ import codedriver.framework.autoexec.exception.AutoexecJobRunnerGroupRunnerNotFo
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotMatchException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
 import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
-import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
 import codedriver.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import codedriver.framework.cmdb.dto.resourcecenter.ResourceVo;
 import codedriver.framework.common.util.IpUtil;
@@ -296,14 +295,14 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
      * @param protocolId   连接node 协议Id
      */
     private boolean getJobNodeList(AutoexecCombopExecuteConfigVo nodeConfigVo, Long jobId, AutoexecJobPhaseVo jobPhaseVo, Long combopId, String userName, Long protocolId, boolean isPhaseConfig) {
-        if(nodeConfigVo == null){
+        if (nodeConfigVo == null) {
             return false;
         }
         AtomicBoolean isHasNode = new AtomicBoolean(false);
         Map<Long, ResourceVo> resourceMap = new HashMap<>();
         List<Long> resourceIdList = new ArrayList<>();
         AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = nodeConfigVo.getExecuteNodeConfig();
-        if(executeNodeConfigVo == null){
+        if (executeNodeConfigVo == null) {
             return false;
         }
         //tagList
@@ -371,30 +370,31 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             }
         }
 
-        if (CollectionUtils.isNotEmpty(resourceIdList)) {
-            Map<String, AccountVo> resourceAccountMap = new HashMap<>();
+        //注释账号逻辑
+        //if (CollectionUtils.isNotEmpty(resourceIdList)) {
+            /*Map<String, AccountVo> resourceAccountMap = new HashMap<>();
             List<AccountVo> accountVoList = resourceCenterMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIdList, protocolId, userName);
             accountVoList.forEach(accountVo -> {
                 resourceAccountMap.put(accountVo.getResourceId().toString() + accountVo.getProtocolId() + accountVo.getAccount(), accountVo);
-            });
+            });*/
 
-            resourceMap.forEach((resourceId, resourceVo) -> {
-                AccountVo accountVo = resourceAccountMap.get(resourceId.toString() + protocolId + userName);
+        resourceMap.forEach((resourceId, resourceVo) -> {
+                /*AccountVo accountVo = resourceAccountMap.get(resourceId.toString() + protocolId + userName);
                 if (accountVo == null) {
                     accountVo = new AccountVo();
-                }
-                AutoexecJobPhaseNodeVo jobPhaseNodeVo = new AutoexecJobPhaseNodeVo(resourceVo, jobId, jobPhaseVo.getId(), JobNodeStatus.PENDING.getValue(), userName, protocolId, accountVo.getPort());
-                jobPhaseNodeVo.setPort(resourceVo.getPort());
-                jobPhaseNodeVo.setRunnerMapId(getRunnerByIp(jobPhaseNodeVo.getHost()));
-                if (jobPhaseNodeVo.getRunnerMapId() == null) {
-                    throw new AutoexecJobRunnerNotMatchException(jobPhaseNodeVo.getHost());
-                }
-                autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
-                autoexecJobMapper.insertJobPhaseNodeRunner(jobPhaseNodeVo.getId(), jobPhaseNodeVo.getRunnerMapId());
-                autoexecJobMapper.replaceIntoJobPhaseRunner(jobPhaseNodeVo.getJobId(), jobPhaseNodeVo.getJobPhaseId(), jobPhaseNodeVo.getRunnerMapId());
-                isHasNode.set(true);
-            });
-        }
+                }*/
+            AutoexecJobPhaseNodeVo jobPhaseNodeVo = new AutoexecJobPhaseNodeVo(resourceVo, jobId, jobPhaseVo.getId(), JobNodeStatus.PENDING.getValue(), userName, protocolId);
+            jobPhaseNodeVo.setPort(resourceVo.getPort());
+            jobPhaseNodeVo.setRunnerMapId(getRunnerByIp(jobPhaseNodeVo.getHost()));
+            if (jobPhaseNodeVo.getRunnerMapId() == null) {
+                throw new AutoexecJobRunnerNotMatchException(jobPhaseNodeVo.getHost());
+            }
+            autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
+            autoexecJobMapper.insertJobPhaseNodeRunner(jobPhaseNodeVo.getId(), jobPhaseNodeVo.getRunnerMapId());
+            autoexecJobMapper.replaceIntoJobPhaseRunner(jobPhaseNodeVo.getJobId(), jobPhaseNodeVo.getJobPhaseId(), jobPhaseNodeVo.getRunnerMapId());
+            isHasNode.set(true);
+        });
+        //}
         return isHasNode.get();
     }
 

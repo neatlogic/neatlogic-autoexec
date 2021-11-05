@@ -302,7 +302,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
                         put("protocol", accountVo.getProtocol());
                         put("username", accountVo.getAccount());
                         put("password", accountVo.getPasswordPlain());
-                        put("protocolPort", accountVo.getPort());
+                        put("protocolPort", accountVo.getProtocolPort());
                         put("nodeId", nodeVo.getId());
                         put("nodeName", nodeVo.getNodeName());
                         put("nodeType", nodeVo.getNodeType());
