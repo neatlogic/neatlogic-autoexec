@@ -19,7 +19,6 @@ import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
 import codedriver.framework.dao.mapper.UserMapper;
 import codedriver.framework.dto.RestVo;
 import codedriver.framework.dto.runner.RunnerMapVo;
-import codedriver.framework.dto.runner.RunnerVo;
 import codedriver.framework.exception.type.ParamIrregularException;
 import codedriver.framework.integration.authentication.enums.AuthenticateType;
 import codedriver.framework.util.RestUtil;
@@ -247,19 +246,19 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         }
         checkRunnerHealth(runnerVos);
         try {
-            RunnerVo runner = runnerVos.get(0);
-            String url = runner.getUrl() + "api/rest/job/all/reset";
-            paramJson.put("passThroughEnv", new JSONObject() {{
-                put("runnerId", runner.getId());
-                put("phaseSort", jobVo.getCurrentPhaseSort());
-            }});
-            restVo = new RestVo(url, AuthenticateType.BUILDIN.getValue(), paramJson);
-            result = RestUtil.sendRequest(restVo);
-            JSONObject resultJson = JSONObject.parseObject(result);
-            if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                throw new AutoexecJobRunnerConnectAuthException(restVo.getUrl() + ":" + resultJson.getString("Message"));
+            for(RunnerMapVo runner : runnerVos) {
+                String url = runner.getUrl() + "api/rest/job/all/reset";
+                paramJson.put("passThroughEnv", new JSONObject() {{
+                    put("runnerId", runner.getId());
+                    put("phaseSort", jobVo.getCurrentPhaseSort());
+                }});
+                restVo = new RestVo(url, AuthenticateType.BUILDIN.getValue(), paramJson);
+                result = RestUtil.sendRequest(restVo);
+                JSONObject resultJson = JSONObject.parseObject(result);
+                if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
+                    throw new AutoexecJobRunnerConnectAuthException(restVo.getUrl() + ":" + resultJson.getString("Message"));
+                }
             }
-
         } catch (Exception ex) {
             throw new AutoexecJobRunnerConnectRefusedException(restVo.getUrl() + " " + result);
         }
