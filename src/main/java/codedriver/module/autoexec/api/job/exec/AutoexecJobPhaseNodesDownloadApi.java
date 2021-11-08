@@ -134,7 +134,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                         /*
                          * 按以下规则顺序匹配account
                          * 1、通过 ”资产id+协议id+用户“ 匹配
-                         * 2、通过 ”组合工具配置的执行节点的ip+协议的端口“ 匹配 账号表
+                         * 2、通过 ”组合工具配置的执行节点的ip+协议id“ 匹配 账号表
                          * 3、通过 ”组合工具配置的执行节点的ip+端口“ 匹配 账号表
                          */
                         //1
@@ -143,7 +143,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                             //2
                             Optional<AccountProtocolVo> protocolVoOptional = protocolVoList.stream().filter(o -> Objects.equals(o.getId(), nodeVo.getProtocolId())).findFirst();
                             if (protocolVoOptional.isPresent()) {
-                                accountOp = allAccountVoList.stream().filter(o -> Objects.equals(o.getIp(), nodeVo.getHost()) && Objects.equals(o.getProtocolPort(), protocolVoOptional.get().getPort())).findFirst();
+                                accountOp = allAccountVoList.stream().filter(o -> Objects.equals(o.getIp(), nodeVo.getHost()) && Objects.equals(o.getProtocolId(), protocolVoOptional.get().getId())).findFirst();
                             }else{
                                 //3
                                 accountOp = allAccountVoList.stream().filter(o -> Objects.equals(o.getIp(), nodeVo.getHost()) && Objects.equals(o.getProtocolPort(), nodeVo.getPort())).findFirst();

@@ -17,6 +17,8 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import com.alibaba.fastjson.JSONObject;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -31,6 +33,7 @@ import java.util.Objects;
 @Transactional
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class AutoexecJobPhaseNodeStatusUpdateApi extends PublicApiComponentBase {
+    static Logger logger = LoggerFactory.getLogger(AutoexecJobPhaseNodeStatusUpdateApi.class);
     @Resource
     AutoexecJobMapper autoexecJobMapper;
 
@@ -59,6 +62,7 @@ public class AutoexecJobPhaseNodeStatusUpdateApi extends PublicApiComponentBase 
     @Description(desc = "回调更新作业剧本节点状态")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
+        logger.info("TEST:" + jsonObj.toJSONString());
         JSONObject result = new JSONObject();
         Long nodeId = jsonObj.getLong("nodeId");
         if (nodeId != null && nodeId > 0) {
