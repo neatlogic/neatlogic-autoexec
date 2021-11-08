@@ -55,7 +55,7 @@ public class AutoexecJobPhaseNodeAuditDownloadApi extends PrivateBinaryStreamApi
 
     @Input({
             @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本Id"),
-            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id", isRequired = true),
+            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id"),
             @Param(name = "sqlName", type = ApiParamType.STRING, desc = "sql名"),
             @Param(name = "startTime", type = ApiParamType.STRING, desc = "执行开始时间", isRequired = true),
             @Param(name = "status", type = ApiParamType.STRING, desc = "执行状态", isRequired = true),
