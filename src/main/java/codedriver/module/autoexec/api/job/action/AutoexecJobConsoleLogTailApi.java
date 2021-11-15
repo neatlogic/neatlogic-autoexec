@@ -3,14 +3,14 @@
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  */
 
-package codedriver.module.autoexec.api.job;
+package codedriver.module.autoexec.api.job.action;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
-import codedriver.framework.dto.runner.RunnerVo;
+import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
+import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
+import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.Input;
 import codedriver.framework.restful.annotation.OperationType;
@@ -18,9 +18,6 @@ import codedriver.framework.restful.annotation.Output;
 import codedriver.framework.restful.annotation.Param;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
-import codedriver.framework.dao.mapper.runner.RunnerMapper;
-import codedriver.module.autoexec.service.AutoexecJobActionService;
 import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
@@ -35,19 +32,8 @@ import javax.annotation.Resource;
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecJobConsoleLogTailApi extends PrivateApiComponentBase {
-
-    @Resource
-    AutoexecJobActionService autoexecJobActionService;
-
     @Resource
     AutoexecJobService autoexecJobService;
-
-    @Resource
-    RunnerMapper runnerMapper;
-
-    @Resource
-    AutoexecJobMapper autoexecJobMapper;
-
     @Override
     public String getName() {
         return "获取作业console日志";
@@ -74,20 +60,12 @@ public class AutoexecJobConsoleLogTailApi extends PrivateApiComponentBase {
     })
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        Long runnerId = paramObj.getLong("runnerId");
-        Long jobId = paramObj.getLong("jobId");
-        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
-        if (jobVo == null) {
-            throw new AutoexecJobNotFoundException(jobId.toString());
-        }
-        RunnerVo runnerVo = runnerMapper.getRunnerById(runnerId);
-        if (runnerVo == null) {
-            throw new AutoexecJobRunnerNotFoundException(runnerId.toString());
-        }
-        paramObj.put("jobId", jobId);
-        paramObj.put("runnerUrl", runnerVo.getUrl());
-        paramObj.put("direction", paramObj.getString("direction"));
-        JSONObject result = autoexecJobActionService.tailConsoleLog(paramObj);
+        AutoexecJobVo jobVo = new AutoexecJobVo();
+        jobVo.setCurrentPhaseId(paramObj.getLong("jobPhaseId"));
+        jobVo.setCurrentNodeResourceId(paramObj.getLong("resourceId"));
+        jobVo.setActionParam(paramObj);
+        IAutoexecJobActionHandler nodeAuditListAction = AutoexecJobActionHandlerFactory.getAction(JobAction.CONSOLE_LOG_TAIL.getValue());
+        JSONObject result = nodeAuditListAction.doService(jobVo);
         autoexecJobService.setIsRefresh(result, jobVo);
         return result;
     }

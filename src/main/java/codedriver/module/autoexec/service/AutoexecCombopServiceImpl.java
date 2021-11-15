@@ -7,6 +7,10 @@ package codedriver.module.autoexec.service;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.*;
+import codedriver.framework.autoexec.crossover.AutoexecCombopCrossoverService;
+import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
@@ -16,9 +20,6 @@ import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.dto.AuthenticationInfoVo;
 import codedriver.framework.service.AuthenticationInfoService;
-import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
-import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
-import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -35,7 +36,7 @@ import java.util.stream.Collectors;
  * @since: 2021/4/15 16:13
  **/
 @Service
-public class AutoexecCombopServiceImpl implements AutoexecCombopService {
+public class AutoexecCombopServiceImpl implements AutoexecCombopService, AutoexecCombopCrossoverService {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
@@ -197,10 +198,10 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService {
                 }
                 if (MapUtils.isNotEmpty(inputParamMap)) {
                     Set<String> inputParamSet = new HashSet<>();
-                    for(String key : inputParamMap.keySet()){
-                        if(inputParamMap.containsKey(key)) {
+                    for (String key : inputParamMap.keySet()) {
+                        if (inputParamMap.containsKey(key)) {
                             inputParamSet.add(inputParamNameMap.get(key) + "(" + key + ")");
-                        }else{
+                        } else {
                             inputParamSet.add(key);
                         }
                     }

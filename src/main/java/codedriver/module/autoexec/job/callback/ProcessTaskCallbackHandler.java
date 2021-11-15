@@ -1,11 +1,11 @@
 /*
- * Copyright(c) 2021 TechSureCo.,Ltd.AllRightsReserved.
+ * Copyright (c)  2021 TechSure Co.,Ltd.  All Rights Reserved.
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  */
 
-package codedriver.module.autoexec.callback.handler;
+package codedriver.module.autoexec.job.callback;
 
-import codedriver.framework.autoexec.callback.core.AutoexecJobCallbackBase;
+import codedriver.framework.autoexec.job.callback.core.AutoexecJobCallbackBase;
 import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobEnvVo;

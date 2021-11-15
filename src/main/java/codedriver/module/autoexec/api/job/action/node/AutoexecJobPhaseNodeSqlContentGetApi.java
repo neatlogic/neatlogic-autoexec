@@ -3,7 +3,7 @@
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  */
 
-package codedriver.module.autoexec.api.job.action;
+package codedriver.module.autoexec.api.job.action.node;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
@@ -21,18 +21,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author lvzk
- * @since 2021/4/21 15:20
+ * @since 2021/8/5 11:20
  **/
 
 @Service
 @Transactional
 @AuthAction(action = AUTOEXEC_BASE.class)
-@OperationType(type = OperationTypeEnum.OPERATE)
-public class AutoexecJobAbortApi extends PrivateApiComponentBase {
-
+@OperationType(type = OperationTypeEnum.SEARCH)
+public class AutoexecJobPhaseNodeSqlContentGetApi extends PrivateApiComponentBase {
     @Override
     public String getName() {
-        return "中止作业";
+        return "获取作业节点sql列表";
     }
 
     @Override
@@ -41,21 +40,26 @@ public class AutoexecJobAbortApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
+            @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本Id"),
+            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id"),
+            @Param(name = "sqlName", type = ApiParamType.STRING, desc = "sql名")
     })
     @Output({
     })
-    @Description(desc = "中止作业")
+    @Description(desc = "获取作业节点sql文件内容")
     @Override
-    public Object myDoService(JSONObject jsonObj) throws Exception {
+    public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecJobVo jobVo = new AutoexecJobVo();
-        jobVo.setId(jsonObj.getLong("jobId"));
-        IAutoexecJobActionHandler abortAction = AutoexecJobActionHandlerFactory.getAction(JobAction.ABORT.getValue());
-        return abortAction.doService(jobVo);
+        jobVo.setId(paramObj.getLong("jobId"));
+        jobVo.setCurrentPhaseId(paramObj.getLong("jobPhaseId"));
+        jobVo.setCurrentNodeResourceId(paramObj.getLong("resourceId"));
+        jobVo.setActionParam(paramObj);
+        IAutoexecJobActionHandler getNodeSqlContentAction = AutoexecJobActionHandlerFactory.getAction(JobAction.GET_NODE_SQL_CONTENT.getValue());
+        return getNodeSqlContentAction.doService(jobVo);
     }
 
     @Override
     public String getToken() {
-        return "autoexec/job/abort";
+        return "autoexec/job/phase/node/sql/content/get";
     }
 }

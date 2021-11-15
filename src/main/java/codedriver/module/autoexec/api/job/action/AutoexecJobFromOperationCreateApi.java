@@ -8,7 +8,6 @@ package codedriver.module.autoexec.api.job.action;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.*;
-import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
@@ -28,13 +27,12 @@ import codedriver.framework.autoexec.exception.AutoexecJobCanNotTestException;
 import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecToolNotFoundException;
+import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
+import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
-import codedriver.framework.dao.mapper.TeamMapper;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.module.autoexec.service.AutoexecCombopService;
-import codedriver.module.autoexec.service.AutoexecJobActionService;
 import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -64,18 +62,6 @@ public class AutoexecJobFromOperationCreateApi extends PrivateApiComponentBase {
 
     @Resource
     AutoexecJobMapper autoexecJobMapper;
-
-    @Resource
-    AutoexecCombopMapper autoexecCombopMapper;
-
-    @Resource
-    AutoexecCombopService autoexecCombopService;
-
-    @Resource
-    AutoexecJobActionService autoexecJobActionService;
-
-    @Resource
-    TeamMapper teamMapper;
 
     @Resource
     AutoexecScriptMapper scriptMapper;
@@ -117,9 +103,10 @@ public class AutoexecJobFromOperationCreateApi extends PrivateApiComponentBase {
         AutoexecJobVo jobVo = autoexecJobService.saveAutoexecCombopJob(combopVo, invokeVo, null, paramJson);
         jobVo.setAction(JobAction.FIRE.getValue());
         jobVo.setCurrentPhaseSort(0);
-        autoexecJobActionService.fire(jobVo);
-        return new JSONObject() {{
-            put("jobId", jobVo.getId());
+        IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
+        fireAction.doService(jobVo);
+        return new JSONObject(){{
+            put("jobId",jobVo.getId());
         }};
     }
 

@@ -7,16 +7,15 @@ package codedriver.module.autoexec.api.job.action;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
-import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
+import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
-import codedriver.framework.dao.mapper.TeamMapper;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.module.autoexec.service.AutoexecCombopService;
 import codedriver.module.autoexec.service.AutoexecJobActionService;
-import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,19 +33,7 @@ import javax.annotation.Resource;
 @OperationType(type = OperationTypeEnum.CREATE)
 public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
     @Resource
-    AutoexecJobService autoexecJobService;
-
-    @Resource
-    AutoexecCombopMapper autoexecCombopMapper;
-
-    @Resource
-    AutoexecCombopService autoexecCombopService;
-
-    @Resource
     AutoexecJobActionService autoexecJobActionService;
-
-    @Resource
-    TeamMapper teamMapper;
 
     @Override
     public String getName() {
@@ -73,7 +60,8 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecJobVo jobVo = autoexecJobActionService.validateCreateJobFromCombop(jsonObj,true);
-        autoexecJobActionService.fire(jobVo);
+        IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
+        fireAction.doService(jobVo);
         return new JSONObject(){{
             put("jobId",jobVo.getId());
         }};
