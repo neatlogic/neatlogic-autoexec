@@ -34,7 +34,7 @@ public class AutoexecJobConsoleLogTailHandler extends AutoexecJobActionHandlerBa
     }
 
     @Override
-    public boolean isNeedExecuteAuthCheck(){
+    public boolean isNeedExecuteAuthCheck() {
         return true;
     }
 
@@ -45,6 +45,7 @@ public class AutoexecJobConsoleLogTailHandler extends AutoexecJobActionHandlerBa
         if (runnerVo == null) {
             throw new AutoexecJobRunnerNotFoundException(runnerId.toString());
         }
+        jobVo.getActionParam().put("runnerUrl", runnerVo.getUrl());
         return true;
     }
 

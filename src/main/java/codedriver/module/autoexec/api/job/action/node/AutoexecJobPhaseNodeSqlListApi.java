@@ -8,7 +8,6 @@ package codedriver.module.autoexec.api.job.action.node;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.JobAction;
-import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
@@ -16,13 +15,9 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.module.autoexec.service.AutoexecJobActionService;
-import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import javax.annotation.Resource;
 
 /**
  * @author lvzk
@@ -34,14 +29,6 @@ import javax.annotation.Resource;
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecJobPhaseNodeSqlListApi extends PrivateApiComponentBase {
-    @Resource
-    AutoexecJobMapper autoexecJobMapper;
-
-    @Resource
-    AutoexecJobService jobService;
-
-    @Resource
-    AutoexecJobActionService autoexecJobActionService;
 
     @Override
     public String getName() {

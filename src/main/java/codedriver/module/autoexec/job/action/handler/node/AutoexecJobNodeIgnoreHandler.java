@@ -63,7 +63,7 @@ public class AutoexecJobNodeIgnoreHandler extends AutoexecJobActionHandlerBase {
 
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
-        for (AutoexecJobPhaseNodeVo nodeVo : jobVo.getJobPhaseNodeList()) {
+        for (AutoexecJobPhaseNodeVo nodeVo : jobVo.getPhaseNodeVoList()) {
             nodeVo.setStatus(JobNodeStatus.IGNORED.getValue());
             nodeVo.setStartTime(null);
             nodeVo.setEndTime(null);

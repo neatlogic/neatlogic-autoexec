@@ -42,6 +42,7 @@ public class AutoexecJobPhaseNodeReFireApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
+            @Param(name = "jobPhaseId", type = ApiParamType.LONG, desc = "作业phaseId", isRequired = true),
             @Param(name = "resourceIdList", type = ApiParamType.JSONARRAY, desc = "重跑的节点资产idList",isRequired = true)
     })
     @Output({
@@ -52,6 +53,7 @@ public class AutoexecJobPhaseNodeReFireApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecJobVo jobVo = new AutoexecJobVo();
         jobVo.setId(jsonObj.getLong("jobId"));
+        jobVo.setCurrentPhaseId(jsonObj.getLong("jobPhaseId"));
         jobVo.setActionParam(jsonObj);
         IAutoexecJobActionHandler refireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.REFIRE_NODE.getValue());
         return refireAction.doService(jobVo);

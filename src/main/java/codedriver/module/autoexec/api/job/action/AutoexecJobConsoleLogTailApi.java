@@ -64,7 +64,7 @@ public class AutoexecJobConsoleLogTailApi extends PrivateApiComponentBase {
         jobVo.setCurrentPhaseId(paramObj.getLong("jobPhaseId"));
         jobVo.setCurrentNodeResourceId(paramObj.getLong("resourceId"));
         jobVo.setActionParam(paramObj);
-        IAutoexecJobActionHandler nodeAuditListAction = AutoexecJobActionHandlerFactory.getAction(JobAction.NODE_AUDIT_LIST.getValue());
+        IAutoexecJobActionHandler nodeAuditListAction = AutoexecJobActionHandlerFactory.getAction(JobAction.CONSOLE_LOG_TAIL.getValue());
         JSONObject result = nodeAuditListAction.doService(jobVo);
         autoexecJobService.setIsRefresh(result, jobVo);
         return result;
