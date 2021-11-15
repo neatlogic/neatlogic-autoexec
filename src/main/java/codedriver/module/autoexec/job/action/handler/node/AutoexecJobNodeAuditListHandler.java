@@ -66,7 +66,7 @@ public class AutoexecJobNodeAuditListHandler extends AutoexecJobActionHandlerBas
         paramObj.put("port", nodeVo.getPort());
         paramObj.put("runnerUrl", nodeVo.getRunnerUrl());
         paramObj.put("execMode", phaseVo.getExecMode());
-        String url = paramObj.getString("runnerUrl") + "/api/rest/job/phase/node/execute/audit/get";
+        String url = paramObj.getString("runnerUrl") + "/api/rest/job/phase/node/execute/audit/list";
         List<AutoexecJobPhaseNodeAuditVo> auditList = new ArrayList<>();
         JSONArray auditArray = JSONArray.parseArray(requestRunner(url, paramObj));
         for (Object audit : auditArray) {
