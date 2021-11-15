@@ -96,7 +96,7 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
             nodeVo.setStatus(JobNodeStatus.PENDING.getValue());
             nodeVo.setStartTime(null);
             nodeVo.setEndTime(null);
-            autoexecJobMapper.updateJobPhaseNode(nodeVo);
+            autoexecJobMapper.updateJobPhaseNodeById(nodeVo);
         }
         autoexecJobMapper.updateJobPhaseNodeListStatus(jobVo.getPhaseNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()), JobNodeStatus.PENDING.getValue());
         List<AutoexecJobPhaseNodeVo> nodeVoList = autoexecJobMapper.getJobPhaseNodeRunnerListByNodeIdList(jobVo.getPhaseNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()));

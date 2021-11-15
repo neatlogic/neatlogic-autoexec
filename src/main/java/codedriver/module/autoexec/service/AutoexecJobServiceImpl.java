@@ -111,10 +111,13 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 }
                 int runnerMapIndex = (int) (Math.random() * runnerMapList.size());
                 RunnerMapVo runnerMapVo = runnerMapList.get(runnerMapIndex);
-                AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), jobPhaseVo.getId(), "runner", JobNodeStatus.PENDING.getValue(), userName, protocolId);
+                Date nowTime = new Date(System.currentTimeMillis());
+                jobPhaseVo.setLcd(nowTime);
+                AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), jobPhaseVo, "runner", JobNodeStatus.PENDING.getValue(), userName, protocolId);
                 autoexecJobMapper.insertJobPhaseNode(nodeVo);
-                autoexecJobMapper.insertJobPhaseNodeRunner(nodeVo.getId(), runnerMapVo.getRunnerMapId());
-                autoexecJobMapper.replaceIntoJobPhaseRunner(nodeVo.getJobId(), nodeVo.getJobPhaseId(), runnerMapVo.getRunnerMapId());
+                nodeVo.setRunnerMapId(runnerMapVo.getRunnerMapId());
+                autoexecJobMapper.insertJobPhaseNodeRunner(new AutoexecJobPhaseNodeRunnerVo(nodeVo));
+                autoexecJobMapper.replaceIntoJobPhaseRunner(nodeVo);
             }
             //jobPhaseOperation
             List<AutoexecJobPhaseOperationVo> jobPhaseOperationVoList = new ArrayList<>();
@@ -198,8 +201,38 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
 
     }
 
-    @Override
     public void refreshJobPhaseNodeList(Long jobId, int sort, AutoexecCombopExecuteConfigVo combopExecuteConfigVo) {
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        AutoexecCombopConfigVo configVo = JSON.toJavaObject(jobVo.getConfig(), AutoexecCombopConfigVo.class);
+        //获取组合工具执行目标 执行用户和协议
+        //非空场景，用于重跑替换执行配置（执行目标，用户，协议）
+        if (combopExecuteConfigVo == null) {
+            combopExecuteConfigVo = configVo.getExecuteConfig();
+        }
+        String userName = StringUtils.EMPTY;
+        Long protocolId = null;
+        if (combopExecuteConfigVo != null) {
+            userName = combopExecuteConfigVo.getExecuteUser();
+            protocolId = combopExecuteConfigVo.getProtocolId();
+        }
+        //获取当前所有target阶段
+        List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndSort(jobId, sort);
+        //只刷新当前target|sql阶段
+        List<AutoexecCombopPhaseVo> combopPhaseList = configVo.getCombopPhaseList().stream().filter(o -> o.getSort() == sort && Arrays.asList(ExecMode.TARGET.getValue(), ExecMode.SQL.getValue()).contains(o.getExecMode())).collect(Collectors.toList());
+        for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
+            AutoexecCombopPhaseConfigVo combopPhaseExecuteConfigVo = autoexecCombopPhaseVo.getConfig();
+            Optional<AutoexecJobPhaseVo> jobPhaseVoOptional = jobPhaseVoList.stream().filter(o -> Objects.equals(o.getName(), autoexecCombopPhaseVo.getName())).findFirst();
+            if (jobPhaseVoOptional.isPresent()) {
+                AutoexecJobPhaseVo jobPhaseVo = jobPhaseVoOptional.get();
+                jobPhaseVo.setCombopId(jobVo.getOperationId());
+                initPhaseExecuteUserAndProtocolAndNode(userName, protocolId, jobVo, jobPhaseVo, combopExecuteConfigVo, combopPhaseExecuteConfigVo);
+            }
+        }
+    }
+
+    @Deprecated
+    @Override
+    public void deleteAndInsertJobPhaseNodeList(Long jobId, int sort, AutoexecCombopExecuteConfigVo combopExecuteConfigVo) {
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
         AutoexecCombopConfigVo configVo = JSON.toJavaObject(jobVo.getConfig(), AutoexecCombopConfigVo.class);
         //获取当前所有target阶段
@@ -378,23 +411,38 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 resourceAccountMap.put(accountVo.getResourceId().toString() + accountVo.getProtocolId() + accountVo.getAccount(), accountVo);
             });*/
 
+        //update 该phase lcd
+        Date nowTime = new Date(System.currentTimeMillis());
+        jobPhaseVo.setLcd(nowTime);
+        autoexecJobMapper.updateJobPhaseLcdById(jobPhaseVo.getId(), jobPhaseVo.getLcd());
         resourceMap.forEach((resourceId, resourceVo) -> {
                 /*AccountVo accountVo = resourceAccountMap.get(resourceId.toString() + protocolId + userName);
                 if (accountVo == null) {
                     accountVo = new AccountVo();
                 }*/
-            AutoexecJobPhaseNodeVo jobPhaseNodeVo = new AutoexecJobPhaseNodeVo(resourceVo, jobId, jobPhaseVo.getId(), JobNodeStatus.PENDING.getValue(), userName, protocolId);
+            AutoexecJobPhaseNodeVo jobPhaseNodeVo = new AutoexecJobPhaseNodeVo(resourceVo, jobId, jobPhaseVo, JobNodeStatus.PENDING.getValue(), userName, protocolId);
             jobPhaseNodeVo.setPort(resourceVo.getPort());
             jobPhaseNodeVo.setRunnerMapId(getRunnerByIp(jobPhaseNodeVo.getHost()));
             if (jobPhaseNodeVo.getRunnerMapId() == null) {
                 throw new AutoexecJobRunnerNotMatchException(jobPhaseNodeVo.getHost());
             }
-            autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
-            autoexecJobMapper.insertJobPhaseNodeRunner(jobPhaseNodeVo.getId(), jobPhaseNodeVo.getRunnerMapId());
-            autoexecJobMapper.replaceIntoJobPhaseRunner(jobPhaseNodeVo.getJobId(), jobPhaseNodeVo.getJobPhaseId(), jobPhaseNodeVo.getRunnerMapId());
+
+            //如果大于 update 0,说明存在旧数据
+            Integer result = autoexecJobMapper.updateJobPhaseNodeByJobIdAndPhaseIdAndResourceId(jobPhaseNodeVo);
+            if (result == null || result == 0) {
+                autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
+                autoexecJobMapper.insertJobPhaseNodeRunner(new AutoexecJobPhaseNodeRunnerVo(jobPhaseNodeVo));
+            }
+            autoexecJobMapper.replaceIntoJobPhaseRunner(jobPhaseNodeVo);
             isHasNode.set(true);
         });
         //}
+        //删除该阶段所有不是最近更新的node runnerMap
+        autoexecJobMapper.deleteJobPhaseNodeRunnerByJobPhaseIdAndLcd(jobPhaseVo.getId(), jobPhaseVo.getLcd());
+        //删除该阶段所有不是最近更新的节点，即非法历史节点
+        autoexecJobMapper.deleteJobPhaseNodeByJobPhaseIdAndLcd(jobPhaseVo.getId(), jobPhaseVo.getLcd());
+        //删除该阶段所有不是最近更新的phase runner
+        autoexecJobMapper.deleteJobPhaseRunnerByJobPhaseIdAndLcd(jobPhaseVo.getId(), jobPhaseVo.getLcd());
         return isHasNode.get();
     }
 
