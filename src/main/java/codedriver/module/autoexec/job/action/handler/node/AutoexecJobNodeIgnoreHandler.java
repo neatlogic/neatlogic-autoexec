@@ -67,7 +67,7 @@ public class AutoexecJobNodeIgnoreHandler extends AutoexecJobActionHandlerBase {
             nodeVo.setStatus(JobNodeStatus.IGNORED.getValue());
             nodeVo.setStartTime(null);
             nodeVo.setEndTime(null);
-            autoexecJobMapper.updateJobPhaseNode(nodeVo);
+            autoexecJobMapper.updateJobPhaseNodeById(nodeVo);
         }
         return null;
     }

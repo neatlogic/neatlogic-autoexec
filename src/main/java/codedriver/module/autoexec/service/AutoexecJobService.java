@@ -43,13 +43,26 @@ public interface AutoexecJobService {
     boolean checkIsAllActivePhaseIsCompleted(Long jobId, Integer sort);
 
     /**
-     * 刷新激活剧本的所有节点信息
+     * 刷新激活剧本的所有节点信息 (后续不采用删除再insert的方式刷新节点)
      *
      * @param jobId           作业id
      * @param sort            当前激活剧本顺序
-     * @param executeConfigVo 执行时的参数（执行目标，用户，协议）
+     * @param combopExecuteConfigVo 执行时的参数（执行目标，用户，协议）
      */
-    void refreshJobPhaseNodeList(Long jobId, int sort, AutoexecCombopExecuteConfigVo executeConfigVo);
+    @Deprecated
+    void deleteAndInsertJobPhaseNodeList(Long jobId, int sort, AutoexecCombopExecuteConfigVo combopExecuteConfigVo);
+
+
+    /**
+     * 刷新激活剧本的所有节点信息
+     * 1、找到所有满足条件的执行节点update 如果update 返回值为0 则 insert
+     * 2、delete所有job_node lcd小于 phase lcd 的作业节点
+     *
+     * @param jobId           作业id
+     * @param sort            当前激活剧本顺序
+     * @param combopExecuteConfigVo 执行时的参数（执行目标，用户，协议）
+     */
+    void refreshJobPhaseNodeList(Long jobId, int sort, AutoexecCombopExecuteConfigVo combopExecuteConfigVo);
 
     /**
      * 设置是否需要定时刷新
