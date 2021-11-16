@@ -66,9 +66,11 @@ public class AutoexecJobRunTimeParamGetApi extends PrivateApiComponentBase {
         //集成数据特殊处理，截取text
         for (int i = 0; i < runTimeParam.size(); i++) {
             String value = runTimeParam.getJSONObject(i).getString("value");
-            int tmpIndex = value.indexOf("&=&");
-            if (StringUtils.isNotBlank(value) && tmpIndex > -1) {
-                runTimeParam.getJSONObject(i).put("value",value.substring(tmpIndex+3));
+            if (StringUtils.isNotBlank(value)) {
+                int tmpIndex = value.indexOf("&=&");
+                if(tmpIndex > -1) {
+                    runTimeParam.getJSONObject(i).put("value", value.substring(tmpIndex + 3));
+                }
             }
         }
         result.put("runTimeParamList", runTimeParam);
