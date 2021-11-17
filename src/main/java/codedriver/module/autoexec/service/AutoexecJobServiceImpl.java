@@ -116,7 +116,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), jobPhaseVo, "runner", JobNodeStatus.PENDING.getValue(), userName, protocolId);
                 autoexecJobMapper.insertJobPhaseNode(nodeVo);
                 nodeVo.setRunnerMapId(runnerMapVo.getRunnerMapId());
-                autoexecJobMapper.insertJobPhaseNodeRunner(new AutoexecJobPhaseNodeRunnerVo(nodeVo));
+                autoexecJobMapper.insertIgnoreJobPhaseNodeRunner(new AutoexecJobPhaseNodeRunnerVo(nodeVo));
                 autoexecJobMapper.replaceIntoJobPhaseRunner(nodeVo);
             }
             //jobPhaseOperation
@@ -431,7 +431,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             Integer result = autoexecJobMapper.updateJobPhaseNodeByJobIdAndPhaseIdAndResourceId(jobPhaseNodeVo);
             if (result == null || result == 0) {
                 autoexecJobMapper.insertJobPhaseNode(jobPhaseNodeVo);
-                autoexecJobMapper.insertJobPhaseNodeRunner(new AutoexecJobPhaseNodeRunnerVo(jobPhaseNodeVo));
+                //防止旧resource 所以ignore insert
+                autoexecJobMapper.insertIgnoreJobPhaseNodeRunner(new AutoexecJobPhaseNodeRunnerVo(jobPhaseNodeVo));
             }
             autoexecJobMapper.replaceIntoJobPhaseRunner(jobPhaseNodeVo);
             isHasNode.set(true);
