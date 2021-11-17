@@ -225,6 +225,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             throw new AutoexecJobThreadCountException();
         }
         AutoexecJobInvokeVo invokeVo = new AutoexecJobInvokeVo(jsonObj.getLong("invokeId"), jsonObj.getString("source"));
+        if(jsonObj.containsKey("name")) {
+            combopVo.setName(jsonObj.getString("name"));
+        }
         AutoexecJobVo jobVo = autoexecJobService.saveAutoexecCombopJob(combopVo, invokeVo, threadCount, paramJson);
         jobVo.setAction(JobAction.FIRE.getValue());
         jobVo.setCurrentPhaseSort(0);

@@ -119,7 +119,7 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             for (RunnerMapVo runner : runnerVos) {
                 String url = runner.getUrl() + "api/rest/job/all/reset";
                 paramJson.put("passThroughEnv", new JSONObject() {{
-                    put("runnerId", runner.getId());
+                    put("runnerId", runner.getRunnerMapId());
                     put("phaseSort", jobVo.getCurrentPhaseSort());
                 }});
                 restVo = new RestVo(url, AuthenticateType.BUILDIN.getValue(), paramJson);
