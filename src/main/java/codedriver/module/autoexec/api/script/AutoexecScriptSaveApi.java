@@ -145,6 +145,11 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             if (autoexecScriptMapper.checkScriptIsExistsById(scriptVo.getId()) == 0) {
                 throw new AutoexecScriptNotFoundException(scriptVo.getId());
             }
+            // 只有在激活版本页面才能通过编辑来新增版本，所以找到当前激活版本的参数，用来与编辑页面的参数进行对比看是否有改变
+            AutoexecScriptVersionVo activeVersion = autoexecScriptMapper.getActiveVersionByScriptId(scriptVo.getId());
+            if (activeVersion != null) {
+                oldParamList = autoexecScriptMapper.getParamListByVersionId(activeVersion.getId());
+            }
             //Integer maxVersion = autoexecScriptMapper.getMaxVersionByScriptId(scriptVo.getId());
             //versionVo.setVersion(maxVersion != null ? maxVersion + 1 : 1);
             versionVo.setScriptId(scriptVo.getId());
