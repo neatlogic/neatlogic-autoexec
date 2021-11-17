@@ -47,11 +47,12 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "组合工具ID"),
+            @Param(name = "name", type = ApiParamType.STRING, desc = "作业名"),
             @Param(name = "param", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "执行参数"),
             @Param(name = "source", type = ApiParamType.STRING, isRequired = true, desc = "来源 itsm|human   ITSM|人工发起的等，不传默认是人工发起的"),
             @Param(name = "invokeId", type = ApiParamType.LONG, desc = "来源id"),
             @Param(name = "threadCount", type = ApiParamType.LONG, isRequired = true, desc = "并发线程,2的n次方 "),
-            @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT,  desc = "执行目标"),
+            @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, desc = "执行目标"),
     })
     @Output({
     })
@@ -59,11 +60,11 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
     @ResubmitInterval(value = 2)
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        AutoexecJobVo jobVo = autoexecJobActionService.validateCreateJobFromCombop(jsonObj,true);
+        AutoexecJobVo jobVo = autoexecJobActionService.validateCreateJobFromCombop(jsonObj, true);
         IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
         fireAction.doService(jobVo);
-        return new JSONObject(){{
-            put("jobId",jobVo.getId());
+        return new JSONObject() {{
+            put("jobId", jobVo.getId());
         }};
     }
 
