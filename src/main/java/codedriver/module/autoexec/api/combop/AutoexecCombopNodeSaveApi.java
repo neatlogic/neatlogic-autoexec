@@ -9,17 +9,16 @@ import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.CombopNodeSpecify;
+import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteNodeConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopExecuteNodeCannotBeEmptyException;
-import codedriver.framework.autoexec.exception.AutoexecCombopExecuteUserCannotBeEmptyException;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
-import codedriver.framework.cmdb.exception.resourcecenter.ResourceCenterAccountProtocolNotFoundByNameException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.exception.type.PermissionDeniedException;
 import codedriver.framework.restful.annotation.Description;
@@ -28,12 +27,10 @@ import codedriver.framework.restful.annotation.OperationType;
 import codedriver.framework.restful.annotation.Param;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -75,7 +72,7 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "组合工具主键id"),
-            @Param(name = "protocolId", type = ApiParamType.LONG,isRequired = true, desc = "连接协议id"),
+            @Param(name = "protocolId", type = ApiParamType.LONG, desc = "连接协议id"),
             @Param(name = "executeUser", type = ApiParamType.STRING, desc = "执行用户"),
             @Param(name = "whenToSpecify", type = ApiParamType.ENUM, rule = "now,runtime", isRequired = true, desc = "执行目标指定时机，现在指定/运行时再指定"),
             @Param(name = "executeNodeConfig", type = ApiParamType.JSONOBJECT, desc = "执行目标信息")
@@ -85,10 +82,8 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long combopId = jsonObj.getLong("combopId");
         Long protocolId = jsonObj.getLong("protocolId");
+        String executeUser = jsonObj.getString("executeUser");
         AccountProtocolVo protocolVo = resourceCenterMapper.getAccountProtocolVoByProtocolId(protocolId);
-        if (protocolVo==null) {
-            throw new ResourceCenterAccountProtocolNotFoundByNameException(protocolVo.getName());
-        }
         AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
         if (autoexecCombopVo == null) {
             throw new AutoexecCombopNotFoundException(combopId);
@@ -98,16 +93,12 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
             throw new PermissionDeniedException();
         }
         AutoexecCombopExecuteConfigVo executeConfig = new AutoexecCombopExecuteConfigVo();
-        executeConfig.setProtocolId(protocolId);
+        executeConfig.setProtocolId(protocolVo != null ? protocolId : null);
+        executeConfig.setProtocol(protocolVo != null ? protocolVo.getName() : null);
+        executeConfig.setExecuteUser(executeUser);
         String whenToSpecify = jsonObj.getString("whenToSpecify");
         executeConfig.setWhenToSpecify(whenToSpecify);
         if (Objects.equals(whenToSpecify, CombopNodeSpecify.NOW.getValue())) {
-            executeConfig.setProtocol(protocolVo.getName());
-            String executeUser = jsonObj.getString("executeUser");
-            if (StringUtils.isBlank(executeUser)) {
-                throw new AutoexecCombopExecuteUserCannotBeEmptyException();
-            }
-            executeConfig.setExecuteUser(executeUser);
             JSONObject executeNodeConfig = jsonObj.getJSONObject("executeNodeConfig");
             if (MapUtils.isEmpty(executeNodeConfig)) {
                 throw new AutoexecCombopExecuteNodeCannotBeEmptyException();
