@@ -81,11 +81,11 @@ public class AutoexecJobStatusUpdateApi extends PublicApiComponentBase {
         } else {
             phaseSort = passThroughEnv.getInteger("phaseSort");
         }
-        Integer runnerId = null;
+        Long runnerId = null;
         if (!passThroughEnv.containsKey("runnerId")) {
             throw new AutoexecJobRunnerNotFoundException("runnerId");
         } else {
-            runnerId = passThroughEnv.getInteger("runnerId");
+            runnerId = passThroughEnv.getLong("runnerId");
         }
 
         List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndSort(jobId,phaseSort);

@@ -71,12 +71,12 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
         String phaseName = jsonObj.getString("phase");
         String status = jsonObj.getString("status");
         JSONObject passThroughEnv = jsonObj.getJSONObject("passThroughEnv");
-        Integer runnerId = 0;
+        Long runnerId = 0L;
         if (MapUtils.isNotEmpty(passThroughEnv)) {
             if (!passThroughEnv.containsKey("runnerId")) {
                 throw new AutoexecJobRunnerNotFoundException("runnerId");
             } else {
-                runnerId = passThroughEnv.getInteger("runnerId");
+                runnerId = passThroughEnv.getLong("runnerId");
             }
         }
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);

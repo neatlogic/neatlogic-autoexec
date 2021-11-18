@@ -69,13 +69,13 @@ public class AutoexecJobProcessStatusUpdateApi extends PrivateApiComponentBase {
         String jobAction = jsonObj.getJSONObject("command").getString("action");
         String errorMsg = jsonObj.getString("errorMsg");
         JSONObject passThroughEnv = jsonObj.getJSONObject("passThroughEnv");
-        Integer runnerId = null;
+        Long runnerId = null;
         if (MapUtils.isNotEmpty(passThroughEnv)) {
             if (MapUtils.isNotEmpty(passThroughEnv)) {
                 if (!passThroughEnv.containsKey("runnerId")) {
                     throw new AutoexecJobRunnerNotFoundException("runnerId");
                 } else {
-                    runnerId = passThroughEnv.getInteger("runnerId");
+                    runnerId = passThroughEnv.getLong("runnerId");
                 }
             }
         }
