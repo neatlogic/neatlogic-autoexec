@@ -19,6 +19,7 @@ import codedriver.framework.autoexec.exception.AutoexecCombopExecuteNodeCannotBe
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
+import codedriver.framework.cmdb.exception.resourcecenter.ResourceCenterAccountProtocolNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.exception.type.PermissionDeniedException;
 import codedriver.framework.restful.annotation.Description;
@@ -84,6 +85,9 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
         Long protocolId = jsonObj.getLong("protocolId");
         String executeUser = jsonObj.getString("executeUser");
         AccountProtocolVo protocolVo = resourceCenterMapper.getAccountProtocolVoByProtocolId(protocolId);
+        if (protocolVo == null && protocolId != null) {
+            throw new ResourceCenterAccountProtocolNotFoundException(protocolId);
+        }
         AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
         if (autoexecCombopVo == null) {
             throw new AutoexecCombopNotFoundException(combopId);
@@ -93,7 +97,7 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
             throw new PermissionDeniedException();
         }
         AutoexecCombopExecuteConfigVo executeConfig = new AutoexecCombopExecuteConfigVo();
-        executeConfig.setProtocolId(protocolVo != null ? protocolId : null);
+        executeConfig.setProtocolId(protocolVo != null ? protocolVo.getId() : null);
         executeConfig.setProtocol(protocolVo != null ? protocolVo.getName() : null);
         executeConfig.setExecuteUser(executeUser);
         String whenToSpecify = jsonObj.getString("whenToSpecify");
