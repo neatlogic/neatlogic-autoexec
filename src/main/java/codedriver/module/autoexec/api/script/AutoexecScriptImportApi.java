@@ -187,13 +187,13 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                         if (autoexecScriptService.checkScriptVersionNeedToUpdate(oldVersion, versionVo)) {
                             autoexecScriptMapper.deleteParamByVersionId(versionVo.getId());
                             autoexecScriptMapper.deleteScriptLineByVersionId(versionVo.getId());
-                            autoexecScriptService.saveParamList(versionVo.getId(), oldVersion.getParamList(), versionVo.getParamList());
+                            autoexecScriptService.saveParamList(versionVo.getId(), versionVo.getParamList());
                             autoexecScriptService.saveLineList(id, versionVo.getId(), versionVo.getLineList());
                             versionVo.setLcu(UserContext.get().getUserUuid());
                             autoexecScriptMapper.updateScriptVersion(versionVo);
                         }
                     } else {
-                        autoexecScriptService.saveParamList(versionVo.getId(), null, versionVo.getParamList());
+                        autoexecScriptService.saveParamList(versionVo.getId(), versionVo.getParamList());
                         autoexecScriptService.saveLineList(id, versionVo.getId(), versionVo.getLineList());
                         autoexecScriptMapper.insertScriptVersion(versionVo);
                     }

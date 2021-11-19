@@ -52,7 +52,7 @@ public interface AutoexecScriptService {
      */
     List<OperateVo> getOperateListForScriptVersion(AutoexecScriptVersionVo version);
 
-    void saveParamList(Long versionId, List<AutoexecScriptVersionParamVo> oldParamList, List<AutoexecScriptVersionParamVo> newParamList);
+    void saveParamList(Long versionId, List<AutoexecScriptVersionParamVo> newParamList);
 
     void saveLineList(Long scriptId, Long versionId, List<AutoexecScriptLineVo> lineList);
 

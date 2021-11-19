@@ -94,7 +94,6 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
         JSONObject result = new JSONObject();
         AutoexecScriptVo scriptVo = JSON.toJavaObject(jsonObj, AutoexecScriptVo.class);
         boolean needSave = true;
-        List<AutoexecScriptVersionParamVo> oldParamList = null;
 
         /**
          * 没有id和versionId，表示首次创建脚本
@@ -122,7 +121,6 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             } else {  // 编辑版本
                 AutoexecScriptVersionVo currentVersion = autoexecScriptService.getScriptVersionDetailByVersionId(scriptVo.getVersionId());
                 scriptVo.setId(currentVersion.getScriptId());
-                oldParamList = currentVersion.getParamList();
                 // 处于待审批和已通过状态的版本，任何权限都无法编辑
                 if (ScriptVersionStatus.SUBMITTED.getValue().equals(currentVersion.getStatus())
                         || ScriptVersionStatus.PASSED.getValue().equals(currentVersion.getStatus())) {
@@ -145,11 +143,6 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             if (autoexecScriptMapper.checkScriptIsExistsById(scriptVo.getId()) == 0) {
                 throw new AutoexecScriptNotFoundException(scriptVo.getId());
             }
-            // 只有在激活版本页面才能通过编辑来新增版本，所以找到当前激活版本的参数，用来与编辑页面的参数进行对比看是否有改变
-            AutoexecScriptVersionVo activeVersion = autoexecScriptMapper.getActiveVersionByScriptId(scriptVo.getId());
-            if (activeVersion != null) {
-                oldParamList = autoexecScriptMapper.getParamListByVersionId(activeVersion.getId());
-            }
             //Integer maxVersion = autoexecScriptMapper.getMaxVersionByScriptId(scriptVo.getId());
             //versionVo.setVersion(maxVersion != null ? maxVersion + 1 : 1);
             versionVo.setScriptId(scriptVo.getId());
@@ -163,7 +156,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             if (CollectionUtils.isNotEmpty(paramList)) {
                 autoexecService.validateParamList(paramList);
             }
-            autoexecScriptService.saveParamList(versionVo.getId(), oldParamList, paramList);
+            autoexecScriptService.saveParamList(versionVo.getId(), paramList);
             // 保存脚本内容
             autoexecScriptService.saveLineList(scriptVo.getId(), scriptVo.getVersionId(), scriptVo.getLineList());
             // 创建全文索引
