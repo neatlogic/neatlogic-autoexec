@@ -10,6 +10,8 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dto.job.AutoexecJobParamContentVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
+import codedriver.framework.autoexec.script.paramtype.IScriptParamType;
+import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -66,10 +68,15 @@ public class AutoexecJobRunTimeParamGetApi extends PrivateApiComponentBase {
         //集成数据特殊处理，截取text
         for (int i = 0; i < runTimeParam.size(); i++) {
             String value = runTimeParam.getJSONObject(i).getString("value");
-            if (StringUtils.isNotBlank(value)) {
-                int tmpIndex = value.indexOf("&=&");
-                if(tmpIndex > -1) {
-                    runTimeParam.getJSONObject(i).put("value", value.substring(tmpIndex + 3));
+            String defaultValue = runTimeParam.getJSONObject(i).getString("defaultValue");
+            String type = runTimeParam.getJSONObject(i).getString("type");
+            if (StringUtils.isNotBlank(type) && StringUtils.isNotBlank(value)) {
+                IScriptParamType paramType = ScriptParamTypeFactory.getHandler(type);
+                if(paramType != null){
+                    runTimeParam.getJSONObject(i).put("value", paramType.getTextByValue(value));
+                    if(StringUtils.isNotBlank(defaultValue)) {
+                        runTimeParam.getJSONObject(i).put("defaultValue", paramType.getTextByValue(defaultValue));
+                    }
                 }
             }
         }

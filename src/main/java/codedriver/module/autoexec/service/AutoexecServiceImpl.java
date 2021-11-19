@@ -10,6 +10,8 @@ import codedriver.framework.autoexec.constvalue.ParamMode;
 import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
+import codedriver.framework.autoexec.script.paramtype.IScriptParamType;
+import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import codedriver.framework.exception.type.ParamIrregularException;
 import codedriver.framework.exception.type.ParamNotExistsException;
 import codedriver.framework.exception.type.ParamRepeatsException;
@@ -89,9 +91,9 @@ public class AutoexecServiceImpl implements AutoexecService {
 
     @Override
     public void mergeConfig(AutoexecParamVo autoexecParamVo) {
-        ParamType paramType = ParamType.getParamType(autoexecParamVo.getType());
+        IScriptParamType paramType = ScriptParamTypeFactory.getHandler(autoexecParamVo.getType());
         if (paramType != null) {
-            JSONObject paramTypeConfig = new JSONObject(paramType.getConfig());
+            JSONObject paramTypeConfig = new JSONObject(paramType.needDataSource());
             if (Objects.equals(autoexecParamVo.getIsRequired(), 0)) {
                 paramTypeConfig.put("isRequired", false);
             } else {

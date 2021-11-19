@@ -46,7 +46,6 @@ import java.util.stream.Collectors;
 
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiComponentBase {
-    private static final String AUTOEXEC_RC4_KEY = "E!YO@JyjD^RIwe*OE739#Sdk%";
     @Autowired
     private AutoexecJobMapper autoexecJobMapper;
 
@@ -152,7 +151,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                         if (accountOp.isPresent()) {
                             AccountVo accountVoTmp = accountOp.get();
                             put("protocol", accountVoTmp.getProtocol());
-                            put("password", "{ENCRYPTED}" + RC4Util.encrypt(AUTOEXEC_RC4_KEY, accountVoTmp.getPasswordPlain()));
+                            put("password", "{ENCRYPTED}" + RC4Util.encrypt(AutoexecJobVo.AUTOEXEC_RC4_KEY, accountVoTmp.getPasswordPlain()));
                             put("protocolPort", accountVoTmp.getProtocolPort());
                         } else {
                             Optional<AccountProtocolVo> protocolVo = protocolVoList.stream().filter(o -> Objects.equals(o.getId(), nodeVo.getProtocolId())).findFirst();

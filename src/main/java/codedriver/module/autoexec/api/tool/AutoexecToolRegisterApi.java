@@ -13,6 +13,7 @@ import codedriver.framework.autoexec.exception.AutoexecRiskNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecToolParamDatasourceEmptyException;
 import codedriver.framework.autoexec.exception.AutoexecToolParamDatasourceFormatIllegalException;
 import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
+import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.exception.type.ParamNotExistsException;
 import codedriver.framework.exception.type.ParamTypeNotFoundException;
@@ -161,7 +162,7 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                 ParamType paramType = ParamType.getParamType(type);
                 if (paramType != null) {
                     type = paramType.getValue();
-                    if (paramType.getNeedDataSource()) {
+                    if (ScriptParamTypeFactory.getHandler(type).needDataSource()) {
                         if (defaultValue == null) {
                             throw new AutoexecToolParamDatasourceEmptyException(key);
                         }
