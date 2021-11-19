@@ -14,18 +14,19 @@ import codedriver.framework.autoexec.constvalue.ParamMode;
 import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.constvalue.ScriptAndToolOperate;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
+import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.framework.autoexec.dto.script.*;
 import codedriver.framework.autoexec.exception.AutoexecRiskNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScriptNameOrUkRepeatException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
+import codedriver.framework.common.constvalue.CiphertextPrefix;
 import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.dto.OperateVo;
-import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
-import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
-import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -218,7 +219,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
     }
 
     @Override
-    public void saveParamList(Long versionId, List<AutoexecScriptVersionParamVo> oldParamList, List<AutoexecScriptVersionParamVo> newParamList) {
+    public void saveParamList(Long versionId, List<AutoexecScriptVersionParamVo> newParamList) {
         if (CollectionUtils.isNotEmpty(newParamList)) {
             List<AutoexecScriptVersionParamVo> inputParamList = newParamList.stream().filter(o -> ParamMode.INPUT.getValue().equals(o.getMode())).collect(Collectors.toList());
             List<AutoexecScriptVersionParamVo> outputParamList = newParamList.stream().filter(o -> ParamMode.OUTPUT.getValue().equals(o.getMode())).collect(Collectors.toList());
@@ -226,17 +227,10 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
                 for (int i = 0; i < inputParamList.size(); i++) {
                     AutoexecScriptVersionParamVo paramVo = inputParamList.get(i);
                     paramVo.setScriptVersionId(versionId);
-                    // 检查是否修改了原密码默认值，修改过则重新加密
-                    if (paramVo.getDefaultValue() != null && ParamType.PASSWORD.getValue().equals(paramVo.getType())) {
-                        Integer sort = paramVo.getSort();
-                        if (sort != null && oldParamList != null && sort < oldParamList.size()) {
-                            AutoexecScriptVersionParamVo oldPwd = oldParamList.get(sort);
-                            if (!Objects.equals(paramVo.getDefaultValue(), oldPwd.getDefaultValue())) {
-                                paramVo.setDefaultValue(RC4Util.encrypt((String) paramVo.getDefaultValue()));
-                            }
-                        } else {
-                            paramVo.setDefaultValue(RC4Util.encrypt((String) paramVo.getDefaultValue()));
-                        }
+                    // 如果默认值不以"RC4:"开头，说明修改了密码，则重新加密
+                    if (ParamType.PASSWORD.getValue().equals(paramVo.getType()) && paramVo.getDefaultValue() != null
+                            && !paramVo.getDefaultValue().toString().startsWith(CiphertextPrefix.RC4.getValue())) {
+                        paramVo.setDefaultValue(CiphertextPrefix.RC4.getValue() + RC4Util.encrypt((String) paramVo.getDefaultValue()));
                     }
                     paramVo.setSort(i);
                 }

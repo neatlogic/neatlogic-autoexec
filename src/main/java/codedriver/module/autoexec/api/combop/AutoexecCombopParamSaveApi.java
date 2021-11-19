@@ -12,6 +12,7 @@ import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.common.constvalue.CiphertextPrefix;
 import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.dependency.core.DependencyManager;
 import codedriver.framework.exception.type.ParamIrregularException;
@@ -103,42 +104,35 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
             AutoexecCombopParamVo autoexecCombopParamVo = paramList.getObject(i, AutoexecCombopParamVo.class);
             if (autoexecCombopParamVo != null) {
                 String key = autoexecCombopParamVo.getKey();
-                if(StringUtils.isBlank(key)){
+                if (StringUtils.isBlank(key)) {
                     throw new ParamNotExistsException("paramList.[" + i + "].key");
                 }
-                if(!keyPattern.matcher(key).matches()){
+                if (!keyPattern.matcher(key).matches()) {
                     throw new ParamIrregularException("paramList.[" + i + "].key");
                 }
                 String name = autoexecCombopParamVo.getName();
-                if(StringUtils.isBlank(name)){
+                if (StringUtils.isBlank(name)) {
                     throw new ParamNotExistsException("paramList.[" + i + "].name");
                 }
-                if(!namePattern.matcher(name).matches()){
+                if (!namePattern.matcher(name).matches()) {
                     throw new ParamIrregularException("paramList.[" + i + "].name");
                 }
                 Integer isRequired = autoexecCombopParamVo.getIsRequired();
-                if(isRequired == null){
+                if (isRequired == null) {
                     throw new ParamNotExistsException("paramList.[" + i + "].isRequired");
                 }
                 String type = autoexecCombopParamVo.getType();
-                if(StringUtils.isBlank(type)){
+                if (StringUtils.isBlank(type)) {
                     throw new ParamNotExistsException("paramList.[" + i + "].type");
                 }
                 ParamType paramType = ParamType.getParamType(type);
-                if(paramType == null){
+                if (paramType == null) {
                     throw new ParamIrregularException("paramList.[" + i + "].type");
                 }
                 Object value = autoexecCombopParamVo.getDefaultValue();
-                if (value != null && paramType == ParamType.PASSWORD) {
-                    Integer sort = autoexecCombopParamVo.getSort();
-                    if (sort != null && sort < autoexecCombopParamList.size()) {
-                        AutoexecCombopParamVo oldParamVo = autoexecCombopParamList.get(sort);
-                        if (!Objects.equals(value, oldParamVo.getDefaultValue())) {
-                            autoexecCombopParamVo.setDefaultValue(RC4Util.encrypt((String) value));
-                        }
-                    } else {
-                        autoexecCombopParamVo.setDefaultValue(RC4Util.encrypt((String) value));
-                    }
+                // 如果默认值不以"RC4:"开头，说明修改了密码，则重新加密
+                if (paramType == ParamType.PASSWORD && value != null && !value.toString().startsWith(CiphertextPrefix.RC4.getValue())) {
+                    autoexecCombopParamVo.setDefaultValue(CiphertextPrefix.RC4.getValue() + RC4Util.encrypt((String) value));
                 } else if (paramType == ParamType.SELECT || paramType == ParamType.MULTISELECT || paramType == ParamType.CHECKBOX || paramType == ParamType.RADIO) {
                     JSONObject config = autoexecCombopParamVo.getConfig();
                     if (MapUtils.isNotEmpty(config)) {
