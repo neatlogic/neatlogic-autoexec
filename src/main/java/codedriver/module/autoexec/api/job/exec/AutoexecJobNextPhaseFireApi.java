@@ -82,14 +82,14 @@ public class AutoexecJobNextPhaseFireApi extends PublicApiComponentBase {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
         JSONObject passThroughEnv = jsonObj.getJSONObject("passThroughEnv");
-        Integer runnerId = null;
+        Long runnerId = null;
         if (MapUtils.isEmpty(passThroughEnv)) {
             throw new ParamIrregularException("passThroughEnv");
         }
         if (!passThroughEnv.containsKey("runnerId")) {
             throw new AutoexecJobRunnerNotFoundException("runnerId");
         } else {
-            runnerId = passThroughEnv.getInteger("runnerId");
+            runnerId = passThroughEnv.getLong("runnerId");
         }
 
         //初始化执行用户上下文
