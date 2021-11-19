@@ -9,7 +9,6 @@ import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.constvalue.ParamMappingMode;
-import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.constvalue.ToolType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
@@ -20,6 +19,8 @@ import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobThreadCountException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
+import codedriver.framework.autoexec.script.paramtype.IScriptParamType;
+import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
 import com.alibaba.fastjson.JSON;
@@ -179,17 +180,11 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
      */
     private Object getValueByParamType(JSONObject param) {
         String type = param.getString("type");
-        Object value = param.get("value");
+        Object value = param.getString("value");
         if (value != null) {
-            if (Objects.equals(type, ParamType.FILE.getValue())) {
-                value = JSONObject.parseObject(value.toString()).getJSONArray("fileIdList");
-            } else if (Objects.equals(type, ParamType.NODE.getValue())) {
-                JSONArray nodeJsonArray = JSONObject.parseArray(value.toString());
-                for (Object node : nodeJsonArray) {
-                    JSONObject nodeJson = (JSONObject) node;
-                    nodeJson.put("ip", nodeJson.getString("host"));
-                }
-                value = nodeJsonArray;
+            IScriptParamType paramType = ScriptParamTypeFactory.getHandler(type);
+            if(paramType != null) {
+                value = paramType.getAutoexecParamByValue(value);
             }
         }
         return value;
