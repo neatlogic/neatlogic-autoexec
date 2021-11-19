@@ -57,6 +57,11 @@ public class ScriptParamTypeFile extends ScriptParamTypeBase {
 
     @Override
     protected Object getMyTextByValue(Object value) {
+        return JSONObject.parseObject(value.toString());
+    }
+
+    @Override
+    protected Object getMyAutoexecParamByValue(Object value) {
         value = JSONObject.parseObject(value.toString()).getJSONArray("fileIdList");
         return value;
     }

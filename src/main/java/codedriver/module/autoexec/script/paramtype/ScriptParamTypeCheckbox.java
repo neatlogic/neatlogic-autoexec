@@ -70,11 +70,6 @@ public class ScriptParamTypeCheckbox extends ScriptParamTypeBase {
 
     @Override
     public Object getMyAutoexecParamByValue(Object value){
-        String valueStr = value.toString();
-        int tmpIndex = valueStr.indexOf("&=&");
-        if (tmpIndex > -1) {
-            return valueStr.substring(tmpIndex + 3);
-        }
-        return value;
+        return getMyTextByValue(value);
     }
 }
