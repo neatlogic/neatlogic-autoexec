@@ -7,8 +7,15 @@ package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.constvalue.CombopOperationType;
+import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
+import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
 import codedriver.framework.restful.annotation.*;
@@ -21,7 +28,9 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author lvzk
@@ -34,6 +43,12 @@ import java.util.List;
 public class AutoexecJobSearchApi extends PrivateApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
+    @Resource
+    AutoexecCombopMapper autoexecCombopMapper;
+    @Resource
+    AutoexecScriptMapper autoexecScriptMapper;
+    @Resource
+    AutoexecToolMapper autoexecToolMapper;
 
     @Override
     public String getName() {
@@ -72,7 +87,34 @@ public class AutoexecJobSearchApi extends PrivateApiComponentBase {
             jobVo.setRowNum(rowNum);
             List<Long> jobIdList = autoexecJobMapper.searchJobId(jobVo);
             if (CollectionUtils.isNotEmpty(jobIdList)) {
+                Map<String,ArrayList<Long>> operationIdMap = new HashMap<>();
                 jobVoList = autoexecJobMapper.searchJob(jobIdList);
+                //补充来源operation信息
+                Map<Long,String> operationIdNameMap = new HashMap<>();
+                List<AutoexecCombopVo> combopVoList;
+                List<AutoexecScriptVersionVo> scriptVoList;
+                List<AutoexecToolAndScriptVo> toolVoList;
+                operationIdMap.put(CombopOperationType.COMBOP.getValue(),new ArrayList<>());
+                operationIdMap.put(CombopOperationType.SCRIPT.getValue(),new ArrayList<>());
+                operationIdMap.put(CombopOperationType.TOOL.getValue(),new ArrayList<>());
+                jobVoList.forEach(o->{
+                    operationIdMap.get(o.getOperationType()).add(o.getOperationId());
+                });
+                if(CollectionUtils.isNotEmpty(operationIdMap.get(CombopOperationType.COMBOP.getValue()))){
+                    combopVoList = autoexecCombopMapper.getAutoexecCombopByIdList(operationIdMap.get(CombopOperationType.COMBOP.getValue()));
+                    combopVoList.forEach(o-> operationIdNameMap.put(o.getId(),o.getName()));
+                }
+                if(CollectionUtils.isNotEmpty(operationIdMap.get(CombopOperationType.SCRIPT.getValue()))){
+                    scriptVoList = autoexecScriptMapper.getVersionByVersionIdList(operationIdMap.get(CombopOperationType.SCRIPT.getValue()));
+                    scriptVoList.forEach(o-> operationIdNameMap.put(o.getId(),o.getTitle()));
+                }
+                if(CollectionUtils.isNotEmpty(operationIdMap.get(CombopOperationType.TOOL.getValue()))){
+                    toolVoList = autoexecToolMapper.getToolListByIdList(operationIdMap.get(CombopOperationType.TOOL.getValue()));
+                    toolVoList.forEach(o-> operationIdNameMap.put(o.getId(),o.getName()));
+                }
+                jobVoList.forEach(o->{
+                    o.setOperationName(operationIdNameMap.get(o.getOperationId()));
+                });
                 /*  jobVoList.forEach(j -> {
             //判断是否有编辑权限
             if(Objects.equals(j.getOperationType(), CombopOperationType.COMBOP.getValue())) {
