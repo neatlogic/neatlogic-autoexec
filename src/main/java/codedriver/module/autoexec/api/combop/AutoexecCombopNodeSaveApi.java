@@ -16,6 +16,7 @@ import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteNodeConfigV
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopExecuteNodeCannotBeEmptyException;
+import codedriver.framework.autoexec.exception.AutoexecCombopExecuteParamCannotBeEmptyException;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
@@ -118,7 +119,7 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
         } else if (Objects.equals(whenToSpecify, CombopNodeSpecify.RUNTIMEPARAM.getValue())) {
             JSONObject executeNodeConfig = jsonObj.getJSONObject("executeNodeConfig");
             if (MapUtils.isEmpty(executeNodeConfig)) {
-                throw new AutoexecCombopExecuteNodeCannotBeEmptyException();
+                throw new AutoexecCombopExecuteParamCannotBeEmptyException();
             }
             AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = JSONObject.toJavaObject(executeNodeConfig, AutoexecCombopExecuteNodeConfigVo.class);
             executeConfig.setExecuteNodeConfig(executeNodeConfigVo);
