@@ -103,28 +103,36 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
         executeConfig.setExecuteUser(executeUser);
         String whenToSpecify = jsonObj.getString("whenToSpecify");
         executeConfig.setWhenToSpecify(whenToSpecify);
+        JSONObject executeNodeConfig = jsonObj.getJSONObject("executeNodeConfig");
         if (Objects.equals(whenToSpecify, CombopNodeSpecify.NOW.getValue())) {
-            JSONObject executeNodeConfig = jsonObj.getJSONObject("executeNodeConfig");
             if (MapUtils.isEmpty(executeNodeConfig)) {
                 throw new AutoexecCombopExecuteNodeCannotBeEmptyException();
             }
             AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = JSONObject.toJavaObject(executeNodeConfig, AutoexecCombopExecuteNodeConfigVo.class);
             List<AutoexecNodeVo> selectNodeList = executeNodeConfigVo.getSelectNodeList();
             List<AutoexecNodeVo> inputNodeList = executeNodeConfigVo.getInputNodeList();
-            List<Long> tagList = executeNodeConfigVo.getTagList();
-            if (CollectionUtils.isEmpty(selectNodeList) && CollectionUtils.isEmpty(inputNodeList) && CollectionUtils.isEmpty(tagList)) {
+            JSONObject filter = executeNodeConfigVo.getFilter();
+            if (CollectionUtils.isEmpty(selectNodeList) && CollectionUtils.isEmpty(inputNodeList) && MapUtils.isEmpty(filter)) {
                 throw new AutoexecCombopExecuteNodeCannotBeEmptyException();
             }
             executeConfig.setExecuteNodeConfig(executeNodeConfigVo);
         } else if (Objects.equals(whenToSpecify, CombopNodeSpecify.RUNTIMEPARAM.getValue())) {
-            JSONObject executeNodeConfig = jsonObj.getJSONObject("executeNodeConfig");
             if (MapUtils.isEmpty(executeNodeConfig)) {
                 throw new AutoexecCombopExecuteParamCannotBeEmptyException();
             }
             AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = JSONObject.toJavaObject(executeNodeConfig, AutoexecCombopExecuteNodeConfigVo.class);
+            if (CollectionUtils.isEmpty(executeNodeConfigVo.getParamList())) { // 选择运行参数作为执行目标时，运行参数必填
+                throw new AutoexecCombopExecuteParamCannotBeEmptyException();
+            }
             executeConfig.setExecuteNodeConfig(executeNodeConfigVo);
         } else {
-            executeConfig.setExecuteNodeConfig(new AutoexecCombopExecuteNodeConfigVo());
+            AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo;
+            if (MapUtils.isNotEmpty(executeNodeConfig)) {
+                executeNodeConfigVo = JSONObject.toJavaObject(executeNodeConfig, AutoexecCombopExecuteNodeConfigVo.class);
+            } else {
+                executeNodeConfigVo = new AutoexecCombopExecuteNodeConfigVo();
+            }
+            executeConfig.setExecuteNodeConfig(executeNodeConfigVo);
         }
         AutoexecCombopConfigVo autoexecCombopConfigVo = autoexecCombopVo.getConfig();
         autoexecCombopConfigVo.setExecuteConfig(executeConfig);
