@@ -75,7 +75,7 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
             @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "组合工具主键id"),
             @Param(name = "protocolId", type = ApiParamType.LONG, desc = "连接协议id"),
             @Param(name = "executeUser", type = ApiParamType.STRING, desc = "执行用户"),
-            @Param(name = "whenToSpecify", type = ApiParamType.ENUM, rule = "now,runtime", isRequired = true, desc = "执行目标指定时机，现在指定/运行时再指定"),
+            @Param(name = "whenToSpecify", type = ApiParamType.ENUM, rule = "now,runtime,runtimeparam", isRequired = true, desc = "执行目标指定时机，现在指定/运行时再指定或指定运行参数"),
             @Param(name = "executeNodeConfig", type = ApiParamType.JSONOBJECT, desc = "执行目标信息")
     })
     @Description(desc = "保存组合工具执行目标信息")
@@ -110,11 +110,17 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
             AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = JSONObject.toJavaObject(executeNodeConfig, AutoexecCombopExecuteNodeConfigVo.class);
             List<AutoexecNodeVo> selectNodeList = executeNodeConfigVo.getSelectNodeList();
             List<AutoexecNodeVo> inputNodeList = executeNodeConfigVo.getInputNodeList();
-            List<String> paramList = executeNodeConfigVo.getParamList();
             List<Long> tagList = executeNodeConfigVo.getTagList();
-            if (CollectionUtils.isEmpty(selectNodeList) && CollectionUtils.isEmpty(inputNodeList) && CollectionUtils.isEmpty(paramList) && CollectionUtils.isEmpty(tagList)) {
+            if (CollectionUtils.isEmpty(selectNodeList) && CollectionUtils.isEmpty(inputNodeList) && CollectionUtils.isEmpty(tagList)) {
                 throw new AutoexecCombopExecuteNodeCannotBeEmptyException();
             }
+            executeConfig.setExecuteNodeConfig(executeNodeConfigVo);
+        } else if (Objects.equals(whenToSpecify, CombopNodeSpecify.RUNTIMEPARAM.getValue())) {
+            JSONObject executeNodeConfig = jsonObj.getJSONObject("executeNodeConfig");
+            if (MapUtils.isEmpty(executeNodeConfig)) {
+                throw new AutoexecCombopExecuteNodeCannotBeEmptyException();
+            }
+            AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = JSONObject.toJavaObject(executeNodeConfig, AutoexecCombopExecuteNodeConfigVo.class);
             executeConfig.setExecuteNodeConfig(executeNodeConfigVo);
         } else {
             executeConfig.setExecuteNodeConfig(new AutoexecCombopExecuteNodeConfigVo());
