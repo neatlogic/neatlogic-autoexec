@@ -6,11 +6,9 @@
 package codedriver.module.autoexec.script.paramtype;
 
 import codedriver.framework.autoexec.constvalue.ParamType;
-import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeBase;
 import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
-import codedriver.framework.common.util.RC4Util;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -66,7 +64,7 @@ public class ScriptParamTypeAccount extends ScriptParamTypeBase {
         if (value != null && StringUtils.isNotBlank(value.toString())) {
             AccountVo accountVo = resourceCenterMapper.getAccountById(Long.valueOf(value.toString()));
             if (accountVo != null) {
-                value = accountVo.getAccount() + "/{ENCRYPTED}" + RC4Util.encrypt(AutoexecJobVo.AUTOEXEC_RC4_KEY, accountVo.getPasswordPlain());
+                value = accountVo.getAccount() + "/"+accountVo.getProtocol();
             }
         }
         return value;
