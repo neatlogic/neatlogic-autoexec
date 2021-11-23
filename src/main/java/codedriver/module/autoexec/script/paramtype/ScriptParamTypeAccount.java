@@ -64,7 +64,7 @@ public class ScriptParamTypeAccount extends ScriptParamTypeBase {
         if (value != null && StringUtils.isNotBlank(value.toString())) {
             AccountVo accountVo = resourceCenterMapper.getAccountById(Long.valueOf(value.toString()));
             if (accountVo != null) {
-                value = accountVo.getAccount() + "/"+accountVo.getId();
+                value = accountVo.getAccount() + "/" + accountVo.getId() + "/" + accountVo.getName();
             }
         }
         return value;
