@@ -42,6 +42,7 @@ public class AutoexecJobPhaseNodeSqlListApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本Id"),
+            @Param(name = "status", type = ApiParamType.STRING, isRequired = true, desc = "当前节点状态"),
             @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id")
     })
     @Output({

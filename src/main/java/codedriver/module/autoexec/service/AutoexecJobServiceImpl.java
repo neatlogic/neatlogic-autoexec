@@ -459,21 +459,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     }
 
     @Override
-    public void setIsRefresh(JSONObject paramObj, AutoexecJobVo jobVo) {
+    public void setIsRefresh(JSONObject paramObj, AutoexecJobVo jobVo, String status) {
         paramObj.put("isRefresh", 1);
-        if (Objects.equals(jobVo.getStatus(), JobStatus.COMPLETED.getValue())
-                || Objects.equals(jobVo.getStatus(), JobStatus.FAILED.getValue())
-                || Objects.equals(jobVo.getStatus(), JobStatus.ABORTED.getValue())) {
+        if (Objects.equals(status, JobStatus.COMPLETED.getValue()) && Arrays.asList(JobStatus.COMPLETED.getValue(), JobStatus.FAILED.getValue(), JobStatus.ABORTED.getValue()).contains(jobVo.getStatus())) {
             paramObj.put("isRefresh", 0);
         }
-        /*List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobId);
-        paramObj.put("isRefresh", 0);
-        for (AutoexecJobPhaseVo phaseVo : jobPhaseVoList) {
-            if (Objects.equals(phaseVo.getStatus(), JobPhaseStatus.RUNNING.getValue()) || Objects.equals(phaseVo.getStatus(), JobPhaseStatus.PENDING.getValue()) || Objects.equals(phaseVo.getStatus(), JobPhaseStatus.WAITING.getValue())) {
-                paramObj.put("isRefresh", 1);
-                break;
-            }
-        }*/
     }
 
     @Override
