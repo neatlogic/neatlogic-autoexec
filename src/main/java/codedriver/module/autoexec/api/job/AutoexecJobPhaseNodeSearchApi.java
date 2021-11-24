@@ -60,7 +60,7 @@ public class AutoexecJobPhaseNodeSearchApi extends PrivateApiComponentBase {
             @Param(name = "jobPhaseId", type = ApiParamType.LONG, desc = "作业剧本id", isRequired = true),
             @Param(name = "statusList", type = ApiParamType.JSONARRAY, desc = "作业状态"),
             @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词(节点名称或ip)", xss = true),
-            @Param(name = "status", type = ApiParamType.STRING, isRequired = true, desc = "当前阶段状态"),
+            @Param(name = "status", type = ApiParamType.STRING, desc = "当前阶段状态"),
             @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
             @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
             @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true")

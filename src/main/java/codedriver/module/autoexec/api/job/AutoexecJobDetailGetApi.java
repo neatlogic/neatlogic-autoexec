@@ -65,7 +65,7 @@ public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
-            @Param(name = "status", type = ApiParamType.STRING, isRequired = true, desc = "当作业状态"),
+            @Param(name = "status", type = ApiParamType.STRING, desc = "当作业状态"),
     })
     @Output({
             @Param(explode = AutoexecJobVo[].class, desc = "列表"),

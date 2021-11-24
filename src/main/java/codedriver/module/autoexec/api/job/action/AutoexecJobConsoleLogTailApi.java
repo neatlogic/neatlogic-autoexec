@@ -49,7 +49,7 @@ public class AutoexecJobConsoleLogTailApi extends PrivateApiComponentBase {
             @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "作业Id"),
             @Param(name = "runnerId", type = ApiParamType.LONG, isRequired = true, desc = "runnerId"),
             @Param(name = "logPos", type = ApiParamType.LONG, isRequired = true, desc = "日志读取位置,-1:获取最新的数据"),
-            @Param(name = "status", type = ApiParamType.STRING, isRequired = true, desc = "当前作业状态"),
+            @Param(name = "status", type = ApiParamType.STRING, desc = "当前作业状态"),
             @Param(name = "direction", type = ApiParamType.ENUM, rule = "up,down", isRequired = true, desc = "读取方向，up:向上读，down:向下读")
     })
     @Output({
