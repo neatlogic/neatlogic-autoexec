@@ -65,7 +65,7 @@ public class AutoexecJobNodeLogTailHandler extends AutoexecJobActionHandlerBase 
                     break;
                 }
                 //如果存在失败停止策略的操作节点，则停止tail
-                if (Objects.equals(statusVo.getStatus(), JobNodeStatus.FAILED.getValue()) && Objects.equals(statusVo.getFailIgnore(), 0)) {
+                if (Objects.equals(paramJson.getString("status"),JobNodeStatus.SUCCEED.getValue())&&Objects.equals(statusVo.getStatus(), JobNodeStatus.FAILED.getValue()) && Objects.equals(statusVo.getFailIgnore(), 0)) {
                     result.put("isRefresh", 0);
                     break;
                 }

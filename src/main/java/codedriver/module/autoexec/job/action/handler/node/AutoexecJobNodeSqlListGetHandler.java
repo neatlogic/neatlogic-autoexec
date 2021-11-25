@@ -55,7 +55,7 @@ public class AutoexecJobNodeSqlListGetHandler extends AutoexecJobActionHandlerBa
         String url = paramObj.getString("runnerUrl") + "/api/rest/job/phase/node/sql/list";
         JSONArray sqlArray = JSONObject.parseArray(requestRunner(url, paramObj));
         List<AutoexecJobNodeSqlVo> sqlList =  sqlArray.toJavaList(AutoexecJobNodeSqlVo.class);
-        if(CollectionUtils.isNotEmpty(sqlList)&&sqlList.stream().allMatch(o->Objects.equals(o.getStatus(),JobNodeStatus.SUCCEED.getValue()))){
+        if(Objects.equals(paramObj.getString("status"),JobNodeStatus.SUCCEED.getValue())&&CollectionUtils.isNotEmpty(sqlList)&&sqlList.stream().allMatch(o->Objects.equals(o.getStatus(),JobNodeStatus.SUCCEED.getValue()))){
             result.put("isRefresh", 0);
         }
         result.put("nodeSqlList",sqlList);

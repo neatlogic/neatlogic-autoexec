@@ -65,6 +65,7 @@ public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
+            @Param(name = "status", type = ApiParamType.STRING, desc = "当作业状态"),
     })
     @Output({
             @Param(explode = AutoexecJobVo[].class, desc = "列表"),
@@ -76,7 +77,7 @@ public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
         Long jobId = jsonObj.getLong("jobId");
         //作业基本信息
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
-        if(jobVo == null){
+        if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
         //获取当前phase
@@ -93,11 +94,11 @@ public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
         }
         jobVo.setPhaseList(jobPhaseVoList);
         //判断是否有执行权限
-        if(Objects.equals(jobVo.getSource(), JobSource.TEST.getValue())){//测试仅需判断是否有脚本维护权限即可
-            if(AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class)){
+        if (Objects.equals(jobVo.getSource(), JobSource.TEST.getValue())) {//测试仅需判断是否有脚本维护权限即可
+            if (AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class)) {
                 jobVo.setIsCanExecute(1);
             }
-        }else {
+        } else {
             if (Objects.equals(jobVo.getOperationType(), CombopOperationType.COMBOP.getValue())) {
                 AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(jobVo.getOperationId());
                 if (combopVo == null) {
@@ -111,8 +112,8 @@ public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
         }
         JSONObject result = JSONObject.parseObject(JSONObject.toJSON(jobVo).toString());
         //判断是否停止刷新作业详细
-        autoexecJobService.setIsRefresh(result, jobVo);
-        result.put("jobCurrentPhaseName",jobCurrentPhaseVo.getName());
+        autoexecJobService.setIsRefresh(result, jobVo, jsonObj.getString("status"));
+        result.put("jobCurrentPhaseName", jobCurrentPhaseVo.getName());
         return result;
     }
 
