@@ -57,8 +57,8 @@ public class AutoexecJobNodeLogDownloadHandler extends AutoexecJobActionHandlerB
         UserContext.get().getResponse().setContentType("text/plain");
         UserContext.get().getResponse().setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
         String url = String.format("%s/api/binary/job/phase/node/log/download", nodeVo.getRunnerUrl());
-        RestVo restVo = new RestVo(url, AuthenticateType.BUILDIN.getValue(), paramObj);
-        String result = RestUtil.sendPostRequestForStream(restVo, UserContext.get().getResponse());
+        RestVo restVo = new RestVo.Builder(url, AuthenticateType.BUILDIN.getValue()).setPayload(paramObj).build();
+        String result = RestUtil.sendPostRequestForStream(restVo);
         if (StringUtils.isNotBlank(result)) {
             throw new AutoexecJobRunnerConnectAuthException(restVo.getUrl() + ":" + result);
         }

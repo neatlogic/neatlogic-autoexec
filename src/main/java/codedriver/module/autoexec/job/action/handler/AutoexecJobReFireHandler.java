@@ -122,8 +122,8 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
                     put("runnerId", runner.getRunnerMapId());
                     put("phaseSort", jobVo.getCurrentPhaseSort());
                 }});
-                restVo = new RestVo(url, AuthenticateType.BUILDIN.getValue(), paramJson);
-                result = RestUtil.sendRequest(restVo);
+                restVo = new RestVo.Builder(url, AuthenticateType.BUILDIN.getValue()).setPayload(paramJson).build();
+                result = RestUtil.sendPostRequest(restVo);
                 JSONObject resultJson = JSONObject.parseObject(result);
                 if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
                     throw new AutoexecJobRunnerConnectAuthException(restVo.getUrl() + ":" + resultJson.getString("Message"));

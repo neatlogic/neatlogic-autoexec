@@ -67,8 +67,8 @@ public class AutoexecJobNodeAuditDownloadHandler extends AutoexecJobActionHandle
         UserContext.get().getResponse().setContentType("text/plain");
         UserContext.get().getResponse().setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
         String url = paramObj.getString("runnerUrl") + "/api/binary/job/phase/node/execute/audit/download";
-        RestVo restVo = new RestVo(url, AuthenticateType.BUILDIN.getValue(), paramObj);
-        String result = RestUtil.sendPostRequestForStream(restVo, UserContext.get().getResponse());
+        RestVo restVo = new RestVo.Builder(url, AuthenticateType.BUILDIN.getValue()).setPayload(paramObj).build();
+        String result = RestUtil.sendPostRequestForStream(restVo);
         if (StringUtils.isNotBlank(result)) {
             throw new AutoexecJobRunnerConnectAuthException(restVo.getUrl() + ":" + result);
         }

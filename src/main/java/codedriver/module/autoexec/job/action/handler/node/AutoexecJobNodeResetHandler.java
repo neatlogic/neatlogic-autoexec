@@ -119,8 +119,8 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
             paramJson.put("phaseNodeList", jobVo.getPhaseNodeVoList());
             for (RunnerMapVo runner : runnerVos) {
                 String url = runner.getUrl() + "api/rest/job/phase/node/status/reset";
-                restVo = new RestVo(url, AuthenticateType.BUILDIN.getValue(), paramJson);
-                result = RestUtil.sendRequest(restVo);
+                restVo = new RestVo.Builder(url, AuthenticateType.BUILDIN.getValue()).setPayload(paramJson).build();
+                result = RestUtil.sendPostRequest(restVo);
                 JSONObject resultJson = JSONObject.parseObject(result);
                 if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
                     throw new AutoexecJobRunnerConnectAuthException(restVo.getUrl() + ":" + resultJson.getString("Message"));
