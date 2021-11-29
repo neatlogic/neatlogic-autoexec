@@ -7,7 +7,7 @@ package codedriver.module.autoexec.service;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.*;
-import codedriver.framework.autoexec.crossover.AutoexecCombopCrossoverService;
+import codedriver.framework.autoexec.crossover.IAutoexecCombopCrossoverService;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
  * @since: 2021/4/15 16:13
  **/
 @Service
-public class AutoexecCombopServiceImpl implements AutoexecCombopService, AutoexecCombopCrossoverService {
+public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoexecCombopCrossoverService {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;

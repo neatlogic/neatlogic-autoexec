@@ -19,11 +19,10 @@ public interface AutoexecJobService {
      * 通过combopVo保存作业配置
      *
      * @param combopVo    组合工具vo
-     * @param source      来源
      * @param threadCount 并发线程数
      * @return jobId
      */
-    AutoexecJobVo saveAutoexecCombopJob(AutoexecCombopVo combopVo, AutoexecJobInvokeVo invokeVo, Integer threadCount, JSONObject paramJson);
+    AutoexecJobVo saveAutoexecCombopJob(AutoexecCombopVo combopVo, AutoexecJobInvokeVo invokeVo, Integer threadCount, JSONObject paramJson) throws Exception;
 
     /**
      * sort 为null 则补充job全部信息 ，否则返回当前sort的所有剧本
@@ -43,23 +42,12 @@ public interface AutoexecJobService {
     boolean checkIsAllActivePhaseIsCompleted(Long jobId, Integer sort);
 
     /**
-     * 刷新激活剧本的所有节点信息 (后续不采用删除再insert的方式刷新节点)
-     *
-     * @param jobId           作业id
-     * @param sort            当前激活剧本顺序
-     * @param combopExecuteConfigVo 执行时的参数（执行目标，用户，协议）
-     */
-    @Deprecated
-    void deleteAndInsertJobPhaseNodeList(Long jobId, int sort, AutoexecCombopExecuteConfigVo combopExecuteConfigVo);
-
-
-    /**
      * 刷新激活剧本的所有节点信息
      * 1、找到所有满足条件的执行节点update 如果update 返回值为0 则 insert
      * 2、delete所有job_node lcd小于 phase lcd 的作业节点
      *
-     * @param jobId           作业id
-     * @param sort            当前激活剧本顺序
+     * @param jobId                 作业id
+     * @param sort                  当前激活剧本顺序
      * @param combopExecuteConfigVo 执行时的参数（执行目标，用户，协议）
      */
     void refreshJobPhaseNodeList(Long jobId, int sort, AutoexecCombopExecuteConfigVo combopExecuteConfigVo);
@@ -69,9 +57,9 @@ public interface AutoexecJobService {
      *
      * @param paramObj 结果json
      * @param JobVo    作业
-     * @param status 上一次状态，得确保上两次状态的查询都是"已完成"或"已成功"，前端才停止刷新
+     * @param status   上一次状态，得确保上两次状态的查询都是"已完成"或"已成功"，前端才停止刷新
      */
-    void setIsRefresh(JSONObject paramObj, AutoexecJobVo JobVo,String status);
+    void setIsRefresh(JSONObject paramObj, AutoexecJobVo JobVo, String status);
 
     /**
      * 删除作业
