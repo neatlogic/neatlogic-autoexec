@@ -191,7 +191,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     }
 
     @Override
-    public AutoexecJobVo validateCreateJobFromCombop(JSONObject jsonObj, boolean isNeedAuth) {
+    public AutoexecJobVo validateCreateJobFromCombop(JSONObject jsonObj, boolean isNeedAuth){
         Long combopId = jsonObj.getLong("combopId");
         Integer threadCount = jsonObj.getInteger("threadCount");
         JSONObject paramJson = jsonObj.getJSONObject("param");
