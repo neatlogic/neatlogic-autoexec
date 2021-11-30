@@ -61,10 +61,12 @@ public class ScriptParamTypePassword extends ScriptParamTypeBase {
     protected Object getMyTextByValue(Object value) {
         String valueStr = value.toString();
         //先解密
+        String plain = valueStr;
         if(valueStr.startsWith(CiphertextPrefix.RC4.getValue())){
             valueStr = valueStr.replaceAll(CiphertextPrefix.RC4.getValue(), StringUtils.EMPTY);
+            plain = RC4Util.decrypt(valueStr);
         }
-        String plain = RC4Util.decrypt(valueStr);
+
         //再按autoexec 的key 加密
         value = "{ENCRYPTED}" + RC4Util.encrypt(AutoexecJobVo.AUTOEXEC_RC4_KEY, plain);
         return value;
