@@ -10,13 +10,11 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.exception.AutoexecJobPhaseNodeNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import codedriver.framework.exception.type.ParamIrregularException;
 import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -51,9 +49,10 @@ public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
         List<AutoexecJobPhaseNodeVo> nodeVoList = autoexecJobMapper.getJobPhaseNodeListByJobPhaseIdAndResourceIdList(jobVo.getCurrentPhaseId(),resourceIdList);
         List<Long> nodeResourceIdList = nodeVoList.stream().map(AutoexecJobPhaseNodeVo::getResourceId).collect(Collectors.toList());
         List<Long> notExistResourceIdList = resourceIdList.stream().filter(s -> !nodeResourceIdList.contains(s)).collect(Collectors.toList());
-        if(CollectionUtils.isNotEmpty(notExistResourceIdList)){
+        //无须校验
+        /*if(CollectionUtils.isNotEmpty(notExistResourceIdList)){
             throw new AutoexecJobPhaseNodeNotFoundException(StringUtils.EMPTY,notExistResourceIdList.toString());
-        }
+        }*/
         jobVo.setPhaseNodeVoList(nodeVoList);
         return true;
     }

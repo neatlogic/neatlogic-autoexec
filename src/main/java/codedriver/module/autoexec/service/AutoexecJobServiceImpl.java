@@ -397,9 +397,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             } else {
                 lostIpPortList = ipPortList;
             }
-            if (CollectionUtils.isNotEmpty(lostIpPortList)) {
+            //无须校验
+           /* if (CollectionUtils.isNotEmpty(lostIpPortList)) {
                 throw new AutoexecJobPhaseNodeNotFoundException(jobPhaseVo.getName(), lostIpPortList, isPhaseConfig);
-            }
+            }*/
         }
         return false;
     }
