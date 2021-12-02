@@ -180,7 +180,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
      */
     private Object getValueByParamType(JSONObject param) {
         String type = param.getString("type");
-        Object value = param.getString("value");
+        Object value = param.get("value");
         if (value != null) {
             IScriptParamType paramType = ScriptParamTypeFactory.getHandler(type);
             if(paramType != null) {

@@ -7,6 +7,7 @@ package codedriver.module.autoexec.script.paramtype;
 
 import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeBase;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
@@ -61,12 +62,15 @@ public class ScriptParamTypeMultiSelect extends ScriptParamTypeBase {
 
     @Override
     public Object getMyTextByValue(Object value) {
-        String valueStr = value.toString();
-        int tmpIndex = valueStr.indexOf("&=&");
-        if (tmpIndex > -1) {
-            return valueStr.substring(tmpIndex + 3);
+        JSONArray values = JSONArray.parseArray(value.toString());
+        for (int i = 0; i < values.size(); i++) {
+            String valueStr = values.getString(i);
+            int tmpIndex = valueStr.indexOf("&=&");
+            if (tmpIndex > -1) {
+                values.set(i,valueStr.substring(tmpIndex + 3));
+            }
         }
-        return value;
+        return values;
     }
 
     @Override
