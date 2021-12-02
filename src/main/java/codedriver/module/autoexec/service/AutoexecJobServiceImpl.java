@@ -22,9 +22,12 @@ import codedriver.framework.autoexec.exception.AutoexecJobRunnerGroupRunnerNotFo
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotMatchException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
 import codedriver.framework.cmdb.crossover.IResourceCenterResourceCrossoverService;
+import codedriver.framework.cmdb.crossover.IResourceListApiCrossoverService;
 import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
+import codedriver.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import codedriver.framework.cmdb.dto.resourcecenter.ResourceVo;
 import codedriver.framework.common.util.IpUtil;
+import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.crossover.CrossoverServiceFactory;
 import codedriver.framework.dao.mapper.runner.RunnerMapper;
 import codedriver.framework.dto.runner.GroupNetworkVo;
@@ -350,6 +353,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 if (CollectionUtils.isNotEmpty(resourceIdSet)) {
                     List<ResourceVo> resourceVoList = resourceCenterMapper.getResourceFromSoftwareServiceByIdList(new ArrayList<>(resourceIdSet), TenantContext.get().getDataDbName());
                     if (CollectionUtils.isNotEmpty(resourceVoList)) {
+                        Date nowTime = new Date(System.currentTimeMillis());
+                        jobPhaseVo.setLcd(nowTime);
                         updateJobPhaseNode(jobPhaseVo, resourceVoList, userName, protocolId);
                         return true;
                     }
@@ -391,6 +396,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 List<ResourceVo> finalResourceVoList = resourceVoList;
                 lostIpPortList = ipPortList.stream().filter(s -> finalResourceVoList.stream().noneMatch(s1 -> Objects.equals(s1.getIp() + s1.getPort(), s.getIp() + s.getPort()))).collect(Collectors.toList());
                 if (CollectionUtils.isEmpty(lostIpPortList)) {
+                    Date nowTime = new Date(System.currentTimeMillis());
+                    jobPhaseVo.setLcd(nowTime);
                     updateJobPhaseNode(jobPhaseVo, resourceVoList, userName, protocolId);
                     return true;
                 }
@@ -420,24 +427,36 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         if (MapUtils.isNotEmpty(filterJson)) {
             JSONObject resourceJson = new JSONObject();
             IResourceCenterResourceCrossoverService resourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
-            try {
-                resourceJson = JSONObject.parseObject(JSONObject.toJSONString(resourceCrossoverService.myDoService(filterJson)));
-            } catch (Exception ex) {
-                logger.error(ex.getMessage(), ex);
-                return false;
-            }
-            List<ResourceVo> resourceVoList = JSONObject.parseArray(resourceJson.getString("tbodyList"), ResourceVo.class);
-            if (CollectionUtils.isNotEmpty(resourceVoList)) {
-                updateJobPhaseNode(jobPhaseVo, resourceVoList, userName, protocolId);
+            filterJson.put("pageSize",100);
+            ResourceSearchVo searchVo = resourceCrossoverService.assembleResourceSearchVo(filterJson);
+            int count = resourceCenterMapper.getResourceCount(searchVo);
+            if(count>0){
+                Date nowTime = new Date(System.currentTimeMillis());
+                jobPhaseVo.setLcd(nowTime);
+                int pageCount = PageUtil.getPageCount(count, searchVo.getPageSize());
+                for (int i = 1; i <= pageCount; i++) {
+                    filterJson.put("currentPage",i);
+                    filterJson.put("needPage",true);
+                    try {
+                        IResourceListApiCrossoverService resourceListApi = CrossoverServiceFactory.getApi(IResourceListApiCrossoverService.class);
+                        resourceJson = JSONObject.parseObject(JSONObject.toJSONString(resourceListApi.myDoService(filterJson)));
+                    } catch (Exception ex) {
+                        logger.error(ex.getMessage(), ex);
+                        return false;
+                    }
+                    List<ResourceVo> resourceVoList = JSONObject.parseArray(resourceJson.getString("tbodyList"), ResourceVo.class);
+                    if (CollectionUtils.isNotEmpty(resourceVoList)) {
+                        updateJobPhaseNode(jobPhaseVo, resourceVoList, userName, protocolId);
+                    }
+                }
                 return true;
             }
+
         }
         return false;
     }
 
     private void updateJobPhaseNode(AutoexecJobPhaseVo jobPhaseVo, List<ResourceVo> resourceVoList, String userName, Long protocolId) {
-        Date nowTime = new Date(System.currentTimeMillis());
-        jobPhaseVo.setLcd(nowTime);
         autoexecJobMapper.updateJobPhaseLcdById(jobPhaseVo.getId(), jobPhaseVo.getLcd());
         resourceVoList.forEach(resourceVo -> {
             AutoexecJobPhaseNodeVo jobPhaseNodeVo = new AutoexecJobPhaseNodeVo(resourceVo, jobPhaseVo.getJobId(), jobPhaseVo, JobNodeStatus.PENDING.getValue(), userName, protocolId);
