@@ -62,7 +62,7 @@ public class AutoexecTypeSaveApi extends PrivateApiComponentBase {
         }
         typeVo.setLcu(UserContext.get().getUserUuid());
         if (jsonObj.getLong("id") == null) {
-            autoexecTypeMapper.insertType(typeVo);
+            autoexecTypeMapper.replaceType(typeVo);
         } else {
             if (autoexecTypeMapper.checkTypeIsExistsById(typeVo.getId()) == 0) {
                 throw new AutoexecTypeNotFoundException(typeVo.getId());
