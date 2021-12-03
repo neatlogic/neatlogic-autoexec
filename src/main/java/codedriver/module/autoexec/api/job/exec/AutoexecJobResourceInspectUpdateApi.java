@@ -54,7 +54,7 @@ public class AutoexecJobResourceInspectUpdateApi extends PublicApiComponentBase 
         if(phaseVo == null){
             throw new AutoexecJobPhaseNotFoundException(phaseName);
         }
-        autoexecJobMapper.replaceIntoJobResourceInspect(jobId,jsonObj.getLong("resourceId"),phaseVo.getId(),jsonObj.getLong("inspectTime"));
+        autoexecJobMapper.replaceIntoJobResourceInspect(jobId,jsonObj.getLong("resourceId"),phaseVo.getId(),jsonObj.getDate("inspectTime"));
         return null;
     }
 
