@@ -63,8 +63,6 @@ public class AutoexecJobConsoleLogTailApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecJobVo jobVo = new AutoexecJobVo();
-        jobVo.setCurrentPhaseId(paramObj.getLong("jobPhaseId"));
-        jobVo.setCurrentNodeResourceId(paramObj.getLong("resourceId"));
         jobVo.setActionParam(paramObj);
         IAutoexecJobActionHandler nodeAuditListAction = AutoexecJobActionHandlerFactory.getAction(JobAction.CONSOLE_LOG_TAIL.getValue());
         JSONObject result = nodeAuditListAction.doService(jobVo);
