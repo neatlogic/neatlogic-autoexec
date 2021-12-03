@@ -58,12 +58,12 @@ public class AutoexecScheduleJob extends JobBase {
     public void reloadJob(JobObject jobObject) {
         String tenantUuid = jobObject.getTenantUuid();
         TenantContext.get().switchTenant(tenantUuid);
-        AutoexecScheduleVo autoexecScheduleVo = (AutoexecScheduleVo) jobObject.getData("autoexecScheduleVo");
+        String uuid = jobObject.getJobName();
+        AutoexecScheduleVo autoexecScheduleVo = autoexecScheduleMapper.getAutoexecScheduleByUuid(uuid);
         JobObject newJobObjectBuilder = new JobObject.Builder(autoexecScheduleVo.getUuid(), this.getGroupName(), this.getClassName(), tenantUuid)
                 .withCron(autoexecScheduleVo.getCron()).withBeginTime(autoexecScheduleVo.getBeginTime())
                 .withEndTime(autoexecScheduleVo.getEndTime())
 //                .needAudit(autoexecScheduleVo.getNeedAudit())
-                .setType("private")
                 .build();
         schedulerManager.loadJob(newJobObjectBuilder);
     }
@@ -79,8 +79,7 @@ public class AutoexecScheduleJob extends JobBase {
             List<AutoexecScheduleVo> autoexecScheduleList = autoexecScheduleMapper.getAutoexecScheduleList(searchVo);
             for (AutoexecScheduleVo autoexecScheduleVo : autoexecScheduleList) {
                 JobObject.Builder jobObjectBuilder = new JobObject
-                        .Builder(autoexecScheduleVo.getUuid(), this.getGroupName(), this.getClassName(), TenantContext.get().getTenantUuid())
-                        .addData("autoexecScheduleVo", autoexecScheduleVo);
+                        .Builder(autoexecScheduleVo.getUuid(), this.getGroupName(), this.getClassName(), TenantContext.get().getTenantUuid());
                 JobObject jobObject = jobObjectBuilder.build();
                 this.reloadJob(jobObject);
             }
