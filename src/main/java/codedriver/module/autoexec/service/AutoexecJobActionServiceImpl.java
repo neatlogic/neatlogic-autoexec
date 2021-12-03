@@ -62,8 +62,6 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     ResourceCenterMapper resourceCenterMapper;
 
 
-
-
     /**
      * 拼装给proxy的param
      *
@@ -183,7 +181,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
         Object value = param.get("value");
         if (value != null) {
             IScriptParamType paramType = ScriptParamTypeFactory.getHandler(type);
-            if(paramType != null) {
+            if (paramType != null) {
                 value = paramType.getAutoexecParamByValue(value);
             }
         }
@@ -191,9 +189,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
     }
 
     @Override
-    public AutoexecJobVo validateCreateJobFromCombop(JSONObject jsonObj, boolean isNeedAuth){
+    public AutoexecJobVo validateCreateJobFromCombop(JSONObject jsonObj, boolean isNeedAuth) {
         Long combopId = jsonObj.getLong("combopId");
-        Integer threadCount = jsonObj.getInteger("threadCount");
+        int threadCount = jsonObj.getInteger("threadCount") == null ? 64 : jsonObj.getInteger("threadCount");
         JSONObject paramJson = jsonObj.getJSONObject("param");
         AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
         if (combopVo == null) {
@@ -220,7 +218,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
             throw new AutoexecJobThreadCountException();
         }
         AutoexecJobInvokeVo invokeVo = new AutoexecJobInvokeVo(jsonObj.getLong("invokeId"), jsonObj.getString("source"));
-        if(jsonObj.containsKey("name")) {
+        if (jsonObj.containsKey("name")) {
             combopVo.setName(jsonObj.getString("name"));
         }
         AutoexecJobVo jobVo = autoexecJobService.saveAutoexecCombopJob(combopVo, invokeVo, threadCount, paramJson);

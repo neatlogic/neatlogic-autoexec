@@ -13,6 +13,7 @@ import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -40,7 +41,7 @@ public class AutoexecJobResourceInspectUpdateApi extends PublicApiComponentBase 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
             @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资产id", isRequired = true),
-            @Param(name = "phaseName", type = ApiParamType.STRING, desc = "阶段名", isRequired = true),
+            @Param(name = "phaseName", type = ApiParamType.STRING, desc = "阶段名"),
             @Param(name = "inspectTime", type = ApiParamType.LONG, desc = "巡检时间", isRequired = true)
     })
     @Output({
@@ -50,11 +51,16 @@ public class AutoexecJobResourceInspectUpdateApi extends PublicApiComponentBase 
     public Object myDoService(JSONObject jsonObj) throws Exception {
         String phaseName = jsonObj.getString("phaseName");
         Long jobId = jsonObj.getLong("jobId");
-        AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(jobId,phaseName);
-        if(phaseVo == null){
-            throw new AutoexecJobPhaseNotFoundException(phaseName);
+        Long phaseId = null;
+        //TODO 临时允许phaseName 为空
+        if(StringUtils.isNotBlank(phaseName)) {
+            AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(jobId, phaseName);
+            if (phaseVo == null) {
+                throw new AutoexecJobPhaseNotFoundException(phaseName);
+            }
+            phaseId = phaseVo.getId();
         }
-        autoexecJobMapper.replaceIntoJobResourceInspect(jobId,jsonObj.getLong("resourceId"),phaseVo.getId(),jsonObj.getDate("inspectTime"));
+        autoexecJobMapper.replaceIntoJobResourceInspect(jobId,jsonObj.getLong("resourceId"),phaseId,jsonObj.getDate("inspectTime"));
         return null;
     }
 

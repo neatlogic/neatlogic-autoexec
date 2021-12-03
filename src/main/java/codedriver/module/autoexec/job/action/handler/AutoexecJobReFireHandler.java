@@ -83,6 +83,10 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             if (CollectionUtils.isEmpty(autoexecJobPhaseVos)) {
                 autoexecJobPhaseVos = autoexecJobMapper.getJobPhaseListByJobIdAndNodeStatusList(jobVo.getId(), Arrays.asList(JobPhaseStatus.PENDING.getValue(), JobPhaseStatus.ABORTED.getValue(), JobPhaseStatus.PAUSED.getValue(), JobPhaseStatus.FAILED.getValue()));
             }
+            //如果都成功了则无须重跑
+            if(CollectionUtils.isEmpty(autoexecJobPhaseVos)){
+                return null;
+            }
             sort = autoexecJobPhaseVos.get(0).getSort();
             //int finalSort = sort;
             //List<Long> jobPhaseIdList = autoexecJobPhaseVos.stream().filter(p->p.getSort() == finalSort).map(AutoexecJobPhaseVo::getId).collect(Collectors.toList());
