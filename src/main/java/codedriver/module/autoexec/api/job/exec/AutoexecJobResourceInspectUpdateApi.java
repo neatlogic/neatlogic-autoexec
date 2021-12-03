@@ -6,6 +6,8 @@
 package codedriver.module.autoexec.api.job.exec;
 
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
+import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -37,14 +39,22 @@ public class AutoexecJobResourceInspectUpdateApi extends PublicApiComponentBase 
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
-            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资产id", isRequired = true)
+            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资产id", isRequired = true),
+            @Param(name = "phaseName", type = ApiParamType.STRING, desc = "阶段名", isRequired = true),
+            @Param(name = "inspectTime", type = ApiParamType.LONG, desc = "巡检时间", isRequired = true)
     })
     @Output({
     })
     @Description(desc = "更新巡检资源作业接口")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        autoexecJobMapper.replaceIntoJobResourceInspect(jsonObj.getLong("jobId"),jsonObj.getLong("resourceId"));
+        String phaseName = jsonObj.getString("phaseName");
+        Long jobId = jsonObj.getLong("jobId");
+        AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(jobId,phaseName);
+        if(phaseVo == null){
+            throw new AutoexecJobPhaseNotFoundException(phaseName);
+        }
+        autoexecJobMapper.replaceIntoJobResourceInspect(jobId,jsonObj.getLong("resourceId"),phaseVo.getId(),jsonObj.getLong("inspectTime"));
         return null;
     }
 
