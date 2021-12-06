@@ -60,12 +60,14 @@ public class AutoexecScheduleJob extends JobBase {
         TenantContext.get().switchTenant(tenantUuid);
         String uuid = jobObject.getJobName();
         AutoexecScheduleVo autoexecScheduleVo = autoexecScheduleMapper.getAutoexecScheduleByUuid(uuid);
-        JobObject newJobObjectBuilder = new JobObject.Builder(autoexecScheduleVo.getUuid(), this.getGroupName(), this.getClassName(), tenantUuid)
-                .withCron(autoexecScheduleVo.getCron()).withBeginTime(autoexecScheduleVo.getBeginTime())
-                .withEndTime(autoexecScheduleVo.getEndTime())
+        if (autoexecScheduleVo != null) {
+            JobObject newJobObjectBuilder = new JobObject.Builder(autoexecScheduleVo.getUuid(), this.getGroupName(), this.getClassName(), tenantUuid)
+                    .withCron(autoexecScheduleVo.getCron()).withBeginTime(autoexecScheduleVo.getBeginTime())
+                    .withEndTime(autoexecScheduleVo.getEndTime())
 //                .needAudit(autoexecScheduleVo.getNeedAudit())
-                .build();
-        schedulerManager.loadJob(newJobObjectBuilder);
+                    .build();
+            schedulerManager.loadJob(newJobObjectBuilder);
+        }
     }
 
     @Override
