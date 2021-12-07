@@ -192,6 +192,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
     @Override
     public AutoexecJobVo validateCreateJobFromCombop(JSONObject jsonObj, boolean isNeedAuth) {
         Long combopId = jsonObj.getLong("combopId");
+        String source = jsonObj.getString("source");
         int threadCount = jsonObj.getInteger("threadCount") == null ? 64 : jsonObj.getInteger("threadCount");
         JSONObject paramJson = jsonObj.getJSONObject("param");
         AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
@@ -208,8 +209,22 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         }
         //设置作业执行节点
         if (combopVo.getConfig() != null && jsonObj.containsKey("executeConfig")) {
-            AutoexecCombopExecuteConfigVo executeConfigVo = JSON.toJavaObject(jsonObj.getJSONObject("executeConfig"), AutoexecCombopExecuteConfigVo.class);
+            //如果执行传进来的"执行用户"、"协议"为空则使用默认设定的值
+            AutoexecCombopExecuteConfigVo executeConfigVo = combopVo.getConfig().getExecuteConfig();
+            if(executeConfigVo == null){
+                executeConfigVo = new AutoexecCombopExecuteConfigVo();
+            }
+
+            AutoexecCombopExecuteConfigVo paramExecuteConfigVo = JSON.toJavaObject(jsonObj.getJSONObject("executeConfig"), AutoexecCombopExecuteConfigVo.class);
+            if(paramExecuteConfigVo.getProtocolId() != null){
+                executeConfigVo.setProtocolId(paramExecuteConfigVo.getProtocolId());
+            }
+            if(StringUtils.isNotBlank(paramExecuteConfigVo.getExecuteUser())){
+                executeConfigVo.setExecuteUser(paramExecuteConfigVo.getExecuteUser());
+            }
+            executeConfigVo.setExecuteNodeConfig(paramExecuteConfigVo.getExecuteNodeConfig());
             combopVo.getConfig().setExecuteConfig(executeConfigVo);
+
         }
         autoexecCombopService.verifyAutoexecCombopConfig(combopVo);
         //TODO 校验执行参数
@@ -218,7 +233,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         if ((threadCount & (threadCount - 1)) != 0) {
             throw new AutoexecJobThreadCountException();
         }
-        AutoexecJobInvokeVo invokeVo = new AutoexecJobInvokeVo(jsonObj.getLong("invokeId"), jsonObj.getString("source"));
+        AutoexecJobInvokeVo invokeVo = new AutoexecJobInvokeVo(jsonObj.getLong("invokeId"), source);
         if (jsonObj.containsKey("name")) {
             combopVo.setName(jsonObj.getString("name"));
         }

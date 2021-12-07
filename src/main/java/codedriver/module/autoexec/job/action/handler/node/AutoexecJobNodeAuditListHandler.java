@@ -13,6 +13,7 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobHostPortRunnerNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import codedriver.framework.dao.mapper.UserMapper;
+import codedriver.framework.dto.UserVo;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
@@ -72,7 +73,11 @@ public class AutoexecJobNodeAuditListHandler extends AutoexecJobActionHandlerBas
         for (Object audit : auditArray) {
             JSONObject auditJson = (JSONObject) audit;
             AutoexecJobPhaseNodeAuditVo auditVo = new AutoexecJobPhaseNodeAuditVo(auditJson);
-            auditVo.setExecUserVo(userMapper.getUserBaseInfoByUuidWithoutCache(auditVo.getExecUser()));
+            UserVo execUserVo = userMapper.getUserBaseInfoByUuidWithoutCache(auditVo.getExecUser());
+            if(execUserVo == null){
+                execUserVo = new UserVo(auditVo.getExecUser());
+            }
+            auditVo.setExecUserVo(execUserVo);
             auditList.add(auditVo);
         }
         result.put("tbodyList", auditList.stream().sorted(Comparator.comparing(AutoexecJobPhaseNodeAuditVo::getStartTime).reversed()).collect(Collectors.toList()));
