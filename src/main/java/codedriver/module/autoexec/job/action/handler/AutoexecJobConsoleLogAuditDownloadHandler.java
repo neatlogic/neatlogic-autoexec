@@ -12,11 +12,11 @@ import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestExcep
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import codedriver.framework.dao.mapper.runner.RunnerMapper;
-import codedriver.framework.dto.RestVo;
 import codedriver.framework.dto.runner.RunnerVo;
 import codedriver.framework.integration.authentication.enums.AuthenticateType;
 import codedriver.framework.util.FileUtil;
-import codedriver.framework.util.RestUtil;
+import codedriver.framework.util.HttpRequestUtil;
+import codedriver.framework.util.TimeUtil;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -24,14 +24,15 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Date;
 
 /**
  * @author lvzk
  * @since 2021/11/9 12:18
  **/
 @Service
-public class AutoexecJobConsoleLogDownloadHandler extends AutoexecJobActionHandlerBase {
-    private final static Logger logger = LoggerFactory.getLogger(AutoexecJobConsoleLogDownloadHandler.class);
+public class AutoexecJobConsoleLogAuditDownloadHandler extends AutoexecJobActionHandlerBase {
+    private final static Logger logger = LoggerFactory.getLogger(AutoexecJobConsoleLogAuditDownloadHandler.class);
     @Resource
     RunnerMapper runnerMapper;
 
@@ -61,14 +62,14 @@ public class AutoexecJobConsoleLogDownloadHandler extends AutoexecJobActionHandl
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) throws Exception {
         JSONObject paramObj = jobVo.getActionParam();
-        String fileName = FileUtil.getEncodedFileName(UserContext.get().getRequest().getHeader("User-Agent"), paramObj.getString("jobId") + "-" + paramObj.getString("runnerIp") + "-" + paramObj.getString("runnerPort") + ".log");
-        UserContext.get().getResponse().setContentType("text/plain");
-        UserContext.get().getResponse().setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
+        String fileName = FileUtil.getEncodedFileName(UserContext.get().getRequest().getHeader("User-Agent"), paramObj.getString("jobId") + "-"
+                + paramObj.getString("runnerIp") + "-" + paramObj.getString("runnerPort") + TimeUtil.convertDateToString(new Date(paramObj.getLong("startTime")), TimeUtil.YYYYMMDD_HHMMSS)+ ".log");
         String url = String.format("%s/api/binary/job/console/log/download", paramObj.getString("runnerUrl"));
-        RestVo restVo = new RestVo.Builder(url, AuthenticateType.BUILDIN.getValue()).setPayload(paramObj).build();
-        String result = RestUtil.sendPostRequestForStream(restVo);
+        String result = HttpRequestUtil.download(url, UserContext.get().getResponse().getOutputStream())
+                .setAuthType(AuthenticateType.BUILDIN).setPayload(paramObj.toJSONString()).setContentType(HttpRequestUtil.ContentType.CONTENT_TYPE_TEXT_HTML)
+                .addHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"").sendRequest().getError();
         if (StringUtils.isNotBlank(result)) {
-            throw new AutoexecJobRunnerHttpRequestException(restVo.getUrl() + ":" + result);
+            throw new AutoexecJobRunnerHttpRequestException(url + ":" + result);
         }
         return null;
     }

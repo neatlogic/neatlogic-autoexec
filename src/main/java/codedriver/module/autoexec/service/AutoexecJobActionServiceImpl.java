@@ -10,6 +10,7 @@ import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.constvalue.ParamMappingMode;
 import codedriver.framework.autoexec.constvalue.ToolType;
+import codedriver.framework.autoexec.crossover.IAutoexecJobActionCrossoverService;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
@@ -46,7 +47,7 @@ import java.util.stream.Collectors;
  * @since 2021/4/27 11:30
  **/
 @Service
-public class AutoexecJobActionServiceImpl implements AutoexecJobActionService {
+public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, IAutoexecJobActionCrossoverService {
     private static final Logger logger = LoggerFactory.getLogger(AutoexecJobActionServiceImpl.class);
 
     @Resource

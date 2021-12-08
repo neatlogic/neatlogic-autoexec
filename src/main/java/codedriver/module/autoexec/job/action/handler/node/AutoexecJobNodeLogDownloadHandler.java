@@ -10,7 +10,7 @@ import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerConnectAuthException;
+import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import codedriver.framework.dto.RestVo;
 import codedriver.framework.integration.authentication.enums.AuthenticateType;
@@ -60,7 +60,7 @@ public class AutoexecJobNodeLogDownloadHandler extends AutoexecJobActionHandlerB
         RestVo restVo = new RestVo.Builder(url, AuthenticateType.BUILDIN.getValue()).setPayload(paramObj).build();
         String result = RestUtil.sendPostRequestForStream(restVo);
         if (StringUtils.isNotBlank(result)) {
-            throw new AutoexecJobRunnerConnectAuthException(restVo.getUrl() + ":" + result);
+            throw new AutoexecJobRunnerHttpRequestException(restVo.getUrl() + ":" + result);
         }
         return null;
     }

@@ -12,7 +12,7 @@ import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerConnectAuthException;
+import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerConnectRefusedException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
@@ -130,7 +130,7 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
                 result = RestUtil.sendPostRequest(restVo);
                 JSONObject resultJson = JSONObject.parseObject(result);
                 if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                    throw new AutoexecJobRunnerConnectAuthException(restVo.getUrl() + ":" + resultJson.getString("Message"));
+                    throw new AutoexecJobRunnerHttpRequestException(restVo.getUrl() + ":" + resultJson.getString("Message"));
                 }
             }
         } catch (Exception ex) {
