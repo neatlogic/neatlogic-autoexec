@@ -62,6 +62,7 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
             @Param(name = "riskIdList", type = ApiParamType.JSONARRAY, desc = "操作级别ID列表"),
             @Param(name = "versionStatus", type = ApiParamType.ENUM, rule = "draft,submitted,passed,rejected", desc = "状态"),
             @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
+            @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "用于回显的脚本ID列表"),
             @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
             @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
             @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true")
