@@ -42,6 +42,7 @@ public class AutoexecJobConsoleLogAuditDownloadApi extends PrivateBinaryStreamAp
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "作业Id"),
+            @Param(name = "runnerId", type = ApiParamType.LONG, isRequired = true, desc = "runner Id"),
             @Param(name = "startTime", type = ApiParamType.STRING, desc = "执行开始时间", isRequired = true),
             @Param(name = "execUser", type = ApiParamType.STRING, desc = "执行用户", isRequired = true)
     })

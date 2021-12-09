@@ -9,6 +9,7 @@ import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dto.job.AutoexecJobConsoleLogAuditVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerConnectRefusedException;
+import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import codedriver.framework.dao.mapper.UserMapper;
@@ -74,7 +75,11 @@ public class AutoexecJobConsoleLogAuditListHandler extends AutoexecJobActionHand
             throw new AutoexecJobRunnerConnectRefusedException(url);
         }
         List<AutoexecJobConsoleLogAuditVo> auditList = new ArrayList<>();
-        JSONArray auditArray = requestUtil.getResultJsonArray();
+        JSONObject resultJson = requestUtil.getResultJson();
+        if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
+            throw new AutoexecJobRunnerHttpRequestException(resultJson.getString("Message"));
+        }
+        JSONArray auditArray = resultJson.getJSONArray("Return");
         for (int i = 0; i < auditArray.size(); i++) {
             JSONObject auditJson = auditArray.getJSONObject(i);
             AutoexecJobConsoleLogAuditVo autoexecJobConsoleLogAuditVo = new AutoexecJobConsoleLogAuditVo(auditJson);

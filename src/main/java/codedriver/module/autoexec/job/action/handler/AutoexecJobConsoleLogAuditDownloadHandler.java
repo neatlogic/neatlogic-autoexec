@@ -38,7 +38,7 @@ public class AutoexecJobConsoleLogAuditDownloadHandler extends AutoexecJobAction
 
     @Override
     public String getName() {
-        return JobAction.DOWNLOAD_CONSOLE_LOG.getValue();
+        return JobAction.DOWNLOAD_CONSOLE_LOG_AUDIT.getValue();
     }
 
     @Override
@@ -64,9 +64,9 @@ public class AutoexecJobConsoleLogAuditDownloadHandler extends AutoexecJobAction
         JSONObject paramObj = jobVo.getActionParam();
         String fileName = FileUtil.getEncodedFileName(UserContext.get().getRequest().getHeader("User-Agent"), paramObj.getString("jobId") + "-"
                 + paramObj.getString("runnerIp") + "-" + paramObj.getString("runnerPort") + TimeUtil.convertDateToString(new Date(paramObj.getLong("startTime")), TimeUtil.YYYYMMDD_HHMMSS)+ ".log");
-        String url = String.format("%s/api/binary/job/console/log/download", paramObj.getString("runnerUrl"));
+        String url = String.format("%s/api/binary/job/console/log/audit/download", paramObj.getString("runnerUrl"));
         String result = HttpRequestUtil.download(url, UserContext.get().getResponse().getOutputStream())
-                .setAuthType(AuthenticateType.BUILDIN).setPayload(paramObj.toJSONString()).setContentType(HttpRequestUtil.ContentType.CONTENT_TYPE_TEXT_HTML)
+                .setAuthType(AuthenticateType.BUILDIN).setPayload(paramObj.toJSONString())
                 .addHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"").sendRequest().getError();
         if (StringUtils.isNotBlank(result)) {
             throw new AutoexecJobRunnerHttpRequestException(url + ":" + result);
