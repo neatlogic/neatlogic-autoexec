@@ -78,6 +78,8 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
                 runtimeParamObj.put("mappingMode", "");
                 runtimeParamObj.put("value", "");
                 runtimeParamObj.put("isRequired", autoexecCombopParamVo.getIsRequired());
+                runtimeParamObj.put("type", autoexecCombopParamVo.getType());
+                runtimeParamObj.put("config", autoexecCombopParamVo.getConfig());
                 runtimeParamList.add(runtimeParamObj);
             }
             resultObj.put("runtimeParamList", runtimeParamList);
