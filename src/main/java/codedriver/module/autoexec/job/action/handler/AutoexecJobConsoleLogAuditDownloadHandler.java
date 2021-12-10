@@ -65,9 +65,11 @@ public class AutoexecJobConsoleLogAuditDownloadHandler extends AutoexecJobAction
         String fileName = FileUtil.getEncodedFileName(UserContext.get().getRequest().getHeader("User-Agent"), paramObj.getString("jobId") + "-"
                 + paramObj.getString("runnerIp") + "-" + paramObj.getString("runnerPort") + TimeUtil.convertDateToString(new Date(paramObj.getLong("startTime")), TimeUtil.YYYYMMDD_HHMMSS)+ ".log");
         String url = String.format("%s/api/binary/job/console/log/audit/download", paramObj.getString("runnerUrl"));
-        String result = HttpRequestUtil.download(url, UserContext.get().getResponse().getOutputStream())
+        UserContext.get().getResponse().setContentType("text/plain");
+        UserContext.get().getResponse().setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
+        String result = HttpRequestUtil.download(url,null)
                 .setAuthType(AuthenticateType.BUILDIN).setPayload(paramObj.toJSONString())
-                .addHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"").sendRequest().getError();
+                .sendRequest().getError();
         if (StringUtils.isNotBlank(result)) {
             throw new AutoexecJobRunnerHttpRequestException(url + ":" + result);
         }
