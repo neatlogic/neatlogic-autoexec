@@ -121,8 +121,8 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                             if (MapUtils.isNotEmpty(runtimeParamObj)) {
                                 String key = runtimeParamObj.getString("key");
                                 if (StringUtils.isNotBlank(key)) {
-                                    String value = runtimeParamObj.getString("value");
-                                    if (StringUtils.isNotBlank(value)) {
+                                    Object value = runtimeParamObj.get("value");
+                                    if (value != null) {
                                         String mappingMode = runtimeParamObj.getString("mappingMode");
                                         param.put(key, parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
                                     } else {
@@ -256,7 +256,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             }
         }
     }
-    private Object parseMappingValue(ProcessTaskStepVo currentProcessTaskStepVo, String mappingMode, String value) {
+    private Object parseMappingValue(ProcessTaskStepVo currentProcessTaskStepVo, String mappingMode, Object value) {
         if ("form".equals(mappingMode)) {
             List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataVoList = processTaskMapper.getProcessTaskStepFormAttributeDataByProcessTaskId(currentProcessTaskStepVo.getProcessTaskId());
             for (ProcessTaskFormAttributeDataVo attributeDataVo : processTaskFormAttributeDataVoList) {
@@ -266,7 +266,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             }
             return null;
         } else if ("prestepexportparam".equals(mappingMode)) {
-            return getPreStepExportParamValue(currentProcessTaskStepVo.getProcessTaskId(), value);
+            return getPreStepExportParamValue(currentProcessTaskStepVo.getProcessTaskId(), (String) value);
         }
         return value;
     }
