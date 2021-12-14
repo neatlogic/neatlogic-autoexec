@@ -117,7 +117,7 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
         Long id = jsonObj.getLong("id");
         if (id == null) {
             if(!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(true), AUTOEXEC_COMBOP_ADD.class.getSimpleName())){
-                throw new PermissionDeniedException(AuthFactory.getAuthInstance(AUTOEXEC_COMBOP_ADD.class.getSimpleName()).getAuthDisplayName());
+                throw new PermissionDeniedException(AUTOEXEC_COMBOP_ADD.class);
             }
             autoexecCombopVo.setOperationType(CombopOperationType.COMBOP.getValue());
             autoexecCombopVo.setOwner(UserContext.get().getUserUuid(true));
