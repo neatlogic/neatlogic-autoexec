@@ -47,7 +47,7 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "组合工具ID"),
-            @Param(name = "name", type = ApiParamType.STRING, desc = "作业名"),
+            @Param(name = "name", type = ApiParamType.STRING, isRequired = true, desc = "作业名"),
             @Param(name = "param", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "执行参数"),
             @Param(name = "source", type = ApiParamType.STRING, isRequired = true, desc = "来源 itsm|human   ITSM|人工发起的等，不传默认是人工发起的"),
             @Param(name = "invokeId", type = ApiParamType.LONG, desc = "来源id"),
