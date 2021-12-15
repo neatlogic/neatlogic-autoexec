@@ -2,7 +2,11 @@ package codedriver.module.autoexec.api.catalog;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_CATALOG_MODIFY;
+import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
+import codedriver.framework.autoexec.dto.catalog.AutoexecCatalogVo;
+import codedriver.framework.autoexec.exception.AutoexecCatalogNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.lrcode.LRCodeManager;
 import codedriver.framework.restful.annotation.Description;
 import codedriver.framework.restful.annotation.Input;
 import codedriver.framework.restful.annotation.OperationType;
@@ -13,35 +17,50 @@ import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
+import java.util.List;
+
 @AuthAction(action = AUTOEXEC_CATALOG_MODIFY.class)
 @Service
 @Transactional
 @OperationType(type = OperationTypeEnum.DELETE)
 public class AutoexecCatalogDeleteApi extends PrivateApiComponentBase {
 
-	@Override
-	public String getToken() {
-		return "autoexec/catalog/delete";
-	}
+    @Resource
+    private AutoexecCatalogMapper autoexecCatalogMapper;
 
-	@Override
-	public String getName() {
-		return "删除工具目录";
-	}
+    @Override
+    public String getToken() {
+        return "autoexec/catalog/delete";
+    }
 
-	@Override
-	public String getConfig() {
-		return null;
-	}
+    @Override
+    public String getName() {
+        return "删除工具目录";
+    }
 
-	@Input({
-			@Param(name = "id", type = ApiParamType.LONG, desc = "目录id", isRequired = true)
-	})
-	@Description(desc = "删除工具目录")
-	@Override
-	public Object myDoService(JSONObject jsonObj) throws Exception {
+    @Override
+    public String getConfig() {
+        return null;
+    }
 
-		return null;
-	}
+    @Input({
+            @Param(name = "id", type = ApiParamType.LONG, desc = "目录id", isRequired = true)
+    })
+    @Description(desc = "删除工具目录")
+    @Override
+    public Object myDoService(JSONObject jsonObj) throws Exception {
+        // todo 检查工具目录是否被引用
+        Long id = jsonObj.getLong("id");
+        AutoexecCatalogVo vo = autoexecCatalogMapper.getAutoexecCatalogById(id);
+        if (vo == null) {
+            throw new AutoexecCatalogNotFoundException(id);
+        }
+        List<Long> idList = autoexecCatalogMapper.getChildrenIdListByLeftRightCode(vo.getLft(), vo.getRht());
+        LRCodeManager.beforeDeleteTreeNode("autoexec_catalog", "id", "parent_id", id);
+        idList.add(id);
+        autoexecCatalogMapper.deleteAutoexecCatalogByIdList(idList);
+        return null;
+    }
 
 }
