@@ -2,13 +2,25 @@ package codedriver.module.autoexec.api.catalog;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_CATALOG_MODIFY;
+import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
+import codedriver.framework.autoexec.dto.catalog.AutoexecCatalogVo;
+import codedriver.framework.autoexec.exception.AutoexecCatalogNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
-import codedriver.framework.restful.annotation.*;
+import codedriver.framework.lrcode.LRCodeManager;
+import codedriver.framework.lrcode.constvalue.MoveType;
+import codedriver.framework.lrcode.exception.MoveTargetNodeIllegalException;
+import codedriver.framework.restful.annotation.Description;
+import codedriver.framework.restful.annotation.Input;
+import codedriver.framework.restful.annotation.OperationType;
+import codedriver.framework.restful.annotation.Param;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import com.alibaba.fastjson.JSONObject;
+import com.google.common.base.Objects;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.Resource;
 
 @AuthAction(action = AUTOEXEC_CATALOG_MODIFY.class)
 @Service
@@ -16,6 +28,8 @@ import org.springframework.transaction.annotation.Transactional;
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class AutoexecCatalogMoveApi extends PrivateApiComponentBase {
 
+    @Resource
+    private AutoexecCatalogMapper autoexecCatalogMapper;
 
     @Override
     public String getToken() {
@@ -40,7 +54,47 @@ public class AutoexecCatalogMoveApi extends PrivateApiComponentBase {
     @Description(desc = "移动工具目录")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-
+        Long id = jsonObj.getLong("id");
+        AutoexecCatalogVo autoexecCatalog = autoexecCatalogMapper.getAutoexecCatalogById(id);
+        if (autoexecCatalog == null) {
+            throw new AutoexecCatalogNotFoundException(id);
+        }
+        Long parentId = jsonObj.getLong("parentId");
+        if (Objects.equal(id, parentId)) {
+            throw new MoveTargetNodeIllegalException();
+        }
+        if (parentId == null) {
+            parentId = AutoexecCatalogVo.ROOT_ID;
+        } else if (!AutoexecCatalogVo.ROOT_ID.equals(parentId)) {
+            AutoexecCatalogVo parent = autoexecCatalogMapper.getAutoexecCatalogById(parentId);
+            if (parent == null) {
+                throw new AutoexecCatalogNotFoundException(parentId);
+            }
+        }
+        Long targetId;
+        MoveType moveType;
+        int sort = jsonObj.getIntValue("sort");
+        AutoexecCatalogVo nextTeam = autoexecCatalogMapper.getAutoexecCatalogByParentIdAndStartNum(parentId, sort);
+        if (nextTeam == null) {
+            targetId = parentId;
+            moveType = MoveType.INNER;
+        } else {
+            if (nextTeam.getId().equals(id)) {
+                return null;
+            } else {
+                targetId = nextTeam.getId();
+                if (nextTeam.getParentId().equals(autoexecCatalog.getParentId())) {
+                    if (nextTeam.getLft() < autoexecCatalog.getLft()) {
+                        moveType = MoveType.PREV;
+                    } else {
+                        moveType = MoveType.NEXT;
+                    }
+                } else {
+                    moveType = MoveType.PREV;
+                }
+            }
+        }
+        LRCodeManager.moveTreeNode("autoexec_catalog", "id", "parent_id", id, moveType, targetId);
         return null;
     }
 
