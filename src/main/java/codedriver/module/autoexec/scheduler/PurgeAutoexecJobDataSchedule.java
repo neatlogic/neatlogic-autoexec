@@ -5,12 +5,15 @@
 
 package codedriver.module.autoexec.scheduler;
 
+import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerConnectRefusedException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
+import codedriver.framework.common.constvalue.SystemUser;
 import codedriver.framework.dao.mapper.runner.RunnerMapper;
 import codedriver.framework.dto.runner.RunnerMapVo;
+import codedriver.framework.filter.core.LoginAuthHandlerBase;
 import codedriver.framework.integration.authentication.enums.AuthenticateType;
 import codedriver.framework.scheduler.annotation.Input;
 import codedriver.framework.scheduler.annotation.Param;
@@ -52,6 +55,7 @@ public class PurgeAutoexecJobDataSchedule extends PublicJobBase {
     @Resource
     RunnerMapper runnerMapper;
 
+
     @Override
     public String getName() {
         return "清除自动化作业";
@@ -77,30 +81,35 @@ public class PurgeAutoexecJobDataSchedule extends PublicJobBase {
             }
             //循环调用runner 端 autoexec job 清除命令
             List<AutoexecJobVo> autoexecJobVos = autoexecJobMapper.getJobByExpiredDays(days);
-            List<Long> runnerMapIdList = autoexecJobMapper.getJobPhaseRunnerMapIdListByJobIdList(autoexecJobVos.stream().map(AutoexecJobVo::getId).collect(Collectors.toList()));
-            List<RunnerMapVo> runnerVos = runnerMapper.getRunnerByRunnerMapIdList(runnerMapIdList);
-            runnerVos = runnerVos.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>( Comparator.comparing(RunnerMapVo::getId))), ArrayList::new));
-            for (RunnerMapVo runner : runnerVos) {
-                String url = runner.getUrl() + "api/rest/job/data/purge";
-                try {
-                    JSONObject paramJson = new JSONObject();
-                    int finalDays = days;
-                    paramJson.put("passThroughEnv", new JSONObject() {{
-                        put("expiredDays", finalDays);
-                        put("runnerId", runner.getRunnerMapId());
-                    }});
-                    JSONObject resultJson = HttpRequestUtil.post(url).setAuthType(AuthenticateType.BUILDIN).setPayload(paramJson.toJSONString()).sendRequest().getResultJson();
-                    if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                        throw new AutoexecJobRunnerHttpRequestException(url + ":" + resultJson.getString("Message"));
+            if(CollectionUtils.isNotEmpty(autoexecJobVos)) {
+                List<Long> runnerMapIdList = autoexecJobMapper.getJobPhaseRunnerMapIdListByJobIdList(autoexecJobVos.stream().map(AutoexecJobVo::getId).collect(Collectors.toList()));
+                List<RunnerMapVo> runnerVos = runnerMapper.getRunnerByRunnerMapIdList(runnerMapIdList);
+                if(CollectionUtils.isNotEmpty(runnerVos)) {
+                    runnerVos = runnerVos.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getId))), ArrayList::new));
+                    UserContext.init(SystemUser.SYSTEM.getUserVo(), SystemUser.SYSTEM.getTimezone());
+                    UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(SystemUser.SYSTEM.getUserVo()).getCc());
+                    for (RunnerMapVo runner : runnerVos) {
+                        String url = runner.getUrl() + "api/rest/job/data/purge";
+                        try {
+                            JSONObject paramJson = new JSONObject();
+                            paramJson.put("expiredDays", days);
+                            paramJson.put("passThroughEnv", new JSONObject() {{
+                                put("runnerId", runner.getRunnerMapId());
+                            }});
+                            JSONObject resultJson = HttpRequestUtil.post(url).setAuthType(AuthenticateType.BUILDIN).setPayload(paramJson.toJSONString()).sendRequest().getResultJson();
+                            if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
+                                throw new AutoexecJobRunnerHttpRequestException(url + ":" + resultJson.getString("Message"));
+                            }
+                        } catch (Exception ex) {
+                            logger.error(ex.getMessage(), ex);
+                            throw new AutoexecJobRunnerConnectRefusedException(url + " " + ex.getMessage());
+                        }
                     }
-                } catch (Exception ex) {
-                    logger.error(ex.getMessage(), ex);
-                    throw new AutoexecJobRunnerConnectRefusedException(url + " " + ex.getMessage());
+                    //删除超时的自定化作业
+                    for (AutoexecJobVo autoexecJobVo : autoexecJobVos) {
+                        autoexecJobService.deleteJob(autoexecJobVo.getId());
+                    }
                 }
-            }
-            //删除超时的自定化作业
-            for (AutoexecJobVo autoexecJobVo : autoexecJobVos) {
-                autoexecJobService.deleteJob(autoexecJobVo.getId());
             }
         }
 
