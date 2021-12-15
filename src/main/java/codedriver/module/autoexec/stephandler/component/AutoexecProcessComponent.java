@@ -153,6 +153,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                                     }
                                 } else if ("executeNodeConfig".equals(key)) {
                                     if (StringUtils.isNotBlank(value)) {
+                                        // TODO linbq 当表单执行目标组件需求完成后，这里逻辑需要调整
                                         JSONObject executeNodeConfig = new JSONObject();
                                         executeNodeConfig.put("inputNodeList", parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
                                         executeConfig.put("executeNodeConfig", executeNodeConfig);
