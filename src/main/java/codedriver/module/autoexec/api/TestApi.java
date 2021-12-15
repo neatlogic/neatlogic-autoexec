@@ -42,7 +42,7 @@ public class TestApi extends PrivateApiComponentBase{
 	@Description(desc = "test")
 	@Override
 	public Object myDoService(JSONObject jsonObj) throws Exception {
-		jobMapper.updateJobStatus(new AutoexecJobVo(452608720166912L, JobStatus.COMPLETED.getValue()));
+		jobMapper.updateJobStatus(new AutoexecJobVo(452608720166912L, JobStatus.COMPLETED.getValue(), "human"));
 		return "asdf";
 	}
 
