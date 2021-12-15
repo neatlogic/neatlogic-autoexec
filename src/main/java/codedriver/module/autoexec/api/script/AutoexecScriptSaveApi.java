@@ -11,6 +11,7 @@ import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
+import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
@@ -51,6 +52,9 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
     private AutoexecScriptService autoexecScriptService;
 
     @Resource
+    private AutoexecCatalogMapper autoexecCatalogMapper;
+
+    @Resource
     private AutoexecService autoexecService;
 
     @Override
@@ -75,6 +79,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             @Param(name = "name", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", maxLength = 50, isRequired = true, xss = true, desc = "名称"),
             @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sqlfile", desc = "执行方式", isRequired = true),
             @Param(name = "typeId", type = ApiParamType.LONG, desc = "脚本分类ID", isRequired = true),
+            @Param(name = "catalogId", type = ApiParamType.LONG, desc = "工具目录ID", isRequired = true),
             @Param(name = "riskId", type = ApiParamType.LONG, desc = "操作级别ID", isRequired = true),
             @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
             @Param(name = "title", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", maxLength = 50, isRequired = true, xss = true, desc = "版本标题"),
@@ -113,6 +118,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
                 autoexecScriptService.validateScriptBaseInfo(scriptVo);
                 scriptVo.setFcu(UserContext.get().getUserUuid());
                 autoexecScriptMapper.insertScript(scriptVo);
+                autoexecCatalogMapper.replaceScriptCatalog(scriptVo.getId(),scriptVo.getCatalogId());
                 versionVo.setScriptId(scriptVo.getId());
                 //versionVo.setVersion(1);
                 versionVo.setIsActive(0);
