@@ -59,9 +59,9 @@ public class AutoexecCatalogDeleteApi extends PrivateApiComponentBase {
         if (autoexecCatalogMapper.getReferenceCountByLR(vo.getLft(), vo.getRht()) > 0) {
             throw new AutoexecCatalogHasBeenReferredException(vo.getName());
         }
-        LRCodeManager.beforeDeleteTreeNode("autoexec_catalog", "id", "parent_id", id);
         List<Long> idList = autoexecCatalogMapper.getChildrenIdListByLeftRightCode(vo.getLft(), vo.getRht());
         idList.add(id);
+        LRCodeManager.beforeDeleteTreeNode("autoexec_catalog", "id", "parent_id", id);
         autoexecCatalogMapper.deleteAutoexecCatalogByIdList(idList);
         return null;
     }
