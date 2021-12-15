@@ -16,6 +16,10 @@ import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
@@ -52,8 +56,6 @@ public class AutoexecCatalogTreeApi extends PrivateApiComponentBase {
     @Description(desc = "获取工具目录架构树")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        // todo 关联的自定义工具数
-        // todo 子目录
         AutoexecCatalogVo catalogVo = JSON.toJavaObject(jsonObj, AutoexecCatalogVo.class);
         Long parentId = jsonObj.getLong("parentId");
         if (catalogVo.getParentId() != null) {
@@ -65,7 +67,22 @@ public class AutoexecCatalogTreeApi extends PrivateApiComponentBase {
         }
         catalogVo.setParentId(parentId);
         int rowNum = autoexecCatalogMapper.searchAutoexecCatalogCount(catalogVo);
-        catalogVo.setRowNum(rowNum);
-        return TableResultUtil.getResult(autoexecCatalogMapper.searchAutoexecCatalog(catalogVo), catalogVo);
+        if (rowNum > 0) {
+            catalogVo.setRowNum(rowNum);
+            List<AutoexecCatalogVo> list = autoexecCatalogMapper.searchAutoexecCatalog(catalogVo);
+            List<Long> idList = list.stream().map(AutoexecCatalogVo::getId).collect(Collectors.toList());
+            List<AutoexecCatalogVo> childCountList = autoexecCatalogMapper.getAutoexecCatalogChildCountListByIdList(idList);
+            Map<Long, Integer> childCountMap = new HashMap<>();
+            childCountList.forEach(o -> childCountMap.put(o.getId(), o.getChildCount()));
+            List<AutoexecCatalogVo> referenceCountForScriptList = autoexecCatalogMapper.getReferenceCountForScriptListByIdList(idList);
+            Map<Long, Integer> referenceCountForScriptMap = new HashMap<>();
+            referenceCountForScriptList.forEach(o -> referenceCountForScriptMap.put(o.getId(), o.getReferenceCountForScript()));
+            list.forEach(o -> {
+                o.setChildCount(childCountMap.get(o.getId()));
+                o.setReferenceCountForScript(referenceCountForScriptMap.get(o.getId()));
+            });
+            return TableResultUtil.getResult(list, catalogVo);
+        }
+        return null;
     }
 }
