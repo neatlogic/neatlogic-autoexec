@@ -135,14 +135,14 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
             if (CombopNodeSpecify.RUNTIME.getValue().equals(whenToSpecify)) {
                 JSONArray executeParamList = new JSONArray();
                 JSONObject executeNode = new JSONObject();
-                executeNode.put("key", "executeNode");
+                executeNode.put("key", "executeNodeConfig");
                 executeNode.put("name", "执行目标");
                 executeNode.put("mappingMode", "");
                 executeNode.put("value", "");
                 executeNode.put("isRequired", 1);
                 executeParamList.add(executeNode);
                 JSONObject protocol = new JSONObject();
-                protocol.put("key", "protocol");
+                protocol.put("key", "protocolId");
                 protocol.put("name", "连接协议");
                 protocol.put("mappingMode", "");
                 protocol.put("value", "");
