@@ -147,9 +147,6 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         }
         script.setVersionVo(version);
         AutoexecScriptVersionVo currentVersion = autoexecScriptMapper.getActiveVersionByScriptId(id);
-//        if (currentVersion != null) {
-//            currentVersion.setLcuVo(userMapper.getUserBaseInfoByUuid(currentVersion.getLcu()));
-//        }
         script.setCurrentVersionVo(currentVersion);
         List<AutoexecScriptVersionParamVo> paramList = autoexecScriptMapper.getParamListByVersionId(version.getId());
         version.setParamList(paramList);
