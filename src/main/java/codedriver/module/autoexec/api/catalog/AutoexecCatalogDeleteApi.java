@@ -4,6 +4,7 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_CATALOG_MODIFY;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dto.catalog.AutoexecCatalogVo;
+import codedriver.framework.autoexec.exception.AutoexecCatalogHasBeenReferredException;
 import codedriver.framework.autoexec.exception.AutoexecCatalogNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.lrcode.LRCodeManager;
@@ -50,11 +51,13 @@ public class AutoexecCatalogDeleteApi extends PrivateApiComponentBase {
     @Description(desc = "删除工具目录")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        // todo 检查工具目录是否被引用
         Long id = jsonObj.getLong("id");
         AutoexecCatalogVo vo = autoexecCatalogMapper.getAutoexecCatalogById(id);
         if (vo == null) {
             throw new AutoexecCatalogNotFoundException(id);
+        }
+        if (autoexecCatalogMapper.getReferenceCountByAutoexecCatalogId(id) > 0) {
+            throw new AutoexecCatalogHasBeenReferredException(vo.getName());
         }
         List<Long> idList = autoexecCatalogMapper.getChildrenIdListByLeftRightCode(vo.getLft(), vo.getRht());
         LRCodeManager.beforeDeleteTreeNode("autoexec_catalog", "id", "parent_id", id);
