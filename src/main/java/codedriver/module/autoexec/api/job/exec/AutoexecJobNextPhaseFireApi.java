@@ -117,7 +117,7 @@ public class AutoexecJobNextPhaseFireApi extends PublicApiComponentBase {
                 IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
                 fireAction.doService(jobVo);
             } else {//说明没有可以执行的phase，更新job 状态为 completed
-                autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobId, JobStatus.COMPLETED.getValue(), jobVo.getSource()));
+                autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobId, JobStatus.COMPLETED.getValue()));
             }
         }
         return null;

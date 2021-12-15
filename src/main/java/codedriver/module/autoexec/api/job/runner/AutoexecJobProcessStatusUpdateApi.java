@@ -122,7 +122,7 @@ public class AutoexecJobProcessStatusUpdateApi extends PrivateApiComponentBase {
             if (StringUtils.isNotBlank(status)) {
                 //4
                 if (autoexecJobMapper.getJobPhaseStatusCountByJobIdAndStatus(jobId, JobPhaseStatus.ABORTING.getValue()) == 0) {
-                    autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobId, status, jobVo.getSource()));
+                    autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobId, status));
                 }
             }
         }

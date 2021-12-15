@@ -61,7 +61,8 @@ public class ProcessTaskCallbackHandler extends AutoexecJobCallbackBase {
     @Override
     public Boolean getIsNeedCallback(AutoexecJobVo autoexecJobVo) {
         if (autoexecJobVo != null) {
-            if ("itsm".equals(autoexecJobVo.getSource())) {
+            AutoexecJobVo autoexecJob = autoexecJobMapper.getJobInfo(autoexecJobVo.getId());
+            if ("itsm".equals(autoexecJob.getSource())) {
                 if (!JobStatus.PENDING.getValue().equals(autoexecJobVo.getStatus()) && !JobStatus.RUNNING.getValue().equals(autoexecJobVo.getStatus())) {
                     return true;
                 }
