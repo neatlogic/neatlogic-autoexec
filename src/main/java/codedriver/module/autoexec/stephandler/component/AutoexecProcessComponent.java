@@ -13,7 +13,6 @@ import codedriver.framework.process.dto.ProcessTaskStepVo;
 import codedriver.framework.process.dto.ProcessTaskStepWorkerVo;
 import codedriver.framework.process.exception.core.ProcessTaskException;
 import codedriver.framework.process.exception.processtask.ProcessTaskNoPermissionException;
-import codedriver.framework.process.service.ProcessTaskService;
 import codedriver.framework.process.stephandler.core.IProcessStepHandler;
 import codedriver.framework.process.stephandler.core.ProcessStepHandlerBase;
 import codedriver.framework.process.stephandler.core.ProcessStepHandlerFactory;
@@ -47,8 +46,6 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     @Resource
     private AutoexecJobActionService autoexecJobActionService;
-    @Resource
-    private ProcessTaskService processTaskService;
 
     @Override
     public String getHandler() {
@@ -142,11 +139,11 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                                 String key = executeParamObj.getString("key");
                                 String value = executeParamObj.getString("value");
                                 String mappingMode = executeParamObj.getString("mappingMode");
-                                if ("protocol".equals(key)) {
+                                if ("protocolId".equals(key)) {
                                     if (StringUtils.isNotBlank(value)) {
-                                        executeConfig.put("protocol", parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
+                                        executeConfig.put("protocolId", parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
                                     } else {
-                                        executeConfig.put("protocol", value);
+                                        executeConfig.put("protocolId", value);
                                     }
                                 } else if ("executeUser".equals(key)) {
                                     if (StringUtils.isNotBlank(value)) {
@@ -156,7 +153,10 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                                     }
                                 } else if ("executeNodeConfig".equals(key)) {
                                     if (StringUtils.isNotBlank(value)) {
-                                        executeConfig.put("executeNodeConfig", parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
+                                        // TODO linbq 当表单执行目标组件需求完成后，这里逻辑需要调整
+                                        JSONObject executeNodeConfig = new JSONObject();
+                                        executeNodeConfig.put("inputNodeList", parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
+                                        executeConfig.put("executeNodeConfig", executeNodeConfig);
                                     } else {
                                         executeConfig.put("executeNodeConfig", value);
                                     }

@@ -113,7 +113,6 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
         if (targetVersionId != null) {
             targetVersion = autoexecScriptService.getScriptVersionDetailByVersionId(targetVersionId);
         } else if (targetVersionId == null && !Objects.equals(needToCompare, 0)) {
-//            sourceVersion.setLcuVo(userMapper.getUserBaseInfoByUuid(sourceVersion.getLcu()));
             // 查询拥有脚本审批权限的人和角色
             List<RoleVo> roleList = roleMapper.getRoleListByAuthName(AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName());
             List<UserVo> userList = userMapper.searchUserByAuth(AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName());

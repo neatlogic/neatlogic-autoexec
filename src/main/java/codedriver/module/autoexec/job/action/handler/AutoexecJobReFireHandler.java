@@ -72,7 +72,11 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             autoexecJobMapper.updateJobPhaseFailedNodeStatusByJobId(jobVo.getId(), JobNodeStatus.PENDING.getValue());
             autoexecJobService.getAutoexecJobDetail(jobVo, 0);
             jobVo.setCurrentPhaseSort(0);
-            autoexecJobService.refreshJobPhaseNodeList(jobVo.getId(), jobVo.getCurrentPhaseSort(), null);
+            //重刷所有phase node
+            List<AutoexecJobPhaseVo> phaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId());
+            for (AutoexecJobPhaseVo phaseVo : phaseVoList) {
+                autoexecJobService.refreshJobPhaseNodeList(jobVo.getId(), phaseVo.getSort(), null);
+            }
         } else if (Objects.equals(jobVo.getAction(), JobAction.REFIRE.getValue())) {
             int sort = 0;
             /*寻找中止|暂停|失败的phase

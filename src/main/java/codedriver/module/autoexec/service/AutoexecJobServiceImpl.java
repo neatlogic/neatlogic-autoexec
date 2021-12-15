@@ -516,6 +516,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             }
         }*/
         //else
+        autoexecJobMapper.deleteJobEvnByJobId(jobId);
+        autoexecJobMapper.deleteJobInvokeByJobId(jobId);
+        autoexecJobMapper.deleteJobResourceInspectByJobId(jobId);
         autoexecJobMapper.deleteJobPhaseRunnerByJobId(jobId);
         autoexecJobMapper.deleteJobPhaseNodeRunnerByJobId(jobId);
         autoexecJobMapper.deleteJobPhaseOperationByJobId(jobId);

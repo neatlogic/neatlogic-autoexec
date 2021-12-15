@@ -12,6 +12,7 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
+import codedriver.framework.cmdb.crossover.IResourceCenterAccountCrossoverService;
 import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
@@ -20,6 +21,7 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.constvalue.CacheControlType;
 import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.common.util.RC4Util;
+import codedriver.framework.crossover.CrossoverServiceFactory;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicBinaryStreamApiComponentBase;
@@ -109,6 +111,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
         nodeParamVo.setPageCount(pageCount);
         ServletOutputStream os = response.getOutputStream();
         List<AccountProtocolVo> protocolVoList = resourceCenterMapper.searchAccountProtocolListByProtocolName(new AccountProtocolVo());
+        IResourceCenterAccountCrossoverService accountService = CrossoverServiceFactory.getApi(IResourceCenterAccountCrossoverService.class);
         for (int i = 1; i <= pageCount; i++) {
             nodeParamVo.setCurrentPage(i);
             nodeParamVo.setStartNum(nodeParamVo.getStartNum());
@@ -130,24 +133,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                 String finalUserName = autoexecJobPhaseNodeVoList.get(0).getUserName();
                 for (AutoexecJobPhaseNodeVo nodeVo : autoexecJobPhaseNodeVoList) {
                     JSONObject nodeJson = new JSONObject() {{
-                        /*
-                         * 按以下规则顺序匹配account
-                         * 1、通过 ”资产id+协议id+用户“ 匹配
-                         * 2、通过 ”组合工具配置的执行节点的ip+协议id“ 匹配 账号表
-                         * 3、通过 ”组合工具配置的执行节点的ip+端口“ 匹配 账号表
-                         */
-                        //1
-                        Optional<AccountVo> accountOp = accountVoList.stream().filter(o -> Objects.equals(o.getResourceId(), nodeVo.getResourceId())).findFirst();
-                        if (!accountOp.isPresent()) {
-                            //2
-                            Optional<AccountProtocolVo> protocolVoOptional = protocolVoList.stream().filter(o -> Objects.equals(o.getId(), nodeVo.getProtocolId())).findFirst();
-                            if (protocolVoOptional.isPresent()) {
-                                accountOp = allAccountVoList.stream().filter(o -> Objects.equals(o.getIp(), nodeVo.getHost()) && Objects.equals(o.getProtocolId(), protocolVoOptional.get().getId())).findFirst();
-                            }else{
-                                //3
-                                accountOp = allAccountVoList.stream().filter(o -> Objects.equals(o.getIp(), nodeVo.getHost()) && Objects.equals(o.getProtocolPort(), nodeVo.getPort())).findFirst();
-                            }
-                        }
+                        Optional<AccountVo> accountOp = accountService.filterAccountByRules(accountVoList, allAccountVoList, protocolVoList, nodeVo.getResourceId(), nodeVo.getProtocolId(), nodeVo.getHost(), nodeVo.getPort());
                         if (accountOp.isPresent()) {
                             AccountVo accountVoTmp = accountOp.get();
                             put("protocol", accountVoTmp.getProtocol());
