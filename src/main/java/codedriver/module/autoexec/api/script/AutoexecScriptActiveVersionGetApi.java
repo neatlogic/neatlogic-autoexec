@@ -23,6 +23,7 @@ import org.springframework.web.context.request.ServletRequestAttributes;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
+import java.math.BigDecimal;
 import java.util.Objects;
 
 @Service
@@ -61,7 +62,10 @@ public class AutoexecScriptActiveVersionGetApi extends PublicApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long operationId = jsonObj.getLong("operationId");
-        Double lastModified = jsonObj.getDouble("lastModified");
+        BigDecimal lastModified = null;
+        if(jsonObj.getDouble("lastModified") != null) {
+            lastModified = new BigDecimal(Double.toString(jsonObj.getDouble("lastModified")));
+        }
         if (autoexecScriptMapper.checkScriptIsExistsById(operationId) == 0) {
             throw new AutoexecScriptNotFoundException(operationId);
         }
@@ -74,7 +78,7 @@ public class AutoexecScriptActiveVersionGetApi extends PublicApiComponentBase {
             throw new AutoexecScriptNotFoundException(scriptVersionVo.getScriptId());
         }
         if (lastModified != null) {
-            if (lastModified * 1000 >= scriptVersionVo.getLcd().getTime()) {
+            if (lastModified.multiply(new BigDecimal("1000")).longValue() >= scriptVersionVo.getLcd().getTime()) {
                 HttpServletResponse resp = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getResponse();
                 if (resp != null) {
                     resp.setStatus(205);
