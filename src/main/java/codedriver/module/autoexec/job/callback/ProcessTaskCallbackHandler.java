@@ -10,6 +10,7 @@ import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobEnvVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.process.constvalue.AutoExecJobProcessSource;
 import codedriver.framework.process.constvalue.ProcessFlowDirection;
 import codedriver.framework.process.constvalue.ProcessTaskOperationType;
 import codedriver.framework.process.dao.mapper.ProcessTaskMapper;
@@ -61,7 +62,8 @@ public class ProcessTaskCallbackHandler extends AutoexecJobCallbackBase {
     @Override
     public Boolean getIsNeedCallback(AutoexecJobVo autoexecJobVo) {
         if (autoexecJobVo != null) {
-            if ("itsm".equals(autoexecJobVo.getSource())) {
+            AutoexecJobVo autoexecJob = autoexecJobMapper.getJobInfo(autoexecJobVo.getId());
+            if (AutoExecJobProcessSource.ITSM.getValue().equals(autoexecJob.getSource())) {
                 if (!JobStatus.PENDING.getValue().equals(autoexecJobVo.getStatus()) && !JobStatus.RUNNING.getValue().equals(autoexecJobVo.getStatus())) {
                     return true;
                 }
