@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionHasNoActivedException;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -54,20 +55,23 @@ public class AutoexecScriptActiveVersionGetApi extends PublicApiComponentBase {
             @Param(name = "lastModified", type = ApiParamType.DOUBLE, desc = "最后修改时间（秒，支持小数位）")
     })
     @Output({
-            @Param(name = "script", type = ApiParamType.STRING, desc = "脚本内容")
+            @Param(name = "scriptVersionVo", explode = AutoexecScriptVersionVo.class , desc = "脚本内容")
     })
     @Description(desc = "获取操作当前激活版本脚本内容")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long operationId = jsonObj.getLong("operationId");
         Double lastModified = jsonObj.getDouble("lastModified");
-        JSONObject result = new JSONObject();
         if (autoexecScriptMapper.checkScriptIsExistsById(operationId) == 0) {
             throw new AutoexecScriptNotFoundException(operationId);
         }
         AutoexecScriptVersionVo scriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(operationId);
         if (scriptVersionVo == null) {
             throw new AutoexecScriptVersionHasNoActivedException(operationId.toString());
+        }
+        AutoexecScriptVo scriptVo = autoexecScriptMapper.getScriptBaseInfoById(scriptVersionVo.getScriptId());
+        if(scriptVo == null){
+            throw new AutoexecScriptNotFoundException(scriptVersionVo.getScriptId());
         }
         if (lastModified != null) {
             if (lastModified * 1000 >= scriptVersionVo.getLcd().getTime()) {
@@ -78,9 +82,12 @@ public class AutoexecScriptActiveVersionGetApi extends PublicApiComponentBase {
                 }
             }
         }
-        String script = autoexecCombopService.getOperationActiveVersionScriptByOperation(scriptVersionVo);
-        result.put("script", script);
-
+        JSONObject result = new JSONObject();
+        result.put("script",autoexecCombopService.getOperationActiveVersionScriptByOperation(scriptVersionVo));
+        result.put("config",new JSONObject(){{
+            put("scriptName",scriptVo.getName());
+            put("parser",scriptVersionVo.getParser());
+        }});
         return result;
     }
 
