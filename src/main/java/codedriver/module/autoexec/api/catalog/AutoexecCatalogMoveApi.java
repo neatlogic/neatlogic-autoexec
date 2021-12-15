@@ -74,17 +74,17 @@ public class AutoexecCatalogMoveApi extends PrivateApiComponentBase {
         Long targetId;
         MoveType moveType;
         int sort = jsonObj.getIntValue("sort");
-        AutoexecCatalogVo nextTeam = autoexecCatalogMapper.getAutoexecCatalogByParentIdAndStartNum(parentId, sort);
-        if (nextTeam == null) {
+        AutoexecCatalogVo next = autoexecCatalogMapper.getAutoexecCatalogByParentIdAndStartNum(parentId, sort);
+        if (next == null) {
             targetId = parentId;
             moveType = MoveType.INNER;
         } else {
-            if (nextTeam.getId().equals(id)) {
+            if (next.getId().equals(id)) {
                 return null;
             } else {
-                targetId = nextTeam.getId();
-                if (nextTeam.getParentId().equals(autoexecCatalog.getParentId())) {
-                    if (nextTeam.getLft() < autoexecCatalog.getLft()) {
+                targetId = next.getId();
+                if (next.getParentId().equals(autoexecCatalog.getParentId())) {
+                    if (next.getLft() < autoexecCatalog.getLft()) {
                         moveType = MoveType.PREV;
                     } else {
                         moveType = MoveType.NEXT;
