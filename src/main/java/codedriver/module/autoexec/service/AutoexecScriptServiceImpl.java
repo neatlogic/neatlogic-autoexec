@@ -96,7 +96,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
         if (autoexecTypeMapper.checkTypeIsExistsById(scriptVo.getTypeId()) == 0) {
             throw new AutoexecTypeNotFoundException(scriptVo.getTypeId());
         }
-        if (autoexecCatalogMapper.checkCatalogIsExistsById(scriptVo.getCatalogId()) == 0) {
+        if (autoexecCatalogMapper.checkAutoexecCatalogIsExists(scriptVo.getCatalogId()) == 0) {
             throw new AutoexecCatalogNotFoundException(scriptVo.getCatalogId());
         }
         if (autoexecRiskMapper.checkRiskIsExistsById(scriptVo.getRiskId()) == 0) {

@@ -152,7 +152,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
         if (autoexecTypeMapper.checkTypeIsExistsById(scriptVo.getTypeId()) == 0) {
             failReasonList.add("不存在的工具类型：" + scriptVo.getTypeId());
         }
-        if (autoexecCatalogMapper.checkCatalogIsExistsById(scriptVo.getCatalogId()) == 0) {
+        if (autoexecCatalogMapper.checkAutoexecCatalogIsExists(scriptVo.getCatalogId()) == 0) {
             failReasonList.add("不存在的工具目录：" + scriptVo.getCatalogId());
         }
         if (autoexecRiskMapper.checkRiskIsExistsById(scriptVo.getRiskId()) == 0) {

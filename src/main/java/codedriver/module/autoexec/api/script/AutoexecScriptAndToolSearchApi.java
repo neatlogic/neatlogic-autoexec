@@ -111,7 +111,7 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
             return result;
         }
         //查询各级子目录
-        AutoexecCatalogVo catalogTmp = autoexecCatalogMapper.getCatalogById(searchVo.getCatalogId());
+        AutoexecCatalogVo catalogTmp = autoexecCatalogMapper.getAutoexecCatalogById(searchVo.getCatalogId());
         List<AutoexecCatalogVo> catalogVolist = autoexecCatalogMapper.getChildrenByLftRht(catalogTmp);
         List<Long> catalogIdlist = catalogVolist.stream().map(AutoexecCatalogVo::getId).collect(Collectors.toList());
         searchVo.setCatalogIdList(catalogIdlist);
