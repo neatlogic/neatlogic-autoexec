@@ -16,9 +16,7 @@ import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -47,6 +45,7 @@ public class AutoexecCatalogTreeApi extends PrivateApiComponentBase {
     @Input({
             @Param(name = "parentId", desc = "父id", type = ApiParamType.LONG),
             @Param(name = "currentPage", desc = "当前页", type = ApiParamType.INTEGER),
+            @Param(name = "needPage", desc = "是否分页", type = ApiParamType.BOOLEAN),
             @Param(name = "pageSize", desc = "每页最大数", type = ApiParamType.INTEGER)
     })
     @Output({
@@ -80,6 +79,8 @@ public class AutoexecCatalogTreeApi extends PrivateApiComponentBase {
             list.forEach(o -> {
                 o.setChildCount(childCountMap.get(o.getId()));
                 o.setReferenceCountForScript(referenceCountForScriptMap.get(o.getId()));
+                // 计算目录本身以及子目录关联的脚本数，以此作为是否能删除的依据
+                o.setReferenceCountOfSelfAndChildren(autoexecCatalogMapper.getReferenceCountForScriptOfSelfAndChildrenByLR(o.getLft(), o.getRht()));
             });
             return TableResultUtil.getResult(list, catalogVo);
         }
