@@ -71,7 +71,6 @@ public class AutoexecScriptBaseInfoSaveApi extends PrivateApiComponentBase {
         }
         autoexecScriptService.validateScriptBaseInfo(scriptVo);
         autoexecScriptMapper.updateScriptBaseInfo(scriptVo);
-        autoexecCatalogMapper.replaceScriptCatalog(scriptVo.getId(),scriptVo.getCatalogId());
         return null;
     }
 

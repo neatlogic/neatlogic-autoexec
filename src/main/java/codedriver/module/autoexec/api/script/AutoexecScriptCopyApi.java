@@ -85,7 +85,6 @@ public class AutoexecScriptCopyApi extends PrivateApiComponentBase {
         targetScript.setFcu(UserContext.get().getUserUuid());
         autoexecScriptService.validateScriptBaseInfo(targetScript);
         autoexecScriptMapper.insertScript(targetScript);
-        autoexecCatalogMapper.replaceScriptCatalog(targetScript.getId(),targetScript.getCatalogId());
 
         // 复制所有已通过版本
         List<AutoexecScriptVersionVo> sourceVersionList = autoexecScriptService

@@ -5,15 +5,17 @@
 
 package codedriver.module.autoexec.api.script;
 
+import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
+import codedriver.framework.autoexec.dto.catalog.AutoexecCatalogVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
-import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.module.autoexec.service.AutoexecService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -26,6 +28,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 //@AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
@@ -37,6 +40,9 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecToolMapper autoexecToolMapper;
+
+    @Resource
+    private AutoexecCatalogMapper autoexecCatalogMapper;
 
     @Resource
     private AutoexecService autoexecService;
@@ -60,7 +66,7 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
             @Param(name = "type", type = ApiParamType.ENUM, rule = "tool,script", desc = "类别(工具；脚本)"),
             @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sqlfile", desc = "执行方式"),
             @Param(name = "typeIdList", type = ApiParamType.JSONARRAY, desc = "分类ID列表"),
-            @Param(name = "catalogIdList", type = ApiParamType.LONG, desc = "工具目录ID列表"),
+            @Param(name = "catalogIdList", type = ApiParamType.JSONARRAY, desc = "工具目录ID列表"),
             @Param(name = "riskIdList", type = ApiParamType.JSONARRAY, desc = "操作级别ID列表"),
             @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "用于回显的工具或脚本ID列表"),
             @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
@@ -105,8 +111,11 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
             return result;
         }
         //查询各级子目录
+        AutoexecCatalogVo catalogTmp = autoexecCatalogMapper.getCatalogById(searchVo.getCatalogId());
+        List<AutoexecCatalogVo> catalogVolist = autoexecCatalogMapper.getChildrenByLftRht(catalogTmp);
+        List<Long> catalogIdlist = catalogVolist.stream().map(AutoexecCatalogVo::getId).collect(Collectors.toList());
+        searchVo.setCatalogIdList(catalogIdlist);
 
-//        searchVo.setCatalogIdList(catalogIdlist);
         tbodyList.addAll(autoexecScriptMapper.searchScriptAndTool(searchVo));
         if (searchVo.getNeedPage()) {
             int rowNum = autoexecScriptMapper.searchScriptAndToolCount(searchVo);

@@ -118,7 +118,6 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
                 autoexecScriptService.validateScriptBaseInfo(scriptVo);
                 scriptVo.setFcu(UserContext.get().getUserUuid());
                 autoexecScriptMapper.insertScript(scriptVo);
-                autoexecCatalogMapper.replaceScriptCatalog(scriptVo.getId(),scriptVo.getCatalogId());
                 versionVo.setScriptId(scriptVo.getId());
                 //versionVo.setVersion(1);
                 versionVo.setIsActive(0);
