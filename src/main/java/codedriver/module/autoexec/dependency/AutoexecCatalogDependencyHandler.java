@@ -121,7 +121,7 @@ public class AutoexecCatalogDependencyHandler extends DependencyHandlerBase {
                 //submitted的页面不一样
                 if (Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), status)) {
                     valueTextVo.setText(String.format("<a href=\"/%s/autoexec.html#/review-detail?versionId=%s\" target=\"_blank\">%s</a>", TenantContext.get().getTenantUuid(), versionVo.getId(), scriptVo.getName()));
-                } else {
+                } else if (version != null) {
                     valueTextVo.setText(String.format("<a href=\"/%s/autoexec.html#/script-detail?scriptId=%s&status=%s\" target=\"_blank\">%s</a>", TenantContext.get().getTenantUuid(), scriptVo.getId(), version.getStatus(), scriptVo.getName()));
                 }
                 return valueTextVo;
