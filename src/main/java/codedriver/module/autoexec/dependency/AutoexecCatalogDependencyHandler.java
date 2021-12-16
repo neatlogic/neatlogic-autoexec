@@ -1,6 +1,7 @@
 package codedriver.module.autoexec.dependency;
 
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
+import codedriver.framework.autoexec.constvalue.CalleeType;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
@@ -9,7 +10,6 @@ import codedriver.framework.autoexec.exception.AutoexecScriptHasNoDraftVersionEx
 import codedriver.framework.autoexec.exception.AutoexecScriptHasNoRejectedVersionException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionHasNoActivedException;
 import codedriver.framework.common.dto.ValueTextVo;
-import codedriver.framework.dependency.constvalue.CalleeType;
 import codedriver.framework.dependency.core.DependencyHandlerBase;
 import codedriver.framework.dependency.core.ICalleeType;
 import com.alibaba.nacos.common.utils.StringUtils;
@@ -79,7 +79,7 @@ public class AutoexecCatalogDependencyHandler extends DependencyHandlerBase {
             Map<String, Object> map = (Map) caller;
             Long id = (Long) map.get("id");
             AutoexecScriptVersionVo version = null;
-            Boolean hasStaus = false;
+            Boolean hasStatus = false;
             AutoexecScriptVo scriptVo = autoexecScriptMapper.getScriptBaseInfoById(id);
             if (scriptVo == null) {
                 return null;
@@ -94,23 +94,23 @@ public class AutoexecCatalogDependencyHandler extends DependencyHandlerBase {
                 AutoexecScriptVersionVo activeVersion = autoexecScriptMapper.getActiveVersionByScriptId(scriptId);
                 if (activeVersion != null) {
                     version = activeVersion;
-                    hasStaus = true;
+                    hasStatus = true;
                 } else {
                     throw new AutoexecScriptVersionHasNoActivedException();
                 }
-            } else if (hasStaus == false && Objects.equals(ScriptVersionStatus.DRAFT.getValue(), status)) {
+            } else if (hasStatus == false && Objects.equals(ScriptVersionStatus.DRAFT.getValue(), status)) {
                 AutoexecScriptVersionVo recentlyDraftVersion = autoexecScriptMapper.getRecentlyVersionByScriptIdAndStatus(scriptId, ScriptVersionStatus.DRAFT.getValue());
                 if (recentlyDraftVersion != null) {
                     version = recentlyDraftVersion;
-                    hasStaus = true;
+                    hasStatus = true;
                 } else {
                     throw new AutoexecScriptHasNoDraftVersionException();
                 }
-            } else if (hasStaus == false && Objects.equals(ScriptVersionStatus.REJECTED.getValue(), status)) {
+            } else if (hasStatus == false && Objects.equals(ScriptVersionStatus.REJECTED.getValue(), status)) {
                 AutoexecScriptVersionVo recentlyRejectedVersion = autoexecScriptMapper.getRecentlyVersionByScriptIdAndStatus(scriptId, ScriptVersionStatus.REJECTED.getValue());
                 if (recentlyRejectedVersion != null) {
                     version = recentlyRejectedVersion;
-                    hasStaus = true;
+                    hasStatus = true;
                 } else {
                     throw new AutoexecScriptHasNoRejectedVersionException();
                 }

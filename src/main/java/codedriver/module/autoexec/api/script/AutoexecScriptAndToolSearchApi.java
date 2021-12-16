@@ -21,6 +21,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -111,10 +112,13 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
             return result;
         }
         //查询各级子目录
-        AutoexecCatalogVo catalogTmp = autoexecCatalogMapper.getAutoexecCatalogById(searchVo.getCatalogId());
-        List<AutoexecCatalogVo> catalogVolist = autoexecCatalogMapper.getChildrenByLftRht(catalogTmp);
-        List<Long> catalogIdlist = catalogVolist.stream().map(AutoexecCatalogVo::getId).collect(Collectors.toList());
-        searchVo.setCatalogIdList(catalogIdlist);
+        if (ObjectUtils.isNotEmpty(searchVo.getCatalogId())) {
+            AutoexecCatalogVo catalogTmp = autoexecCatalogMapper.getAutoexecCatalogById(searchVo.getCatalogId());
+            List<AutoexecCatalogVo> catalogVolist = autoexecCatalogMapper.getChildrenByLftRht(catalogTmp);
+            List<Long> catalogIdlist = catalogVolist.stream().map(AutoexecCatalogVo::getId).collect(Collectors.toList());
+            searchVo.setCatalogIdList(catalogIdlist);
+        }
+
 
         tbodyList.addAll(autoexecScriptMapper.searchScriptAndTool(searchVo));
         if (searchVo.getNeedPage()) {
