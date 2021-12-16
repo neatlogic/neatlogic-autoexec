@@ -8,8 +8,6 @@ package codedriver.module.autoexec.scheduler;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerConnectRefusedException;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
 import codedriver.framework.common.constvalue.SystemUser;
 import codedriver.framework.dao.mapper.runner.RunnerMapper;
 import codedriver.framework.dto.runner.RunnerMapVo;
@@ -26,6 +24,7 @@ import codedriver.framework.util.HttpRequestUtil;
 import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobDetail;
 import org.quartz.JobExecutionContext;
@@ -81,10 +80,10 @@ public class PurgeAutoexecJobDataSchedule extends PublicJobBase {
             }
             //循环调用runner 端 autoexec job 清除命令
             List<AutoexecJobVo> autoexecJobVos = autoexecJobMapper.getJobByExpiredDays(days);
-            if(CollectionUtils.isNotEmpty(autoexecJobVos)) {
+            if (CollectionUtils.isNotEmpty(autoexecJobVos)) {
                 List<Long> runnerMapIdList = autoexecJobMapper.getJobPhaseRunnerMapIdListByJobIdList(autoexecJobVos.stream().map(AutoexecJobVo::getId).collect(Collectors.toList()));
                 List<RunnerMapVo> runnerVos = runnerMapper.getRunnerByRunnerMapIdList(runnerMapIdList);
-                if(CollectionUtils.isNotEmpty(runnerVos)) {
+                if (CollectionUtils.isNotEmpty(runnerVos)) {
                     runnerVos = runnerVos.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getId))), ArrayList::new));
                     UserContext.init(SystemUser.SYSTEM.getUserVo(), SystemUser.SYSTEM.getTimezone());
                     UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(SystemUser.SYSTEM.getUserVo()).getCc());
@@ -97,12 +96,11 @@ public class PurgeAutoexecJobDataSchedule extends PublicJobBase {
                                 put("runnerId", runner.getRunnerMapId());
                             }});
                             JSONObject resultJson = HttpRequestUtil.post(url).setAuthType(AuthenticateType.BUILDIN).setPayload(paramJson.toJSONString()).sendRequest().getResultJson();
-                            if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                                throw new AutoexecJobRunnerHttpRequestException(url + ":" + resultJson.getString("Message"));
+                            if (MapUtils.isEmpty(resultJson) || !resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
+                                logger.debug("清除作业异常："+url + ":" + resultJson.getString("Message"));
                             }
                         } catch (Exception ex) {
                             logger.error(ex.getMessage(), ex);
-                            throw new AutoexecJobRunnerConnectRefusedException(url + " " + ex.getMessage());
                         }
                     }
                     //删除超时的自定化作业
