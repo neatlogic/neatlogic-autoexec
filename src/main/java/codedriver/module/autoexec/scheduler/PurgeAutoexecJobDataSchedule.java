@@ -8,7 +8,6 @@ package codedriver.module.autoexec.scheduler;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
 import codedriver.framework.common.constvalue.SystemUser;
 import codedriver.framework.dao.mapper.runner.RunnerMapper;
 import codedriver.framework.dto.runner.RunnerMapVo;
@@ -98,7 +97,7 @@ public class PurgeAutoexecJobDataSchedule extends PublicJobBase {
                             }});
                             JSONObject resultJson = HttpRequestUtil.post(url).setAuthType(AuthenticateType.BUILDIN).setPayload(paramJson.toJSONString()).sendRequest().getResultJson();
                             if (MapUtils.isEmpty(resultJson) || !resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                                throw new AutoexecJobRunnerHttpRequestException(url + ":" + resultJson.getString("Message"));
+                                logger.debug("清除作业异常："+url + ":" + resultJson.getString("Message"));
                             }
                         } catch (Exception ex) {
                             logger.error(ex.getMessage(), ex);
