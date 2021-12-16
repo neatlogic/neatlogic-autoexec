@@ -96,12 +96,18 @@ public class AutoexecCatalogTreeSearchApi extends PrivateApiComponentBase {
             List<AutoexecCatalogVo> childCountList = autoexecCatalogMapper.getAutoexecCatalogChildCountListByIdList(catalogIdList);
             Map<Long, Integer> childCountMap = new HashMap<>();
             childCountList.forEach(o -> childCountMap.put(o.getId(), o.getChildCount()));
+            List<AutoexecCatalogVo> referenceCountForScriptList = autoexecCatalogMapper.getReferenceCountForScriptListByIdList(catalogIdList);
+            Map<Long, Integer> referenceCountForScriptMap = new HashMap<>();
+            referenceCountForScriptList.forEach(o -> referenceCountForScriptMap.put(o.getId(), o.getReferenceCountForScript()));
             catalogVoList.forEach(o -> {
                 AutoexecCatalogVo parent = catalogVoMap.get(o.getParentId());
                 if (parent != null) {
                     o.setParent(parent);
                 }
                 o.setChildCount(childCountMap.get(o.getId()));
+                o.setReferenceCountForScript(referenceCountForScriptMap.get(o.getId()));
+                // 计算目录本身以及子目录关联的脚本数，以此作为是否能删除的依据
+                o.setReferenceCountOfSelfAndChildren(autoexecCatalogMapper.getReferenceCountForScriptOfSelfAndChildrenByLR(o.getLft(), o.getRht()));
             });
             result.put("children", root.getChildren());
         }
