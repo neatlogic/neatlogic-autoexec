@@ -82,7 +82,7 @@ public class AutoexecCatalogDependencyHandler extends DependencyHandlerBase {
             Boolean hasStaus = false;
             AutoexecScriptVo scriptVo = autoexecScriptMapper.getScriptBaseInfoById(id);
             if (scriptVo == null) {
-                return null;//还是空的ValueTextVo
+                return null;
             }
             Long scriptId = scriptVo.getId();
 
