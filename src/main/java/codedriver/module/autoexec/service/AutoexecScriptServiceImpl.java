@@ -14,14 +14,12 @@ import codedriver.framework.autoexec.constvalue.ParamMode;
 import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.constvalue.ScriptAndToolOperate;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
+import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.framework.autoexec.dto.script.*;
-import codedriver.framework.autoexec.exception.AutoexecRiskNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecScriptNameOrUkRepeatException;
-import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
+import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.common.constvalue.CiphertextPrefix;
 import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.dto.OperateVo;
@@ -48,6 +46,9 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
 
     @Resource
     private AutoexecRiskMapper autoexecRiskMapper;
+
+    @Resource
+    private AutoexecCatalogMapper autoexecCatalogMapper;
 
 
     /**
@@ -94,6 +95,9 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
 //        }
         if (autoexecTypeMapper.checkTypeIsExistsById(scriptVo.getTypeId()) == 0) {
             throw new AutoexecTypeNotFoundException(scriptVo.getTypeId());
+        }
+        if (autoexecCatalogMapper.checkAutoexecCatalogIsExists(scriptVo.getCatalogId()) == 0) {
+            throw new AutoexecCatalogNotFoundException(scriptVo.getCatalogId());
         }
         if (autoexecRiskMapper.checkRiskIsExistsById(scriptVo.getRiskId()) == 0) {
             throw new AutoexecRiskNotFoundException(scriptVo.getRiskId());

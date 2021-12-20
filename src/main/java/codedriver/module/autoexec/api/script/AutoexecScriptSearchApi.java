@@ -10,6 +10,8 @@ import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
+import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
+import codedriver.framework.autoexec.dto.catalog.AutoexecCatalogVo;
 import codedriver.framework.dto.OperateVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -25,6 +27,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -40,6 +43,9 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
+
+    @Resource
+    private AutoexecCatalogMapper autoexecCatalogMapper;
 
     @Override
     public String getToken() {
@@ -59,6 +65,7 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
     @Input({
             @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sqlfile", desc = "执行方式"),
             @Param(name = "typeIdList", type = ApiParamType.JSONARRAY, desc = "分类ID列表"),
+            @Param(name = "catalogId", type = ApiParamType.LONG, desc = "工具目录ID"),
             @Param(name = "riskIdList", type = ApiParamType.JSONARRAY, desc = "操作级别ID列表"),
             @Param(name = "versionStatus", type = ApiParamType.ENUM, rule = "draft,submitted,passed,rejected", desc = "状态"),
             @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
@@ -78,6 +85,15 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
         AutoexecScriptVo scriptVo = JSON.toJavaObject(jsonObj, AutoexecScriptVo.class);
+
+        //查询各级子目录
+        if (ObjectUtils.isNotEmpty(scriptVo.getCatalogId())) {
+            AutoexecCatalogVo catalogTmp = autoexecCatalogMapper.getAutoexecCatalogById(scriptVo.getCatalogId());
+            List<AutoexecCatalogVo> catalogVolist = autoexecCatalogMapper.getChildrenByLftRht(catalogTmp);
+            List<Long> catalogIdlist = catalogVolist.stream().map(AutoexecCatalogVo::getId).collect(Collectors.toList());
+            scriptVo.setCatalogIdList(catalogIdlist);
+        }
+
         List<AutoexecScriptVo> scriptVoList = autoexecScriptMapper.searchScript(scriptVo);
         result.put("tbodyList", scriptVoList);
         // 获取操作权限
