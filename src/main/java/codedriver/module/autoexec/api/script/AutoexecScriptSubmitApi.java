@@ -7,11 +7,14 @@ package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.constvalue.ScriptAction;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
+import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
+import codedriver.framework.autoexec.exception.AutoexecCatalogNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScriptHasSubmittedVersionException;
 import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionCannotSubmitException;
@@ -19,8 +22,6 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
-import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.service.AutoexecScriptService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
@@ -67,10 +68,16 @@ public class AutoexecScriptSubmitApi extends PrivateApiComponentBase {
         JSONObject result = new JSONObject();
         Long versionId = jsonObj.getLong("versionId");
         AutoexecScriptVersionVo version = autoexecScriptService.getScriptVersionDetailByVersionId(versionId);
-        AutoexecScriptVo script = autoexecScriptMapper.getScriptLockById(version.getScriptId());
+        Long scriptId = version.getScriptId();
+        AutoexecScriptVo script = autoexecScriptMapper.getScriptLockById(scriptId);
         if (script == null) {
-            throw new AutoexecScriptNotFoundException(version.getScriptId());
+            throw new AutoexecScriptNotFoundException(scriptId);
         }
+        Long catalogId = autoexecScriptMapper.getAutoexecCatalogIdByScriptId(scriptId);
+        if (Objects.isNull(catalogId)) {
+            throw new AutoexecCatalogNotFoundException(catalogId);
+        }
+        script.setCatalogId(catalogId);
         autoexecScriptService.validateScriptBaseInfo(script);
         if (!Objects.equals(ScriptVersionStatus.DRAFT.getValue(), version.getStatus())
                 && !Objects.equals(ScriptVersionStatus.REJECTED.getValue(), version.getStatus())) {
