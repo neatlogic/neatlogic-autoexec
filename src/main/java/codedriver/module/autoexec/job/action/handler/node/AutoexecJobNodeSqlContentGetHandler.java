@@ -20,8 +20,8 @@ import org.springframework.stereotype.Service;
  * @since 2021/11/9 12:18
  **/
 @Service
-public class AutoexecJobPhaseNodeSqlContentGetHandler extends AutoexecJobActionHandlerBase {
-    private final static Logger logger = LoggerFactory.getLogger(AutoexecJobPhaseNodeSqlContentGetHandler.class);
+public class AutoexecJobNodeSqlContentGetHandler extends AutoexecJobActionHandlerBase {
+    private final static Logger logger = LoggerFactory.getLogger(AutoexecJobNodeSqlContentGetHandler.class);
 
     @Override
     public String getName() {

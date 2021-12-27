@@ -29,7 +29,7 @@ import javax.servlet.http.HttpServletResponse;
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
-public class AutoexecJobPhaseOutPutDownloadApi extends PrivateBinaryStreamApiComponentBase {
+public class AutoexecJobPhaseNodeOutPutDownloadApi extends PrivateBinaryStreamApiComponentBase {
     @Override
     public String getName() {
         return "下载作业剧本节点输出参数";
