@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  2021 TechSure Co.,Ltd.  All Rights Reserved.
+ * Copyright(c) 2021 TechSure Co., Ltd. All Rights Reserved.
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  */
 
@@ -63,11 +63,11 @@ public class AutoexecJobConsoleLogAuditDownloadHandler extends AutoexecJobAction
     public JSONObject doMyService(AutoexecJobVo jobVo) throws Exception {
         JSONObject paramObj = jobVo.getActionParam();
         String fileName = FileUtil.getEncodedFileName(UserContext.get().getRequest().getHeader("User-Agent"), paramObj.getString("jobId") + "-"
-                + paramObj.getString("runnerIp") + "-" + paramObj.getString("runnerPort") + TimeUtil.convertDateToString(new Date(paramObj.getLong("startTime")), TimeUtil.YYYYMMDD_HHMMSS)+ ".log");
+                + paramObj.getString("runnerIp") + "-" + paramObj.getString("runnerPort") + TimeUtil.convertDateToString(new Date(paramObj.getLong("startTime")), TimeUtil.YYYYMMDD_HHMMSS) + ".log");
         String url = String.format("%s/api/binary/job/console/log/audit/download", paramObj.getString("runnerUrl"));
         UserContext.get().getResponse().setContentType("text/plain");
         UserContext.get().getResponse().setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
-        String result = HttpRequestUtil.download(url,UserContext.get().getResponse().getOutputStream())
+        String result = HttpRequestUtil.download(url, "POST", UserContext.get().getResponse().getOutputStream())
                 .setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN)
                 .sendRequest().getError();
         if (StringUtils.isNotBlank(result)) {
