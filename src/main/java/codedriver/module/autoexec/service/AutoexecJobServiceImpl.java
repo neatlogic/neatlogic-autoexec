@@ -17,10 +17,7 @@ import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
-import codedriver.framework.autoexec.exception.AutoexecJobPhaseNodeNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerGroupRunnerNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotMatchException;
-import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
+import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.cmdb.crossover.IResourceCenterResourceCrossoverService;
 import codedriver.framework.cmdb.crossover.IResourceListApiCrossoverService;
 import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
@@ -86,7 +83,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         }
         //保存作业基本信息
         autoexecJobMapper.insertJob(jobVo);
-        autoexecJobMapper.insertJobParamContent(new AutoexecJobParamContentVo(jobVo.getParamHash(), jobVo.getParamStr()));
+        autoexecJobMapper.insertIgnoreJobParamContent(new AutoexecJobParamContentVo(jobVo.getParamHash(), jobVo.getParamStr()));
         //保存作业执行目标
         AutoexecCombopExecuteConfigVo combopExecuteConfigVo = config.getExecuteConfig();
         String userName = StringUtils.EMPTY;
@@ -127,7 +124,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 autoexecJobMapper.insertJobPhaseNode(nodeVo);
                 nodeVo.setRunnerMapId(runnerMapVo.getRunnerMapId());
                 autoexecJobMapper.insertIgnoreJobPhaseNodeRunner(new AutoexecJobPhaseNodeRunnerVo(nodeVo));
-                autoexecJobMapper.replaceIntoJobPhaseRunner(nodeVo);
+                autoexecJobMapper.insertDuplicateJobPhaseRunner(nodeVo);
             }
             //jobPhaseOperation
             List<AutoexecJobPhaseOperationVo> jobPhaseOperationVoList = new ArrayList<>();
@@ -160,7 +157,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 }
                 autoexecJobMapper.insertJobPhaseOperation(jobPhaseOperationVo);
                 assert jobPhaseOperationVo != null;
-                autoexecJobMapper.insertJobParamContent(new AutoexecJobParamContentVo(jobPhaseOperationVo.getParamHash(), jobPhaseOperationVo.getParamStr()));
+                autoexecJobMapper.insertIgnoreJobParamContent(new AutoexecJobParamContentVo(jobPhaseOperationVo.getParamHash(), jobPhaseOperationVo.getParamStr()));
                 jobPhaseOperationVoList.add(jobPhaseOperationVo);
             }
         }
@@ -211,7 +208,41 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
 
     }
 
-    public void refreshJobPhaseNodeList(Long jobId, int sort, AutoexecCombopExecuteConfigVo combopExecuteConfigVo) {
+    @Override
+    public void refreshJobParam(Long jobId, JSONObject paramJson) {
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        if (!Objects.equals(CombopOperationType.COMBOP.getValue(), jobVo.getOperationType())) {
+            throw new AutoexecJobPhaseOperationMustBeCombopException();
+        }
+        //补充运行参数真实的值
+        List<AutoexecCombopParamVo> paramList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(jobVo.getOperationId());
+        JSONArray combopParamsResult = new JSONArray();
+        if (MapUtils.isNotEmpty(paramJson)) {
+            JSONArray combopParams = JSONArray.parseArray(JSONArray.toJSONString(paramList));
+            for (Object combopParam : combopParams) {
+                JSONObject combopParamJson = JSONObject.parseObject(combopParam.toString());
+                if (MapUtils.isNotEmpty(combopParamJson)) {
+                    String key = combopParamJson.getString("key");
+                    if (StringUtils.isNotBlank(key)) {
+                        Object value = paramJson.get(key);
+                        combopParamJson.put("value", value);
+                        combopParamsResult.add(combopParamJson);
+                    }
+                }
+            }
+        }
+        jobVo.setParamStr(combopParamsResult.toJSONString());
+        autoexecJobMapper.insertIgnoreJobParamContent(new AutoexecJobParamContentVo(jobVo.getParamHash(), jobVo.getParamStr()));
+        autoexecJobMapper.updateJobParamHashById(jobVo.getId(), jobVo.getParamHash());
+    }
+
+    @Override
+    public void refreshJobPhaseNodeList(Long jobId, int sort, JSONObject executeConfig) {
+        AutoexecCombopExecuteConfigVo combopExecuteConfigVo = null;
+        //优先使用传进来的执行节点
+        if (MapUtils.isNotEmpty(executeConfig)) {
+            combopExecuteConfigVo = JSON.toJavaObject(executeConfig, AutoexecCombopExecuteConfigVo.class);
+        }
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
         AutoexecCombopConfigVo configVo = JSON.toJavaObject(jobVo.getConfig(), AutoexecCombopConfigVo.class);
         //获取组合工具执行目标 执行用户和协议
@@ -237,6 +268,14 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 jobPhaseVo.setCombopId(jobVo.getOperationId());
                 initPhaseExecuteUserAndProtocolAndNode(userName, protocolId, jobVo, jobPhaseVo, combopExecuteConfigVo, combopPhaseExecuteConfigVo);
             }
+        }
+    }
+
+    @Override
+    public void refreshJobNodeList(Long jobId, JSONObject executeConfig) {
+        List<AutoexecJobPhaseVo> phaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobId);
+        for (AutoexecJobPhaseVo phaseVo : phaseVoList) {
+            refreshJobPhaseNodeList(jobId, phaseVo.getSort(), executeConfig);
         }
     }
 
@@ -319,10 +358,12 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             isHasNode = updateNodeResourceByParam(jobVo, executeNodeConfigVo, jobPhaseVo, userName, protocolId);
         }
 
-        //删除该阶段所有不是最近更新的node runnerMap
-        autoexecJobMapper.deleteJobPhaseNodeRunnerByJobPhaseIdAndLcd(jobPhaseVo.getId(), jobPhaseVo.getLcd());
-        //删除该阶段所有不是最近更新的节点，即非法历史节点
-        autoexecJobMapper.deleteJobPhaseNodeByJobPhaseIdAndLcd(jobPhaseVo.getId(), jobPhaseVo.getLcd());
+        //删除没有跑过的历史节点 runnerMap
+        autoexecJobMapper.deleteJobPhaseNodeRunnerByJobPhaseIdAndLcdAndStatus(jobPhaseVo.getId(), jobPhaseVo.getLcd(), JobNodeStatus.PENDING.getValue());
+        //删除没有跑过的历史节点
+        autoexecJobMapper.deleteJobPhaseNodeByJobPhaseIdAndLcdAndStatus(jobPhaseVo.getId(), jobPhaseVo.getLcd(), JobNodeStatus.PENDING.getValue());
+        //更新该阶段所有不是最近更新的节点为已删除，即非法历史节点
+        autoexecJobMapper.updateJobPhaseNodeIsDeleteByJobPhaseIdAndLcd(jobPhaseVo.getId(), jobPhaseVo.getLcd());
         //删除该阶段所有不是最近更新的phase runner
         autoexecJobMapper.deleteJobPhaseRunnerByJobPhaseIdAndLcd(jobPhaseVo.getId(), jobPhaseVo.getLcd());
         return isHasNode;
@@ -427,16 +468,16 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         if (MapUtils.isNotEmpty(filterJson)) {
             JSONObject resourceJson = new JSONObject();
             IResourceCenterResourceCrossoverService resourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
-            filterJson.put("pageSize",100);
+            filterJson.put("pageSize", 100);
             ResourceSearchVo searchVo = resourceCrossoverService.assembleResourceSearchVo(filterJson);
             int count = resourceCenterMapper.getResourceCount(searchVo);
-            if(count>0){
+            if (count > 0) {
                 Date nowTime = new Date(System.currentTimeMillis());
                 jobPhaseVo.setLcd(nowTime);
                 int pageCount = PageUtil.getPageCount(count, searchVo.getPageSize());
                 for (int i = 1; i <= pageCount; i++) {
-                    filterJson.put("currentPage",i);
-                    filterJson.put("needPage",true);
+                    filterJson.put("currentPage", i);
+                    filterJson.put("needPage", true);
                     try {
                         IResourceListApiCrossoverService resourceListApi = CrossoverServiceFactory.getApi(IResourceListApiCrossoverService.class);
                         resourceJson = JSONObject.parseObject(JSONObject.toJSONString(resourceListApi.myDoService(filterJson)));
@@ -473,7 +514,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 //防止旧resource 所以ignore insert
                 autoexecJobMapper.insertIgnoreJobPhaseNodeRunner(new AutoexecJobPhaseNodeRunnerVo(jobPhaseNodeVo));
             }
-            autoexecJobMapper.replaceIntoJobPhaseRunner(jobPhaseNodeVo);
+            autoexecJobMapper.insertDuplicateJobPhaseRunner(jobPhaseNodeVo);
         });
     }
 

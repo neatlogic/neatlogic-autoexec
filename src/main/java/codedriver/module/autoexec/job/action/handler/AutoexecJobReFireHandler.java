@@ -12,8 +12,8 @@ import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerConnectRefusedException;
+import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import codedriver.framework.dto.RestVo;
@@ -69,14 +69,12 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             autoexecJobMapper.updateJobStatus(jobVo);
             resetAll(jobVo);
             autoexecJobMapper.updateJobPhaseStatusByJobId(jobVo.getId(), JobPhaseStatus.PENDING.getValue());//重置phase状态为pending
-            autoexecJobMapper.updateJobPhaseFailedNodeStatusByJobId(jobVo.getId(), JobNodeStatus.PENDING.getValue());
             autoexecJobService.getAutoexecJobDetail(jobVo, 0);
             jobVo.setCurrentPhaseSort(0);
             //重刷所有phase node
-            List<AutoexecJobPhaseVo> phaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId());
-            for (AutoexecJobPhaseVo phaseVo : phaseVoList) {
-                autoexecJobService.refreshJobPhaseNodeList(jobVo.getId(), phaseVo.getSort(), null);
-            }
+            autoexecJobService.refreshJobNodeList(jobVo.getId(), null);
+            //更新没有删除的节点为"未开始"状态
+            autoexecJobMapper.updateJobPhaseNodeStatusByJobIdAndIsDelete(jobVo.getId(), JobNodeStatus.PENDING.getValue(),0);
         } else if (Objects.equals(jobVo.getAction(), JobAction.REFIRE.getValue())) {
             int sort = 0;
             /*寻找中止|暂停|失败的phase
@@ -109,7 +107,7 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
     }
 
     /**
-     * 重置作业
+     * 重置runner autoexec 作业
      *
      * @param jobVo 作业
      */

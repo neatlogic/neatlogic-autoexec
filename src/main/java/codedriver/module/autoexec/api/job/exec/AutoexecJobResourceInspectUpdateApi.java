@@ -60,7 +60,7 @@ public class AutoexecJobResourceInspectUpdateApi extends PublicApiComponentBase 
             }
             phaseId = phaseVo.getId();
         }
-        autoexecJobMapper.replaceIntoJobResourceInspect(jobId,jsonObj.getLong("resourceId"),phaseId,jsonObj.getDate("inspectTime"));
+        autoexecJobMapper.insertDuplicateJobResourceInspect(jobId,jsonObj.getLong("resourceId"),phaseId,jsonObj.getDate("inspectTime"));
         return null;
     }
 

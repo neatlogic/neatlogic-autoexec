@@ -96,7 +96,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
         String phaseName = paramObj.getString("phase");
         int count = 0;
         int pageCount = 0;
-        AutoexecJobPhaseNodeVo nodeParamVo = new AutoexecJobPhaseNodeVo(paramObj.getLong("jobId"), paramObj.getString("phase"), runnerId);
+        AutoexecJobPhaseNodeVo nodeParamVo = new AutoexecJobPhaseNodeVo(paramObj.getLong("jobId"), paramObj.getString("phase"), runnerId, 0);
         nodeParamVo.setStatusList(Arrays.asList(JobNodeStatus.PENDING.getValue(), JobNodeStatus.RUNNING.getValue(), JobNodeStatus.FAILED.getValue(), JobNodeStatus.ABORTED.getValue()));
         if (StringUtils.isNotBlank(phaseName)) {
             jobVo = autoexecJobMapper.getJobDetailByJobIdAndPhaseName(jobId, phaseName);

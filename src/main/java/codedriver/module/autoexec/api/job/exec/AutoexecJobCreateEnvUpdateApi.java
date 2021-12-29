@@ -47,7 +47,7 @@ public class AutoexecJobCreateEnvUpdateApi extends PublicApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecJobEnvVo jobEnvVo = new AutoexecJobEnvVo(jsonObj.getLong("jobId"), jsonObj.getString("envName"), jsonObj.getString("envValue"));
-        autoexecJobMapper.replaceIntoJobEnv(jobEnvVo);
+        autoexecJobMapper.insertDuplicateJobEnv(jobEnvVo);
         return null;
     }
 
