@@ -41,7 +41,6 @@ import static java.util.stream.Collectors.collectingAndThen;
 import static java.util.stream.Collectors.toCollection;
 
 @Service
-@Transactional
 @DisallowConcurrentExecution
 public class PurgeAutoexecJobDataSchedule extends PublicJobBase {
     private final static Logger logger = LoggerFactory.getLogger(PurgeAutoexecJobDataSchedule.class);
@@ -64,6 +63,7 @@ public class PurgeAutoexecJobDataSchedule extends PublicJobBase {
             @Param(name = "expiredDays", dataType = "int", controlValue = "100", description = "天数，只保留该天数之内的作业"),
     })
     @Override
+    @Transactional
     public void executeInternal(JobExecutionContext context, JobObject jobObject) throws Exception {
         JobDetail jobDetail = context.getJobDetail();
         int days = 100;
