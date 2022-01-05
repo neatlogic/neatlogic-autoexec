@@ -11,6 +11,7 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.framework.autoexec.dto.catalog.AutoexecCatalogVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
+import codedriver.framework.exception.core.ApiRuntimeException;
 import codedriver.framework.fulltextindex.core.FullTextIndexHandlerFactory;
 import codedriver.framework.fulltextindex.core.IFullTextIndexHandler;
 import codedriver.framework.restful.annotation.Description;
@@ -125,6 +126,8 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
             if (CollectionUtils.isNotEmpty(scriptVo.getParamList())) {
                 try {
                     autoexecService.validateParamList(scriptVo.getParamList());
+                } catch (ApiRuntimeException ex) {
+                    faultMessages.add(ex.getMessage(true));
                 } catch (Exception ex) {
                     faultMessages.add(ex.getMessage());
                 }
