@@ -75,10 +75,8 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
     @Override
     public Object myDoService(JSONObject paramObj, JSONReader jsonReader) throws Exception {
 
-        // todo 重名怎么办
-        // todo 部分参数不支持，如单选、复选、下拉、节点、账号，文件参数不支持默认值
-        // todo 版本状态
-        // todo 导入者
+        // 重名拒绝导入
+        // 部分参数不支持，如单选、复选、下拉、节点、账号，文件参数不支持默认值
         jsonReader.startArray();
         while (jsonReader.hasNext()) {
             AutoexecScriptVo scriptVo = jsonReader.readObject(AutoexecScriptVo.class);
@@ -101,6 +99,8 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
             versionVo.setIsActive(0);
             versionVo.setLcu(UserContext.get().getUserUuid());
             versionVo.setStatus(ScriptVersionStatus.DRAFT.getValue());
+            versionVo.setParamList(scriptVo.getParamList());
+            versionVo.setLineList(scriptVo.getLineList());
             autoexecScriptMapper.insertScript(scriptVo);
             autoexecScriptMapper.insertScriptVersion(versionVo);
             autoexecScriptService.saveParamList(versionVo.getId(), versionVo.getParamList());
