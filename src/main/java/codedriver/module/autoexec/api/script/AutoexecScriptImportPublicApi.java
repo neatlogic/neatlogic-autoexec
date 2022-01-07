@@ -32,6 +32,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @SuppressWarnings("deprecation")
 @Service
@@ -76,56 +77,54 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
     @Override
     public Object myDoService(JSONObject paramObj, JSONReader jsonReader) throws Exception {
 
-        // 重名拒绝导入
-        // 部分参数不支持，如单选、复选、下拉、节点、账号，文件参数不支持默认值
+        // 根据名称判断脚本存不存在，如果存在且内容有变化就生成新的激活版本，不存在直接生成新的激活版本
+        // todo 部分参数不支持，如单选、复选、下拉、节点、账号，文件参数不支持默认值
+        // todo 用户令牌可用之后，要根据导入用户决定是否自动审核通过
         JSONArray faultArray = new JSONArray();
         jsonReader.startArray();
         int i = 1;
         while (jsonReader.hasNext()) {
             List<String> faultMessages = new ArrayList<>();
-            AutoexecScriptVo scriptVo = jsonReader.readObject(AutoexecScriptVo.class);
-            if (StringUtils.isBlank(scriptVo.getName())) {
+            AutoexecScriptVo newScriptVo = jsonReader.readObject(AutoexecScriptVo.class);
+            if (StringUtils.isBlank(newScriptVo.getName())) {
                 faultMessages.add("自定义工具名称为空");
             }
-            if (StringUtils.isBlank(scriptVo.getCatalogName())) {
+            if (StringUtils.isBlank(newScriptVo.getCatalogName())) {
                 faultMessages.add("工具目录为空");
             }
-            if (StringUtils.isBlank(scriptVo.getRiskName())) {
+            if (StringUtils.isBlank(newScriptVo.getRiskName())) {
                 faultMessages.add("操作级别为空");
             }
-            if (StringUtils.isBlank(scriptVo.getTypeName())) {
+            if (StringUtils.isBlank(newScriptVo.getTypeName())) {
                 faultMessages.add("工具分类为空");
             }
-            if (StringUtils.isBlank(scriptVo.getExecMode())) {
+            if (StringUtils.isBlank(newScriptVo.getExecMode())) {
                 faultMessages.add("执行方式为空");
             }
-            if (StringUtils.isBlank(scriptVo.getParser())) {
+            if (StringUtils.isBlank(newScriptVo.getParser())) {
                 faultMessages.add("脚本解析器为空");
             }
-            if (CollectionUtils.isEmpty(scriptVo.getLineList())) {
+            if (CollectionUtils.isEmpty(newScriptVo.getLineList())) {
                 faultMessages.add("脚本内容为空");
             }
-            if (StringUtils.isNotBlank(scriptVo.getName()) && autoexecScriptMapper.checkScriptNameIsExists(scriptVo) > 0) {
-                faultMessages.add("自定义工具：'" + scriptVo.getName() + "'已存在");
+            if (StringUtils.isNotBlank(newScriptVo.getCatalogName()) && autoexecCatalogMapper.getAutoexecCatalogByName(newScriptVo.getCatalogName()) == null) {
+                faultMessages.add("工具目录：'" + newScriptVo.getCatalogName() + "'不存在");
             }
-            if (StringUtils.isNotBlank(scriptVo.getCatalogName()) && autoexecCatalogMapper.getAutoexecCatalogByName(scriptVo.getCatalogName()) == null) {
-                faultMessages.add("工具目录：'" + scriptVo.getCatalogName() + "'不存在");
+            if (StringUtils.isNotBlank(newScriptVo.getTypeName()) && autoexecTypeMapper.getTypeIdByName(newScriptVo.getTypeName()) == null) {
+                faultMessages.add("工具分类：'" + newScriptVo.getTypeName() + "'不存在");
             }
-            if (StringUtils.isNotBlank(scriptVo.getTypeName()) && autoexecTypeMapper.getTypeIdByName(scriptVo.getTypeName()) == null) {
-                faultMessages.add("工具分类：'" + scriptVo.getTypeName() + "'不存在");
+            if (StringUtils.isNotBlank(newScriptVo.getRiskName()) && autoexecRiskMapper.getRiskIdByName(newScriptVo.getRiskName()) == null) {
+                faultMessages.add("操作级别：'" + newScriptVo.getRiskName() + "'不存在");
             }
-            if (StringUtils.isNotBlank(scriptVo.getRiskName()) && autoexecRiskMapper.getRiskIdByName(scriptVo.getRiskName()) == null) {
-                faultMessages.add("操作级别：'" + scriptVo.getRiskName() + "'不存在");
+            if (StringUtils.isNotBlank(newScriptVo.getExecMode()) && ExecMode.getExecMode(newScriptVo.getExecMode()) == null) {
+                faultMessages.add("执行方式：'" + newScriptVo.getExecMode() + "'不存在");
             }
-            if (StringUtils.isNotBlank(scriptVo.getExecMode()) && ExecMode.getExecMode(scriptVo.getExecMode()) == null) {
-                faultMessages.add("执行方式：'" + scriptVo.getExecMode() + "'不存在");
+            if (StringUtils.isNotBlank(newScriptVo.getParser()) && ScriptParser.getScriptParser(newScriptVo.getParser()) == null) {
+                faultMessages.add("脚本解析器：'" + newScriptVo.getParser() + "'不存在");
             }
-            if (StringUtils.isNotBlank(scriptVo.getParser()) && ScriptParser.getScriptParser(scriptVo.getParser()) == null) {
-                faultMessages.add("脚本解析器：'" + scriptVo.getParser() + "'不存在");
-            }
-            if (CollectionUtils.isNotEmpty(scriptVo.getParamList())) {
+            if (CollectionUtils.isNotEmpty(newScriptVo.getParamList())) {
                 try {
-                    autoexecService.validateParamList(scriptVo.getParamList());
+                    autoexecService.validateParamList(newScriptVo.getParamList());
                 } catch (ApiRuntimeException ex) {
                     faultMessages.add(ex.getMessage(true));
                 } catch (Exception ex) {
@@ -133,35 +132,60 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
                 }
             }
             if (faultMessages.isEmpty()) {
-                AutoexecCatalogVo catalog = autoexecCatalogMapper.getAutoexecCatalogByName(scriptVo.getCatalogName());
-                Long typeId = autoexecTypeMapper.getTypeIdByName(scriptVo.getTypeName());
-                Long riskId = autoexecRiskMapper.getRiskIdByName(scriptVo.getRiskName());
-                scriptVo.setCatalogId(catalog.getId());
-                scriptVo.setTypeId(typeId);
-                scriptVo.setRiskId(riskId);
-                scriptVo.setFcu(UserContext.get().getUserUuid());
-                AutoexecScriptVersionVo versionVo = new AutoexecScriptVersionVo();
-                versionVo.setScriptId(scriptVo.getId());
-                versionVo.setTitle(scriptVo.getName());
-                versionVo.setParser(scriptVo.getParser());
-                versionVo.setIsActive(0);
-                versionVo.setLcu(UserContext.get().getUserUuid());
-                versionVo.setStatus(ScriptVersionStatus.DRAFT.getValue());
-                versionVo.setParamList(scriptVo.getParamList());
-                versionVo.setLineList(scriptVo.getLineList());
-                autoexecScriptMapper.insertScript(scriptVo);
-                autoexecScriptMapper.insertScriptVersion(versionVo);
-                autoexecScriptService.saveParamList(versionVo.getId(), versionVo.getParamList());
-                autoexecScriptService.saveLineList(scriptVo.getId(), versionVo.getId(), versionVo.getLineList());
-                IFullTextIndexHandler fullTextIndexHandler = FullTextIndexHandlerFactory.getHandler(AutoexecFullTextIndexType.SCRIPT_DOCUMENT_VERSION);
-                if (fullTextIndexHandler != null) {
-                    fullTextIndexHandler.createIndex(versionVo.getId());
+                AutoexecCatalogVo catalog = autoexecCatalogMapper.getAutoexecCatalogByName(newScriptVo.getCatalogName());
+                Long typeId = autoexecTypeMapper.getTypeIdByName(newScriptVo.getTypeName());
+                Long riskId = autoexecRiskMapper.getRiskIdByName(newScriptVo.getRiskName());
+                newScriptVo.setCatalogId(catalog.getId());
+                newScriptVo.setTypeId(typeId);
+                newScriptVo.setRiskId(riskId);
+
+                AutoexecScriptVo oldScriptVo = autoexecScriptMapper.getScriptBaseInfoByName(newScriptVo.getName());
+                if (oldScriptVo == null) {
+                    newScriptVo.setFcu(UserContext.get().getUserUuid());
+                    AutoexecScriptVersionVo versionVo = getVersionVo(newScriptVo, 1);
+                    autoexecScriptMapper.insertScript(newScriptVo);
+                    autoexecScriptMapper.insertScriptVersion(versionVo);
+                    autoexecScriptService.saveParamList(versionVo.getId(), versionVo.getParamList());
+                    autoexecScriptService.saveLineList(newScriptVo.getId(), versionVo.getId(), versionVo.getLineList());
+                    IFullTextIndexHandler fullTextIndexHandler = FullTextIndexHandlerFactory.getHandler(AutoexecFullTextIndexType.SCRIPT_DOCUMENT_VERSION);
+                    if (fullTextIndexHandler != null) {
+                        fullTextIndexHandler.createIndex(versionVo.getId());
+                    }
+                } else {
+                    newScriptVo.setId(oldScriptVo.getId());
+                    if (checkBaseInfoHasBeenChanged(newScriptVo, oldScriptVo)) {
+                        autoexecScriptMapper.updateScriptBaseInfo(newScriptVo);
+                    }
+                    Integer maxVersion = autoexecScriptMapper.getMaxVersionByScriptId(oldScriptVo.getId());
+                    AutoexecScriptVersionVo newVersionVo = getVersionVo(newScriptVo, maxVersion != null ? maxVersion + 1 : 1);
+                    AutoexecScriptVersionVo oldVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(oldScriptVo.getId());
+                    boolean needUpdate = true;
+                    if (oldVersionVo != null) {
+                        oldVersionVo.setParamList(autoexecScriptMapper.getParamListByVersionId(oldVersionVo.getId()));
+                        oldVersionVo.setLineList(autoexecScriptMapper.getLineListByVersionId(oldVersionVo.getId()));
+                        if (!autoexecScriptService.checkScriptVersionNeedToUpdate(oldVersionVo, newVersionVo)) {
+                            needUpdate = false;
+                        } else {
+                            oldVersionVo.setIsActive(0);
+                            oldVersionVo.setLcu(UserContext.get().getUserUuid());
+                            autoexecScriptMapper.updateScriptVersion(oldVersionVo);
+                        }
+                    }
+                    if (needUpdate) {
+                        autoexecScriptService.saveParamList(newVersionVo.getId(), newVersionVo.getParamList());
+                        autoexecScriptService.saveLineList(newScriptVo.getId(), newVersionVo.getId(), newVersionVo.getLineList());
+                        autoexecScriptMapper.insertScriptVersion(newVersionVo);
+                        IFullTextIndexHandler fullTextIndexHandler = FullTextIndexHandlerFactory.getHandler(AutoexecFullTextIndexType.SCRIPT_DOCUMENT_VERSION);
+                        if (fullTextIndexHandler != null) {
+                            fullTextIndexHandler.createIndex(newVersionVo.getId());
+                        }
+                    }
                 }
             } else {
                 JSONObject faultObj = new JSONObject();
                 String item;
-                if (StringUtils.isNotBlank(scriptVo.getName())) {
-                    item = "导入" + scriptVo.getName() + "失败";
+                if (StringUtils.isNotBlank(newScriptVo.getName())) {
+                    item = "导入" + newScriptVo.getName() + "失败";
                 } else {
                     item = "导入第[" + i + "]个失败";
                 }
@@ -174,5 +198,53 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
         jsonReader.endArray();
         jsonReader.close();
         return faultArray;
+    }
+
+    /**
+     * 检查脚本基本信息是否变更
+     *
+     * @param newScriptVo 导入的脚本
+     * @param oldScriptVo 系统中的脚本
+     * @return
+     */
+    private boolean checkBaseInfoHasBeenChanged(AutoexecScriptVo newScriptVo, AutoexecScriptVo oldScriptVo) {
+        if (!Objects.equals(newScriptVo.getCatalogName(), oldScriptVo.getCatalogName())) {
+            return true;
+        }
+        if (!Objects.equals(newScriptVo.getTypeName(), oldScriptVo.getTypeName())) {
+            return true;
+        }
+        if (!Objects.equals(newScriptVo.getExecMode(), oldScriptVo.getExecMode())) {
+            return true;
+        }
+        if (!Objects.equals(newScriptVo.getRiskName(), oldScriptVo.getRiskName())) {
+            return true;
+        }
+        if (!Objects.equals(newScriptVo.getDescription(), oldScriptVo.getDescription())) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
+     * 构造AutoexecScriptVersionVo
+     *
+     * @param scriptVo
+     * @param version
+     * @return
+     */
+    private AutoexecScriptVersionVo getVersionVo(AutoexecScriptVo scriptVo, Integer version) {
+        AutoexecScriptVersionVo versionVo = new AutoexecScriptVersionVo();
+        versionVo.setScriptId(scriptVo.getId());
+        versionVo.setTitle(scriptVo.getName());
+        versionVo.setParser(scriptVo.getParser());
+        versionVo.setIsActive(1);
+        versionVo.setLcu(UserContext.get().getUserUuid());
+        versionVo.setStatus(ScriptVersionStatus.PASSED.getValue());
+        versionVo.setVersion(version);
+        versionVo.setReviewer(UserContext.get().getUserUuid());
+        versionVo.setParamList(scriptVo.getParamList());
+        versionVo.setLineList(scriptVo.getLineList());
+        return versionVo;
     }
 }

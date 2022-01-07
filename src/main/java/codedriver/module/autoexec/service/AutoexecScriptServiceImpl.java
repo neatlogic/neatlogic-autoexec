@@ -27,6 +27,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -121,14 +122,21 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
         if (beforeParamList.size() != afterParamList.size()) {
             return true;
         }
-        Iterator<AutoexecScriptVersionParamVo> beforeParamIterator = beforeParamList.iterator();
-        Iterator<AutoexecScriptVersionParamVo> afterParamIterator = afterParamList.iterator();
-        while (beforeParamIterator.hasNext() && afterParamIterator.hasNext()) {
-            AutoexecScriptVersionParamVo beforeNextParam = beforeParamIterator.next();
-            AutoexecScriptVersionParamVo afterNextParam = afterParamIterator.next();
-            if (!Objects.equals(beforeNextParam, afterNextParam)) {
-                return true;
-            }
+        List<AutoexecScriptVersionParamVo> beforeInputParamList = beforeParamList.stream().filter(o -> o.getMode().equals(ParamMode.INPUT.getValue())).collect(Collectors.toList());
+        List<AutoexecScriptVersionParamVo> beforeOutputParamList = beforeParamList.stream().filter(o -> o.getMode().equals(ParamMode.OUTPUT.getValue())).collect(Collectors.toList());
+        List<AutoexecScriptVersionParamVo> afterInputParamList = afterParamList.stream().filter(o -> o.getMode().equals(ParamMode.INPUT.getValue())).collect(Collectors.toList());
+        List<AutoexecScriptVersionParamVo> afterOutputParamList = afterParamList.stream().filter(o -> o.getMode().equals(ParamMode.OUTPUT.getValue())).collect(Collectors.toList());
+        if (beforeInputParamList.size() != afterInputParamList.size()) {
+            return true;
+        }
+        if (beforeOutputParamList.size() != afterOutputParamList.size()) {
+            return true;
+        }
+        if (compareParamList(beforeInputParamList, afterInputParamList)) {
+            return true;
+        }
+        if (compareParamList(beforeOutputParamList, afterOutputParamList)) {
+            return true;
         }
         List<AutoexecScriptLineVo> beforeLineList = new ArrayList<>();
         beforeLineList.addAll(before.getLineList());
@@ -140,9 +148,29 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
         Iterator<AutoexecScriptLineVo> beforeLineIterator = beforeLineList.iterator();
         Iterator<AutoexecScriptLineVo> afterLineIterator = afterLineList.iterator();
         while (beforeLineIterator.hasNext() && afterLineIterator.hasNext()) {
-            String beforeContent = beforeLineIterator.next().getContent();
-            String afterContent = afterLineIterator.next().getContent();
+            String beforeContent = beforeLineIterator.next().getContentHash();
+            String afterContent = DigestUtils.md5DigestAsHex(afterLineIterator.next().getContent().getBytes());
             if (!Objects.equals(beforeContent, afterContent)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 比较参数是否有变更
+     *
+     * @param beforeParamList 旧参数列表
+     * @param afterParamList  新参数列表
+     * @return
+     */
+    private boolean compareParamList(List<AutoexecScriptVersionParamVo> beforeParamList, List<AutoexecScriptVersionParamVo> afterParamList) {
+        Iterator<AutoexecScriptVersionParamVo> beforeParamIterator = beforeParamList.iterator();
+        Iterator<AutoexecScriptVersionParamVo> afterParamIterator = afterParamList.iterator();
+        while (beforeParamIterator.hasNext() && afterParamIterator.hasNext()) {
+            AutoexecScriptVersionParamVo beforeNextParam = beforeParamIterator.next();
+            AutoexecScriptVersionParamVo afterNextParam = afterParamIterator.next();
+            if (!Objects.equals(beforeNextParam, afterNextParam)) {
                 return true;
             }
         }
