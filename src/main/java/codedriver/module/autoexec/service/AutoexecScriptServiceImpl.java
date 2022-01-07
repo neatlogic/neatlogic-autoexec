@@ -27,6 +27,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -147,8 +148,8 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
         Iterator<AutoexecScriptLineVo> beforeLineIterator = beforeLineList.iterator();
         Iterator<AutoexecScriptLineVo> afterLineIterator = afterLineList.iterator();
         while (beforeLineIterator.hasNext() && afterLineIterator.hasNext()) {
-            String beforeContent = beforeLineIterator.next().getContent();
-            String afterContent = afterLineIterator.next().getContent();
+            String beforeContent = beforeLineIterator.next().getContentHash();
+            String afterContent = DigestUtils.md5DigestAsHex(afterLineIterator.next().getContent().getBytes());
             if (!Objects.equals(beforeContent, afterContent)) {
                 return true;
             }
