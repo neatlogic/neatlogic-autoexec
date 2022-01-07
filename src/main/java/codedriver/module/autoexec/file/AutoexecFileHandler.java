@@ -5,6 +5,9 @@
 
 package codedriver.module.autoexec.file;
 
+import codedriver.framework.auth.core.AuthActionChecker;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.exception.type.PermissionDeniedException;
 import codedriver.framework.file.core.FileTypeHandlerBase;
 import codedriver.framework.file.dto.FileVo;
 import com.alibaba.fastjson.JSONObject;
@@ -18,8 +21,12 @@ import org.springframework.stereotype.Component;
  **/
 @Component
 public class AutoexecFileHandler extends FileTypeHandlerBase {
+
     @Override
-    public boolean valid(String userUuid, FileVo fileVo, JSONObject jsonObj) {
+    public boolean valid(String userUuid, FileVo fileVo, JSONObject jsonObj) throws PermissionDeniedException {
+        if (!AuthActionChecker.check(AUTOEXEC_BASE.class)) {
+            throw new PermissionDeniedException(AUTOEXEC_BASE.class);
+        }
         return true;
     }
 
