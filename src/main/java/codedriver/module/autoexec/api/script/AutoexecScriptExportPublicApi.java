@@ -64,15 +64,17 @@ public class AutoexecScriptExportPublicApi extends PublicBinaryStreamApiComponen
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         String catalogName = paramObj.getString("catalogName");
-        AutoexecCatalogVo catalog = null;
+        List<Long> catalogIdList = null;
         if (StringUtils.isNotBlank(catalogName)) {
-            catalog = autoexecCatalogMapper.getAutoexecCatalogByName(catalogName);
+            AutoexecCatalogVo catalog = autoexecCatalogMapper.getAutoexecCatalogByName(catalogName);
             if (catalog == null) {
                 throw new AutoexecCatalogNotFoundException(catalogName);
             }
+            catalogIdList = autoexecCatalogMapper.getChildrenIdListByLeftRightCode(catalog.getLft(), catalog.getRht());
+            catalogIdList.add(catalog.getId());
         }
         // 查询有激活版本的脚本
-        List<Long> idList = autoexecScriptMapper.getAutoexecScriptIdListWhichHasActiveVersionByCatalogId(catalog != null ? catalog.getId() : null);
+        List<Long> idList = autoexecScriptMapper.getAutoexecScriptIdListWhichHasActiveVersionByCatalogIdList(catalogIdList);
         if (!idList.isEmpty()) {
             String fileName = FileUtil.getEncodedFileName(request.getHeader("User-Agent"),
                     "自定义工具." + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak");
