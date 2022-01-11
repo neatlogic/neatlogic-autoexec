@@ -1,7 +1,7 @@
 package codedriver.module.autoexec.dependency;
 
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
-import codedriver.framework.autoexec.constvalue.CalleeType;
+import codedriver.framework.autoexec.constvalue.FromType;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
@@ -9,9 +9,9 @@ import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.exception.AutoexecScriptHasNoDraftVersionException;
 import codedriver.framework.autoexec.exception.AutoexecScriptHasNoRejectedVersionException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionHasNoActivedException;
-import codedriver.framework.common.dto.ValueTextVo;
-import codedriver.framework.dependency.core.DependencyHandlerBase;
-import codedriver.framework.dependency.core.ICalleeType;
+import codedriver.framework.dependency.core.CustomTableDependencyHandlerBase;
+import codedriver.framework.dependency.core.IFromType;
+import codedriver.framework.dependency.dto.DependencyInfoVo;
 import com.alibaba.nacos.common.utils.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +27,7 @@ import java.util.Objects;
  * @date 2021/12/15 3:59 下午
  */
 @Service
-public class AutoexecCatalogDependencyHandler extends DependencyHandlerBase {
+public class AutoexecCatalogDependencyHandler extends CustomTableDependencyHandlerBase {
 
     @Resource
     AutoexecScriptMapper autoexecScriptMapper;
@@ -48,7 +48,7 @@ public class AutoexecCatalogDependencyHandler extends DependencyHandlerBase {
      * @return
      */
     @Override
-    protected String getCalleeField() {
+    protected String getFromField() {
         return "catalog_id";
     }
 
@@ -58,12 +58,12 @@ public class AutoexecCatalogDependencyHandler extends DependencyHandlerBase {
      * @return
      */
     @Override
-    protected String getCallerField() {
+    protected String getToField() {
         return "id";
     }
 
     @Override
-    protected List<String> getCallerFieldList() {
+    protected List<String> getToFieldList() {
         return null;
     }
 
@@ -74,7 +74,7 @@ public class AutoexecCatalogDependencyHandler extends DependencyHandlerBase {
      * @return
      */
     @Override
-    protected ValueTextVo parse(Object caller) {
+    protected DependencyInfoVo parse(Object caller) {
         if (caller instanceof Map) {
             Map<String, Object> map = (Map) caller;
             Long id = (Long) map.get("id");
@@ -116,7 +116,7 @@ public class AutoexecCatalogDependencyHandler extends DependencyHandlerBase {
                 }
             }
             if (scriptVo != null && StringUtils.isNotBlank(status)) {
-                ValueTextVo valueTextVo = new ValueTextVo();
+                DependencyInfoVo valueTextVo = new DependencyInfoVo();
                 valueTextVo.setValue(scriptVo.getId());
                 //submitted的页面不一样
                 if (Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), status)) {
@@ -136,7 +136,7 @@ public class AutoexecCatalogDependencyHandler extends DependencyHandlerBase {
      * @return
      */
     @Override
-    public ICalleeType getCalleeType() {
-        return CalleeType.AUTOEXEC_CATALOG;
+    public IFromType getFromType() {
+        return FromType.AUTOEXEC_CATALOG;
     }
 }

@@ -9,10 +9,11 @@ import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.common.dto.ValueTextVo;
-import codedriver.framework.dependency.constvalue.CalleeType;
-import codedriver.framework.dependency.core.DependencyHandlerBase;
-import codedriver.framework.dependency.core.ICalleeType;
+import codedriver.framework.dependency.constvalue.FromType;
+import codedriver.framework.dependency.core.CustomTableDependencyHandlerBase;
+import codedriver.framework.dependency.core.IFromType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.framework.dependency.dto.DependencyInfoVo;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -25,7 +26,7 @@ import java.util.Map;
  * @since 2021/6/21 16:31
  **/
 @Service
-public class MatrixAutoexecCombopParamDependencyHandler extends DependencyHandlerBase {
+public class MatrixAutoexecCombopParamDependencyHandler extends CustomTableDependencyHandlerBase {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
@@ -36,17 +37,17 @@ public class MatrixAutoexecCombopParamDependencyHandler extends DependencyHandle
     }
 
     @Override
-    protected String getCalleeField() {
+    protected String getFromField() {
         return "matrix_uuid";
     }
 
     @Override
-    protected String getCallerField() {
+    protected String getToField() {
         return "combop_id";
     }
 
     @Override
-    protected List<String> getCallerFieldList() {
+    protected List<String> getToFieldList() {
         List<String> result = new ArrayList<>();
         result.add("combop_id");
         result.add("key");
@@ -54,13 +55,13 @@ public class MatrixAutoexecCombopParamDependencyHandler extends DependencyHandle
     }
 
     @Override
-    protected ValueTextVo parse(Object caller) {
+    protected DependencyInfoVo parse(Object caller) {
         if (caller == null) {
             return null;
         }
         if(caller instanceof Map){
             Map<String, Object> map = (Map)caller;
-            ValueTextVo valueTextVo = new ValueTextVo();
+            DependencyInfoVo valueTextVo = new DependencyInfoVo();
             Long combopId = (Long) map.get("combop_id");
             AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
             if (autoexecCombopVo != null) {
@@ -81,7 +82,7 @@ public class MatrixAutoexecCombopParamDependencyHandler extends DependencyHandle
     }
 
     @Override
-    public ICalleeType getCalleeType() {
-        return CalleeType.MATRIX;
+    public IFromType getFromType() {
+        return FromType.MATRIX;
     }
 }
