@@ -43,7 +43,7 @@ public class AutoexecCatalogDependencyHandler extends CustomTableDependencyHandl
     }
 
     /**
-     * 被调用者字段
+     * 被引用者（上游）字段
      *
      * @return
      */
@@ -53,7 +53,7 @@ public class AutoexecCatalogDependencyHandler extends CustomTableDependencyHandl
     }
 
     /**
-     * 调用者字段
+     * 引用者（下游）字段
      *
      * @return
      */
@@ -70,13 +70,13 @@ public class AutoexecCatalogDependencyHandler extends CustomTableDependencyHandl
     /**
      * 解析数据，拼装跳转url，返回引用下拉列表一个选项数据结构
      *
-     * @param caller 调用者值
+     * @param dependencyObj 调用者值
      * @return
      */
     @Override
-    protected DependencyInfoVo parse(Object caller) {
-        if (caller instanceof Map) {
-            Map<String, Object> map = (Map) caller;
+    protected DependencyInfoVo parse(Object dependencyObj) {
+        if (dependencyObj instanceof Map) {
+            Map<String, Object> map = (Map) dependencyObj;
             Long id = (Long) map.get("id");
             AutoexecScriptVersionVo version = null;
             Boolean hasStatus = false;
@@ -116,22 +116,22 @@ public class AutoexecCatalogDependencyHandler extends CustomTableDependencyHandl
                 }
             }
             if (scriptVo != null && StringUtils.isNotBlank(status)) {
-                DependencyInfoVo valueTextVo = new DependencyInfoVo();
-                valueTextVo.setValue(scriptVo.getId());
+                DependencyInfoVo dependencyInfoVo = new DependencyInfoVo();
+                dependencyInfoVo.setValue(scriptVo.getId());
                 //submitted的页面不一样
                 if (Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), status)) {
-                    valueTextVo.setText(String.format("<a href=\"/%s/autoexec.html#/review-detail?versionId=%s\" target=\"_blank\">%s</a>", TenantContext.get().getTenantUuid(), versionVo.getId(), scriptVo.getName()));
+                    dependencyInfoVo.setText(String.format("<a href=\"/%s/autoexec.html#/review-detail?versionId=%s\" target=\"_blank\">%s</a>", TenantContext.get().getTenantUuid(), versionVo.getId(), scriptVo.getName()));
                 } else if (version != null) {
-                    valueTextVo.setText(String.format("<a href=\"/%s/autoexec.html#/script-detail?scriptId=%s&status=%s\" target=\"_blank\">%s</a>", TenantContext.get().getTenantUuid(), scriptVo.getId(), version.getStatus(), scriptVo.getName()));
+                    dependencyInfoVo.setText(String.format("<a href=\"/%s/autoexec.html#/script-detail?scriptId=%s&status=%s\" target=\"_blank\">%s</a>", TenantContext.get().getTenantUuid(), scriptVo.getId(), version.getStatus(), scriptVo.getName()));
                 }
-                return valueTextVo;
+                return dependencyInfoVo;
             }
         }
         return null;
     }
 
     /**
-     * 被调用方法名
+     * 被引用者（上游）类型
      *
      * @return
      */

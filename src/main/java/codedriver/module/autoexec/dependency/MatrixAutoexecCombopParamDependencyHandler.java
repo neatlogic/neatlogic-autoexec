@@ -8,7 +8,6 @@ package codedriver.module.autoexec.dependency;
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
-import codedriver.framework.common.dto.ValueTextVo;
 import codedriver.framework.dependency.constvalue.FromType;
 import codedriver.framework.dependency.core.CustomTableDependencyHandlerBase;
 import codedriver.framework.dependency.core.IFromType;
@@ -22,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * 组合工具参数引用矩阵关系处理器
  * @author linbq
  * @since 2021/6/21 16:31
  **/
@@ -55,26 +55,26 @@ public class MatrixAutoexecCombopParamDependencyHandler extends CustomTableDepen
     }
 
     @Override
-    protected DependencyInfoVo parse(Object caller) {
-        if (caller == null) {
+    protected DependencyInfoVo parse(Object dependencyObj) {
+        if (dependencyObj == null) {
             return null;
         }
-        if(caller instanceof Map){
-            Map<String, Object> map = (Map)caller;
-            DependencyInfoVo valueTextVo = new DependencyInfoVo();
+        if(dependencyObj instanceof Map){
+            Map<String, Object> map = (Map) dependencyObj;
             Long combopId = (Long) map.get("combop_id");
             AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
             if (autoexecCombopVo != null) {
                 String key = (String) map.get("key");
                 AutoexecCombopParamVo autoexecCombopParamVo = autoexecCombopMapper.getAutoexecCombopParamByCombopIdAndKey(autoexecCombopVo.getId(), key);
                 if (autoexecCombopParamVo != null) {
-                    valueTextVo.setValue(autoexecCombopVo.getId());
+                    DependencyInfoVo dependencyInfoVo = new DependencyInfoVo();
+                    dependencyInfoVo.setValue(autoexecCombopVo.getId());
                     String text = String.format("<a href=\"/%s/autoexec.html#/action-detail?id=%s\" target=\"_blank\">%s</a>",
                             TenantContext.get().getTenantUuid(),
                             autoexecCombopVo.getId(),
                             autoexecCombopVo.getName() + "-运行参数-" + autoexecCombopParamVo.getName());
-                    valueTextVo.setText(text);
-                    return valueTextVo;
+                    dependencyInfoVo.setText(text);
+                    return dependencyInfoVo;
                 }
             }
         }
