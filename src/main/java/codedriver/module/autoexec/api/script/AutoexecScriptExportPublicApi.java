@@ -15,20 +15,16 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicBinaryStreamApiComponentBase;
-import codedriver.framework.util.FileUtil;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.JSONWriter;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-import java.util.zip.ZipOutputStream;
 
 @Service
 @OperationType(type = OperationTypeEnum.SEARCH)
@@ -76,11 +72,8 @@ public class AutoexecScriptExportPublicApi extends PublicBinaryStreamApiComponen
         // 查询有激活版本的脚本
         List<Long> idList = autoexecScriptMapper.getAutoexecScriptIdListWhichHasActiveVersionByCatalogIdList(catalogIdList);
         if (!idList.isEmpty()) {
-            String fileName = FileUtil.getEncodedFileName(request.getHeader("User-Agent"),
-                    "自定义工具." + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak");
-            response.setContentType("application/zip");
-            response.setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
-            try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
+            try (JSONWriter writer = new JSONWriter(response.getWriter())) {
+                writer.startArray();
                 for (Long id : idList) {
                     AutoexecScriptVo script = autoexecScriptMapper.getScriptBaseInfoById(id);
                     AutoexecCatalogVo _catalog = autoexecCatalogMapper.getAutoexecCatalogById(script.getCatalogId());
@@ -92,10 +85,10 @@ public class AutoexecScriptExportPublicApi extends PublicBinaryStreamApiComponen
                     script.setParser(version.getParser());
                     script.setParamList(autoexecScriptMapper.getParamListByVersionId(version.getId()));
                     script.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
-                    zos.putNextEntry(new ZipEntry(script.getName() + ".json"));
-                    zos.write(JSONObject.toJSONBytes(script));
-                    zos.closeEntry();
+                    writer.writeObject(script);
                 }
+                writer.endArray();
+                writer.flush();
             }
         }
         return null;
