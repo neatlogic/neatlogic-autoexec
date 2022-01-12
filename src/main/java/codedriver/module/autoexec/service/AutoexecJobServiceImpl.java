@@ -112,7 +112,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 initPhaseExecuteUserAndProtocolAndNode(userName, protocolId, jobVo, jobPhaseVo, combopExecuteConfigVo, combopPhaseExecuteConfigVo);
             } else {
                 List<RunnerMapVo> runnerMapList = runnerMapper.getAllRunnerMap();
-                //TODO 负载均衡
                 if (CollectionUtils.isEmpty(runnerMapList)) {
                     throw new AutoexecJobRunnerNotMatchException();
                 }
@@ -306,18 +305,18 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     /**
      * 根据目标ip自动匹配runner
      *
-     * @param ip 目标ip
+     * @param nodeVo 目标node
      * @return runnerId
      */
-    private Long getRunnerByIp(String ip) {
+    private Long getRunnerByIp(AutoexecJobPhaseNodeVo nodeVo) {
         List<GroupNetworkVo> networkVoList = runnerMapper.getAllNetworkMask();
         for (GroupNetworkVo networkVo : networkVoList) {
-            if (IpUtil.isBelongSegment(ip, networkVo.getNetworkIp(), networkVo.getMask())) {
+            if (IpUtil.isBelongSegment(nodeVo.getHost(), networkVo.getNetworkIp(), networkVo.getMask())) {
                 RunnerGroupVo groupVo = runnerMapper.getRunnerMapGroupById(networkVo.getGroupId());
                 if (CollectionUtils.isEmpty(groupVo.getRunnerMapList())) {
                     throw new AutoexecJobRunnerGroupRunnerNotFoundException(groupVo.getName() + "(" + networkVo.getGroupId() + ") ");
                 }
-                int runnerMapIndex = (int) (Math.random() * groupVo.getRunnerMapList().size());
+                int runnerMapIndex = (int)(nodeVo.getId() % groupVo.getRunnerMapList().size());
                 RunnerMapVo runnerMapVo = groupVo.getRunnerMapList().get(runnerMapIndex);
                 if (runnerMapVo.getRunnerMapId() == null) {
                     runnerMapVo.setRunnerMapId(runnerMapVo.getId());
@@ -502,7 +501,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         resourceVoList.forEach(resourceVo -> {
             AutoexecJobPhaseNodeVo jobPhaseNodeVo = new AutoexecJobPhaseNodeVo(resourceVo, jobPhaseVo.getJobId(), jobPhaseVo, JobNodeStatus.PENDING.getValue(), userName, protocolId);
             jobPhaseNodeVo.setPort(resourceVo.getPort());
-            jobPhaseNodeVo.setRunnerMapId(getRunnerByIp(jobPhaseNodeVo.getHost()));
+            jobPhaseNodeVo.setRunnerMapId(getRunnerByIp(jobPhaseNodeVo));
             if (jobPhaseNodeVo.getRunnerMapId() == null) {
                 throw new AutoexecJobRunnerNotMatchException(jobPhaseNodeVo.getHost());
             }
