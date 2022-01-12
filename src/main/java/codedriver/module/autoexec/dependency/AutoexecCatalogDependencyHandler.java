@@ -12,6 +12,7 @@ import codedriver.framework.autoexec.exception.AutoexecScriptVersionHasNoActived
 import codedriver.framework.dependency.core.CustomTableDependencyHandlerBase;
 import codedriver.framework.dependency.core.IFromType;
 import codedriver.framework.dependency.dto.DependencyInfoVo;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.nacos.common.utils.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -116,15 +117,29 @@ public class AutoexecCatalogDependencyHandler extends CustomTableDependencyHandl
                 }
             }
             if (scriptVo != null && StringUtils.isNotBlank(status)) {
-                DependencyInfoVo dependencyInfoVo = new DependencyInfoVo();
-                dependencyInfoVo.setValue(scriptVo.getId());
+                JSONObject dependencyInfoConfig = new JSONObject();
+                dependencyInfoConfig.put("scriptId", scriptVo.getId());
+                dependencyInfoConfig.put("scriptName", scriptVo.getName());
+                dependencyInfoConfig.put("versionId", versionVo.getId());
+                String pathFormat = "自动化工具目录-${DATA.scriptName}";
+                String urlFormat = "";
                 //submitted的页面不一样
                 if (Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), status)) {
-                    dependencyInfoVo.setText(String.format("<a href=\"/%s/autoexec.html#/review-detail?versionId=%s\" target=\"_blank\">%s</a>", TenantContext.get().getTenantUuid(), versionVo.getId(), scriptVo.getName()));
+                    urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/review-detail?versionId=${DATA.versionId}";
                 } else if (version != null) {
-                    dependencyInfoVo.setText(String.format("<a href=\"/%s/autoexec.html#/script-detail?scriptId=%s&status=%s\" target=\"_blank\">%s</a>", TenantContext.get().getTenantUuid(), scriptVo.getId(), version.getStatus(), scriptVo.getName()));
+                    dependencyInfoConfig.put("versionStatus", version.getStatus());
+                    urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/script-detail?scriptId=${DATA.scriptId}&status=${DATA.versionStatus}";
                 }
-                return dependencyInfoVo;
+                return new DependencyInfoVo(scriptVo.getId(), dependencyInfoConfig, pathFormat, urlFormat);
+//                DependencyInfoVo dependencyInfoVo = new DependencyInfoVo();
+//                dependencyInfoVo.setValue(scriptVo.getId());
+//                //submitted的页面不一样
+//                if (Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), status)) {
+//                    dependencyInfoVo.setText(String.format("<a href=\"/%s/autoexec.html#/review-detail?versionId=%s\" target=\"_blank\">%s</a>", TenantContext.get().getTenantUuid(), versionVo.getId(), scriptVo.getName()));
+//                } else if (version != null) {
+//                    dependencyInfoVo.setText(String.format("<a href=\"/%s/autoexec.html#/script-detail?scriptId=%s&status=%s\" target=\"_blank\">%s</a>", TenantContext.get().getTenantUuid(), scriptVo.getId(), version.getStatus(), scriptVo.getName()));
+//                }
+//                return dependencyInfoVo;
             }
         }
         return null;
