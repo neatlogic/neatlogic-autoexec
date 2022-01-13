@@ -130,7 +130,7 @@ public class AutoexecCatalogDependencyHandler extends CustomTableDependencyHandl
                     dependencyInfoConfig.put("versionStatus", version.getStatus());
                     urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/script-detail?scriptId=${DATA.scriptId}&status=${DATA.versionStatus}";
                 }
-                return new DependencyInfoVo(scriptVo.getId(), dependencyInfoConfig, pathFormat, urlFormat);
+                return new DependencyInfoVo(scriptVo.getId(), dependencyInfoConfig, pathFormat, urlFormat, this.getGroupName());
 //                DependencyInfoVo dependencyInfoVo = new DependencyInfoVo();
 //                dependencyInfoVo.setValue(scriptVo.getId());
 //                //submitted的页面不一样

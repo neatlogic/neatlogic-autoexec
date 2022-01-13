@@ -74,7 +74,7 @@ public class MatrixAutoexecCombopParamDependencyHandler extends CustomTableDepen
                     dependencyInfoConfig.put("paramName", autoexecCombopParamVo.getName());
                     String pathFormat = "组合工具-${DATA.combopName}-运行参数-${DATA.paramName}";
                     String urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/action-detail?id=#{DATA.combopId}";
-                    return new DependencyInfoVo(autoexecCombopVo.getId(), dependencyInfoConfig, pathFormat, urlFormat);
+                    return new DependencyInfoVo(autoexecCombopVo.getId(), dependencyInfoConfig, pathFormat, urlFormat, this.getGroupName());
 //                    DependencyInfoVo dependencyInfoVo = new DependencyInfoVo();
 //                    dependencyInfoVo.setValue(autoexecCombopVo.getId());
 //                    String text = String.format("<a href=\"/%s/autoexec.html#/action-detail?id=%s\" target=\"_blank\">%s</a>",
