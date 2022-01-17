@@ -38,6 +38,26 @@ public class ScriptParamTypeNode extends ScriptParamTypeBase {
     }
 
     /**
+     * 获取参数描述
+     *
+     * @return
+     */
+    @Override
+    public String getDescription() {
+        return "将节点的相关信息生成脚本变量，但不会分派到该节点执行";
+    }
+
+    /**
+     * 排序
+     *
+     * @return
+     */
+    @Override
+    public int getSort() {
+        return 11;
+    }
+
+    /**
      * 获取前端初始化配置
      *
      * @return 配置

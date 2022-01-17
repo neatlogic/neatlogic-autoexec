@@ -37,6 +37,26 @@ public class ScriptParamTypeDate extends ScriptParamTypeBase {
     }
 
     /**
+     * 获取参数描述
+     *
+     * @return
+     */
+    @Override
+    public String getDescription() {
+        return "日期选择器";
+    }
+
+    /**
+     * 排序
+     *
+     * @return
+     */
+    @Override
+    public int getSort() {
+        return 3;
+    }
+
+    /**
      * 获取前端初始化配置
      *
      * @return 配置

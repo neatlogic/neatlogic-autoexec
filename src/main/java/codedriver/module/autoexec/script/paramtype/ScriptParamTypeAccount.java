@@ -45,6 +45,26 @@ public class ScriptParamTypeAccount extends ScriptParamTypeBase {
     }
 
     /**
+     * 获取参数描述
+     *
+     * @return
+     */
+    @Override
+    public String getDescription() {
+        return "服务的连接协议、帐号，用户连接主机上的数据库，中间件等服务";
+    }
+
+    /**
+     * 排序
+     *
+     * @return
+     */
+    @Override
+    public int getSort() {
+        return 12;
+    }
+
+    /**
      * 获取前端初始化配置
      *
      * @return 配置
