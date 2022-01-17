@@ -37,6 +37,26 @@ public class ScriptParamTypeText extends ScriptParamTypeBase {
     }
 
     /**
+     * 获取参数描述
+     *
+     * @return
+     */
+    @Override
+    public String getDescription() {
+        return "文本参数，可输入字符串、数字";
+    }
+
+    /**
+     * 排序
+     *
+     * @return
+     */
+    @Override
+    public int getSort() {
+        return 0;
+    }
+
+    /**
      * 获取前端初始化配置
      *
      * @return 配置

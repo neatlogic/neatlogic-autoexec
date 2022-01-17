@@ -39,6 +39,26 @@ public class ScriptParamTypeFile extends ScriptParamTypeBase {
     }
 
     /**
+     * 获取参数描述
+     *
+     * @return
+     */
+    @Override
+    public String getDescription() {
+        return "支持多个文件同时上传，执行时，自动上传文件到目标主机特定目录下，保留原文件名";
+    }
+
+    /**
+     * 排序
+     *
+     * @return
+     */
+    @Override
+    public int getSort() {
+        return 2;
+    }
+
+    /**
      * 获取前端初始化配置
      *
      * @return 配置

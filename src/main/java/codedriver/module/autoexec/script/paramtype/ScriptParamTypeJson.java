@@ -37,6 +37,26 @@ public class ScriptParamTypeJson extends ScriptParamTypeBase {
     }
 
     /**
+     * 获取参数描述
+     *
+     * @return
+     */
+    @Override
+    public String getDescription() {
+        return "支持json对象和json数组，输入内容需是合法Json格式";
+    }
+
+    /**
+     * 排序
+     *
+     * @return
+     */
+    @Override
+    public int getSort() {
+        return 6;
+    }
+
+    /**
      * 获取前端初始化配置
      *
      * @return 配置

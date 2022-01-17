@@ -10,6 +10,8 @@ import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeBase;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+
 /**
  * @author lvzk
  * @since 2021/11/18 15:37
@@ -37,6 +39,26 @@ public class ScriptParamTypeRadio extends ScriptParamTypeBase {
     }
 
     /**
+     * 获取参数描述
+     *
+     * @return
+     */
+    @Override
+    public String getDescription() {
+        return "单选选择器";
+    }
+
+    /**
+     * 排序
+     *
+     * @return
+     */
+    @Override
+    public int getSort() {
+        return 9;
+    }
+
+    /**
      * 获取前端初始化配置
      *
      * @return 配置
@@ -48,7 +70,7 @@ public class ScriptParamTypeRadio extends ScriptParamTypeBase {
                 this.put("type", "radio");
                 this.put("placeholder", "请选择");
                 this.put("url", "/api/rest/matrix/column/data/search/forselect/new");
-                this.put("rootName", "columnDataList");
+                this.put("rootName", "tbodyList");
             }
         };
     }

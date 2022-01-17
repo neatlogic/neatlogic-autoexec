@@ -37,6 +37,26 @@ public class ScriptParamTypeTime extends ScriptParamTypeBase {
     }
 
     /**
+     * 获取参数描述
+     *
+     * @return
+     */
+    @Override
+    public String getDescription() {
+        return "时间选择器";
+    }
+
+    /**
+     * 排序
+     *
+     * @return
+     */
+    @Override
+    public int getSort() {
+        return 5;
+    }
+
+    /**
      * 获取前端初始化配置
      *
      * @return 配置
