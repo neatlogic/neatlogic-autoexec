@@ -1,7 +1,7 @@
 package codedriver.module.autoexec.dependency;
 
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
-import codedriver.framework.autoexec.constvalue.CalleeType;
+import codedriver.framework.autoexec.constvalue.FromType;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
@@ -9,9 +9,10 @@ import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.exception.AutoexecScriptHasNoDraftVersionException;
 import codedriver.framework.autoexec.exception.AutoexecScriptHasNoRejectedVersionException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionHasNoActivedException;
-import codedriver.framework.common.dto.ValueTextVo;
-import codedriver.framework.dependency.core.DependencyHandlerBase;
-import codedriver.framework.dependency.core.ICalleeType;
+import codedriver.framework.dependency.core.CustomTableDependencyHandlerBase;
+import codedriver.framework.dependency.core.IFromType;
+import codedriver.framework.dependency.dto.DependencyInfoVo;
+import com.alibaba.fastjson.JSONObject;
 import com.alibaba.nacos.common.utils.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +28,7 @@ import java.util.Objects;
  * @date 2021/12/15 3:59 下午
  */
 @Service
-public class AutoexecCatalogDependencyHandler extends DependencyHandlerBase {
+public class AutoexecCatalogDependencyHandler extends CustomTableDependencyHandlerBase {
 
     @Resource
     AutoexecScriptMapper autoexecScriptMapper;
@@ -43,40 +44,40 @@ public class AutoexecCatalogDependencyHandler extends DependencyHandlerBase {
     }
 
     /**
-     * 被调用者字段
+     * 被引用者（上游）字段
      *
      * @return
      */
     @Override
-    protected String getCalleeField() {
+    protected String getFromField() {
         return "catalog_id";
     }
 
     /**
-     * 调用者字段
+     * 引用者（下游）字段
      *
      * @return
      */
     @Override
-    protected String getCallerField() {
+    protected String getToField() {
         return "id";
     }
 
     @Override
-    protected List<String> getCallerFieldList() {
+    protected List<String> getToFieldList() {
         return null;
     }
 
     /**
      * 解析数据，拼装跳转url，返回引用下拉列表一个选项数据结构
      *
-     * @param caller 调用者值
+     * @param dependencyObj 调用者值
      * @return
      */
     @Override
-    protected ValueTextVo parse(Object caller) {
-        if (caller instanceof Map) {
-            Map<String, Object> map = (Map) caller;
+    protected DependencyInfoVo parse(Object dependencyObj) {
+        if (dependencyObj instanceof Map) {
+            Map<String, Object> map = (Map) dependencyObj;
             Long id = (Long) map.get("id");
             AutoexecScriptVersionVo version = null;
             Boolean hasStatus = false;
@@ -116,27 +117,41 @@ public class AutoexecCatalogDependencyHandler extends DependencyHandlerBase {
                 }
             }
             if (scriptVo != null && StringUtils.isNotBlank(status)) {
-                ValueTextVo valueTextVo = new ValueTextVo();
-                valueTextVo.setValue(scriptVo.getId());
+                JSONObject dependencyInfoConfig = new JSONObject();
+                dependencyInfoConfig.put("scriptId", scriptVo.getId());
+                dependencyInfoConfig.put("scriptName", scriptVo.getName());
+                dependencyInfoConfig.put("versionId", versionVo.getId());
+                String pathFormat = "自动化工具目录-${DATA.scriptName}";
+                String urlFormat = "";
                 //submitted的页面不一样
                 if (Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), status)) {
-                    valueTextVo.setText(String.format("<a href=\"/%s/autoexec.html#/review-detail?versionId=%s\" target=\"_blank\">%s</a>", TenantContext.get().getTenantUuid(), versionVo.getId(), scriptVo.getName()));
+                    urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/review-detail?versionId=${DATA.versionId}";
                 } else if (version != null) {
-                    valueTextVo.setText(String.format("<a href=\"/%s/autoexec.html#/script-detail?scriptId=%s&status=%s\" target=\"_blank\">%s</a>", TenantContext.get().getTenantUuid(), scriptVo.getId(), version.getStatus(), scriptVo.getName()));
+                    dependencyInfoConfig.put("versionStatus", version.getStatus());
+                    urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/script-detail?scriptId=${DATA.scriptId}&status=${DATA.versionStatus}";
                 }
-                return valueTextVo;
+                return new DependencyInfoVo(scriptVo.getId(), dependencyInfoConfig, pathFormat, urlFormat, this.getGroupName());
+//                DependencyInfoVo dependencyInfoVo = new DependencyInfoVo();
+//                dependencyInfoVo.setValue(scriptVo.getId());
+//                //submitted的页面不一样
+//                if (Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), status)) {
+//                    dependencyInfoVo.setText(String.format("<a href=\"/%s/autoexec.html#/review-detail?versionId=%s\" target=\"_blank\">%s</a>", TenantContext.get().getTenantUuid(), versionVo.getId(), scriptVo.getName()));
+//                } else if (version != null) {
+//                    dependencyInfoVo.setText(String.format("<a href=\"/%s/autoexec.html#/script-detail?scriptId=%s&status=%s\" target=\"_blank\">%s</a>", TenantContext.get().getTenantUuid(), scriptVo.getId(), version.getStatus(), scriptVo.getName()));
+//                }
+//                return dependencyInfoVo;
             }
         }
         return null;
     }
 
     /**
-     * 被调用方法名
+     * 被引用者（上游）类型
      *
      * @return
      */
     @Override
-    public ICalleeType getCalleeType() {
-        return CalleeType.AUTOEXEC_CATALOG;
+    public IFromType getFromType() {
+        return FromType.AUTOEXEC_CATALOG;
     }
 }
