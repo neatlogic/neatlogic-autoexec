@@ -11,8 +11,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-
 /**
  * @author lvzk
  * @since 2021/11/18 15:37
