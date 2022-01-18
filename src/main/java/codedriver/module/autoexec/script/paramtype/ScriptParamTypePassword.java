@@ -41,6 +41,26 @@ public class ScriptParamTypePassword extends ScriptParamTypeBase {
     }
 
     /**
+     * 获取参数描述
+     *
+     * @return
+     */
+    @Override
+    public String getDescription() {
+        return "可输入数字或字符串，页面显示为密文";
+    }
+
+    /**
+     * 排序
+     *
+     * @return
+     */
+    @Override
+    public int getSort() {
+        return 1;
+    }
+
+    /**
      * 获取前端初始化配置
      *
      * @return 配置

@@ -38,6 +38,26 @@ public class ScriptParamTypeMultiSelect extends ScriptParamTypeBase {
     }
 
     /**
+     * 获取参数描述
+     *
+     * @return
+     */
+    @Override
+    public String getDescription() {
+        return "多选下拉选择器";
+    }
+
+    /**
+     * 排序
+     *
+     * @return
+     */
+    @Override
+    public int getSort() {
+        return 8;
+    }
+
+    /**
      * 获取前端初始化配置
      *
      * @return 配置
@@ -49,7 +69,7 @@ public class ScriptParamTypeMultiSelect extends ScriptParamTypeBase {
                 this.put("type", "select");
                 this.put("placeholder", "请选择");
                 this.put("dynamicUrl", "/api/rest/matrix/column/data/search/forselect/new");
-                this.put("rootName", "columnDataList");
+                this.put("rootName", "tbodyList");
                 this.put("multiple", true);
             }
         };
