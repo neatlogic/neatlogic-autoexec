@@ -126,7 +126,7 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
                 try {
                     autoexecService.validateParamList(newScriptVo.getParamList());
                 } catch (ApiRuntimeException ex) {
-                    faultMessages.add(ex.getMessage(true));
+                    faultMessages.add(ex.getMessage());
                 } catch (Exception ex) {
                     faultMessages.add(ex.getMessage());
                 }

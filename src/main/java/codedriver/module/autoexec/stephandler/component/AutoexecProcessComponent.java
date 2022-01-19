@@ -258,7 +258,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                         }
                     });
                 } catch (ProcessTaskNoPermissionException e) {
-                    logger.error(e.getMessage(true), e);
+                    logger.error(e.getMessage(), e);
                 }
             }
         }
