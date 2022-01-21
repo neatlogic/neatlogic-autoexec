@@ -177,6 +177,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         AutoexecCombopExecuteConfigVo executeConfigVo = combopPhaseExecuteConfigVo.getExecuteConfig();
         boolean isHasNode = false;
         boolean isPhaseConfig = false;
+        String nodeFrom = null;
         if (executeConfigVo != null) {
             if (StringUtils.isNotBlank(executeConfigVo.getExecuteUser())) {
                 userName = executeConfigVo.getExecuteUser();
@@ -193,17 +194,22 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             );
             if (isPhaseConfig) {
                 isHasNode = getJobNodeList(executeConfigVo, jobVo, jobPhaseVo, userName, protocolId, true);
+                nodeFrom = "phase";
             }
         }
         //如果阶段没有设置执行目标，则使用全局执行目标
         if (!isPhaseConfig) {
             isHasNode = getJobNodeList(combopExecuteConfigVo, jobVo, jobPhaseVo, userName, protocolId, false);
+            nodeFrom = "job";
         }
 
         //如果都找不到执行节点
         if (!isHasNode) {
             throw new AutoexecJobPhaseNodeNotFoundException(jobPhaseVo.getName(), isPhaseConfig);
         }
+
+        //跟新节点来源
+        autoexecJobMapper.updateJobPhaseNodeFrom(jobPhaseVo.getId(), nodeFrom);
 
     }
 
@@ -316,7 +322,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 if (CollectionUtils.isEmpty(groupVo.getRunnerMapList())) {
                     throw new AutoexecJobRunnerGroupRunnerNotFoundException(groupVo.getName() + "(" + networkVo.getGroupId() + ") ");
                 }
-                int runnerMapIndex = (int)(nodeVo.getId() % groupVo.getRunnerMapList().size());
+                int runnerMapIndex = (int) (nodeVo.getId() % groupVo.getRunnerMapList().size());
                 RunnerMapVo runnerMapVo = groupVo.getRunnerMapList().get(runnerMapIndex);
                 if (runnerMapVo.getRunnerMapId() == null) {
                     runnerMapVo.setRunnerMapId(runnerMapVo.getId());
@@ -339,8 +345,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             return false;
         }
         boolean isHasNode = false;
-        Map<Long, ResourceVo> resourceMap = new HashMap<>();
-        List<Long> resourceIdList = new ArrayList<>();
+        Date nowTime = new Date(System.currentTimeMillis());
+        jobPhaseVo.setLcd(nowTime);
+
         AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = nodeConfigVo.getExecuteNodeConfig();
         if (executeNodeConfigVo == null) {
             return false;
@@ -362,7 +369,13 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         //删除没有跑过的历史节点
         autoexecJobMapper.deleteJobPhaseNodeByJobPhaseIdAndLcdAndStatus(jobPhaseVo.getId(), jobPhaseVo.getLcd(), JobNodeStatus.PENDING.getValue());
         //更新该阶段所有不是最近更新的节点为已删除，即非法历史节点
-        autoexecJobMapper.updateJobPhaseNodeIsDeleteByJobPhaseIdAndLcd(jobPhaseVo.getId(), jobPhaseVo.getLcd());
+        Integer updateCount = autoexecJobMapper.updateJobPhaseNodeIsDeleteByJobPhaseIdAndLcd(jobPhaseVo.getId(), jobPhaseVo.getLcd());
+        //如果阶段节点更新过，则更新上一次修改日期(plcd)
+        if (updateCount == null || updateCount > 0) {
+            autoexecJobMapper.updateJobPhaseLncdById(jobPhaseVo.getId(), jobPhaseVo.getLcd());
+        }
+        //更新最近一次修改时间lcd
+        autoexecJobMapper.updateJobPhaseLcdById(jobPhaseVo.getId(), jobPhaseVo.getLcd());
         //删除该阶段所有不是最近更新的phase runner
         autoexecJobMapper.deleteJobPhaseRunnerByJobPhaseIdAndLcd(jobPhaseVo.getId(), jobPhaseVo.getLcd());
         return isHasNode;
@@ -393,8 +406,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 if (CollectionUtils.isNotEmpty(resourceIdSet)) {
                     List<ResourceVo> resourceVoList = resourceCenterMapper.getResourceFromSoftwareServiceByIdList(new ArrayList<>(resourceIdSet), TenantContext.get().getDataDbName());
                     if (CollectionUtils.isNotEmpty(resourceVoList)) {
-                        Date nowTime = new Date(System.currentTimeMillis());
-                        jobPhaseVo.setLcd(nowTime);
                         updateJobPhaseNode(jobPhaseVo, resourceVoList, userName, protocolId);
                         return true;
                     }
@@ -436,8 +447,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 List<ResourceVo> finalResourceVoList = resourceVoList;
                 lostIpPortList = ipPortList.stream().filter(s -> finalResourceVoList.stream().noneMatch(s1 -> Objects.equals(s1.getIp() + s1.getPort(), s.getIp() + s.getPort()))).collect(Collectors.toList());
                 if (CollectionUtils.isEmpty(lostIpPortList)) {
-                    Date nowTime = new Date(System.currentTimeMillis());
-                    jobPhaseVo.setLcd(nowTime);
                     updateJobPhaseNode(jobPhaseVo, resourceVoList, userName, protocolId);
                     return true;
                 }
@@ -460,7 +469,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
      * @param jobPhaseVo          作业阶段
      * @param userName            执行用户
      * @param protocolId          协议id
-     * @throws Exception 异常
      */
     private boolean updateNodeResourceByFilter(AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, AutoexecJobPhaseVo jobPhaseVo, String userName, Long protocolId) {
         JSONObject filterJson = executeNodeConfigVo.getFilter();
@@ -471,8 +479,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             ResourceSearchVo searchVo = resourceCrossoverService.assembleResourceSearchVo(filterJson);
             int count = resourceCenterMapper.getResourceCount(searchVo);
             if (count > 0) {
-                Date nowTime = new Date(System.currentTimeMillis());
-                jobPhaseVo.setLcd(nowTime);
                 int pageCount = PageUtil.getPageCount(count, searchVo.getPageSize());
                 for (int i = 1; i <= pageCount; i++) {
                     filterJson.put("currentPage", i);
@@ -497,7 +503,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     }
 
     private void updateJobPhaseNode(AutoexecJobPhaseVo jobPhaseVo, List<ResourceVo> resourceVoList, String userName, Long protocolId) {
-        autoexecJobMapper.updateJobPhaseLcdById(jobPhaseVo.getId(), jobPhaseVo.getLcd());
         resourceVoList.forEach(resourceVo -> {
             AutoexecJobPhaseNodeVo jobPhaseNodeVo = new AutoexecJobPhaseNodeVo(resourceVo, jobPhaseVo.getJobId(), jobPhaseVo, JobNodeStatus.PENDING.getValue(), userName, protocolId);
             jobPhaseNodeVo.setPort(resourceVo.getPort());
