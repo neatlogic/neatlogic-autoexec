@@ -142,7 +142,7 @@ public class ProcessTaskCallbackHandler extends AutoexecJobCallbackBase {
                     }
                     handler.complete(processTaskStepVo);
                 } catch (ProcessTaskNoPermissionException e) {
-                    logger.error(e.getMessage(true), e);
+                    logger.error(e.getMessage(), e);
 //                throw new PermissionDeniedException();
                 }
             }

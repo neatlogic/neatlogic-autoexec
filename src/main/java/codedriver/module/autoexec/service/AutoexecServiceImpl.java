@@ -5,28 +5,46 @@
 
 package codedriver.module.autoexec.service;
 
+import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.constvalue.ParamDataSource;
 import codedriver.framework.autoexec.constvalue.ParamMode;
 import codedriver.framework.autoexec.constvalue.ParamType;
+import codedriver.framework.autoexec.crossover.IAutoexecServiceCrossoverService;
+import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
+import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.script.paramtype.IScriptParamType;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import codedriver.framework.exception.type.ParamIrregularException;
 import codedriver.framework.exception.type.ParamNotExistsException;
 import codedriver.framework.exception.type.ParamRepeatsException;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import javax.annotation.Resource;
+import java.util.*;
 import java.util.regex.Pattern;
 
 @Service
-public class AutoexecServiceImpl implements AutoexecService {
+public class AutoexecServiceImpl implements AutoexecService , IAutoexecServiceCrossoverService {
+
+    @Resource
+    AutoexecJobMapper autoexecJobMapper;
+    @Resource
+    AutoexecCombopMapper autoexecCombopMapper;
+    @Resource
+    AutoexecScriptMapper autoexecScriptMapper;
+    @Resource
+    AutoexecToolMapper autoexecToolMapper;
 
     static Pattern paramKeyPattern = Pattern.compile("^[A-Za-z_\\d]+$");
 
@@ -111,6 +129,60 @@ public class AutoexecServiceImpl implements AutoexecService {
                 config.putAll(paramTypeConfig);
             }
         }
+    }
+
+    @Override
+    public List<AutoexecJobVo> getJobList(AutoexecJobVo jobVo) {
+        List<AutoexecJobVo> jobVoList = new ArrayList<>();
+        int rowNum = autoexecJobMapper.searchJobCount(jobVo);
+        if (rowNum > 0) {
+            jobVo.setRowNum(rowNum);
+            List<Long> jobIdList = autoexecJobMapper.searchJobId(jobVo);
+            if (CollectionUtils.isNotEmpty(jobIdList)) {
+                Map<String, ArrayList<Long>> operationIdMap = new HashMap<>();
+                jobVoList = autoexecJobMapper.searchJob(jobIdList);
+                //补充来源operation信息
+                Map<Long, String> operationIdNameMap = new HashMap<>();
+                List<AutoexecCombopVo> combopVoList;
+                List<AutoexecScriptVersionVo> scriptVoList;
+                List<AutoexecToolAndScriptVo> toolVoList;
+                operationIdMap.put(CombopOperationType.COMBOP.getValue(), new ArrayList<>());
+                operationIdMap.put(CombopOperationType.SCRIPT.getValue(), new ArrayList<>());
+                operationIdMap.put(CombopOperationType.TOOL.getValue(), new ArrayList<>());
+                jobVoList.forEach(o -> {
+                    operationIdMap.get(o.getOperationType()).add(o.getOperationId());
+                });
+                if (CollectionUtils.isNotEmpty(operationIdMap.get(CombopOperationType.COMBOP.getValue()))) {
+                    combopVoList = autoexecCombopMapper.getAutoexecCombopByIdList(operationIdMap.get(CombopOperationType.COMBOP.getValue()));
+                    combopVoList.forEach(o -> operationIdNameMap.put(o.getId(), o.getName()));
+                }
+                if (CollectionUtils.isNotEmpty(operationIdMap.get(CombopOperationType.SCRIPT.getValue()))) {
+                    scriptVoList = autoexecScriptMapper.getVersionByVersionIdList(operationIdMap.get(CombopOperationType.SCRIPT.getValue()));
+                    scriptVoList.forEach(o -> operationIdNameMap.put(o.getId(), o.getTitle()));
+                }
+                if (CollectionUtils.isNotEmpty(operationIdMap.get(CombopOperationType.TOOL.getValue()))) {
+                    toolVoList = autoexecToolMapper.getToolListByIdList(operationIdMap.get(CombopOperationType.TOOL.getValue()));
+                    toolVoList.forEach(o -> operationIdNameMap.put(o.getId(), o.getName()));
+                }
+                jobVoList.forEach(o -> {
+                    o.setOperationName(operationIdNameMap.get(o.getOperationId()));
+                });
+                /*  jobVoList.forEach(j -> {
+            //判断是否有编辑权限
+            if(Objects.equals(j.getOperationType(), CombopOperationType.COMBOP.getValue())) {
+                AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(j.getOperationId());
+                if (combopVo == null) {
+                    throw new AutoexecCombopNotFoundException(j.getOperationId());
+                }
+                autoexecCombopService.setOperableButtonList(combopVo);
+                if (combopVo.getEditable() == 1) {
+                    jobVo.setIsCanEdit(1);
+                }
+            }
+        });*/
+            }
+        }
+        return jobVoList;
     }
 
 }
