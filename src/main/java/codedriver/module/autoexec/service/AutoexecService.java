@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.service;
 
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 
 import java.util.List;
 
@@ -19,5 +20,7 @@ public interface AutoexecService {
     void validateParamList(List<? extends AutoexecParamVo> paramList);
 
     public void mergeConfig(AutoexecParamVo autoexecParamVo);
+
+    List<AutoexecJobVo> getJobList(AutoexecJobVo jobVo);
 
 }
