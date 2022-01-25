@@ -364,14 +364,17 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             isHasNode = updateNodeResourceByParam(jobVo, executeNodeConfigVo, jobPhaseVo, userName, protocolId);
         }
 
+        boolean isNeedLncd = false;//用于判断是否需要更新lncd（用于判断是否需要重新下载节点）
         //删除没有跑过的历史节点 runnerMap
         autoexecJobMapper.deleteJobPhaseNodeRunnerByJobPhaseIdAndLcdAndStatus(jobPhaseVo.getId(), jobPhaseVo.getLcd(), JobNodeStatus.PENDING.getValue());
         //删除没有跑过的历史节点
-        autoexecJobMapper.deleteJobPhaseNodeByJobPhaseIdAndLcdAndStatus(jobPhaseVo.getId(), jobPhaseVo.getLcd(), JobNodeStatus.PENDING.getValue());
+        Integer deleteCount = autoexecJobMapper.deleteJobPhaseNodeByJobPhaseIdAndLcdAndStatus(jobPhaseVo.getId(), jobPhaseVo.getLcd(), JobNodeStatus.PENDING.getValue());
+        isNeedLncd = deleteCount > 0;
         //更新该阶段所有不是最近更新的节点为已删除，即非法历史节点
         Integer updateCount = autoexecJobMapper.updateJobPhaseNodeIsDeleteByJobPhaseIdAndLcd(jobPhaseVo.getId(), jobPhaseVo.getLcd());
+        isNeedLncd = isNeedLncd || updateCount>0;
         //如果阶段节点更新过，则更新上一次修改日期(plcd)
-        if (updateCount == null || updateCount > 0) {
+        if (isNeedLncd) {
             autoexecJobMapper.updateJobPhaseLncdById(jobPhaseVo.getId(), jobPhaseVo.getLcd());
         }
         //更新最近一次修改时间lcd
