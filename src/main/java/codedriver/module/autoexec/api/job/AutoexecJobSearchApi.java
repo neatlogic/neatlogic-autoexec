@@ -7,7 +7,6 @@ package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
-import codedriver.framework.autoexec.crossover.IAutoexecJobSearchApiCrossoverService;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
@@ -29,7 +28,7 @@ import javax.annotation.Resource;
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
-public class AutoexecJobSearchApi extends PrivateApiComponentBase implements IAutoexecJobSearchApiCrossoverService {
+public class AutoexecJobSearchApi extends PrivateApiComponentBase {
 
 
     @Resource
