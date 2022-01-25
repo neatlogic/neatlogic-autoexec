@@ -123,7 +123,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
              * 2、lastModified小于最近一次节点变动时间(lncd)
              */
             AutoexecJobPhaseVo phaseVo = jobVo.getPhaseList().get(0);
-            if (lastModifiedLong == 0L || (phaseVo.getLncd() != null && lastModifiedLong < phaseVo.getLncd().getTime())) {
+            if (lastModifiedLong == 0L || phaseVo.getLncd() == null || (phaseVo.getLncd() != null && lastModifiedLong < phaseVo.getLncd().getTime())) {
                 isNeedDownLoad = true;
                 nodeParamVo.setJobPhaseName(phaseVo.getName());
                 int count = autoexecJobMapper.searchJobPhaseNodeCount(nodeParamVo);
@@ -189,6 +189,8 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                 if (os != null) {
                     os.close();
                 }
+                //更新lncd，防止后续会继续重新下载
+                autoexecJobMapper.updateJobPhaseLncdById(phaseVo.getId(),phaseVo.getLcd());
             }
         }
         if(!isNeedDownLoad){
