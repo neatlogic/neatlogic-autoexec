@@ -12,6 +12,7 @@ import codedriver.framework.auth.core.AuthFactory;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import codedriver.framework.autoexec.dto.combop.*;
+import codedriver.framework.autoexec.exception.AutoexecCombopPhaseNameRepeatException;
 import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.constvalue.GroupSearch;
@@ -39,6 +40,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -155,6 +157,14 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
 //            int iSort = 0;
             List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
+            List<String> nameList = new ArrayList<>();
+            for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
+                String name = autoexecCombopPhaseVo.getName();
+                if (nameList.contains(name)) {
+                    throw new AutoexecCombopPhaseNameRepeatException(name);
+                }
+                nameList.add(name);
+            }
             for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
                 if (autoexecCombopPhaseVo != null) {
                     autoexecCombopPhaseVo.setCombopId(id);
