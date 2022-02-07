@@ -144,6 +144,15 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
                 throw new PermissionDeniedException();
             }
             AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
+            List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
+            List<String> nameList = new ArrayList<>();
+            for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
+                String name = autoexecCombopPhaseVo.getName();
+                if (nameList.contains(name)) {
+                    throw new AutoexecCombopPhaseNameRepeatException(name);
+                }
+                nameList.add(name);
+            }
             AutoexecCombopConfigVo oldConfigVo = oldAutoexecCombopVo.getConfig();
             /** 更新组合工具阶段列表数据时，需要保留执行目标的配置信息 **/
             config.setExecuteConfig(oldConfigVo.getExecuteConfig());
@@ -156,15 +165,6 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             }
             autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
 //            int iSort = 0;
-            List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
-            List<String> nameList = new ArrayList<>();
-            for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
-                String name = autoexecCombopPhaseVo.getName();
-                if (nameList.contains(name)) {
-                    throw new AutoexecCombopPhaseNameRepeatException(name);
-                }
-                nameList.add(name);
-            }
             for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
                 if (autoexecCombopPhaseVo != null) {
                     autoexecCombopPhaseVo.setCombopId(id);
