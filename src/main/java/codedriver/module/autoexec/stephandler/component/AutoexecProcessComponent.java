@@ -155,10 +155,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                                 }
                             } else if ("executeNodeConfig".equals(key)) {
                                 if (StringUtils.isNotBlank(value)) {
-                                    // TODO linbq 当表单执行目标组件需求完成后，这里逻辑需要调整
-                                    JSONObject executeNodeConfig = new JSONObject();
-                                    executeNodeConfig.put("inputNodeList", parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
-                                    executeConfig.put("executeNodeConfig", executeNodeConfig);
+                                    executeConfig.put("executeNodeConfig", parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
                                 } else {
                                     executeConfig.put("executeNodeConfig", value);
                                 }
@@ -171,7 +168,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                 //如果工单步骤ID没有绑定自动化作业ID，则需要创建自动化作业
                 if (autoexecJobId == null) {
                     paramObj.put("source", AutoExecJobProcessSource.ITSM.getValue());
-                    paramObj.put("threadCount", 1);
+                    paramObj.put("threadCount", 32);
                     paramObj.put("invokeId", currentProcessTaskStepVo.getId());
                     try {
                         autoexecJobActionService.validateCreateJob(paramObj, false);
