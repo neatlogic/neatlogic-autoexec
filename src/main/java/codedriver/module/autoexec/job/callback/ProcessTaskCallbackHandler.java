@@ -5,11 +5,13 @@
 
 package codedriver.module.autoexec.job.callback;
 
+import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.job.callback.core.AutoexecJobCallbackBase;
 import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobEnvVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.common.constvalue.SystemUser;
 import codedriver.framework.process.constvalue.AutoExecJobProcessSource;
 import codedriver.framework.process.constvalue.ProcessFlowDirection;
 import codedriver.framework.process.constvalue.ProcessTaskOperationType;
@@ -140,6 +142,7 @@ public class ProcessTaskCallbackHandler extends AutoexecJobCallbackBase {
                     if (CollectionUtils.isNotEmpty(hidecomponentList)) {
                         paramObj.put("hidecomponentList", hidecomponentList);
                     }
+                    UserContext.init(SystemUser.SYSTEM.getUserVo(),SystemUser.SYSTEM.getTimezone());
                     handler.complete(processTaskStepVo);
                 } catch (ProcessTaskNoPermissionException e) {
                     logger.error(e.getMessage(), e);
