@@ -25,10 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author linbq
@@ -107,8 +104,7 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
             return resultObj;
         }
         boolean allRunner = true;
-        List<String> existedExportParamValueList = new ArrayList<>();
-        JSONArray exportParamList = new JSONArray();
+        JSONArray allExportParamList = new JSONArray();
         for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
             String execMode = autoexecCombopPhaseVo.getExecMode();
             if (!ExecMode.RUNNER.equals(execMode)) {
@@ -119,25 +115,41 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
                 List<AutoexecCombopPhaseOperationVo> phaseOperationList = autoexecCombopPhaseConfigVo.getPhaseOperationList();
                 if (CollectionUtils.isNotEmpty(phaseOperationList)) {
                     for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
-                        AutoexecCombopPhaseOperationConfigVo autoexecCombopPhaseOperationConfigVo = autoexecCombopPhaseOperationVo.getConfig();
-                        if (autoexecCombopPhaseOperationConfigVo != null) {
-                            List<ParamMappingVo> argumentMappingList = autoexecCombopPhaseOperationConfigVo.getArgumentMappingList();
-                            if (CollectionUtils.isNotEmpty(argumentMappingList)) {
-                                for (ParamMappingVo paramMappingVo : argumentMappingList) {
-                                    String value = (String) paramMappingVo.getValue();
-                                    if (existedExportParamValueList.contains(value)) {
-                                        continue;
+                        String name = autoexecCombopPhaseOperationVo.getName();
+                        if (StringUtils.isNotBlank(name)) {
+                            if (name.contains("setenvglobal") || name.contains("setenv")) {
+                                AutoexecCombopPhaseOperationConfigVo autoexecCombopPhaseOperationConfigVo = autoexecCombopPhaseOperationVo.getConfig();
+                                if (autoexecCombopPhaseOperationConfigVo != null) {
+                                    List<ParamMappingVo> paramMappingList = autoexecCombopPhaseOperationConfigVo.getParamMappingList();
+                                    if (CollectionUtils.isNotEmpty(paramMappingList)) {
+                                        JSONObject exportObj = new JSONObject();
+                                        for (ParamMappingVo paramMappingVo : paramMappingList) {
+                                            String key = paramMappingVo.getKey();
+                                            if ("name".equals(key)) {
+                                                exportObj.put("text", paramMappingVo.getValue());
+                                            } else if ("value".equals(key)) {
+                                                exportObj.put("value", paramMappingVo.getValue());
+                                            }
+                                        }
+                                        allExportParamList.add(exportObj);
                                     }
-                                    JSONObject exportObj = new JSONObject();
-                                    exportObj.put("value", value);
-                                    exportObj.put("text", paramMappingVo.getName());
-                                    exportParamList.add(exportObj);
                                 }
                             }
                         }
                     }
                 }
             }
+        }
+        List<String> existedExportParamValueList = new ArrayList<>();
+        JSONArray exportParamList = new JSONArray();
+        for (int i = allExportParamList.size() - 1; i >= 0; i--) {
+            JSONObject exportParamObj = allExportParamList.getJSONObject(i);
+            String vaule = exportParamObj.getString("value");
+            if (existedExportParamValueList.contains(vaule)) {
+                continue;
+            }
+            existedExportParamValueList.add(vaule);
+            exportParamList.add(exportParamObj);
         }
         resultObj.put("exportParamList", exportParamList);
         if (allRunner) {
