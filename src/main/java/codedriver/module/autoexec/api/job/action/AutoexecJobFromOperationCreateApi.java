@@ -218,7 +218,7 @@ public class AutoexecJobFromOperationCreateApi extends PrivateApiComponentBase {
                             }});
                         }});
                         put("inputParamList", phaseOperationParamVo.getInputParamList());
-                        put("outParamList", phaseOperationParamVo.getOutputParamList());
+                        put("outputParamList", phaseOperationParamVo.getOutputParamList());
                     }});
                 }});
             }});
