@@ -7,7 +7,6 @@ package codedriver.module.autoexec.api.job.exec;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.JobAction;
-import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
@@ -116,9 +115,13 @@ public class AutoexecJobNextPhaseFireApi extends PublicApiComponentBase {
                 jobVo.setCurrentPhaseSort(sort);
                 IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
                 fireAction.doService(jobVo);
-            } else {//说明没有可以执行的phase，更新job 状态为 completed
-                autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobId, JobStatus.COMPLETED.getValue()));
             }
+            /*
+            暂时注释，因为如果是所有phase都完成也会update phase status 为completed，防止update两次，导致callback两次
+            else {//说明没有可以执行的phase，更新job 状态为 completed
+            autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobId, JobStatus.COMPLETED.getValue()));
+            }
+            */
         }
         return null;
     }
