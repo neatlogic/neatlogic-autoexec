@@ -35,7 +35,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 @Service
-public class AutoexecServiceImpl implements AutoexecService , IAutoexecServiceCrossoverService {
+public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCrossoverService {
 
     @Resource
     AutoexecJobMapper autoexecJobMapper;
@@ -117,6 +117,7 @@ public class AutoexecServiceImpl implements AutoexecService , IAutoexecServiceCr
             } else {
                 paramTypeConfig.put("isRequired", true);
             }
+            paramTypeConfig.put("type", paramType.getType());
             JSONObject config = autoexecParamVo.getConfig();
             if (config == null) {
                 autoexecParamVo.setConfig(paramTypeConfig.toJSONString());
