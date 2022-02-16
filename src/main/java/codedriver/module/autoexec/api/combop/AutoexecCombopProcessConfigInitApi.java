@@ -127,7 +127,6 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
                                             String key = paramMappingVo.getKey();
                                             if ("name".equals(key)) {
                                                 exportObj.put("text", paramMappingVo.getValue());
-                                            } else if ("value".equals(key)) {
                                                 exportObj.put("value", paramMappingVo.getValue());
                                             }
                                         }
