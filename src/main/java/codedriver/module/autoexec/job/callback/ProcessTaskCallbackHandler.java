@@ -143,7 +143,7 @@ public class ProcessTaskCallbackHandler extends AutoexecJobCallbackBase {
                         paramObj.put("hidecomponentList", hidecomponentList);
                     }
                     UserContext.init(SystemUser.SYSTEM.getUserVo(),SystemUser.SYSTEM.getTimezone());
-                    handler.complete(processTaskStepVo);
+                    handler.autoComplete(processTaskStepVo);
                 } catch (ProcessTaskNoPermissionException e) {
                     logger.error(e.getMessage(), e);
 //                throw new PermissionDeniedException();
