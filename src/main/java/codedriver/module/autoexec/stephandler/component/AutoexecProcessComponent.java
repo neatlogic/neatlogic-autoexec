@@ -251,7 +251,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     doNext(ProcessTaskOperationType.STEP_COMPLETE, new ProcessStepThread(processTaskStepVo) {
                         @Override
                         public void myExecute() {
-                            handler.complete(processTaskStepVo);
+                            handler.autoComplete(processTaskStepVo);
                         }
                     });
                 } catch (ProcessTaskNoPermissionException e) {
