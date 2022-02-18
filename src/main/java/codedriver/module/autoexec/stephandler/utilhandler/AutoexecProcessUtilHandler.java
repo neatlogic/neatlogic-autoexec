@@ -287,7 +287,7 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
                     executeParam.put("key", executeParamObj.getString("key"));
                     executeParam.put("name", executeParamObj.getString("name"));
                     executeParam.put("mappingMode", executeParamObj.getString("mappingMode"));
-                    executeParam.put("value", executeParamObj.getString("value"));
+                    executeParam.put("value", executeParamObj.get("value"));
                     executeParam.put("isRequired", executeParamObj.getInteger("isRequired"));
                     executeParamArray.add(executeParam);
                 }
@@ -317,7 +317,7 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
                     JSONObject formAttribute = new JSONObject();
                     formAttribute.put("key", formAttributeObj.getString("key"));
                     formAttribute.put("name", formAttributeObj.getString("name"));
-                    formAttribute.put("value", formAttributeObj.getString("value"));
+                    formAttribute.put("value", formAttributeObj.get("value"));
                     formAttributeArray.add(formAttribute);
                 }
             }
