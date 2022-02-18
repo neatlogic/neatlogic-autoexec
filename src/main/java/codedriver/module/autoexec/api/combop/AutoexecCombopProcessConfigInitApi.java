@@ -171,34 +171,8 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
                     //运行参数作为执行目标
                     AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = executeConfigVo.getExecuteNodeConfig();
                     if (executeNodeConfigVo != null) {
-                        AutoexecCombopExecuteNodeConfigVo newExecuteNodeConfigVo = new AutoexecCombopExecuteNodeConfigVo();
-                        List<String> paramList = executeNodeConfigVo.getParamList();
-                        if (CollectionUtils.isNotEmpty(paramList)) {
-                            List<AutoexecNodeVo> selectNodeList = new ArrayList<>();
-                            List<Long> selectNodeIdList = new ArrayList<>();
-                            for (String paramKey : paramList) {
-                                AutoexecCombopParamVo paramVo = autoexecCombopParamMap.get(paramKey);
-                                if (paramVo != null) {
-                                    Object defaultValue = paramVo.getDefaultValue();
-                                    if (defaultValue != null) {
-                                        if (defaultValue instanceof JSONArray) {
-                                            List<AutoexecNodeVo> defaultValueList = ((JSONArray) defaultValue).toJavaList(AutoexecNodeVo.class);
-                                            for (AutoexecNodeVo autoexecNodeVo : defaultValueList) {
-                                                Long selectNodeId = autoexecNodeVo.getId();
-                                                if(selectNodeIdList.contains(selectNodeId)) {
-                                                    continue;
-                                                }
-                                                selectNodeIdList.add(selectNodeId);
-                                                selectNodeList.add(autoexecNodeVo);
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                            newExecuteNodeConfigVo.setSelectNodeList(selectNodeList);
-                        }
                         executeNode.put("mappingMode", ParamMappingMode.CONSTANT.getValue());
-                        executeNode.put("value", newExecuteNodeConfigVo);
+                        executeNode.put("value", executeNodeConfigVo);
                     } else {
                         executeNode.put("mappingMode", "");
                         executeNode.put("value", "");
