@@ -107,7 +107,7 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
         JSONArray allExportParamList = new JSONArray();
         for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
             String execMode = autoexecCombopPhaseVo.getExecMode();
-            if (!ExecMode.RUNNER.equals(execMode)) {
+            if (!ExecMode.RUNNER.getValue().equals(execMode)) {
                 allRunner = false;
             }
             AutoexecCombopPhaseConfigVo autoexecCombopPhaseConfigVo = autoexecCombopPhaseVo.getConfig();
