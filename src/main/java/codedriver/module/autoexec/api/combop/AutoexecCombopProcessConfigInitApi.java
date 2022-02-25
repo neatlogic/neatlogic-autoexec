@@ -162,7 +162,7 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
                 }
                 if (!needExecuteUser) {
                     String executeUser = executeConfigVo.getExecuteUser();
-                    if (StringUtils.isNotBlank(executeUser)) {
+                    if (StringUtils.isBlank(executeUser)) {
                         needExecuteUser = true;
                     }
                 }
