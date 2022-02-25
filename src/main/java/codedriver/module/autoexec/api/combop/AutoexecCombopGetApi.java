@@ -7,6 +7,7 @@ package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.constvalue.CombopNodeSpecify;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.ParamMode;
@@ -32,6 +33,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -107,11 +109,16 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
             autoexecService.mergeConfig(autoexecCombopParamVo);
         }
         autoexecCombopVo.setRuntimeParamList(runtimeParamList);
+        // 流程图自动化节点是否需要设置执行用户，只有当有某个非runner类型的阶段，没有设置执行用户时，needExecuteUser=true
+        boolean needExecuteUser = false;
+        // 流程图自动化节点是否需要设置连接协议，只有当有某个非runner类型的阶段，没有设置连接协议时，needProtocol=true
+        boolean needProtocol = false;
+        // 流程图自动化节点是否需要设置执行目标，只有当有某个非runner类型的阶段，没有设置执行目标时，needExecuteNode=true
+        boolean needExecuteNode = false;
         AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
         if (CollectionUtils.isNotEmpty(combopPhaseList)) {
             for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseList) {
-                combopPhaseVo.setExecModeName(ExecMode.getText(combopPhaseVo.getExecMode()));
                 AutoexecCombopPhaseConfigVo phaseConfigVo = combopPhaseVo.getConfig();
                 if (phaseConfigVo != null) {
                     List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfigVo.getPhaseOperationList();
@@ -169,8 +176,46 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
                         }
                     }
                 }
+                String execMode = combopPhaseVo.getExecMode();
+                combopPhaseVo.setExecModeName(ExecMode.getText(combopPhaseVo.getExecMode()));
+                if (!ExecMode.RUNNER.getValue().equals(execMode)) {
+                    if (phaseConfigVo == null) {
+                        needExecuteUser = true;
+                        needProtocol = true;
+                        needExecuteNode = true;
+                        continue;
+                    }
+                    AutoexecCombopExecuteConfigVo executeConfigVo = phaseConfigVo.getExecuteConfig();
+                    if (executeConfigVo == null) {
+                        needExecuteUser = true;
+                        needProtocol = true;
+                        needExecuteNode = true;
+                        continue;
+                    }
+                    if (!needProtocol) {
+                        Long protocolId = executeConfigVo.getProtocolId();
+                        if (protocolId == null) {
+                            needProtocol = true;
+                        }
+                    }
+                    if (!needExecuteUser) {
+                        String executeUser = executeConfigVo.getExecuteUser();
+                        if (StringUtils.isNotBlank(executeUser)) {
+                            needExecuteUser = true;
+                        }
+                    }
+                    if (!needExecuteNode) {
+                        String whenToSpecify = executeConfigVo.getWhenToSpecify();
+                        if (CombopNodeSpecify.RUNTIME.getValue().equals(whenToSpecify)) {
+                            needExecuteNode = true;
+                        }
+                    }
+                }
             }
         }
+        autoexecCombopVo.setNeedExecuteUser(needExecuteUser);
+        autoexecCombopVo.setNeedProtocol(needProtocol);
+        autoexecCombopVo.setNeedExecuteNode(needExecuteNode);
         return autoexecCombopVo;
     }
 }
