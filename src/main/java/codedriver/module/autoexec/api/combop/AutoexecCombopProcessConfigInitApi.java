@@ -18,6 +18,7 @@ import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -39,6 +40,8 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
+    @Resource
+    private AutoexecCombopService autoexecCombopService;
 
     @Override
     public String getToken() {
@@ -104,12 +107,6 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
         if (CollectionUtils.isEmpty(combopPhaseList)) {
             return resultObj;
         }
-        // 流程图自动化节点是否需要设置执行用户，只有当有某个非runner类型的阶段，没有设置执行用户时，needExecuteUser=true
-        boolean needExecuteUser = false;
-        // 流程图自动化节点是否需要设置连接协议，只有当有某个非runner类型的阶段，没有设置连接协议时，needProtocol=true
-        boolean needProtocol = false;
-        // 流程图自动化节点是否需要设置执行目标，只有当有某个非runner类型的阶段，没有设置执行目标时，needExecuteNode=true
-        boolean needExecuteNode = false;
         JSONArray allExportParamList = new JSONArray();
         for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
             AutoexecCombopPhaseConfigVo autoexecCombopPhaseConfigVo = autoexecCombopPhaseVo.getConfig();
@@ -140,48 +137,7 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
                     }
                 }
             }
-            String execMode = autoexecCombopPhaseVo.getExecMode();
-            if (!ExecMode.RUNNER.getValue().equals(execMode)) {
-                if (autoexecCombopPhaseConfigVo == null) {
-                    needExecuteUser = true;
-                    needProtocol = true;
-                    needExecuteNode = true;
-                    continue;
-                }
-                AutoexecCombopExecuteConfigVo executeConfigVo = autoexecCombopPhaseConfigVo.getExecuteConfig();
-                if (executeConfigVo == null) {
-                    needExecuteUser = true;
-                    needProtocol = true;
-                    needExecuteNode = true;
-                    continue;
-                }
-                if (!needProtocol) {
-                    Long protocolId = executeConfigVo.getProtocolId();
-                    if (protocolId == null) {
-                        needProtocol = true;
-                    }
-                }
-                if (!needExecuteUser) {
-                    String executeUser = executeConfigVo.getExecuteUser();
-                    if (StringUtils.isBlank(executeUser)) {
-                        needExecuteUser = true;
-                    }
-                }
-                if (!needExecuteNode) {
-                    AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = executeConfigVo.getExecuteNodeConfig();
-                    if (executeNodeConfigVo == null) {
-                        needExecuteNode = true;
-                    }
-                    List<String> paramList = executeNodeConfigVo.getParamList();
-                    List<AutoexecNodeVo> selectNodeList = executeNodeConfigVo.getSelectNodeList();
-                    List<AutoexecNodeVo> inputNodeList = executeNodeConfigVo.getInputNodeList();
-                    List<Long> tagList = executeNodeConfigVo.getTagList();
-                    JSONObject filter = executeNodeConfigVo.getFilter();
-                    if (CollectionUtils.isEmpty(paramList) && CollectionUtils.isEmpty(selectNodeList) && CollectionUtils.isEmpty(inputNodeList) && CollectionUtils.isEmpty(tagList) && MapUtils.isEmpty(filter)) {
-                        needExecuteNode = true;
-                    }
-                }
-            }
+            autoexecCombopService.needExecuteConfig(autoexecCombopVo, autoexecCombopPhaseVo);
         }
         List<String> existedExportParamValueList = new ArrayList<>();
         JSONArray exportParamList = new JSONArray();
@@ -195,6 +151,13 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
             exportParamList.add(exportParamObj);
         }
         resultObj.put("exportParamList", exportParamList);
+
+        // 流程图自动化节点是否需要设置执行用户，只有当有某个非runner类型的阶段，没有设置执行用户时，needExecuteUser=true
+        boolean needExecuteUser = autoexecCombopVo.getNeedExecuteUser();
+        // 流程图自动化节点是否需要设置连接协议，只有当有某个非runner类型的阶段，没有设置连接协议时，needProtocol=true
+        boolean needProtocol = autoexecCombopVo.getNeedProtocol();
+        // 流程图自动化节点是否需要设置执行目标，只有当有某个非runner类型的阶段，没有设置执行目标时，needExecuteNode=true
+        boolean needExecuteNode = autoexecCombopVo.getNeedExecuteNode();
         if (!needExecuteUser && !needProtocol && !needExecuteNode) {
             return resultObj;
         }

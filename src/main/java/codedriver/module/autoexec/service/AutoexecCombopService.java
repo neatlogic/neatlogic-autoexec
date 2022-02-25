@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.service;
 
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 
@@ -49,4 +50,11 @@ public interface AutoexecCombopService {
     public String getOperationActiveVersionScriptByOperation(AutoexecScriptVersionVo operation);
 
     public String getOperationActiveVersionScriptByOperationId(Long operationId);
+
+    /**
+     * 判断是否需要设置执行目标、执行用户、连接协议
+     * @param autoexecCombopVo 组合工具信息
+     * @param autoexecCombopPhaseVo 阶段信息
+     */
+    void needExecuteConfig(AutoexecCombopVo autoexecCombopVo, AutoexecCombopPhaseVo autoexecCombopPhaseVo);
 }
