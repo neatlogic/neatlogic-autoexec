@@ -330,6 +330,57 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
     }
 
     @Override
+    public void needExecuteConfig(AutoexecCombopVo autoexecCombopVo, AutoexecCombopPhaseVo autoexecCombopPhaseVo) {
+        String execMode = autoexecCombopPhaseVo.getExecMode();
+        if (!ExecMode.RUNNER.getValue().equals(execMode)) {
+            boolean needExecuteUser = autoexecCombopVo.getNeedExecuteUser();
+            boolean needProtocol = autoexecCombopVo.getNeedProtocol();
+            boolean needExecuteNode = autoexecCombopVo.getNeedExecuteNode();
+            AutoexecCombopPhaseConfigVo autoexecCombopPhaseConfigVo = autoexecCombopPhaseVo.getConfig();
+            if (autoexecCombopPhaseConfigVo == null) {
+                needExecuteUser = true;
+                needProtocol = true;
+                needExecuteNode = true;
+            }
+            AutoexecCombopExecuteConfigVo executeConfigVo = autoexecCombopPhaseConfigVo.getExecuteConfig();
+            if (executeConfigVo == null) {
+                needExecuteUser = true;
+                needProtocol = true;
+                needExecuteNode = true;
+            }
+            if (!needProtocol) {
+                Long protocolId = executeConfigVo.getProtocolId();
+                if (protocolId == null) {
+                    needProtocol = true;
+                }
+            }
+            if (!needExecuteUser) {
+                String executeUser = executeConfigVo.getExecuteUser();
+                if (StringUtils.isBlank(executeUser)) {
+                    needExecuteUser = true;
+                }
+            }
+            if (!needExecuteNode) {
+                AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = executeConfigVo.getExecuteNodeConfig();
+                if (executeNodeConfigVo == null) {
+                    needExecuteNode = true;
+                }
+                List<String> paramList = executeNodeConfigVo.getParamList();
+                List<AutoexecNodeVo> selectNodeList = executeNodeConfigVo.getSelectNodeList();
+                List<AutoexecNodeVo> inputNodeList = executeNodeConfigVo.getInputNodeList();
+                List<Long> tagList = executeNodeConfigVo.getTagList();
+                JSONObject filter = executeNodeConfigVo.getFilter();
+                if (CollectionUtils.isEmpty(paramList) && CollectionUtils.isEmpty(selectNodeList) && CollectionUtils.isEmpty(inputNodeList) && CollectionUtils.isEmpty(tagList) && MapUtils.isEmpty(filter)) {
+                    needExecuteNode = true;
+                }
+            }
+            autoexecCombopVo.setNeedExecuteUser(needExecuteUser);
+            autoexecCombopVo.setNeedExecuteNode(needExecuteNode);
+            autoexecCombopVo.setNeedProtocol(needProtocol);
+        }
+    }
+
+    @Override
     public String getOperationActiveVersionScriptByOperation(AutoexecScriptVersionVo scriptVersionVo) {
         List<AutoexecScriptLineVo> scriptLineVoList = autoexecScriptMapper.getLineListByVersionId(scriptVersionVo.getId());
         StringBuilder scriptSb = new StringBuilder();
