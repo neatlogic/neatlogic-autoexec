@@ -191,6 +191,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                     || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getSelectNodeList())
                     || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getInputNodeList())
                     || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getParamList())
+                    || MapUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getFilter())
             );
             if (isPhaseConfig) {
                 isHasNode = getJobNodeList(executeConfigVo, jobVo, jobPhaseVo, userName, protocolId, true);
