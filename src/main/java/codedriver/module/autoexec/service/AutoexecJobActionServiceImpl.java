@@ -211,22 +211,22 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         if (combopVo.getConfig() != null && jsonObj.containsKey("executeConfig")) {
             //如果执行传进来的"执行用户"、"协议"为空则使用默认设定的值
             AutoexecCombopExecuteConfigVo executeConfigVo = combopVo.getConfig().getExecuteConfig();
-            if(executeConfigVo == null){
+            if (executeConfigVo == null) {
                 executeConfigVo = new AutoexecCombopExecuteConfigVo();
             }
 
             AutoexecCombopExecuteConfigVo paramExecuteConfigVo = JSON.toJavaObject(jsonObj.getJSONObject("executeConfig"), AutoexecCombopExecuteConfigVo.class);
-            if(paramExecuteConfigVo.getProtocolId() != null){
+            if (paramExecuteConfigVo.getProtocolId() != null) {
                 executeConfigVo.setProtocolId(paramExecuteConfigVo.getProtocolId());
             }
-            if(StringUtils.isNotBlank(paramExecuteConfigVo.getExecuteUser())){
+            if (StringUtils.isNotBlank(paramExecuteConfigVo.getExecuteUser())) {
                 executeConfigVo.setExecuteUser(paramExecuteConfigVo.getExecuteUser());
             }
             executeConfigVo.setExecuteNodeConfig(paramExecuteConfigVo.getExecuteNodeConfig());
             combopVo.getConfig().setExecuteConfig(executeConfigVo);
 
         }
-        autoexecCombopService.verifyAutoexecCombopConfig(combopVo);
+        autoexecCombopService.verifyAutoexecCombopConfig(combopVo, true);
         //TODO 校验执行参数
 
         //并发数必须是2的n次方

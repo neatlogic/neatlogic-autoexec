@@ -22,14 +22,14 @@ public interface AutoexecCombopService {
      *
      * @param autoexecCombopVo 组合工具Vo对象
      */
-    public void setOperableButtonList(AutoexecCombopVo autoexecCombopVo);
+    void setOperableButtonList(AutoexecCombopVo autoexecCombopVo);
 
     /**
      * 设置当前用户可操作按钮权限列表
      *
      * @param combopVoList 组合工具Vo对象列表
      */
-    public void setOperableButtonList(List<AutoexecCombopVo> combopVoList);
+    void setOperableButtonList(List<AutoexecCombopVo> combopVoList);
 
     /**
      * 校验组合工具每个阶段是否配置正确
@@ -38,22 +38,25 @@ public interface AutoexecCombopService {
      * 2.引用上游出参或顶层参数，能找到来源（防止修改顶层参数或插件排序、或修改顶层参数带来的影响）
      *
      * @param autoexecCombopVo 组合工具Vo对象
-     * @return
+     * @param isExecuteJob     是否执行创建作业
+     * @return 是否合法
      */
-    public boolean verifyAutoexecCombopConfig(AutoexecCombopVo autoexecCombopVo);
+    boolean verifyAutoexecCombopConfig(AutoexecCombopVo autoexecCombopVo, boolean isExecuteJob);
 
     /**
-     *  通过操作id 获取当前激活版本脚本内容
+     * 通过操作id 获取当前激活版本脚本内容
+     *
      * @param operationId 操作Id
      * @return 脚本内容
      */
-    public String getOperationActiveVersionScriptByOperation(AutoexecScriptVersionVo operation);
+    String getOperationActiveVersionScriptByOperation(AutoexecScriptVersionVo operation);
 
-    public String getOperationActiveVersionScriptByOperationId(Long operationId);
+    String getOperationActiveVersionScriptByOperationId(Long operationId);
 
     /**
      * 判断是否需要设置执行目标、执行用户、连接协议
-     * @param autoexecCombopVo 组合工具信息
+     *
+     * @param autoexecCombopVo      组合工具信息
      * @param autoexecCombopPhaseVo 阶段信息
      */
     void needExecuteConfig(AutoexecCombopVo autoexecCombopVo, AutoexecCombopPhaseVo autoexecCombopPhaseVo);

@@ -114,7 +114,10 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
      * @return
      */
     @Override
-    public boolean verifyAutoexecCombopConfig(AutoexecCombopVo autoexecCombopVo) {
+    public boolean verifyAutoexecCombopConfig(AutoexecCombopVo autoexecCombopVo,boolean isExecuteJob) {
+        boolean isNeedExecuteUser = false;
+        boolean isNeedProtocol = false;
+        boolean isNeedExecuteNodeConfig = false;
         AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
         if (config == null) {
             throw new AutoexecCombopAtLeastOnePhaseException();
@@ -136,6 +139,19 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
             if (phaseConfig == null) {
                 throw new AutoexecCombopPhaseAtLeastOneOperationException();
+            }
+            //如果阶段存在任意"执行用户"、"协议"、"节点配置"
+            AutoexecCombopExecuteConfigVo phaseExecuteConfig = phaseConfig.getExecuteConfig();
+            if(phaseExecuteConfig != null){
+                if(StringUtils.isBlank(phaseExecuteConfig.getExecuteUser())){
+                    isNeedExecuteUser = true;
+                }
+                if(phaseExecuteConfig.getProtocolId() == null){
+                    isNeedProtocol = true;
+                }
+                if(phaseExecuteConfig.getExecuteNodeConfig() == null){
+                    isNeedExecuteNodeConfig = true;
+                }
             }
             List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
             if (CollectionUtils.isEmpty(phaseOperationList)) {
@@ -212,19 +228,27 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         AutoexecCombopExecuteConfigVo executeConfigVo = config.getExecuteConfig();
         if (executeConfigVo != null) {
             if (Objects.equals(executeConfigVo.getWhenToSpecify(), CombopNodeSpecify.NOW.getValue())) {
-                String executeUser = executeConfigVo.getExecuteUser();
-                if (StringUtils.isBlank(executeUser)) {
-                    throw new AutoexecCombopExecuteUserCannotBeEmptyException();
+                if(isExecuteJob) {
+                    String executeUser = executeConfigVo.getExecuteUser();
+                    if (StringUtils.isBlank(executeUser) && isNeedExecuteUser) {
+                        throw new AutoexecCombopExecuteUserCannotBeEmptyException();
+                    }
+                    if (executeConfigVo.getProtocolId() == null && isNeedExecuteNodeConfig) {
+                        throw new AutoexecCombopProtocolCannotBeEmptyException();
+                    }
                 }
                 AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = executeConfigVo.getExecuteNodeConfig();
                 if (executeNodeConfigVo == null) {
-                    throw new AutoexecCombopExecuteNodeCannotBeEmptyException();
-                }
-                List<AutoexecNodeVo> selectNodeList = executeNodeConfigVo.getSelectNodeList();
-                List<AutoexecNodeVo> inputNodeList = executeNodeConfigVo.getInputNodeList();
-                JSONObject filter = executeNodeConfigVo.getFilter();
-                if (CollectionUtils.isEmpty(selectNodeList) && CollectionUtils.isEmpty(inputNodeList) && MapUtils.isEmpty(filter)) {
-                    throw new AutoexecCombopExecuteNodeCannotBeEmptyException();
+                    if(isNeedExecuteNodeConfig) {
+                        throw new AutoexecCombopExecuteNodeCannotBeEmptyException();
+                    }
+                }else {
+                    List<AutoexecNodeVo> selectNodeList = executeNodeConfigVo.getSelectNodeList();
+                    List<AutoexecNodeVo> inputNodeList = executeNodeConfigVo.getInputNodeList();
+                    JSONObject filter = executeNodeConfigVo.getFilter();
+                    if (isNeedExecuteNodeConfig && CollectionUtils.isEmpty(selectNodeList) && CollectionUtils.isEmpty(inputNodeList) && MapUtils.isEmpty(filter)) {
+                        throw new AutoexecCombopExecuteNodeCannotBeEmptyException();
+                    }
                 }
             }
         }

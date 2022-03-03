@@ -78,7 +78,7 @@ public class AutoexecCombopIsActiveUpdateApi extends PrivateApiComponentBase {
         }
         /** 如果是激活组合工具，则需要校验该组合工具配置正确 **/
         if (isActive == 0) {
-            autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo);
+            autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo, false);
         }
         autoexecCombopVo.setLcu(UserContext.get().getUserUuid(true));
         autoexecCombopMapper.updateAutoexecCombopIsActiveById(autoexecCombopVo);
