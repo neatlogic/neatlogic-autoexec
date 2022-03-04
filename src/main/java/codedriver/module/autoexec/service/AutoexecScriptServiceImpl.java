@@ -51,6 +51,9 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
     @Resource
     private AutoexecCatalogMapper autoexecCatalogMapper;
 
+    @Resource
+    private AutoexecService autoexecService;
+
 
     /**
      * 获取脚本版本详细信息，包括参数与脚本内容
@@ -260,18 +263,25 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
                     AutoexecScriptVersionParamVo paramVo = inputParamList.get(i);
                     paramVo.setScriptVersionId(versionId);
                     // 如果默认值不以"RC4:"开头，说明修改了密码，则重新加密
-                    if (ParamType.PASSWORD.getValue().equals(paramVo.getType()) && paramVo.getDefaultValue() != null
-                            && !paramVo.getDefaultValue().toString().startsWith(CiphertextPrefix.RC4.getValue())) {
+                    if (ParamType.PASSWORD.getValue().equals(paramVo.getType()) && StringUtils.isNotBlank(paramVo.getDefaultValueStr())
+                            && !paramVo.getDefaultValueStr().startsWith(CiphertextPrefix.RC4.getValue())) {
                         paramVo.setDefaultValue(CiphertextPrefix.RC4.getValue() + RC4Util.encrypt((String) paramVo.getDefaultValue()));
                     }
                     paramVo.setSort(i);
+                    if (paramVo.getConfig() == null) {
+                        autoexecService.mergeConfig(paramVo);
+                    }
                 }
                 autoexecScriptMapper.insertScriptVersionParamList(inputParamList);
             }
             if (CollectionUtils.isNotEmpty(outputParamList)) {
                 for (int i = 0; i < outputParamList.size(); i++) {
-                    outputParamList.get(i).setScriptVersionId(versionId);
-                    outputParamList.get(i).setSort(i);
+                    AutoexecScriptVersionParamVo paramVo = outputParamList.get(i);
+                    paramVo.setScriptVersionId(versionId);
+                    paramVo.setSort(i);
+                    if (paramVo.getConfig() == null) {
+                        autoexecService.mergeConfig(paramVo);
+                    }
                 }
                 autoexecScriptMapper.insertScriptVersionParamList(outputParamList);
             }
