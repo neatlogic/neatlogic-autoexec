@@ -114,7 +114,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
             if (jobVo == null) {
                 throw new AutoexecJobNotFoundException(jobId.toString());
             }
-            if(CollectionUtils.isEmpty(jobVo.getPhaseList())){
+            if (CollectionUtils.isEmpty(jobVo.getPhaseList())) {
                 throw new AutoexecJobPhaseNotFoundException(phaseName);
             }
             /*
@@ -151,7 +151,9 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                         List<AccountVo> accountVoList = resourceCenterMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIdList, protocolId, userName);
                         List<AccountVo> allAccountVoList = resourceCenterMapper.getAccountListByIpList(autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getHost).collect(Collectors.toList()));
                         String finalUserName = autoexecJobPhaseNodeVoList.get(0).getUserName();
-                        for (AutoexecJobPhaseNodeVo nodeVo : autoexecJobPhaseNodeVoList) {
+                        for (i = 0; i < autoexecJobPhaseNodeVoList.size(); i++) {
+                            AutoexecJobPhaseNodeVo nodeVo = autoexecJobPhaseNodeVoList.get(i);
+                            int finalI = i;
                             JSONObject nodeJson = new JSONObject() {{
                                 Optional<AccountVo> accountOp = accountService.filterAccountByRules(accountVoList, allAccountVoList, protocolVoList, nodeVo.getResourceId(), nodeVo.getProtocolId(), nodeVo.getHost(), nodeVo.getPort());
                                 if (accountOp.isPresent()) {
@@ -176,6 +178,10 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                                 put("resourceId", nodeVo.getResourceId());
                                 put("host", nodeVo.getHost());
                                 put("port", nodeVo.getPort());
+                                //仅需要第一天数据补充总数
+                                if (finalI == 0) {
+                                    put("totalCount", count);
+                                }
                             }};
                             response.setContentType("application/json");
                             response.setHeader("Content-Disposition", " attachment; filename=nodes.json");
@@ -190,10 +196,10 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                     os.close();
                 }
                 //更新lncd，防止后续会继续重新下载
-                autoexecJobMapper.updateJobPhaseLncdById(phaseVo.getId(),phaseVo.getLcd());
+                autoexecJobMapper.updateJobPhaseLncdById(phaseVo.getId(), phaseVo.getLcd());
             }
         }
-        if(!isNeedDownLoad){
+        if (!isNeedDownLoad) {
             if (resp != null) {
                 resp.setStatus(204);
                 resp.getWriter().print(StringUtils.EMPTY);
