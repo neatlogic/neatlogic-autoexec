@@ -151,9 +151,9 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                         List<AccountVo> accountVoList = resourceCenterMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIdList, protocolId, userName);
                         List<AccountVo> allAccountVoList = resourceCenterMapper.getAccountListByIpList(autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getHost).collect(Collectors.toList()));
                         String finalUserName = autoexecJobPhaseNodeVoList.get(0).getUserName();
-                        for (i = 0; i < autoexecJobPhaseNodeVoList.size(); i++) {
-                            AutoexecJobPhaseNodeVo nodeVo = autoexecJobPhaseNodeVoList.get(i);
-                            int finalI = i;
+                        for (int j = 0; j < autoexecJobPhaseNodeVoList.size(); j++) {
+                            AutoexecJobPhaseNodeVo nodeVo = autoexecJobPhaseNodeVoList.get(j);
+                            int finalI = j;
                             JSONObject nodeJson = new JSONObject() {{
                                 Optional<AccountVo> accountOp = accountService.filterAccountByRules(accountVoList, allAccountVoList, protocolVoList, nodeVo.getResourceId(), nodeVo.getProtocolId(), nodeVo.getHost(), nodeVo.getPort());
                                 if (accountOp.isPresent()) {
@@ -185,7 +185,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                             }};
                             response.setContentType("application/json");
                             response.setHeader("Content-Disposition", " attachment; filename=nodes.json");
-                            IOUtils.copyLarge(IOUtils.toInputStream(nodeJson.toString() + "\n", StandardCharsets.UTF_8), os);
+                            IOUtils.copyLarge(IOUtils.toInputStream(nodeJson.toJSONString() + System.getProperty("line.separator"), StandardCharsets.UTF_8), os);
                             if (os != null) {
                                 os.flush();
                             }
