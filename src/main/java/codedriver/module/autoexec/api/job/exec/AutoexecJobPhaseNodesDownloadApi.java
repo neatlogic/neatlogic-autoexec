@@ -153,36 +153,34 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                         String finalUserName = autoexecJobPhaseNodeVoList.get(0).getUserName();
                         for (int j = 0; j < autoexecJobPhaseNodeVoList.size(); j++) {
                             AutoexecJobPhaseNodeVo nodeVo = autoexecJobPhaseNodeVoList.get(j);
-                            int finalI = j;
-                            JSONObject nodeJson = new JSONObject() {{
-                                Optional<AccountVo> accountOp = accountService.filterAccountByRules(accountVoList, allAccountVoList, protocolVoList, nodeVo.getResourceId(), nodeVo.getProtocolId(), nodeVo.getHost(), nodeVo.getPort());
-                                if (accountOp.isPresent()) {
-                                    AccountVo accountVoTmp = accountOp.get();
-                                    put("protocol", accountVoTmp.getProtocol());
-                                    put("password", "{ENCRYPTED}" + RC4Util.encrypt(AutoexecJobVo.AUTOEXEC_RC4_KEY, accountVoTmp.getPasswordPlain()));
-                                    put("protocolPort", accountVoTmp.getProtocolPort());
+                            JSONObject nodeJson = new JSONObject();
+                            Optional<AccountVo> accountOp = accountService.filterAccountByRules(accountVoList, allAccountVoList, protocolVoList, nodeVo.getResourceId(), nodeVo.getProtocolId(), nodeVo.getHost(), nodeVo.getPort());
+                            if (accountOp.isPresent()) {
+                                AccountVo accountVoTmp = accountOp.get();
+                                nodeJson.put("protocol", accountVoTmp.getProtocol());
+                                nodeJson.put("password", "{ENCRYPTED}" + RC4Util.encrypt(AutoexecJobVo.AUTOEXEC_RC4_KEY, accountVoTmp.getPasswordPlain()));
+                                nodeJson.put("protocolPort", accountVoTmp.getProtocolPort());
+                            } else {
+                                Optional<AccountProtocolVo> protocolVo = protocolVoList.stream().filter(o -> Objects.equals(o.getId(), nodeVo.getProtocolId())).findFirst();
+                                if (protocolVo.isPresent()) {
+                                    nodeJson.put("protocol", protocolVo.get().getName());
+                                    nodeJson.put("protocolPort", protocolVo.get().getPort());
                                 } else {
-                                    Optional<AccountProtocolVo> protocolVo = protocolVoList.stream().filter(o -> Objects.equals(o.getId(), nodeVo.getProtocolId())).findFirst();
-                                    if (protocolVo.isPresent()) {
-                                        put("protocol", protocolVo.get().getName());
-                                        put("protocolPort", protocolVo.get().getPort());
-                                    } else {
-                                        put("protocol", "protocolNotExist");
-                                    }
+                                    nodeJson.put("protocol", "protocolNotExist");
                                 }
-                                //ResourceVo resourceVo = (ResourceVo) resourceVoList.stream().filter(o-> Objects.equals(o.getId(),nodeVo.getResourceId()));
-                                put("username", finalUserName);
-                                put("nodeId", nodeVo.getId());
-                                put("nodeName", nodeVo.getNodeName());
-                                put("nodeType", nodeVo.getNodeType());
-                                put("resourceId", nodeVo.getResourceId());
-                                put("host", nodeVo.getHost());
-                                put("port", nodeVo.getPort());
-                                //仅需要第一天数据补充总数
-                                if (finalI == 0) {
-                                    put("totalCount", count);
-                                }
-                            }};
+                            }
+                            //ResourceVo resourceVo = (ResourceVo) resourceVoList.stream().filter(o-> Objects.equals(o.getId(),nodeVo.getResourceId()));
+                            nodeJson.put("username", finalUserName);
+                            nodeJson.put("nodeId", nodeVo.getId());
+                            nodeJson.put("nodeName", nodeVo.getNodeName());
+                            nodeJson.put("nodeType", nodeVo.getNodeType());
+                            nodeJson.put("resourceId", nodeVo.getResourceId());
+                            nodeJson.put("host", nodeVo.getHost());
+                            nodeJson.put("port", nodeVo.getPort());
+                            //仅需要第一条数据补充总数
+                            if (i == 0 && j == 0) {
+                                nodeJson.put("totalCount", count);
+                            }
                             response.setContentType("application/json");
                             response.setHeader("Content-Disposition", " attachment; filename=nodes.json");
                             IOUtils.copyLarge(IOUtils.toInputStream(nodeJson.toJSONString() + System.getProperty("line.separator"), StandardCharsets.UTF_8), os);
