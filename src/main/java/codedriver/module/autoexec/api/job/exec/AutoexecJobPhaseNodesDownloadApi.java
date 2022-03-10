@@ -126,6 +126,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
             if (lastModifiedLong == 0L || phaseVo.getLncd() == null || (phaseVo.getLncd() != null && lastModifiedLong < phaseVo.getLncd().getTime())) {
                 isNeedDownLoad = true;
                 nodeParamVo.setJobPhaseName(phaseVo.getName());
+                boolean isFirstNode = true;//第一个节点需补充totalCount
                 int count = autoexecJobMapper.searchJobPhaseNodeCount(nodeParamVo);
                 int pageCount = PageUtil.getPageCount(count, nodeParamVo.getPageSize());
                 nodeParamVo.setPageCount(pageCount);
@@ -178,8 +179,9 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                             nodeJson.put("host", nodeVo.getHost());
                             nodeJson.put("port", nodeVo.getPort());
                             //仅需要第一条数据补充总数
-                            if (i == 0 && j == 0) {
+                            if (isFirstNode) {
                                 nodeJson.put("totalCount", count);
+                                isFirstNode = false;
                             }
                             response.setContentType("application/json");
                             response.setHeader("Content-Disposition", " attachment; filename=nodes.json");
