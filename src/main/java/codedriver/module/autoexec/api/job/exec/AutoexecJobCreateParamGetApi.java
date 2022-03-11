@@ -60,7 +60,7 @@ public class AutoexecJobCreateParamGetApi extends PublicApiComponentBase {
         }
         autoexecJobService.getAutoexecJobDetail(jobVo,null);
         JSONObject result = new JSONObject();
-        autoexecJobActionService.getFireParamJson(result,jobVo);
+        autoexecJobActionService.getNewFireParamJson(result,jobVo);
         return result;
     }
 

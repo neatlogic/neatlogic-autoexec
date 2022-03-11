@@ -24,6 +24,14 @@ public interface AutoexecJobActionService {
     void getFireParamJson(JSONObject paramJson, AutoexecJobVo jobVo);
 
     /**
+     * 拼装给runner的param
+     *
+     * @param paramJson 返回param值
+     * @param jobVo     作业
+     */
+    void getNewFireParamJson(JSONObject paramJson, AutoexecJobVo jobVo);
+
+    /**
      * 校验根据组合工具创建的作业
      * @param isNeedAuth 是否需要鉴权
      */
