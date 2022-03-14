@@ -8,7 +8,7 @@ package codedriver.module.autoexec.dependency;
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
-import codedriver.framework.dependency.constvalue.FromType;
+import codedriver.framework.dependency.constvalue.FrameworkFromType;
 import codedriver.framework.dependency.core.CustomTableDependencyHandlerBase;
 import codedriver.framework.dependency.core.IFromType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
@@ -91,6 +91,6 @@ public class MatrixAutoexecCombopParamDependencyHandler extends CustomTableDepen
 
     @Override
     public IFromType getFromType() {
-        return FromType.MATRIX;
+        return FrameworkFromType.MATRIX;
     }
 }
