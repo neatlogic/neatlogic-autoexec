@@ -118,13 +118,13 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
                 throw new NotifyPolicyNotFoundException(autoexecCombopVo.getNotifyPolicyId().toString());
             }
         }
+        AutoexecCombopTemplateVo autoexecCombopTemplateVo = null;
         Long combopTemplateId = autoexecCombopVo.getCombopTemplateId();
         if (combopTemplateId != null) {
-            AutoexecCombopTemplateVo autoexecCombopTemplateVo = autoexecCombopTemplateMapper.getAutoexecCombopById(combopTemplateId);
+            autoexecCombopTemplateVo = autoexecCombopTemplateMapper.getAutoexecCombopById(combopTemplateId);
             if (autoexecCombopTemplateVo == null) {
                 throw new AutoexecCombopTemplateNotFoundException(combopTemplateId);
             }
-            autoexecCombopVo.setConfig(autoexecCombopTemplateVo.getConfigStr());
         }
         Long id = jsonObj.getLong("id");
         if (id == null) {
@@ -133,6 +133,10 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             }
             autoexecCombopVo.setOperationType(CombopOperationType.COMBOP.getValue());
             autoexecCombopVo.setOwner(UserContext.get().getUserUuid(true));
+            if (autoexecCombopTemplateVo != null) {
+                autoexecCombopVo.setConfig(autoexecCombopTemplateVo.getConfigStr());
+                autoexecCombopMapper.insertAutoexecCombopCombopTemplate(autoexecCombopVo.getId(), autoexecCombopTemplateVo.getId());
+            }
 //            autoexecCombopVo.setConfig("{}");
             autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
         } else {
