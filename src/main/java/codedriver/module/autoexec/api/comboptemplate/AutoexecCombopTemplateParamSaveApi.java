@@ -6,7 +6,7 @@
 package codedriver.module.autoexec.api.comboptemplate;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_TEMPLATE_MANAGE;
 import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopTemplateMapper;
 import codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateParamVo;
@@ -25,7 +25,6 @@ import codedriver.framework.restful.annotation.Param;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dependency.MatrixAutoexecCombopParamDependencyHandler;
-import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -47,15 +46,12 @@ import java.util.regex.Pattern;
  **/
 @Service
 @Transactional
-@AuthAction(action = AUTOEXEC_BASE.class)
+@AuthAction(action = AUTOEXEC_COMBOP_TEMPLATE_MANAGE.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class AutoexecCombopTemplateParamSaveApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopTemplateMapper autoexecCombopTemplateMapper;
-
-    @Resource
-    private AutoexecCombopService autoexecCombopService;
 
     @Override
     public String getToken() {

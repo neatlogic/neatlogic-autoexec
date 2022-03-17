@@ -6,7 +6,7 @@
 package codedriver.module.autoexec.api.comboptemplate;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
+import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_TEMPLATE_MANAGE;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopTemplateMapper;
 import codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateParamVo;
 import codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo;
@@ -43,7 +43,7 @@ import java.util.zip.ZipOutputStream;
  * @since 2021/4/13 11:21
  **/
 @Service
-@AuthAction(action = AUTOEXEC_COMBOP_ADD.class)
+@AuthAction(action = AUTOEXEC_COMBOP_TEMPLATE_MANAGE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecCombopTemplateExportApi extends PrivateBinaryStreamApiComponentBase {
 

@@ -6,7 +6,7 @@
 package codedriver.module.autoexec.api.comboptemplate;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_TEMPLATE_MANAGE;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopTemplateMapper;
 import codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopTemplateNotFoundException;
@@ -26,7 +26,7 @@ import javax.annotation.Resource;
  * @since 2021/4/13 11:21
  **/
 @Service
-@AuthAction(action = AUTOEXEC_BASE.class)
+@AuthAction(action = AUTOEXEC_COMBOP_TEMPLATE_MANAGE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecCombopTemplateNodeGetApi extends PrivateApiComponentBase {
 

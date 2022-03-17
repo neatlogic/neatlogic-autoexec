@@ -7,7 +7,7 @@ package codedriver.module.autoexec.api.comboptemplate;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_TEMPLATE_MANAGE;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopTemplateMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
@@ -43,7 +43,7 @@ import java.util.List;
  **/
 @Service
 @Transactional
-@AuthAction(action = AUTOEXEC_BASE.class)
+@AuthAction(action = AUTOEXEC_COMBOP_TEMPLATE_MANAGE.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class AutoexecCombopTemplateSaveApi extends PrivateApiComponentBase {
 
@@ -81,7 +81,7 @@ public class AutoexecCombopTemplateSaveApi extends PrivateApiComponentBase {
             @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
             @Param(name = "typeId", type = ApiParamType.LONG, isRequired = true, desc = "类型id"),
             @Param(name = "notifyPolicyId", type = ApiParamType.LONG, desc = "通知策略id"),
-            @Param(name = "owner", type = ApiParamType.STRING, minLength = 37, maxLength = 37, desc = "维护人"),
+//            @Param(name = "owner", type = ApiParamType.STRING, minLength = 37, maxLength = 37, desc = "维护人"),
             @Param(name = "config", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "配置信息")
     })
     @Output({
@@ -111,19 +111,19 @@ public class AutoexecCombopTemplateSaveApi extends PrivateApiComponentBase {
 //                throw new PermissionDeniedException(AUTOEXEC_COMBOP_ADD.class);
 //            }
             autoexecCombopTemplateVo.setOperationType(CombopOperationType.COMBOP.getValue());
-            autoexecCombopTemplateVo.setOwner(UserContext.get().getUserUuid(true));
+//            autoexecCombopTemplateVo.setOwner(UserContext.get().getUserUuid(true));
             autoexecCombopTemplateVo.setConfig("{}");
             autoexecCombopTemplateMapper.insertAutoexecCombop(autoexecCombopTemplateVo);
         } else {
-            String owner = autoexecCombopTemplateVo.getOwner();
-            if (owner == null) {
-                throw new ParamNotExistsException("owner");
-            }
-            owner = owner.substring(GroupSearch.USER.getValuePlugin().length());
-            if (userMapper.checkUserIsExists(owner) == 0) {
-                throw new UserNotFoundException(owner);
-            }
-            autoexecCombopTemplateVo.setOwner(owner);
+//            String owner = autoexecCombopTemplateVo.getOwner();
+//            if (owner == null) {
+//                throw new ParamNotExistsException("owner");
+//            }
+//            owner = owner.substring(GroupSearch.USER.getValuePlugin().length());
+//            if (userMapper.checkUserIsExists(owner) == 0) {
+//                throw new UserNotFoundException(owner);
+//            }
+//            autoexecCombopTemplateVo.setOwner(owner);
             AutoexecCombopTemplateVo oldAutoexecCombopTemplateVo = autoexecCombopTemplateMapper.getAutoexecCombopById(id);
             if (oldAutoexecCombopTemplateVo == null) {
                 throw new AutoexecCombopTemplateNotFoundException(id);

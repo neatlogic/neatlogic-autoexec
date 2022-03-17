@@ -7,7 +7,7 @@ package codedriver.module.autoexec.api.comboptemplate;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_TEMPLATE_MANAGE;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopTemplateMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
@@ -39,7 +39,7 @@ import java.util.List;
  **/
 @Service
 @Transactional
-@AuthAction(action = AUTOEXEC_BASE.class)
+@AuthAction(action = AUTOEXEC_COMBOP_TEMPLATE_MANAGE.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class AutoexecCombopTemplateCopyApi extends PrivateApiComponentBase {
 
@@ -93,7 +93,7 @@ public class AutoexecCombopTemplateCopyApi extends PrivateApiComponentBase {
             throw new AutoexecCombopTemplateNameRepeatException(autoexecCombopTemplateVo.getName());
         }
         String userUuid = UserContext.get().getUserUuid(true);
-        autoexecCombopTemplateVo.setOwner(userUuid);
+//        autoexecCombopTemplateVo.setOwner(userUuid);
         autoexecCombopTemplateVo.setFcu(userUuid);
         autoexecCombopTemplateVo.setOperationType(CombopOperationType.COMBOP.getValue());
         autoexecCombopTemplateVo.setDescription(jsonObj.getString("description"));
