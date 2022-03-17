@@ -6,7 +6,7 @@
 package codedriver.module.autoexec.api.comboptemplate;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_TEMPLATE_MANAGE;
 import codedriver.framework.autoexec.constvalue.CombopAuthorityAction;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopTemplateMapper;
 import codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateAuthorityVo;
@@ -45,7 +45,7 @@ import java.util.List;
  **/
 @Service
 @Transactional
-@AuthAction(action = AUTOEXEC_BASE.class)
+@AuthAction(action = AUTOEXEC_COMBOP_TEMPLATE_MANAGE.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class AutoexecCombopTemplateAuthoritySaveApi extends PrivateApiComponentBase {
 

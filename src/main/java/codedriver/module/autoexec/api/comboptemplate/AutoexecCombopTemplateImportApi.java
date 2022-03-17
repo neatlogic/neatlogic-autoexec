@@ -7,7 +7,7 @@ package codedriver.module.autoexec.api.comboptemplate;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
+import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_TEMPLATE_MANAGE;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopTemplateMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
@@ -60,7 +60,7 @@ import java.util.zip.ZipInputStream;
 @Service
 @Transactional
 @OperationType(type = OperationTypeEnum.CREATE)
-@AuthAction(action = AUTOEXEC_COMBOP_ADD.class)
+@AuthAction(action = AUTOEXEC_COMBOP_TEMPLATE_MANAGE.class)
 public class AutoexecCombopTemplateImportApi extends PrivateBinaryStreamApiComponentBase {
 
     @Resource
@@ -156,9 +156,9 @@ public class AutoexecCombopTemplateImportApi extends PrivateBinaryStreamApiCompo
         if (StringUtils.isBlank(autoexecCombopTemplateVo.getOperationType())){
             throw new ClassCastException();
         }
-        if (StringUtils.isBlank(autoexecCombopTemplateVo.getOwner())){
-            throw new ClassCastException();
-        }
+//        if (StringUtils.isBlank(autoexecCombopTemplateVo.getOwner())){
+//            throw new ClassCastException();
+//        }
         if (autoexecCombopTemplateVo.getConfig() == null){
             throw new ClassCastException();
         }
@@ -288,9 +288,9 @@ public class AutoexecCombopTemplateImportApi extends PrivateBinaryStreamApiCompo
         if (!Objects.equals(obj1.getNotifyPolicyId(), obj2.getNotifyPolicyId())) {
             return false;
         }
-        if (!Objects.equals(obj1.getOwner(), obj2.getOwner())) {
-            return false;
-        }
+//        if (!Objects.equals(obj1.getOwner(), obj2.getOwner())) {
+//            return false;
+//        }
         if (!Objects.equals(obj1.getConfigStr(), obj2.getConfigStr())) {
             return false;
         }

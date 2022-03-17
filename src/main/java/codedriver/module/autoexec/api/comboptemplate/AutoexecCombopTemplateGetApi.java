@@ -6,7 +6,7 @@
 package codedriver.module.autoexec.api.comboptemplate;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_TEMPLATE_MANAGE;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.ParamMode;
@@ -45,7 +45,7 @@ import java.util.Objects;
  * @since 2021/4/13 15:29
  **/
 @Service
-@AuthAction(action = AUTOEXEC_BASE.class)
+@AuthAction(action = AUTOEXEC_COMBOP_TEMPLATE_MANAGE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecCombopTemplateGetApi extends PrivateApiComponentBase {
 
@@ -97,7 +97,7 @@ public class AutoexecCombopTemplateGetApi extends PrivateApiComponentBase {
 //        if (Objects.equals(autoexecCombopVo.getViewable(), 0)) {
 //            throw new PermissionDeniedException();
 //        }
-        autoexecCombopTemplateVo.setOwner(GroupSearch.USER.getValuePlugin() + autoexecCombopTemplateVo.getOwner());
+//        autoexecCombopTemplateVo.setOwner(GroupSearch.USER.getValuePlugin() + autoexecCombopTemplateVo.getOwner());
         List<AutoexecCombopTemplateParamVo> runtimeParamList = autoexecCombopTemplateMapper.getAutoexecCombopParamListByCombopId(id);
         for (AutoexecCombopTemplateParamVo autoexecCombopTemplateParamVo : runtimeParamList) {
             autoexecService.mergeConfig(autoexecCombopTemplateParamVo);
