@@ -38,7 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * 保存组合工具授权信息接口
+ * 保存组合工具模板授权信息接口
  *
  * @author linbq
  * @since 2021/4/13 11:21
@@ -65,7 +65,7 @@ public class AutoexecCombopTemplateAuthoritySaveApi extends PrivateApiComponentB
 
     @Override
     public String getName() {
-        return "保存组合工具授权信息";
+        return "保存组合工具模板授权信息";
     }
 
     @Override
@@ -78,7 +78,7 @@ public class AutoexecCombopTemplateAuthoritySaveApi extends PrivateApiComponentB
             @Param(name = "editAuthorityList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "编辑授权列表"),
             @Param(name = "executeAuthorityList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "执行授权列表")
     })
-    @Description(desc = "保存组合工具授权信息")
+    @Description(desc = "保存组合工具模板授权信息")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long combopTemplateId = jsonObj.getLong("combopTemplateId");

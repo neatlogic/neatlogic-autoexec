@@ -22,7 +22,7 @@ import javax.annotation.Resource;
 import java.util.List;
 
 /**
- * 查询组合工具顶层参数列表接口
+ * 查询组合工具模板顶层参数列表接口
  *
  * @author linbq
  * @since 2021/4/13 11:21
@@ -44,7 +44,7 @@ public class AutoexecCombopTemplateParamListApi extends PrivateApiComponentBase 
 
     @Override
     public String getName() {
-        return "查询组合工具顶层参数列表";
+        return "查询组合工具模板顶层参数列表";
     }
 
     @Override
@@ -53,12 +53,12 @@ public class AutoexecCombopTemplateParamListApi extends PrivateApiComponentBase 
     }
 
     @Input({
-            @Param(name = "combopTemplateId", type = ApiParamType.LONG, isRequired = true, desc = "组合工具模板id")
+            @Param(name = "combopTemplateId", type = ApiParamType.LONG, isRequired = true, desc = "组合工具模板模板id")
     })
     @Output({
             @Param(explode = AutoexecCombopTemplateParamVo[].class, desc = "参数列表")
     })
-    @Description(desc = "查询组合工具顶层参数列表")
+    @Description(desc = "查询组合工具模板顶层参数列表")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long combopTemplateId = jsonObj.getLong("combopTemplateId");
