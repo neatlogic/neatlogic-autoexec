@@ -37,7 +37,7 @@ public interface AutoexecCombopTemplateMapper {
 
 //    List<AutoexecCombopTemplateVo> getAutoexecCombopListByIdList(List<Long> idList);
 
-    List<AutoexecCombopTemplateAuthorityVo> getAutoexecCombopAuthorityListByCombopIdAndAction(@Param("combopId") Long combopId, @Param("action") String action);
+    List<AutoexecCombopTemplateAuthorityVo> getAutoexecCombopAuthorityListByCombopIdAndAction(@Param("combopTemplateId") Long combopTemplateId, @Param("action") String action);
 
     List<AutoexecCombopTemplateParamVo> getAutoexecCombopParamListByCombopId(Long combopId);
 
