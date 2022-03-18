@@ -6,10 +6,7 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecProfileMapper;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
-import codedriver.framework.restful.annotation.Input;
-import codedriver.framework.restful.annotation.OperationType;
-import codedriver.framework.restful.annotation.Output;
-import codedriver.framework.restful.annotation.Param;
+import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.util.TableResultUtil;
@@ -60,6 +57,7 @@ public class AutoexecProfileSearchApi extends PrivateApiComponentBase {
             @Param(name = "tbodyList", explode = AutoexecProfileVo[].class, desc = "工具profile列表"),
             @Param(explode = BasePageVo.class)
     })
+    @Description(desc = "自动化工具profile列表查询接口")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecProfileVo profileVo = JSON.toJavaObject(paramObj, AutoexecProfileVo.class);
