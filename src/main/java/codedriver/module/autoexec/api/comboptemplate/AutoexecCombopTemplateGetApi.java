@@ -16,12 +16,10 @@ import codedriver.framework.autoexec.dto.AutoexecRiskVo;
 import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
-import codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateParamVo;
 import codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopTemplateNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
-import codedriver.framework.common.constvalue.GroupSearch;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -98,11 +96,7 @@ public class AutoexecCombopTemplateGetApi extends PrivateApiComponentBase {
 //            throw new PermissionDeniedException();
 //        }
 //        autoexecCombopTemplateVo.setOwner(GroupSearch.USER.getValuePlugin() + autoexecCombopTemplateVo.getOwner());
-        List<AutoexecCombopTemplateParamVo> runtimeParamList = autoexecCombopTemplateMapper.getAutoexecCombopParamListByCombopId(id);
-        for (AutoexecCombopTemplateParamVo autoexecCombopTemplateParamVo : runtimeParamList) {
-            autoexecService.mergeConfig(autoexecCombopTemplateParamVo);
-        }
-        autoexecCombopTemplateVo.setRuntimeParamList(runtimeParamList);
+
         AutoexecCombopConfigVo config = autoexecCombopTemplateVo.getConfig();
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
         if (CollectionUtils.isNotEmpty(combopPhaseList)) {

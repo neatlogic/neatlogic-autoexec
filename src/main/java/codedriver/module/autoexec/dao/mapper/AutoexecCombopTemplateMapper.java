@@ -5,10 +5,7 @@
 
 package codedriver.module.autoexec.dao.mapper;
 
-import codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateAuthorityVo;
-import codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateParamVo;
 import codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo;
-import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -21,55 +18,17 @@ public interface AutoexecCombopTemplateMapper {
 
     Long checkAutoexecCombopNameIsRepeat(AutoexecCombopTemplateVo autoexecCombopVo);
 
-//    Long checkAutoexecCombopUkIsRepeat(AutoexecCombopTemplateVo autoexecCombopVo);
-
     Integer getAutoexecCombopIsActiveByIdForUpdate(Long id);
 
     AutoexecCombopTemplateVo getAutoexecCombopById(Long id);
-
-//    AutoexecCombopTemplateVo getAutoexecCombopByName(String name);
-
-//    List<AutoexecCombopTemplateVo> getAutoexecCombopByIdList(ArrayList<Long> idList);
 
     int getAutoexecCombopCount(AutoexecCombopTemplateVo searchVo);
 
     List<AutoexecCombopTemplateVo> getAutoexecCombopList(AutoexecCombopTemplateVo searchVo);
 
-//    List<AutoexecCombopTemplateVo> getAutoexecCombopListByIdList(List<Long> idList);
-
-    List<AutoexecCombopTemplateAuthorityVo> getAutoexecCombopAuthorityListByCombopIdAndAction(@Param("combopTemplateId") Long combopTemplateId, @Param("action") String action);
-
-    List<AutoexecCombopTemplateParamVo> getAutoexecCombopParamListByCombopId(Long combopId);
-
-//    AutoexecCombopTemplateParamVo getAutoexecCombopParamByCombopIdAndKey(@Param("combopId") Long combopId, @Param("key") String key);
-
-//    List<String> getAutoexecCombopAuthorityListByCombopIdAndUserUuidAndTeamUuidListAndRoleUuidList(
-//            @Param("combopId") Long combopId,
-//            @Param("userUuid") String userUuid,
-//            @Param("teamUuidList") List<String> teamUuidList,
-//            @Param("roleUuidList") List<String> roleUuidList
-//    );
-
-//    Set<Long> getExecutableAutoexecCombopIdListByKeywordAndAuthenticationInfo(
-//            @Param("keyword")String keyword,
-//            @Param("authenticationInfoVo") AuthenticationInfoVo authenticationInfoVo
-//    );
-
-//    List<Long> getCombopPhaseIdListByCombopId(Long combopId);
-
     List<Long> checkAutoexecCombopIdListIsExists(List<Long> idList);
 
-//    Long checkItHasBeenGeneratedToCombopByOperationId(Long operationId);
-
     int insertAutoexecCombop(AutoexecCombopTemplateVo autoexecCombopVo);
-
-    int insertAutoexecCombopAuthorityVoList(List<AutoexecCombopTemplateAuthorityVo> autoexecCombopAuthorityVoList);
-
-    int insertAutoexecCombopParamVoList(List<AutoexecCombopTemplateParamVo> autoexecCombopParamVoList);
-
-//    int insertAutoexecCombopPhase(AutoexecCombopPhaseVo autoexecCombopPhaseVo);
-
-//    int insertAutoexecCombopPhaseOperation(AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo);
 
     int updateAutoexecCombopById(AutoexecCombopTemplateVo autoexecCombopVo);
 
@@ -78,13 +37,5 @@ public interface AutoexecCombopTemplateMapper {
     int updateAutoexecCombopConfigById(AutoexecCombopTemplateVo autoexecCombopVo);
 
     int deleteAutoexecCombopById(Long id);
-
-    int deleteAutoexecCombopAuthorityByCombopId(Long combopId);
-
-    int deleteAutoexecCombopParamByCombopId(Long combopId);
-
-//    int deleteAutoexecCombopPhaseByCombopId(Long combopId);
-
-//    int deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(List<Long> combopPhaseIdList);
 
 }

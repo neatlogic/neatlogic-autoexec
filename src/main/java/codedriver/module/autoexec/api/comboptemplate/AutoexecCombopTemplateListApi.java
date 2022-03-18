@@ -59,7 +59,7 @@ public class AutoexecCombopTemplateListApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "keyword", type = ApiParamType.STRING, desc = "模糊查询，支持名称或唯一标识"),
+            @Param(name = "keyword", type = ApiParamType.STRING, desc = "模糊查询，支持名称或描述"),
             @Param(name = "typeId", type = ApiParamType.LONG, desc = "类型id"),
             @Param(name = "isActive", type = ApiParamType.ENUM, rule = "0,1", desc = "状态"),
             @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页数"),

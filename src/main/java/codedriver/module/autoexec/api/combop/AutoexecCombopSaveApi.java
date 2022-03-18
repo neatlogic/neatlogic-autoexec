@@ -135,7 +135,6 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             autoexecCombopVo.setOwner(UserContext.get().getUserUuid(true));
             if (autoexecCombopTemplateVo != null) {
                 autoexecCombopVo.setConfig(autoexecCombopTemplateVo.getConfigStr());
-                autoexecCombopMapper.insertAutoexecCombopCombopTemplate(autoexecCombopVo.getId(), autoexecCombopTemplateVo.getId());
             }
 //            autoexecCombopVo.setConfig("{}");
             autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
