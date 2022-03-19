@@ -68,8 +68,6 @@ public class AutoexecCombopTemplateDeleteApi extends PrivateApiComponentBase {
 //                throw new PermissionDeniedException();
 //            }
             autoexecCombopTemplateMapper.deleteAutoexecCombopById(id);
-            autoexecCombopTemplateMapper.deleteAutoexecCombopAuthorityByCombopId(id);
-            autoexecCombopTemplateMapper.deleteAutoexecCombopParamByCombopId(id);
             DependencyManager.delete(MatrixAutoexecCombopParamDependencyHandler.class, id);
 //            List<Long> combopPhaseIdList = autoexecCombopTemplateMapper.getCombopPhaseIdListByCombopId(id);
 //            if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {

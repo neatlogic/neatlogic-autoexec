@@ -7,91 +7,41 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecCombopTemplateMapper">
     <select id="checkAutoexecCombopIsExists" parameterType="java.lang.Long" resultType="int">
-        SELECT COUNT(`id`) FROM `autoexec_comboptemplate` WHERE `id` = #{value}
+        SELECT COUNT(1) FROM `autoexec_combop_template` WHERE `id` = #{value}
     </select>
 
     <select id="checkAutoexecCombopNameIsRepeat" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo" resultType="java.lang.Long">
-        SELECT `id` FROM `autoexec_comboptemplate` WHERE `name` = #{name} AND `id` != #{id} LIMIT 1
+        SELECT `id` FROM `autoexec_combop_template` WHERE `name` = #{name} AND `id` != #{id} LIMIT 1
     </select>
 
-    <!--<select id="checkAutoexecCombopUkIsRepeat" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo" resultType="java.lang.Long">
-        SELECT `id` FROM `autoexec_comboptemplate` WHERE `uk` = #{uk} AND `id` != #{id} LIMIT 1
-    </select>-->
-
     <select id="getAutoexecCombopIsActiveByIdForUpdate" parameterType="java.lang.Long" resultType="java.lang.Integer">
-        SELECT `is_active` FROM `autoexec_comboptemplate` WHERE `id` = #{value} FOR UPDATE
+        SELECT `is_active` FROM `autoexec_combop_template` WHERE `id` = #{value} FOR UPDATE
     </select>
 
     <select id="getAutoexecCombopById" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
         SELECT
             `id`,
-            `uk`,
             `name`,
             `description`,
             `type_id` AS typeId,
             `is_active` AS isActive,
             `operation_type` AS operationType,
-            `notify_policy_id` AS notifyPolicyId,
-            `owner`,
             `config`,
             `fcd`,
             `fcu`,
             `lcd`,
             `lcu`
-        FROM `autoexec_comboptemplate`
+        FROM `autoexec_combop_template`
         WHERE `id` = #{value}
     </select>
 
-    <!--<select id="getAutoexecCombopByName" parameterType="java.lang.String" resultType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
-        SELECT
-            `id`,
-            `uk`,
-            `name`,
-            `description`,
-            `type_id` AS typeId,
-            `is_active` AS isActive,
-            `operation_type` AS operationType,
-            `notify_policy_id` AS notifyPolicyId,
-            `owner`,
-            `config`,
-            `fcd`,
-            `fcu`,
-            `lcd`,
-            `lcu`
-        FROM `autoexec_comboptemplate`
-        WHERE `name` = #{value}
-    </select>-->
-
-    <!--<select id="getAutoexecCombopByIdList" parameterType="java.util.List" resultType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
-        SELECT
-            `id`,
-            `uk`,
-            `name`,
-            `description`,
-            `type_id` AS typeId,
-            `is_active` AS isActive,
-            `operation_type` AS operationType,
-            `notify_policy_id` AS notifyPolicyId,
-            `owner`,
-            `config`,
-            `fcd`,
-            `fcu`,
-            `lcd`,
-            `lcu`
-        FROM `autoexec_comboptemplate`
-        WHERE `id` in
-        <foreach collection="list" item="id" separator="," open="(" close=")">
-            #{id}
-        </foreach>
-    </select>-->
-
     <select id="getAutoexecCombopCount" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo" resultType="int">
         SELECT
-            COUNT(`id`)
-        FROM `autoexec_comboptemplate`
+            COUNT(1)
+        FROM `autoexec_combop_template`
         <where>
         <if test="keyword != null and keyword != ''">
-            AND (`name` LIKE concat('%', #{keyword}, '%') OR `uk` LIKE concat('%', #{keyword}, '%'))
+            AND (`name` LIKE concat('%', #{keyword}, '%') OR `description` LIKE concat('%', #{keyword}, '%'))
         </if>
         <if test="typeId != null">
             AND `type_id` = #{typeId}
@@ -105,22 +55,19 @@
     <select id="getAutoexecCombopList" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo" resultType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
         SELECT
             `id`,
-            `uk`,
             `name`,
             `description`,
             `type_id` AS typeId,
             `is_active` AS isActive,
             `operation_type` AS operationType,
-            `notify_policy_id` AS notifyPolicyId,
-            `owner`,
             `fcd`,
             `fcu`,
             `lcd`,
             `lcu`
-        FROM `autoexec_comboptemplate`
+        FROM `autoexec_combop_template`
         <where>
         <if test="keyword != null and keyword != ''">
-            AND (`name` LIKE concat('%', #{keyword}, '%') OR `uk` LIKE concat('%', #{keyword}, '%'))
+            AND (`name` LIKE concat('%', #{keyword}, '%') OR `description` LIKE concat('%', #{keyword}, '%'))
         </if>
         <if test="typeId != null">
             AND `type_id` = #{typeId}
@@ -133,154 +80,20 @@
         LIMIT #{startNum}, #{pageSize}
     </select>
 
-    <!--<select id="getAutoexecCombopListByIdList" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
-        SELECT
-            `id`,
-            `uk`,
-            `name`,
-            `description`,
-            `type_id` AS typeId,
-            `is_active` AS isActive,
-            `operation_type` AS operationType,
-            `notify_policy_id` AS notifyPolicyId,
-            `owner`,
-            `fcd`,
-            `fcu`,
-            `lcd`,
-            `lcu`
-        FROM `autoexec_comboptemplate`
-        WHERE `id` IN
-        <foreach collection="list" item="id" open="(" separator="," close=")">
-            #{id}
-        </foreach>
-    </select>-->
-
-    <select id="getAutoexecCombopAuthorityListByCombopIdAndAction" resultType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateAuthorityVo">
-        SELECT
-            `type`,
-            `uuid`
-        FROM `autoexec_comboptemplate_authority`
-        WHERE `comboptemplate_id` = #{combopTemplateId}
-          AND `action` = #{action}
-    </select>
-
-    <select id="getAutoexecCombopParamListByCombopId" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateParamVo">
-        SELECT
-            `comboptemplate_id` AS combopTemplateId,
-            `key`,
-            `name`,
-            `default_value` AS defaultValue,
-            `description`,
-            `is_required` AS isRequired,
-            `type`,
-            `sort`,
-            `config`
-        FROM `autoexec_comboptemplate_param`
-        WHERE `comboptemplate_id` = #{combopTemplateId}
-        ORDER BY `sort`
-    </select>
-
-    <!--<select id="getAutoexecCombopParamByCombopIdAndKey" resultType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateParamVo">
-        SELECT
-            `comboptemplate_id` AS combopTemplateId,
-            `key`,
-            `name`,
-            `default_value` AS defaultValue,
-            `description`,
-            `is_required` AS isRequired,
-            `type`,
-            `sort`,
-            `config`
-        FROM `autoexec_comboptemplate_param`
-        WHERE `comboptemplate_id` = #{combopTemplateId}
-        AND `key` = #{key}
-    </select>-->
-
-    <!--<select id="getAutoexecCombopAuthorityListByCombopIdAndUserUuidAndTeamUuidListAndRoleUuidList" resultType="java.lang.String">
-        SELECT
-            `action`
-        FROM `autoexec_comboptemplate_authority`
-        WHERE `comboptemplate_id` = #{combopTemplateId}
-        AND (
-            (type = 'common' AND `uuid` = 'alluser')
-            OR (type = 'user' AND `uuid` = #{userUuid})
-            <if test="teamUuidList != null and teamUuidList.size() > 0">
-                OR (type = 'team' AND `uuid` IN
-                <foreach collection="teamUuidList" item="teamUuid" open="(" separator="," close=")">
-                    #{teamUuid}
-                </foreach>
-                )
-            </if>
-            <if test="roleUuidList != null and roleUuidList.size() > 0">
-                OR (type = 'role' AND `uuid` IN
-                <foreach collection="roleUuidList" item="roleUuid" open="(" separator="," close=")">
-                    #{roleUuid}
-                </foreach>
-                )
-            </if>
-            )
-    </select>-->
-
-    <!--<select id="getExecutableAutoexecCombopIdListByKeywordAndAuthenticationInfo" resultType="java.lang.Long">
-        SELECT
-            a.`id`
-        FROM `autoexec_comboptemplate` a
-        LEFT JOIN `autoexec_comboptemplate_authority` b ON b.`comboptemplate_id` = a.`id`
-        WHERE (a.`owner` = #{authenticationInfoVo.userUuid}
-            OR
-            (type = 'common' AND `uuid` = 'alluser')
-            OR (type = 'user' AND `uuid` = #{authenticationInfoVo.userUuid})
-            <if test="authenticationInfoVo.teamUuidList != null and authenticationInfoVo.teamUuidList.size() > 0">
-                OR (type = 'team' AND `uuid` IN
-                <foreach collection="authenticationInfoVo.teamUuidList" item="teamUuid" open="(" separator="," close=")">
-                    #{teamUuid}
-                </foreach>
-                )
-            </if>
-            <if test="authenticationInfoVo.roleUuidList != null and authenticationInfoVo.roleUuidList.size() > 0">
-                OR (type = 'role' AND `uuid` IN
-                <foreach collection="authenticationInfoVo.roleUuidList" item="roleUuid" open="(" separator="," close=")">
-                    #{roleUuid}
-                </foreach>
-                )
-            </if>
-            )
-        <if test="keyword != null and keyword != ''">
-            AND a.`name` LIKE CONCAT('%', #{keyword}, '%')
-        </if>
-    </select>-->
-
-    <!--<select id="getCombopPhaseIdListByCombopId" parameterType="java.lang.Long" resultType="java.lang.Long">
-        SELECT `id` FROM `autoexec_combop_phase` WHERE `combop_id` = #{value}
-    </select>-->
-
     <select id="checkAutoexecCombopIdListIsExists" parameterType="java.util.List" resultType="java.lang.Long">
-        SELECT `id` FROM `autoexec_comboptemplate` WHERE `id` IN
+        SELECT `id` FROM `autoexec_combop_template` WHERE `id` IN
         <foreach collection="list" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
     </select>
-
-    <!--<select id="checkItHasBeenGeneratedToCombopByOperationId" parameterType="java.lang.Long" resultType="java.lang.Long">
-        SELECT
-            a.`id`
-        FROM `autoexec_comboptemplate` a
-        JOIN `autoexec_combop_phase` b ON a.`id` = b.`combop_id`
-        JOIN `autoexec_combop_phase_operation` c ON b.`id` = c.`combop_phase_id` AND c.`operation_id` = #{value}
-        WHERE a.`operation_type` != 'combop'
-        LIMIT 1
-    </select>-->
 
     <insert id="insertAutoexecCombop" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
-        INSERT INTO `autoexec_comboptemplate` (
+        INSERT INTO `autoexec_combop_template` (
             `id`,
-            `uk`,
             `name`,
             `description`,
             `type_id`,
             `operation_type`,
-            `notify_policy_id`,
-            `owner`,
             `config`,
             `fcd`,
             `fcu`,
@@ -290,13 +103,10 @@
         VALUES
         (
             #{id},
-            #{uk},
             #{name},
             #{description},
             #{typeId},
             #{operationType},
-            #{notifyPolicyId},
-            #{owner},
             #{configStr},
             NOW(3),
             #{fcu},
@@ -305,103 +115,12 @@
         )
     </insert>
 
-    <insert id="insertAutoexecCombopAuthorityVoList" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateAuthorityVo">
-        INSERT INTO `autoexec_comboptemplate_authority` (
-            `comboptemplate_id`,
-            `type`,
-            `uuid`,
-            `action`
-        )
-        VALUES
-        <foreach collection="list" item="authorityVo" separator=",">
-        (
-            #{authorityVo.combopTemplateId},
-            #{authorityVo.type},
-            #{authorityVo.uuid},
-            #{authorityVo.action}
-        )
-        </foreach>
-    </insert>
-
-    <insert id="insertAutoexecCombopParamVoList" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateParamVo">
-        INSERT INTO `autoexec_comboptemplate_param` (
-            `comboptemplate_id`,
-            `key`,
-            `name`,
-            `default_value`,
-            `description`,
-            `is_required`,
-            `type`,
-            `sort`,
-            `config`
-        )
-        VALUES
-        <foreach collection="list" item="paramVo" separator=",">
-        (
-            #{paramVo.combopTemplateId},
-            #{paramVo.key},
-            #{paramVo.name},
-            #{paramVo.defaultValueStr},
-            #{paramVo.description},
-            #{paramVo.isRequired},
-            #{paramVo.type},
-            #{paramVo.sort},
-            #{paramVo.configStr}
-        )
-        </foreach>
-    </insert>
-
-    <!--<insert id="insertAutoexecCombopPhase" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseVo">
-        INSERT INTO `autoexec_combop_phase` (
-            `id`,
-            `combop_id`,
-            `uk`,
-            `name`,
-            `exec_mode`,
-            `config`,
-            `sort`
-        )
-        VALUES
-        (
-            #{id},
-            #{combopId},
-            #{uk},
-            #{name},
-            #{execMode},
-            #{configStr},
-            #{sort}
-        )
-    </insert>-->
-
-    <!--<insert id="insertAutoexecCombopPhaseOperation" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseOperationVo">
-        INSERT INTO `autoexec_combop_phase_operation` (
-            `combop_phase_id`,
-            `operation_id`,
-            `operation_type`,
-            `fail_policy`,
-            `config`,
-            `sort`
-        )
-        VALUES
-        (
-            #{combopPhaseId},
-            #{operationId},
-            #{operationType},
-            #{failPolicy},
-            #{configStr},
-            #{sort}
-        )
-    </insert>-->
-
     <update id="updateAutoexecCombopById" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
-        UPDATE `autoexec_comboptemplate`
+        UPDATE `autoexec_combop_template`
         SET
-            `uk` = #{uk},
             `name` = #{name},
             `description` = #{description},
             `type_id` = #{typeId},
-            `notify_policy_id` = #{notifyPolicyId},
-            `owner` = #{owner},
             `config` = #{configStr},
             `lcd` = NOW(3),
             `lcu` = #{lcu}
@@ -409,7 +128,7 @@
     </update>
 
     <update id="updateAutoexecCombopIsActiveById" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
-        UPDATE `autoexec_comboptemplate`
+        UPDATE `autoexec_combop_template`
         SET
             `is_active` = !`is_active`,
             `lcd` = NOW(3),
@@ -418,7 +137,7 @@
     </update>
 
     <update id="updateAutoexecCombopConfigById" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
-        UPDATE `autoexec_comboptemplate`
+        UPDATE `autoexec_combop_template`
         SET
             `config` = #{configStr},
             `lcd` = NOW(3),
@@ -427,26 +146,6 @@
     </update>
 
     <delete id="deleteAutoexecCombopById" parameterType="java.lang.Long">
-        DELETE FROM `autoexec_comboptemplate` WHERE `id` = #{value}
+        DELETE FROM `autoexec_combop_template` WHERE `id` = #{value}
     </delete>
-
-    <delete id="deleteAutoexecCombopAuthorityByCombopId" parameterType="java.lang.Long">
-        DELETE FROM `autoexec_comboptemplate_authority` WHERE `comboptemplate_id` = #{value}
-    </delete>
-
-    <delete id="deleteAutoexecCombopParamByCombopId" parameterType="java.lang.Long">
-        DELETE FROM `autoexec_comboptemplate_param` WHERE `comboptemplate_id` = #{value}
-    </delete>
-
-    <!--<delete id="deleteAutoexecCombopPhaseByCombopId" parameterType="java.lang.Long">
-        DELETE FROM `autoexec_combop_phase` WHERE `combop_id` = #{value}
-    </delete>-->
-
-    <!--<delete id="deleteAutoexecCombopPhaseOperationByCombopPhaseIdList" parameterType="java.lang.Long">
-        DELETE FROM `autoexec_combop_phase_operation`
-        WHERE `combop_phase_id` IN
-        <foreach collection="list" item="combopPhaseId" open="(" separator="," close=")">
-            #{combopPhaseId}
-        </foreach>
-    </delete>-->
 </mapper>

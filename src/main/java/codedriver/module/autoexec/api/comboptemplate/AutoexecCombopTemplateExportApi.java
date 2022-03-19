@@ -8,7 +8,6 @@ package codedriver.module.autoexec.api.comboptemplate;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_TEMPLATE_MANAGE;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopTemplateMapper;
-import codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateParamVo;
 import codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopTemplateNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -94,8 +93,6 @@ public class AutoexecCombopTemplateExportApi extends PrivateBinaryStreamApiCompo
         List<AutoexecCombopTemplateVo> autoexecCombopTemplateVoList = new ArrayList<>();
         for (Long id : existIdList) {
             AutoexecCombopTemplateVo autoexecCombopTemplateVo = autoexecCombopTemplateMapper.getAutoexecCombopById(id);
-            List<AutoexecCombopTemplateParamVo> runtimeParamList = autoexecCombopTemplateMapper.getAutoexecCombopParamListByCombopId(id);
-            autoexecCombopTemplateVo.setRuntimeParamList(runtimeParamList);
             autoexecCombopTemplateVoList.add(autoexecCombopTemplateVo);
         }
         //设置导出文件名

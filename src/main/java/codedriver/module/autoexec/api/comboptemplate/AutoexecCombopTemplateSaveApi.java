@@ -5,7 +5,6 @@
 
 package codedriver.module.autoexec.api.comboptemplate;
 
-import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_TEMPLATE_MANAGE;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
@@ -16,13 +15,7 @@ import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
 import codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo;
 import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.common.constvalue.ApiParamType;
-import codedriver.framework.common.constvalue.GroupSearch;
-import codedriver.framework.dao.mapper.UserMapper;
 import codedriver.framework.dto.FieldValidResultVo;
-import codedriver.framework.exception.type.ParamNotExistsException;
-import codedriver.framework.exception.user.UserNotFoundException;
-import codedriver.framework.notify.dao.mapper.NotifyMapper;
-import codedriver.framework.notify.exception.NotifyPolicyNotFoundException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.IValid;
@@ -53,12 +46,6 @@ public class AutoexecCombopTemplateSaveApi extends PrivateApiComponentBase {
     @Resource
     private AutoexecTypeMapper autoexecTypeMapper;
 
-    @Resource
-    private NotifyMapper notifyMapper;
-
-    @Resource
-    private UserMapper userMapper;
-
     @Override
     public String getToken() {
         return "autoexec/comboptemplate/save";
@@ -80,7 +67,7 @@ public class AutoexecCombopTemplateSaveApi extends PrivateApiComponentBase {
             @Param(name = "name", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", isRequired = true, minLength = 1, maxLength = 70, desc = "显示名"),
             @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
             @Param(name = "typeId", type = ApiParamType.LONG, isRequired = true, desc = "类型id"),
-            @Param(name = "notifyPolicyId", type = ApiParamType.LONG, desc = "通知策略id"),
+//            @Param(name = "notifyPolicyId", type = ApiParamType.LONG, desc = "通知策略id"),
 //            @Param(name = "owner", type = ApiParamType.STRING, minLength = 37, maxLength = 37, desc = "维护人"),
             @Param(name = "config", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "配置信息")
     })
@@ -100,11 +87,11 @@ public class AutoexecCombopTemplateSaveApi extends PrivateApiComponentBase {
         if (autoexecTypeMapper.checkTypeIsExistsById(autoexecCombopTemplateVo.getTypeId()) == 0) {
             throw new AutoexecTypeNotFoundException(autoexecCombopTemplateVo.getTypeId());
         }
-        if (autoexecCombopTemplateVo.getNotifyPolicyId() != null) {
-            if (notifyMapper.checkNotifyPolicyIsExists(autoexecCombopTemplateVo.getNotifyPolicyId()) == 0) {
-                throw new NotifyPolicyNotFoundException(autoexecCombopTemplateVo.getNotifyPolicyId().toString());
-            }
-        }
+//        if (autoexecCombopTemplateVo.getNotifyPolicyId() != null) {
+//            if (notifyMapper.checkNotifyPolicyIsExists(autoexecCombopTemplateVo.getNotifyPolicyId()) == 0) {
+//                throw new NotifyPolicyNotFoundException(autoexecCombopTemplateVo.getNotifyPolicyId().toString());
+//            }
+//        }
         Long id = jsonObj.getLong("id");
         if (id == null) {
 //            if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(true), AUTOEXEC_COMBOP_ADD.class.getSimpleName())) {

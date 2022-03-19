@@ -12,7 +12,6 @@ import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopTemplateMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
-import codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateParamVo;
 import codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopTemplateNameRepeatException;
 import codedriver.framework.autoexec.exception.AutoexecCombopTemplateNotFoundException;
@@ -24,12 +23,10 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.IValid;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.List;
 
 /**
  * 复制组合工具模板接口
@@ -125,14 +122,6 @@ public class AutoexecCombopTemplateCopyApi extends PrivateApiComponentBase {
 //            }
 //        }
         autoexecCombopTemplateMapper.insertAutoexecCombop(autoexecCombopTemplateVo);
-
-        List<AutoexecCombopTemplateParamVo> runtimeParamList = autoexecCombopTemplateMapper.getAutoexecCombopParamListByCombopId(id);
-        if (CollectionUtils.isNotEmpty(runtimeParamList)) {
-            for (AutoexecCombopTemplateParamVo autoexecCombopTemplateParamVo : runtimeParamList) {
-                autoexecCombopTemplateParamVo.setCombopTemplateId(combopTemplateId);
-            }
-            autoexecCombopTemplateMapper.insertAutoexecCombopParamVoList(runtimeParamList);
-        }
         return combopTemplateId;
     }
 
