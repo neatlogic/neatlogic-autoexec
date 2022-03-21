@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright(c) 2022 TechSureCo.,Ltd.AllRightsReserved.
+  ~ 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecCombopTemplateMapper">
+    <select id="checkAutoexecCombopIsExists" parameterType="java.lang.Long" resultType="int">
+        SELECT COUNT(1) FROM `autoexec_combop_template` WHERE `id` = #{value}
+    </select>
+
+    <select id="checkAutoexecCombopNameIsRepeat" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo" resultType="java.lang.Long">
+        SELECT `id` FROM `autoexec_combop_template` WHERE `name` = #{name} AND `id` != #{id} LIMIT 1
+    </select>
+
+    <select id="getAutoexecCombopIsActiveByIdForUpdate" parameterType="java.lang.Long" resultType="java.lang.Integer">
+        SELECT `is_active` FROM `autoexec_combop_template` WHERE `id` = #{value} FOR UPDATE
+    </select>
+
+    <select id="getAutoexecCombopById" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
+        SELECT
+            `id`,
+            `name`,
+            `description`,
+            `type_id` AS typeId,
+            `is_active` AS isActive,
+            `operation_type` AS operationType,
+            `config`,
+            `fcd`,
+            `fcu`,
+            `lcd`,
+            `lcu`
+        FROM `autoexec_combop_template`
+        WHERE `id` = #{value}
+    </select>
+
+    <select id="getAutoexecCombopCount" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo" resultType="int">
+        SELECT
+            COUNT(1)
+        FROM `autoexec_combop_template`
+        <where>
+        <if test="keyword != null and keyword != ''">
+            AND (`name` LIKE concat('%', #{keyword}, '%') OR `description` LIKE concat('%', #{keyword}, '%'))
+        </if>
+        <if test="typeId != null">
+            AND `type_id` = #{typeId}
+        </if>
+        <if test="isActive != null">
+            AND `is_active` = #{isActive}
+        </if>
+        </where>
+    </select>
+
+    <select id="getAutoexecCombopList" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo" resultType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
+        SELECT
+            `id`,
+            `name`,
+            `description`,
+            `type_id` AS typeId,
+            `is_active` AS isActive,
+            `operation_type` AS operationType,
+            `fcd`,
+            `fcu`,
+            `lcd`,
+            `lcu`
+        FROM `autoexec_combop_template`
+        <where>
+        <if test="keyword != null and keyword != ''">
+            AND (`name` LIKE concat('%', #{keyword}, '%') OR `description` LIKE concat('%', #{keyword}, '%'))
+        </if>
+        <if test="typeId != null">
+            AND `type_id` = #{typeId}
+        </if>
+        <if test="isActive != null">
+            AND `is_active` = #{isActive}
+        </if>
+        </where>
+        ORDER BY `id` DESC
+        LIMIT #{startNum}, #{pageSize}
+    </select>
+
+    <select id="checkAutoexecCombopIdListIsExists" parameterType="java.util.List" resultType="java.lang.Long">
+        SELECT `id` FROM `autoexec_combop_template` WHERE `id` IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <insert id="insertAutoexecCombop" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
+        INSERT INTO `autoexec_combop_template` (
+            `id`,
+            `name`,
+            `description`,
+            `type_id`,
+            `operation_type`,
+            `config`,
+            `fcd`,
+            `fcu`,
+            `lcd`,
+            `lcu`
+        )
+        VALUES
+        (
+            #{id},
+            #{name},
+            #{description},
+            #{typeId},
+            #{operationType},
+            #{configStr},
+            NOW(3),
+            #{fcu},
+            NOW(3),
+            #{fcu}
+        )
+    </insert>
+
+    <update id="updateAutoexecCombopById" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
+        UPDATE `autoexec_combop_template`
+        SET
+            `name` = #{name},
+            `description` = #{description},
+            `type_id` = #{typeId},
+            `config` = #{configStr},
+            `lcd` = NOW(3),
+            `lcu` = #{lcu}
+        WHERE `id` = #{id}
+    </update>
+
+    <update id="updateAutoexecCombopIsActiveById" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
+        UPDATE `autoexec_combop_template`
+        SET
+            `is_active` = !`is_active`,
+            `lcd` = NOW(3),
+            `lcu` = #{lcu}
+        WHERE `id` = #{id}
+    </update>
+
+    <update id="updateAutoexecCombopConfigById" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
+        UPDATE `autoexec_combop_template`
+        SET
+            `config` = #{configStr},
+            `lcd` = NOW(3),
+            `lcu` = #{lcu}
+        WHERE `id` = #{id}
+    </update>
+
+    <delete id="deleteAutoexecCombopById" parameterType="java.lang.Long">
+        DELETE FROM `autoexec_combop_template` WHERE `id` = #{value}
+    </delete>
+</mapper>
