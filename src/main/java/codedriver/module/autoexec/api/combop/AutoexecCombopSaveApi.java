@@ -14,10 +14,8 @@ import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.framework.autoexec.dto.combop.*;
-import codedriver.framework.autoexec.exception.AutoexecCombopNameRepeatException;
-import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecCombopPhaseNameRepeatException;
-import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
+import codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo;
+import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.constvalue.GroupSearch;
 import codedriver.framework.dao.mapper.UserMapper;
@@ -31,6 +29,7 @@ import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.IValid;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.module.autoexec.dao.mapper.AutoexecCombopTemplateMapper;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -56,6 +55,9 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
+
+    @Resource
+    private AutoexecCombopTemplateMapper autoexecCombopTemplateMapper;
 
     @Resource
     private AutoexecTypeMapper autoexecTypeMapper;
@@ -91,6 +93,7 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
             @Param(name = "typeId", type = ApiParamType.LONG, isRequired = true, desc = "类型id"),
             @Param(name = "notifyPolicyId", type = ApiParamType.LONG, desc = "通知策略id"),
+            @Param(name = "combopTemplateId", type = ApiParamType.LONG, desc = "组合工具模板id"),
             @Param(name = "owner", type = ApiParamType.STRING, minLength = 37, maxLength = 37, desc = "维护人"),
             @Param(name = "config", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "配置信息")
     })
@@ -115,6 +118,14 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
                 throw new NotifyPolicyNotFoundException(autoexecCombopVo.getNotifyPolicyId().toString());
             }
         }
+        AutoexecCombopTemplateVo autoexecCombopTemplateVo = null;
+        Long combopTemplateId = autoexecCombopVo.getCombopTemplateId();
+        if (combopTemplateId != null) {
+            autoexecCombopTemplateVo = autoexecCombopTemplateMapper.getAutoexecCombopTemplateById(combopTemplateId);
+            if (autoexecCombopTemplateVo == null) {
+                throw new AutoexecCombopTemplateNotFoundException(combopTemplateId);
+            }
+        }
         Long id = jsonObj.getLong("id");
         if (id == null) {
             if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(true), AUTOEXEC_COMBOP_ADD.class.getSimpleName())) {
@@ -122,7 +133,10 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             }
             autoexecCombopVo.setOperationType(CombopOperationType.COMBOP.getValue());
             autoexecCombopVo.setOwner(UserContext.get().getUserUuid(true));
-            autoexecCombopVo.setConfig("{}");
+            if (autoexecCombopTemplateVo != null) {
+                autoexecCombopVo.setConfig(autoexecCombopTemplateVo.getConfigStr());
+            }
+//            autoexecCombopVo.setConfig("{}");
             autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
         } else {
             String owner = autoexecCombopVo.getOwner();
@@ -155,8 +169,11 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             AutoexecCombopConfigVo oldConfigVo = oldAutoexecCombopVo.getConfig();
             /** 更新组合工具阶段列表数据时，需要保留执行目标的配置信息 **/
             config.setExecuteConfig(oldConfigVo.getExecuteConfig());
-            /** 保存前，校验组合工具是否配置正确，不正确不可以保存 **/
-            autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo, false);
+            if (combopTemplateId == null) {
+                /** 保存前，校验组合工具是否配置正确，不正确不可以保存 **/
+                autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo, false);
+            }
+
             List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
 
             if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
