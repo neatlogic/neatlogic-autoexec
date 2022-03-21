@@ -11,7 +11,6 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_TEMPLATE_MANAGE;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopTemplateMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
 import codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopTemplateNameRepeatException;
 import codedriver.framework.autoexec.exception.AutoexecCombopTemplateNotFoundException;
@@ -90,39 +89,11 @@ public class AutoexecCombopTemplateCopyApi extends PrivateApiComponentBase {
             throw new AutoexecCombopTemplateNameRepeatException(autoexecCombopTemplateVo.getName());
         }
         String userUuid = UserContext.get().getUserUuid(true);
-//        autoexecCombopTemplateVo.setOwner(userUuid);
         autoexecCombopTemplateVo.setFcu(userUuid);
         autoexecCombopTemplateVo.setOperationType(CombopOperationType.COMBOP.getValue());
         autoexecCombopTemplateVo.setDescription(jsonObj.getString("description"));
-        AutoexecCombopConfigVo config = autoexecCombopTemplateVo.getConfig();
-        Long combopTemplateId = autoexecCombopTemplateVo.getId();
-//        int iSort = 0;
-//        List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
-//        if(CollectionUtils.isNotEmpty(combopPhaseList)){
-//            for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
-//                if (autoexecCombopPhaseVo != null) {
-//                    autoexecCombopPhaseVo.setId(null);
-//                    autoexecCombopPhaseVo.setCombopId(combopId);
-//                    autoexecCombopPhaseVo.setSort(iSort++);
-//                    AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
-//                    List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
-//                    if (CollectionUtils.isNotEmpty(phaseOperationList)) {
-//                        Long combopPhaseId = autoexecCombopPhaseVo.getId();
-//                        int jSort = 0;
-//                        for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
-//                            if (autoexecCombopPhaseOperationVo != null) {
-//                                autoexecCombopPhaseOperationVo.setSort(jSort++);
-//                                autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
-//                                autoexecCombopTemplateMapper.insertAutoexecCombopPhaseOperation(autoexecCombopPhaseOperationVo);
-//                            }
-//                        }
-//                    }
-//                    autoexecCombopTemplateMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);
-//                }
-//            }
-//        }
         autoexecCombopTemplateMapper.insertAutoexecCombopTemplate(autoexecCombopTemplateVo);
-        return combopTemplateId;
+        return autoexecCombopTemplateVo.getId();
     }
 
     public IValid name() {

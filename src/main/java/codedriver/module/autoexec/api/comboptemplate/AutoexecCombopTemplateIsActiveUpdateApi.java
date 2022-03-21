@@ -66,10 +66,6 @@ public class AutoexecCombopTemplateIsActiveUpdateApi extends PrivateApiComponent
             throw new AutoexecCombopNotFoundException(id);
         }
         AutoexecCombopTemplateVo autoexecCombopTemplateVo = autoexecCombopTemplateMapper.getAutoexecCombopTemplateById(id);
-//        autoexecCombopService.setOperableButtonList(autoexecCombopVo);
-//        if (Objects.equals(autoexecCombopVo.getEditable(), 0)) {
-//            throw new PermissionDeniedException();
-//        }
         /** 如果是激活组合工具，则需要校验该组合工具配置正确 **/
 //        if (isActive == 0) {
 //            autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo, false);

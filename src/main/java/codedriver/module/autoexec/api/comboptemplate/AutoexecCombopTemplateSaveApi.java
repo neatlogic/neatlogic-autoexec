@@ -81,44 +81,19 @@ public class AutoexecCombopTemplateSaveApi extends PrivateApiComponentBase {
         if (autoexecCombopTemplateMapper.checkAutoexecCombopTemplateNameIsRepeat(autoexecCombopTemplateVo) != null) {
             throw new AutoexecCombopNameRepeatException(autoexecCombopTemplateVo.getName());
         }
-//        if (autoexecCombopMapper.checkAutoexecCombopUkIsRepeat(autoexecCombopVo) != null) {
-//            throw new AutoexecCombopUkRepeatException(autoexecCombopVo.getUk());
-//        }
         if (autoexecTypeMapper.checkTypeIsExistsById(autoexecCombopTemplateVo.getTypeId()) == 0) {
             throw new AutoexecTypeNotFoundException(autoexecCombopTemplateVo.getTypeId());
         }
-//        if (autoexecCombopTemplateVo.getNotifyPolicyId() != null) {
-//            if (notifyMapper.checkNotifyPolicyIsExists(autoexecCombopTemplateVo.getNotifyPolicyId()) == 0) {
-//                throw new NotifyPolicyNotFoundException(autoexecCombopTemplateVo.getNotifyPolicyId().toString());
-//            }
-//        }
         Long id = jsonObj.getLong("id");
         if (id == null) {
-//            if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(true), AUTOEXEC_COMBOP_ADD.class.getSimpleName())) {
-//                throw new PermissionDeniedException(AUTOEXEC_COMBOP_ADD.class);
-//            }
             autoexecCombopTemplateVo.setOperationType(CombopOperationType.COMBOP.getValue());
-//            autoexecCombopTemplateVo.setOwner(UserContext.get().getUserUuid(true));
             autoexecCombopTemplateVo.setConfig("{}");
             autoexecCombopTemplateMapper.insertAutoexecCombopTemplate(autoexecCombopTemplateVo);
         } else {
-//            String owner = autoexecCombopTemplateVo.getOwner();
-//            if (owner == null) {
-//                throw new ParamNotExistsException("owner");
-//            }
-//            owner = owner.substring(GroupSearch.USER.getValuePlugin().length());
-//            if (userMapper.checkUserIsExists(owner) == 0) {
-//                throw new UserNotFoundException(owner);
-//            }
-//            autoexecCombopTemplateVo.setOwner(owner);
             AutoexecCombopTemplateVo oldAutoexecCombopTemplateVo = autoexecCombopTemplateMapper.getAutoexecCombopTemplateById(id);
             if (oldAutoexecCombopTemplateVo == null) {
                 throw new AutoexecCombopTemplateNotFoundException(id);
             }
-//            autoexecCombopService.setOperableButtonList(oldAutoexecCombopTemplateVo);
-//            if (oldAutoexecCombopTemplateVo.getEditable() == 0) {
-//                throw new PermissionDeniedException();
-//            }
             AutoexecCombopConfigVo config = autoexecCombopTemplateVo.getConfig();
             List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
             List<String> nameList = new ArrayList<>();
@@ -129,34 +104,9 @@ public class AutoexecCombopTemplateSaveApi extends PrivateApiComponentBase {
                 }
                 nameList.add(name);
             }
-            AutoexecCombopConfigVo oldConfigVo = oldAutoexecCombopTemplateVo.getConfig();
-            /** 更新组合工具阶段列表数据时，需要保留执行目标的配置信息 **/
-            config.setExecuteConfig(oldConfigVo.getExecuteConfig());
-            /** 保存前，校验组合工具是否配置正确，不正确不可以保存 **/
-//            autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopTemplateVo, false);
-
-//            List<Long> combopPhaseIdList = autoexecCombopTemplateMapper.getCombopPhaseIdListByCombopId(id);
-//            if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
-//                autoexecCombopTemplateMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
-//            }
-//            autoexecCombopTemplateMapper.deleteAutoexecCombopPhaseByCombopId(id);
-//            for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
-//                if (autoexecCombopPhaseVo != null) {
-//                    autoexecCombopPhaseVo.setCombopId(id);
-//                    AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
-//                    List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
-//                    Long combopPhaseId = autoexecCombopPhaseVo.getId();
-//                    int jSort = 0;
-//                    for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
-//                        if (autoexecCombopPhaseOperationVo != null) {
-//                            autoexecCombopPhaseOperationVo.setSort(jSort++);
-//                            autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
-//                            autoexecCombopTemplateMapper.insertAutoexecCombopPhaseOperation(autoexecCombopPhaseOperationVo);
-//                        }
-//                    }
-//                    autoexecCombopTemplateMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);
-//                }
-//            }
+//            AutoexecCombopConfigVo oldConfigVo = oldAutoexecCombopTemplateVo.getConfig();
+//            /** 更新组合工具阶段列表数据时，需要保留执行目标的配置信息 **/
+//            config.setExecuteConfig(oldConfigVo.getExecuteConfig());
             autoexecCombopTemplateMapper.updateAutoexecCombopTemplateById(autoexecCombopTemplateVo);
         }
 
@@ -172,14 +122,4 @@ public class AutoexecCombopTemplateSaveApi extends PrivateApiComponentBase {
             return new FieldValidResultVo();
         };
     }
-
-//    public IValid uk() {
-//        return jsonObj -> {
-//            AutoexecCombopVo autoexecCombopVo = JSON.toJavaObject(jsonObj, AutoexecCombopVo.class);
-//            if (autoexecCombopMapper.checkAutoexecCombopUkIsRepeat(autoexecCombopVo) != null) {
-//                return new FieldValidResultVo(new AutoexecCombopUkRepeatException(autoexecCombopVo.getUk()));
-//            }
-//            return new FieldValidResultVo();
-//        };
-//    }
 }

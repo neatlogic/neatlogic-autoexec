@@ -7,17 +7,7 @@ package codedriver.module.autoexec.api.comboptemplate;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_TEMPLATE_MANAGE;
-import codedriver.framework.autoexec.constvalue.CombopOperationType;
-import codedriver.framework.autoexec.constvalue.ExecMode;
-import codedriver.framework.autoexec.constvalue.ParamMode;
-import codedriver.framework.autoexec.dao.mapper.*;
-import codedriver.framework.autoexec.dto.AutoexecParamVo;
-import codedriver.framework.autoexec.dto.AutoexecRiskVo;
-import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
-import codedriver.framework.autoexec.dto.AutoexecToolVo;
-import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo;
-import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopTemplateNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
@@ -25,16 +15,10 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopTemplateMapper;
 import codedriver.module.autoexec.service.AutoexecService;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * 查询组合工具详情接口
@@ -49,15 +33,6 @@ public class AutoexecCombopTemplateGetApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopTemplateMapper autoexecCombopTemplateMapper;
-
-    @Resource
-    private AutoexecScriptMapper autoexecScriptMapper;
-
-    @Resource
-    private AutoexecToolMapper autoexecToolMapper;
-
-    @Resource
-    private AutoexecRiskMapper autoexecRiskMapper;
 
     @Resource
     private AutoexecService autoexecService;
@@ -91,11 +66,6 @@ public class AutoexecCombopTemplateGetApi extends PrivateApiComponentBase {
         if (autoexecCombopTemplateVo == null) {
             throw new AutoexecCombopTemplateNotFoundException(id);
         }
-//        autoexecCombopService.setOperableButtonList(autoexecCombopVo);
-//        if (Objects.equals(autoexecCombopVo.getViewable(), 0)) {
-//            throw new PermissionDeniedException();
-//        }
-//        autoexecCombopTemplateVo.setOwner(GroupSearch.USER.getValuePlugin() + autoexecCombopTemplateVo.getOwner());
         autoexecService.updateAutoexecCombopConfig(autoexecCombopTemplateVo.getConfig());
         return autoexecCombopTemplateVo;
     }
