@@ -3,6 +3,8 @@ package codedriver.module.autoexec.api.profile;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_PROFILE_MODIFY;
 import codedriver.framework.autoexec.dao.mapper.AutoexecProfileMapper;
+import codedriver.framework.autoexec.dto.profile.AutoexecProfileScriptVo;
+import codedriver.framework.autoexec.dto.profile.AutoexecProfileToolVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
@@ -16,6 +18,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @author longrf
@@ -60,11 +63,18 @@ public class AutoexecProfileSearchApi extends PrivateApiComponentBase {
     @Description(desc = "自动化工具profile列表查询接口")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        AutoexecProfileVo profileVo = JSON.toJavaObject(paramObj, AutoexecProfileVo.class);
-        int profileCount = autoexecProfileMapper.searchAutoexecProfileCount(profileVo);
+        AutoexecProfileVo paramProfileVo = JSON.toJavaObject(paramObj, AutoexecProfileVo.class);
+        int profileCount = autoexecProfileMapper.searchAutoexecProfileCount(paramProfileVo);
         if (profileCount > 0) {
-            profileVo.setRowNum(profileCount);
-            return TableResultUtil.getResult(autoexecProfileMapper.searchAutoexecCatalog(profileVo), profileVo);
+            paramProfileVo.setRowNum(profileCount);
+            List<Long> profileIdList = autoexecProfileMapper.getAutoexecProfileIdList(paramProfileVo);
+
+            List<AutoexecProfileToolVo> profileToolVoList = autoexecProfileMapper.getProfileToolListByProfileIdList(profileIdList);
+
+            List<AutoexecProfileScriptVo> profileScriptVoList = autoexecProfileMapper.getProfileScriptListByProfileIdList(profileIdList);
+
+
+            return TableResultUtil.getResult(autoexecProfileMapper.searchAutoexecProfileListByIdList(profileIdList), paramProfileVo);
         }
         return null;
     }

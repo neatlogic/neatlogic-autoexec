@@ -1,5 +1,7 @@
 package codedriver.module.autoexec.api.profile;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_PROFILE_MODIFY;
 import codedriver.framework.autoexec.constvalue.FromType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecProfileMapper;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
@@ -23,6 +25,7 @@ import javax.annotation.Resource;
  * @date 2022/3/18 10:08 上午
  */
 @Service
+@AuthAction(action = AUTOEXEC_PROFILE_MODIFY.class)
 @OperationType(type = OperationTypeEnum.DELETE)
 public class AutoexecProfileDeleteApi extends PrivateApiComponentBase {
 
@@ -36,7 +39,7 @@ public class AutoexecProfileDeleteApi extends PrivateApiComponentBase {
 
     @Override
     public String getToken() {
-        return "autoexec/profile/save";
+        return "autoexec/profile/delete";
     }
 
     @Override
@@ -54,9 +57,12 @@ public class AutoexecProfileDeleteApi extends PrivateApiComponentBase {
         if (autoexecProfileMapper.checkProfileIsExists(id) == 0) {
             throw new AutoexecProfileIsNotFoundException(id);
         }
-        AutoexecProfileVo profileVo = autoexecProfileMapper.getProfileVoById();
+        AutoexecProfileVo profileVo = autoexecProfileMapper.getProfileVoById(id);
         //查询是否被引用
-        if (DependencyManager.getDependencyCount(FromType.AUTOEXEC_PROFILE_SCRIPT, id) > 0 || DependencyManager.getDependencyCount(FromType.AUTOEXEC_PROFILE_TOOL, id) > 0) {
+        if (profileVo == null) {
+            throw new AutoexecProfileIsNotFoundException(id);
+        }
+        if (DependencyManager.getDependencyCount(FromType.AUTOEXEC_PROFILE_TOOL_AND_SCRIPT, id) > 0) {
             throw new AutoexecProfileHasBeenReferredException(profileVo.getName());
         }
         autoexecProfileMapper.deleteProfileById(id);

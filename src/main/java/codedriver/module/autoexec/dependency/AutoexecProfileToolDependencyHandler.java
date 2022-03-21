@@ -1,12 +1,18 @@
 package codedriver.module.autoexec.dependency;
 
+import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.autoexec.constvalue.FromType;
+import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
+import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.dependency.core.CustomTableDependencyHandlerBase;
 import codedriver.framework.dependency.core.IFromType;
 import codedriver.framework.dependency.dto.DependencyInfoVo;
+import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 工具profile引用工具库工具处理器
@@ -16,6 +22,9 @@ import java.util.List;
  */
 @Service
 public class AutoexecProfileToolDependencyHandler extends CustomTableDependencyHandlerBase {
+
+    @Resource
+    AutoexecToolMapper autoexecToolMapper;
 
     /**
      * 表名
@@ -60,11 +69,23 @@ public class AutoexecProfileToolDependencyHandler extends CustomTableDependencyH
      */
     @Override
     protected DependencyInfoVo parse(Object dependencyObj) {
+        if (dependencyObj instanceof Map) {
+            Map<String, Object> map = (Map) dependencyObj;
+            Long toolId = (Long) map.get("tool_id");
+            AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(toolId);
+            if (autoexecToolVo != null) {
+                JSONObject dependencyInfoConfig = new JSONObject();
+                dependencyInfoConfig.put("toolId", autoexecToolVo.getId());
+                String pathFormat = "组合工具-${DATA.combopName}-运行参数-${DATA.paramName}";
+                String urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/tool-detail?id=#{DATA.toolId}";
+                return new DependencyInfoVo(autoexecToolVo.getId(), dependencyInfoConfig, pathFormat, urlFormat, this.getGroupName());
+            }
+        }
         return null;
     }
 
     @Override
     public IFromType getFromType() {
-        return FromType.AUTOEXEC_PROFILE_TOOL;
+        return FromType.AUTOEXEC_PROFILE_TOOL_AND_SCRIPT;
     }
 }
