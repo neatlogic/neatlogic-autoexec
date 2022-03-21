@@ -74,7 +74,7 @@ public class AutoexecCombopTemplateCopyApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");
-        AutoexecCombopTemplateVo autoexecCombopTemplateVo = autoexecCombopTemplateMapper.getAutoexecCombopById(id);
+        AutoexecCombopTemplateVo autoexecCombopTemplateVo = autoexecCombopTemplateMapper.getAutoexecCombopTemplateById(id);
         if (autoexecCombopTemplateVo == null) {
             throw new AutoexecCombopTemplateNotFoundException(id);
         }
@@ -86,7 +86,7 @@ public class AutoexecCombopTemplateCopyApi extends PrivateApiComponentBase {
         String name = jsonObj.getString("name");
         autoexecCombopTemplateVo.setName(name);
         autoexecCombopTemplateVo.setId(null);
-        if (autoexecCombopTemplateMapper.checkAutoexecCombopNameIsRepeat(autoexecCombopTemplateVo) != null) {
+        if (autoexecCombopTemplateMapper.checkAutoexecCombopTemplateNameIsRepeat(autoexecCombopTemplateVo) != null) {
             throw new AutoexecCombopTemplateNameRepeatException(autoexecCombopTemplateVo.getName());
         }
         String userUuid = UserContext.get().getUserUuid(true);
@@ -121,7 +121,7 @@ public class AutoexecCombopTemplateCopyApi extends PrivateApiComponentBase {
 //                }
 //            }
 //        }
-        autoexecCombopTemplateMapper.insertAutoexecCombop(autoexecCombopTemplateVo);
+        autoexecCombopTemplateMapper.insertAutoexecCombopTemplate(autoexecCombopTemplateVo);
         return combopTemplateId;
     }
 
@@ -130,7 +130,7 @@ public class AutoexecCombopTemplateCopyApi extends PrivateApiComponentBase {
             String name = jsonObj.getString("name");
             AutoexecCombopTemplateVo autoexecCombopTemplateVo = new AutoexecCombopTemplateVo();
             autoexecCombopTemplateVo.setName(name);
-            if (autoexecCombopTemplateMapper.checkAutoexecCombopNameIsRepeat(autoexecCombopTemplateVo) != null) {
+            if (autoexecCombopTemplateMapper.checkAutoexecCombopTemplateNameIsRepeat(autoexecCombopTemplateVo) != null) {
                 return new FieldValidResultVo(new AutoexecCombopTemplateNameRepeatException(autoexecCombopTemplateVo.getName()));
             }
             return new FieldValidResultVo();

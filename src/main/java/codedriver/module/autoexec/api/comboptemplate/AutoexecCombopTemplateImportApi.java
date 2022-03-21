@@ -157,7 +157,7 @@ public class AutoexecCombopTemplateImportApi extends PrivateBinaryStreamApiCompo
         if (autoexecCombopTemplateVo.getConfig() == null){
             throw new ClassCastException();
         }
-        AutoexecCombopTemplateVo oldAutoexecCombopTemplateVo = autoexecCombopTemplateMapper.getAutoexecCombopById(id);
+        AutoexecCombopTemplateVo oldAutoexecCombopTemplateVo = autoexecCombopTemplateMapper.getAutoexecCombopTemplateById(id);
         if (oldAutoexecCombopTemplateVo != null) {
             if (equals(oldAutoexecCombopTemplateVo, autoexecCombopTemplateVo)) {
                 return null;
@@ -175,7 +175,7 @@ public class AutoexecCombopTemplateImportApi extends PrivateBinaryStreamApiCompo
 //        }
         int index = 0;
         //如果导入的流程名称已存在就重命名
-        while (autoexecCombopTemplateMapper.checkAutoexecCombopNameIsRepeat(autoexecCombopTemplateVo) != null) {
+        while (autoexecCombopTemplateMapper.checkAutoexecCombopTemplateNameIsRepeat(autoexecCombopTemplateVo) != null) {
             index++;
             autoexecCombopTemplateVo.setName(oldName + "_" + index);
         }
@@ -229,14 +229,14 @@ public class AutoexecCombopTemplateImportApi extends PrivateBinaryStreamApiCompo
         }
         if (CollectionUtils.isEmpty(failureReasonSet)) {
             if (oldAutoexecCombopTemplateVo == null) {
-                autoexecCombopTemplateMapper.insertAutoexecCombop(autoexecCombopTemplateVo);
+                autoexecCombopTemplateMapper.insertAutoexecCombopTemplate(autoexecCombopTemplateVo);
             } else {
 //                List<Long> combopPhaseIdList = autoexecCombopTemplateMapper.getCombopPhaseIdListByCombopId(id);
 //                if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
 //                    autoexecCombopTemplateMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
 //                }
 //                autoexecCombopTemplateMapper.deleteAutoexecCombopPhaseByCombopId(id);
-                autoexecCombopTemplateMapper.updateAutoexecCombopById(autoexecCombopTemplateVo);
+                autoexecCombopTemplateMapper.updateAutoexecCombopTemplateById(autoexecCombopTemplateVo);
             }
 //            for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList2) {
 //                autoexecCombopTemplateMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);

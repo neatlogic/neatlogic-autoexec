@@ -75,11 +75,11 @@ public class AutoexecCombopTemplateListApi extends PrivateApiComponentBase {
 //        JSONObject resultObj = new JSONObject();
 //        int pageCount = 0;
         AutoexecCombopTemplateVo searchVo = jsonObj.toJavaObject(AutoexecCombopTemplateVo.class);
-        int rowNum = autoexecCombopTemplateMapper.getAutoexecCombopCount(searchVo);
+        int rowNum = autoexecCombopTemplateMapper.getAutoexecCombopTemplateCount(searchVo);
         if (rowNum > 0) {
             searchVo.setRowNum(rowNum);
 //            pageCount = PageUtil.getPageCount(rowNum, searchVo.getPageSize());
-            List<AutoexecCombopTemplateVo> autoexecCombopTemplateList = autoexecCombopTemplateMapper.getAutoexecCombopList(searchVo);
+            List<AutoexecCombopTemplateVo> autoexecCombopTemplateList = autoexecCombopTemplateMapper.getAutoexecCombopTemplateList(searchVo);
             for (AutoexecCombopTemplateVo autoexecCombopTemplateVo : autoexecCombopTemplateList) {
                 AutoexecTypeVo autoexecTypeVo = autoexecTypeMapper.getTypeById(autoexecCombopTemplateVo.getTypeId());
                 if (autoexecTypeVo == null) {

@@ -6,19 +6,19 @@
 
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecCombopTemplateMapper">
-    <select id="checkAutoexecCombopIsExists" parameterType="java.lang.Long" resultType="int">
+    <!--<select id="checkAutoexecCombopTemplateIsExists" parameterType="java.lang.Long" resultType="int">
         SELECT COUNT(1) FROM `autoexec_combop_template` WHERE `id` = #{value}
-    </select>
+    </select>-->
 
-    <select id="checkAutoexecCombopNameIsRepeat" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo" resultType="java.lang.Long">
+    <select id="checkAutoexecCombopTemplateNameIsRepeat" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo" resultType="java.lang.Long">
         SELECT `id` FROM `autoexec_combop_template` WHERE `name` = #{name} AND `id` != #{id} LIMIT 1
     </select>
 
-    <select id="getAutoexecCombopIsActiveByIdForUpdate" parameterType="java.lang.Long" resultType="java.lang.Integer">
+    <select id="getAutoexecCombopTemplateIsActiveByIdForUpdate" parameterType="java.lang.Long" resultType="java.lang.Integer">
         SELECT `is_active` FROM `autoexec_combop_template` WHERE `id` = #{value} FOR UPDATE
     </select>
 
-    <select id="getAutoexecCombopById" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
+    <select id="getAutoexecCombopTemplateById" parameterType="java.lang.Long" resultType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
         SELECT
             `id`,
             `name`,
@@ -35,7 +35,7 @@
         WHERE `id` = #{value}
     </select>
 
-    <select id="getAutoexecCombopCount" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo" resultType="int">
+    <select id="getAutoexecCombopTemplateCount" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo" resultType="int">
         SELECT
             COUNT(1)
         FROM `autoexec_combop_template`
@@ -52,7 +52,7 @@
         </where>
     </select>
 
-    <select id="getAutoexecCombopList" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo" resultType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
+    <select id="getAutoexecCombopTemplateList" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo" resultType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
         SELECT
             `id`,
             `name`,
@@ -80,19 +80,20 @@
         LIMIT #{startNum}, #{pageSize}
     </select>
 
-    <select id="checkAutoexecCombopIdListIsExists" parameterType="java.util.List" resultType="java.lang.Long">
+    <select id="checkAutoexecCombopTemplateIdListIsExists" parameterType="java.util.List" resultType="java.lang.Long">
         SELECT `id` FROM `autoexec_combop_template` WHERE `id` IN
         <foreach collection="list" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
     </select>
 
-    <insert id="insertAutoexecCombop" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
+    <insert id="insertAutoexecCombopTemplate" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
         INSERT INTO `autoexec_combop_template` (
             `id`,
             `name`,
             `description`,
             `type_id`,
+            `is_active`,
             `operation_type`,
             `config`,
             `fcd`,
@@ -106,6 +107,7 @@
             #{name},
             #{description},
             #{typeId},
+            #{isActive},
             #{operationType},
             #{configStr},
             NOW(3),
@@ -115,7 +117,7 @@
         )
     </insert>
 
-    <update id="updateAutoexecCombopById" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
+    <update id="updateAutoexecCombopTemplateById" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
         UPDATE `autoexec_combop_template`
         SET
             `name` = #{name},
@@ -127,7 +129,7 @@
         WHERE `id` = #{id}
     </update>
 
-    <update id="updateAutoexecCombopIsActiveById" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
+    <update id="updateAutoexecCombopTemplateIsActiveById" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
         UPDATE `autoexec_combop_template`
         SET
             `is_active` = !`is_active`,
@@ -136,16 +138,16 @@
         WHERE `id` = #{id}
     </update>
 
-    <update id="updateAutoexecCombopConfigById" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
+    <!--<update id="updateAutoexecCombopTemplateConfigById" parameterType="codedriver.framework.autoexec.dto.comboptemplate.AutoexecCombopTemplateVo">
         UPDATE `autoexec_combop_template`
         SET
             `config` = #{configStr},
             `lcd` = NOW(3),
             `lcu` = #{lcu}
         WHERE `id` = #{id}
-    </update>
+    </update>-->
 
-    <delete id="deleteAutoexecCombopById" parameterType="java.lang.Long">
+    <delete id="deleteAutoexecCombopTemplateById" parameterType="java.lang.Long">
         DELETE FROM `autoexec_combop_template` WHERE `id` = #{value}
     </delete>
 </mapper>

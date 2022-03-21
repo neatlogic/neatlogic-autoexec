@@ -78,7 +78,7 @@ public class AutoexecCombopTemplateSaveApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecCombopTemplateVo autoexecCombopTemplateVo = jsonObj.toJavaObject(AutoexecCombopTemplateVo.class);
-        if (autoexecCombopTemplateMapper.checkAutoexecCombopNameIsRepeat(autoexecCombopTemplateVo) != null) {
+        if (autoexecCombopTemplateMapper.checkAutoexecCombopTemplateNameIsRepeat(autoexecCombopTemplateVo) != null) {
             throw new AutoexecCombopNameRepeatException(autoexecCombopTemplateVo.getName());
         }
 //        if (autoexecCombopMapper.checkAutoexecCombopUkIsRepeat(autoexecCombopVo) != null) {
@@ -100,7 +100,7 @@ public class AutoexecCombopTemplateSaveApi extends PrivateApiComponentBase {
             autoexecCombopTemplateVo.setOperationType(CombopOperationType.COMBOP.getValue());
 //            autoexecCombopTemplateVo.setOwner(UserContext.get().getUserUuid(true));
             autoexecCombopTemplateVo.setConfig("{}");
-            autoexecCombopTemplateMapper.insertAutoexecCombop(autoexecCombopTemplateVo);
+            autoexecCombopTemplateMapper.insertAutoexecCombopTemplate(autoexecCombopTemplateVo);
         } else {
 //            String owner = autoexecCombopTemplateVo.getOwner();
 //            if (owner == null) {
@@ -111,7 +111,7 @@ public class AutoexecCombopTemplateSaveApi extends PrivateApiComponentBase {
 //                throw new UserNotFoundException(owner);
 //            }
 //            autoexecCombopTemplateVo.setOwner(owner);
-            AutoexecCombopTemplateVo oldAutoexecCombopTemplateVo = autoexecCombopTemplateMapper.getAutoexecCombopById(id);
+            AutoexecCombopTemplateVo oldAutoexecCombopTemplateVo = autoexecCombopTemplateMapper.getAutoexecCombopTemplateById(id);
             if (oldAutoexecCombopTemplateVo == null) {
                 throw new AutoexecCombopTemplateNotFoundException(id);
             }
@@ -157,7 +157,7 @@ public class AutoexecCombopTemplateSaveApi extends PrivateApiComponentBase {
 //                    autoexecCombopTemplateMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);
 //                }
 //            }
-            autoexecCombopTemplateMapper.updateAutoexecCombopById(autoexecCombopTemplateVo);
+            autoexecCombopTemplateMapper.updateAutoexecCombopTemplateById(autoexecCombopTemplateVo);
         }
 
         return autoexecCombopTemplateVo.getId();
@@ -166,8 +166,8 @@ public class AutoexecCombopTemplateSaveApi extends PrivateApiComponentBase {
     public IValid name() {
         return jsonObj -> {
             AutoexecCombopTemplateVo autoexecCombopTemplateVo = jsonObj.toJavaObject(AutoexecCombopTemplateVo.class);
-            if (autoexecCombopTemplateMapper.checkAutoexecCombopNameIsRepeat(autoexecCombopTemplateVo) != null) {
-                return new FieldValidResultVo(new AutoexecCombopNameRepeatException(autoexecCombopTemplateVo.getName()));
+            if (autoexecCombopTemplateMapper.checkAutoexecCombopTemplateNameIsRepeat(autoexecCombopTemplateVo) != null) {
+                return new FieldValidResultVo(new AutoexecCombopTemplateNameRepeatException(autoexecCombopTemplateVo.getName()));
             }
             return new FieldValidResultVo();
         };
