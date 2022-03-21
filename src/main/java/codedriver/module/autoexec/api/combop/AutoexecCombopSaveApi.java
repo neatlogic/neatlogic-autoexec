@@ -121,7 +121,7 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
         AutoexecCombopTemplateVo autoexecCombopTemplateVo = null;
         Long combopTemplateId = autoexecCombopVo.getCombopTemplateId();
         if (combopTemplateId != null) {
-            autoexecCombopTemplateVo = autoexecCombopTemplateMapper.getAutoexecCombopById(combopTemplateId);
+            autoexecCombopTemplateVo = autoexecCombopTemplateMapper.getAutoexecCombopTemplateById(combopTemplateId);
             if (autoexecCombopTemplateVo == null) {
                 throw new AutoexecCombopTemplateNotFoundException(combopTemplateId);
             }

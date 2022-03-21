@@ -14,28 +14,28 @@ import java.util.List;
  * @since: 2021/4/13 11:05
  **/
 public interface AutoexecCombopTemplateMapper {
-    int checkAutoexecCombopIsExists(Long id);
+//    int checkAutoexecCombopTemplateIsExists(Long id);
 
-    Long checkAutoexecCombopNameIsRepeat(AutoexecCombopTemplateVo autoexecCombopVo);
+    Long checkAutoexecCombopTemplateNameIsRepeat(AutoexecCombopTemplateVo autoexecCombopVo);
 
-    Integer getAutoexecCombopIsActiveByIdForUpdate(Long id);
+    Integer getAutoexecCombopTemplateIsActiveByIdForUpdate(Long id);
 
-    AutoexecCombopTemplateVo getAutoexecCombopById(Long id);
+    AutoexecCombopTemplateVo getAutoexecCombopTemplateById(Long id);
 
-    int getAutoexecCombopCount(AutoexecCombopTemplateVo searchVo);
+    int getAutoexecCombopTemplateCount(AutoexecCombopTemplateVo searchVo);
 
-    List<AutoexecCombopTemplateVo> getAutoexecCombopList(AutoexecCombopTemplateVo searchVo);
+    List<AutoexecCombopTemplateVo> getAutoexecCombopTemplateList(AutoexecCombopTemplateVo searchVo);
 
-    List<Long> checkAutoexecCombopIdListIsExists(List<Long> idList);
+    List<Long> checkAutoexecCombopTemplateIdListIsExists(List<Long> idList);
 
-    int insertAutoexecCombop(AutoexecCombopTemplateVo autoexecCombopVo);
+    int insertAutoexecCombopTemplate(AutoexecCombopTemplateVo autoexecCombopVo);
 
-    int updateAutoexecCombopById(AutoexecCombopTemplateVo autoexecCombopVo);
+    int updateAutoexecCombopTemplateById(AutoexecCombopTemplateVo autoexecCombopVo);
 
-    int updateAutoexecCombopIsActiveById(AutoexecCombopTemplateVo autoexecCombopVo);
+    int updateAutoexecCombopTemplateIsActiveById(AutoexecCombopTemplateVo autoexecCombopVo);
 
-    int updateAutoexecCombopConfigById(AutoexecCombopTemplateVo autoexecCombopVo);
+//    int updateAutoexecCombopTemplateConfigById(AutoexecCombopTemplateVo autoexecCombopVo);
 
-    int deleteAutoexecCombopById(Long id);
+    int deleteAutoexecCombopTemplateById(Long id);
 
 }

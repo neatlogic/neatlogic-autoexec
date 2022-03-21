@@ -61,19 +61,10 @@ public class AutoexecCombopTemplateDeleteApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");
-        AutoexecCombopTemplateVo autoexecCombopTemplateVo = autoexecCombopTemplateMapper.getAutoexecCombopById(id);
+        AutoexecCombopTemplateVo autoexecCombopTemplateVo = autoexecCombopTemplateMapper.getAutoexecCombopTemplateById(id);
         if (autoexecCombopTemplateVo != null) {
-//            autoexecCombopService.setOperableButtonList(autoexecCombopVo);
-//            if (Objects.equals(autoexecCombopVo.getDeletable(), 0)) {
-//                throw new PermissionDeniedException();
-//            }
-            autoexecCombopTemplateMapper.deleteAutoexecCombopById(id);
+            autoexecCombopTemplateMapper.deleteAutoexecCombopTemplateById(id);
             DependencyManager.delete(MatrixAutoexecCombopParamDependencyHandler.class, id);
-//            List<Long> combopPhaseIdList = autoexecCombopTemplateMapper.getCombopPhaseIdListByCombopId(id);
-//            if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
-//                autoexecCombopTemplateMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
-//            }
-//            autoexecCombopTemplateMapper.deleteAutoexecCombopPhaseByCombopId(id);
         }
         return null;
     }

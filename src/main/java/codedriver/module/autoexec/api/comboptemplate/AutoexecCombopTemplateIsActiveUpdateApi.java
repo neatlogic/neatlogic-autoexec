@@ -61,21 +61,17 @@ public class AutoexecCombopTemplateIsActiveUpdateApi extends PrivateApiComponent
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");
-        Integer isActive = autoexecCombopTemplateMapper.getAutoexecCombopIsActiveByIdForUpdate(id);
+        Integer isActive = autoexecCombopTemplateMapper.getAutoexecCombopTemplateIsActiveByIdForUpdate(id);
         if (isActive == null) {
             throw new AutoexecCombopNotFoundException(id);
         }
-        AutoexecCombopTemplateVo autoexecCombopTemplateVo = autoexecCombopTemplateMapper.getAutoexecCombopById(id);
-//        autoexecCombopService.setOperableButtonList(autoexecCombopVo);
-//        if (Objects.equals(autoexecCombopVo.getEditable(), 0)) {
-//            throw new PermissionDeniedException();
-//        }
+        AutoexecCombopTemplateVo autoexecCombopTemplateVo = autoexecCombopTemplateMapper.getAutoexecCombopTemplateById(id);
         /** 如果是激活组合工具，则需要校验该组合工具配置正确 **/
 //        if (isActive == 0) {
 //            autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo, false);
 //        }
         autoexecCombopTemplateVo.setLcu(UserContext.get().getUserUuid(true));
-        autoexecCombopTemplateMapper.updateAutoexecCombopIsActiveById(autoexecCombopTemplateVo);
+        autoexecCombopTemplateMapper.updateAutoexecCombopTemplateIsActiveById(autoexecCombopTemplateVo);
         return (1 - isActive);
     }
 }

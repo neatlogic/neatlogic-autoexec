@@ -145,19 +145,13 @@ public class AutoexecCombopTemplateImportApi extends PrivateBinaryStreamApiCompo
         if (autoexecCombopTemplateVo.getTypeId() == null){
             throw new ClassCastException();
         }
-//        if (autoexecCombopTemplateVo.getIsActive() == null){
-//            throw new ClassCastException();
-//        }
         if (StringUtils.isBlank(autoexecCombopTemplateVo.getOperationType())){
             throw new ClassCastException();
         }
-//        if (StringUtils.isBlank(autoexecCombopTemplateVo.getOwner())){
-//            throw new ClassCastException();
-//        }
         if (autoexecCombopTemplateVo.getConfig() == null){
             throw new ClassCastException();
         }
-        AutoexecCombopTemplateVo oldAutoexecCombopTemplateVo = autoexecCombopTemplateMapper.getAutoexecCombopById(id);
+        AutoexecCombopTemplateVo oldAutoexecCombopTemplateVo = autoexecCombopTemplateMapper.getAutoexecCombopTemplateById(id);
         if (oldAutoexecCombopTemplateVo != null) {
             if (equals(oldAutoexecCombopTemplateVo, autoexecCombopTemplateVo)) {
                 return null;
@@ -168,21 +162,14 @@ public class AutoexecCombopTemplateImportApi extends PrivateBinaryStreamApiCompo
         if (autoexecTypeMapper.checkTypeIsExistsById(autoexecCombopTemplateVo.getTypeId()) == 0) {
             failureReasonSet.add("添加工具类型：'" + autoexecCombopTemplateVo.getTypeId() + "'");
         }
-//        if (autoexecCombopTemplateVo.getNotifyPolicyId() != null) {
-//            if (notifyMapper.checkNotifyPolicyIsExists(autoexecCombopTemplateVo.getNotifyPolicyId()) == 0) {
-//                failureReasonSet.add("添加通知策略：'" + autoexecCombopTemplateVo.getNotifyPolicyId() + "'");
-//            }
-//        }
         int index = 0;
         //如果导入的流程名称已存在就重命名
-        while (autoexecCombopTemplateMapper.checkAutoexecCombopNameIsRepeat(autoexecCombopTemplateVo) != null) {
+        while (autoexecCombopTemplateMapper.checkAutoexecCombopTemplateNameIsRepeat(autoexecCombopTemplateVo) != null) {
             index++;
             autoexecCombopTemplateVo.setName(oldName + "_" + index);
         }
         String userUuid = UserContext.get().getUserUuid(true);
         autoexecCombopTemplateVo.setFcu(userUuid);
-//        List<AutoexecCombopPhaseVo> combopPhaseList2 = new ArrayList<>();
-//        List<AutoexecCombopPhaseOperationVo> phaseOperationList2 = new ArrayList<>();
         AutoexecCombopConfigVo config = autoexecCombopTemplateVo.getConfig();
         int iSort = 0;
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
@@ -201,7 +188,6 @@ public class AutoexecCombopTemplateImportApi extends PrivateBinaryStreamApiCompo
                             if (autoexecCombopPhaseOperationVo != null) {
                                 autoexecCombopPhaseOperationVo.setSort(jSort++);
                                 autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
-//                                phaseOperationList2.add(autoexecCombopPhaseOperationVo);
                                 if (Objects.equals(autoexecCombopPhaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
                                     AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(autoexecCombopPhaseOperationVo.getOperationId());
                                     if (autoexecScriptVo == null) {
@@ -223,27 +209,15 @@ public class AutoexecCombopTemplateImportApi extends PrivateBinaryStreamApiCompo
                             }
                         }
                     }
-//                    combopPhaseList2.add(autoexecCombopPhaseVo);
                 }
             }
         }
         if (CollectionUtils.isEmpty(failureReasonSet)) {
             if (oldAutoexecCombopTemplateVo == null) {
-                autoexecCombopTemplateMapper.insertAutoexecCombop(autoexecCombopTemplateVo);
+                autoexecCombopTemplateMapper.insertAutoexecCombopTemplate(autoexecCombopTemplateVo);
             } else {
-//                List<Long> combopPhaseIdList = autoexecCombopTemplateMapper.getCombopPhaseIdListByCombopId(id);
-//                if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
-//                    autoexecCombopTemplateMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
-//                }
-//                autoexecCombopTemplateMapper.deleteAutoexecCombopPhaseByCombopId(id);
-                autoexecCombopTemplateMapper.updateAutoexecCombopById(autoexecCombopTemplateVo);
+                autoexecCombopTemplateMapper.updateAutoexecCombopTemplateById(autoexecCombopTemplateVo);
             }
-//            for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList2) {
-//                autoexecCombopTemplateMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);
-//            }
-//            for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList2) {
-//                autoexecCombopTemplateMapper.insertAutoexecCombopPhaseOperation(autoexecCombopPhaseOperationVo);
-//            }
             return null;
         } else {
             JSONObject resultObj = new JSONObject();
@@ -263,18 +237,9 @@ public class AutoexecCombopTemplateImportApi extends PrivateBinaryStreamApiCompo
         if (!Objects.equals(obj1.getTypeId(), obj2.getTypeId())) {
             return false;
         }
-//        if (!Objects.equals(obj1.getIsActive(), obj2.getIsActive())) {
-//            return false;
-//        }
         if (!Objects.equals(obj1.getOperationType(), obj2.getOperationType())) {
             return false;
         }
-//        if (!Objects.equals(obj1.getNotifyPolicyId(), obj2.getNotifyPolicyId())) {
-//            return false;
-//        }
-//        if (!Objects.equals(obj1.getOwner(), obj2.getOwner())) {
-//            return false;
-//        }
         if (!Objects.equals(obj1.getConfigStr(), obj2.getConfigStr())) {
             return false;
         }
