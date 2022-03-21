@@ -12,7 +12,6 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import codedriver.framework.cmdb.crossover.IResourceCenterAccountCrossoverService;
 import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
@@ -28,7 +27,6 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicBinaryStreamApiComponentBase;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -86,14 +84,14 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
         Long jobId = paramObj.getLong("jobId");
         JSONObject passThroughEnv = paramObj.getJSONObject("passThroughEnv");
         HttpServletResponse resp = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getResponse();
-        Long runnerId = 0L;
+        /*Long runnerId = 0L;
         if (MapUtils.isNotEmpty(passThroughEnv)) {
             if (!passThroughEnv.containsKey("runnerId")) {
                 throw new AutoexecJobRunnerNotFoundException("runnerId");
             } else {
                 runnerId = passThroughEnv.getLong("runnerId");
             }
-        }
+        }*/
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
@@ -106,7 +104,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
             lastModifiedDec = new BigDecimal(Double.toString(paramObj.getDouble("lastModified")));
             lastModifiedLong = lastModifiedDec.multiply(new BigDecimal("1000")).longValue();
         }
-        AutoexecJobPhaseNodeVo nodeParamVo = new AutoexecJobPhaseNodeVo(paramObj.getLong("jobId"), paramObj.getString("phase"), runnerId, 0);
+        AutoexecJobPhaseNodeVo nodeParamVo = new AutoexecJobPhaseNodeVo(paramObj.getLong("jobId"), paramObj.getString("phase"), 0);
         nodeParamVo.setStatusBlackList(Collections.singletonList(JobNodeStatus.IGNORED.getValue()));
         //目前仅根据phaseName下载节点
         if (StringUtils.isNotBlank(phaseName)) {
