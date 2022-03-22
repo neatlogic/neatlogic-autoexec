@@ -71,7 +71,7 @@ public class AutoexecProfileSearchApi extends PrivateApiComponentBase {
         if (profileCount > 0) {
             paramProfileVo.setRowNum(profileCount);
             List<Long> profileIdList = autoexecProfileMapper.getAutoexecProfileIdList(paramProfileVo);
-            returnList = autoexecProfileMapper.searchAutoexecProfileListByIdList(profileIdList);
+            returnList = autoexecProfileMapper.searchProfileListByIdList(profileIdList);
             Map<Object, Integer> toolAndScriptReferredCountMap = new HashMap<>();
             toolAndScriptReferredCountMap = DependencyManager.getBatchDependencyCount(AutoexecFromType.AUTOEXEC_PROFILE_TOOL_AND_SCRIPT, profileIdList);
             if (!toolAndScriptReferredCountMap.isEmpty()) {
