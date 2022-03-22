@@ -82,13 +82,13 @@ public class AutoexecProfileOptionDependencyHandler extends CustomTableDependenc
     protected DependencyInfoVo parse(Object dependencyObj) {
         if (dependencyObj instanceof Map) {
             Map<String, Object> map = (Map) dependencyObj;
-            Long optionId = (Long) map.get("option_id");
+            Long operateId = (Long) map.get("operate_id");
             String type = (String) map.get("type");
-            if (optionId == null) {
+            if (operateId == null) {
                 return null;
             }
             if (StringUtils.equals(type, ToolType.TOOL.getValue())) {
-                AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(optionId);
+                AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(operateId);
                 if (autoexecToolVo != null) {
                     JSONObject dependencyInfoConfig = new JSONObject();
                     dependencyInfoConfig.put("toolId", autoexecToolVo.getId());
@@ -98,7 +98,7 @@ public class AutoexecProfileOptionDependencyHandler extends CustomTableDependenc
                     return new DependencyInfoVo(autoexecToolVo.getId(), dependencyInfoConfig, pathFormat, urlFormat, this.getGroupName());
                 }
             } else if (StringUtils.equals(type, ToolType.SCRIPT.getValue())) {
-                return autoexecScriptService.getScriptDependencyPageUrl(map, optionId, this.getGroupName(), AutoexecFromType.AUTOEXEC_PROFILE_TOOL_AND_SCRIPT.getText());
+                return autoexecScriptService.getScriptDependencyPageUrl(map, operateId, this.getGroupName(), AutoexecFromType.AUTOEXEC_PROFILE_TOOL_AND_SCRIPT.getText());
             }
         }
         return null;
