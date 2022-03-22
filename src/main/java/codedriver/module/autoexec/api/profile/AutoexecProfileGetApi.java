@@ -58,7 +58,7 @@ public class AutoexecProfileGetApi extends PrivateApiComponentBase {
         Long id = paramObj.getLong("id");
         AutoexecProfileVo profileVo = autoexecProfileMapper.getProfileVoById(id);
         if (profileVo != null) {
-            //获取并整理参数
+            //获取profile参数
             profileVo.setInputParamList(autoexecProfileService.getProfileParamById(id));
             return profileVo;
         }

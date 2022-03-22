@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
  * @date 2022/3/21 3:32 下午
  */
 @Service
-public class AutoexecProfileServiceImpl implements AutoexecProfileService{
+public class AutoexecProfileServiceImpl implements AutoexecProfileService {
 
     @Resource
     AutoexecProfileMapper autoexecProfileMapper;
@@ -31,6 +31,7 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService{
 
     @Resource
     AutoexecScriptMapper autoexecScriptMapper;
+
     /**
      * 获取profile参数
      *
@@ -63,8 +64,7 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService{
     public List<AutoexecParamVo> getProfileConfig(List<Long> toolIdList, List<Long> scriptIdList, JSONObject config) {
         List<AutoexecToolAndScriptVo> allAutoexecToolAndScriptVo = new ArrayList<>();
         allAutoexecToolAndScriptVo.addAll(autoexecToolMapper.getToolListByIdList(toolIdList));
-        autoexecScriptMapper.getScriptListByIdList(scriptIdList);
-
+        allAutoexecToolAndScriptVo.addAll(autoexecScriptMapper.getScriptListByIdList(scriptIdList));
 
 
         return null;

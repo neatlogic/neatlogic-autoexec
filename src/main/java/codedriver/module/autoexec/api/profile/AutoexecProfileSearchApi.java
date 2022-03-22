@@ -2,23 +2,27 @@ package codedriver.module.autoexec.api.profile;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_PROFILE_MODIFY;
+import codedriver.framework.autoexec.constvalue.AutoexecFromType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecProfileMapper;
-import codedriver.framework.autoexec.dto.profile.AutoexecProfileScriptVo;
-import codedriver.framework.autoexec.dto.profile.AutoexecProfileToolVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
+import codedriver.framework.dependency.core.DependencyManager;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.util.TableResultUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author longrf
@@ -64,18 +68,23 @@ public class AutoexecProfileSearchApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecProfileVo paramProfileVo = JSON.toJavaObject(paramObj, AutoexecProfileVo.class);
+        List<AutoexecProfileVo> returnList = null;
         int profileCount = autoexecProfileMapper.searchAutoexecProfileCount(paramProfileVo);
         if (profileCount > 0) {
             paramProfileVo.setRowNum(profileCount);
             List<Long> profileIdList = autoexecProfileMapper.getAutoexecProfileIdList(paramProfileVo);
-
-            List<AutoexecProfileToolVo> profileToolVoList = autoexecProfileMapper.getProfileToolListByProfileIdList(profileIdList);
-
-            List<AutoexecProfileScriptVo> profileScriptVoList = autoexecProfileMapper.getProfileScriptListByProfileIdList(profileIdList);
-
-
-            return TableResultUtil.getResult(autoexecProfileMapper.searchAutoexecProfileListByIdList(profileIdList), paramProfileVo);
+            returnList = autoexecProfileMapper.searchAutoexecProfileListByIdList(profileIdList);
+            Map<Object, Integer> toolAndScriptReferredCountMap = new HashMap<>();
+            toolAndScriptReferredCountMap = DependencyManager.getBatchDependencyCount(AutoexecFromType.AUTOEXEC_PROFILE_TOOL_AND_SCRIPT, profileIdList);
+            if (!toolAndScriptReferredCountMap.isEmpty()) {
+                for (AutoexecProfileVo profileVo : returnList) {
+                    profileVo.setAutoexecToolAndScriptCount(toolAndScriptReferredCountMap.get(profileVo.getId()));
+                }
+            }
         }
-        return null;
+        if (CollectionUtils.isEmpty(returnList)) {
+            returnList = new ArrayList<>();
+        }
+        return TableResultUtil.getResult(returnList, paramProfileVo);
     }
 }

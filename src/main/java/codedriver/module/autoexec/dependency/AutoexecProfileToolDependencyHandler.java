@@ -1,7 +1,7 @@
 package codedriver.module.autoexec.dependency;
 
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
-import codedriver.framework.autoexec.constvalue.FromType;
+import codedriver.framework.autoexec.constvalue.AutoexecFromType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.dependency.core.CustomTableDependencyHandlerBase;
@@ -86,6 +86,6 @@ public class AutoexecProfileToolDependencyHandler extends CustomTableDependencyH
 
     @Override
     public IFromType getFromType() {
-        return FromType.AUTOEXEC_PROFILE_TOOL_AND_SCRIPT;
+        return AutoexecFromType.AUTOEXEC_PROFILE_TOOL_AND_SCRIPT;
     }
 }
