@@ -70,7 +70,7 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             resetAll(jobVo);
             autoexecJobMapper.updateJobPhaseStatusByJobId(jobVo.getId(), JobPhaseStatus.PENDING.getValue());//重置phase状态为pending
             autoexecJobService.getAutoexecJobDetail(jobVo, 0);
-            jobVo.setCurrentPhaseSort(0);
+            jobVo.setCurrentGroupSort(0);
             //重刷所有phase node
             autoexecJobService.refreshJobNodeList(jobVo.getId(), null);
             //更新没有删除的节点为"未开始"状态
@@ -92,7 +92,7 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             sort = autoexecJobPhaseVos.get(0).getSort();
             //int finalSort = sort;
             //List<Long> jobPhaseIdList = autoexecJobPhaseVos.stream().filter(p->p.getSort() == finalSort).map(AutoexecJobPhaseVo::getId).collect(Collectors.toList());
-            jobVo.setCurrentPhaseSort(sort);
+            jobVo.setCurrentGroupSort(sort);
             autoexecJobService.getAutoexecJobDetail(jobVo, sort);
             //补充配置，只保留满足条件（该sort下，未开始、失败、已暂停或已中止）的phase
             //jobVo.setPhaseList(jobVo.getPhaseList().stream().filter(o -> jobPhaseIdList.contains(o.getId())).collect(Collectors.toList()));
@@ -126,7 +126,7 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
                 String url = runner.getUrl() + "api/rest/job/all/reset";
                 paramJson.put("passThroughEnv", new JSONObject() {{
                     put("runnerId", runner.getRunnerMapId());
-                    put("phaseSort", jobVo.getCurrentPhaseSort());
+                    put("phaseSort", jobVo.getCurrentGroupSort());
                 }});
                 restVo = new RestVo.Builder(url, AuthenticateType.BUILDIN.getValue()).setPayload(paramJson).build();
                 result = RestUtil.sendPostRequest(restVo);

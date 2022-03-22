@@ -112,7 +112,7 @@ public class AutoexecJobNextPhaseFireApi extends PublicApiComponentBase {
             Integer sort = autoexecJobMapper.getNextJobPhaseSortByJobId(jobId, jobPhaseVo.getSort());
             if (sort != null) {
                 autoexecJobService.getAutoexecJobDetail(jobVo, sort);
-                jobVo.setCurrentPhaseSort(sort);
+                jobVo.setCurrentGroupSort(sort);
                 IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
                 fireAction.doService(jobVo);
             }

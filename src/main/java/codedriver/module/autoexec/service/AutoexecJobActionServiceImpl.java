@@ -359,7 +359,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         }
         AutoexecJobVo jobVo = autoexecJobService.saveAutoexecCombopJob(combopVo, invokeVo, threadCount, paramJson);
         jobVo.setAction(JobAction.FIRE.getValue());
-        jobVo.setCurrentPhaseSort(0);
+        jobVo.setCurrentGroupSort(0);
         return jobVo;
     }
 

@@ -96,8 +96,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         //保存阶段
         List<AutoexecJobPhaseVo> jobPhaseVoList = new ArrayList<>();
         jobVo.setPhaseList(jobPhaseVoList);
-        //创建作业当前phase为sort为0
-        jobVo.setCurrentPhaseSort(0);
+        //创建作业当前group为sort为0
+        jobVo.setCurrentGroupSort(0);
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
         for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
             AutoexecJobPhaseVo jobPhaseVo = new AutoexecJobPhaseVo(autoexecCombopPhaseVo, jobVo.getId());
