@@ -93,12 +93,12 @@ public class AutoexecProfileOptionDependencyHandler extends CustomTableDependenc
                     JSONObject dependencyInfoConfig = new JSONObject();
                     dependencyInfoConfig.put("toolId", autoexecToolVo.getId());
                     dependencyInfoConfig.put("toolName", autoexecToolVo.getName());
-                    String pathFormat = AutoexecFromType.AUTOEXEC_PROFILE_TOOL_AND_SCRIPT.getText() + "-${DATA.toolName}";
+                    String pathFormat = AutoexecFromType.AUTOEXEC_PROFILE_OPERATION.getText() + "-${DATA.toolName}";
                     String urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/tool-detail?id=#{DATA.toolId}";
                     return new DependencyInfoVo(autoexecToolVo.getId(), dependencyInfoConfig, pathFormat, urlFormat, this.getGroupName());
                 }
             } else if (StringUtils.equals(type, ToolType.SCRIPT.getValue())) {
-                return autoexecScriptService.getScriptDependencyPageUrl(map, operateId, this.getGroupName(), AutoexecFromType.AUTOEXEC_PROFILE_TOOL_AND_SCRIPT.getText());
+                return autoexecScriptService.getScriptDependencyPageUrl(map, operateId, this.getGroupName(), AutoexecFromType.AUTOEXEC_PROFILE_OPERATION.getText());
             }
         }
         return null;
@@ -106,6 +106,6 @@ public class AutoexecProfileOptionDependencyHandler extends CustomTableDependenc
 
     @Override
     public IFromType getFromType() {
-        return AutoexecFromType.AUTOEXEC_PROFILE_TOOL_AND_SCRIPT;
+        return AutoexecFromType.AUTOEXEC_PROFILE_OPERATION;
     }
 }

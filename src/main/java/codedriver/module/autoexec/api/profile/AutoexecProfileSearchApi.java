@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -72,8 +71,7 @@ public class AutoexecProfileSearchApi extends PrivateApiComponentBase {
             paramProfileVo.setRowNum(profileCount);
             List<Long> profileIdList = autoexecProfileMapper.getAutoexecProfileIdList(paramProfileVo);
             returnList = autoexecProfileMapper.searchProfileListByIdList(profileIdList);
-            Map<Object, Integer> toolAndScriptReferredCountMap = new HashMap<>();
-            toolAndScriptReferredCountMap = DependencyManager.getBatchDependencyCount(AutoexecFromType.AUTOEXEC_PROFILE_TOOL_AND_SCRIPT, profileIdList);
+            Map<Object, Integer> toolAndScriptReferredCountMap  = DependencyManager.getBatchDependencyCount(AutoexecFromType.AUTOEXEC_PROFILE_OPERATION, profileIdList);
             if (!toolAndScriptReferredCountMap.isEmpty()) {
                 for (AutoexecProfileVo profileVo : returnList) {
                     profileVo.setAutoexecToolAndScriptCount(toolAndScriptReferredCountMap.get(profileVo.getId()));
