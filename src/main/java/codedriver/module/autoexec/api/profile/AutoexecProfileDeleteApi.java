@@ -3,7 +3,6 @@ package codedriver.module.autoexec.api.profile;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_PROFILE_MODIFY;
 import codedriver.framework.autoexec.dao.mapper.AutoexecProfileMapper;
-import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import codedriver.framework.autoexec.exception.AutoexecProfileIsNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.Description;
@@ -54,10 +53,6 @@ public class AutoexecProfileDeleteApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long id = paramObj.getLong("id");
         if (autoexecProfileMapper.checkProfileIsExists(id) == 0) {
-            throw new AutoexecProfileIsNotFoundException(id);
-        }
-        AutoexecProfileVo profileVo = autoexecProfileMapper.getProfileVoById(id);
-        if (profileVo == null) {
             throw new AutoexecProfileIsNotFoundException(id);
         }
         //查询是否被引用

@@ -371,8 +371,8 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
     }
 
     @Override
-    public DependencyInfoVo getScriptDependencyPageUrl(Map<String, Object> map, String groupName) {
-        Long scriptId = (Long) map.get("script_id");
+    public DependencyInfoVo getScriptDependencyPageUrl(Map<String, Object> map, Long scriptId, String groupName, String pathFormat) {
+
         AutoexecScriptVersionVo version = null;
         Boolean hasStatus = false;
         AutoexecScriptVo scriptVo = autoexecScriptMapper.getScriptBaseInfoById(scriptId);
@@ -414,7 +414,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
             dependencyInfoConfig.put("scriptId", scriptVo.getId());
             dependencyInfoConfig.put("scriptName", scriptVo.getName());
             dependencyInfoConfig.put("versionId", versionVo.getId());
-            String pathFormat = "自动化工具目录-${DATA.scriptName}";
+            String pathFormatString = pathFormat + "-${DATA.scriptName}";
             String urlFormat = "";
             //submitted的页面不一样
             if (Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), status)) {
@@ -423,7 +423,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
                 dependencyInfoConfig.put("versionStatus", version.getStatus());
                 urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/script-detail?scriptId=${DATA.scriptId}&status=${DATA.versionStatus}";
             }
-            return new DependencyInfoVo(scriptVo.getId(), dependencyInfoConfig, pathFormat, urlFormat, groupName);
+            return new DependencyInfoVo(scriptVo.getId(), dependencyInfoConfig, pathFormatString, urlFormat, groupName);
         }
         return null;
     }

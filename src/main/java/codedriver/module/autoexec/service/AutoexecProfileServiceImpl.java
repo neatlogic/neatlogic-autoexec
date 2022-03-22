@@ -7,6 +7,7 @@ import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileToolVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -56,12 +57,12 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService {
         if (CollectionUtils.isNotEmpty(profileScriptVoList)) {
             scriptIdList = profileScriptVoList.stream().map(AutoexecProfileToolVo::getToolId).collect(Collectors.toList());
         }
-        profileVo.setInputParamList(getProfileConfig(toolIdList, scriptIdList, config));
+        profileVo.setInputParamList(getProfileConfig(toolIdList, scriptIdList, config.toJavaObject(JSONArray.class)));
         return null;
     }
 
     @Override
-    public List<AutoexecParamVo> getProfileConfig(List<Long> toolIdList, List<Long> scriptIdList, JSONObject config) {
+    public List<AutoexecParamVo> getProfileConfig(List<Long> toolIdList, List<Long> scriptIdList, JSONArray paramList) {
         List<AutoexecToolAndScriptVo> allAutoexecToolAndScriptVo = new ArrayList<>();
         allAutoexecToolAndScriptVo.addAll(autoexecToolMapper.getToolListByIdList(toolIdList));
         allAutoexecToolAndScriptVo.addAll(autoexecScriptMapper.getScriptListByIdList(scriptIdList));

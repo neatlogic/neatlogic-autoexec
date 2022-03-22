@@ -88,5 +88,5 @@ public interface AutoexecScriptService {
      * @param groupName
      * @return
      */
-    DependencyInfoVo getScriptDependencyPageUrl(Map<String, Object> map, String groupName);
+    DependencyInfoVo getScriptDependencyPageUrl(Map<String, Object> map,Long scriptId, String groupName, String pathFormat);
 }

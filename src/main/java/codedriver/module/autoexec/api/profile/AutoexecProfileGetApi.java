@@ -11,7 +11,6 @@ import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.service.AutoexecProfileService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 
@@ -21,7 +20,6 @@ import javax.annotation.Resource;
  */
 @AuthAction(action = AUTOEXEC_PROFILE_MODIFY.class)
 @Service
-@Transactional
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecProfileGetApi extends PrivateApiComponentBase {
 
@@ -47,7 +45,7 @@ public class AutoexecProfileGetApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", desc = "工具id", type = ApiParamType.LONG)
+            @Param(name = "id", desc = "profile id", type = ApiParamType.LONG)
     })
     @Output({
             @Param(explode = AutoexecProfileVo[].class, desc = "工具profile")

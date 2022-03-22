@@ -56,7 +56,7 @@ public class AutoexecProfileSaveApi extends PrivateApiComponentBase {
             @Param(name = "id", type = ApiParamType.LONG, desc = "profile id"),
             @Param(name = "name", type = ApiParamType.STRING, isRequired = true, desc = "profile 名称"),
             @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
-            @Param(name = "config", type = ApiParamType.JSONARRAY, desc = "工具参数"),
+            @Param(name = "paramList", type = ApiParamType.JSONARRAY, desc = "工具参数"),
             @Param(name = "autoexecToolAndScriptVoList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "关联的工具和脚本列表")
     })
     @Output({
@@ -79,7 +79,7 @@ public class AutoexecProfileSaveApi extends PrivateApiComponentBase {
         if (CollectionUtils.isNotEmpty(scriptIdList)) {
             autoexecProfileMapper.insertAutoexecProfileScriptByProfileIdAndScriptIdList(profileVo.getId(), toolIdList);
         }
-        profileVo.setInputParamList(autoexecProfileService.getProfileConfig(toolIdList,scriptIdList,null));
+        profileVo.setInputParamList(autoexecProfileService.getProfileConfig(toolIdList,scriptIdList,paramObj.getJSONArray("paramList")));
         autoexecProfileMapper.insertProfile(profileVo);
         return null;
     }

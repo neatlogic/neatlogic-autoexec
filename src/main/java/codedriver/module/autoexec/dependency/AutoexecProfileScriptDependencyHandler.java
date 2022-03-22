@@ -72,7 +72,7 @@ public class AutoexecProfileScriptDependencyHandler extends CustomTableDependenc
     protected DependencyInfoVo parse(Object dependencyObj) {
         if (dependencyObj instanceof Map) {
             Map<String, Object> map = (Map) dependencyObj;
-            return autoexecScriptService.getScriptDependencyPageUrl(map, this.getGroupName());
+            return autoexecScriptService.getScriptDependencyPageUrl(map,(Long) map.get("script_id"),this.getGroupName(),AutoexecFromType.AUTOEXEC_PROFILE_TOOL_AND_SCRIPT.getText());
         }
         return null;
     }

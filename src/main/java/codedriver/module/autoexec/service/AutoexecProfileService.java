@@ -1,7 +1,7 @@
 package codedriver.module.autoexec.service;
 
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.JSONArray;
 
 import java.util.List;
 
@@ -28,5 +28,5 @@ public interface AutoexecProfileService {
      * @param config       工具参数
      * @return
      */
-    List<AutoexecParamVo> getProfileConfig(List<Long> toolIdList, List<Long> scriptIdList, JSONObject config);
+    List<AutoexecParamVo> getProfileConfig(List<Long> toolIdList, List<Long> scriptIdList, JSONArray paramList);
 }

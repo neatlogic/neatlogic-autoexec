@@ -76,7 +76,8 @@ public class AutoexecProfileToolDependencyHandler extends CustomTableDependencyH
             if (autoexecToolVo != null) {
                 JSONObject dependencyInfoConfig = new JSONObject();
                 dependencyInfoConfig.put("toolId", autoexecToolVo.getId());
-                String pathFormat = "组合工具-${DATA.combopName}-运行参数-${DATA.paramName}";
+                dependencyInfoConfig.put("toolName", autoexecToolVo.getName());
+                String pathFormat = AutoexecFromType.AUTOEXEC_PROFILE_TOOL_AND_SCRIPT.getText() + "-${DATA.toolName}";
                 String urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/tool-detail?id=#{DATA.toolId}";
                 return new DependencyInfoVo(autoexecToolVo.getId(), dependencyInfoConfig, pathFormat, urlFormat, this.getGroupName());
             }
