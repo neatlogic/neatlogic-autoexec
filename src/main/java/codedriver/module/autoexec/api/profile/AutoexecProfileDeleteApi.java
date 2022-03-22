@@ -61,8 +61,7 @@ public class AutoexecProfileDeleteApi extends PrivateApiComponentBase {
 //            throw new AutoexecProfileHasBeenReferredException(profileVo.getName());
 //        }
         autoexecProfileMapper.deleteProfileById(id);
-        autoexecProfileMapper.deleteProfileToolByProfileId(id);
-        autoexecProfileMapper.deleteProfileScriptByProfileId(id);
+        autoexecProfileMapper.deleteProfileOptionByProfileId(id);
         return null;
     }
 }

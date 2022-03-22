@@ -25,7 +25,7 @@ public interface AutoexecProfileService {
      *
      * @param toolIdList   工具id
      * @param scriptIdList 脚本id
-     * @param config       工具参数
+     * @param paramList       工具参数
      * @return
      */
     List<AutoexecParamVo> getProfileConfig(List<Long> toolIdList, List<Long> scriptIdList, JSONArray paramList);

@@ -2,6 +2,7 @@ package codedriver.module.autoexec.api.profile;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_PROFILE_MODIFY;
+import codedriver.framework.autoexec.constvalue.ToolType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecProfileMapper;
 import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
@@ -64,23 +65,28 @@ public class AutoexecProfileSaveApi extends PrivateApiComponentBase {
     @Description(desc = "自动化工具profile保存接口")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
+        Long paramProfileId = paramObj.getLong("id");
         AutoexecProfileVo profileVo = JSON.toJavaObject(paramObj, AutoexecProfileVo.class);
-        List<AutoexecToolAndScriptVo> toolAndScriptVoList = profileVo.getAutoexecToolAndScriptVoList();
+
         //分类 类型(tool:工具;script:脚本)
-        Map<String, List<AutoexecToolAndScriptVo>> toolAndScriptMap = toolAndScriptVoList.stream().collect(Collectors.groupingBy(AutoexecToolAndScriptVo::getType));
+        Map<String, List<AutoexecToolAndScriptVo>> toolAndScriptMap = profileVo.getAutoexecToolAndScriptVoList().stream().collect(Collectors.groupingBy(AutoexecToolAndScriptVo::getType));
 
         //tool
-        List<Long> toolIdList = toolAndScriptMap.get("tool").stream().map(AutoexecToolAndScriptVo::getId).collect(Collectors.toList());
+        List<Long> toolIdList = toolAndScriptMap.get(ToolType.TOOL.getValue()).stream().map(AutoexecToolAndScriptVo::getId).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(toolIdList)) {
-            autoexecProfileMapper.insertAutoexecProfileTooLByProfileIdAndTooLIdList(profileVo.getId(), toolIdList);
+            autoexecProfileMapper.insertAutoexecProfileTooLByProfileIdAndOptionIdListAndType(profileVo.getId(), toolIdList, ToolType.TOOL.getValue());
         }
         //script
-        List<Long> scriptIdList = toolAndScriptMap.get("script").stream().map(AutoexecToolAndScriptVo::getId).collect(Collectors.toList());
+        List<Long> scriptIdList = toolAndScriptMap.get(ToolType.SCRIPT.getValue()).stream().map(AutoexecToolAndScriptVo::getId).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(scriptIdList)) {
-            autoexecProfileMapper.insertAutoexecProfileScriptByProfileIdAndScriptIdList(profileVo.getId(), toolIdList);
+            autoexecProfileMapper.insertAutoexecProfileTooLByProfileIdAndOptionIdListAndType(profileVo.getId(), scriptIdList, ToolType.SCRIPT.getValue());
         }
-        profileVo.setInputParamList(autoexecProfileService.getProfileConfig(toolIdList,scriptIdList,paramObj.getJSONArray("paramList")));
-        autoexecProfileMapper.insertProfile(profileVo);
+        if (paramProfileId != null) {
+            autoexecProfileMapper.updateProfile(profileVo);
+        } else {
+            profileVo.setInputParamList(autoexecProfileService.getProfileConfig(toolIdList, scriptIdList, paramObj.getJSONArray("paramList")));
+            autoexecProfileMapper.insertProfile(profileVo);
+        }
         return null;
     }
 }

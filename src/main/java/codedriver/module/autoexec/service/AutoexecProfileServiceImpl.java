@@ -1,20 +1,21 @@
 package codedriver.module.autoexec.service;
 
+import codedriver.framework.autoexec.constvalue.ToolType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecProfileMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
-import codedriver.framework.autoexec.dto.profile.AutoexecProfileToolVo;
+import codedriver.framework.autoexec.dto.profile.AutoexecProfileOptionVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
+import codedriver.framework.autoexec.exception.AutoexecProfileIsNotFoundException;
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -42,23 +43,13 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService {
     @Override
     public List<AutoexecParamVo> getProfileParamById(Long id) {
         AutoexecProfileVo profileVo = autoexecProfileMapper.getProfileVoById(id);
-        JSONObject config = profileVo.getConfig();
-
+        if (profileVo == null) {
+            throw new AutoexecProfileIsNotFoundException(id);
+        }
         //获取关联的工具
-        List<AutoexecProfileToolVo> profileToolVoList = autoexecProfileMapper.getProfileToolListByProfileId(id);
-        List<Long> toolIdList = null;
-        if (CollectionUtils.isNotEmpty(profileToolVoList)) {
-            toolIdList = profileToolVoList.stream().map(AutoexecProfileToolVo::getToolId).collect(Collectors.toList());
-        }
-
-        //获取关联的脚本
-        List<AutoexecProfileToolVo> profileScriptVoList = autoexecProfileMapper.getProfileScriptListByProfileId(id);
-        List<Long> scriptIdList = null;
-        if (CollectionUtils.isNotEmpty(profileScriptVoList)) {
-            scriptIdList = profileScriptVoList.stream().map(AutoexecProfileToolVo::getToolId).collect(Collectors.toList());
-        }
-        profileVo.setInputParamList(getProfileConfig(toolIdList, scriptIdList, config.toJavaObject(JSONArray.class)));
-        return null;
+        List<AutoexecProfileOptionVo> profileOptionVoList = autoexecProfileMapper.getProfileToolListByProfileId(id);
+        Map<String, List<AutoexecProfileOptionVo>> toolAndScriptMap = profileOptionVoList.stream().collect(Collectors.groupingBy(AutoexecProfileOptionVo::getType));
+        return getProfileConfig(toolAndScriptMap.get(ToolType.TOOL.getValue()).stream().map(AutoexecProfileOptionVo::getOptionId).collect(Collectors.toList()), toolAndScriptMap.get(ToolType.SCRIPT.getValue()).stream().map(AutoexecProfileOptionVo::getOptionId).collect(Collectors.toList()), profileVo.getConfig().toJavaObject(JSONArray.class));
     }
 
     @Override
