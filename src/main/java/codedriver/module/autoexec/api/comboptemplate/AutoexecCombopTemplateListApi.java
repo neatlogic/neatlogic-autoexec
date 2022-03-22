@@ -72,14 +72,11 @@ public class AutoexecCombopTemplateListApi extends PrivateApiComponentBase {
     @Description(desc = "查询组合工具模板列表")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-//        JSONObject resultObj = new JSONObject();
-//        int pageCount = 0;
         AutoexecCombopTemplateVo searchVo = jsonObj.toJavaObject(AutoexecCombopTemplateVo.class);
-        int rowNum = autoexecCombopTemplateMapper.getAutoexecCombopCount(searchVo);
+        int rowNum = autoexecCombopTemplateMapper.getAutoexecCombopTemplateCount(searchVo);
         if (rowNum > 0) {
             searchVo.setRowNum(rowNum);
-//            pageCount = PageUtil.getPageCount(rowNum, searchVo.getPageSize());
-            List<AutoexecCombopTemplateVo> autoexecCombopTemplateList = autoexecCombopTemplateMapper.getAutoexecCombopList(searchVo);
+            List<AutoexecCombopTemplateVo> autoexecCombopTemplateList = autoexecCombopTemplateMapper.getAutoexecCombopTemplateList(searchVo);
             for (AutoexecCombopTemplateVo autoexecCombopTemplateVo : autoexecCombopTemplateList) {
                 AutoexecTypeVo autoexecTypeVo = autoexecTypeMapper.getTypeById(autoexecCombopTemplateVo.getTypeId());
                 if (autoexecTypeVo == null) {
@@ -87,16 +84,8 @@ public class AutoexecCombopTemplateListApi extends PrivateApiComponentBase {
                 }
                 autoexecCombopTemplateVo.setTypeName(autoexecTypeVo.getName());
             }
-//            resultObj.put("tbodyList", autoexecCombopTemplateList);
             return TableResultUtil.getResult(autoexecCombopTemplateList, searchVo);
-        } else {
-//            resultObj.put("tbodyList", new ArrayList<>());
-            return TableResultUtil.getResult(new ArrayList<>(), searchVo);
         }
-//        resultObj.put("rowNum", rowNum);
-//        resultObj.put("pageCount", pageCount);
-//        resultObj.put("currentPage", searchVo.getCurrentPage());
-//        resultObj.put("pageSize", searchVo.getPageSize());
-//        return resultObj;
+        return TableResultUtil.getResult(new ArrayList<>(), searchVo);
     }
 }

@@ -76,7 +76,7 @@ public class AutoexecCombopTemplateExportApi extends PrivateBinaryStreamApiCompo
         if (CollectionUtils.isEmpty(idList)) {
             throw new ParamNotExistsException("idList");
         }
-        List<Long> existIdList = autoexecCombopTemplateMapper.checkAutoexecCombopIdListIsExists(idList);
+        List<Long> existIdList = autoexecCombopTemplateMapper.checkAutoexecCombopTemplateIdListIsExists(idList);
         idList.removeAll(existIdList);
         if (CollectionUtils.isNotEmpty(idList)) {
             int capacity = 17 * idList.size();
@@ -92,7 +92,7 @@ public class AutoexecCombopTemplateExportApi extends PrivateBinaryStreamApiCompo
         }
         List<AutoexecCombopTemplateVo> autoexecCombopTemplateVoList = new ArrayList<>();
         for (Long id : existIdList) {
-            AutoexecCombopTemplateVo autoexecCombopTemplateVo = autoexecCombopTemplateMapper.getAutoexecCombopById(id);
+            AutoexecCombopTemplateVo autoexecCombopTemplateVo = autoexecCombopTemplateMapper.getAutoexecCombopTemplateById(id);
             autoexecCombopTemplateVoList.add(autoexecCombopTemplateVo);
         }
         //设置导出文件名
