@@ -74,12 +74,12 @@ public class AutoexecProfileSaveApi extends PrivateApiComponentBase {
         //tool
         List<Long> toolIdList = toolAndScriptMap.get(ToolType.TOOL.getValue()).stream().map(AutoexecToolAndScriptVo::getId).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(toolIdList)) {
-            autoexecProfileMapper.insertAutoexecProfileTooLByProfileIdAndOptionIdListAndType(profileVo.getId(), toolIdList, ToolType.TOOL.getValue());
+            autoexecProfileMapper.insertAutoexecProfileTooLByProfileIdAndOperateIdListAndType(profileVo.getId(), toolIdList, ToolType.TOOL.getValue());
         }
         //script
         List<Long> scriptIdList = toolAndScriptMap.get(ToolType.SCRIPT.getValue()).stream().map(AutoexecToolAndScriptVo::getId).collect(Collectors.toList());
         if (CollectionUtils.isNotEmpty(scriptIdList)) {
-            autoexecProfileMapper.insertAutoexecProfileTooLByProfileIdAndOptionIdListAndType(profileVo.getId(), scriptIdList, ToolType.SCRIPT.getValue());
+            autoexecProfileMapper.insertAutoexecProfileTooLByProfileIdAndOperateIdListAndType(profileVo.getId(), scriptIdList, ToolType.SCRIPT.getValue());
         }
         if (paramProfileId != null) {
             autoexecProfileMapper.updateProfile(profileVo);

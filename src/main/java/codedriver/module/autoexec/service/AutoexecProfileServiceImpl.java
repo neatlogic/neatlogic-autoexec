@@ -6,7 +6,7 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
-import codedriver.framework.autoexec.dto.profile.AutoexecProfileOptionVo;
+import codedriver.framework.autoexec.dto.profile.AutoexecProfileOperationVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import codedriver.framework.autoexec.exception.AutoexecProfileIsNotFoundException;
 import com.alibaba.fastjson.JSONArray;
@@ -47,9 +47,9 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService {
             throw new AutoexecProfileIsNotFoundException(id);
         }
         //获取关联的工具
-        List<AutoexecProfileOptionVo> profileOptionVoList = autoexecProfileMapper.getProfileToolListByProfileId(id);
-        Map<String, List<AutoexecProfileOptionVo>> toolAndScriptMap = profileOptionVoList.stream().collect(Collectors.groupingBy(AutoexecProfileOptionVo::getType));
-        return getProfileConfig(toolAndScriptMap.get(ToolType.TOOL.getValue()).stream().map(AutoexecProfileOptionVo::getOptionId).collect(Collectors.toList()), toolAndScriptMap.get(ToolType.SCRIPT.getValue()).stream().map(AutoexecProfileOptionVo::getOptionId).collect(Collectors.toList()), profileVo.getConfig().toJavaObject(JSONArray.class));
+        List<AutoexecProfileOperationVo> profileOperationVoList = autoexecProfileMapper.getProfileToolListByProfileId(id);
+        Map<String, List<AutoexecProfileOperationVo>> toolAndScriptMap = profileOperationVoList.stream().collect(Collectors.groupingBy(AutoexecProfileOperationVo::getType));
+        return getProfileConfig(toolAndScriptMap.get(ToolType.TOOL.getValue()).stream().map(AutoexecProfileOperationVo::getOperateId).collect(Collectors.toList()), toolAndScriptMap.get(ToolType.SCRIPT.getValue()).stream().map(AutoexecProfileOperationVo::getOperateId).collect(Collectors.toList()), profileVo.getConfig().toJavaObject(JSONArray.class));
     }
 
     @Override
