@@ -88,7 +88,7 @@ public class AutoexecJobStatusUpdateApi extends PublicApiComponentBase {
             runnerId = passThroughEnv.getLong("runnerId");
         }
 
-        List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndSort(jobId,phaseSort);
+        List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndGroupSort(jobId,phaseSort);
         List<Long> jobPhaseIdList = jobPhaseVoList.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList());
         autoexecJobMapper.updateJobPhaseRunnerStatus(jobPhaseIdList, runnerId, status);
         //如果该phase 没有一个 aborting|pausing runner 则更新为 aborted|paused

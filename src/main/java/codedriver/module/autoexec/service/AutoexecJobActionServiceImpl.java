@@ -59,7 +59,6 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
     @Resource
     ResourceCenterMapper resourceCenterMapper;
 
-
     /**
      * 拼装给proxy的param
      *
@@ -68,114 +67,6 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
      */
     @Override
     public void getFireParamJson(JSONObject paramJson, AutoexecJobVo jobVo) {
-        paramJson.put("jobId", jobVo.getId());
-        paramJson.put("tenant", TenantContext.get().getTenantUuid());
-        paramJson.put("preJobId", null); //给后续ITSM对接使用
-        paramJson.put("parallel", jobVo.getThreadCount());
-        paramJson.put("execUser", UserContext.get().getUserUuid(true));
-        paramJson.put("passThroughEnv", null); //回调需要的返回的参数
-        JSONArray paramArray = jobVo.getParam();
-        JSONObject argJson = new JSONObject() {{
-            for (Object paramObj : paramArray) {
-                JSONObject paramTmp = JSONObject.parseObject(paramObj.toString());
-                put(paramTmp.getString("key"), getValueByParamType(paramTmp));
-            }
-        }};
-        //工具库测试|重跑节点
-        if (CollectionUtils.isNotEmpty(jobVo.getPhaseNodeVoList())) {
-            paramJson.put("noFireNext", 1);
-            List<AutoexecJobPhaseNodeVo> nodeVoList = jobVo.getPhaseNodeVoList();
-            Long protocolId = nodeVoList.get(0).getProtocolId();
-            String userName = nodeVoList.get(0).getUserName();
-            paramJson.put("runNode", new JSONArray() {{
-                Map<Long, AccountVo> resourceAccountMap = new HashMap<>();
-                List<AccountVo> accountVoList = resourceCenterMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(nodeVoList.stream().map(AutoexecJobPhaseNodeVo::getResourceId).collect(Collectors.toList()), protocolId, userName);
-                accountVoList.forEach(o -> {
-                    resourceAccountMap.put(o.getResourceId(), o);
-                });
-                for (AutoexecJobPhaseNodeVo nodeVo : nodeVoList) {
-                    add(new JSONObject() {{
-                        AccountVo accountVo = resourceAccountMap.get(nodeVo.getResourceId());
-                        put("protocol", accountVo.getProtocol());
-                        put("username", accountVo.getAccount());
-                        put("password", accountVo.getPasswordPlain());
-                        put("protocolPort", accountVo.getProtocolPort());
-                        put("nodeId", nodeVo.getId());
-                        put("nodeName", nodeVo.getNodeName());
-                        put("nodeType", nodeVo.getNodeType());
-                        put("resourceId", nodeVo.getResourceId());
-                        put("host", nodeVo.getHost());
-                        put("port", nodeVo.getPort());
-                    }});
-                }
-            }});
-        }
-        paramJson.put("arg", new JSONObject());
-        paramJson.put("opt", argJson);
-        paramJson.put("runFlow", new JSONArray() {{
-            for (AutoexecJobPhaseVo jobPhase : jobVo.getPhaseList()) {
-                add(new JSONObject() {{
-                    put(jobPhase.getName(), new JSONArray() {{
-                        for (AutoexecJobPhaseOperationVo operationVo : jobPhase.getOperationList()) {
-                            add(new JSONObject() {{
-                                put("opId", operationVo.getName() + "_" + operationVo.getId());
-                                put("opName", operationVo.getName());
-                                put("opType", operationVo.getExecMode());
-                                put("failIgnore", operationVo.getFailIgnore());
-                                put("isScript", Objects.equals(operationVo.getType(), ToolType.SCRIPT.getValue()) ? 1 : 0);
-                                put("scriptId", operationVo.getScriptId());
-                                put("interpreter", operationVo.getParser());
-                                //put("script", operationVo.getScript());
-                                JSONObject param = operationVo.getParam();
-                                put("arg", param.getJSONObject("argument"));
-                                put("opt", new JSONObject() {{
-                                    for (Object arg : param.getJSONArray("inputParamList")) {
-                                        JSONObject argJson = JSONObject.parseObject(arg.toString());
-                                        String value = argJson.getString("value");
-                                        if (Objects.equals(ParamMappingMode.CONSTANT.getValue(), argJson.getString("mappingMode"))) {
-                                            put(argJson.getString("key"), getValueByParamType(argJson));
-                                        } else if (Objects.equals(ParamMappingMode.RUNTIME_PARAM.getValue(), argJson.getString("mappingMode"))) {
-                                            put(argJson.getString("key"), String.format("${%s}", value));
-                                        } else if (Objects.equals(ParamMappingMode.PRE_NODE_OUTPUT_PARAM.getValue(), argJson.getString("mappingMode"))) {
-                                            put(argJson.getString("key"), value);
-                                        } else {
-                                            put(argJson.getString("key"), StringUtils.EMPTY);
-                                        }
-                                    }
-                                }});
-                                put("desc", new JSONObject() {{
-                                    if (CollectionUtils.isNotEmpty(param.getJSONArray("inputParamList"))) {
-                                        for (Object arg : param.getJSONArray("inputParamList")) {
-                                            JSONObject argJson = JSONObject.parseObject(arg.toString());
-                                            put(argJson.getString("key"), argJson.getString("type"));
-                                        }
-                                    }
-                                }});
-                                put("output", new JSONObject() {{
-                                    if (CollectionUtils.isNotEmpty(param.getJSONArray("outputParamList"))) {
-                                        for (Object arg : param.getJSONArray("outputParamList")) {
-                                            JSONObject argJson = JSONObject.parseObject(arg.toString());
-                                            put(argJson.getString("key"), argJson.getString("value"));
-                                        }
-                                    }
-                                }});
-
-                            }});
-                        }
-                    }});
-                }});
-            }
-        }});
-    }
-
-    /**
-     * 拼装给proxy的param
-     *
-     * @param paramJson 返回param值
-     * @param jobVo     作业
-     */
-    @Override
-    public void getNewFireParamJson(JSONObject paramJson, AutoexecJobVo jobVo) {
         paramJson.put("jobId", jobVo.getId());
         paramJson.put("tenant", TenantContext.get().getTenantUuid());
         paramJson.put("preJobId", null); //给后续ITSM对接使用
@@ -359,7 +250,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         }
         AutoexecJobVo jobVo = autoexecJobService.saveAutoexecCombopJob(combopVo, invokeVo, threadCount, paramJson);
         jobVo.setAction(JobAction.FIRE.getValue());
-        jobVo.setCurrentGroupSort(0);
+        //jobVo.setCurrentGroupSort(0);
         return jobVo;
     }
 

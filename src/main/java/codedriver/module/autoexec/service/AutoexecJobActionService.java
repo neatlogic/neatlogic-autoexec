@@ -14,7 +14,6 @@ import com.alibaba.fastjson.JSONObject;
  **/
 public interface AutoexecJobActionService {
 
-
     /**
      * 拼装给runner的param
      *
@@ -22,14 +21,6 @@ public interface AutoexecJobActionService {
      * @param jobVo     作业
      */
     void getFireParamJson(JSONObject paramJson, AutoexecJobVo jobVo);
-
-    /**
-     * 拼装给runner的param
-     *
-     * @param paramJson 返回param值
-     * @param jobVo     作业
-     */
-    void getNewFireParamJson(JSONObject paramJson, AutoexecJobVo jobVo);
 
     /**
      * 校验根据组合工具创建的作业

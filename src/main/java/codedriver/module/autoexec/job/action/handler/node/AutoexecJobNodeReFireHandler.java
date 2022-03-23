@@ -18,6 +18,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -76,12 +77,10 @@ public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
             }
         }
         AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(nodeVo.getJobId(), nodeVo.getJobPhaseId());
-        jobVo.setCurrentGroupSort(phaseVo.getSort());
-        autoexecJobService.getAutoexecJobDetail(jobVo, phaseVo.getSort());
-        //过滤仅需要当前phase的配置
-        jobVo.setPhaseList(jobVo.getPhaseList().stream().filter(o -> Objects.equals(phaseVo.getId(), o.getId())).collect(Collectors.toList()));
+
+        jobVo.setExecuteJobPhaseList(Collections.singletonList(phaseVo));
         if (CollectionUtils.isNotEmpty(jobVo.getPhaseList())) {
-            execute(jobVo);
+           // execute(jobVo);
         }
         return null;
     }

@@ -93,18 +93,19 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             userName = combopExecuteConfigVo.getExecuteUser();
             protocolId = combopExecuteConfigVo.getProtocolId();
         }
+        //设置first组
+        Optional<AutoexecCombopGroupVo> combopGroupOptional = config.getCombopGroupList().stream().filter(o->o.getSort() == 0).findFirst();
+        if(!combopGroupOptional.isPresent()){
+            throw new AutoexecCombopGroupNotFoundException(0L);
+        }
+        jobVo.setExecuteJobGroupVo(new AutoexecJobGroupVo(combopGroupOptional.get()));
         //保存阶段
         List<AutoexecJobPhaseVo> jobPhaseVoList = new ArrayList<>();
-        jobVo.setPhaseList(jobPhaseVoList);
-        //创建作业当前group为sort为0
-        jobVo.setCurrentGroupSort(0);
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
         for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
             AutoexecJobPhaseVo jobPhaseVo = new AutoexecJobPhaseVo(autoexecCombopPhaseVo, jobVo.getId());
             autoexecJobMapper.insertJobPhase(jobPhaseVo);
-            if (jobPhaseVo.getSort() == 0) {//只需要第一个剧本，供后续激活执行
-                jobPhaseVoList.add(jobPhaseVo);
-            }
+            jobPhaseVoList.add(jobPhaseVo);
             AutoexecCombopPhaseConfigVo combopPhaseExecuteConfigVo = autoexecCombopPhaseVo.getConfig();
             //jobPhaseNode
             //如果是target 则获取执行目标，否则随机分配runner
@@ -263,7 +264,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             protocolId = combopExecuteConfigVo.getProtocolId();
         }
         //获取当前所有target阶段
-        List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndSort(jobId, sort);
+        List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndGroupSort(jobId, sort);
         //只刷新当前target|sql阶段
         List<AutoexecCombopPhaseVo> combopPhaseList = configVo.getCombopPhaseList().stream().filter(o -> o.getSort() == sort && Arrays.asList(ExecMode.TARGET.getValue(), ExecMode.SQL.getValue()).contains(o.getExecMode())).collect(Collectors.toList());
         for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
@@ -286,17 +287,13 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     }
 
     @Override
-    public void getAutoexecJobDetail(AutoexecJobVo jobVo, Integer sort) {
+    public void getAutoexecJobDetail(AutoexecJobVo jobVo, List<AutoexecJobPhaseVo> executePhaseVoList) {
         AutoexecJobParamContentVo paramContentVo = autoexecJobMapper.getJobParamContent(jobVo.getParamHash());
         if (paramContentVo != null) {
             jobVo.setParamStr(paramContentVo.getContent());
         }
-        List<AutoexecJobPhaseVo> phaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId());
-        if (sort != null) {
-            phaseVoList = phaseVoList.stream().filter(o -> Objects.equals(o.getSort(), sort)).collect(Collectors.toList());
-        }
-        jobVo.setPhaseList(phaseVoList);
-        for (AutoexecJobPhaseVo phaseVo : phaseVoList) {
+        jobVo.setExecuteJobPhaseList(executePhaseVoList);
+        for (AutoexecJobPhaseVo phaseVo : executePhaseVoList) {
             List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseId(jobVo.getId(), phaseVo.getId());
             phaseVo.setOperationList(operationVoList);
             for (AutoexecJobPhaseOperationVo operationVo : operationVoList) {

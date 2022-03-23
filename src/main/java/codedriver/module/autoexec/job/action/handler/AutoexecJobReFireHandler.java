@@ -31,6 +31,7 @@ import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author lvzk
@@ -61,22 +62,21 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         if (Objects.equals(jobVo.getAction(), JobAction.RESET_REFIRE.getValue())) {
-            if (CollectionUtils.isEmpty(jobVo.getPhaseList())) {
-                jobVo.setPhaseList(autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId()));
-            }
             new AutoexecJobAuthActionManager.Builder().addReFireJob().build().setAutoexecJobAction(jobVo);
             jobVo.setStatus(JobStatus.PENDING.getValue());
             autoexecJobMapper.updateJobStatus(jobVo);
             resetAll(jobVo);
             autoexecJobMapper.updateJobPhaseStatusByJobId(jobVo.getId(), JobPhaseStatus.PENDING.getValue());//重置phase状态为pending
-            autoexecJobService.getAutoexecJobDetail(jobVo, 0);
-            jobVo.setCurrentGroupSort(0);
+            //autoexecJobService.getAutoexecJobDetail(jobVo, 0);
+            //获取group
+            jobVo.setExecuteJobGroupVo(autoexecJobMapper.getJobGroupByJobIdAndSort(jobVo.getId(),0));
             //重刷所有phase node
             autoexecJobService.refreshJobNodeList(jobVo.getId(), null);
             //更新没有删除的节点为"未开始"状态
             autoexecJobMapper.updateJobPhaseNodeStatusByJobIdAndIsDelete(jobVo.getId(), JobNodeStatus.PENDING.getValue(),0);
+            firstExecute(jobVo);
         } else if (Objects.equals(jobVo.getAction(), JobAction.REFIRE.getValue())) {
-            int sort = 0;
+            int executeGroupSort;
             /*寻找中止|暂停|失败的phase
              * 1、优先寻找pending|aborted|paused|failed phaseList
              * 2、没有满足1条件的，再寻找pending|aborted|paused|failed node 最小sort phaseList
@@ -89,19 +89,16 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             if(CollectionUtils.isEmpty(autoexecJobPhaseVos)){
                 return null;
             }
-            sort = autoexecJobPhaseVos.get(0).getSort();
-            //int finalSort = sort;
-            //List<Long> jobPhaseIdList = autoexecJobPhaseVos.stream().filter(p->p.getSort() == finalSort).map(AutoexecJobPhaseVo::getId).collect(Collectors.toList());
-            jobVo.setCurrentGroupSort(sort);
-            autoexecJobService.getAutoexecJobDetail(jobVo, sort);
+            executeGroupSort = autoexecJobPhaseVos.get(0).getJobGroupVo().getSort();
+            //获取group
+            jobVo.setExecuteJobGroupVo(autoexecJobMapper.getJobGroupByJobIdAndSort(jobVo.getId(),0));
+            int finalExecuteGroupSort = executeGroupSort;
+            autoexecJobService.getAutoexecJobDetail(jobVo, autoexecJobPhaseVos.stream().filter(o->Objects.equals(o.getJobGroupVo().getSort(), finalExecuteGroupSort)).collect(Collectors.toList()));
             //补充配置，只保留满足条件（该sort下，未开始、失败、已暂停或已中止）的phase
             //jobVo.setPhaseList(jobVo.getPhaseList().stream().filter(o -> jobPhaseIdList.contains(o.getId())).collect(Collectors.toList()));
             if (CollectionUtils.isNotEmpty(jobVo.getPhaseList())) {
                 new AutoexecJobAuthActionManager.Builder().addReFireJob().build().setAutoexecJobAction(jobVo);
             }
-        }
-        if (CollectionUtils.isNotEmpty(jobVo.getPhaseList())) {
-            execute(jobVo);
         }
         return null;
     }
@@ -126,7 +123,7 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
                 String url = runner.getUrl() + "api/rest/job/all/reset";
                 paramJson.put("passThroughEnv", new JSONObject() {{
                     put("runnerId", runner.getRunnerMapId());
-                    put("phaseSort", jobVo.getCurrentGroupSort());
+                    //put("phaseSort", jobVo.getCurrentGroupSort());
                 }});
                 restVo = new RestVo.Builder(url, AuthenticateType.BUILDIN.getValue()).setPayload(paramJson).build();
                 result = RestUtil.sendPostRequest(restVo);

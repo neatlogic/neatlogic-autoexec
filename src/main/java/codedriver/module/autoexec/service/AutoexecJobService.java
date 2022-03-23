@@ -7,8 +7,11 @@ package codedriver.module.autoexec.service;
 
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobInvokeVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import com.alibaba.fastjson.JSONObject;
+
+import java.util.List;
 
 /**
  * @since 2021/4/12 18:44
@@ -27,9 +30,9 @@ public interface AutoexecJobService {
      * sort 为null 则补充job全部信息 ，否则返回当前sort的所有剧本
      *
      * @param jobVo 作业概要
-     * @param sort  当前需要激活作业剧本的顺序
+     * @param executePhaseVoList  当前需要执行的phase列表
      */
-    void getAutoexecJobDetail(AutoexecJobVo jobVo, Integer sort);
+    void getAutoexecJobDetail(AutoexecJobVo jobVo, List<AutoexecJobPhaseVo> executePhaseVoList);
 
     /**
      * 判断是否所有并行剧本都跑完
