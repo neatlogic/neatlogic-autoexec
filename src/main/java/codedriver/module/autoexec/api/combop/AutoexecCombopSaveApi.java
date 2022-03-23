@@ -187,6 +187,7 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             List<AutoexecCombopGroupVo> combopGroupList = config.getCombopGroupList();
             if (CollectionUtils.isNotEmpty(combopGroupList)) {
                 for (AutoexecCombopGroupVo autoexecCombopGroupVo : combopGroupList) {
+                    autoexecCombopGroupVo.setCombopId(id);
                     autoexecCombopMapper.insertAutoexecCombopGroup(autoexecCombopGroupVo);
                     groupMap.put(autoexecCombopGroupVo.getUuid(), autoexecCombopGroupVo);
                 }
