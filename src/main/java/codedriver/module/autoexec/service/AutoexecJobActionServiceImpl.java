@@ -81,9 +81,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             }
         }};
         //工具库测试|重跑节点
-        if (CollectionUtils.isNotEmpty(jobVo.getPhaseNodeVoList())) {
+        if (CollectionUtils.isNotEmpty(jobVo.getExecuteJobNodeVoList())) {
             paramJson.put("noFireNext", 1);
-            List<AutoexecJobPhaseNodeVo> nodeVoList = jobVo.getPhaseNodeVoList();
+            List<AutoexecJobPhaseNodeVo> nodeVoList = jobVo.getExecuteJobNodeVoList();
             Long protocolId = nodeVoList.get(0).getProtocolId();
             String userName = nodeVoList.get(0).getUserName();
             paramJson.put("runNode", new JSONArray() {{

@@ -52,7 +52,7 @@ public class AutoexecJobNodeIgnoreHandler extends AutoexecJobActionHandlerBase {
         if (CollectionUtils.isEmpty(nodeVoList)) {
             throw new AutoexecJobPhaseNodeNotFoundException(StringUtils.EMPTY, resourceIdList.stream().map(Object::toString).collect(Collectors.joining(",")));
         }
-        jobVo.setPhaseNodeVoList(nodeVoList);
+        jobVo.setExecuteJobNodeVoList(nodeVoList);
         return true;
     }
 
@@ -63,7 +63,7 @@ public class AutoexecJobNodeIgnoreHandler extends AutoexecJobActionHandlerBase {
 
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
-        for (AutoexecJobPhaseNodeVo nodeVo : jobVo.getPhaseNodeVoList()) {
+        for (AutoexecJobPhaseNodeVo nodeVo : jobVo.getExecuteJobNodeVoList()) {
             nodeVo.setStatus(JobNodeStatus.IGNORED.getValue());
             nodeVo.setStartTime(null);
             nodeVo.setEndTime(null);

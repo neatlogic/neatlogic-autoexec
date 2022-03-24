@@ -44,7 +44,7 @@ public class AutoexecJobFireHandler extends AutoexecJobActionHandlerBase {
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         autoexecJobMapper.getJobLockByJobId(jobVo.getId());
-        firstExecute(jobVo);
+        executeGroup(jobVo);
         return new JSONObject(){{
             put("jobId",jobVo.getId());
         }};

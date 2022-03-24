@@ -69,9 +69,9 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
             if (CollectionUtils.isEmpty(nodeVoList)) {
                 throw new AutoexecJobPhaseNodeNotFoundException(StringUtils.EMPTY, resourceIdList.stream().map(Object::toString).collect(Collectors.joining(",")));
             }
-            jobVo.setPhaseNodeVoList(nodeVoList);
+            jobVo.setExecuteJobNodeVoList(nodeVoList);
         } else {
-            jobVo.setPhaseNodeVoList(autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseId(jobVo.getId(), jobVo.getCurrentPhaseId()));
+            jobVo.setExecuteJobNodeVoList(autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseId(jobVo.getId(), jobVo.getCurrentPhaseId()));
         }
         return true;
     }
@@ -92,14 +92,14 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
         }
         autoexecJobMapper.updateJobPhaseStatus(currentPhaseVo);*/
         //重置节点 (status、starttime、endtime)
-        for (AutoexecJobPhaseNodeVo nodeVo : jobVo.getPhaseNodeVoList()) {
+        for (AutoexecJobPhaseNodeVo nodeVo : jobVo.getExecuteJobNodeVoList()) {
             nodeVo.setStatus(JobNodeStatus.PENDING.getValue());
             nodeVo.setStartTime(null);
             nodeVo.setEndTime(null);
             autoexecJobMapper.updateJobPhaseNodeById(nodeVo);
         }
-        autoexecJobMapper.updateJobPhaseNodeListStatus(jobVo.getPhaseNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()), JobNodeStatus.PENDING.getValue());
-        List<AutoexecJobPhaseNodeVo> nodeVoList = autoexecJobMapper.getJobPhaseNodeRunnerListByNodeIdList(jobVo.getPhaseNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()));
+        autoexecJobMapper.updateJobPhaseNodeListStatus(jobVo.getExecuteJobNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()), JobNodeStatus.PENDING.getValue());
+        List<AutoexecJobPhaseNodeVo> nodeVoList = autoexecJobMapper.getJobPhaseNodeRunnerListByNodeIdList(jobVo.getExecuteJobNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()));
         List<RunnerMapVo> runnerVos = new ArrayList<>();
         for (AutoexecJobPhaseNodeVo nodeVo : nodeVoList) {
             runnerVos.add(new RunnerMapVo(nodeVo.getRunnerUrl(), nodeVo.getRunnerMapId()));
@@ -116,7 +116,7 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
             paramJson.put("execUser", UserContext.get().getUserUuid(true));
             paramJson.put("phaseName", currentPhaseVo.getName());
             paramJson.put("execMode", currentPhaseVo.getExecMode());
-            paramJson.put("phaseNodeList", jobVo.getPhaseNodeVoList());
+            paramJson.put("phaseNodeList", jobVo.getExecuteJobNodeVoList());
             for (RunnerMapVo runner : runnerVos) {
                 String url = runner.getUrl() + "api/rest/job/phase/node/status/reset";
                 restVo = new RestVo.Builder(url, AuthenticateType.BUILDIN.getValue()).setPayload(paramJson).build();

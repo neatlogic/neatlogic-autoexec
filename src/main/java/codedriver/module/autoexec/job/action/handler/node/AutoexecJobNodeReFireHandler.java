@@ -54,7 +54,7 @@ public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
         /*if(CollectionUtils.isNotEmpty(notExistResourceIdList)){
             throw new AutoexecJobPhaseNodeNotFoundException(StringUtils.EMPTY,notExistResourceIdList.toString());
         }*/
-        jobVo.setPhaseNodeVoList(nodeVoList);
+        jobVo.setExecuteJobNodeVoList(nodeVoList);
         return true;
     }
 
@@ -67,7 +67,7 @@ public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         //重跑单个节点无需激活下个phase
         jobVo.setIsNoFireNext(1);
-        List<AutoexecJobPhaseNodeVo> nodeVoList = jobVo.getPhaseNodeVoList();
+        List<AutoexecJobPhaseNodeVo> nodeVoList = jobVo.getExecuteJobNodeVoList();
         //重置节点开始和结束时间,以防 失败节点直接"重跑"导致耗时异常
         autoexecJobMapper.updateJobPhaseNodeResetStartTimeAndEndTimeByNodeIdList(nodeVoList.stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()));
         AutoexecJobPhaseNodeVo nodeVo = nodeVoList.get(0);
