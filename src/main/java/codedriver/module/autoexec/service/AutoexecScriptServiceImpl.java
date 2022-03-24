@@ -15,6 +15,7 @@ import codedriver.framework.autoexec.constvalue.ParamMode;
 import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.constvalue.ScriptAndToolOperate;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
+import codedriver.framework.autoexec.crossover.IAutoexecScriptServiceCrossoverService;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
@@ -37,7 +38,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-public class AutoexecScriptServiceImpl implements AutoexecScriptService {
+public class AutoexecScriptServiceImpl implements AutoexecScriptService , IAutoexecScriptServiceCrossoverService {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
