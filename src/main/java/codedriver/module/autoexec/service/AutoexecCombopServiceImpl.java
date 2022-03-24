@@ -104,6 +104,21 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         }
     }
 
+    @Override
+    public boolean checkOperableButton(AutoexecCombopVo autoexecCombopVo, CombopAuthorityAction action) {
+        if (autoexecCombopVo != null) {
+            String userUuid = UserContext.get().getUserUuid();
+            AuthenticationInfoVo authenticationInfoVo = UserContext.get().getAuthenticationInfoVo();
+            if (Objects.equals(autoexecCombopVo.getOwner(), userUuid)) {
+                return true;
+            } else {
+                List<String> authorityList = autoexecCombopMapper.getAutoexecCombopAuthorityListByCombopIdAndUserUuidAndTeamUuidListAndRoleUuidList(autoexecCombopVo.getId(), userUuid, authenticationInfoVo.getTeamUuidList(), authenticationInfoVo.getRoleUuidList());
+                return authorityList.contains(action.getValue());
+            }
+        }
+        return false;
+    }
+
     /**
      * 校验组合工具每个阶段是否配置正确
      * 校验规则
@@ -114,7 +129,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
      * @return
      */
     @Override
-    public boolean verifyAutoexecCombopConfig(AutoexecCombopVo autoexecCombopVo,boolean isExecuteJob) {
+    public boolean verifyAutoexecCombopConfig(AutoexecCombopVo autoexecCombopVo, boolean isExecuteJob) {
         boolean isNeedExecuteUser = false;
         boolean isNeedProtocol = false;
         boolean isNeedExecuteNodeConfig = false;
@@ -142,14 +157,14 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             }
             //如果阶段存在任意"执行用户"、"协议"、"节点配置"
             AutoexecCombopExecuteConfigVo phaseExecuteConfig = phaseConfig.getExecuteConfig();
-            if(phaseExecuteConfig != null){
-                if(StringUtils.isBlank(phaseExecuteConfig.getExecuteUser())){
+            if (phaseExecuteConfig != null) {
+                if (StringUtils.isBlank(phaseExecuteConfig.getExecuteUser())) {
                     isNeedExecuteUser = true;
                 }
-                if(phaseExecuteConfig.getProtocolId() == null){
+                if (phaseExecuteConfig.getProtocolId() == null) {
                     isNeedProtocol = true;
                 }
-                if(phaseExecuteConfig.getExecuteNodeConfig() == null){
+                if (phaseExecuteConfig.getExecuteNodeConfig() == null) {
                     isNeedExecuteNodeConfig = true;
                 }
             }
@@ -228,7 +243,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         AutoexecCombopExecuteConfigVo executeConfigVo = config.getExecuteConfig();
         if (executeConfigVo != null) {
             if (Objects.equals(executeConfigVo.getWhenToSpecify(), CombopNodeSpecify.NOW.getValue())) {
-                if(isExecuteJob) {
+                if (isExecuteJob) {
                     String executeUser = executeConfigVo.getExecuteUser();
                     if (StringUtils.isBlank(executeUser) && isNeedExecuteUser) {
                         throw new AutoexecCombopExecuteUserCannotBeEmptyException();
@@ -239,10 +254,10 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 }
                 AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = executeConfigVo.getExecuteNodeConfig();
                 if (executeNodeConfigVo == null) {
-                    if(isNeedExecuteNodeConfig) {
+                    if (isNeedExecuteNodeConfig) {
                         throw new AutoexecCombopExecuteNodeCannotBeEmptyException();
                     }
-                }else {
+                } else {
                     List<AutoexecNodeVo> selectNodeList = executeNodeConfigVo.getSelectNodeList();
                     List<AutoexecNodeVo> inputNodeList = executeNodeConfigVo.getInputNodeList();
                     JSONObject filter = executeNodeConfigVo.getFilter();
