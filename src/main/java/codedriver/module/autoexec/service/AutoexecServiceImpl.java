@@ -178,8 +178,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                     vo.setOperationName(operationIdNameMap.get(vo.getOperationId()));
                     // 如果来源是组合工具，且作业状态是已就绪，那么判断是否有组合工具的执行权限，有执行权限时，出现执行与撤销按钮
                     if (JobStatus.READY.getValue().equals(vo.getStatus()) && MapUtils.isNotEmpty(combopVoMap)) {
-                        AutoexecCombopVo autoexecCombopVo = combopVoMap.get(vo.getOperationId());
-                        vo.setIsCanExecute(autoexecCombopService.checkOperableButton(autoexecCombopVo, CombopAuthorityAction.EXECUTE) ? 1 : 0);
+                        vo.setIsCanExecute(autoexecCombopService.checkOperableButton(combopVoMap.get(vo.getOperationId()), CombopAuthorityAction.EXECUTE) ? 1 : 0);
                     }
                 }
                 /*  jobVoList.forEach(j -> {

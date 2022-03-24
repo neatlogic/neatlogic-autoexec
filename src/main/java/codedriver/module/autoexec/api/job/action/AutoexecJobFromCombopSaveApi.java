@@ -65,7 +65,9 @@ public class AutoexecJobFromCombopSaveApi extends PrivateApiComponentBase {
         if (JobTriggerType.AUTO.getValue().equals(jsonObj.getString("triggerType"))) {
             // todo 启动定时作业
         }
-        return jobVo.getId();
+        return new JSONObject() {{
+            put("jobId", jobVo.getId());
+        }};
 
     }
 
