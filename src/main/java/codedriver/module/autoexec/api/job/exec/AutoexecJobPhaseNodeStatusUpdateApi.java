@@ -9,6 +9,8 @@ import codedriver.framework.autoexec.constvalue.JobNodeStatus;
 import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNodeNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -62,7 +64,11 @@ public class AutoexecJobPhaseNodeStatusUpdateApi extends PublicApiComponentBase 
     @Description(desc = "回调更新作业剧本节点状态")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        logger.info("TEST:" + jsonObj.toJSONString());
+        Long jobId = jsonObj.getLong("jobId");
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
+        if (jobVo == null) {
+            throw new AutoexecJobNotFoundException(jobId.toString());
+        }
         JSONObject result = new JSONObject();
         Long nodeId = jsonObj.getLong("nodeId");
         if (nodeId != null && nodeId > 0) {
@@ -79,7 +85,7 @@ public class AutoexecJobPhaseNodeStatusUpdateApi extends PublicApiComponentBase 
             nodeVo.setStatus(jsonObj.getString("status"));
             //如果节点失败且failIgnore等于0，则表明失败中止;如果节点成功，则需要查询是否存在失败的phase
             if (Objects.equals(nodeVo.getStatus(), JobNodeStatus.FAILED.getValue()) && Objects.equals(failIgnore, 0)) {
-                autoexecJobMapper.getJobPhaseLockByJobIdAndPhaseName(nodeVo.getJobId(), nodeVo.getJobPhaseName());
+                autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(nodeVo.getJobId(), nodeVo.getJobPhaseName());
                 jobPhaseVo.setStatus(JobPhaseStatus.FAILED.getValue());
                 autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(nodeVo.getJobPhaseId(), nodeVo.getStatus()));
             }

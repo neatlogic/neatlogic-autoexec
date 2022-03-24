@@ -5,22 +5,17 @@
 
 package codedriver.module.autoexec.api.job.exec;
 
-import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
-import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobGroupVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.dao.mapper.UserMapper;
-import codedriver.framework.dto.UserVo;
 import codedriver.framework.exception.type.ParamInvalidException;
 import codedriver.framework.exception.type.ParamIrregularException;
-import codedriver.framework.exception.user.UserNotFoundException;
-import codedriver.framework.filter.core.LoginAuthHandlerBase;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
@@ -31,6 +26,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Objects;
 
 /**
  * @author lvzk
@@ -61,7 +57,7 @@ public class AutoexecJobNextGroupFireApi extends PublicApiComponentBase {
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
-            @Param(name = "nextGroupId", type = ApiParamType.STRING, desc = "下一个组（排序）序号", isRequired = true),
+            @Param(name = "groupNo", type = ApiParamType.STRING, desc = "下一个组（排序）序号", isRequired = true),
             @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数", isRequired = true),
             @Param(name = "time", type = ApiParamType.DOUBLE, desc = "回调时间")
     })
@@ -71,9 +67,8 @@ public class AutoexecJobNextGroupFireApi extends PublicApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
-        Integer nextGroupSort = jsonObj.getInteger("nextGroupId");
+        Integer groupSort = jsonObj.getInteger("groupNo");
         Long runnerId;
-        Integer groupSort;
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
@@ -84,50 +79,32 @@ public class AutoexecJobNextGroupFireApi extends PublicApiComponentBase {
             throw new ParamIrregularException("passThroughEnv");
         }
         if (!passThroughEnv.containsKey("runnerId")) {
-            throw new ParamIrregularException("runnerId");
+            throw new ParamIrregularException("passThroughEnv:runnerId");
         } else {
             runnerId = passThroughEnv.getLong("runnerId");
         }
 
         if (!passThroughEnv.containsKey("groupSort")) {
-            throw new ParamIrregularException("groupSort");
+            throw new ParamIrregularException("passThroughEnv:groupSort");
         } else {
-            groupSort = passThroughEnv.getInteger("groupSort");
-            if(nextGroupSort != groupSort+1){
-                throw new ParamInvalidException("groupSort",nextGroupSort.toString());
+            if (!Objects.equals(passThroughEnv.getInteger("groupSort"), groupSort)) {
+                throw new ParamInvalidException("groupSort", groupSort.toString());
             }
         }
-
-
-        //初始化执行用户上下文
-        UserVo execUser = userMapper.getUserBaseInfoByUuid(jobVo.getExecUser());
-        if (execUser == null) {
-            throw new UserNotFoundException(jobVo.getExecUser());
-        }
-        UserContext.init(execUser, "+8:00");
-        UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(execUser).getCc());
-
-
-        autoexecJobMapper.updateJobPhaseRunnerFireNextByPhaseId(jobPhaseVo.getId(), 1, runnerId);
+        //更新group对应runner的"是否fireNext"标识为1
+        autoexecJobMapper.updateJobPhaseRunnerFireNextByJobIdAndGroupSortAndRunnerId(jobId, groupSort, 1, runnerId);
         /*
          *判断是否满足激活下个phase条件
          * 1、当前sort的所有phase都completed
-         * 2、当前sort的所有phase的runner 都是completed，所有runner都触发了fireNext
+         * 2、当前sort的所有phase的runner 都是completed，所有runner的"是否fireNext"标识都为1
          */
-        if (autoexecJobService.checkIsAllActivePhaseIsCompleted(jobId, jobPhaseVo.getSort())) {
-            Integer sort = autoexecJobMapper.getNextJobPhaseSortByJobId(jobId, jobPhaseVo.getSort());
-            if (sort != null) {
-                //autoexecJobService.getAutoexecJobDetail(jobVo, sort);
-                //jobVo.setCurrentGroupSort(sort);
+        if (autoexecJobService.checkIsAllActivePhaseIsCompleted(jobId, groupSort)) {
+            AutoexecJobGroupVo nextGroupVo = autoexecJobMapper.getJobGroupByJobIdAndSort(jobId, groupSort + 1);
+            if (nextGroupVo != null) {
+                jobVo.setExecuteJobGroupVo(nextGroupVo);
                 IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
                 fireAction.doService(jobVo);
             }
-            /*
-            暂时注释，因为如果是所有phase都完成也会update phase status 为completed，防止update两次，导致callback两次
-            else {//说明没有可以执行的phase，更新job 状态为 completed
-            autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobId, JobStatus.COMPLETED.getValue()));
-            }
-            */
         }
         return null;
     }
