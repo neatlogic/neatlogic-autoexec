@@ -206,6 +206,8 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         String source = jsonObj.getString("source");
         int threadCount = jsonObj.getInteger("threadCount") == null ? 64 : jsonObj.getInteger("threadCount");
         JSONObject paramJson = jsonObj.getJSONObject("param");
+        Date planStartTime = jsonObj.getDate("planStartTime");
+        String triggerType = jsonObj.getString("triggerType");
         AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
         if (combopVo == null) {
             throw new AutoexecCombopNotFoundException(combopId);
@@ -248,7 +250,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         if (jsonObj.containsKey("name")) {
             combopVo.setName(jsonObj.getString("name"));
         }
-        AutoexecJobVo jobVo = autoexecJobService.saveAutoexecCombopJob(combopVo, invokeVo, threadCount, paramJson);
+        AutoexecJobVo jobVo = autoexecJobService.saveAutoexecCombopJob(combopVo, invokeVo, threadCount, paramJson, planStartTime, triggerType);
         jobVo.setAction(JobAction.FIRE.getValue());
         //jobVo.setCurrentGroupSort(0);
         return jobVo;

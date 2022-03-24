@@ -32,6 +32,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 @Service
 public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCrossoverService {
@@ -46,6 +47,9 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
     AutoexecToolMapper autoexecToolMapper;
     @Resource
     private AutoexecRiskMapper autoexecRiskMapper;
+
+    @Resource
+    private AutoexecCombopService autoexecCombopService;
 
     static Pattern paramKeyPattern = Pattern.compile("^[A-Za-z_\\d]+$");
 
@@ -145,7 +149,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 jobVoList = autoexecJobMapper.searchJob(jobIdList);
                 //补充来源operation信息
                 Map<Long, String> operationIdNameMap = new HashMap<>();
-                List<AutoexecCombopVo> combopVoList;
+                List<AutoexecCombopVo> combopVoList = null;
                 List<AutoexecScriptVersionVo> scriptVoList;
                 List<AutoexecToolAndScriptVo> toolVoList;
                 operationIdMap.put(CombopOperationType.COMBOP.getValue(), new ArrayList<>());
@@ -166,9 +170,17 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                     toolVoList = autoexecToolMapper.getToolListByIdList(operationIdMap.get(CombopOperationType.TOOL.getValue()));
                     toolVoList.forEach(o -> operationIdNameMap.put(o.getId(), o.getName()));
                 }
-                jobVoList.forEach(o -> {
-                    o.setOperationName(operationIdNameMap.get(o.getOperationId()));
-                });
+                Map<Long, AutoexecCombopVo> combopVoMap = null;
+                if (CollectionUtils.isNotEmpty(combopVoList)) {
+                    combopVoMap = combopVoList.stream().collect(Collectors.toMap(AutoexecCombopVo::getId, o -> o));
+                }
+                for (AutoexecJobVo vo : jobVoList) {
+                    vo.setOperationName(operationIdNameMap.get(vo.getOperationId()));
+                    // 如果来源是组合工具，且作业状态是已就绪，那么判断是否有组合工具的执行权限，有执行权限时，出现执行与撤销按钮
+                    if (JobStatus.READY.getValue().equals(vo.getStatus()) && MapUtils.isNotEmpty(combopVoMap)) {
+                        vo.setIsCanExecute(autoexecCombopService.checkOperableButton(combopVoMap.get(vo.getOperationId()), CombopAuthorityAction.EXECUTE) ? 1 : 0);
+                    }
+                }
                 /*  jobVoList.forEach(j -> {
             //判断是否有编辑权限
             if(Objects.equals(j.getOperationType(), CombopOperationType.COMBOP.getValue())) {
@@ -210,7 +222,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                                 if (autoexecToolVo != null) {
                                     autoexecToolAndScriptVo = new AutoexecToolAndScriptVo(autoexecToolVo);
                                     JSONObject toolConfig = autoexecToolVo.getConfig();
-                                    if(MapUtils.isNotEmpty(toolConfig)) {
+                                    if (MapUtils.isNotEmpty(toolConfig)) {
                                         JSONArray paramArray = toolConfig.getJSONArray("paramList");
                                         if (CollectionUtils.isNotEmpty(paramArray)) {
                                             autoexecParamVoList = paramArray.toJavaList(AutoexecParamVo.class);
@@ -218,7 +230,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                                     }
                                 }
                             }
-                            if(autoexecToolAndScriptVo != null){
+                            if (autoexecToolAndScriptVo != null) {
                                 phaseOperationVo.setId(autoexecToolAndScriptVo.getId());
                                 phaseOperationVo.setUk(autoexecToolAndScriptVo.getUk());
                                 phaseOperationVo.setName(autoexecToolAndScriptVo.getName());
