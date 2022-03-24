@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.api.job.action;
 
+import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.CombopAuthorityAction;
@@ -22,6 +23,11 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.framework.scheduler.core.IJob;
+import codedriver.framework.scheduler.core.SchedulerManager;
+import codedriver.framework.scheduler.dto.JobObject;
+import codedriver.framework.scheduler.exception.ScheduleHandlerNotFoundException;
+import codedriver.module.autoexec.schedule.plugin.AutoexecJobAutoFireJob;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
@@ -48,6 +54,9 @@ public class AutoexecJobRevokeApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopService autoexecCombopService;
+
+    @Resource
+    private SchedulerManager schedulerManager;
 
     @Override
     public String getName() {
@@ -85,7 +94,12 @@ public class AutoexecJobRevokeApi extends PrivateApiComponentBase {
         if (autoexecCombopService.checkOperableButton(autoexecCombopVo, CombopAuthorityAction.EXECUTE)) {
             jobVo.setStatus(JobStatus.REVOKED.getValue());
             autoexecJobMapper.updateJobStatus(jobVo);
-            // todo 取消定时作业
+            IJob jobHandler = SchedulerManager.getHandler(AutoexecJobAutoFireJob.class.getName());
+            if (jobHandler == null) {
+                throw new ScheduleHandlerNotFoundException(AutoexecJobAutoFireJob.class.getName());
+            }
+            JobObject.Builder jobObjectBuilder = new JobObject.Builder(jobVo.getId().toString(), jobHandler.getGroupName(), jobHandler.getClassName(), TenantContext.get().getTenantUuid());
+            schedulerManager.unloadJob(jobObjectBuilder.build());
         }
         return null;
     }

@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.api.job.action;
 
+import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.CombopAuthorityAction;
@@ -22,7 +23,13 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.framework.scheduler.core.IJob;
+import codedriver.framework.scheduler.core.SchedulerManager;
+import codedriver.framework.scheduler.dto.JobObject;
+import codedriver.framework.scheduler.exception.ScheduleHandlerNotFoundException;
+import codedriver.module.autoexec.schedule.plugin.AutoexecJobAutoFireJob;
 import codedriver.module.autoexec.service.AutoexecCombopService;
+import codedriver.module.autoexec.service.AutoexecJobActionService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +55,12 @@ public class AutoexecJobExecuteApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopService autoexecCombopService;
+
+    @Resource
+    private AutoexecJobActionService autoexecJobActionService;
+
+    @Resource
+    private SchedulerManager schedulerManager;
 
     @Override
     public String getName() {
@@ -83,7 +96,14 @@ public class AutoexecJobExecuteApi extends PrivateApiComponentBase {
             throw new AutoexecCombopNotFoundException(jobVo.getOperationId());
         }
         if (autoexecCombopService.checkOperableButton(autoexecCombopVo, CombopAuthorityAction.EXECUTE)) {
-            // todo 更改作业状态、执行作业、取消定时任务
+            // 执行作业、取消定时任务
+            autoexecJobActionService.getJobDetailAndFireJob(jobVo);
+            IJob jobHandler = SchedulerManager.getHandler(AutoexecJobAutoFireJob.class.getName());
+            if (jobHandler == null) {
+                throw new ScheduleHandlerNotFoundException(AutoexecJobAutoFireJob.class.getName());
+            }
+            JobObject.Builder jobObjectBuilder = new JobObject.Builder(jobVo.getId().toString(), jobHandler.getGroupName(), jobHandler.getClassName(), TenantContext.get().getTenantUuid());
+            schedulerManager.unloadJob(jobObjectBuilder.build());
         }
         return null;
     }
