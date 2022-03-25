@@ -22,6 +22,7 @@ import codedriver.framework.common.constvalue.CacheControlType;
 import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.crossover.CrossoverServiceFactory;
+import codedriver.framework.exception.type.ParamIrregularException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicBinaryStreamApiComponentBase;
@@ -82,7 +83,13 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         Long jobId = paramObj.getLong("jobId");
+        Long localRunnerId;
         JSONObject passThroughEnv = paramObj.getJSONObject("passThroughEnv");
+        if (!passThroughEnv.containsKey("runnerId")) {
+            throw new ParamIrregularException("passThroughEnv:runnerId");
+        } else {
+            localRunnerId = passThroughEnv.getLong("runnerId");
+        }
         HttpServletResponse resp = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getResponse();
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
         if (jobVo == null) {
@@ -116,13 +123,23 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
             if (lastModifiedLong == 0L || phaseVo.getLncd() == null || (phaseVo.getLncd() != null && lastModifiedLong < phaseVo.getLncd().getTime())) {
                 isNeedDownLoad = true;
                 nodeParamVo.setJobPhaseName(phaseVo.getName());
-                boolean isFirstNode = true;//第一个节点需补充totalCount
                 int count = autoexecJobMapper.searchJobPhaseNodeCount(nodeParamVo);
                 int pageCount = PageUtil.getPageCount(count, nodeParamVo.getPageSize());
                 nodeParamVo.setPageCount(pageCount);
                 ServletOutputStream os = response.getOutputStream();
                 List<AccountProtocolVo> protocolVoList = resourceCenterMapper.searchAccountProtocolListByProtocolName(new AccountProtocolVo());
                 IResourceCenterAccountCrossoverService accountService = CrossoverServiceFactory.getApi(IResourceCenterAccountCrossoverService.class);
+                //补充第一行数据 {"totalCount":14, "localRunnerId":1, "jobRunnerIds":[1]}
+                List<Long> runnerMapIdList = autoexecJobMapper.getJobPhaseNodeRunnerMapIdListByNodeVo(nodeParamVo);
+                JSONObject firstRow = new JSONObject();
+                firstRow.put("totalCount",count);
+                firstRow.put("localRunnerId",localRunnerId);
+                firstRow.put("jobRunnerIds",runnerMapIdList);
+                IOUtils.copyLarge(IOUtils.toInputStream(firstRow.toJSONString() + System.lineSeparator(), StandardCharsets.UTF_8), os);
+                if (os != null) {
+                    os.flush();
+                }
+                //循环分页输出节点流
                 for (int i = 1; i <= pageCount; i++) {
                     nodeParamVo.setCurrentPage(i);
                     nodeParamVo.setStartNum(nodeParamVo.getStartNum());
@@ -160,7 +177,6 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                                     nodeJson.put("protocol", "protocolNotExist");
                                 }
                             }
-                            //ResourceVo resourceVo = (ResourceVo) resourceVoList.stream().filter(o-> Objects.equals(o.getId(),nodeVo.getResourceId()));
                             nodeJson.put("username", finalUserName);
                             nodeJson.put("nodeId", nodeVo.getId());
                             nodeJson.put("nodeName", nodeVo.getNodeName());
@@ -168,14 +184,10 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                             nodeJson.put("resourceId", nodeVo.getResourceId());
                             nodeJson.put("host", nodeVo.getHost());
                             nodeJson.put("port", nodeVo.getPort());
-                            //仅需要第一条数据补充总数
-                            if (isFirstNode) {
-                                nodeJson.put("totalCount", count);
-                                isFirstNode = false;
-                            }
+                            nodeJson.put("runnerId", nodeVo.getRunnerMapId());
                             response.setContentType("application/json");
                             response.setHeader("Content-Disposition", " attachment; filename=nodes.json");
-                            IOUtils.copyLarge(IOUtils.toInputStream(nodeJson.toJSONString() + System.getProperty("line.separator"), StandardCharsets.UTF_8), os);
+                            IOUtils.copyLarge(IOUtils.toInputStream(nodeJson.toJSONString() + System.lineSeparator(), StandardCharsets.UTF_8), os);
                             if (os != null) {
                                 os.flush();
                             }

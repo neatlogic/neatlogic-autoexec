@@ -98,17 +98,24 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             userName = combopExecuteConfigVo.getExecuteUser();
             protocolId = combopExecuteConfigVo.getProtocolId();
         }
-        //设置first组
-        Optional<AutoexecCombopGroupVo> combopGroupOptional = config.getCombopGroupList().stream().filter(o->o.getSort() == 0).findFirst();
-        if(!combopGroupOptional.isPresent()){
-            throw new AutoexecCombopGroupNotFoundException(0L);
+        //保存group
+        Map<Long, Long> combopGroupJobMap = new HashMap<>();
+        for (AutoexecCombopGroupVo combopGroupVo : config.getCombopGroupList()) {
+            AutoexecJobGroupVo jobGroupVo = new AutoexecJobGroupVo(combopGroupVo);
+            jobGroupVo.setJobId(jobVo.getId());
+            autoexecJobMapper.insertJobGroup(jobGroupVo);
+            if (jobGroupVo.getSort() == 1) {
+                //设置首先执行的group
+                jobVo.setExecuteJobGroupVo(jobGroupVo);
+            }
+            combopGroupJobMap.put(combopGroupVo.getId(), jobGroupVo.getId());
+
         }
-        jobVo.setExecuteJobGroupVo(new AutoexecJobGroupVo(combopGroupOptional.get()));
         //保存阶段
         List<AutoexecJobPhaseVo> jobPhaseVoList = new ArrayList<>();
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
         for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
-            AutoexecJobPhaseVo jobPhaseVo = new AutoexecJobPhaseVo(autoexecCombopPhaseVo, jobVo.getId());
+            AutoexecJobPhaseVo jobPhaseVo = new AutoexecJobPhaseVo(config.getCombopGroupList(), autoexecCombopPhaseVo, jobVo.getId(), combopGroupJobMap);
             autoexecJobMapper.insertJobPhase(jobPhaseVo);
             jobPhaseVoList.add(jobPhaseVo);
             AutoexecCombopPhaseConfigVo combopPhaseExecuteConfigVo = autoexecCombopPhaseVo.getConfig();
@@ -298,7 +305,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             jobVo.setParamStr(paramContentVo.getContent());
         }
         jobVo.setExecuteJobPhaseList(executePhaseVoList);
+        List<AutoexecJobGroupVo> jobGroupVos = autoexecJobMapper.getJobGroupByJobId(jobVo.getId());
+        Map<Long,AutoexecJobGroupVo> jobGroupIdMap = jobGroupVos.stream().collect(Collectors.toMap(AutoexecJobGroupVo::getId, e->e));
         for (AutoexecJobPhaseVo phaseVo : executePhaseVoList) {
+            phaseVo.setJobGroupVo(jobGroupIdMap.get(phaseVo.getGroupId()));
             List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseId(jobVo.getId(), phaseVo.getId());
             phaseVo.setOperationList(operationVoList);
             for (AutoexecJobPhaseOperationVo operationVo : operationVoList) {

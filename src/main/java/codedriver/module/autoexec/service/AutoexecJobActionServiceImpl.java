@@ -113,14 +113,14 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         paramJson.put("opt", argJson);
         Map<Integer, List<AutoexecJobPhaseVo>> groupPhaseListMap = new LinkedHashMap<>();
         for (AutoexecJobPhaseVo jobPhase : jobVo.getPhaseList()) {
-            groupPhaseListMap.computeIfAbsent(jobPhase.getSort(), k -> new ArrayList<>()).add(jobPhase);
+            groupPhaseListMap.computeIfAbsent(jobPhase.getJobGroupVo().getSort(), k -> new ArrayList<>()).add(jobPhase);
         }
         paramJson.put("runFlow", new JSONArray() {{
             for (Map.Entry<Integer, List<AutoexecJobPhaseVo>> jobPhaseMapEntry : groupPhaseListMap.entrySet()) {
-                Integer groupId = jobPhaseMapEntry.getKey();
+                Integer groupNo = jobPhaseMapEntry.getKey();
                 List<AutoexecJobPhaseVo> groupJobPhaseList = jobPhaseMapEntry.getValue();
                 add(new JSONObject() {{
-                    put("groupId", groupId);
+                    put("groupNo", groupNo);
                     put("execStrategy", "oneShot");
                     put("phases", new JSONArray() {{
                         for (AutoexecJobPhaseVo jobPhase : groupJobPhaseList) {

@@ -111,6 +111,6 @@ public class AutoexecJobNextGroupFireApi extends PublicApiComponentBase {
 
     @Override
     public String getToken() {
-        return "autoexec/job/next/phase/fire";
+        return "autoexec/job/next/group/fire";
     }
 }

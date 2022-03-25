@@ -38,7 +38,7 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
 
     @Override
     public String getToken() {
-        return "autoexec/combop/config/updata/batch";
+        return "autoexec/combop/config/update/batch";
     }
 
     @Override
@@ -86,8 +86,8 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
         if (CollectionUtils.isEmpty(combopPhaseList)) {
             return;
         }
-        int groupSort = 0;
-        int phaseSort = 0;
+        int groupSort = 1;
+        int phaseSort = 1;
         List<AutoexecCombopGroupVo> combopGroupList = new ArrayList<>();
         Map<Integer, AutoexecCombopGroupVo> groupMap = new HashMap<>();
         for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
@@ -102,7 +102,7 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
                     combopGroupVo.setConfig("{}");
                     combopGroupList.add(combopGroupVo);
                     groupMap.put(sort, combopGroupVo);
-                    phaseSort = 0;
+                    phaseSort = 1;
                 }
                 autoexecCombopPhaseVo.setGroupUuid(combopGroupVo.getUuid());
                 autoexecCombopPhaseVo.setSort(phaseSort++);
