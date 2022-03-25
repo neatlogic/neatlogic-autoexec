@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.api.job.exec;
 
+import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobGroupVo;
@@ -14,8 +15,11 @@ import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFac
 import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.dao.mapper.UserMapper;
+import codedriver.framework.dto.UserVo;
 import codedriver.framework.exception.type.ParamInvalidException;
 import codedriver.framework.exception.type.ParamIrregularException;
+import codedriver.framework.exception.user.UserNotFoundException;
+import codedriver.framework.filter.core.LoginAuthHandlerBase;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
@@ -91,6 +95,15 @@ public class AutoexecJobNextGroupFireApi extends PublicApiComponentBase {
                 throw new ParamInvalidException("groupSort", groupSort.toString());
             }
         }
+
+        //初始化执行用户上下文
+        UserVo execUser = userMapper.getUserBaseInfoByUuid(jobVo.getExecUser());
+        if (execUser == null) {
+            throw new UserNotFoundException(jobVo.getExecUser());
+        }
+        UserContext.init(execUser, "+8:00");
+        UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(execUser).getCc());
+
         //更新group对应runner的"是否fireNext"标识为1
         autoexecJobMapper.updateJobPhaseRunnerFireNextByJobIdAndGroupSortAndRunnerId(jobId, groupSort, 1, runnerId);
         /*
