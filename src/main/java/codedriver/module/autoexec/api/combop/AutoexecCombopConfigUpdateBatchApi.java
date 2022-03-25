@@ -66,6 +66,9 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
 //                    }
                     AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
                     AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
+                    if(CollectionUtils.isNotEmpty(config.getCombopGroupList())) {
+                        continue;
+                    }
                     String oldConfigStr = JSONObject.toJSONString(config);
                     updateConfig(config);
                     String newConfigStr = JSONObject.toJSONString(config);
@@ -86,8 +89,8 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
         if (CollectionUtils.isEmpty(combopPhaseList)) {
             return;
         }
-        int groupSort = 1;
-        int phaseSort = 1;
+        int groupSort = 0;
+        int phaseSort = 0;
         List<AutoexecCombopGroupVo> combopGroupList = new ArrayList<>();
         Map<Integer, AutoexecCombopGroupVo> groupMap = new HashMap<>();
         for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
@@ -102,7 +105,7 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
                     combopGroupVo.setConfig("{}");
                     combopGroupList.add(combopGroupVo);
                     groupMap.put(sort, combopGroupVo);
-                    phaseSort = 1;
+                    phaseSort = 0;
                 }
                 autoexecCombopPhaseVo.setGroupUuid(combopGroupVo.getUuid());
                 autoexecCombopPhaseVo.setSort(phaseSort++);
