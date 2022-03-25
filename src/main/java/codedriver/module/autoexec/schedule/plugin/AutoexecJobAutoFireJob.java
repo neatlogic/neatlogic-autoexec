@@ -8,6 +8,7 @@ package codedriver.module.autoexec.schedule.plugin;
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.JobStatus;
+import codedriver.framework.autoexec.constvalue.JobTriggerType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.common.constvalue.SystemUser;
@@ -91,7 +92,7 @@ public class AutoexecJobAutoFireJob extends JobBase {
 
     @Override
     public void initJob(String tenantUuid) {
-        List<Long> list = autoexecJobMapper.getJobIdListByStatus(JobStatus.READY.getValue());
+        List<Long> list = autoexecJobMapper.getJobIdListByStatusAndTriggerType(JobStatus.READY.getValue(), JobTriggerType.AUTO.getValue());
         for (Long id : list) {
             JobObject.Builder jobObjectBuilder = new JobObject.Builder(id.toString(), this.getGroupName(), this.getClassName(), TenantContext.get().getTenantUuid());
             JobObject jobObject = jobObjectBuilder.build();
