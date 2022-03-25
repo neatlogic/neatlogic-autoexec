@@ -53,6 +53,7 @@ public class AutoexecJobReFireApi extends PrivateApiComponentBase {
         AutoexecJobVo jobVo = new AutoexecJobVo();
         jobVo.setId(jsonObj.getLong("jobId"));
         jobVo.setAction(jsonObj.getString("type"));
+        jobVo.setIsFirstFire(1);
         IAutoexecJobActionHandler refireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.REFIRE.getValue());
         return refireAction.doService(jobVo);
     }

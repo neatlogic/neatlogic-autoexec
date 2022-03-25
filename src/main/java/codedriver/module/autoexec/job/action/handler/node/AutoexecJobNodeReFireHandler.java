@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.job.action.handler.node;
 
 import codedriver.framework.autoexec.constvalue.JobAction;
+import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
@@ -77,10 +78,11 @@ public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
             }
         }
         AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(nodeVo.getJobId(), nodeVo.getJobPhaseId());
-
+        phaseVo.setStatus(JobPhaseStatus.RUNNING.getValue());
+        autoexecJobMapper.updateJobPhaseStatus(phaseVo);
         jobVo.setExecuteJobPhaseList(Collections.singletonList(phaseVo));
         if (CollectionUtils.isNotEmpty(jobVo.getPhaseList())) {
-           // execute(jobVo);
+            executeNode(jobVo);
         }
         return null;
     }

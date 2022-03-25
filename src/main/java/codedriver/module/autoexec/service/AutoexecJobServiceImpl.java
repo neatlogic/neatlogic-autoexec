@@ -104,7 +104,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             AutoexecJobGroupVo jobGroupVo = new AutoexecJobGroupVo(combopGroupVo);
             jobGroupVo.setJobId(jobVo.getId());
             autoexecJobMapper.insertJobGroup(jobGroupVo);
-            if (jobGroupVo.getSort() == 1) {
+            if (jobGroupVo.getSort() == 0) {
                 //设置首先执行的group
                 jobVo.setExecuteJobGroupVo(jobGroupVo);
             }
