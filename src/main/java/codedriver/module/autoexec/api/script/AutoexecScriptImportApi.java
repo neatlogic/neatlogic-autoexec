@@ -14,6 +14,7 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
+import codedriver.framework.autoexec.dto.catalog.AutoexecCatalogVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -142,6 +143,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
         List<String> failReasonList = new ArrayList<>();
         Long id = scriptVo.getId();
         String name = scriptVo.getName();
+        String catalogName = scriptVo.getCatalogName();
         List<AutoexecScriptVersionVo> versionList = scriptVo.getVersionList();
         AutoexecScriptVo oldScriptVo = autoexecScriptMapper.getScriptBaseInfoById(id);
         int index = 0;
@@ -152,8 +154,13 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
         if (autoexecTypeMapper.checkTypeIsExistsById(scriptVo.getTypeId()) == 0) {
             failReasonList.add("不存在的工具类型：" + scriptVo.getTypeId());
         }
-        if (autoexecCatalogMapper.checkAutoexecCatalogIsExists(scriptVo.getCatalogId()) == 0) {
-            failReasonList.add("不存在的工具目录：" + scriptVo.getCatalogId());
+        // 根据目录名称匹配，只有当目录存在时才保存目录id，目录名称为空或目录不存在时，不保存目录id
+        scriptVo.setCatalogId(null);
+        if (StringUtils.isNotBlank(catalogName)) {
+            AutoexecCatalogVo catalog = autoexecCatalogMapper.getAutoexecCatalogByName(catalogName);
+            if (catalog != null) {
+                scriptVo.setCatalogId(catalog.getId());
+            }
         }
         if (autoexecRiskMapper.checkRiskIsExistsById(scriptVo.getRiskId()) == 0) {
             failReasonList.add("不存在的操作级别：" + scriptVo.getRiskId());
