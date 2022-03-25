@@ -250,4 +250,15 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         fireAction.doService(jobVo);
     }
 
+    @Override
+    public void getJobDetailAndFireJob(AutoexecJobVo jobVo) throws Exception {
+        if (jobVo != null) {
+            autoexecJobService.getAutoexecJobDetail(jobVo, 0);
+            jobVo.setAction(JobAction.FIRE.getValue());
+            jobVo.setCurrentPhaseSort(0);
+            IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
+            jobVo.setAction(JobAction.FIRE.getValue());
+            fireAction.doService(jobVo);
+        }
+    }
 }
