@@ -10,6 +10,8 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobInvokeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import com.alibaba.fastjson.JSONObject;
 
+import java.util.Date;
+
 /**
  * @since 2021/4/12 18:44
  **/
@@ -22,6 +24,18 @@ public interface AutoexecJobService {
      * @return jobId
      */
     AutoexecJobVo saveAutoexecCombopJob(AutoexecCombopVo combopVo, AutoexecJobInvokeVo invokeVo, Integer threadCount, JSONObject paramJson) throws Exception;
+
+    /**
+     * 通过combopVo保存作业配置
+     *
+     * @param combopVo      组合工具vo
+     * @param threadCount   并发线程数
+     * @param planStartTime 计划时间
+     * @param triggerType   触发方式
+     * @return
+     * @throws Exception
+     */
+    AutoexecJobVo saveAutoexecCombopJob(AutoexecCombopVo combopVo, AutoexecJobInvokeVo invokeVo, Integer threadCount, JSONObject paramJson, Date planStartTime, String triggerType) throws Exception;
 
     /**
      * sort 为null 则补充job全部信息 ，否则返回当前sort的所有剧本
@@ -47,8 +61,8 @@ public interface AutoexecJobService {
      * 3、update 剩下所有job_node（即跑过的历史节点） lcd小于 phase lcd 的作业节点 标示 "is_delete" = 1
      * 4、删除该阶段所有不是最近更新的phase runner
      *
-     * @param jobId                 作业id
-     * @param sort                  当前激活剧本顺序
+     * @param jobId         作业id
+     * @param sort          当前激活剧本顺序
      * @param executeConfig 执行时的参数（执行目标，用户，协议）
      */
     void refreshJobPhaseNodeList(Long jobId, int sort, JSONObject executeConfig);
@@ -57,14 +71,15 @@ public interface AutoexecJobService {
      * 刷新作业所有阶段节点信息
      * 遍历phaseList刷新节点
      *
-     * @param jobId                 作业id
+     * @param jobId         作业id
      * @param executeConfig 执行时的参数（执行目标，用户，协议）
      */
     void refreshJobNodeList(Long jobId, JSONObject executeConfig);
 
     /**
      * 刷新作业运行参数
-     * @param jobId 作业id
+     *
+     * @param jobId     作业id
      * @param paramJson 运行参数json
      */
     void refreshJobParam(Long jobId, JSONObject paramJson);
