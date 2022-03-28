@@ -85,6 +85,10 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
     }
 
     private void updateConfig(AutoexecCombopConfigVo config) {
+        //旧数据中是没有组信息的，如果组信息存在，说明已经更新过了
+        if(CollectionUtils.isNotEmpty(config.getCombopGroupList())) {
+            return;
+        }
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
         if (CollectionUtils.isEmpty(combopPhaseList)) {
             return;
