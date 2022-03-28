@@ -114,7 +114,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
             if (jobVo == null) {
                 throw new AutoexecJobNotFoundException(jobId.toString());
             }
-            if(CollectionUtils.isEmpty(jobVo.getPhaseList())){
+            if (CollectionUtils.isEmpty(jobVo.getPhaseList())) {
                 throw new AutoexecJobPhaseNotFoundException(phaseName);
             }
             /*
@@ -126,6 +126,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
             if (lastModifiedLong == 0L || phaseVo.getLncd() == null || (phaseVo.getLncd() != null && lastModifiedLong < phaseVo.getLncd().getTime())) {
                 isNeedDownLoad = true;
                 nodeParamVo.setJobPhaseName(phaseVo.getName());
+                boolean isFirstNode = true;//第一个节点需补充totalCount
                 int count = autoexecJobMapper.searchJobPhaseNodeCount(nodeParamVo);
                 int pageCount = PageUtil.getPageCount(count, nodeParamVo.getPageSize());
                 nodeParamVo.setPageCount(pageCount);
@@ -151,35 +152,40 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                         List<AccountVo> accountVoList = resourceCenterMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIdList, protocolId, userName);
                         List<AccountVo> allAccountVoList = resourceCenterMapper.getAccountListByIpList(autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getHost).collect(Collectors.toList()));
                         String finalUserName = autoexecJobPhaseNodeVoList.get(0).getUserName();
-                        for (AutoexecJobPhaseNodeVo nodeVo : autoexecJobPhaseNodeVoList) {
-                            JSONObject nodeJson = new JSONObject() {{
-                                Optional<AccountVo> accountOp = accountService.filterAccountByRules(accountVoList, allAccountVoList, protocolVoList, nodeVo.getResourceId(), nodeVo.getProtocolId(), nodeVo.getHost(), nodeVo.getPort());
-                                if (accountOp.isPresent()) {
-                                    AccountVo accountVoTmp = accountOp.get();
-                                    put("protocol", accountVoTmp.getProtocol());
-                                    put("password", "{ENCRYPTED}" + RC4Util.encrypt(AutoexecJobVo.AUTOEXEC_RC4_KEY, accountVoTmp.getPasswordPlain()));
-                                    put("protocolPort", accountVoTmp.getProtocolPort());
+                        for (int j = 0; j < autoexecJobPhaseNodeVoList.size(); j++) {
+                            AutoexecJobPhaseNodeVo nodeVo = autoexecJobPhaseNodeVoList.get(j);
+                            JSONObject nodeJson = new JSONObject();
+                            Optional<AccountVo> accountOp = accountService.filterAccountByRules(accountVoList, allAccountVoList, protocolVoList, nodeVo.getResourceId(), nodeVo.getProtocolId(), nodeVo.getHost(), nodeVo.getPort());
+                            if (accountOp.isPresent()) {
+                                AccountVo accountVoTmp = accountOp.get();
+                                nodeJson.put("protocol", accountVoTmp.getProtocol());
+                                nodeJson.put("password", "{ENCRYPTED}" + RC4Util.encrypt(AutoexecJobVo.AUTOEXEC_RC4_KEY, accountVoTmp.getPasswordPlain()));
+                                nodeJson.put("protocolPort", accountVoTmp.getProtocolPort());
+                            } else {
+                                Optional<AccountProtocolVo> protocolVo = protocolVoList.stream().filter(o -> Objects.equals(o.getId(), nodeVo.getProtocolId())).findFirst();
+                                if (protocolVo.isPresent()) {
+                                    nodeJson.put("protocol", protocolVo.get().getName());
+                                    nodeJson.put("protocolPort", protocolVo.get().getPort());
                                 } else {
-                                    Optional<AccountProtocolVo> protocolVo = protocolVoList.stream().filter(o -> Objects.equals(o.getId(), nodeVo.getProtocolId())).findFirst();
-                                    if (protocolVo.isPresent()) {
-                                        put("protocol", protocolVo.get().getName());
-                                        put("protocolPort", protocolVo.get().getPort());
-                                    } else {
-                                        put("protocol", "protocolNotExist");
-                                    }
+                                    nodeJson.put("protocol", "protocolNotExist");
                                 }
-                                //ResourceVo resourceVo = (ResourceVo) resourceVoList.stream().filter(o-> Objects.equals(o.getId(),nodeVo.getResourceId()));
-                                put("username", finalUserName);
-                                put("nodeId", nodeVo.getId());
-                                put("nodeName", nodeVo.getNodeName());
-                                put("nodeType", nodeVo.getNodeType());
-                                put("resourceId", nodeVo.getResourceId());
-                                put("host", nodeVo.getHost());
-                                put("port", nodeVo.getPort());
-                            }};
+                            }
+                            //ResourceVo resourceVo = (ResourceVo) resourceVoList.stream().filter(o-> Objects.equals(o.getId(),nodeVo.getResourceId()));
+                            nodeJson.put("username", finalUserName);
+                            nodeJson.put("nodeId", nodeVo.getId());
+                            nodeJson.put("nodeName", nodeVo.getNodeName());
+                            nodeJson.put("nodeType", nodeVo.getNodeType());
+                            nodeJson.put("resourceId", nodeVo.getResourceId());
+                            nodeJson.put("host", nodeVo.getHost());
+                            nodeJson.put("port", nodeVo.getPort());
+                            //仅需要第一条数据补充总数
+                            if (isFirstNode) {
+                                nodeJson.put("totalCount", count);
+                                isFirstNode = false;
+                            }
                             response.setContentType("application/json");
                             response.setHeader("Content-Disposition", " attachment; filename=nodes.json");
-                            IOUtils.copyLarge(IOUtils.toInputStream(nodeJson.toString() + "\n", StandardCharsets.UTF_8), os);
+                            IOUtils.copyLarge(IOUtils.toInputStream(nodeJson.toJSONString() + System.getProperty("line.separator"), StandardCharsets.UTF_8), os);
                             if (os != null) {
                                 os.flush();
                             }
@@ -190,10 +196,10 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                     os.close();
                 }
                 //更新lncd，防止后续会继续重新下载
-                autoexecJobMapper.updateJobPhaseLncdById(phaseVo.getId(),phaseVo.getLcd());
+                autoexecJobMapper.updateJobPhaseLncdById(phaseVo.getId(), phaseVo.getLcd());
             }
         }
-        if(!isNeedDownLoad){
+        if (!isNeedDownLoad) {
             if (resp != null) {
                 resp.setStatus(204);
                 resp.getWriter().print(StringUtils.EMPTY);

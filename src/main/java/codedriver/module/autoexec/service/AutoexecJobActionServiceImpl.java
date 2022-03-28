@@ -36,10 +36,7 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -195,6 +192,8 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         String source = jsonObj.getString("source");
         int threadCount = jsonObj.getInteger("threadCount") == null ? 64 : jsonObj.getInteger("threadCount");
         JSONObject paramJson = jsonObj.getJSONObject("param");
+        Date planStartTime = jsonObj.getDate("planStartTime");
+        String triggerType = jsonObj.getString("triggerType");
         AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
         if (combopVo == null) {
             throw new AutoexecCombopNotFoundException(combopId);
@@ -237,7 +236,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         if (jsonObj.containsKey("name")) {
             combopVo.setName(jsonObj.getString("name"));
         }
-        AutoexecJobVo jobVo = autoexecJobService.saveAutoexecCombopJob(combopVo, invokeVo, threadCount, paramJson);
+        AutoexecJobVo jobVo = autoexecJobService.saveAutoexecCombopJob(combopVo, invokeVo, threadCount, paramJson, planStartTime, triggerType);
         jobVo.setAction(JobAction.FIRE.getValue());
         jobVo.setCurrentPhaseSort(0);
         return jobVo;
@@ -251,4 +250,15 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         fireAction.doService(jobVo);
     }
 
+    @Override
+    public void getJobDetailAndFireJob(AutoexecJobVo jobVo) throws Exception {
+        if (jobVo != null) {
+            autoexecJobService.getAutoexecJobDetail(jobVo, 0);
+            jobVo.setAction(JobAction.FIRE.getValue());
+            jobVo.setCurrentPhaseSort(0);
+            IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
+            jobVo.setAction(JobAction.FIRE.getValue());
+            fireAction.doService(jobVo);
+        }
+    }
 }

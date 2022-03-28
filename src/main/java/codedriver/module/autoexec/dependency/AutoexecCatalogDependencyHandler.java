@@ -1,7 +1,7 @@
 package codedriver.module.autoexec.dependency;
 
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
-import codedriver.framework.autoexec.constvalue.FromType;
+import codedriver.framework.autoexec.constvalue.AutoexecFromType;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
@@ -152,6 +152,6 @@ public class AutoexecCatalogDependencyHandler extends CustomTableDependencyHandl
      */
     @Override
     public IFromType getFromType() {
-        return FromType.AUTOEXEC_CATALOG;
+        return AutoexecFromType.AUTOEXEC_CATALOG;
     }
 }

@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.service;
 
+import codedriver.framework.autoexec.constvalue.CombopAuthorityAction;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
@@ -30,6 +31,15 @@ public interface AutoexecCombopService {
      * @param combopVoList 组合工具Vo对象列表
      */
     void setOperableButtonList(List<AutoexecCombopVo> combopVoList);
+
+    /**
+     * 检查当前用户是否有当前组合工具的某项权限
+     *
+     * @param autoexecCombopVo 组合工具
+     * @param action           权限
+     * @return
+     */
+    boolean checkOperableButton(AutoexecCombopVo autoexecCombopVo, CombopAuthorityAction action);
 
     /**
      * 校验组合工具每个阶段是否配置正确
