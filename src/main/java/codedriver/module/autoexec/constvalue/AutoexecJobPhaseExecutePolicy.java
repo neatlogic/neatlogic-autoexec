@@ -13,14 +13,15 @@ import java.util.List;
 
 /**
  * @author lvzk
- * @since 2022/3/23 14:40
+ * @since 2022/3/29 14:40
  **/
-public enum AutoexecJobGroupPolicy implements IEnum {
-    ONESHOT("oneshot"),
-    GRAYSCALE("grayscale");
+public enum AutoexecJobPhaseExecutePolicy implements IEnum {
+    FIRST_ROUND("firstRound"),
+    MIDDLE_ROUND("middleRound"),
+    LAST_ROUND("lastRound");
     private final String name;
 
-    AutoexecJobGroupPolicy(String name) {
+    AutoexecJobPhaseExecutePolicy(String name) {
         this.name = name;
     }
 
@@ -31,7 +32,7 @@ public enum AutoexecJobGroupPolicy implements IEnum {
     @Override
     public List getValueTextList() {
         JSONArray resultList = new JSONArray();
-        for (AutoexecJobGroupPolicy e : values()) {
+        for (AutoexecJobPhaseExecutePolicy e : values()) {
             JSONObject obj = new JSONObject();
             obj.put("value", e.getName());
             obj.put("text", e.getName());

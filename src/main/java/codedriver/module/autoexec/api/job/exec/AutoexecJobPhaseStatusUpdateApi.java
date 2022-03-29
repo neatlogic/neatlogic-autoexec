@@ -5,10 +5,7 @@
 
 package codedriver.module.autoexec.api.job.exec;
 
-import codedriver.framework.autoexec.constvalue.ExecMode;
-import codedriver.framework.autoexec.constvalue.JobNodeStatus;
-import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
-import codedriver.framework.autoexec.constvalue.JobStatus;
+import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
@@ -72,11 +69,16 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
         String status = jsonObj.getString("status");
         JSONObject passThroughEnv = jsonObj.getJSONObject("passThroughEnv");
         Long runnerId = 0L;
+        int isFirstFire = 0;
         if (MapUtils.isNotEmpty(passThroughEnv)) {
             if (!passThroughEnv.containsKey("runnerId")) {
                 throw new AutoexecJobRunnerNotFoundException("runnerId");
             } else {
                 runnerId = passThroughEnv.getLong("runnerId");
+            }
+
+            if (passThroughEnv.containsKey("isFirstFire")) {
+                isFirstFire = passThroughEnv.getInteger("isFirstFire");
             }
         }
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
@@ -114,6 +116,13 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
         }
         //更新phase_runner 状态
         autoexecJobMapper.updateJobPhaseRunnerStatus(Collections.singletonList(jobPhaseVo.getId()), runnerId, status);
+
+        //更新job 状态
+        if(isFirstFire ==1 && Objects.equals(status,JobPhaseStatus.RUNNING.getValue())){
+            AutoexecJobVo jobFireVo = new AutoexecJobVo(jobId,status);
+            jobFireVo.setAction(JobAction.FIRE.getValue());
+            autoexecJobMapper.updateJobStatus(jobFireVo);
+        }
 
         //判断所有该phase的runner 都是completed状态，phase 状态更改为completed
         if (Objects.equals(status, JobPhaseStatus.WAIT_INPUT.getValue())
