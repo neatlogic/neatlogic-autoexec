@@ -30,6 +30,7 @@ import codedriver.framework.dao.mapper.runner.RunnerMapper;
 import codedriver.framework.dto.runner.GroupNetworkVo;
 import codedriver.framework.dto.runner.RunnerGroupVo;
 import codedriver.framework.dto.runner.RunnerMapVo;
+import codedriver.module.autoexec.constvalue.AutoexecJobGroupPolicy;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -99,7 +100,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             protocolId = combopExecuteConfigVo.getProtocolId();
         }
         //保存group
-        Map<Long, Long> combopGroupJobMap = new HashMap<>();
+        Map<Long, AutoexecJobGroupVo> combopIdJobGroupVoMap = new HashMap<>();
         for (AutoexecCombopGroupVo combopGroupVo : config.getCombopGroupList()) {
             AutoexecJobGroupVo jobGroupVo = new AutoexecJobGroupVo(combopGroupVo);
             jobGroupVo.setJobId(jobVo.getId());
@@ -108,19 +109,19 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 //设置首先执行的group
                 jobVo.setExecuteJobGroupVo(jobGroupVo);
             }
-            combopGroupJobMap.put(combopGroupVo.getId(), jobGroupVo.getId());
+            combopIdJobGroupVoMap.put(combopGroupVo.getId(), jobGroupVo);
 
         }
         //保存阶段
         List<AutoexecJobPhaseVo> jobPhaseVoList = new ArrayList<>();
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
         for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
-            AutoexecJobPhaseVo jobPhaseVo = new AutoexecJobPhaseVo(config.getCombopGroupList(), autoexecCombopPhaseVo, jobVo.getId(), combopGroupJobMap);
+            AutoexecJobPhaseVo jobPhaseVo = new AutoexecJobPhaseVo(autoexecCombopPhaseVo, jobVo.getId(), combopIdJobGroupVoMap);
             autoexecJobMapper.insertJobPhase(jobPhaseVo);
             jobPhaseVoList.add(jobPhaseVo);
             AutoexecCombopPhaseConfigVo combopPhaseExecuteConfigVo = autoexecCombopPhaseVo.getConfig();
             //jobPhaseNode
-            //如果是target 则获取执行目标，否则随机分配runner
+            //如果是target、runnerTarget、sql 则获取执行目标，否则随机分配runner
             if (Arrays.asList(ExecMode.TARGET.getValue(), ExecMode.RUNNER_TARGET.getValue(), ExecMode.SQL.getValue()).contains(autoexecCombopPhaseVo.getExecMode())) {
                 initPhaseExecuteUserAndProtocolAndNode(userName, protocolId, jobVo, jobPhaseVo, combopExecuteConfigVo, combopPhaseExecuteConfigVo);
             } else {
@@ -147,9 +148,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 Long operationId = autoexecCombopPhaseOperationVo.getOperationId();
                 AutoexecJobPhaseOperationVo jobPhaseOperationVo = null;
                 if (CombopOperationType.SCRIPT.getValue().equalsIgnoreCase(operationType)) {
-                    AutoexecScriptVo scriptVo = null;
-                    AutoexecScriptVersionVo scriptVersionVo = null;
-                    String script = StringUtils.EMPTY;
+                    AutoexecScriptVo scriptVo;
+                    AutoexecScriptVersionVo scriptVersionVo;
+                    String script;
                     if (combopVo.getIsTest() != null && combopVo.getIsTest()) {
                         scriptVersionVo = autoexecScriptMapper.getVersionByVersionId(operationId);
                         if (scriptVersionVo == null) {
@@ -189,7 +190,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     private void initPhaseExecuteUserAndProtocolAndNode(String userName, Long protocolId, AutoexecJobVo jobVo, AutoexecJobPhaseVo jobPhaseVo, AutoexecCombopExecuteConfigVo combopExecuteConfigVo, AutoexecCombopPhaseConfigVo combopPhaseExecuteConfigVo) {
         AutoexecCombopExecuteConfigVo executeConfigVo = combopPhaseExecuteConfigVo.getExecuteConfig();
         boolean isHasNode = false;
-        boolean isPhaseConfig = false;
+        boolean isPhaseConfig = true;
+        boolean isGroupConfig = true;
         String nodeFrom = null;
         if (executeConfigVo != null) {
             if (StringUtils.isNotBlank(executeConfigVo.getExecuteUser())) {
@@ -198,22 +200,44 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             if (executeConfigVo.getProtocolId() != null) {
                 protocolId = executeConfigVo.getProtocolId();
             }
-            //判断阶段执行节点是否配置
-            isPhaseConfig = executeConfigVo.getExecuteNodeConfig() != null
-                    && (CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getTagList())
-                    || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getSelectNodeList())
-                    || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getInputNodeList())
-                    || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getParamList())
-                    || MapUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getFilter())
-            );
-            if (isPhaseConfig) {
-                isHasNode = getJobNodeList(executeConfigVo, jobVo, jobPhaseVo, userName, protocolId, true);
-                nodeFrom = "phase";
+
+            //判断group是不是grayScale，如果是则从group中获取执行节点
+            AutoexecJobGroupVo jobGroupVo = jobPhaseVo.getJobGroupVo();
+            if(Objects.equals(jobGroupVo.getPolicy(), AutoexecJobGroupPolicy.GRAYSCALE.getName())){
+                AutoexecCombopGroupConfigVo groupConfig = jobGroupVo.getConfig();
+                executeConfigVo = groupConfig.getExecuteConfig();
+                //判断组执行节点是否配置
+                isGroupConfig = executeConfigVo.getExecuteNodeConfig() != null
+                        && (CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getTagList())
+                        || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getSelectNodeList())
+                        || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getInputNodeList())
+                        || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getParamList())
+                        || MapUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getFilter())
+                );
+                if (isGroupConfig) {
+                    isHasNode = getJobNodeList(executeConfigVo, jobVo, jobPhaseVo, userName, protocolId);
+                    nodeFrom = "group";
+                    isPhaseConfig = false;
+                }
+            }else {
+                isGroupConfig = false;
+                //判断阶段执行节点是否配置
+                isPhaseConfig = executeConfigVo.getExecuteNodeConfig() != null
+                        && (CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getTagList())
+                        || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getSelectNodeList())
+                        || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getInputNodeList())
+                        || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getParamList())
+                        || MapUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getFilter())
+                );
+                if (isPhaseConfig) {
+                    isHasNode = getJobNodeList(executeConfigVo, jobVo, jobPhaseVo, userName, protocolId);
+                    nodeFrom = "phase";
+                }
             }
         }
         //如果阶段没有设置执行目标，则使用全局执行目标
-        if (!isPhaseConfig) {
-            isHasNode = getJobNodeList(combopExecuteConfigVo, jobVo, jobPhaseVo, userName, protocolId, false);
+        if (!isPhaseConfig && !isGroupConfig) {
+            isHasNode = getJobNodeList(combopExecuteConfigVo, jobVo, jobPhaseVo, userName, protocolId);
             nodeFrom = "job";
         }
 
@@ -306,7 +330,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         }
         jobVo.setExecuteJobPhaseList(executePhaseVoList);
         List<AutoexecJobGroupVo> jobGroupVos = autoexecJobMapper.getJobGroupByJobId(jobVo.getId());
-        Map<Long,AutoexecJobGroupVo> jobGroupIdMap = jobGroupVos.stream().collect(Collectors.toMap(AutoexecJobGroupVo::getId, e->e));
+        Map<Long, AutoexecJobGroupVo> jobGroupIdMap = jobGroupVos.stream().collect(Collectors.toMap(AutoexecJobGroupVo::getId, e -> e));
         for (AutoexecJobPhaseVo phaseVo : executePhaseVoList) {
             phaseVo.setJobGroupVo(jobGroupIdMap.get(phaseVo.getGroupId()));
             List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseId(jobVo.getId(), phaseVo.getId());
@@ -353,7 +377,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
      * @param userName     连接node 用户
      * @param protocolId   连接node 协议Id
      */
-    private boolean getJobNodeList(AutoexecCombopExecuteConfigVo nodeConfigVo, AutoexecJobVo jobVo, AutoexecJobPhaseVo jobPhaseVo, String userName, Long protocolId, boolean isPhaseConfig) {
+    private boolean getJobNodeList(AutoexecCombopExecuteConfigVo nodeConfigVo, AutoexecJobVo jobVo, AutoexecJobPhaseVo jobPhaseVo, String userName, Long protocolId) {
         if (nodeConfigVo == null) {
             return false;
         }
@@ -370,7 +394,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         }
 
         if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getInputNodeList()) || CollectionUtils.isNotEmpty(executeNodeConfigVo.getSelectNodeList())) {
-            isHasNode = updateNodeResourceByInputAndSelect(executeNodeConfigVo, jobPhaseVo, isPhaseConfig, userName, protocolId);
+            isHasNode = updateNodeResourceByInputAndSelect(executeNodeConfigVo, jobPhaseVo, userName, protocolId);
         }
 
         if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getParamList())) {
@@ -437,11 +461,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
      *
      * @param executeNodeConfigVo 执行节点配置
      * @param jobPhaseVo          作业阶段
-     * @param isPhaseConfig       是否阶段配置
      * @param userName            执行用户
      * @param protocolId          协议id
      */
-    private boolean updateNodeResourceByInputAndSelect(AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, AutoexecJobPhaseVo jobPhaseVo, boolean isPhaseConfig, String userName, Long protocolId) {
+    private boolean updateNodeResourceByInputAndSelect(AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, AutoexecJobPhaseVo jobPhaseVo, String userName, Long protocolId) {
         List<AutoexecNodeVo> nodeVoList = new ArrayList<>();
         List<ResourceVo> ipPortList = new ArrayList<>();
         List<ResourceVo> lostIpPortList = new ArrayList<>();

@@ -37,7 +37,7 @@ import java.util.List;
 @Service
 @Transactional
 @OperationType(type = OperationTypeEnum.UPDATE)
-public class AutoexecJobInformRoundEndApi extends PublicApiComponentBase {
+public class AutoexecJobPhaseInformRoundEndApi extends PublicApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
 
@@ -133,6 +133,6 @@ public class AutoexecJobInformRoundEndApi extends PublicApiComponentBase {
 
     @Override
     public String getToken() {
-        return "autoexec/job/next/phase/fire";
+        return "autoexec/job/phase/inform/round/end";
     }
 }

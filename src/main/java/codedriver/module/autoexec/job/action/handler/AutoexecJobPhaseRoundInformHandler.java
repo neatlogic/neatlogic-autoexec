@@ -51,24 +51,23 @@ public class AutoexecJobPhaseRoundInformHandler extends AutoexecJobActionHandler
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         JSONObject jsonObj = jobVo.getActionParam();
-        Long jobId = jsonObj.getLong("jobId");
-        String phase = jsonObj.getString("lastPhase");
         Integer groupSort = jsonObj.getInteger("groupNo");
-        JSONObject paramObj = new JSONObject();
-        paramObj.put("action", "informRoundContinue");
-        paramObj.put("groupNo", groupSort);
+        JSONObject informParam = new JSONObject();
+        informParam.put("action", "informRoundContinue");
+        informParam.put("groupNo", groupSort);
+        jsonObj.put("informParam",informParam);
         AutoexecJobPhaseVo phaseVo = jobVo.getPhaseList().get(0);
         //寻找下一个phase执行当前round,如果不存在下一个phase 则啥都不做
         AutoexecJobPhaseVo nextJobPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndGroupSortAndSort(phaseVo.getJobId(), groupSort, phaseVo.getSort() + 1);
         if (nextJobPhaseVo != null) {
-            paramObj.put("phaseName", nextJobPhaseVo.getName());
+            informParam.put("phaseName", nextJobPhaseVo.getName());
             List<RunnerMapVo> runnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(phaseVo.getJobId(), Collections.singletonList(nextJobPhaseVo.getId()));
             runnerVos = runnerVos.stream().filter(o -> StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
             checkRunnerHealth(runnerVos);
             for (RunnerMapVo runnerVo : runnerVos) {
                 String url = String.format("%s/api/job/phase/round/inform", runnerVo.getUrl());
                 String result = HttpRequestUtil.post(url)
-                        .setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN)
+                        .setPayload(jsonObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN)
                         .sendRequest().getError();
                 if (StringUtils.isNotBlank(result)) {
                     throw new AutoexecJobRunnerHttpRequestException(url + ":" + result);
