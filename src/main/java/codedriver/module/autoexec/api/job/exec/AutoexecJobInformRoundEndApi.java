@@ -5,22 +5,23 @@
 
 package codedriver.module.autoexec.api.job.exec;
 
+import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecJobPhaseNodeNotCompletedException;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
+import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
+import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
-import codedriver.framework.dao.mapper.UserMapper;
-import codedriver.framework.exception.type.ParamIrregularException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
-import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -40,12 +41,6 @@ public class AutoexecJobInformRoundEndApi extends PublicApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
 
-    @Resource
-    AutoexecJobService autoexecJobService;
-
-    @Resource
-    UserMapper userMapper;
-
     @Override
     public String getName() {
         return "激活作业下一阶段round";
@@ -59,7 +54,9 @@ public class AutoexecJobInformRoundEndApi extends PublicApiComponentBase {
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
             @Param(name = "phase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
-            @Param(name = "roundNo", type = ApiParamType.STRING, desc = "round 号", isRequired = true),
+            @Param(name = "runnerId", type = ApiParamType.LONG, desc = "runnerId"),
+            @Param(name = "roundNo", type = ApiParamType.INTEGER, desc = "round号", isRequired = true),
+            @Param(name = "groupNo", type = ApiParamType.INTEGER, desc = "组号", isRequired = true),
             @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数", isRequired = true),
             @Param(name = "time", type = ApiParamType.DOUBLE, desc = "回调时间")
     })
@@ -71,42 +68,34 @@ public class AutoexecJobInformRoundEndApi extends PublicApiComponentBase {
         Long jobId = jsonObj.getLong("jobId");
         String phase = jsonObj.getString("lastPhase");
         Integer roundNo = jsonObj.getInteger("roundNo");
-        Long runnerId;
-        Integer groupSort;
+        Integer groupSort = jsonObj.getInteger("groupNo");
+        //Long runnerId = jsonObj.getLong("runnerId");
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
-        JSONObject passThroughEnv = jsonObj.getJSONObject("passThroughEnv");
-
-        if (MapUtils.isEmpty(passThroughEnv)) {
-            throw new ParamIrregularException("passThroughEnv");
-        }
-        if (!passThroughEnv.containsKey("runnerId")) {
-            throw new ParamIrregularException("runnerId");
-        } else {
-            runnerId = passThroughEnv.getLong("runnerId");
-        }
-
-        if (!passThroughEnv.containsKey("groupSort")) {
-            throw new ParamIrregularException("groupSort");
-        } else {
-            groupSort = passThroughEnv.getInteger("groupSort");
-        }
-        //更新phase对应runner的"是否fireNext"标识为1
         AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(jobId, phase);
         if (jobPhaseVo == null) {
             throw new AutoexecJobPhaseNotFoundException(jobId + ":" + phase);
         }
-        //autoexecJobMapper.updateJobPhaseRunnerFireNextByPhaseIdAndRunnerId(jobPhaseVo.getId(), 1, runnerId);
         //判断该phase这个round所属节点是否都跑完了
-
-
+        isJobPhaseRoundNodeAllCompleted(groupSort, jobPhaseVo, roundNo);
+        //发起inform
+        IAutoexecJobActionHandler jobActionHandler = AutoexecJobActionHandlerFactory.getAction(JobAction.INFORM_PHASE_ROUND.getValue());
+        jobVo.setAction(JobAction.INFORM_PHASE_ROUND.getValue());
+        jobVo.setActionParam(jsonObj);
+        jobVo.setPhaseList(Collections.singletonList(jobPhaseVo));
+        jobActionHandler.doService(jobVo);
         return null;
     }
 
-
-    private List<Integer> getRoundCountList(AutoexecJobPhaseVo phaseVo,Integer roundNo) {
+    /**
+     *
+     * @param jobGroupSort 作业组序号
+     * @param phaseVo 阶段
+     * @param roundNo round号
+     */
+    private void isJobPhaseRoundNodeAllCompleted(Integer jobGroupSort, AutoexecJobPhaseVo phaseVo, Integer roundNo) {
         List<Integer> roundCountList = new ArrayList<>();
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(phaseVo.getJobId());
         Integer roundCount = jobVo.getThreadCount();
@@ -126,21 +115,20 @@ public class AutoexecJobInformRoundEndApi extends PublicApiComponentBase {
         for (int i = 1; i <= roundCount; i++) {
             if (parallelCount == 0) {
                 roundCountList.add(1);
-            } else if (roundNo <= remainder ) {
+            } else if (roundNo <= remainder) {
                 roundCountList.add(parallelCount + 1);
             }
-            if(roundNo > i) {
+            if (roundNo > i) {
                 startNum += roundCountList.get(i - 1);
             }
         }
         //设置分页，查询该phase round
-        nodeParamVo.setPageSize(roundCountList.get(roundNo-1));
-        nodeParamVo.setStatus(JobNodeStatus.PENDING.getValue());
-        if(autoexecJobMapper.getJobPhaseNodeByNodeVoAndStartNumCount(nodeParamVo,startNum) > 0){}
-
-
-
-        return roundCountList;
+        nodeParamVo.setPageSize(roundCountList.get(roundNo - 1));
+        nodeParamVo.setStatusList(Collections.singletonList(JobNodeStatus.PENDING.getValue()));
+        List<Long> notCompletedNodeIdList = autoexecJobMapper.getJobPhaseNodeByNodeVoAndStartNumCount(nodeParamVo, startNum);
+        if (CollectionUtils.isEmpty(notCompletedNodeIdList)) {
+            throw new AutoexecJobPhaseNodeNotCompletedException(notCompletedNodeIdList);
+        }
     }
 
     @Override

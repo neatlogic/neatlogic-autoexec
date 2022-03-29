@@ -12,6 +12,7 @@ import codedriver.framework.autoexec.constvalue.ParamMappingMode;
 import codedriver.framework.autoexec.constvalue.ToolType;
 import codedriver.framework.autoexec.crossover.IAutoexecJobActionCrossoverService;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.*;
@@ -58,6 +59,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
 
     @Resource
     ResourceCenterMapper resourceCenterMapper;
+
+    @Resource
+    AutoexecJobMapper autoexecJobMapper;
 
     /**
      * 拼装给proxy的param
@@ -117,11 +121,12 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         }
         paramJson.put("runFlow", new JSONArray() {{
             for (Map.Entry<Integer, List<AutoexecJobPhaseVo>> jobPhaseMapEntry : groupPhaseListMap.entrySet()) {
-                Integer groupNo = jobPhaseMapEntry.getKey();
+                Integer groupSort = jobPhaseMapEntry.getKey();
                 List<AutoexecJobPhaseVo> groupJobPhaseList = jobPhaseMapEntry.getValue();
                 add(new JSONObject() {{
-                    put("groupNo", groupNo);
-                    put("execStrategy", "oneShot");
+                    put("groupNo", groupSort);
+                    AutoexecJobGroupVo jobGroupVo = autoexecJobMapper.getJobGroupByJobIdAndSort(jobVo.getId(),groupSort);
+                    put("execStrategy", jobGroupVo.getPolicy());
                     put("phases", new JSONArray() {{
                         for (AutoexecJobPhaseVo jobPhase : groupJobPhaseList) {
                             add(new JSONObject() {{
