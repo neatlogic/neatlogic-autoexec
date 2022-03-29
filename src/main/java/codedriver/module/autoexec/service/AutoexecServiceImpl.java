@@ -308,13 +308,17 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 }
             }
         }
-        List<AutoexecParamVo> returnList = new ArrayList<>();
         //根据参数名称name替换对应的值
         if (CollectionUtils.isNotEmpty(replaceNameList)) {
             for (String name : replaceNameList) {
                 newOperationParamMap.get(name).setDefaultValue(oldOperationParamMap.get(name).getDefaultValue());
-                returnList.add(newOperationParamMap.get(name));
             }
+        }
+
+        List<AutoexecParamVo> returnList = new ArrayList<>();
+
+        for (String name : newOperationParamMap.keySet()) {
+            returnList.add(newOperationParamMap.get(name));
         }
 
         return returnList;
