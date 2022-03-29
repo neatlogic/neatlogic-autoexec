@@ -8,10 +8,7 @@ package codedriver.module.autoexec.service;
 import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.crossover.IAutoexecServiceCrossoverService;
 import codedriver.framework.autoexec.dao.mapper.*;
-import codedriver.framework.autoexec.dto.AutoexecParamVo;
-import codedriver.framework.autoexec.dto.AutoexecRiskVo;
-import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
-import codedriver.framework.autoexec.dto.AutoexecToolVo;
+import codedriver.framework.autoexec.dto.*;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
@@ -33,6 +30,10 @@ import javax.annotation.Resource;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toCollection;
 
 @Service
 public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCrossoverService {
@@ -264,6 +265,64 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 combopPhaseVo.setExecModeName(ExecMode.getText(combopPhaseVo.getExecMode()));
             }
         }
+    }
+
+    @Override
+    public List<AutoexecParamVo> getProfileConfig(List<AutoexecOperationVo> paramAutoexecOperationVoList, List<AutoexecParamVo> oldOperationParamList) {
+
+        List<Long> toolIdList = paramAutoexecOperationVoList.stream().filter(e -> StringUtils.equals(ToolType.TOOL.getValue(), e.getType())).map(AutoexecOperationVo::getId).collect(Collectors.toList());
+        List<Long> scriptIdList = paramAutoexecOperationVoList.stream().filter(e -> StringUtils.equals(ToolType.SCRIPT.getValue(), e.getType())).map(AutoexecOperationVo::getId).collect(Collectors.toList());
+        //获取新的参数列表
+        List<AutoexecParamVo> newOperationParamVoList = new ArrayList<>();
+        List<AutoexecOperationVo> autoexecOperationVoList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(toolIdList)) {
+            autoexecOperationVoList.addAll(autoexecToolMapper.getAutoexecOperationListByIdList(toolIdList));
+        }
+        if (CollectionUtils.isNotEmpty(scriptIdList)) {
+            autoexecOperationVoList.addAll(autoexecScriptMapper.getAutoexecOperationListByIdList(scriptIdList));
+        }
+        for (AutoexecOperationVo operationVo : autoexecOperationVoList) {
+            if (CollectionUtils.isNotEmpty(operationVo.getParamVoList())) {
+                newOperationParamVoList.addAll(operationVo.getParamVoList());
+            }
+        }
+
+        //根据name（唯一键）去重
+        newOperationParamVoList = newOperationParamVoList.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(comparing(AutoexecParamVo::getName))), ArrayList::new));
+
+        //实时的参数信息
+        Map<String, AutoexecParamVo> newOperationParamMap = newOperationParamVoList.stream().collect(Collectors.toMap(AutoexecParamVo::getName, e -> e));
+
+        //旧的参数信息
+        Map<String, AutoexecParamVo> oldOperationParamMap = null;
+        if (CollectionUtils.isNotEmpty(oldOperationParamList)) {
+            oldOperationParamMap = oldOperationParamList.stream().collect(Collectors.toMap(AutoexecParamVo::getName, e -> e));
+        }
+
+        //找出需要替换值的参数名称name
+        List<String> replaceNameList = new ArrayList<>();
+        if (MapUtils.isNotEmpty(newOperationParamMap) && MapUtils.isNotEmpty(oldOperationParamMap)) {
+            for (String newParamName : newOperationParamMap.keySet()) {
+                if (oldOperationParamMap.containsKey(newParamName) && StringUtils.equals(oldOperationParamMap.get(newParamName).getType(), newOperationParamMap.get(newParamName).getType())) {
+                    replaceNameList.add(newParamName);
+                }
+            }
+        }
+        List<AutoexecParamVo> returnList = new ArrayList<>();
+        //根据参数名称name替换对应的值
+        if (CollectionUtils.isNotEmpty(replaceNameList)) {
+            for (String name : replaceNameList) {
+                newOperationParamMap.get(name).setDefaultValue(oldOperationParamMap.get(name).getDefaultValue());
+                returnList.add(newOperationParamMap.get(name));
+            }
+        }
+
+        return returnList;
+    }
+
+    @Override
+    public List<AutoexecParamVo> getProfileConfig(List<AutoexecOperationVo> paramAutoexecOperationVoList) {
+        return getProfileConfig(paramAutoexecOperationVoList, null);
     }
 
 }
