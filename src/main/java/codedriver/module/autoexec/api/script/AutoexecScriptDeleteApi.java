@@ -83,7 +83,7 @@ public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
             }
 
             // 检查脚本是否被profile引用
-            if (DependencyManager.getDependencyCount(AutoexecFromType.AUTOEXEC_OPERATION_PROFILE,id)>0) {
+            if (DependencyManager.getDependencyCount(AutoexecFromType.AUTOEXEC_OPERATION_PROFILE, id) > 0) {
                 throw new AutoexecScriptHasReferenceByProfileException();
             }
 
