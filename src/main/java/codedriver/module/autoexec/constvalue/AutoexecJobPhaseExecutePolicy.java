@@ -16,17 +16,23 @@ import java.util.List;
  * @since 2022/3/29 14:40
  **/
 public enum AutoexecJobPhaseExecutePolicy implements IEnum {
-    FIRST_ROUND("firstRound"),
-    MIDDLE_ROUND("middleRound"),
-    LAST_ROUND("lastRound");
+    FIRST_ROUND("firstRound", "first"),
+    MIDDLE_ROUND("middleRound", "middle"),
+    LAST_ROUND("lastRound", "last");
     private final String name;
+    private final String value;
 
-    AutoexecJobPhaseExecutePolicy(String name) {
+    AutoexecJobPhaseExecutePolicy(String name, String value) {
         this.name = name;
+        this.value = value;
     }
 
     public String getName() {
         return name;
+    }
+
+    public String getValue() {
+        return value;
     }
 
     @Override
