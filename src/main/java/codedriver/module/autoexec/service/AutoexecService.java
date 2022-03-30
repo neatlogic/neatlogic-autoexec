@@ -43,4 +43,14 @@ public interface AutoexecService {
      * @return
      */
     List<AutoexecParamVo> getProfileConfig(List<AutoexecOperationVo> paramAutoexecOperationVoList);
+
+    /**
+     * 根据scriptIdList和toolIdList获取对应的operationVoList
+     *
+     * @param scriptIdList
+     * @param toolIdList
+     * @return
+     */
+    List<AutoexecOperationVo> getAutoexecOperationByScriptIdAndToolIdList(List<Long> scriptIdList, List<Long> toolIdList);
+
 }
