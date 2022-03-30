@@ -403,14 +403,15 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = executeConfigVo.getExecuteNodeConfig();
                 if (executeNodeConfigVo == null) {
                     needExecuteNode = true;
-                }
-                List<String> paramList = executeNodeConfigVo.getParamList();
-                List<AutoexecNodeVo> selectNodeList = executeNodeConfigVo.getSelectNodeList();
-                List<AutoexecNodeVo> inputNodeList = executeNodeConfigVo.getInputNodeList();
-                List<Long> tagList = executeNodeConfigVo.getTagList();
-                JSONObject filter = executeNodeConfigVo.getFilter();
-                if (CollectionUtils.isEmpty(paramList) && CollectionUtils.isEmpty(selectNodeList) && CollectionUtils.isEmpty(inputNodeList) && CollectionUtils.isEmpty(tagList) && MapUtils.isEmpty(filter)) {
-                    needExecuteNode = true;
+                } else {
+                    List<String> paramList = executeNodeConfigVo.getParamList();
+                    List<AutoexecNodeVo> selectNodeList = executeNodeConfigVo.getSelectNodeList();
+                    List<AutoexecNodeVo> inputNodeList = executeNodeConfigVo.getInputNodeList();
+                    List<Long> tagList = executeNodeConfigVo.getTagList();
+                    JSONObject filter = executeNodeConfigVo.getFilter();
+                    if (CollectionUtils.isEmpty(paramList) && CollectionUtils.isEmpty(selectNodeList) && CollectionUtils.isEmpty(inputNodeList) && CollectionUtils.isEmpty(tagList) && MapUtils.isEmpty(filter)) {
+                        needExecuteNode = true;
+                    }
                 }
             }
             autoexecCombopVo.setNeedExecuteUser(needExecuteUser);
