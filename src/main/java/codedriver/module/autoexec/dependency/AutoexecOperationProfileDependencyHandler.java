@@ -21,7 +21,7 @@ public class AutoexecOperationProfileDependencyHandler extends CustomTableDepend
 
     @Override
     protected String getFromField() {
-        return "operate_id";
+        return "operation_id";
     }
 
     @Override
