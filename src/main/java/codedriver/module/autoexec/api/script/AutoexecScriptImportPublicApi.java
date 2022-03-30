@@ -129,7 +129,7 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
                 }
             }
             if (faultMessages.isEmpty()) {
-                newScriptVo.setCatalogId(null);
+                newScriptVo.setCatalogId(AutoexecCatalogVo.ROOT_ID);
                 String catalogName = newScriptVo.getCatalogName();
                 if (StringUtils.isNotBlank(catalogName)) {
                     AutoexecCatalogVo catalog = autoexecCatalogMapper.getAutoexecCatalogByName(catalogName);

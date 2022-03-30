@@ -18,6 +18,7 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
+import codedriver.framework.autoexec.dto.catalog.AutoexecCatalogVo;
 import codedriver.framework.autoexec.dto.script.*;
 import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.common.constvalue.CiphertextPrefix;
@@ -25,6 +26,7 @@ import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.dto.OperateVo;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -100,12 +102,23 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
         if (autoexecTypeMapper.checkTypeIsExistsById(scriptVo.getTypeId()) == 0) {
             throw new AutoexecTypeNotFoundException(scriptVo.getTypeId());
         }
-        if (autoexecCatalogMapper.checkAutoexecCatalogIsExists(scriptVo.getCatalogId()) == 0) {
+        if (!Objects.equals(scriptVo.getCatalogId(), AutoexecCatalogVo.ROOT_ID) && autoexecCatalogMapper.checkAutoexecCatalogIsExists(scriptVo.getCatalogId()) == 0) {
             throw new AutoexecCatalogNotFoundException(scriptVo.getCatalogId());
         }
         if (autoexecRiskMapper.checkRiskIsExistsById(scriptVo.getRiskId()) == 0) {
             throw new AutoexecRiskNotFoundException(scriptVo.getRiskId());
         }
+    }
+
+    @Override
+    public List<Long> getCatalogIdList(Long catalogId) {
+        if (catalogId != null && !Objects.equals(catalogId, AutoexecCatalogVo.ROOT_ID)) {
+            AutoexecCatalogVo catalogTmp = autoexecCatalogMapper.getAutoexecCatalogById(catalogId);
+            if (catalogTmp != null) {
+                return autoexecCatalogMapper.getChildrenByLftRht(catalogTmp).stream().map(AutoexecCatalogVo::getId).collect(Collectors.toList());
+            }
+        }
+        return null;
     }
 
     /**
