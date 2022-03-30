@@ -90,11 +90,18 @@ public class AutoexecScheduleListApi extends PrivateApiComponentBase {
                 Map<Long, Integer> execCountMap = execCountList.stream().collect(Collectors.toMap(e -> e.getInvokeId(), e -> e.getCount()));
                 for (AutoexecScheduleVo autoexecScheduleVo : autoexecScheduleList) {
                     AutoexecCombopVo autoexecCombopVo = autoexecCombopMap.get(autoexecScheduleVo.getAutoexecCombopId());
-                    autoexecScheduleVo.setAutoexecCombopName(autoexecCombopVo.getName());
-                    autoexecCombopService.setOperableButtonList(autoexecCombopVo);
-                    Integer executable = autoexecCombopVo.getExecutable();
-                    autoexecScheduleVo.setDeletable(executable);
-                    autoexecScheduleVo.setEditable(executable);
+                    if (autoexecCombopVo == null) {
+                        autoexecScheduleVo.setAutoexecCombopName("-");
+                        autoexecScheduleVo.setDeletable(0);
+                        autoexecScheduleVo.setEditable(0);
+                    } else {
+                        autoexecScheduleVo.setAutoexecCombopName(autoexecCombopVo.getName());
+                        autoexecCombopService.setOperableButtonList(autoexecCombopVo);
+                        Integer executable = autoexecCombopVo.getExecutable();
+                        autoexecScheduleVo.setDeletable(executable);
+                        autoexecScheduleVo.setEditable(executable);
+                    }
+
                     Integer execCount = execCountMap.get(autoexecScheduleVo.getId());
                     if (execCount != null) {
                         autoexecScheduleVo.setExecCount(execCount);
