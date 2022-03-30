@@ -14,8 +14,6 @@ import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.common.constvalue.ApiParamType;
-import codedriver.framework.crossover.CrossoverServiceFactory;
-import codedriver.framework.deploy.crossover.IDeployCrossoverMapper;
 import codedriver.framework.dto.FieldValidResultVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -86,9 +84,6 @@ public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
             if (CollectionUtils.isNotEmpty(versionIdList)) {
                 autoexecScriptMapper.deleteParamByVersionIdList(versionIdList);
             }
-            //删除profile和脚本的关系
-            IDeployCrossoverMapper iDeployCrossoverMapper = CrossoverServiceFactory.getApi(IDeployCrossoverMapper.class);
-            iDeployCrossoverMapper.deleteProfileOperationByOperationId(id);
 
             autoexecScriptMapper.deleteScriptLineByScriptId(id);
             autoexecScriptMapper.deleteScriptAuditByScriptId(id);
