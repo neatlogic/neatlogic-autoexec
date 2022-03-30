@@ -268,7 +268,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
     }
 
     @Override
-    public List<AutoexecParamVo> getProfileConfig(List<AutoexecOperationVo> paramAutoexecOperationVoList, List<AutoexecParamVo> oldOperationParamList) {
+    public List<AutoexecParamVo> getAutoexecOperationParamVoList(List<AutoexecOperationVo> paramAutoexecOperationVoList, List<AutoexecParamVo> oldOperationParamList) {
 
         List<Long> toolIdList = paramAutoexecOperationVoList.stream().filter(e -> StringUtils.equals(ToolType.TOOL.getValue(), e.getType())).map(AutoexecOperationVo::getId).collect(Collectors.toList());
         List<Long> scriptIdList = paramAutoexecOperationVoList.stream().filter(e -> StringUtils.equals(ToolType.SCRIPT.getValue(), e.getType())).map(AutoexecOperationVo::getId).collect(Collectors.toList());
@@ -313,8 +313,8 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
     }
 
     @Override
-    public List<AutoexecParamVo> getProfileConfig(List<AutoexecOperationVo> paramAutoexecOperationVoList) {
-        return getProfileConfig(paramAutoexecOperationVoList, null);
+    public List<AutoexecParamVo> getAutoexecOperationParamVoList(List<AutoexecOperationVo> paramAutoexecOperationVoList) {
+        return getAutoexecOperationParamVoList(paramAutoexecOperationVoList, null);
     }
 
     /**

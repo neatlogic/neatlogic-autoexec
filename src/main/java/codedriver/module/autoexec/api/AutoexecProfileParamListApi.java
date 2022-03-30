@@ -48,6 +48,6 @@ public class AutoexecProfileParamListApi extends PrivateApiComponentBase {
     @Description(desc = "获取自动化工具参数列表接口")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        return autoexecService.getProfileConfig(paramObj.getJSONArray("autoexecOperationVoList").toJavaList(AutoexecOperationVo.class));
+        return autoexecService.getAutoexecOperationParamVoList(paramObj.getJSONArray("autoexecOperationVoList").toJavaList(AutoexecOperationVo.class));
     }
 }
