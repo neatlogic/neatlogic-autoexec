@@ -16,8 +16,6 @@ import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.dao.mapper.UserMapper;
 import codedriver.framework.dto.UserVo;
-import codedriver.framework.exception.type.ParamInvalidException;
-import codedriver.framework.exception.type.ParamIrregularException;
 import codedriver.framework.exception.user.UserNotFoundException;
 import codedriver.framework.filter.core.LoginAuthHandlerBase;
 import codedriver.framework.restful.annotation.*;
@@ -25,12 +23,10 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
 import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Objects;
 
 /**
  * @author lvzk
@@ -61,7 +57,8 @@ public class AutoexecJobNextGroupFireApi extends PublicApiComponentBase {
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
-            @Param(name = "groupNo", type = ApiParamType.STRING, desc = "下一个组（排序）序号", isRequired = true),
+            @Param(name = "groupNo", type = ApiParamType.STRING, desc = "上一个组（排序）序号", isRequired = true),
+            @Param(name = "runnerId", type = ApiParamType.LONG, desc = "runnerId", isRequired = true),
             @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数", isRequired = true),
             @Param(name = "time", type = ApiParamType.DOUBLE, desc = "回调时间")
     })
@@ -72,28 +69,10 @@ public class AutoexecJobNextGroupFireApi extends PublicApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
         Integer groupSort = jsonObj.getInteger("groupNo");
-        Long runnerId;
+        Long runnerId = jsonObj.getLong("runnerId");
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
-        }
-        JSONObject passThroughEnv = jsonObj.getJSONObject("passThroughEnv");
-
-        if (MapUtils.isEmpty(passThroughEnv)) {
-            throw new ParamIrregularException("passThroughEnv");
-        }
-        if (!passThroughEnv.containsKey("runnerId")) {
-            throw new ParamIrregularException("passThroughEnv:runnerId");
-        } else {
-            runnerId = passThroughEnv.getLong("runnerId");
-        }
-
-        if (!passThroughEnv.containsKey("groupSort")) {
-            throw new ParamIrregularException("passThroughEnv:groupSort");
-        } else {
-            if (!Objects.equals(passThroughEnv.getInteger("groupSort"), groupSort)) {
-                throw new ParamInvalidException("groupSort", groupSort.toString());
-            }
         }
 
         //初始化执行用户上下文

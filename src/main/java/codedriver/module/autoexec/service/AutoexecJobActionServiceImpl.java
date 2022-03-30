@@ -74,7 +74,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         paramJson.put("jobId", jobVo.getId());
         paramJson.put("tenant", TenantContext.get().getTenantUuid());
         paramJson.put("preJobId", null); //给后续ITSM对接使用
-        paramJson.put("parallel", jobVo.getThreadCount());
+        paramJson.put("roundCount", jobVo.getThreadCount());
         paramJson.put("execUser", UserContext.get().getUserUuid(true));
         paramJson.put("passThroughEnv", null); //回调需要的返回的参数
         JSONArray paramArray = jobVo.getParam();

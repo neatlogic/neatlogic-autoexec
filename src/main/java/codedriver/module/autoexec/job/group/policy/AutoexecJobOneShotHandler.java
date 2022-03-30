@@ -12,7 +12,7 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import codedriver.framework.autoexec.job.group.policy.core.AutoexecJobGroupPolicyHandlerBase;
 import codedriver.framework.dto.runner.RunnerMapVo;
-import codedriver.module.autoexec.constvalue.AutoexecJobGroupPolicy;
+import codedriver.framework.autoexec.constvalue.AutoexecJobGroupPolicy;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
