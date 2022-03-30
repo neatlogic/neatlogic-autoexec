@@ -178,6 +178,8 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                 autoexecScriptMapper.updateScriptBaseInfo(scriptVo);
             } else {
                 scriptVo.setFcu(UserContext.get().getUserUuid());
+                scriptVo.setId(null);
+                id = scriptVo.getId();
                 autoexecScriptMapper.insertScript(scriptVo);
             }
             if (CollectionUtils.isNotEmpty(versionList)) {
@@ -211,6 +213,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                             autoexecScriptMapper.updateScriptVersion(versionVo);
                         }
                     } else {
+                        versionVo.setScriptId(id);
                         autoexecScriptService.saveParamList(versionVo.getId(), versionVo.getParamList());
                         autoexecScriptService.saveLineList(id, versionVo.getId(), versionVo.getLineList());
                         autoexecScriptMapper.insertScriptVersion(versionVo);
