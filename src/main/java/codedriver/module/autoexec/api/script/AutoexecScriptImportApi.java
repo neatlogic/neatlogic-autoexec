@@ -151,19 +151,23 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
             index++;
             scriptVo.setName(name + "_" + index);
         }
-        if (autoexecTypeMapper.checkTypeIsExistsById(scriptVo.getTypeId()) == 0) {
-            failReasonList.add("不存在的工具类型：" + scriptVo.getTypeId());
+        Long typeId = autoexecTypeMapper.getTypeIdByName(scriptVo.getTypeName());
+        scriptVo.setTypeId(typeId);
+        if (typeId == null) {
+            failReasonList.add("不存在的工具类型：" + scriptVo.getTypeName());
         }
         // 根据目录名称匹配，只有当目录存在时才保存目录id，目录名称为空或目录不存在时，不保存目录id
-        scriptVo.setCatalogId(null);
+        scriptVo.setCatalogId(AutoexecCatalogVo.ROOT_ID);
         if (StringUtils.isNotBlank(catalogName)) {
             AutoexecCatalogVo catalog = autoexecCatalogMapper.getAutoexecCatalogByName(catalogName);
             if (catalog != null) {
                 scriptVo.setCatalogId(catalog.getId());
             }
         }
-        if (autoexecRiskMapper.checkRiskIsExistsById(scriptVo.getRiskId()) == 0) {
-            failReasonList.add("不存在的操作级别：" + scriptVo.getRiskId());
+        Long risk = autoexecRiskMapper.getRiskIdByName(scriptVo.getRiskName());
+        scriptVo.setRiskId(risk);
+        if (risk == null) {
+            failReasonList.add("不存在的操作级别：" + scriptVo.getRiskName());
         }
         if (ExecMode.getExecMode(scriptVo.getExecMode()) == null) {
             failReasonList.add("不存在的执行方式：" + scriptVo.getExecMode());
@@ -174,6 +178,8 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                 autoexecScriptMapper.updateScriptBaseInfo(scriptVo);
             } else {
                 scriptVo.setFcu(UserContext.get().getUserUuid());
+                scriptVo.setId(null);
+                id = scriptVo.getId();
                 autoexecScriptMapper.insertScript(scriptVo);
             }
             if (CollectionUtils.isNotEmpty(versionList)) {
@@ -207,6 +213,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                             autoexecScriptMapper.updateScriptVersion(versionVo);
                         }
                     } else {
+                        versionVo.setScriptId(id);
                         autoexecScriptService.saveParamList(versionVo.getId(), versionVo.getParamList());
                         autoexecScriptService.saveLineList(id, versionVo.getId(), versionVo.getLineList());
                         autoexecScriptMapper.insertScriptVersion(versionVo);

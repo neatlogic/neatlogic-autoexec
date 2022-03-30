@@ -5,23 +5,21 @@
 
 package codedriver.module.autoexec.api.script;
 
-import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
-import codedriver.framework.autoexec.dto.catalog.AutoexecCatalogVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.module.autoexec.service.AutoexecScriptService;
 import codedriver.module.autoexec.service.AutoexecService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -29,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 //@AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
@@ -43,10 +40,10 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
     private AutoexecToolMapper autoexecToolMapper;
 
     @Resource
-    private AutoexecCatalogMapper autoexecCatalogMapper;
+    private AutoexecService autoexecService;
 
     @Resource
-    private AutoexecService autoexecService;
+    private AutoexecScriptService autoexecScriptService;
 
     @Override
     public String getToken() {
@@ -112,13 +109,7 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
             return result;
         }
         //查询各级子目录
-        if (ObjectUtils.isNotEmpty(searchVo.getCatalogId())) {
-            AutoexecCatalogVo catalogTmp = autoexecCatalogMapper.getAutoexecCatalogById(searchVo.getCatalogId());
-            List<AutoexecCatalogVo> catalogVolist = autoexecCatalogMapper.getChildrenByLftRht(catalogTmp);
-            List<Long> catalogIdlist = catalogVolist.stream().map(AutoexecCatalogVo::getId).collect(Collectors.toList());
-            searchVo.setCatalogIdList(catalogIdlist);
-        }
-
+        searchVo.setCatalogIdList(autoexecScriptService.getCatalogIdList(searchVo.getCatalogId()));
 
         tbodyList.addAll(autoexecScriptMapper.searchScriptAndTool(searchVo));
         if (searchVo.getNeedPage()) {

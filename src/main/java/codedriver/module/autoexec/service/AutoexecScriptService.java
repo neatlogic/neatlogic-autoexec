@@ -38,6 +38,13 @@ public interface AutoexecScriptService {
     void validateScriptBaseInfo(AutoexecScriptVo scriptVo);
 
     /**
+     * 根据catalogId穿透查询工具目录id
+     *
+     * @param catalogId
+     */
+    List<Long> getCatalogIdList(Long catalogId);
+
+    /**
      * 检查脚本内容是否有变更
      *
      * @param before 当前版本

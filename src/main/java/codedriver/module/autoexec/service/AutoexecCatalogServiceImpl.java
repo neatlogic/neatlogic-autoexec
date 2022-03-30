@@ -22,7 +22,7 @@ public class AutoexecCatalogServiceImpl implements AutoexecCatalogService {
         Integer maxRhtCode = autoexecCatalogMapper.getMaxRhtCode();
         AutoexecCatalogVo root = new AutoexecCatalogVo();
         root.setId(AutoexecCatalogVo.ROOT_ID);
-        root.setName("所有");
+        root.setName(AutoexecCatalogVo.ROOT_NAME);
         root.setParentId(AutoexecCatalogVo.ROOT_PARENTID);
         root.setLft(1);
         root.setRht(maxRhtCode == null ? 2 : maxRhtCode.intValue() + 1);

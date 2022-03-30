@@ -10,24 +10,22 @@ import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
-import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
-import codedriver.framework.autoexec.dto.catalog.AutoexecCatalogVo;
-import codedriver.framework.dto.OperateVo;
+import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
 import codedriver.framework.common.util.PageUtil;
+import codedriver.framework.dto.OperateVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.operate.ScriptOperateManager;
+import codedriver.module.autoexec.service.AutoexecScriptService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -45,7 +43,7 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
     private AutoexecScriptMapper autoexecScriptMapper;
 
     @Resource
-    private AutoexecCatalogMapper autoexecCatalogMapper;
+    private AutoexecScriptService autoexecScriptService;
 
     @Override
     public String getToken() {
@@ -87,12 +85,7 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
         AutoexecScriptVo scriptVo = JSON.toJavaObject(jsonObj, AutoexecScriptVo.class);
 
         //查询各级子目录
-        if (ObjectUtils.isNotEmpty(scriptVo.getCatalogId())) {
-            AutoexecCatalogVo catalogTmp = autoexecCatalogMapper.getAutoexecCatalogById(scriptVo.getCatalogId());
-            List<AutoexecCatalogVo> catalogVolist = autoexecCatalogMapper.getChildrenByLftRht(catalogTmp);
-            List<Long> catalogIdlist = catalogVolist.stream().map(AutoexecCatalogVo::getId).collect(Collectors.toList());
-            scriptVo.setCatalogIdList(catalogIdlist);
-        }
+        scriptVo.setCatalogIdList(autoexecScriptService.getCatalogIdList(scriptVo.getCatalogId()));
 
         List<AutoexecScriptVo> scriptVoList = autoexecScriptMapper.searchScript(scriptVo);
         result.put("tbodyList", scriptVoList);
