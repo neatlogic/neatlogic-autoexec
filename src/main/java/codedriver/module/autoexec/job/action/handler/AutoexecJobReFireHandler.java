@@ -91,9 +91,9 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             }
             executeGroupSort = autoexecJobPhaseVos.get(0).getJobGroupVo().getSort();
             //获取group
-            jobVo.setExecuteJobGroupVo(autoexecJobMapper.getJobGroupByJobIdAndSort(jobVo.getId(),0));
             int finalExecuteGroupSort = executeGroupSort;
-            autoexecJobService.getAutoexecJobDetail(jobVo, autoexecJobPhaseVos.stream().filter(o->Objects.equals(o.getJobGroupVo().getSort(), finalExecuteGroupSort)).collect(Collectors.toList()));
+            jobVo.setExecuteJobPhaseList(autoexecJobPhaseVos.stream().filter(o->Objects.equals(o.getJobGroupVo().getSort(), finalExecuteGroupSort)).collect(Collectors.toList()));
+            autoexecJobService.getAutoexecJobDetail(jobVo);
             //补充配置，只保留满足条件（该sort下，未开始、失败、已暂停或已中止）的phase
             //jobVo.setPhaseList(jobVo.getPhaseList().stream().filter(o -> jobPhaseIdList.contains(o.getId())).collect(Collectors.toList()));
             if (CollectionUtils.isNotEmpty(jobVo.getPhaseList())) {

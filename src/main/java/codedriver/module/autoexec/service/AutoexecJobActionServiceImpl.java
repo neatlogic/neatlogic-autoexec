@@ -25,6 +25,10 @@ import codedriver.framework.autoexec.script.paramtype.IScriptParamType;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
+import codedriver.framework.dao.mapper.UserMapper;
+import codedriver.framework.dto.UserVo;
+import codedriver.framework.exception.user.UserNotFoundException;
+import codedriver.framework.filter.core.LoginAuthHandlerBase;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -62,6 +66,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
 
     @Resource
     AutoexecJobMapper autoexecJobMapper;
+
+    @Resource
+    UserMapper userMapper;
 
     /**
      * 拼装给proxy的param
@@ -125,7 +132,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                 List<AutoexecJobPhaseVo> groupJobPhaseList = jobPhaseMapEntry.getValue();
                 add(new JSONObject() {{
                     put("groupNo", groupSort);
-                    AutoexecJobGroupVo jobGroupVo = autoexecJobMapper.getJobGroupByJobIdAndSort(jobVo.getId(),groupSort);
+                    AutoexecJobGroupVo jobGroupVo = autoexecJobMapper.getJobGroupByJobIdAndSort(jobVo.getId(), groupSort);
                     put("execStrategy", jobGroupVo.getPolicy());
                     put("phases", new JSONArray() {{
                         for (AutoexecJobPhaseVo jobPhase : groupJobPhaseList) {
@@ -272,12 +279,23 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
     @Override
     public void getJobDetailAndFireJob(AutoexecJobVo jobVo) throws Exception {
         if (jobVo != null) {
-            autoexecJobService.getAutoexecJobDetail(jobVo, 0);
             jobVo.setAction(JobAction.FIRE.getValue());
-            jobVo.setCurrentPhaseSort(0);
+            jobVo.setExecuteJobGroupVo(autoexecJobMapper.getJobGroupByJobIdAndSort(jobVo.getId(), 0));
+            autoexecJobService.getAutoexecJobDetail(jobVo);
             IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
             jobVo.setAction(JobAction.FIRE.getValue());
             fireAction.doService(jobVo);
         }
+    }
+
+    @Override
+    public void initExecuteUserContext(AutoexecJobVo jobVo) throws Exception {
+        //初始化执行用户上下文
+        UserVo execUser = userMapper.getUserBaseInfoByUuid(jobVo.getExecUser());
+        if (execUser == null) {
+            throw new UserNotFoundException(jobVo.getExecUser());
+        }
+        UserContext.init(execUser, "+8:00");
+        UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(execUser).getCc());
     }
 }

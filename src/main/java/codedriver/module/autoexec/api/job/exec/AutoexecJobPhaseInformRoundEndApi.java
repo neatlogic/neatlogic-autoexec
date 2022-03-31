@@ -5,8 +5,10 @@
 
 package codedriver.module.autoexec.api.job.exec;
 
+import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
+import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
@@ -20,6 +22,7 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
+import codedriver.module.autoexec.service.AutoexecJobActionService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -29,6 +32,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author lvzk
@@ -40,6 +44,9 @@ import java.util.List;
 public class AutoexecJobPhaseInformRoundEndApi extends PublicApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
+
+    @Resource
+    AutoexecJobActionService autoexecJobActionService;
 
     @Override
     public String getName() {
@@ -66,7 +73,7 @@ public class AutoexecJobPhaseInformRoundEndApi extends PublicApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
-        String phase = jsonObj.getString("lastPhase");
+        String phase = jsonObj.getString("phase");
         Integer roundNo = jsonObj.getInteger("roundNo");
         Integer groupSort = jsonObj.getInteger("groupNo");
         //Long runnerId = jsonObj.getLong("runnerId");
@@ -78,6 +85,7 @@ public class AutoexecJobPhaseInformRoundEndApi extends PublicApiComponentBase {
         if (jobPhaseVo == null) {
             throw new AutoexecJobPhaseNotFoundException(jobId + ":" + phase);
         }
+        autoexecJobActionService.initExecuteUserContext(jobVo);
         //判断该phase这个round所属节点是否都跑完了
         isJobPhaseRoundNodeAllCompleted(groupSort, jobPhaseVo, roundNo);
         //发起inform
@@ -90,10 +98,9 @@ public class AutoexecJobPhaseInformRoundEndApi extends PublicApiComponentBase {
     }
 
     /**
-     *
      * @param jobGroupSort 作业组序号
-     * @param phaseVo 阶段
-     * @param roundNo round号
+     * @param phaseVo      阶段
+     * @param roundNo      round号
      */
     private void isJobPhaseRoundNodeAllCompleted(Integer jobGroupSort, AutoexecJobPhaseVo phaseVo, Integer roundNo) {
         List<Integer> roundCountList = new ArrayList<>();
@@ -117,6 +124,8 @@ public class AutoexecJobPhaseInformRoundEndApi extends PublicApiComponentBase {
                 roundCountList.add(1);
             } else if (roundNo <= remainder) {
                 roundCountList.add(parallelCount + 1);
+            } else {
+                roundCountList.add(parallelCount);
             }
             if (roundNo > i) {
                 startNum += roundCountList.get(i - 1);
@@ -125,9 +134,11 @@ public class AutoexecJobPhaseInformRoundEndApi extends PublicApiComponentBase {
         //设置分页，查询该phase round
         nodeParamVo.setPageSize(roundCountList.get(roundNo - 1));
         nodeParamVo.setStatusList(Collections.singletonList(JobNodeStatus.PENDING.getValue()));
-        List<Long> notCompletedNodeIdList = autoexecJobMapper.getJobPhaseNodeByNodeVoAndStartNumCount(nodeParamVo, startNum);
-        if (CollectionUtils.isEmpty(notCompletedNodeIdList)) {
-            throw new AutoexecJobPhaseNodeNotCompletedException(notCompletedNodeIdList);
+        List<Long> notCompletedNodeIdList = autoexecJobMapper.getJobPhaseNodeIdListByNodeVoAndStartNum(nodeParamVo, startNum);
+        //如果非runner则存在没完成的node || runner 该phase没完成，则抛异常
+        if ((!Objects.equals(phaseVo.getExecMode(), ExecMode.RUNNER.getValue()) && CollectionUtils.isNotEmpty(notCompletedNodeIdList)) ||
+                (Objects.equals(phaseVo.getExecMode(), ExecMode.RUNNER.getValue()) && !Objects.equals(phaseVo.getStatus(), JobPhaseStatus.COMPLETED.getValue()))) {
+            throw new AutoexecJobPhaseNodeNotCompletedException(phaseVo.getName(), roundNo, notCompletedNodeIdList);
         }
     }
 

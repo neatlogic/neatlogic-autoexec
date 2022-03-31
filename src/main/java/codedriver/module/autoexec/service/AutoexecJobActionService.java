@@ -43,4 +43,12 @@ public interface AutoexecJobActionService {
      * @throws Exception
      */
     void getJobDetailAndFireJob(AutoexecJobVo jobVo) throws Exception;
+
+
+    /**
+     * 初始化执行用户上下文
+     * @param jobVo 作业
+     * @throws Exception 异常
+     */
+    void initExecuteUserContext(AutoexecJobVo jobVo) throws Exception;
 }

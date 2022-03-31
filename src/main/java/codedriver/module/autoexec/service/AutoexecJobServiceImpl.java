@@ -321,15 +321,19 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     }
 
     @Override
-    public void getAutoexecJobDetail(AutoexecJobVo jobVo, List<AutoexecJobPhaseVo> executePhaseVoList) {
+    public void getAutoexecJobDetail(AutoexecJobVo jobVo) {
         AutoexecJobParamContentVo paramContentVo = autoexecJobMapper.getJobParamContent(jobVo.getParamHash());
         if (paramContentVo != null) {
             jobVo.setParamStr(paramContentVo.getContent());
         }
-        jobVo.setExecuteJobPhaseList(executePhaseVoList);
+        List<AutoexecJobPhaseVo> jobPhaseVoList = jobVo.getPhaseList();
+        AutoexecJobGroupVo executeJobGroupVo = jobVo.getExecuteJobGroupVo();
+        if(executeJobGroupVo != null){
+            jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndGroupSort(jobVo.getId(),executeJobGroupVo.getSort());
+        }
         List<AutoexecJobGroupVo> jobGroupVos = autoexecJobMapper.getJobGroupByJobId(jobVo.getId());
         Map<Long, AutoexecJobGroupVo> jobGroupIdMap = jobGroupVos.stream().collect(Collectors.toMap(AutoexecJobGroupVo::getId, e -> e));
-        for (AutoexecJobPhaseVo phaseVo : executePhaseVoList) {
+        for (AutoexecJobPhaseVo phaseVo : jobPhaseVoList) {
             phaseVo.setJobGroupVo(jobGroupIdMap.get(phaseVo.getGroupId()));
             List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseId(jobVo.getId(), phaseVo.getId());
             phaseVo.setOperationList(operationVoList);

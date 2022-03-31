@@ -45,7 +45,7 @@ public class AutoexecJobPhaseRoundInformHandler extends AutoexecJobActionHandler
 
     @Override
     public boolean isNeedExecuteAuthCheck() {
-        return true;
+        return false;
     }
 
     @Override
@@ -65,7 +65,7 @@ public class AutoexecJobPhaseRoundInformHandler extends AutoexecJobActionHandler
             runnerVos = runnerVos.stream().filter(o -> StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
             checkRunnerHealth(runnerVos);
             for (RunnerMapVo runnerVo : runnerVos) {
-                String url = String.format("%s/api/job/phase/round/inform", runnerVo.getUrl());
+                String url = String.format("%s/api/rest/job/phase/round/inform", runnerVo.getUrl());
                 String result = HttpRequestUtil.post(url)
                         .setPayload(jsonObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN)
                         .sendRequest().getError();
