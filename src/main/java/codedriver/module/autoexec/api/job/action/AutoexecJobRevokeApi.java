@@ -6,9 +6,9 @@
 package codedriver.module.autoexec.api.job.action;
 
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
+import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
-import codedriver.framework.autoexec.constvalue.CombopAuthorityAction;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
@@ -28,7 +28,6 @@ import codedriver.framework.scheduler.core.SchedulerManager;
 import codedriver.framework.scheduler.dto.JobObject;
 import codedriver.framework.scheduler.exception.ScheduleHandlerNotFoundException;
 import codedriver.module.autoexec.schedule.plugin.AutoexecJobAutoFireJob;
-import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,9 +50,6 @@ public class AutoexecJobRevokeApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
-
-    @Resource
-    private AutoexecCombopService autoexecCombopService;
 
     @Resource
     private SchedulerManager schedulerManager;
@@ -81,7 +77,7 @@ public class AutoexecJobRevokeApi extends PrivateApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId);
         }
-        if (!JobStatus.READY.getValue().equals(jobVo.getStatus())) {
+        if (!JobStatus.READY.getValue().equals(jobVo.getStatus()) || !UserContext.get().getUserUuid().equals(jobVo.getExecUser())) {
             throw new AutoexecJobCanNotRevokeException(jobId);
         }
         if (!CombopOperationType.COMBOP.getValue().equals(jobVo.getOperationType())) {
@@ -91,16 +87,14 @@ public class AutoexecJobRevokeApi extends PrivateApiComponentBase {
         if (autoexecCombopVo == null) {
             throw new AutoexecCombopNotFoundException(jobVo.getOperationId());
         }
-        if (autoexecCombopService.checkOperableButton(autoexecCombopVo, CombopAuthorityAction.EXECUTE)) {
-            jobVo.setStatus(JobStatus.REVOKED.getValue());
-            autoexecJobMapper.updateJobStatus(jobVo);
-            IJob jobHandler = SchedulerManager.getHandler(AutoexecJobAutoFireJob.class.getName());
-            if (jobHandler == null) {
-                throw new ScheduleHandlerNotFoundException(AutoexecJobAutoFireJob.class.getName());
-            }
-            JobObject.Builder jobObjectBuilder = new JobObject.Builder(jobVo.getId().toString(), jobHandler.getGroupName(), jobHandler.getClassName(), TenantContext.get().getTenantUuid());
-            schedulerManager.unloadJob(jobObjectBuilder.build());
+        jobVo.setStatus(JobStatus.REVOKED.getValue());
+        autoexecJobMapper.updateJobStatus(jobVo);
+        IJob jobHandler = SchedulerManager.getHandler(AutoexecJobAutoFireJob.class.getName());
+        if (jobHandler == null) {
+            throw new ScheduleHandlerNotFoundException(AutoexecJobAutoFireJob.class.getName());
         }
+        JobObject.Builder jobObjectBuilder = new JobObject.Builder(jobVo.getId().toString(), jobHandler.getGroupName(), jobHandler.getClassName(), TenantContext.get().getTenantUuid());
+        schedulerManager.unloadJob(jobObjectBuilder.build());
         return null;
     }
 
