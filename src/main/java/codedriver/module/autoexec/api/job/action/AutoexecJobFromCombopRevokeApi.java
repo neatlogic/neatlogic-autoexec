@@ -43,7 +43,7 @@ import javax.annotation.Resource;
 @Transactional
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.OPERATE)
-public class AutoexecJobRevokeApi extends PrivateApiComponentBase {
+public class AutoexecJobFromCombopRevokeApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecJobMapper autoexecJobMapper;
@@ -56,7 +56,7 @@ public class AutoexecJobRevokeApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "撤销作业";
+        return "撤销作业（来自组合工具）";
     }
 
     @Override
@@ -69,7 +69,7 @@ public class AutoexecJobRevokeApi extends PrivateApiComponentBase {
     })
     @Output({
     })
-    @Description(desc = "撤销作业")
+    @Description(desc = "撤销作业（来自组合工具）")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
@@ -100,6 +100,6 @@ public class AutoexecJobRevokeApi extends PrivateApiComponentBase {
 
     @Override
     public String getToken() {
-        return "autoexec/job/revoke";
+        return "autoexec/job/from/combop/revoke";
     }
 }

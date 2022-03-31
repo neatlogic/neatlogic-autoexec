@@ -44,7 +44,7 @@ import java.util.Date;
 @Transactional
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.OPERATE)
-public class AutoexecJobExecuteApi extends PrivateApiComponentBase {
+public class AutoexecJobFromCombopExecuteApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecJobMapper autoexecJobMapper;
@@ -60,7 +60,7 @@ public class AutoexecJobExecuteApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "执行作业";
+        return "执行作业（来自组合工具）";
     }
 
     @Override
@@ -73,7 +73,7 @@ public class AutoexecJobExecuteApi extends PrivateApiComponentBase {
     })
     @Output({
     })
-    @Description(desc = "执行作业")
+    @Description(desc = "执行作业（来自组合工具）")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
@@ -108,6 +108,6 @@ public class AutoexecJobExecuteApi extends PrivateApiComponentBase {
 
     @Override
     public String getToken() {
-        return "autoexec/job/execute";
+        return "autoexec/job/from/combop/execute";
     }
 }
