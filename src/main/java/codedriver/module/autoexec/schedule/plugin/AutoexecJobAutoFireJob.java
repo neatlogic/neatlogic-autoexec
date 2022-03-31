@@ -62,7 +62,7 @@ public class AutoexecJobAutoFireJob extends JobBase {
     @Override
     public Boolean isHealthy(JobObject jobObject) {
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(Long.valueOf(jobObject.getJobName()));
-        return jobVo != null && JobStatus.READY.getValue().equals(jobVo.getStatus());
+        return jobVo != null && JobStatus.READY.getValue().equals(jobVo.getStatus()) && JobTriggerType.AUTO.getValue().equals(jobVo.getTriggerType());
     }
 
     @Override
@@ -71,7 +71,7 @@ public class AutoexecJobAutoFireJob extends JobBase {
         TenantContext.get().switchTenant(tenantUuid);
         Long jobId = Long.valueOf(jobObject.getJobName());
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
-        if (jobVo != null && JobStatus.READY.getValue().equals(jobVo.getStatus())) {
+        if (jobVo != null && JobStatus.READY.getValue().equals(jobVo.getStatus()) && JobTriggerType.AUTO.getValue().equals(jobVo.getTriggerType())) {
             try {
                 if (jobVo.getPlanStartTime().after(new Date())) {
                     JobObject.Builder newJobObjectBuilder = new JobObject
@@ -103,7 +103,7 @@ public class AutoexecJobAutoFireJob extends JobBase {
     @Override
     public void executeInternal(JobExecutionContext context, JobObject jobObject) throws Exception {
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(Long.valueOf(jobObject.getJobName()));
-        if (jobVo != null && JobStatus.READY.getValue().equals(jobVo.getStatus())) {
+        if (jobVo != null && JobStatus.READY.getValue().equals(jobVo.getStatus()) && JobTriggerType.AUTO.getValue().equals(jobVo.getTriggerType())) {
             fireJob(jobVo);
         }
         schedulerManager.unloadJob(jobObject);
