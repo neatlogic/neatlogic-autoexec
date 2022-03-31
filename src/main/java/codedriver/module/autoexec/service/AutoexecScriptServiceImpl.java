@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.service;
 
+import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
@@ -14,6 +15,7 @@ import codedriver.framework.autoexec.constvalue.ParamMode;
 import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.constvalue.ScriptAndToolOperate;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
+import codedriver.framework.autoexec.crossover.IAutoexecScriptServiceCrossoverService;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
@@ -23,7 +25,9 @@ import codedriver.framework.autoexec.dto.script.*;
 import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.common.constvalue.CiphertextPrefix;
 import codedriver.framework.common.util.RC4Util;
+import codedriver.framework.dependency.dto.DependencyInfoVo;
 import codedriver.framework.dto.OperateVo;
+import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.ObjectUtils;
@@ -32,14 +36,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-public class AutoexecScriptServiceImpl implements AutoexecScriptService {
+public class AutoexecScriptServiceImpl implements AutoexecScriptService , IAutoexecScriptServiceCrossoverService {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
@@ -382,4 +383,63 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
         }
         autoexecScriptMapper.insertScriptAudit(auditVo);
     }
+
+    @Override
+    public DependencyInfoVo getScriptDependencyPageUrl(Map<String, Object> map, Long scriptId, String groupName, String pathFormat) {
+
+        AutoexecScriptVersionVo version = null;
+        Boolean hasStatus = false;
+        AutoexecScriptVo scriptVo = autoexecScriptMapper.getScriptBaseInfoById(scriptId);
+        if (scriptVo == null) {
+            return null;
+        }
+
+        List<AutoexecScriptVersionVo> versionVoList = autoexecScriptMapper.getScriptVersionListByScriptId(scriptId);
+        AutoexecScriptVersionVo versionVo = versionVoList.get(0);
+        String status = versionVo.getStatus();
+
+        if (Objects.equals(ScriptVersionStatus.PASSED.getValue(), status)) {
+            AutoexecScriptVersionVo activeVersion = autoexecScriptMapper.getActiveVersionByScriptId(scriptId);
+            if (activeVersion != null) {
+                version = activeVersion;
+                hasStatus = true;
+            } else {
+                throw new AutoexecScriptVersionHasNoActivedException();
+            }
+        } else if (hasStatus == false && Objects.equals(ScriptVersionStatus.DRAFT.getValue(), status)) {
+            AutoexecScriptVersionVo recentlyDraftVersion = autoexecScriptMapper.getRecentlyVersionByScriptIdAndStatus(scriptId, ScriptVersionStatus.DRAFT.getValue());
+            if (recentlyDraftVersion != null) {
+                version = recentlyDraftVersion;
+                hasStatus = true;
+            } else {
+                throw new AutoexecScriptHasNoDraftVersionException();
+            }
+        } else if (hasStatus == false && Objects.equals(ScriptVersionStatus.REJECTED.getValue(), status)) {
+            AutoexecScriptVersionVo recentlyRejectedVersion = autoexecScriptMapper.getRecentlyVersionByScriptIdAndStatus(scriptId, ScriptVersionStatus.REJECTED.getValue());
+            if (recentlyRejectedVersion != null) {
+                version = recentlyRejectedVersion;
+                hasStatus = true;
+            } else {
+                throw new AutoexecScriptHasNoRejectedVersionException();
+            }
+        }
+        if (scriptVo != null && StringUtils.isNotBlank(status)) {
+            JSONObject dependencyInfoConfig = new JSONObject();
+            dependencyInfoConfig.put("scriptId", scriptVo.getId());
+            dependencyInfoConfig.put("scriptName", scriptVo.getName());
+            dependencyInfoConfig.put("versionId", versionVo.getId());
+            String pathFormatString = pathFormat + "-${DATA.scriptName}";
+            String urlFormat = "";
+            //submitted的页面不一样
+            if (Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), status)) {
+                urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/review-detail?versionId=${DATA.versionId}";
+            } else if (version != null) {
+                dependencyInfoConfig.put("versionStatus", version.getStatus());
+                urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/script-detail?scriptId=${DATA.scriptId}&status=${DATA.versionStatus}";
+            }
+            return new DependencyInfoVo(scriptVo.getId(), dependencyInfoConfig, pathFormatString, urlFormat, groupName);
+        }
+        return null;
+    }
+
 }
