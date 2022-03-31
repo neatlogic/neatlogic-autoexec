@@ -8,10 +8,7 @@ package codedriver.module.autoexec.service;
 import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.crossover.IAutoexecServiceCrossoverService;
 import codedriver.framework.autoexec.dao.mapper.*;
-import codedriver.framework.autoexec.dto.AutoexecParamVo;
-import codedriver.framework.autoexec.dto.AutoexecRiskVo;
-import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
-import codedriver.framework.autoexec.dto.AutoexecToolVo;
+import codedriver.framework.autoexec.dto.*;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
@@ -33,6 +30,10 @@ import javax.annotation.Resource;
 import java.util.*;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+
+import static java.util.Comparator.comparing;
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toCollection;
 
 @Service
 public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCrossoverService {
@@ -264,6 +265,87 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 combopPhaseVo.setExecModeName(ExecMode.getText(combopPhaseVo.getExecMode()));
             }
         }
+    }
+
+    @Override
+    public List<AutoexecParamVo> getAutoexecOperationParamVoList(List<AutoexecOperationVo> paramAutoexecOperationVoList, List<AutoexecParamVo> oldOperationParamList) {
+
+        List<Long> toolIdList = paramAutoexecOperationVoList.stream().filter(e -> StringUtils.equals(ToolType.TOOL.getValue(), e.getType())).map(AutoexecOperationVo::getId).collect(Collectors.toList());
+        List<Long> scriptIdList = paramAutoexecOperationVoList.stream().filter(e -> StringUtils.equals(ToolType.SCRIPT.getValue(), e.getType())).map(AutoexecOperationVo::getId).collect(Collectors.toList());
+        //获取新的参数列表
+        List<AutoexecParamVo> newOperationParamVoList = new ArrayList<>();
+        List<AutoexecOperationVo> autoexecOperationVoList = getAutoexecOperationByScriptIdAndToolIdList(scriptIdList, toolIdList);
+
+        if (CollectionUtils.isNotEmpty(autoexecOperationVoList)) {
+            for (AutoexecOperationVo operationVo : autoexecOperationVoList) {
+                if (CollectionUtils.isNotEmpty(operationVo.getInputParamList())) {
+                    newOperationParamVoList.addAll(operationVo.getInputParamList());
+                }
+            }
+        }
+
+        //根据name（唯一键）去重
+        newOperationParamVoList = newOperationParamVoList.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(comparing(AutoexecParamVo::getName))), ArrayList::new));
+
+        //实时的参数信息
+        Map<String, AutoexecParamVo> newOperationParamMap = newOperationParamVoList.stream().collect(Collectors.toMap(AutoexecParamVo::getName, e -> e));
+
+        //旧的参数信息
+        Map<String, AutoexecParamVo> oldOperationParamMap = null;
+        if (CollectionUtils.isNotEmpty(oldOperationParamList)) {
+            oldOperationParamMap = oldOperationParamList.stream().collect(Collectors.toMap(AutoexecParamVo::getName, e -> e));
+        }
+
+        //根据参数名称name替换对应的值
+        if (MapUtils.isNotEmpty(newOperationParamMap) && MapUtils.isNotEmpty(oldOperationParamMap)) {
+            for (String newParamName : newOperationParamMap.keySet()) {
+                if (oldOperationParamMap.containsKey(newParamName) && StringUtils.equals(oldOperationParamMap.get(newParamName).getType(), newOperationParamMap.get(newParamName).getType())) {
+                    newOperationParamMap.get(newParamName).setDefaultValue(oldOperationParamMap.get(newParamName).getDefaultValue());
+                }
+            }
+        }
+
+        List<AutoexecParamVo> returnList = new ArrayList<>();
+        for (String name : newOperationParamMap.keySet()) {
+            returnList.add(newOperationParamMap.get(name));
+        }
+        return returnList;
+    }
+
+    @Override
+    public List<AutoexecParamVo> getAutoexecOperationParamVoList(List<AutoexecOperationVo> paramAutoexecOperationVoList) {
+        return getAutoexecOperationParamVoList(paramAutoexecOperationVoList, null);
+    }
+
+    /**
+     * 根据scriptIdList和toolIdList获取对应的operationVoList
+     *
+     * @param scriptIdList
+     * @param toolIdList
+     * @return
+     */
+    @Override
+    public List<AutoexecOperationVo> getAutoexecOperationByScriptIdAndToolIdList(List<Long> scriptIdList, List<Long> toolIdList) {
+        if (CollectionUtils.isEmpty(scriptIdList) && CollectionUtils.isEmpty(toolIdList)) {
+            return null;
+        }
+        List<AutoexecOperationVo> returnList = new ArrayList<>();
+
+        if (CollectionUtils.isNotEmpty(scriptIdList)) {
+            returnList.addAll(autoexecScriptMapper.getAutoexecOperationListByIdList(scriptIdList));
+            //补输入和输出参数
+            Map<Long, AutoexecOperationVo> autoexecOperationInputParamMap = autoexecScriptMapper.getAutoexecOperationInputParamListByIdList(scriptIdList).stream().collect(Collectors.toMap(AutoexecOperationVo::getId, e -> e));
+            Map<Long, AutoexecOperationVo> autoexecOperationOutputParamMap = autoexecScriptMapper.getAutoexecOperationOutputParamListByIdList(scriptIdList).stream().collect(Collectors.toMap(AutoexecOperationVo::getId, e -> e));
+            for (AutoexecOperationVo autoexecOperationVo : returnList) {
+                autoexecOperationVo.setInputParamList(autoexecOperationInputParamMap.get(autoexecOperationVo.getId()).getInputParamList());
+                autoexecOperationVo.setOutputParamList(autoexecOperationOutputParamMap.get(autoexecOperationVo.getId()).getOutputParamList());
+            }
+        }
+
+        if (CollectionUtils.isNotEmpty(toolIdList)) {
+            returnList.addAll(autoexecToolMapper.getAutoexecOperationListByIdList(toolIdList));
+        }
+        return returnList;
     }
 
 }

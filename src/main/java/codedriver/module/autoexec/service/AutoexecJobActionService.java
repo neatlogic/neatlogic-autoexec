@@ -24,13 +24,23 @@ public interface AutoexecJobActionService {
 
     /**
      * 校验根据组合工具创建的作业
+     *
      * @param isNeedAuth 是否需要鉴权
      */
-    AutoexecJobVo validateCreateJobFromCombop(JSONObject param,boolean isNeedAuth);
+    AutoexecJobVo validateCreateJobFromCombop(JSONObject param, boolean isNeedAuth);
 
     /**
      * 校验创建并激活作业
+     *
      * @param isNeedAuth 是否需要鉴权
      */
-    void validateCreateJob(JSONObject param,boolean isNeedAuth) throws Exception;
+    void validateCreateJob(JSONObject param, boolean isNeedAuth) throws Exception;
+
+    /**
+     * 补充job详细信息并fire job
+     *
+     * @param jobVo AutoexecJobVo
+     * @throws Exception
+     */
+    void getJobDetailAndFireJob(AutoexecJobVo jobVo) throws Exception;
 }

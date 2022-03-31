@@ -107,9 +107,6 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
             if (CollectionUtils.isEmpty(newScriptVo.getLineList())) {
                 faultMessages.add("脚本内容为空");
             }
-            if (StringUtils.isNotBlank(newScriptVo.getCatalogName()) && autoexecCatalogMapper.getAutoexecCatalogByName(newScriptVo.getCatalogName()) == null) {
-                faultMessages.add("工具目录：'" + newScriptVo.getCatalogName() + "'不存在");
-            }
             if (StringUtils.isNotBlank(newScriptVo.getTypeName()) && autoexecTypeMapper.getTypeIdByName(newScriptVo.getTypeName()) == null) {
                 faultMessages.add("工具分类：'" + newScriptVo.getTypeName() + "'不存在");
             }
@@ -132,10 +129,16 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
                 }
             }
             if (faultMessages.isEmpty()) {
-                AutoexecCatalogVo catalog = autoexecCatalogMapper.getAutoexecCatalogByName(newScriptVo.getCatalogName());
+                newScriptVo.setCatalogId(AutoexecCatalogVo.ROOT_ID);
+                String catalogName = newScriptVo.getCatalogName();
+                if (StringUtils.isNotBlank(catalogName)) {
+                    AutoexecCatalogVo catalog = autoexecCatalogMapper.getAutoexecCatalogByName(catalogName);
+                    if (catalog != null) {
+                        newScriptVo.setCatalogId(catalog.getId());
+                    }
+                }
                 Long typeId = autoexecTypeMapper.getTypeIdByName(newScriptVo.getTypeName());
                 Long riskId = autoexecRiskMapper.getRiskIdByName(newScriptVo.getRiskName());
-                newScriptVo.setCatalogId(catalog.getId());
                 newScriptVo.setTypeId(typeId);
                 newScriptVo.setRiskId(riskId);
 

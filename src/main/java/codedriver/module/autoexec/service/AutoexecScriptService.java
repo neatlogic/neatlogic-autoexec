@@ -6,9 +6,11 @@
 package codedriver.module.autoexec.service;
 
 import codedriver.framework.autoexec.dto.script.*;
+import codedriver.framework.dependency.dto.DependencyInfoVo;
 import codedriver.framework.dto.OperateVo;
 
 import java.util.List;
+import java.util.Map;
 
 public interface AutoexecScriptService {
 
@@ -34,6 +36,13 @@ public interface AutoexecScriptService {
      * @param scriptVo 脚本VO
      */
     void validateScriptBaseInfo(AutoexecScriptVo scriptVo);
+
+    /**
+     * 根据catalogId穿透查询工具目录id
+     *
+     * @param catalogId
+     */
+    List<Long> getCatalogIdList(Long catalogId);
 
     /**
      * 检查脚本内容是否有变更
@@ -79,4 +88,12 @@ public interface AutoexecScriptService {
      */
     void audit(AutoexecScriptAuditVo auditVo);
 
+    /**
+     * 获取依赖的脚本页面
+     *
+     * @param map
+     * @param groupName
+     * @return
+     */
+    DependencyInfoVo getScriptDependencyPageUrl(Map<String, Object> map,Long scriptId, String groupName, String pathFormat);
 }
