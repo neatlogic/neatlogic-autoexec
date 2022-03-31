@@ -12,11 +12,12 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.constvalue.JobTriggerType;
-import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.exception.*;
+import codedriver.framework.autoexec.exception.AutoexecJobCanNotExecuteException;
+import codedriver.framework.autoexec.exception.AutoexecJobCannotExecuteInAdvanceException;
+import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecJobNotSupportedExecuteAndRevokeException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -48,9 +49,6 @@ public class AutoexecJobFromCombopExecuteApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecJobMapper autoexecJobMapper;
-
-    @Resource
-    private AutoexecCombopMapper autoexecCombopMapper;
 
     @Resource
     private AutoexecJobActionService autoexecJobActionService;
@@ -90,10 +88,6 @@ public class AutoexecJobFromCombopExecuteApi extends PrivateApiComponentBase {
         }
         if (!CombopOperationType.COMBOP.getValue().equals(jobVo.getOperationType())) {
             throw new AutoexecJobNotSupportedExecuteAndRevokeException();
-        }
-        AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(jobVo.getOperationId());
-        if (autoexecCombopVo == null) {
-            throw new AutoexecCombopNotFoundException(jobVo.getOperationId());
         }
         // 执行作业、取消定时任务
         autoexecJobActionService.getJobDetailAndFireJob(jobVo);

@@ -11,11 +11,8 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.constvalue.JobStatus;
-import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobCanNotRevokeException;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobNotSupportedExecuteAndRevokeException;
@@ -49,9 +46,6 @@ public class AutoexecJobFromCombopRevokeApi extends PrivateApiComponentBase {
     private AutoexecJobMapper autoexecJobMapper;
 
     @Resource
-    private AutoexecCombopMapper autoexecCombopMapper;
-
-    @Resource
     private SchedulerManager schedulerManager;
 
     @Override
@@ -82,10 +76,6 @@ public class AutoexecJobFromCombopRevokeApi extends PrivateApiComponentBase {
         }
         if (!CombopOperationType.COMBOP.getValue().equals(jobVo.getOperationType())) {
             throw new AutoexecJobNotSupportedExecuteAndRevokeException();
-        }
-        AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(jobVo.getOperationId());
-        if (autoexecCombopVo == null) {
-            throw new AutoexecCombopNotFoundException(jobVo.getOperationId());
         }
         jobVo.setStatus(JobStatus.REVOKED.getValue());
         autoexecJobMapper.updateJobStatus(jobVo);
