@@ -10,7 +10,6 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.CombopAuthorityAction;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
-import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
@@ -71,7 +70,7 @@ public class AutoexecJobFromCombopTakeOverApi extends PrivateApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId);
         }
-        if (!JobStatus.READY.getValue().equals(jobVo.getStatus()) || !Objects.equals(jobVo.getOperationType(), CombopOperationType.COMBOP.getValue())) {
+        if (!Objects.equals(jobVo.getOperationType(), CombopOperationType.COMBOP.getValue())) {
             throw new AutoexecJobCanNotTakeOverException(jobId);
         }
         AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(jobVo.getOperationId());
