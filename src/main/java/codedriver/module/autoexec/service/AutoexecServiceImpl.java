@@ -6,6 +6,8 @@
 package codedriver.module.autoexec.service;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
+import codedriver.framework.auth.core.AuthActionChecker;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.crossover.IAutoexecServiceCrossoverService;
 import codedriver.framework.autoexec.dao.mapper.*;
@@ -176,15 +178,15 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 if (CollectionUtils.isNotEmpty(combopVoList)) {
                     combopVoMap = combopVoList.stream().collect(Collectors.toMap(AutoexecCombopVo::getId, o -> o));
                 }
+                Boolean hasAutoexecScriptModifyAuth = AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class);
                 for (AutoexecJobVo vo : jobVoList) {
                     vo.setOperationName(operationIdNameMap.get(vo.getOperationId()));
                     // 有组合工具执行权限，只能接管作业，执行用户才能执行或撤销作业
-                    if (MapUtils.isNotEmpty(combopVoMap)) {
-                        if (UserContext.get().getUserUuid().equals(vo.getExecUser())) {
-                            vo.setIsCanExecute(1);
-                        } else if (autoexecCombopService.checkOperableButton(combopVoMap.get(vo.getOperationId()), CombopAuthorityAction.EXECUTE)) {
-                            vo.setIsCanTakeOver(1);
-                        }
+                    if (UserContext.get().getUserUuid().equals(vo.getExecUser())) {
+                        vo.setIsCanExecute(1);
+                    } else if ((Objects.equals(jobVo.getSource(), JobSource.TEST.getValue()) && hasAutoexecScriptModifyAuth)
+                            || (MapUtils.isNotEmpty(combopVoMap) && autoexecCombopService.checkOperableButton(combopVoMap.get(vo.getOperationId()), CombopAuthorityAction.EXECUTE))) {
+                        vo.setIsCanTakeOver(1);
                     }
                 }
                 /*  jobVoList.forEach(j -> {
