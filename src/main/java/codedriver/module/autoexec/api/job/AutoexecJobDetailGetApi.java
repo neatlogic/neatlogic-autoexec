@@ -13,7 +13,6 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.constvalue.CombopAuthorityAction;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.constvalue.JobSource;
-import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
@@ -109,7 +108,7 @@ public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
                 }
                 if (UserContext.get().getUserUuid().equals(jobVo.getExecUser())) {
                     jobVo.setIsCanExecute(1);
-                } else if (JobStatus.READY.getValue().equals(jobVo.getStatus()) && autoexecCombopService.checkOperableButton(combopVo, CombopAuthorityAction.EXECUTE)) {
+                } else if (autoexecCombopService.checkOperableButton(combopVo, CombopAuthorityAction.EXECUTE)) {
                     jobVo.setIsCanTakeOver(1);
                 }
             }

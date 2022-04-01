@@ -179,7 +179,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 for (AutoexecJobVo vo : jobVoList) {
                     vo.setOperationName(operationIdNameMap.get(vo.getOperationId()));
                     // 有组合工具执行权限，只能接管作业，执行用户才能执行或撤销作业
-                    if (JobStatus.READY.getValue().equals(vo.getStatus()) && MapUtils.isNotEmpty(combopVoMap)) {
+                    if (MapUtils.isNotEmpty(combopVoMap)) {
                         if (UserContext.get().getUserUuid().equals(vo.getExecUser())) {
                             vo.setIsCanExecute(1);
                         } else if (autoexecCombopService.checkOperableButton(combopVoMap.get(vo.getOperationId()), CombopAuthorityAction.EXECUTE)) {
