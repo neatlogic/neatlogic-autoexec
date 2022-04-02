@@ -91,23 +91,15 @@ public class AutoexecJobFromCombopUpdateApi extends PrivateApiComponentBase {
         }
         if (StringUtils.isBlank(triggerType)) {
             updateVo.setTriggerType(jobVo.getTriggerType());
+            triggerType = jobVo.getTriggerType();
         }
         autoexecJobMapper.updateJobPlanStartTimeAndTriggerTypeById(updateVo);
         IJob jobHandler = SchedulerManager.getHandler(AutoexecJobAutoFireJob.class.getName());
         JobObject builder = new JobObject.Builder(jobVo.getId().toString(), jobHandler.getGroupName(), jobHandler.getClassName(), TenantContext.get().getTenantUuid()).build();
-        if (planStartTime != null) {
-            // 如果原来的触发方式或新触发方式是AUTO，则重启作业
-            if ((StringUtils.isBlank(triggerType) && JobTriggerType.AUTO.getValue().equals(jobVo.getTriggerType())) || JobTriggerType.AUTO.getValue().equals(triggerType)) {
-                reloadJob(jobHandler, builder);
-            } else if (JobTriggerType.MANUAL.getValue().equals(triggerType)) {
-                schedulerManager.unloadJob(builder);
-            }
-        } else if (StringUtils.isNotBlank(triggerType)) {
-            if (JobTriggerType.AUTO.getValue().equals(triggerType)) {
-                reloadJob(jobHandler, builder);
-            } else if (JobTriggerType.MANUAL.getValue().equals(triggerType)) {
-                schedulerManager.unloadJob(builder);
-            }
+        if (JobTriggerType.AUTO.getValue().equals(triggerType)) {
+            reloadJob(jobHandler, builder);
+        } else if (JobTriggerType.MANUAL.getValue().equals(triggerType)) {
+            schedulerManager.unloadJob(builder);
         }
         return null;
 
