@@ -191,7 +191,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         boolean isHasNode = false;
         boolean isPhaseConfig = false;
         boolean isGroupConfig = false;
-        String nodeFrom = null;
         AutoexecCombopExecuteConfigVo executeConfigVo ;
         AutoexecJobGroupVo jobGroupVo = jobPhaseVo.getJobGroupVo();
         //判断group是不是grayScale，如果是则从group中获取执行节点
@@ -207,8 +206,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                     || MapUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getFilter())
             );
             if (isGroupConfig) {
+                jobVo.setNodeFrom(AutoexecJobPhaseNodeFrom.GROUP.getValue());
                 isHasNode = getJobNodeList(executeConfigVo, jobVo, jobPhaseVo, userName, protocolId);
-                nodeFrom = "group";
             }
         }else {
             executeConfigVo = combopPhaseExecuteConfigVo.getExecuteConfig();
@@ -229,15 +228,15 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                         || MapUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getFilter())
                 );
                 if (isPhaseConfig) {
+                    jobVo.setNodeFrom(AutoexecJobPhaseNodeFrom.PHASE.getValue());
                     isHasNode = getJobNodeList(executeConfigVo, jobVo, jobPhaseVo, userName, protocolId);
-                    nodeFrom = "phase";
                 }
             }
         }
         //如果阶段没有设置执行目标，则使用全局执行目标
         if (!isPhaseConfig && !isGroupConfig) {
+            jobVo.setNodeFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
             isHasNode = getJobNodeList(combopExecuteConfigVo, jobVo, jobPhaseVo, userName, protocolId);
-            nodeFrom = "job";
         }
         //如果都找不到执行节点
         if (!isHasNode) {
@@ -245,7 +244,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         }
 
         //跟新节点来源
-        autoexecJobMapper.updateJobPhaseNodeFrom(jobPhaseVo.getId(), nodeFrom);
+        autoexecJobMapper.updateJobPhaseNodeFrom(jobPhaseVo.getId(), jobVo.getNodeFrom());
 
     }
 
@@ -405,16 +404,22 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
 
         boolean isNeedLncd;//用于判断是否需要更新lncd（用于判断是否需要重新下载节点）
         //删除没有跑过的历史节点 runnerMap
-        autoexecJobMapper.deleteJobPhaseNodeRunnerByJobPhaseIdAndLcdAndStatus(jobPhaseVo.getId(), jobPhaseVo.getLcd(), JobNodeStatus.PENDING.getValue());
+        autoexecJobMapper.deleteJobPhaseNodeRunnerByJobPhaseIdAndLcdAndStatus(jobPhaseVo.getId(), nowTime, JobNodeStatus.PENDING.getValue());
         //删除没有跑过的历史节点
-        Integer deleteCount = autoexecJobMapper.deleteJobPhaseNodeByJobPhaseIdAndLcdAndStatus(jobPhaseVo.getId(), jobPhaseVo.getLcd(), JobNodeStatus.PENDING.getValue());
+        Integer deleteCount = autoexecJobMapper.deleteJobPhaseNodeByJobPhaseIdAndLcdAndStatus(jobPhaseVo.getId(), nowTime, JobNodeStatus.PENDING.getValue());
         isNeedLncd = deleteCount > 0;
         //更新该阶段所有不是最近更新的节点为已删除，即非法历史节点
         Integer updateCount = autoexecJobMapper.updateJobPhaseNodeIsDeleteByJobPhaseIdAndLcd(jobPhaseVo.getId(), jobPhaseVo.getLcd());
         isNeedLncd = isNeedLncd || updateCount > 0;
         //阶段节点被真删除||伪删除（is_delete=1），则更新上一次修改日期(plcd),需重新下载
         if (isNeedLncd) {
-            autoexecJobMapper.updateJobPhaseLncdById(jobPhaseVo.getId(), jobPhaseVo.getLcd());
+            if(Objects.equals(AutoexecJobPhaseNodeFrom.JOB.getValue(),jobVo.getNodeFrom())){
+                autoexecJobMapper.updateJobLncdById(jobVo.getId(), nowTime);
+            }else if(Objects.equals(AutoexecJobPhaseNodeFrom.GROUP.getValue(),jobVo.getNodeFrom())){
+                autoexecJobMapper.updateJobGroupLncdById(jobVo.getExecuteJobGroupVo().getId(), nowTime);
+            }else{
+                autoexecJobMapper.updateJobPhaseLncdById(jobPhaseVo.getId(), nowTime);
+            }
         }
         //更新最近一次修改时间lcd
         autoexecJobMapper.updateJobPhaseLcdById(jobPhaseVo.getId(), jobPhaseVo.getLcd());
