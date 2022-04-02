@@ -10,6 +10,7 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -58,10 +59,17 @@ public class AutoexecJobPhaseNodeResetApi extends PrivateApiComponentBase {
     @Description(desc = "重置作业节点")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
+        Long jobId = jsonObj.getLong("jobId");
+        AutoexecJobVo jobInfo = autoexecJobMapper.getJobInfo(jobId);
+        if (jobInfo == null) {
+            throw new AutoexecJobNotFoundException(jobId);
+        }
         AutoexecJobVo jobVo = new AutoexecJobVo();
-        jobVo.setId(jsonObj.getLong("jobId"));
+        jobVo.setId(jobId);
         jobVo.setCurrentPhaseId(jsonObj.getLong("jobPhaseId"));
         jobVo.setActionParam(jsonObj);
+        jobVo.setExecUser(jobInfo.getExecUser());
+        jobVo.setAction(JobAction.RESET_NODE.getValue());
         IAutoexecJobActionHandler resetNode = AutoexecJobActionHandlerFactory.getAction(JobAction.RESET_NODE.getValue());
         return resetNode.doService(jobVo);
     }
