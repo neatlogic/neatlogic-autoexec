@@ -8,9 +8,11 @@ package codedriver.module.autoexec.api.job.exec;
 import codedriver.framework.autoexec.constvalue.AutoexecJobPhaseNodeFrom;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.framework.autoexec.dto.job.AutoexecJobGroupVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.exception.AutoexecJobGroupNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.cmdb.crossover.IResourceCenterAccountCrossoverService;
 import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
@@ -89,18 +91,23 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
         boolean isNeedDownLoad = false;
         long lastModifiedLong = 0L;
         Date lncd = null;
-        AutoexecJobPhaseNodeVo nodeParamVo = new AutoexecJobPhaseNodeVo(jobId, phaseName, 0);
+        AutoexecJobPhaseNodeVo nodeParamVo = new AutoexecJobPhaseNodeVo(jobId, phaseName, 0, nodeFrom);
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
         if (Objects.equals(AutoexecJobPhaseNodeFrom.JOB.getValue(), nodeFrom)) {
-
+            lncd = jobVo.getLncd();
         } else if (Objects.equals(AutoexecJobPhaseNodeFrom.GROUP.getValue(), nodeFrom)) {
             if (groupSort == null) {
                 throw new ParamIrregularException("groupNo");
             }
-            //TODO 根据group_id 过滤
+            nodeParamVo.setGroupSort(groupSort);
+            AutoexecJobGroupVo jobGroupVo = autoexecJobMapper.getJobGroupByJobIdAndSort(jobId, groupSort);
+            if (jobGroupVo == null) {
+                throw new AutoexecJobGroupNotFoundException(jobId, groupSort);
+            }
+            lncd = jobGroupVo.getLncd();
         } else if (Objects.equals(AutoexecJobPhaseNodeFrom.PHASE.getValue(), nodeFrom)) {
             AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(jobId, phaseName);
             if ((StringUtils.isBlank(phaseName) || jobPhaseVo == null)) {
@@ -123,82 +130,80 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
          * 2、lastModified小于最近一次节点变动时间(lncd)
          */
         if (lastModifiedLong == 0L || lncd == null || lastModifiedLong < lncd.getTime()) {
-            isNeedDownLoad = true;
             int count = autoexecJobMapper.searchJobPhaseNodeCount(nodeParamVo);
             int pageCount = PageUtil.getPageCount(count, nodeParamVo.getPageSize());
             nodeParamVo.setPageCount(pageCount);
-            ServletOutputStream os = response.getOutputStream();
             List<AccountProtocolVo> protocolVoList = resourceCenterMapper.searchAccountProtocolListByProtocolName(new AccountProtocolVo());
             IResourceCenterAccountCrossoverService accountService = CrossoverServiceFactory.getApi(IResourceCenterAccountCrossoverService.class);
             //补充第一行数据 {"totalCount":14, "localRunnerId":1, "jobRunnerIds":[1]}
-            List<Long> runnerMapIdList = autoexecJobMapper.getJobPhaseNodeRunnerMapIdListByNodeVo(nodeParamVo);
-            JSONObject firstRow = new JSONObject();
-            firstRow.put("totalCount", count);
-            firstRow.put("localRunnerId", localRunnerId);
-            firstRow.put("jobRunnerIds", runnerMapIdList);
-            IOUtils.copyLarge(IOUtils.toInputStream(firstRow.toJSONString() + System.lineSeparator(), StandardCharsets.UTF_8), os);
-            if (os != null) {
-                os.flush();
-            }
-            //循环分页输出节点流
-            for (int i = 1; i <= pageCount; i++) {
-                nodeParamVo.setCurrentPage(i);
-                nodeParamVo.setStartNum(nodeParamVo.getStartNum());
-                List<AutoexecJobPhaseNodeVo> autoexecJobPhaseNodeVoList = null;
-                if (StringUtils.isNotBlank(phaseName)) {
-                    autoexecJobPhaseNodeVoList = autoexecJobMapper.searchJobPhaseNode(nodeParamVo);
+            if(count != 0) {
+                ServletOutputStream os = response.getOutputStream();
+                isNeedDownLoad = true;
+                List<Long> runnerMapIdList = autoexecJobMapper.getJobPhaseNodeRunnerMapIdListByNodeVo(nodeParamVo);
+                JSONObject firstRow = new JSONObject();
+                firstRow.put("totalCount", count);
+                firstRow.put("localRunnerId", localRunnerId);
+                firstRow.put("jobRunnerIds", runnerMapIdList);
+                IOUtils.copyLarge(IOUtils.toInputStream(firstRow.toJSONString() + System.lineSeparator(), StandardCharsets.UTF_8), os);
+                if (os != null) {
+                    os.flush();
                 }
-                if (CollectionUtils.isNotEmpty(autoexecJobPhaseNodeVoList)) {
-                    //补充执行用户和账号信息（用户、密码）
-                    Long protocolId = autoexecJobPhaseNodeVoList.get(0).getProtocolId();
-                    String userName = autoexecJobPhaseNodeVoList.get(0).getUserName();
-                    List<Long> resourceIdList = autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getResourceId).collect(Collectors.toList());
-                    //List<ResourceVo> resourceVoList = resourceCenterMapper.getResourceListByIdList(resourceIdList, TenantContext.get().getDataDbName());
-                    if (protocolVoList.stream().anyMatch(o -> Objects.equals(o.getId(), protocolId) && Objects.equals(o.getName(), Protocol.TAGENT.getValue()))) {
-                        userName = null;
-                    }
-                    List<AccountVo> accountVoList = resourceCenterMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIdList, protocolId, userName);
-                    List<AccountVo> allAccountVoList = resourceCenterMapper.getAccountListByIpList(autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getHost).collect(Collectors.toList()));
-                    String finalUserName = autoexecJobPhaseNodeVoList.get(0).getUserName();
-                    for (int j = 0; j < autoexecJobPhaseNodeVoList.size(); j++) {
-                        AutoexecJobPhaseNodeVo nodeVo = autoexecJobPhaseNodeVoList.get(j);
-                        JSONObject nodeJson = new JSONObject();
-                        Optional<AccountVo> accountOp = accountService.filterAccountByRules(accountVoList, allAccountVoList, protocolVoList, nodeVo.getResourceId(), nodeVo.getProtocolId(), nodeVo.getHost(), nodeVo.getPort());
-                        if (accountOp.isPresent()) {
-                            AccountVo accountVoTmp = accountOp.get();
-                            nodeJson.put("protocol", accountVoTmp.getProtocol());
-                            nodeJson.put("password", "{ENCRYPTED}" + RC4Util.encrypt(AutoexecJobVo.AUTOEXEC_RC4_KEY, accountVoTmp.getPasswordPlain()));
-                            nodeJson.put("protocolPort", accountVoTmp.getProtocolPort());
-                        } else {
-                            Optional<AccountProtocolVo> protocolVo = protocolVoList.stream().filter(o -> Objects.equals(o.getId(), nodeVo.getProtocolId())).findFirst();
-                            if (protocolVo.isPresent()) {
-                                nodeJson.put("protocol", protocolVo.get().getName());
-                                nodeJson.put("protocolPort", protocolVo.get().getPort());
+                //循环分页输出节点流
+                for (int i = 1; i <= pageCount; i++) {
+                    nodeParamVo.setCurrentPage(i);
+                    nodeParamVo.setStartNum(nodeParamVo.getStartNum());
+                    List<AutoexecJobPhaseNodeVo> autoexecJobPhaseNodeVoList = autoexecJobMapper.searchJobPhaseNodeWithResource(nodeParamVo);
+                    if (CollectionUtils.isNotEmpty(autoexecJobPhaseNodeVoList)) {
+                        //补充执行用户和账号信息（用户、密码）
+                        Long protocolId = autoexecJobPhaseNodeVoList.get(0).getProtocolId();
+                        String userName = autoexecJobPhaseNodeVoList.get(0).getUserName();
+                        List<Long> resourceIdList = autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getResourceId).collect(Collectors.toList());
+                        //List<ResourceVo> resourceVoList = resourceCenterMapper.getResourceListByIdList(resourceIdList, TenantContext.get().getDataDbName());
+                        if (protocolVoList.stream().anyMatch(o -> Objects.equals(o.getId(), protocolId) && Objects.equals(o.getName(), Protocol.TAGENT.getValue()))) {
+                            userName = null;
+                        }
+                        List<AccountVo> accountVoList = resourceCenterMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIdList, protocolId, userName);
+                        List<AccountVo> allAccountVoList = resourceCenterMapper.getAccountListByIpList(autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getHost).collect(Collectors.toList()));
+                        String finalUserName = autoexecJobPhaseNodeVoList.get(0).getUserName();
+                        for (int j = 0; j < autoexecJobPhaseNodeVoList.size(); j++) {
+                            AutoexecJobPhaseNodeVo nodeVo = autoexecJobPhaseNodeVoList.get(j);
+                            JSONObject nodeJson = new JSONObject();
+                            Optional<AccountVo> accountOp = accountService.filterAccountByRules(accountVoList, allAccountVoList, protocolVoList, nodeVo.getResourceId(), nodeVo.getProtocolId(), nodeVo.getHost(), nodeVo.getPort());
+                            if (accountOp.isPresent()) {
+                                AccountVo accountVoTmp = accountOp.get();
+                                nodeJson.put("protocol", accountVoTmp.getProtocol());
+                                nodeJson.put("password", "{ENCRYPTED}" + RC4Util.encrypt(AutoexecJobVo.AUTOEXEC_RC4_KEY, accountVoTmp.getPasswordPlain()));
+                                nodeJson.put("protocolPort", accountVoTmp.getProtocolPort());
                             } else {
-                                nodeJson.put("protocol", "protocolNotExist");
+                                Optional<AccountProtocolVo> protocolVo = protocolVoList.stream().filter(o -> Objects.equals(o.getId(), nodeVo.getProtocolId())).findFirst();
+                                if (protocolVo.isPresent()) {
+                                    nodeJson.put("protocol", protocolVo.get().getName());
+                                    nodeJson.put("protocolPort", protocolVo.get().getPort());
+                                } else {
+                                    nodeJson.put("protocol", "protocolNotExist");
+                                }
+                            }
+                            nodeJson.put("username", finalUserName);
+                            nodeJson.put("nodeId", nodeVo.getId());
+                            nodeJson.put("nodeName", nodeVo.getNodeName());
+                            nodeJson.put("nodeType", nodeVo.getNodeType());
+                            nodeJson.put("resourceId", nodeVo.getResourceId());
+                            nodeJson.put("host", nodeVo.getHost());
+                            nodeJson.put("port", nodeVo.getPort());
+                            nodeJson.put("runnerId", nodeVo.getRunnerMapId());
+                            response.setContentType("application/json");
+                            response.setHeader("Content-Disposition", " attachment; filename=nodes.json");
+                            IOUtils.copyLarge(IOUtils.toInputStream(nodeJson.toJSONString() + System.lineSeparator(), StandardCharsets.UTF_8), os);
+                            if (os != null) {
+                                os.flush();
                             }
                         }
-                        nodeJson.put("username", finalUserName);
-                        nodeJson.put("nodeId", nodeVo.getId());
-                        nodeJson.put("nodeName", nodeVo.getNodeName());
-                        nodeJson.put("nodeType", nodeVo.getNodeType());
-                        nodeJson.put("resourceId", nodeVo.getResourceId());
-                        nodeJson.put("host", nodeVo.getHost());
-                        nodeJson.put("port", nodeVo.getPort());
-                        nodeJson.put("runnerId", nodeVo.getRunnerMapId());
-                        response.setContentType("application/json");
-                        response.setHeader("Content-Disposition", " attachment; filename=nodes.json");
-                        IOUtils.copyLarge(IOUtils.toInputStream(nodeJson.toJSONString() + System.lineSeparator(), StandardCharsets.UTF_8), os);
-                        if (os != null) {
-                            os.flush();
-                        }
                     }
                 }
+                if (os != null) {
+                    os.close();
+                }
             }
-            if (os != null) {
-                os.close();
-            }
-
         }
 
         if (!isNeedDownLoad) {

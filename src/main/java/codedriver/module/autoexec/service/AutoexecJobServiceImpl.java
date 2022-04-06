@@ -138,6 +138,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 nodeVo.setRunnerMapId(runnerMapVo.getRunnerMapId());
                 autoexecJobMapper.insertIgnoreJobPhaseNodeRunner(new AutoexecJobPhaseNodeRunnerVo(nodeVo));
                 autoexecJobMapper.insertDuplicateJobPhaseRunner(nodeVo);
+                autoexecJobMapper.updateJobPhaseNodeFrom(jobPhaseVo.getId(), AutoexecJobPhaseNodeFrom.PHASE.getValue());
             }
             //jobPhaseOperation
             List<AutoexecJobPhaseOperationVo> jobPhaseOperationVoList = new ArrayList<>();
