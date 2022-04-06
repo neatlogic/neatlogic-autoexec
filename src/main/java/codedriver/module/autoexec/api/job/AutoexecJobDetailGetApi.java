@@ -5,12 +5,16 @@
 
 package codedriver.module.autoexec.api.job;
 
+import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
+import codedriver.framework.autoexec.constvalue.CombopAuthorityAction;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.constvalue.JobSource;
+import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeStatusCountVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
@@ -21,8 +25,6 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
-import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
@@ -93,21 +95,18 @@ public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
             }
         }
         jobVo.setPhaseList(jobPhaseVoList);
-        //判断是否有执行权限
-        if (Objects.equals(jobVo.getSource(), JobSource.TEST.getValue())) {//测试仅需判断是否有脚本维护权限即可
-            if (AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class)) {
-                jobVo.setIsCanExecute(1);
+        //判断是否有执行与接管权限
+        if (UserContext.get().getUserUuid().equals(jobVo.getExecUser())) {
+            jobVo.setIsCanExecute(1);
+        } else if ((Objects.equals(jobVo.getSource(), JobSource.TEST.getValue()) && AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class))) {
+            jobVo.setIsCanTakeOver(1);
+        } else if (Objects.equals(jobVo.getOperationType(), CombopOperationType.COMBOP.getValue())) {
+            AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(jobVo.getOperationId());
+            if (combopVo == null) {
+                throw new AutoexecCombopNotFoundException(jobVo.getOperationId());
             }
-        } else {
-            if (Objects.equals(jobVo.getOperationType(), CombopOperationType.COMBOP.getValue())) {
-                AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(jobVo.getOperationId());
-                if (combopVo == null) {
-                    throw new AutoexecCombopNotFoundException(jobVo.getOperationId());
-                }
-                autoexecCombopService.setOperableButtonList(combopVo);
-                if (combopVo.getExecutable() == 1) {
-                    jobVo.setIsCanExecute(1);
-                }
+            if (autoexecCombopService.checkOperableButton(combopVo, CombopAuthorityAction.EXECUTE)) {
+                jobVo.setIsCanTakeOver(1);
             }
         }
         JSONObject result = JSONObject.parseObject(JSONObject.toJSON(jobVo).toString());

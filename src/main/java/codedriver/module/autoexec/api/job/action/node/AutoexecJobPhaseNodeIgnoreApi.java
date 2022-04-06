@@ -8,7 +8,9 @@ package codedriver.module.autoexec.api.job.action.node;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.JobAction;
+import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -18,6 +20,8 @@ import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.Resource;
 
 /**
  * 仅允许phase 和 node 状态都不是running的情况下才能执行重跑动作
@@ -31,6 +35,10 @@ import org.springframework.transaction.annotation.Transactional;
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.OPERATE)
 public class AutoexecJobPhaseNodeIgnoreApi extends PrivateApiComponentBase {
+
+    @Resource
+    private AutoexecJobMapper autoexecJobMapper;
+
     @Override
     public String getName() {
         return "忽略作业节点";
@@ -51,10 +59,17 @@ public class AutoexecJobPhaseNodeIgnoreApi extends PrivateApiComponentBase {
     @Description(desc = "忽略作业节点")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
+        Long jobId = jsonObj.getLong("jobId");
+        AutoexecJobVo jobInfo = autoexecJobMapper.getJobInfo(jobId);
+        if (jobInfo == null) {
+            throw new AutoexecJobNotFoundException(jobId);
+        }
         AutoexecJobVo jobVo = new AutoexecJobVo();
-        jobVo.setId(jsonObj.getLong("jobId"));
+        jobVo.setId(jobId);
         jobVo.setCurrentPhaseId(jsonObj.getLong("jobPhaseId"));
         jobVo.setActionParam(jsonObj);
+        jobVo.setExecUser(jobInfo.getExecUser());
+        jobVo.setAction(JobAction.IGNORE_NODE.getValue());
         IAutoexecJobActionHandler ignoreNodeAction = AutoexecJobActionHandlerFactory.getAction(JobAction.IGNORE_NODE.getValue());
         return ignoreNodeAction.doService(jobVo);
     }

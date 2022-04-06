@@ -5,6 +5,9 @@
 
 package codedriver.module.autoexec.service;
 
+import codedriver.framework.asynchronization.threadlocal.UserContext;
+import codedriver.framework.auth.core.AuthActionChecker;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.crossover.IAutoexecServiceCrossoverService;
 import codedriver.framework.autoexec.dao.mapper.*;
@@ -175,11 +178,15 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 if (CollectionUtils.isNotEmpty(combopVoList)) {
                     combopVoMap = combopVoList.stream().collect(Collectors.toMap(AutoexecCombopVo::getId, o -> o));
                 }
+                Boolean hasAutoexecScriptModifyAuth = AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class);
                 for (AutoexecJobVo vo : jobVoList) {
                     vo.setOperationName(operationIdNameMap.get(vo.getOperationId()));
-                    // 如果来源是组合工具，且作业状态是已就绪，那么判断是否有组合工具的执行权限，有执行权限时，出现执行与撤销按钮
-                    if (JobStatus.READY.getValue().equals(vo.getStatus()) && MapUtils.isNotEmpty(combopVoMap)) {
-                        vo.setIsCanExecute(autoexecCombopService.checkOperableButton(combopVoMap.get(vo.getOperationId()), CombopAuthorityAction.EXECUTE) ? 1 : 0);
+                    // 有组合工具执行权限，只能接管作业，执行用户才能执行或撤销作业
+                    if (UserContext.get().getUserUuid().equals(vo.getExecUser())) {
+                        vo.setIsCanExecute(1);
+                    } else if ((Objects.equals(jobVo.getSource(), JobSource.TEST.getValue()) && hasAutoexecScriptModifyAuth)
+                            || (MapUtils.isNotEmpty(combopVoMap) && autoexecCombopService.checkOperableButton(combopVoMap.get(vo.getOperationId()), CombopAuthorityAction.EXECUTE))) {
+                        vo.setIsCanTakeOver(1);
                     }
                 }
                 /*  jobVoList.forEach(j -> {

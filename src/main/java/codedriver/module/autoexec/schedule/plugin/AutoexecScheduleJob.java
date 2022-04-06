@@ -99,6 +99,7 @@ public class AutoexecScheduleJob extends JobBase {
         paramObj.put("invokeId", autoexecScheduleVo.getId());
         UserContext.init(userMapper.getUserByUuid(autoexecScheduleVo.getFcu()), SystemUser.SYSTEM.getTimezone());
         AutoexecJobVo jobVo = autoexecJobActionService.validateCreateJobFromCombop(paramObj, false);
+        jobVo.setAction(JobAction.FIRE.getValue());
         IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
         fireAction.doService(jobVo);
     }

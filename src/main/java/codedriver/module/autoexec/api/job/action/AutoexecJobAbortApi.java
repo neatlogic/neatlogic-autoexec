@@ -8,7 +8,9 @@ package codedriver.module.autoexec.api.job.action;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.JobAction;
+import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -18,6 +20,8 @@ import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.Resource;
 
 /**
  * @author lvzk
@@ -29,6 +33,9 @@ import org.springframework.transaction.annotation.Transactional;
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.OPERATE)
 public class AutoexecJobAbortApi extends PrivateApiComponentBase {
+
+    @Resource
+    private AutoexecJobMapper autoexecJobMapper;
 
     @Override
     public String getName() {
@@ -48,8 +55,15 @@ public class AutoexecJobAbortApi extends PrivateApiComponentBase {
     @Description(desc = "中止作业")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
+        Long jobId = jsonObj.getLong("jobId");
+        AutoexecJobVo jobInfo = autoexecJobMapper.getJobInfo(jobId);
+        if (jobInfo == null) {
+            throw new AutoexecJobNotFoundException(jobId);
+        }
         AutoexecJobVo jobVo = new AutoexecJobVo();
-        jobVo.setId(jsonObj.getLong("jobId"));
+        jobVo.setId(jobId);
+        jobVo.setExecUser(jobInfo.getExecUser());
+        jobVo.setAction(JobAction.ABORT.getValue());
         IAutoexecJobActionHandler abortAction = AutoexecJobActionHandlerFactory.getAction(JobAction.ABORT.getValue());
         return abortAction.doService(jobVo);
     }

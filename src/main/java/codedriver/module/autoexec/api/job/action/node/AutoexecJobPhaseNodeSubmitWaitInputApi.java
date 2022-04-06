@@ -11,6 +11,7 @@ import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -70,11 +71,18 @@ public class AutoexecJobPhaseNodeSubmitWaitInputApi extends PrivateApiComponentB
     @ResubmitInterval(value = 5)
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
+        Long jobId = paramObj.getLong("jobId");
+        AutoexecJobVo jobInfo = autoexecJobMapper.getJobInfo(jobId);
+        if (jobInfo == null) {
+            throw new AutoexecJobNotFoundException(jobId);
+        }
         AutoexecJobVo jobVo = new AutoexecJobVo();
-        jobVo.setId(paramObj.getLong("jobId"));
+        jobVo.setId(jobId);
         jobVo.setCurrentPhaseId(paramObj.getLong("jobPhaseId"));
         jobVo.setCurrentNodeResourceId(paramObj.getLong("resourceId"));
         jobVo.setActionParam(paramObj);
+        jobVo.setExecUser(jobInfo.getExecUser());
+        jobVo.setAction(JobAction.SUBMIT_NODE_WAIT_INPUT.getValue());
         IAutoexecJobActionHandler submitNodeWaitInputAction = AutoexecJobActionHandlerFactory.getAction(JobAction.SUBMIT_NODE_WAIT_INPUT.getValue());
         return submitNodeWaitInputAction.doService(jobVo);
     }
