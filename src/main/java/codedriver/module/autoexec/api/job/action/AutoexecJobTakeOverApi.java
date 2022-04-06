@@ -5,36 +5,31 @@
 
 package codedriver.module.autoexec.api.job.action;
 
-import codedriver.framework.asynchronization.threadlocal.TenantContext;
+import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.constvalue.CombopAuthorityAction;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
-import codedriver.framework.autoexec.constvalue.JobStatus;
+import codedriver.framework.autoexec.constvalue.JobSource;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecJobCanNotExecuteException;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecJobNotSupportedExecuteAndRevokeException;
+import codedriver.framework.autoexec.exception.AutoexecJobTakeOverPermissionDeniedException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.scheduler.core.IJob;
-import codedriver.framework.scheduler.core.SchedulerManager;
-import codedriver.framework.scheduler.dto.JobObject;
-import codedriver.framework.scheduler.exception.ScheduleHandlerNotFoundException;
-import codedriver.module.autoexec.schedule.plugin.AutoexecJobAutoFireJob;
 import codedriver.module.autoexec.service.AutoexecCombopService;
-import codedriver.module.autoexec.service.AutoexecJobActionService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Objects;
 
 /**
  * @author laiwt
@@ -42,10 +37,9 @@ import javax.annotation.Resource;
  **/
 
 @Service
-@Transactional
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.OPERATE)
-public class AutoexecJobExecuteApi extends PrivateApiComponentBase {
+public class AutoexecJobTakeOverApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecJobMapper autoexecJobMapper;
@@ -56,15 +50,9 @@ public class AutoexecJobExecuteApi extends PrivateApiComponentBase {
     @Resource
     private AutoexecCombopService autoexecCombopService;
 
-    @Resource
-    private AutoexecJobActionService autoexecJobActionService;
-
-    @Resource
-    private SchedulerManager schedulerManager;
-
     @Override
     public String getName() {
-        return "执行作业";
+        return "接管作业";
     }
 
     @Override
@@ -77,7 +65,7 @@ public class AutoexecJobExecuteApi extends PrivateApiComponentBase {
     })
     @Output({
     })
-    @Description(desc = "执行作业")
+    @Description(desc = "接管作业")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
@@ -85,31 +73,24 @@ public class AutoexecJobExecuteApi extends PrivateApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId);
         }
-        if (!JobStatus.READY.getValue().equals(jobVo.getStatus())) {
-            throw new AutoexecJobCanNotExecuteException(jobId);
-        }
-        if (!CombopOperationType.COMBOP.getValue().equals(jobVo.getOperationType())) {
-            throw new AutoexecJobNotSupportedExecuteAndRevokeException();
-        }
-        AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(jobVo.getOperationId());
-        if (autoexecCombopVo == null) {
-            throw new AutoexecCombopNotFoundException(jobVo.getOperationId());
-        }
-        if (autoexecCombopService.checkOperableButton(autoexecCombopVo, CombopAuthorityAction.EXECUTE)) {
-            // 执行作业、取消定时任务
-            autoexecJobActionService.getJobDetailAndFireJob(jobVo);
-            IJob jobHandler = SchedulerManager.getHandler(AutoexecJobAutoFireJob.class.getName());
-            if (jobHandler == null) {
-                throw new ScheduleHandlerNotFoundException(AutoexecJobAutoFireJob.class.getName());
+        if (Objects.equals(jobVo.getSource(), JobSource.TEST.getValue()) && !AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class)) {
+            throw new AutoexecJobTakeOverPermissionDeniedException(jobId);
+        } else if (Objects.equals(jobVo.getOperationType(), CombopOperationType.COMBOP.getValue())) {
+            AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(jobVo.getOperationId());
+            if (combopVo == null) {
+                throw new AutoexecCombopNotFoundException(jobVo.getOperationId());
             }
-            JobObject.Builder jobObjectBuilder = new JobObject.Builder(jobVo.getId().toString(), jobHandler.getGroupName(), jobHandler.getClassName(), TenantContext.get().getTenantUuid());
-            schedulerManager.unloadJob(jobObjectBuilder.build());
+            if (!autoexecCombopService.checkOperableButton(combopVo, CombopAuthorityAction.EXECUTE)) {
+                throw new AutoexecJobTakeOverPermissionDeniedException(jobId);
+            }
         }
+        jobVo.setExecUser(UserContext.get().getUserUuid());
+        autoexecJobMapper.updateJobExecUser(jobVo);
         return null;
     }
 
     @Override
     public String getToken() {
-        return "autoexec/job/execute";
+        return "autoexec/job/takeover";
     }
 }
