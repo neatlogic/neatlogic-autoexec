@@ -14,6 +14,8 @@ import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.util.UuidUtil;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -99,6 +101,34 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
         Map<Integer, AutoexecCombopGroupVo> groupMap = new HashMap<>();
         for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
             if (autoexecCombopPhaseVo != null) {
+                AutoexecCombopPhaseConfigVo autoexecCombopPhaseConfigVo = autoexecCombopPhaseVo.getConfig();
+                if (autoexecCombopPhaseConfigVo != null) {
+                    if (autoexecCombopPhaseConfigVo.getIsPresetExecuteConfig() == null) {
+                        Integer isPresetExecuteConfig = 0;
+                        AutoexecCombopExecuteConfigVo autoexecCombopExecuteConfigVo = autoexecCombopPhaseConfigVo.getExecuteConfig();
+                        if (autoexecCombopExecuteConfigVo != null) {
+                            if (autoexecCombopExecuteConfigVo.getProtocolId() != null) {
+                                isPresetExecuteConfig = 1;
+                            } else if (StringUtils.isNotBlank(autoexecCombopExecuteConfigVo.getExecuteUser())) {
+                                isPresetExecuteConfig = 1;
+                            } else {
+                                AutoexecCombopExecuteNodeConfigVo autoexecCombopExecuteNodeConfigVo = autoexecCombopExecuteConfigVo.getExecuteNodeConfig();
+                                if (autoexecCombopExecuteNodeConfigVo != null) {
+                                    if (MapUtils.isNotEmpty(autoexecCombopExecuteNodeConfigVo.getFilter())) {
+                                        isPresetExecuteConfig = 1;
+                                    } else if (CollectionUtils.isNotEmpty(autoexecCombopExecuteNodeConfigVo.getInputNodeList())) {
+                                        isPresetExecuteConfig = 1;
+                                    } else if (CollectionUtils.isNotEmpty(autoexecCombopExecuteNodeConfigVo.getSelectNodeList())) {
+                                        isPresetExecuteConfig = 1;
+                                    } else if (CollectionUtils.isNotEmpty(autoexecCombopExecuteNodeConfigVo.getParamList())) {
+                                        isPresetExecuteConfig = 1;
+                                    }
+                                }
+                            }
+                        }
+                        autoexecCombopPhaseConfigVo.setIsPresetExecuteConfig(isPresetExecuteConfig);
+                    }
+                }
                 Integer sort = autoexecCombopPhaseVo.getSort();
                 AutoexecCombopGroupVo combopGroupVo = groupMap.get(sort);
                 if (combopGroupVo == null) {
