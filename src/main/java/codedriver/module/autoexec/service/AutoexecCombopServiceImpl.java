@@ -189,7 +189,6 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                         throw new AutoexecScriptNotFoundException(operationId);
                     }
                     autoexecParamVoList = autoexecScriptMapper.getParamListByScriptId(operationId);
-                    //TODO 自定义脚本需后续支持自由参数
                 } else {
                     AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(operationId);
                     if (autoexecToolVo == null) {
