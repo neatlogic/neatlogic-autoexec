@@ -5,7 +5,6 @@
 
 package codedriver.module.autoexec.api.script;
 
-import codedriver.framework.autoexec.constvalue.ToolType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.framework.autoexec.dto.AutoexecOperationVo;
@@ -24,8 +23,10 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 
 @Service
 //@AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
@@ -90,22 +91,10 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
             List<AutoexecOperationVo> scriptList = autoexecScriptMapper.getScriptListByIdList(idList);
             toolAndScriptList.addAll(toolList);
             toolAndScriptList.addAll(scriptList);
-            Map<Long, AutoexecOperationVo> inputParamMap = autoexecScriptMapper.getAutoexecOperationInputParamListByIdList(idList).stream().collect(Collectors.toMap(AutoexecOperationVo::getId, e -> e));
-            Map<Long, AutoexecOperationVo> outputParamMap = autoexecScriptMapper.getAutoexecOperationOutputParamListByIdList(idList).stream().collect(Collectors.toMap(AutoexecOperationVo::getId, e -> e));
             for (AutoexecOperationVo autoexecToolAndScriptVo : toolAndScriptList) {
-                if (ToolType.SCRIPT.getValue().equals(autoexecToolAndScriptVo.getType())) {
-                    autoexecToolAndScriptVo.setInputParamList(inputParamMap.get(autoexecToolAndScriptVo.getId()).getInputParamList());
-                    autoexecToolAndScriptVo.setOutputParamList(outputParamMap.get(autoexecToolAndScriptVo.getId()).getOutputParamList());
-                }
-                List<AutoexecParamVo> inputParamList = autoexecToolAndScriptVo.getInputParamList();
-                List<AutoexecParamVo> outputParamList = autoexecToolAndScriptVo.getOutputParamList();
-                if (CollectionUtils.isNotEmpty(inputParamList)) {
-                    for (AutoexecParamVo autoexecParamVo : inputParamList) {
-                        autoexecService.mergeConfig(autoexecParamVo);
-                    }
-                }
-                if (CollectionUtils.isNotEmpty(outputParamList)) {
-                    for (AutoexecParamVo autoexecParamVo : outputParamList) {
+                List<AutoexecParamVo> paramList = autoexecToolAndScriptVo.getParamList();
+                if (CollectionUtils.isNotEmpty(paramList)) {
+                    for (AutoexecParamVo autoexecParamVo : paramList) {
                         autoexecService.mergeConfig(autoexecParamVo);
                     }
                 }
