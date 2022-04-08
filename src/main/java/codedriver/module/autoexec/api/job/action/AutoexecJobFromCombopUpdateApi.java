@@ -74,7 +74,7 @@ public class AutoexecJobFromCombopUpdateApi extends PrivateApiComponentBase {
         Long jobId = jsonObj.getLong("jobId");
         Date planStartTime = jsonObj.getDate("planStartTime");
         String triggerType = jsonObj.getString("triggerType");
-        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId);
         }
