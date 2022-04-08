@@ -11,7 +11,10 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.crossover.IAutoexecServiceCrossoverService;
 import codedriver.framework.autoexec.dao.mapper.*;
-import codedriver.framework.autoexec.dto.*;
+import codedriver.framework.autoexec.dto.AutoexecOperationVo;
+import codedriver.framework.autoexec.dto.AutoexecParamVo;
+import codedriver.framework.autoexec.dto.AutoexecRiskVo;
+import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
@@ -155,7 +158,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 Map<Long, String> operationIdNameMap = new HashMap<>();
                 List<AutoexecCombopVo> combopVoList = null;
                 List<AutoexecScriptVersionVo> scriptVoList;
-                List<AutoexecToolAndScriptVo> toolVoList;
+                List<AutoexecOperationVo> toolVoList;
                 operationIdMap.put(CombopOperationType.COMBOP.getValue(), new ArrayList<>());
                 operationIdMap.put(CombopOperationType.SCRIPT.getValue(), new ArrayList<>());
                 operationIdMap.put(CombopOperationType.TOOL.getValue(), new ArrayList<>());
@@ -217,18 +220,18 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                     List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfigVo.getPhaseOperationList();
                     if (CollectionUtils.isNotEmpty(phaseOperationList)) {
                         for (AutoexecCombopPhaseOperationVo phaseOperationVo : phaseOperationList) {
-                            AutoexecToolAndScriptVo autoexecToolAndScriptVo = null;
+                            AutoexecOperationVo autoexecToolAndScriptVo = null;
                             List<? extends AutoexecParamVo> autoexecParamVoList = new ArrayList<>();
                             if (Objects.equals(phaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
                                 AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(phaseOperationVo.getOperationId());
                                 if (autoexecScriptVo != null) {
-                                    autoexecToolAndScriptVo = new AutoexecToolAndScriptVo(autoexecScriptVo);
+                                    autoexecToolAndScriptVo = new AutoexecOperationVo(autoexecScriptVo);
                                     autoexecParamVoList = autoexecScriptMapper.getParamListByScriptId(phaseOperationVo.getOperationId());
                                 }
                             } else if (Objects.equals(phaseOperationVo.getOperationType(), CombopOperationType.TOOL.getValue())) {
                                 AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(phaseOperationVo.getOperationId());
                                 if (autoexecToolVo != null) {
-                                    autoexecToolAndScriptVo = new AutoexecToolAndScriptVo(autoexecToolVo);
+                                    autoexecToolAndScriptVo = new AutoexecOperationVo(autoexecToolVo);
                                     JSONObject toolConfig = autoexecToolVo.getConfig();
                                     if (MapUtils.isNotEmpty(toolConfig)) {
                                         JSONArray paramArray = toolConfig.getJSONArray("paramList");

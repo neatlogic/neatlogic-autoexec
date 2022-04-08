@@ -9,9 +9,13 @@ import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import codedriver.framework.autoexec.constvalue.*;
+import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
+import codedriver.framework.autoexec.dto.AutoexecOperationVo;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecRiskVo;
-import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
@@ -25,7 +29,6 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.IValid;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.util.UuidUtil;
-import codedriver.framework.autoexec.dao.mapper.*;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -96,20 +99,20 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
                 throw new AutoexecScriptNotFoundException(operationId);
             }
             AutoexecScriptVersionVo autoexecScriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(autoexecScriptVo.getId());
-            if(autoexecScriptVersionVo == null){
+            if (autoexecScriptVersionVo == null) {
                 throw new AutoexecScriptVersionHasNoActivedException(autoexecScriptVo.getName());
             }
             List<AutoexecScriptVersionParamVo> autoexecScriptVersionParamVoList = autoexecScriptMapper.getParamListByScriptId(operationId);
 
             //TODO 后续自定义工具会支持自由参数
 
-            return generate(jsonObj, new AutoexecToolAndScriptVo(autoexecScriptVo), autoexecScriptVersionParamVoList,argumentParam);
+            return generate(jsonObj, new AutoexecOperationVo(autoexecScriptVo), autoexecScriptVersionParamVoList, argumentParam);
         } else {
             AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(operationId);
             if (autoexecToolVo == null) {
                 throw new AutoexecToolNotFoundException(operationId);
             }
-            if(Objects.equals(autoexecToolVo.getIsActive(), 0)){
+            if (Objects.equals(autoexecToolVo.getIsActive(), 0)) {
                 throw new AutoexecToolinactivatedException(autoexecToolVo.getName());
             }
             List<AutoexecParamVo> autoexecParamVoList = new ArrayList<>();
@@ -120,11 +123,11 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
                     autoexecParamVoList = paramArray.toJavaList(AutoexecParamVo.class);
                 }
                 JSONObject argumentJson = toolConfig.getJSONObject("argument");
-                if(MapUtils.isNotEmpty(argumentJson)){
-                    argumentParam = JSONObject.toJavaObject(argumentJson,AutoexecParamVo.class);
+                if (MapUtils.isNotEmpty(argumentJson)) {
+                    argumentParam = JSONObject.toJavaObject(argumentJson, AutoexecParamVo.class);
                 }
             }
-            return generate(jsonObj, new AutoexecToolAndScriptVo(autoexecToolVo), autoexecParamVoList,argumentParam);
+            return generate(jsonObj, new AutoexecOperationVo(autoexecToolVo), autoexecParamVoList, argumentParam);
         }
     }
 
@@ -139,7 +142,7 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
         };
     }
 
-    private Long generate(JSONObject jsonObj, AutoexecToolAndScriptVo autoexecToolAndScriptVo, List<? extends AutoexecParamVo> autoexecParamVoList,AutoexecParamVo argumentParam) {
+    private Long generate(JSONObject jsonObj, AutoexecOperationVo autoexecToolAndScriptVo, List<? extends AutoexecParamVo> autoexecParamVoList, AutoexecParamVo argumentParam) {
         if (autoexecCombopMapper.checkItHasBeenGeneratedToCombopByOperationId(autoexecToolAndScriptVo.getId()) != null) {
             throw new AutoexecCombopCannotBeRepeatReleaseExcepiton(autoexecToolAndScriptVo.getName());
         }
@@ -187,8 +190,8 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
         //argumentMappingList
         List<ParamMappingVo> argumentMappingList = new ArrayList<>();
         operationConfigVo.setArgumentMappingList(argumentMappingList);
-        if(argumentParam != null) {
-            argumentMappingList.add(new ParamMappingVo(argumentParam.getKey(),ParamMappingMode.CONSTANT.getValue(), argumentParam.getKey()));
+        if (argumentParam != null) {
+            argumentMappingList.add(new ParamMappingVo(argumentParam.getKey(), ParamMappingMode.CONSTANT.getValue(), argumentParam.getKey()));
         }
         phaseOperationVo.setConfig(JSONObject.toJSONString(operationConfigVo));
 

@@ -83,7 +83,7 @@ public class AutoexecScriptExportPublicApi extends PublicBinaryStreamApiComponen
                     }
                     AutoexecScriptVersionVo version = autoexecScriptMapper.getActiveVersionByScriptId(id);
                     script.setParser(version.getParser());
-                    script.setParamList(autoexecScriptMapper.getParamListByVersionId(version.getId()));
+                    script.setParamList(autoexecScriptMapper.getAutoexecParamVoListByVersionId(version.getId()));
                     script.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
                     writer.writeObject(script);
                 }
