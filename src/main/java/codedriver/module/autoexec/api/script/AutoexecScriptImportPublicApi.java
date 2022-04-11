@@ -246,7 +246,7 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
         versionVo.setStatus(ScriptVersionStatus.PASSED.getValue());
         versionVo.setVersion(version);
         versionVo.setReviewer(UserContext.get().getUserUuid());
-        versionVo.setParamList(scriptVo.getParamList());
+        versionVo.setParamList(scriptVo.getVersionParamList());
         versionVo.setLineList(scriptVo.getLineList());
         return versionVo;
     }

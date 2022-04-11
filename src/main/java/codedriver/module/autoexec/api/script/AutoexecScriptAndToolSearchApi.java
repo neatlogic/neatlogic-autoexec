@@ -7,8 +7,8 @@ package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
+import codedriver.framework.autoexec.dto.AutoexecOperationVo;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
-import codedriver.framework.autoexec.dto.AutoexecToolAndScriptVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.restful.annotation.*;
@@ -74,24 +74,24 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
     })
     @Output({
             @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, desc = "工具/脚本列表"),
-            @Param(explode = AutoexecToolAndScriptVo.class),
+            @Param(explode = AutoexecOperationVo.class),
     })
     @Description(desc = "查询工具和脚本")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
-        List<AutoexecToolAndScriptVo> tbodyList = new ArrayList<>();
+        List<AutoexecOperationVo> tbodyList = new ArrayList<>();
         result.put("tbodyList", tbodyList);
-        AutoexecToolAndScriptVo searchVo = JSON.toJavaObject(jsonObj, AutoexecToolAndScriptVo.class);
+        AutoexecOperationVo searchVo = JSON.toJavaObject(jsonObj, AutoexecOperationVo.class);
         JSONArray defaultValue = searchVo.getDefaultValue();
         if (CollectionUtils.isNotEmpty(defaultValue)) {
-            List<AutoexecToolAndScriptVo> toolAndScriptList = new ArrayList<>();
+            List<AutoexecOperationVo> toolAndScriptList = new ArrayList<>();
             List<Long> idList = defaultValue.toJavaList(Long.class);
-            List<AutoexecToolAndScriptVo> toolList = autoexecToolMapper.getToolListByIdList(idList);
-            List<AutoexecToolAndScriptVo> scriptList = autoexecScriptMapper.getScriptListByIdList(idList);
+            List<AutoexecOperationVo> toolList = autoexecToolMapper.getToolListByIdList(idList);
+            List<AutoexecOperationVo> scriptList = autoexecScriptMapper.getScriptListByIdList(idList);
             toolAndScriptList.addAll(toolList);
             toolAndScriptList.addAll(scriptList);
-            for (AutoexecToolAndScriptVo autoexecToolAndScriptVo : toolAndScriptList) {
+            for (AutoexecOperationVo autoexecToolAndScriptVo : toolAndScriptList) {
                 List<AutoexecParamVo> paramList = autoexecToolAndScriptVo.getParamList();
                 if (CollectionUtils.isNotEmpty(paramList)) {
                     for (AutoexecParamVo autoexecParamVo : paramList) {
@@ -102,7 +102,7 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
             // 按传入的valueList排序
             if (CollectionUtils.isNotEmpty(toolAndScriptList)) {
                 for (Long id : idList) {
-                    Optional<AutoexecToolAndScriptVo> first = toolAndScriptList.stream().filter(o -> Objects.equals(o.getId(), id)).findFirst();
+                    Optional<AutoexecOperationVo> first = toolAndScriptList.stream().filter(o -> Objects.equals(o.getId(), id)).findFirst();
                     first.ifPresent(tbodyList::add);
                 }
             }

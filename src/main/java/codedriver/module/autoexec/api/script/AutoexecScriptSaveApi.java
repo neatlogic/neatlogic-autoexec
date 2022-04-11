@@ -130,7 +130,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
                 // 检查内容是否有变更，没有则不执行更新
                 AutoexecScriptVersionVo newVersion = new AutoexecScriptVersionVo();
                 newVersion.setParser(scriptVo.getParser());
-                newVersion.setParamList(scriptVo.getParamList());
+                newVersion.setParamList(scriptVo.getVersionParamList());
                 newVersion.setLineList(scriptVo.getLineList());
                 needSave = autoexecScriptService.checkScriptVersionNeedToUpdate(currentVersion, newVersion);
                 if (needSave) {
@@ -153,11 +153,11 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
         }
         if (needSave) {
             // 保存参数
-            List<AutoexecScriptVersionParamVo> paramList = scriptVo.getParamList();
+            List<AutoexecScriptVersionParamVo> paramList = scriptVo.getVersionParamList();
             if (CollectionUtils.isNotEmpty(paramList)) {
                 autoexecService.validateParamList(paramList);
+                autoexecScriptService.saveParamList(versionVo.getId(), paramList);
             }
-            autoexecScriptService.saveParamList(versionVo.getId(), paramList);
             // 保存脚本内容
             autoexecScriptService.saveLineList(scriptVo.getId(), scriptVo.getVersionId(), scriptVo.getLineList());
             // 创建全文索引

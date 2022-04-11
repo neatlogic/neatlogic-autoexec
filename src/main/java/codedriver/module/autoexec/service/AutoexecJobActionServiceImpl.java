@@ -12,7 +12,6 @@ import codedriver.framework.autoexec.constvalue.ParamMappingMode;
 import codedriver.framework.autoexec.constvalue.ToolType;
 import codedriver.framework.autoexec.crossover.IAutoexecJobActionCrossoverService;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
-import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.*;
@@ -179,13 +178,14 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                                                 if (CollectionUtils.isNotEmpty(param.getJSONArray("outputParamList"))) {
                                                     for (Object arg : param.getJSONArray("outputParamList")) {
                                                         JSONObject argJson = JSONObject.parseObject(arg.toString());
-                                                        put(argJson.getString("key"), argJson.getString("value"));
+                                                        put(argJson.getString("key"), argJson);
                                                     }
                                                 }
                                             }});
                                         }});
                                     }
                                 }});
+
                             }});
                         }
                     }});
@@ -264,7 +264,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         }
         AutoexecJobVo jobVo = autoexecJobService.saveAutoexecCombopJob(combopVo, invokeVo, threadCount, paramJson, planStartTime, triggerType);
         jobVo.setAction(JobAction.FIRE.getValue());
-        //jobVo.setCurrentGroupSort(0);
+        jobVo.setCurrentPhaseSort(0);
         return jobVo;
     }
 
@@ -279,23 +279,12 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
     @Override
     public void getJobDetailAndFireJob(AutoexecJobVo jobVo) throws Exception {
         if (jobVo != null) {
+            autoexecJobService.getAutoexecJobDetail(jobVo, 0);
             jobVo.setAction(JobAction.FIRE.getValue());
-            jobVo.setExecuteJobGroupVo(autoexecJobMapper.getJobGroupByJobIdAndSort(jobVo.getId(), 0));
-            autoexecJobService.getAutoexecJobDetail(jobVo);
+            jobVo.setCurrentPhaseSort(0);
             IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
             jobVo.setAction(JobAction.FIRE.getValue());
             fireAction.doService(jobVo);
         }
-    }
-
-    @Override
-    public void initExecuteUserContext(AutoexecJobVo jobVo) throws Exception {
-        //初始化执行用户上下文
-        UserVo execUser = userMapper.getUserBaseInfoByUuid(jobVo.getExecUser());
-        if (execUser == null) {
-            throw new UserNotFoundException(jobVo.getExecUser());
-        }
-        UserContext.init(execUser, "+8:00");
-        UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(execUser).getCc());
     }
 }
