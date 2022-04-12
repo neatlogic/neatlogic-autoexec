@@ -8,7 +8,6 @@ package codedriver.module.autoexec.api.job.exec;
 import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
-import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
@@ -135,9 +134,8 @@ public class AutoexecJobPhaseInformRoundEndApi extends PublicApiComponentBase {
         nodeParamVo.setPageSize(roundCountList.get(roundNo - 1));
         nodeParamVo.setStatusList(Collections.singletonList(JobNodeStatus.PENDING.getValue()));
         List<Long> notCompletedNodeIdList = autoexecJobMapper.getJobPhaseNodeIdListByNodeVoAndStartNum(nodeParamVo, startNum);
-        //如果非runner则存在没完成的node || runner 该phase没完成，则抛异常
-        if ((!Objects.equals(phaseVo.getExecMode(), ExecMode.RUNNER.getValue()) && CollectionUtils.isNotEmpty(notCompletedNodeIdList)) ||
-                (Objects.equals(phaseVo.getExecMode(), ExecMode.RUNNER.getValue()) && !Objects.equals(phaseVo.getStatus(), JobPhaseStatus.COMPLETED.getValue()))) {
+        //如果非runner则存在没完成的node，则抛异常. runner 则暂时不做判断
+        if ((!Objects.equals(phaseVo.getExecMode(), ExecMode.RUNNER.getValue()) && CollectionUtils.isNotEmpty(notCompletedNodeIdList))) {
             throw new AutoexecJobPhaseNodeNotCompletedException(phaseVo.getName(), roundNo, notCompletedNodeIdList);
         }
     }

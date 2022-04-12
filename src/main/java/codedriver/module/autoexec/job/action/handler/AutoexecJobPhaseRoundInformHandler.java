@@ -58,10 +58,11 @@ public class AutoexecJobPhaseRoundInformHandler extends AutoexecJobActionHandler
         jsonObj.put("informParam",informParam);
         AutoexecJobPhaseVo phaseVo = jobVo.getPhaseList().get(0);
         //寻找下一个phase执行当前round,如果不存在下一个phase 则啥都不做
-        AutoexecJobPhaseVo nextJobPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndGroupSortAndSort(phaseVo.getJobId(), groupSort, phaseVo.getSort() + 1);
-        if (nextJobPhaseVo != null) {
-            informParam.put("phaseName", nextJobPhaseVo.getName());
-            List<RunnerMapVo> runnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(phaseVo.getJobId(), Collections.singletonList(nextJobPhaseVo.getId()));
+        //AutoexecJobPhaseVo nextJobPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndGroupSortAndSort(phaseVo.getJobId(), groupSort, phaseVo.getSort() + 1);
+        //if (nextJobPhaseVo != null) {
+            AutoexecJobPhaseVo jobPhaseVo = jobVo.getPhaseList().get(0);
+            informParam.put("phaseName", jobPhaseVo.getName());
+            List<RunnerMapVo> runnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(phaseVo.getJobId(), Collections.singletonList(jobPhaseVo.getId()));
             runnerVos = runnerVos.stream().filter(o -> StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
             checkRunnerHealth(runnerVos);
             for (RunnerMapVo runnerVo : runnerVos) {
@@ -73,7 +74,7 @@ public class AutoexecJobPhaseRoundInformHandler extends AutoexecJobActionHandler
                     throw new AutoexecJobRunnerHttpRequestException(url + ":" + result);
                 }
             }
-        }
+        //}
         return null;
     }
 
