@@ -13,7 +13,6 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecJobPhaseNodeNotCompletedException;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
@@ -28,10 +27,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author lvzk
@@ -86,13 +83,14 @@ public class AutoexecJobPhaseInformRoundEndApi extends PublicApiComponentBase {
         }
         autoexecJobActionService.initExecuteUserContext(jobVo);
         //判断该phase这个round所属节点是否都跑完了
-        isJobPhaseRoundNodeAllCompleted(groupSort, jobPhaseVo, roundNo);
-        //发起inform
-        IAutoexecJobActionHandler jobActionHandler = AutoexecJobActionHandlerFactory.getAction(JobAction.INFORM_PHASE_ROUND.getValue());
-        jobVo.setAction(JobAction.INFORM_PHASE_ROUND.getValue());
-        jobVo.setActionParam(jsonObj);
-        jobVo.setPhaseList(Collections.singletonList(jobPhaseVo));
-        jobActionHandler.doService(jobVo);
+        if(Objects.equals(jobPhaseVo.getExecMode(),ExecMode.RUNNER.getValue()) || isJobPhaseRoundNodeAllCompleted(groupSort, jobPhaseVo, roundNo)) {
+            //发起inform
+            IAutoexecJobActionHandler jobActionHandler = AutoexecJobActionHandlerFactory.getAction(JobAction.INFORM_PHASE_ROUND.getValue());
+            jobVo.setAction(JobAction.INFORM_PHASE_ROUND.getValue());
+            jobVo.setActionParam(jsonObj);
+            jobVo.setPhaseList(Collections.singletonList(jobPhaseVo));
+            jobActionHandler.doService(jobVo);
+        }
         return null;
     }
 
@@ -101,12 +99,11 @@ public class AutoexecJobPhaseInformRoundEndApi extends PublicApiComponentBase {
      * @param phaseVo      阶段
      * @param roundNo      round号
      */
-    private void isJobPhaseRoundNodeAllCompleted(Integer jobGroupSort, AutoexecJobPhaseVo phaseVo, Integer roundNo) {
+    private boolean isJobPhaseRoundNodeAllCompleted(Integer jobGroupSort, AutoexecJobPhaseVo phaseVo, Integer roundNo) {
         List<Integer> roundCountList = new ArrayList<>();
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(phaseVo.getJobId());
         Integer roundCount = jobVo.getThreadCount();
         AutoexecJobPhaseNodeVo nodeParamVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), phaseVo.getName(), 0);
-        nodeParamVo.setStatusBlackList(Collections.singletonList(JobNodeStatus.IGNORED.getValue()));
         int totalNodeCount = autoexecJobMapper.searchJobPhaseNodeCount(nodeParamVo);
         if (roundCount == null || roundCount <= 0) {
             roundCount = 2;
@@ -121,7 +118,7 @@ public class AutoexecJobPhaseInformRoundEndApi extends PublicApiComponentBase {
         for (int i = 1; i <= roundCount; i++) {
             if (parallelCount == 0) {
                 roundCountList.add(1);
-            } else if (roundNo <= remainder) {
+            } else if (i <= remainder) {
                 roundCountList.add(parallelCount + 1);
             } else {
                 roundCountList.add(parallelCount);
@@ -132,12 +129,9 @@ public class AutoexecJobPhaseInformRoundEndApi extends PublicApiComponentBase {
         }
         //设置分页，查询该phase round
         nodeParamVo.setPageSize(roundCountList.get(roundNo - 1));
-        nodeParamVo.setStatusList(Collections.singletonList(JobNodeStatus.PENDING.getValue()));
-        List<Long> notCompletedNodeIdList = autoexecJobMapper.getJobPhaseNodeIdListByNodeVoAndStartNum(nodeParamVo, startNum);
+        List<AutoexecJobPhaseNodeVo> notCompletedNodeList = autoexecJobMapper.getJobPhaseNodeIdListByNodeVoAndStartNum(nodeParamVo, startNum).stream().filter(o-> Objects.equals(JobNodeStatus.PENDING.getValue(), o.getStatus())).collect(Collectors.toList());
         //如果非runner则存在没完成的node，则抛异常. runner 则暂时不做判断
-        if ((!Objects.equals(phaseVo.getExecMode(), ExecMode.RUNNER.getValue()) && CollectionUtils.isNotEmpty(notCompletedNodeIdList))) {
-            throw new AutoexecJobPhaseNodeNotCompletedException(phaseVo.getName(), roundNo, notCompletedNodeIdList);
-        }
+        return Objects.equals(phaseVo.getExecMode(), ExecMode.RUNNER.getValue()) || CollectionUtils.isEmpty(notCompletedNodeList);
     }
 
     @Override
