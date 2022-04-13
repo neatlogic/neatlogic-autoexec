@@ -158,6 +158,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                                             JSONObject paramJson = new JSONObject();
                                             paramJson.put("opt",argJson.getString("key"));
                                             paramJson.put("type",argJson.getString("type"));
+                                            paramJson.put("defaultValue",argJson.getString("defaultValue"));
                                             put(argJson.getString("key"), paramJson);
                                         }
                                     }
