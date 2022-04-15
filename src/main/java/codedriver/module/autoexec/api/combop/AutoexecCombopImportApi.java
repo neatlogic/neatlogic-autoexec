@@ -17,6 +17,7 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.exception.file.FileExtNotAllowedException;
 import codedriver.framework.exception.file.FileNotUploadException;
 import codedriver.framework.notify.dao.mapper.NotifyMapper;
+import codedriver.framework.notify.dto.NotifyPolicyVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
@@ -165,12 +166,18 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         }
 
         Set<String> failureReasonSet = new HashSet<>();
-        if (autoexecTypeMapper.getTypeIdByName(autoexecCombopVo.getTypeName()) == null) {
+        Long typeId = autoexecTypeMapper.getTypeIdByName(autoexecCombopVo.getTypeName());
+        if (typeId == null) {
             failureReasonSet.add("添加工具类型：'" + autoexecCombopVo.getTypeName() + "'");
+        } else {
+            autoexecCombopVo.setTypeId(typeId);
         }
         if (autoexecCombopVo.getNotifyPolicyName() != null) {
-            if (notifyMapper.getNotifyPolicyByName(autoexecCombopVo.getNotifyPolicyName()) == null) {
+            NotifyPolicyVo notifyPolicyVo = notifyMapper.getNotifyPolicyByName(autoexecCombopVo.getNotifyPolicyName());
+            if (notifyPolicyVo == null) {
                 failureReasonSet.add("添加通知策略：'" + autoexecCombopVo.getNotifyPolicyName() + "'");
+            } else {
+                autoexecCombopVo.setNotifyPolicyId(notifyPolicyVo.getId());
             }
         }
         int index = 0;
@@ -211,6 +218,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                                         if (autoexecScriptVersionVo == null) {
                                             failureReasonSet.add("启用自定义工具：'" + autoexecScriptVo.getName() + "'");
                                         }
+                                        autoexecCombopPhaseOperationVo.setOperationId(autoexecScriptVo.getId());
                                     }
                                 } else {
                                     AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolByName(autoexecCombopPhaseOperationVo.getName());
@@ -218,6 +226,8 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                                         failureReasonSet.add("添加工具：'" + autoexecCombopPhaseOperationVo.getName() + "'");
                                     } else if (Objects.equals(autoexecToolVo.getIsActive(), 0)) {
                                         failureReasonSet.add("启用工具：'" + autoexecToolVo.getName() + "'");
+                                    } else {
+                                        autoexecCombopPhaseOperationVo.setOperationId(autoexecToolVo.getId());
                                     }
                                 }
                             }
