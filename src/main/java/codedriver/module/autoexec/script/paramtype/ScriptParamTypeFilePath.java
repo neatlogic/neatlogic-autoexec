@@ -43,7 +43,7 @@ public class ScriptParamTypeFilePath extends ScriptParamTypeBase {
      */
     @Override
     public String getDescription() {
-        return "输入文件路径";
+        return "可输出文件路径参数";
     }
 
     /**
