@@ -43,7 +43,7 @@ public class ScriptParamTypeText extends ScriptParamTypeBase {
      */
     @Override
     public String getDescription() {
-        return "文本参数，可输入字符串、数字";
+        return "可输出字符串、数字";
     }
 
     /**
