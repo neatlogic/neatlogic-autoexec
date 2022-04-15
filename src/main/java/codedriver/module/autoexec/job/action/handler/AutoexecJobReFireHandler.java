@@ -74,6 +74,7 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             autoexecJobService.refreshJobNodeList(jobVo.getId(), null);
             //更新没有删除的节点为"未开始"状态
             autoexecJobMapper.updateJobPhaseNodeStatusByJobIdAndIsDelete(jobVo.getId(), JobNodeStatus.PENDING.getValue(),0);
+            jobVo.setIsFirstFire(1);
             executeGroup(jobVo);
         } else if (Objects.equals(jobVo.getAction(), JobAction.REFIRE.getValue())) {
             int executeGroupSort;

@@ -65,7 +65,7 @@ public class AutoexecJobPhaseInformRoundEndApi extends PublicApiComponentBase {
     })
     @Output({
     })
-    @Description(desc = "激活作业下一阶段round")
+    @Description(desc = "激活作业下一个round")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
@@ -90,7 +90,11 @@ public class AutoexecJobPhaseInformRoundEndApi extends PublicApiComponentBase {
             jobVo.setActionParam(jsonObj);
             jobVo.setPhaseList(Collections.singletonList(jobPhaseVo));
             jobActionHandler.doService(jobVo);
+            //System.out.println("roundNo:"+jsonObj.getInteger("roundNo")+" runnerId:"+jsonObj.getString(("runnerId")) +" phase:"+ phase + " run");
         }
+        //else{
+            //System.out.println(jsonObj.getString(("runnerId")) +" "+ roundNo+" "+ "wait");
+        //}
         return null;
     }
 
@@ -127,9 +131,13 @@ public class AutoexecJobPhaseInformRoundEndApi extends PublicApiComponentBase {
                 startNum += roundCountList.get(i - 1);
             }
         }
+        //如果超过最大round，表示该group所有round都跑完了
+        if(roundCountList.size() < roundNo){
+            return true;
+        }
         //设置分页，查询该phase round
         nodeParamVo.setPageSize(roundCountList.get(roundNo - 1));
-        List<AutoexecJobPhaseNodeVo> notCompletedNodeList = autoexecJobMapper.getJobPhaseNodeIdListByNodeVoAndStartNum(nodeParamVo, startNum).stream().filter(o-> Objects.equals(JobNodeStatus.PENDING.getValue(), o.getStatus())).collect(Collectors.toList());
+        List<AutoexecJobPhaseNodeVo> notCompletedNodeList = autoexecJobMapper.getJobPhaseNodeIdListByNodeVoAndStartNum(nodeParamVo, startNum).stream().filter(o-> Arrays.asList(JobNodeStatus.PENDING.getValue(),JobNodeStatus.RUNNING.getValue()).contains(o.getStatus())).collect(Collectors.toList());
         //如果非runner则存在没完成的node，则抛异常. runner 则暂时不做判断
         return Objects.equals(phaseVo.getExecMode(), ExecMode.RUNNER.getValue()) || CollectionUtils.isEmpty(notCompletedNodeList);
     }
