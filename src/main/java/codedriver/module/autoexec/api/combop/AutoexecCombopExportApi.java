@@ -2,11 +2,15 @@ package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
+import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
+import codedriver.framework.autoexec.dto.AutoexecTypeVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.exception.type.ParamNotExistsException;
+import codedriver.framework.notify.dao.mapper.NotifyMapper;
+import codedriver.framework.notify.dto.NotifyPolicyVo;
 import codedriver.framework.restful.annotation.Description;
 import codedriver.framework.restful.annotation.Input;
 import codedriver.framework.restful.annotation.OperationType;
@@ -26,6 +30,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
 
@@ -44,6 +49,10 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
+    @Resource
+    private AutoexecTypeMapper autoexecTypeMapper;
+    @Resource
+    private NotifyMapper notifyMapper;
 
     @Override
     public String getToken() {
@@ -84,12 +93,26 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
             System.out.println(stringBuilder.length());
             throw new AutoexecCombopNotFoundException(stringBuilder.toString());
         }
+        Set<Long> typeIdSet = new HashSet<>();
+        Set<Long> notifyPolicyIdSet = new HashSet<>();
         List<AutoexecCombopVo> autoexecCombopVoList = new ArrayList<>();
         for (Long id : existIdList) {
             AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
             List<AutoexecCombopParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
             autoexecCombopVo.setRuntimeParamList(runtimeParamList);
+            typeIdSet.add(autoexecCombopVo.getTypeId());
+            Long notifyPolicyId = autoexecCombopVo.getNotifyPolicyId();
+            if (notifyPolicyId != null) {
+                notifyPolicyIdSet.add(notifyPolicyId);
+            }
             autoexecCombopVoList.add(autoexecCombopVo);
+        }
+        List<AutoexecTypeVo> autoexecTypeList = autoexecTypeMapper.getTypeListByIdList(new ArrayList<>(typeIdSet));
+        Map<Long, AutoexecTypeVo> autoexecTypeMap = autoexecTypeList.stream().collect(Collectors.toMap(e -> e.getId(), e -> e));
+        Map<Long, NotifyPolicyVo> notifyPolicyMap = new HashMap<>();
+        if (CollectionUtils.isNotEmpty(notifyPolicyIdSet)) {
+            List<NotifyPolicyVo> notifyPolicyList = notifyMapper.getNotifyPolicyListByIdList(new ArrayList<>(notifyPolicyIdSet));
+            notifyPolicyMap = notifyPolicyList.stream().collect(Collectors.toMap(e -> e.getId(), e -> e));
         }
         //设置导出文件名
         String fileName = FileUtil.getEncodedFileName(request.getHeader("User-Agent"), "组合工具." + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak");
@@ -98,6 +121,17 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
 
         try (ZipOutputStream zipos = new ZipOutputStream(response.getOutputStream())) {
             for (AutoexecCombopVo autoexecCombopVo : autoexecCombopVoList) {
+                AutoexecTypeVo autoexecTypeVo = autoexecTypeMap.get(autoexecCombopVo.getTypeId());
+                if (autoexecTypeVo != null) {
+                    autoexecCombopVo.setTypeName(autoexecTypeVo.getName());
+                }
+                Long notifyPolicyId = autoexecCombopVo.getNotifyPolicyId();
+                if (notifyPolicyId != null) {
+                    NotifyPolicyVo notifyPolicyVo = notifyPolicyMap.get(notifyPolicyId);
+                    if (notifyPolicyVo != null) {
+                        autoexecCombopVo.setNotifyPolicyName(notifyPolicyVo.getName());
+                    }
+                }
                 zipos.putNextEntry(new ZipEntry(autoexecCombopVo.getName() + ".json"));
                 zipos.write(JSONObject.toJSONBytes(autoexecCombopVo));
                 zipos.closeEntry();

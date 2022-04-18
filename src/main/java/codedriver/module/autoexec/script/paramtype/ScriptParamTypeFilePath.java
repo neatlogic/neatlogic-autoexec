@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.script.paramtype;
 
+import codedriver.framework.autoexec.constvalue.OutputParamType;
 import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeBase;
 import com.alibaba.fastjson.JSONObject;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Service;
  * @since 2021/11/18 15:37
  **/
 @Service
-public class ScriptParamTypeText extends ScriptParamTypeBase {
+public class ScriptParamTypeFilePath extends ScriptParamTypeBase {
     /**
      * 获取参数类型
      *
@@ -23,7 +24,7 @@ public class ScriptParamTypeText extends ScriptParamTypeBase {
      */
     @Override
     public String getType() {
-        return ParamType.TEXT.getValue();
+        return OutputParamType.FILEPATH.getValue();
     }
 
     /**
@@ -33,7 +34,7 @@ public class ScriptParamTypeText extends ScriptParamTypeBase {
      */
     @Override
     public String getTypeName() {
-        return ParamType.TEXT.getText();
+        return OutputParamType.FILEPATH.getText();
     }
 
     /**
@@ -43,7 +44,7 @@ public class ScriptParamTypeText extends ScriptParamTypeBase {
      */
     @Override
     public String getDescription() {
-        return "可输出字符串、数字";
+        return "可输出文件路径参数";
     }
 
     /**
@@ -53,7 +54,7 @@ public class ScriptParamTypeText extends ScriptParamTypeBase {
      */
     @Override
     public int getSort() {
-        return 0;
+        return 13;
     }
 
     /**
