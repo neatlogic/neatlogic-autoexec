@@ -111,7 +111,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 if (paramType == null) {
                     throw new ParamIrregularException("paramList.[" + i + "].type");
                 }
-                if (ParamType.TEXT != paramType && ParamMode.OUTPUT.getValue().equals(param.getMode())) {
+                if (ParamType.TEXT != paramType && ParamType.FILEPATH != paramType && ParamMode.OUTPUT.getValue().equals(param.getMode())) {
                     throw new ParamIrregularException("paramList.[" + i + "].type");
                 }
             }
