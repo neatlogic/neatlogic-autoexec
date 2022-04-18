@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.script.paramtype;
 
+import codedriver.framework.autoexec.constvalue.OutputParamType;
 import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeBase;
 import com.alibaba.fastjson.JSONObject;
@@ -23,7 +24,7 @@ public class ScriptParamTypeFilePath extends ScriptParamTypeBase {
      */
     @Override
     public String getType() {
-        return ParamType.FILEPATH.getValue();
+        return OutputParamType.FILEPATH.getValue();
     }
 
     /**
@@ -33,7 +34,7 @@ public class ScriptParamTypeFilePath extends ScriptParamTypeBase {
      */
     @Override
     public String getTypeName() {
-        return ParamType.FILEPATH.getText();
+        return OutputParamType.FILEPATH.getText();
     }
 
     /**
