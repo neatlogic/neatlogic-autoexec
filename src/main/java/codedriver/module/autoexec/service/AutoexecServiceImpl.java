@@ -95,9 +95,6 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 if (!paramNamePattern.matcher(name).matches()) {
                     throw new ParamIrregularException("paramList.[" + i + "].name");
                 }
-                if (isRequired == null && !Objects.equals(ParamMode.OUTPUT.getValue(), mode)) {
-                    throw new ParamNotExistsException("paramList.[" + i + "].isRequired");
-                }
                 if (param instanceof AutoexecScriptVersionParamVo && StringUtils.isBlank(mode)) {
                     throw new ParamNotExistsException("paramList.[" + i + "].mode");
                 }
@@ -107,12 +104,19 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 if (StringUtils.isBlank(type)) {
                     throw new ParamNotExistsException("paramList.[" + i + "].type");
                 }
-                ParamType paramType = ParamType.getParamType(type);
-                if (paramType == null) {
-                    throw new ParamIrregularException("paramList.[" + i + "].type");
-                }
-                if (ParamType.TEXT != paramType && ParamType.FILEPATH != paramType && ParamMode.OUTPUT.getValue().equals(param.getMode())) {
-                    throw new ParamIrregularException("paramList.[" + i + "].type");
+                if (ParamMode.INPUT.getValue().equals(param.getMode())) {
+                    ParamType paramType = ParamType.getParamType(type);
+                    if (paramType == null) {
+                        throw new ParamIrregularException("paramList.[" + i + "].type");
+                    }
+                    if (isRequired == null) {
+                        throw new ParamNotExistsException("paramList.[" + i + "].isRequired");
+                    }
+                } else {
+                    OutputParamType paramType = OutputParamType.getParamType(type);
+                    if (paramType == null) {
+                        throw new ParamIrregularException("paramList.[" + i + "].type");
+                    }
                 }
             }
         }
