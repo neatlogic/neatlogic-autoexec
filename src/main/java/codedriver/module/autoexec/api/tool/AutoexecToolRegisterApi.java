@@ -217,8 +217,7 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                 if (StringUtils.isBlank(name)) {
                     throw new ParamNotExistsException("[" + key + ".name]");
                 }
-                String type = value.getString("type");
-                ParamType paramType = ParamType.getParamType(type);
+                ParamType paramType = ParamType.getParamType(value.getString("type"));
                 if (paramType == null) {
                     paramType = ParamType.TEXT;
                 }
