@@ -220,7 +220,7 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                 }
                 OutputParamType paramType;
                 String type = value.getString("type");
-                if ("file".equals(type)) {
+                if (ParamType.FILE.getValue().equals(type)) {
                     paramType = OutputParamType.FILEPATH;
                 } else {
                     paramType = OutputParamType.getParamType(type);
