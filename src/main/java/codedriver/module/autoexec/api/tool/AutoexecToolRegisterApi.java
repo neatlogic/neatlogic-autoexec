@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.api.tool;
 
+import codedriver.framework.autoexec.constvalue.OutputParamType;
 import codedriver.framework.autoexec.constvalue.ParamDataSource;
 import codedriver.framework.autoexec.constvalue.ParamMode;
 import codedriver.framework.autoexec.constvalue.ParamType;
@@ -217,9 +218,15 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                 if (StringUtils.isBlank(name)) {
                     throw new ParamNotExistsException("[" + key + ".name]");
                 }
-                ParamType paramType = ParamType.getParamType(value.getString("type"));
+                OutputParamType paramType;
+                String type = value.getString("type");
+                if ("file".equals(type)) {
+                    paramType = OutputParamType.FILEPATH;
+                } else {
+                    paramType = OutputParamType.getParamType(type);
+                }
                 if (paramType == null) {
-                    paramType = ParamType.TEXT;
+                    paramType = OutputParamType.TEXT;
                 }
                 param.put("key", key);
                 param.put("name", name);
