@@ -30,7 +30,6 @@ import codedriver.framework.dto.OperateVo;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.lang3.ObjectUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.util.DigestUtils;
@@ -40,7 +39,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-public class AutoexecScriptServiceImpl implements AutoexecScriptService , IAutoexecScriptServiceCrossoverService {
+public class AutoexecScriptServiceImpl implements AutoexecScriptService, IAutoexecScriptServiceCrossoverService {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
@@ -72,6 +71,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService , IAutoe
         }
         version.setParamList(autoexecScriptMapper.getParamListByVersionId(versionId));
         version.setLineList(autoexecScriptMapper.getLineListByVersionId(versionId));
+        version.setArgument(autoexecScriptMapper.getArgumentByVersionId(versionId));
         return version;
     }
 
@@ -154,6 +154,9 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService , IAutoe
         }
         if (compareParamList(beforeOutputParamList, afterOutputParamList)) {
             return true;
+        }
+        if (!Objects.equals(before.getArgument(), after.getArgument())) {
+            return false;
         }
         List<AutoexecScriptLineVo> beforeLineList = new ArrayList<>();
         beforeLineList.addAll(before.getLineList());
