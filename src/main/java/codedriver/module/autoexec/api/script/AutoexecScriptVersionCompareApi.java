@@ -10,6 +10,7 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.autoexec.constvalue.ChangeType;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptArgumentVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
@@ -164,6 +165,7 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
         List<AutoexecScriptVersionParamVo> targetOutputParamList = target.getOutputParamList() != null ? target.getOutputParamList() : new ArrayList<>();
         compareParamList(targetInputParamList, sourceInputParamList);
         compareParamList(targetOutputParamList, sourceOutputParamList);
+        compareArgument(source.getArgument(), target.getArgument());
         if (!Objects.equals(source.getParser(), target.getParser())) {
             source.setParser("<span class='update'>" + source.getParser() + "</span>");
             target.setParser("<span class='update'>" + target.getParser() + "</span>");
@@ -223,6 +225,26 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
                 beforeNextParam.setChangeType(ChangeType.UPDATE.getValue());
                 afterNextParam.setChangeType(ChangeType.UPDATE.getValue());
             }
+        }
+    }
+
+    /**
+     * 对比自由参数
+     *
+     * @param source
+     * @param target
+     */
+    private void compareArgument(AutoexecScriptArgumentVo source, AutoexecScriptArgumentVo target) {
+        if (source == null && target == null) {
+            return;
+        }
+        if (source == null) {
+            target.setChangeType(ChangeType.DELETE.getValue());
+        } else if (target == null) {
+            source.setChangeType(ChangeType.INSERT.getValue());
+        } else if (!Objects.equals(source, target)) {
+            source.setChangeType(ChangeType.UPDATE.getValue());
+            target.setChangeType(ChangeType.UPDATE.getValue());
         }
     }
 

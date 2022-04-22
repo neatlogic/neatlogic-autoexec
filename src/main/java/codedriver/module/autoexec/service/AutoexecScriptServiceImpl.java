@@ -81,6 +81,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService, IAutoex
         if (CollectionUtils.isNotEmpty(versionList)) {
             for (AutoexecScriptVersionVo version : versionList) {
                 version.setParamList(autoexecScriptMapper.getParamListByVersionId(version.getId()));
+                version.setArgument(autoexecScriptMapper.getArgumentByVersionId(version.getId()));
                 version.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
             }
         }

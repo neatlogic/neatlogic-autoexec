@@ -85,6 +85,7 @@ public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
             List<Long> versionIdList = autoexecScriptMapper.getVersionIdListByScriptId(id);
             if (CollectionUtils.isNotEmpty(versionIdList)) {
                 autoexecScriptMapper.deleteParamByVersionIdList(versionIdList);
+                autoexecScriptMapper.deleteArgumentByVersionIdList(versionIdList);
             }
             //删除脚本和profile的关系
             IDeployProfileCrossoverMapper iDeployProfileCrossoverMapper = CrossoverServiceFactory.getApi(IDeployProfileCrossoverMapper.class);
@@ -107,6 +108,7 @@ public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
             }
             boolean hasOnlyOneVersion = autoexecScriptMapper.getVersionCountByScriptId(version.getScriptId()) == 1;
             autoexecScriptMapper.deleteParamByVersionId(versionId);
+            autoexecScriptMapper.deleteArgumentByVersionId(versionId);
             autoexecScriptMapper.deleteScriptLineByVersionId(versionId);
             autoexecScriptMapper.deleteVersionByVersionId(versionId);
             // 只剩一个版本时，直接删除整个脚本
