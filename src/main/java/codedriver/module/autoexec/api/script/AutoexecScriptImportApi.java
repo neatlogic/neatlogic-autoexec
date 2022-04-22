@@ -15,6 +15,7 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.framework.autoexec.dto.catalog.AutoexecCatalogVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptArgumentVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -185,9 +186,13 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
             if (CollectionUtils.isNotEmpty(versionList)) {
                 for (AutoexecScriptVersionVo versionVo : versionList) {
                     String versionStr = "版本-" + versionVo.getVersion() + "：";
+                    AutoexecScriptArgumentVo argument = versionVo.getArgument();
                     try {
                         if (CollectionUtils.isNotEmpty(versionVo.getParamList())) {
                             autoexecService.validateParamList(versionVo.getParamList());
+                        }
+                        if (argument != null) {
+                            autoexecService.validateArgument(argument);
                         }
                     } catch (ApiRuntimeException ex) {
                         failReasonList.add(versionStr + ex.getMessage());
@@ -203,18 +208,29 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                     AutoexecScriptVersionVo oldVersion = autoexecScriptMapper.getVersionByVersionIdForUpdate(versionVo.getId());
                     if (oldVersion != null) {
                         oldVersion.setParamList(autoexecScriptMapper.getParamListByVersionId(versionVo.getId()));
+                        oldVersion.setArgument(autoexecScriptMapper.getArgumentByVersionId(versionVo.getId()));
                         oldVersion.setLineList(autoexecScriptMapper.getLineListByVersionId(versionVo.getId()));
                         if (autoexecScriptService.checkScriptVersionNeedToUpdate(oldVersion, versionVo)) {
                             autoexecScriptMapper.deleteParamByVersionId(versionVo.getId());
+                            autoexecScriptMapper.deleteArgumentByVersionId(versionVo.getId());
                             autoexecScriptMapper.deleteScriptLineByVersionId(versionVo.getId());
                             autoexecScriptService.saveParamList(versionVo.getId(), versionVo.getParamList());
+                            if (argument != null) {
+                                argument.setScriptVersionId(versionVo.getId());
+                                autoexecScriptMapper.insertScriptVersionArgument(argument);
+                            }
                             autoexecScriptService.saveLineList(id, versionVo.getId(), versionVo.getLineList());
                             versionVo.setLcu(UserContext.get().getUserUuid());
                             autoexecScriptMapper.updateScriptVersion(versionVo);
                         }
                     } else {
                         versionVo.setScriptId(id);
+                        versionVo.setId(null);
                         autoexecScriptService.saveParamList(versionVo.getId(), versionVo.getParamList());
+                        if (argument != null) {
+                            argument.setScriptVersionId(versionVo.getId());
+                            autoexecScriptMapper.insertScriptVersionArgument(argument);
+                        }
                         autoexecScriptService.saveLineList(id, versionVo.getId(), versionVo.getLineList());
                         autoexecScriptMapper.insertScriptVersion(versionVo);
                     }

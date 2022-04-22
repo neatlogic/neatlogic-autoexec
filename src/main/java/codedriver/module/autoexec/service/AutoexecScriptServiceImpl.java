@@ -312,6 +312,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService, IAutoex
             int lineNumber = 0;
             List<AutoexecScriptLineVo> buffer = new ArrayList<>(100);
             for (AutoexecScriptLineVo line : lineList) {
+                line.setId(null);
                 line.setLineNumber(++lineNumber);
                 line.setScriptId(scriptId);
                 line.setScriptVersionId(versionId);
