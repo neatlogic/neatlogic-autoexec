@@ -156,7 +156,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService, IAutoex
             return true;
         }
         if (!Objects.equals(before.getArgument(), after.getArgument())) {
-            return false;
+            return true;
         }
         List<AutoexecScriptLineVo> beforeLineList = new ArrayList<>();
         beforeLineList.addAll(before.getLineList());
