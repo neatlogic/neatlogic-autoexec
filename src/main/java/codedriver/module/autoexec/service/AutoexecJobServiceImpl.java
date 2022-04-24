@@ -137,7 +137,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 autoexecJobMapper.insertJobPhaseNode(nodeVo);
                 nodeVo.setRunnerMapId(runnerMapVo.getRunnerMapId());
                 autoexecJobMapper.insertIgnoreJobPhaseNodeRunner(new AutoexecJobPhaseNodeRunnerVo(nodeVo));
-                autoexecJobMapper.insertDuplicateJobPhaseRunner(nodeVo);
+                autoexecJobMapper.insertJobPhaseRunner(nodeVo.getJobId(), nodeVo.getJobGroupId(),nodeVo.getJobPhaseId(),nodeVo.getRunnerMapId(),nodeVo.getLcd());
                 autoexecJobMapper.updateJobPhaseNodeFrom(jobPhaseVo.getId(), AutoexecJobPhaseNodeFrom.PHASE.getValue());
             }
             //jobPhaseOperation
@@ -192,10 +192,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         boolean isHasNode = false;
         boolean isPhaseConfig = false;
         boolean isGroupConfig = false;
-        AutoexecCombopExecuteConfigVo executeConfigVo ;
+        AutoexecCombopExecuteConfigVo executeConfigVo;
         AutoexecJobGroupVo jobGroupVo = jobPhaseVo.getJobGroupVo();
         //判断group是不是grayScale，如果是则从group中获取执行节点
-        if(Objects.equals(jobGroupVo.getPolicy(), AutoexecJobGroupPolicy.GRAYSCALE.getName())){
+        if (Objects.equals(jobGroupVo.getPolicy(), AutoexecJobGroupPolicy.GRAYSCALE.getName())) {
             AutoexecCombopGroupConfigVo groupConfig = jobGroupVo.getConfig();
             executeConfigVo = groupConfig.getExecuteConfig();
             //判断组执行节点是否配置
@@ -210,7 +210,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 jobVo.setNodeFrom(AutoexecJobPhaseNodeFrom.GROUP.getValue());
                 isHasNode = getJobNodeList(executeConfigVo, jobVo, jobPhaseVo, userName, protocolId);
             }
-        }else {
+        } else {
             executeConfigVo = combopPhaseExecuteConfigVo.getExecuteConfig();
             if (executeConfigVo != null) {
                 if (StringUtils.isNotBlank(executeConfigVo.getExecuteUser())) {
@@ -328,8 +328,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         }
         List<AutoexecJobPhaseVo> jobPhaseVoList = jobVo.getPhaseList();
         AutoexecJobGroupVo executeJobGroupVo = jobVo.getExecuteJobGroupVo();
-        if(executeJobGroupVo != null){
-            jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndGroupSort(jobVo.getId(),executeJobGroupVo.getSort());
+        if (executeJobGroupVo != null) {
+            jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndGroupSort(jobVo.getId(), executeJobGroupVo.getSort());
         }
         List<AutoexecJobGroupVo> jobGroupVos = autoexecJobMapper.getJobGroupByJobId(jobVo.getId());
         Map<Long, AutoexecJobGroupVo> jobGroupIdMap = jobGroupVos.stream().collect(Collectors.toMap(AutoexecJobGroupVo::getId, e -> e));
@@ -414,11 +414,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         isNeedLncd = isNeedLncd || updateCount > 0;
         //阶段节点被真删除||伪删除（is_delete=1），则更新上一次修改日期(plcd),需重新下载
         if (isNeedLncd) {
-            if(Objects.equals(AutoexecJobPhaseNodeFrom.JOB.getValue(),jobVo.getNodeFrom())){
+            if (Objects.equals(AutoexecJobPhaseNodeFrom.JOB.getValue(), jobVo.getNodeFrom())) {
                 autoexecJobMapper.updateJobLncdById(jobVo.getId(), nowTime);
-            }else if(Objects.equals(AutoexecJobPhaseNodeFrom.GROUP.getValue(),jobVo.getNodeFrom())){
+            } else if (Objects.equals(AutoexecJobPhaseNodeFrom.GROUP.getValue(), jobVo.getNodeFrom())) {
                 autoexecJobMapper.updateJobGroupLncdById(jobVo.getExecuteJobGroupVo().getId(), nowTime);
-            }else{
+            } else {
                 autoexecJobMapper.updateJobPhaseLncdById(jobPhaseVo.getId(), nowTime);
             }
         }
@@ -433,7 +433,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         }
         List<RunnerMapVo> insertRunnerList = jobPhaseNodeRunnerList.stream().filter(j -> originPhaseRunnerVoList.stream().noneMatch(o -> Objects.equals(o.getRunnerMapId(), j.getRunnerMapId()))).collect(Collectors.toList());
         for (RunnerMapVo insertRunnerVo : insertRunnerList) {
-            autoexecJobMapper.insertJobPhaseRunner(jobVo.getId(), jobPhaseVo.getId(), insertRunnerVo.getRunnerMapId(), jobPhaseVo.getLcd());
+            autoexecJobMapper.insertJobPhaseRunner(jobVo.getId(), jobPhaseVo.getGroupId(), jobPhaseVo.getId(), insertRunnerVo.getRunnerMapId(), jobPhaseVo.getLcd());
         }
         return isHasNode;
     }
