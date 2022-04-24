@@ -424,8 +424,17 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         }
         //更新最近一次修改时间lcd
         autoexecJobMapper.updateJobPhaseLcdById(jobPhaseVo.getId(), jobPhaseVo.getLcd());
-        //删除该阶段所有不是最近更新的phase runner
-        autoexecJobMapper.deleteJobPhaseRunnerByJobPhaseIdAndLcd(jobPhaseVo.getId(), jobPhaseVo.getLcd());
+        //更新phase runner
+        List<RunnerMapVo> jobPhaseNodeRunnerList = autoexecJobMapper.getJobPhaseNodeRunnerListByJobPhaseId(jobPhaseVo.getId());
+        List<RunnerMapVo> originPhaseRunnerVoList = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobVo.getId(), Collections.singletonList(jobPhaseVo.getId()));
+        List<RunnerMapVo> deleteRunnerList = originPhaseRunnerVoList.stream().filter(o -> jobPhaseNodeRunnerList.stream().noneMatch(j -> Objects.equals(o.getRunnerMapId(), j.getRunnerMapId()))).collect(Collectors.toList());
+        for (RunnerMapVo deleteRunnerVo : deleteRunnerList) {
+            autoexecJobMapper.deleteJobPhaseRunnerByJobPhaseIdAndRunnerMapId(jobPhaseVo.getId(), deleteRunnerVo.getRunnerMapId());
+        }
+        List<RunnerMapVo> insertRunnerList = jobPhaseNodeRunnerList.stream().filter(j -> originPhaseRunnerVoList.stream().noneMatch(o -> Objects.equals(o.getRunnerMapId(), j.getRunnerMapId()))).collect(Collectors.toList());
+        for (RunnerMapVo insertRunnerVo : insertRunnerList) {
+            autoexecJobMapper.insertJobPhaseRunner(jobVo.getId(), jobPhaseVo.getId(), insertRunnerVo.getRunnerMapId(), jobPhaseVo.getLcd());
+        }
         return isHasNode;
     }
 
@@ -577,7 +586,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 //防止旧resource 所以ignore insert
                 autoexecJobMapper.insertIgnoreJobPhaseNodeRunner(new AutoexecJobPhaseNodeRunnerVo(jobPhaseNodeVo));
             }
-            autoexecJobMapper.insertDuplicateJobPhaseRunner(jobPhaseNodeVo);
         });
     }
 

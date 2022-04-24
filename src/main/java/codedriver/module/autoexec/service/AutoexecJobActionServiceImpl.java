@@ -7,9 +7,7 @@ package codedriver.module.autoexec.service;
 
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
-import codedriver.framework.autoexec.constvalue.JobAction;
-import codedriver.framework.autoexec.constvalue.ParamMappingMode;
-import codedriver.framework.autoexec.constvalue.ToolType;
+import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.crossover.IAutoexecJobActionCrossoverService;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
@@ -179,7 +177,8 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                                                 if (CollectionUtils.isNotEmpty(param.getJSONArray("outputParamList"))) {
                                                     for (Object arg : param.getJSONArray("outputParamList")) {
                                                         JSONObject argJson = JSONObject.parseObject(arg.toString());
-                                                        paramJson.put("type",argJson.getString("type"));
+                                                        paramJson.put("opt", argJson.getString("key"));
+                                                        paramJson.put("type", Objects.equals(argJson.getString("type"), OutputParamType.FILEPATH.getValue()) ? ParamType.FILE.getValue() : argJson.getString("type"));
                                                         paramJson.put("defaultValue",argJson.getString("defaultValue"));
                                                         put(argJson.getString("key"), argJson);
                                                     }
