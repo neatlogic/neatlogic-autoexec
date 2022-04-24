@@ -21,6 +21,13 @@ public interface AutoexecService {
      */
     void validateParamList(List<? extends AutoexecParamVo> paramList);
 
+    /**
+     * 校验自由参数
+     *
+     * @param argument
+     */
+    void validateArgument(AutoexecParamVo argument);
+
     void mergeConfig(AutoexecParamVo autoexecParamVo);
 
     List<AutoexecJobVo> getJobList(AutoexecJobVo jobVo);
@@ -31,7 +38,7 @@ public interface AutoexecService {
      * 根据关联的operationVoList获取工具参数并与数据库存储的旧参数oldOperationParamList做去重处理
      *
      * @param paramAutoexecOperationVoList 工具list
-     * @param oldOperationParamList 旧的参数list
+     * @param oldOperationParamList        旧的参数list
      * @return
      */
     List<AutoexecParamVo> getAutoexecOperationParamVoList(List<AutoexecOperationVo> paramAutoexecOperationVoList, List<AutoexecParamVo> oldOperationParamList);
@@ -48,7 +55,7 @@ public interface AutoexecService {
      * 根据scriptIdList和toolIdList获取对应的operationVoList
      *
      * @param scriptIdList 脚本idList
-     * @param toolIdList 工具idList
+     * @param toolIdList   工具idList
      * @return
      */
     List<AutoexecOperationVo> getAutoexecOperationByScriptIdAndToolIdList(List<Long> scriptIdList, List<Long> toolIdList);
