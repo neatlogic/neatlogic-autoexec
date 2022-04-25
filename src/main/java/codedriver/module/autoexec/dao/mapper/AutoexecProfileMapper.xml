@@ -15,7 +15,6 @@
         (id,
          name,
          description,
-         config,
          system_id,
          fcd,
          fcu,
@@ -24,24 +23,17 @@
         VALUES (#{id},
                 #{name},
                 #{description},
-                #{configStr},
                 #{fromSystemId},
                 NOW(3),
                 #{fcu},
                 NOW(3),
                 #{fcu})
-    </insert>
-
-    <update id="updateProfile" parameterType="codedriver.framework.autoexec.dto.profile.AutoexecProfileVo">
-        UPDATE `autoexec_profile`
-        SET `name`        = #{name},
-            `config`      = #{configStr},
-            system_id     = #{fromSystemId},
+                ON DUPLICATE KEY
+        UPDATE `name` = #{name},
             `description` = #{description},
-            `lcd`         = NOW(3),
-            `lcu`         = #{lcu}
-        where `id` = #{id}
-    </update>
+            `lcu` = #{lcu},
+            `lcd` = now(3)
+    </insert>
 
     <select id="searchAutoexecProfileCount" parameterType="codedriver.framework.autoexec.dto.profile.AutoexecProfileVo"
             resultType="int">
@@ -220,6 +212,7 @@
         <include refid="searchProfile"></include>
         LEFT JOIN cmdb_ci cci ON cci.id = cct.ci_id
         ORDER BY a.lcd DESC
+        LIMIT #{startNum}, #{pageSize}
     </select>
 
     <delete id="deleteProfileById">

@@ -29,8 +29,6 @@ public interface AutoexecProfileMapper {
 
     void insertProfile(AutoexecProfileVo profileVo);
 
-    void updateProfile(AutoexecProfileVo profileVo);
-
     void deleteProfileById(Long id);
 
     void deleteProfileOperationByProfileId(Long id);
