@@ -6,7 +6,8 @@
 package codedriver.module.autoexec.api.risk;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_RISK_MODIFY;
+import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
+import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dto.AutoexecRiskVo;
 import codedriver.framework.autoexec.exception.AutoexecRiskHasBeenReferredException;
 import codedriver.framework.autoexec.exception.AutoexecRiskNotFoundException;
@@ -14,14 +15,13 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 
 @Service
-@AuthAction(action = AUTOEXEC_RISK_MODIFY.class)
+@AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.DELETE)
 public class AutoexecRiskDeleteApi extends PrivateApiComponentBase {
 
