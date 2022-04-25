@@ -65,7 +65,10 @@
             <if test="ciEntityId != null">
                 and dpc.`ci_entity_id` = #{ciEntityId}
             </if>
-            <if test="fromSystemId != null">
+            <if test="fromSystemId = -1 ">
+                and a.system_id = -1
+            </if>
+            <if test="fromSystemId != null and fromSystemId != -1 ">
                 and cc.`id` = #{fromSystemId}
             </if>
         </where>
@@ -74,7 +77,9 @@
     <sql id="searchProfileFrom">
         FROM
         `autoexec_profile` a
-        LEFT JOIN cmdb_cientity cc ON cc.id = a.system_id
+        <if test="fromSystemId != null and fromSystemId != -1 ">
+            LEFT JOIN cmdb_cientity cc ON cc.id = a.system_id
+        </if>
         LEFT JOIN autoexec_profile_cientity dpc ON dpc.profile_id=a.id
         LEFT JOIN cmdb_cientity cct ON cct.id = dpc.ci_entity_id
     </sql>
@@ -114,7 +119,9 @@
         a.description,
         a.config AS configStr,
         a.system_id AS fromSystemId,
-        cc.name as fromSystemName,
+        <if test="fromSystemId != null and fromSystemId != -1 ">
+            cc.name as fromSystemName,
+        </if>
         cct.id AS ciEntityId,
         cct.name as ciEntityName,
         dpo.type,
@@ -126,45 +133,6 @@
         <include refid="searchProfileFrom"></include>
         left join autoexec_profile_operation dpo on dpo.profile_id = a.id
         WHERE a.id = #{value}
-    </select>
-
-    <select id="getProfileOperationVoListByProfileId"
-            resultType="codedriver.framework.autoexec.dto.profile.AutoexecProfileOperationVo">
-        select profile_id, operation_id, type
-        from autoexec_profile_operation
-        where profile_id = #{value}
-    </select>
-
-    <select id="getAutoexecProfileIdList" resultType="java.lang.Long">
-        SELECT distinct a.id
-        <include refid="searchProfile"></include>
-        ORDER BY a.id DESC
-        <if test="needPage == true">
-            LIMIT #{startNum}, #{pageSize}
-        </if>
-    </select>
-
-    <select id="getProfileListByIdList" resultMap="profileMap">
-        SELECT a.id,
-        a.name,
-        a.description,
-        a.config as configStr,
-        a.system_id AS fromSystemId,
-        cc.name as fromSystemName,
-        cct.id AS ciEntityId,
-        cct.name as ciEntityName,
-        cci.icon as ciIcon,
-        a.fcd,
-        a.fcu,
-        a.lcd,
-        a.lcu
-        <include refid="searchProfileFrom"></include>
-        LEFT JOIN cmdb_ci cci ON cci.id = cct.ci_id
-        WHERE a.id in
-        <foreach collection="idList" open="(" separator="," close=")" item="id">
-            #{id}
-        </foreach>
-        ORDER BY a.lcd DESC
     </select>
 
     <select id="checkProfileNameIsRepeats" resultType="int">
@@ -230,6 +198,28 @@
                   (select operation_id
                    from autoexec_profile_operation
                    where profile_id = #{value}))
+    </select>
+
+    <select id="searchAutoexecProfile"
+            resultType="codedriver.framework.autoexec.dto.profile.AutoexecProfileVo">
+        SELECT a.id,
+        a.name,
+        a.description,
+        a.config as configStr,
+        a.system_id AS fromSystemId,
+        <if test="fromSystemId != null and fromSystemId != -1 ">
+            cc.name as fromSystemName,
+        </if>
+        cct.id AS ciEntityId,
+        cct.name as ciEntityName,
+        cci.icon as ciIcon,
+        a.fcd,
+        a.fcu,
+        a.lcd,
+        a.lcu
+        <include refid="searchProfile"></include>
+        LEFT JOIN cmdb_ci cci ON cci.id = cct.ci_id
+        ORDER BY a.lcd DESC
     </select>
 
     <delete id="deleteProfileById">

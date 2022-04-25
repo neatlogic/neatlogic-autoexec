@@ -2,7 +2,6 @@ package codedriver.module.autoexec.dao.mapper;
 
 
 import codedriver.framework.autoexec.dto.AutoexecOperationVo;
-import codedriver.framework.autoexec.dto.profile.AutoexecProfileOperationVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import org.apache.ibatis.annotations.Param;
 
@@ -20,11 +19,9 @@ public interface AutoexecProfileMapper {
 
     int checkProfileNameIsRepeats(AutoexecProfileVo vo);
 
-    List<Long> getAutoexecProfileIdList(AutoexecProfileVo profileVo);
+    List<AutoexecOperationVo> getAutoexecOperationVoByProfileId(Long id);
 
-    List<AutoexecProfileVo> getProfileListByIdList(@Param("idList") List<Long> idList);
-
-    List<AutoexecProfileOperationVo> getProfileOperationVoListByProfileId(Long id);
+    List<AutoexecProfileVo> searchAutoexecProfile(AutoexecProfileVo paramProfileVo);
 
     AutoexecProfileVo getProfileVoById(Long id);
 
@@ -39,7 +36,5 @@ public interface AutoexecProfileMapper {
     void deleteProfileOperationByProfileId(Long id);
 
     void deleteProfileOperationByOperationId(Long id);
-
-    List<AutoexecOperationVo> getAutoexecOperationVoByProfileId(Long id);
 
 }

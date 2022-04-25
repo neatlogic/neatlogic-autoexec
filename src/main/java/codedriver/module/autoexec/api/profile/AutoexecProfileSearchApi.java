@@ -69,17 +69,10 @@ public class AutoexecProfileSearchApi extends PrivateApiComponentBase {
         int profileCount = autoexecProfileMapper.searchAutoexecProfileCount(paramProfileVo);
         if (profileCount > 0) {
             paramProfileVo.setRowNum(profileCount);
-            List<Long> profileIdList = autoexecProfileMapper.getAutoexecProfileIdList(paramProfileVo);
-            returnList = autoexecProfileMapper.getProfileListByIdList(profileIdList);
-//            Map<Object, Integer> toolAndScriptReferredCountMap = DependencyManager.getBatchDependencyCount(DeployFromType.DEPLOY_PROFILE_OPERATION, profileIdList);
-//            if (!toolAndScriptReferredCountMap.isEmpty()) {
-//                for (AutoexecProfileVo profileVo : returnList) {
-//                    profileVo.setAutoexecToolAndScriptCount(toolAndScriptReferredCountMap.get(profileVo.getId()));
-//                }
-//            }
-        }
-        if (CollectionUtils.isEmpty(returnList)) {
-            returnList = new ArrayList<>();
+            returnList = autoexecProfileMapper.searchAutoexecProfile(paramProfileVo);
+            if (CollectionUtils.isEmpty(returnList)) {
+                returnList = new ArrayList<>();
+            }
         }
         return TableResultUtil.getResult(returnList, paramProfileVo);
     }

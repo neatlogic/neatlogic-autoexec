@@ -69,6 +69,9 @@ public class AutoexecProfileSaveApi extends PrivateApiComponentBase {
         if (paramProfileId != null && autoexecProfileMapper.checkProfileIsExists(paramProfileId) == 0) {
             throw new AutoexecProfileIsNotFoundException(paramProfileId);
         }
+        if (autoexecProfileMapper.checkProfileNameIsRepeats(profileVo) > 0) {
+            throw new AutoexecProfileNameRepeatsException(profileVo.getName());
+        }
 
         //删除profile和tool、script的关系
         autoexecProfileMapper.deleteProfileOperationByProfileId(paramProfileId);
