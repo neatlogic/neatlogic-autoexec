@@ -1,7 +1,7 @@
 package codedriver.module.autoexec.api.catalog;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_CATALOG_MODIFY;
+import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dto.catalog.AutoexecCatalogVo;
 import codedriver.framework.autoexec.exception.AutoexecCatalogHasBeenReferredException;
@@ -21,7 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.List;
 
-@AuthAction(action = AUTOEXEC_CATALOG_MODIFY.class)
+@AuthAction(action = AUTOEXEC_MODIFY.class)
 @Service
 @Transactional
 @OperationType(type = OperationTypeEnum.DELETE)

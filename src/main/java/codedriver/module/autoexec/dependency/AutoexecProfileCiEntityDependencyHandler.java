@@ -10,23 +10,24 @@ import java.util.List;
 
 /**
  * @author longrf
- * @date 2022/3/29 2:28 下午
+ * @date 2022/3/25 2:07 下午
  */
 @Service
-public class AutoexecOperationProfileDependencyHandler extends CustomTableDependencyHandlerBase {
+public class AutoexecProfileCiEntityDependencyHandler extends CustomTableDependencyHandlerBase {
+
     @Override
     protected String getTableName() {
-        return "autoexec_profile_operation";
+        return "autoexec_profile_cientity";
     }
 
     @Override
     protected String getFromField() {
-        return "operation_id";
+        return "profile_id";
     }
 
     @Override
     protected String getToField() {
-        return "profile_id";
+        return "ci_entity_id";
     }
 
     @Override
@@ -41,6 +42,6 @@ public class AutoexecOperationProfileDependencyHandler extends CustomTableDepend
 
     @Override
     public IFromType getFromType() {
-        return AutoexecFromType.AUTOEXEC_OPERATION_PROFILE;
+        return AutoexecFromType.AUTOEXEC_PROFILE_CIENTITY;
     }
 }

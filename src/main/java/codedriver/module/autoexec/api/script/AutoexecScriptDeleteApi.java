@@ -14,13 +14,12 @@ import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.common.constvalue.ApiParamType;
-import codedriver.framework.crossover.CrossoverServiceFactory;
-import codedriver.framework.deploy.crossover.IDeployProfileCrossoverMapper;
 import codedriver.framework.dto.FieldValidResultVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.IValid;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.module.autoexec.dao.mapper.AutoexecProfileMapper;
 import codedriver.module.autoexec.service.AutoexecScriptService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -41,6 +40,9 @@ public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
+
+    @Resource
+    private AutoexecProfileMapper autoexecProfileMapper;
 
     @Resource
     private AutoexecScriptService autoexecScriptService;
@@ -88,8 +90,7 @@ public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
                 autoexecScriptMapper.deleteArgumentByVersionIdList(versionIdList);
             }
             //删除脚本和profile的关系
-            IDeployProfileCrossoverMapper iDeployProfileCrossoverMapper = CrossoverServiceFactory.getApi(IDeployProfileCrossoverMapper.class);
-            iDeployProfileCrossoverMapper.deleteProfileOperationByOperationId(id);
+            autoexecProfileMapper.deleteProfileOperationByOperationId(id);
 
             autoexecScriptMapper.deleteScriptLineByScriptId(id);
             autoexecScriptMapper.deleteScriptAuditByScriptId(id);

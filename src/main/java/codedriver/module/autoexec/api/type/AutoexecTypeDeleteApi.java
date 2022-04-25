@@ -6,22 +6,22 @@
 package codedriver.module.autoexec.api.type;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_TYPE_MODIFY;
-import codedriver.framework.common.constvalue.ApiParamType;
-import codedriver.framework.restful.annotation.*;
-import codedriver.framework.restful.constvalue.OperationTypeEnum;
-import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.framework.autoexec.dto.AutoexecTypeVo;
 import codedriver.framework.autoexec.exception.AutoexecTypeHasBeenReferredException;
 import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
+import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.restful.annotation.*;
+import codedriver.framework.restful.constvalue.OperationTypeEnum;
+import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 
 @Service
-@AuthAction(action = AUTOEXEC_TYPE_MODIFY.class)
+@AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.DELETE)
 public class AutoexecTypeDeleteApi extends PrivateApiComponentBase {
 
