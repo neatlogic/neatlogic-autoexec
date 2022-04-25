@@ -1,5 +1,7 @@
 package codedriver.module.autoexec.api.global.param;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.AutoexecGlobalParamType;
 import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
 import codedriver.framework.autoexec.exception.AutoexecGlobalParamIsNotFoundException;
@@ -24,7 +26,7 @@ import javax.annotation.Resource;
  * @date 2022/4/19 9:49 上午
  */
 @Service
-
+@AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecGlobalParamGetApi extends PrivateApiComponentBase {
 

@@ -1,5 +1,7 @@
 package codedriver.module.autoexec.api.global.param;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import codedriver.framework.autoexec.constvalue.AutoexecGlobalParamType;
 import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
 import codedriver.framework.autoexec.exception.AutoexecGlobalParamDisplayNameRepeatException;
@@ -27,7 +29,7 @@ import javax.annotation.Resource;
  * @date 2022/4/18 6:54 下午
  */
 @Service
-
+@AuthAction(action = AUTOEXEC_MODIFY.class)
 public class AutoexecGlobalParamSaveApi extends PrivateApiComponentBase {
 
     @Resource

@@ -1,5 +1,7 @@
 package codedriver.module.autoexec.api.scenario;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import codedriver.framework.autoexec.dto.scenario.AutoexecScenarioVo;
 import codedriver.framework.autoexec.exception.AutoexecScenarioIsNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScenarioRepeatException;
@@ -24,7 +26,7 @@ import javax.annotation.Resource;
  * @date 2022/4/15 11:45 上午
  */
 @Service
-
+@AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.CREATE)
 public class AutoexecScenarioSaveApi extends PrivateApiComponentBase {
 

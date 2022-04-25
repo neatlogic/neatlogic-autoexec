@@ -1,5 +1,7 @@
 package codedriver.module.autoexec.api.global.param;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import codedriver.framework.autoexec.exception.AutoexecGlobalParamIsNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.Description;
@@ -19,7 +21,7 @@ import javax.annotation.Resource;
  * @date 2022/4/19 2:10 下午
  */
 @Service
-
+@AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.DELETE)
 public class AutoexecGlobalParamDeleteApi extends PrivateApiComponentBase {
 

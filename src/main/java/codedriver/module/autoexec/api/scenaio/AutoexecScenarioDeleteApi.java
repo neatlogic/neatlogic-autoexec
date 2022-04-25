@@ -1,5 +1,7 @@
 package codedriver.module.autoexec.api.scenario;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import codedriver.framework.autoexec.constvalue.AutoexecFromType;
 import codedriver.framework.autoexec.dto.scenario.AutoexecScenarioVo;
 import codedriver.framework.autoexec.exception.AutoexecScenarioHasBeenReferredException;
@@ -23,7 +25,7 @@ import javax.annotation.Resource;
  * @date 2022/4/19 2:16 下午
  */
 @Service
-
+@AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.DELETE)
 public class AutoexecScenarioDeleteApi extends PrivateApiComponentBase {
 

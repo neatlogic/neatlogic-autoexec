@@ -1,5 +1,7 @@
 package codedriver.module.autoexec.api.profile;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import codedriver.framework.autoexec.exception.AutoexecProfileIsNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -19,6 +21,7 @@ import javax.annotation.Resource;
  */
 
 @Service
+@AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecProfileGetApi extends PrivateApiComponentBase {
 

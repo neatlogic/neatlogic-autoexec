@@ -1,5 +1,7 @@
 package codedriver.module.autoexec.api.scenario;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dto.scenario.AutoexecScenarioVo;
 import codedriver.framework.autoexec.exception.AutoexecScenarioIsNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -20,7 +22,7 @@ import javax.annotation.Resource;
  * @date 2022/4/15 5:13 下午
  */
 @Service
-
+@AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecScenarioGetApi extends PrivateApiComponentBase {
 

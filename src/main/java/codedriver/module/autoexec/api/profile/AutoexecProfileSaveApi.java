@@ -1,5 +1,7 @@
 package codedriver.module.autoexec.api.profile;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import codedriver.framework.autoexec.exception.AutoexecProfileIsNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecProfileNameRepeatsException;
@@ -24,7 +26,7 @@ import javax.annotation.Resource;
  */
 @Service
 @Transactional
-
+@AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class AutoexecProfileSaveApi extends PrivateApiComponentBase {
 
