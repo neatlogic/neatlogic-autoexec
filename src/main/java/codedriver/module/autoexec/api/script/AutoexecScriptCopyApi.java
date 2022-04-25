@@ -10,10 +10,7 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
-import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
-import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
-import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
-import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
+import codedriver.framework.autoexec.dto.script.*;
 import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
@@ -88,6 +85,7 @@ public class AutoexecScriptCopyApi extends PrivateApiComponentBase {
         if (CollectionUtils.isNotEmpty(sourceVersionList)) {
             List<AutoexecScriptVersionVo> targetVersionList = new ArrayList<>();
             List<AutoexecScriptVersionParamVo> paramList = new ArrayList<>();
+            List<AutoexecScriptArgumentVo> argumentList = new ArrayList<>();
             List<AutoexecScriptLineVo> lineList = new ArrayList<>();
             for (AutoexecScriptVersionVo source : sourceVersionList) {
                 AutoexecScriptVersionVo target = new AutoexecScriptVersionVo();
@@ -98,6 +96,11 @@ public class AutoexecScriptCopyApi extends PrivateApiComponentBase {
                 if (CollectionUtils.isNotEmpty(source.getParamList())) {
                     source.getParamList().forEach(o -> o.setScriptVersionId(target.getId()));
                     paramList.addAll(source.getParamList());
+                }
+                AutoexecScriptArgumentVo argument = source.getArgument();
+                if (argument != null) {
+                    argument.setScriptVersionId(target.getId());
+                    argumentList.add(argument);
                 }
                 if (CollectionUtils.isNotEmpty(source.getLineList())) {
                     source.getLineList().forEach(o -> {
@@ -118,6 +121,9 @@ public class AutoexecScriptCopyApi extends PrivateApiComponentBase {
             }
             if (paramList.size() > 0) {
                 autoexecScriptMapper.insertScriptVersionParamList(paramList);
+            }
+            if (argumentList.size() > 0) {
+                autoexecScriptMapper.batchInsertVersionArgument(argumentList);
             }
             if (lineList.size() > 0) {
                 autoexecScriptMapper.insertScriptLineList(lineList);
