@@ -166,6 +166,10 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
         compareParamList(targetInputParamList, sourceInputParamList);
         compareParamList(targetOutputParamList, sourceOutputParamList);
         compareArgument(source.getArgument(), target.getArgument());
+        if (!Objects.equals(source.getEncoding(), target.getEncoding())) {
+            source.setEncoding("<span class='update'>" + source.getEncoding() + "</span>");
+            target.setEncoding("<span class='update'>" + target.getEncoding() + "</span>");
+        }
         if (!Objects.equals(source.getParser(), target.getParser())) {
             source.setParser("<span class='update'>" + source.getParser() + "</span>");
             target.setParser("<span class='update'>" + target.getParser() + "</span>");

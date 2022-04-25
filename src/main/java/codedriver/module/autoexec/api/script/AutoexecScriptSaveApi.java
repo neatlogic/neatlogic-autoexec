@@ -82,6 +82,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             @Param(name = "title", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", maxLength = 50, isRequired = true, xss = true, desc = "版本标题"),
             @Param(name = "paramList", type = ApiParamType.JSONARRAY, desc = "参数列表"),
             @Param(name = "argument", type = ApiParamType.JSONOBJECT, desc = "自由参数"),
+            @Param(name = "encoding", type = ApiParamType.ENUM, rule = "UTF-8,GBK", desc = "脚本编码"),
             @Param(name = "parser", type = ApiParamType.ENUM, rule = "python,ruby,vbscript,perl,powershell,cmd,bash,ksh,csh,sh,javascript", desc = "脚本解析器"),
             @Param(name = "lineList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "脚本内容行数据列表,e.g:[{\"content\":\"#!/usr/bin/env bash\"},{\"content\":\"show_ascii_berry()\"}]"),
     })
@@ -105,6 +106,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
          */
         AutoexecScriptVersionVo versionVo = new AutoexecScriptVersionVo();
         versionVo.setTitle(jsonObj.getString("title"));
+        versionVo.setEncoding(scriptVo.getEncoding());
         versionVo.setParser(scriptVo.getParser());
         versionVo.setLcu(UserContext.get().getUserUuid());
         versionVo.setStatus(ScriptVersionStatus.DRAFT.getValue());
@@ -131,6 +133,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
                 }
                 // 检查内容是否有变更，没有则不执行更新
                 AutoexecScriptVersionVo newVersion = new AutoexecScriptVersionVo();
+                newVersion.setEncoding(scriptVo.getEncoding());
                 newVersion.setParser(scriptVo.getParser());
                 newVersion.setParamList(scriptVo.getVersionParamList());
                 newVersion.setLineList(scriptVo.getLineList());
