@@ -145,6 +145,7 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         script.setCurrentVersionVo(currentVersion);
         List<AutoexecScriptVersionParamVo> paramList = autoexecScriptMapper.getParamListByVersionId(version.getId());
         version.setParamList(paramList);
+        version.setArgument(autoexecScriptMapper.getArgumentByVersionId(version.getId()));
         version.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
         List<AutoexecCombopVo> combopList = autoexecScriptMapper.getReferenceListByScriptId(id);
         script.setCombopList(combopList);

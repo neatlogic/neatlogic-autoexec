@@ -8,7 +8,8 @@ package codedriver.module.autoexec.api.risk;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
-import codedriver.framework.autoexec.auth.AUTOEXEC_RISK_MODIFY;
+import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
+import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dto.AutoexecRiskVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
@@ -17,7 +18,6 @@ import codedriver.framework.dto.OperateVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -71,7 +71,7 @@ public class AutoexecRiskSearchApi extends PrivateApiComponentBase {
         List<AutoexecRiskVo> riskList = autoexecRiskMapper.searchRisk(vo);
         resultObj.put("tbodyList", riskList);
         if (CollectionUtils.isNotEmpty(riskList)) {
-            Boolean hasAuth = AuthActionChecker.check(AUTOEXEC_RISK_MODIFY.class.getSimpleName());
+            Boolean hasAuth = AuthActionChecker.check(AUTOEXEC_MODIFY.class.getSimpleName());
             List<Long> idList = riskList.stream().map(AutoexecRiskVo::getId).collect(Collectors.toList());
             List<AutoexecRiskVo> referenceCountListForTool = autoexecRiskMapper.getReferenceCountListForTool(idList);
             List<AutoexecRiskVo> referenceCountListForScript = autoexecRiskMapper.getReferenceCountListForScript(idList);

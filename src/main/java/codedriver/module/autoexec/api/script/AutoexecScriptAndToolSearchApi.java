@@ -7,6 +7,7 @@ package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
+import codedriver.framework.autoexec.dto.AutoexecOperationBaseVo;
 import codedriver.framework.autoexec.dto.AutoexecOperationVo;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -23,10 +24,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 //@AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
@@ -89,6 +88,13 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
             List<Long> idList = defaultValue.toJavaList(Long.class);
             List<AutoexecOperationVo> toolList = autoexecToolMapper.getToolListByIdList(idList);
             List<AutoexecOperationVo> scriptList = autoexecScriptMapper.getScriptListByIdList(idList);
+            List<AutoexecOperationVo> argumentList = autoexecScriptMapper.getArgumentListByScriptIdList(idList);
+            if (scriptList.size() > 0 && argumentList.size() > 0) {
+                Map<Long, AutoexecParamVo> argumentMap = argumentList.stream().collect(Collectors.toMap(AutoexecOperationBaseVo::getId, AutoexecOperationVo::getArgument));
+                for (AutoexecOperationVo vo : scriptList) {
+                    vo.setArgument(argumentMap.get(vo.getId()));
+                }
+            }
             toolAndScriptList.addAll(toolList);
             toolAndScriptList.addAll(scriptList);
             for (AutoexecOperationVo autoexecToolAndScriptVo : toolAndScriptList) {

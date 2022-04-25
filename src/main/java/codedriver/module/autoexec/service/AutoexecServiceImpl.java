@@ -22,9 +22,7 @@ import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.script.paramtype.IScriptParamType;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
-import codedriver.framework.exception.type.ParamIrregularException;
-import codedriver.framework.exception.type.ParamNotExistsException;
-import codedriver.framework.exception.type.ParamRepeatsException;
+import codedriver.framework.exception.type.*;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -121,6 +119,31 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
             }
         }
 
+    }
+
+    @Override
+    public void validateArgument(AutoexecParamVo argument) {
+        if (argument != null) {
+            String name = argument.getName();
+            Integer argumentCount = argument.getArgumentCount();
+            String description = argument.getDescription();
+            String defaultValueStr = argument.getDefaultValueStr();
+            if (StringUtils.isBlank(name)) {
+                throw new ParamNotExistsException("argument.name");
+            }
+            if (name.length() > 50) {
+                throw new ParamValueTooLongException("argument.name", name.length(), 50);
+            }
+            if (argumentCount != null && argumentCount < 0) {
+                throw new ParamInvalidException("argument.argumentCount", argumentCount.toString());
+            }
+            if (defaultValueStr != null && defaultValueStr.length() > 200) {
+                throw new ParamValueTooLongException("argument.defaultValue", defaultValueStr.length(), 200);
+            }
+            if (description != null && description.length() > 500) {
+                throw new ParamValueTooLongException("argument.description", description.length(), 500);
+            }
+        }
     }
 
     @Override

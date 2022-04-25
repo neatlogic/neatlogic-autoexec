@@ -1,0 +1,252 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecProfileMapper">
+
+    <insert id="insertAutoexecProfileOperation">
+        INSERT INTO autoexec_profile_operation ( profile_id, operation_id ,type)
+        VALUES
+        <foreach collection="operationIdList" item="operationId" separator=",">
+            (#{profileId},#{operationId},#{type})
+        </foreach>
+    </insert>
+
+    <insert id="insertProfile" parameterType="codedriver.framework.autoexec.dto.profile.AutoexecProfileVo">
+        INSERT INTO autoexec_profile
+        (id,
+         name,
+         description,
+         config,
+         system_id,
+         fcd,
+         fcu,
+         lcd,
+         lcu)
+        VALUES (#{id},
+                #{name},
+                #{description},
+                #{configStr},
+                #{fromSystemId},
+                NOW(3),
+                #{fcu},
+                NOW(3),
+                #{fcu})
+    </insert>
+
+    <update id="updateProfile" parameterType="codedriver.framework.autoexec.dto.profile.AutoexecProfileVo">
+        UPDATE `autoexec_profile`
+        SET `name`        = #{name},
+            `config`      = #{configStr},
+            system_id     = #{fromSystemId},
+            `description` = #{description},
+            `lcd`         = NOW(3),
+            `lcu`         = #{lcu}
+        where `id` = #{id}
+    </update>
+
+    <select id="searchAutoexecProfileCount" parameterType="codedriver.framework.autoexec.dto.profile.AutoexecProfileVo"
+            resultType="int">
+        SELECT
+        COUNT(distinct a.id)
+        <include refid="searchProfile"></include>
+    </select>
+
+    <sql id="searchProfile">
+        <include refid="searchProfileFrom"></include>
+        <if test="operationId != null">
+            LEFT JOIN autoexec_profile_operation apo ON apo.profile_id = a.id
+        </if>
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND (a.`name` LIKE CONCAT('%',#{keyword}, '%') OR a.`description` LIKE CONCAT('%',#{keyword}, '%'))
+            </if>
+            <if test="operationId != null">
+                and apo.`operation_id` = #{operationId}
+            </if>
+            <if test="ciEntityId != null">
+                and dpc.`ci_entity_id` = #{ciEntityId}
+            </if>
+            <if test="fromSystemId != null">
+                and cc.`id` = #{fromSystemId}
+            </if>
+        </where>
+    </sql>
+
+    <sql id="searchProfileFrom">
+        FROM
+        `autoexec_profile` a
+        LEFT JOIN cmdb_cientity cc ON cc.id = a.system_id
+        LEFT JOIN autoexec_profile_cientity dpc ON dpc.profile_id=a.id
+        LEFT JOIN cmdb_cientity cct ON cct.id = dpc.ci_entity_id
+    </sql>
+
+    <select id="checkProfileIsExists" resultType="int">
+        SELECT count(1)
+        FROM `autoexec_profile`
+        WHERE `id` = #{value}
+    </select>
+
+    <resultMap id="profileMap" type="codedriver.framework.autoexec.dto.profile.AutoexecProfileVo">
+        <result column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="configStr" property="configStr"/>
+        <result column="description" property="description"/>
+        <result column="fromSystemId" property="fromSystemId"/>
+        <result column="fromSystemName" property="fromSystemName"/>
+        <result column="fcu" property="fcu"/>
+        <result column="fcd" property="fcd"/>
+        <result column="lcu" property="lcu"/>
+        <result column="lcd" property="lcd"/>
+        <collection property="ciEntityList" ofType="codedriver.framework.cmdb.dto.cientity.CiEntityVo">
+            <id column="ciEntityId" property="id"/>
+            <result column="ciEntityName" property="name"/>
+            <result column="ciIcon" property="ciIcon"/>
+        </collection>
+        <collection property="autoexecOperationVoList"
+                    ofType="codedriver.framework.autoexec.dto.AutoexecOperationVo">
+            <id column="operationId" property="id"/>
+            <result column="type" property="type"/>
+        </collection>
+    </resultMap>
+
+    <select id="getProfileVoById" resultMap="profileMap">
+        SELECT a.id,
+        a.name,
+        a.description,
+        a.config AS configStr,
+        a.system_id AS fromSystemId,
+        cc.name as fromSystemName,
+        cct.id AS ciEntityId,
+        cct.name as ciEntityName,
+        dpo.type,
+        dpo.operation_id as operationId,
+        a.fcd,
+        a.fcu,
+        a.lcd,
+        a.lcu
+        <include refid="searchProfileFrom"></include>
+        left join autoexec_profile_operation dpo on dpo.profile_id = a.id
+        WHERE a.id = #{value}
+    </select>
+
+    <select id="getProfileOperationVoListByProfileId"
+            resultType="codedriver.framework.autoexec.dto.profile.AutoexecProfileOperationVo">
+        select profile_id, operation_id, type
+        from autoexec_profile_operation
+        where profile_id = #{value}
+    </select>
+
+    <select id="getAutoexecProfileIdList" resultType="java.lang.Long">
+        SELECT distinct a.id
+        <include refid="searchProfile"></include>
+        ORDER BY a.id DESC
+        <if test="needPage == true">
+            LIMIT #{startNum}, #{pageSize}
+        </if>
+    </select>
+
+    <select id="getProfileListByIdList" resultMap="profileMap">
+        SELECT a.id,
+        a.name,
+        a.description,
+        a.config as configStr,
+        a.system_id AS fromSystemId,
+        cc.name as fromSystemName,
+        cct.id AS ciEntityId,
+        cct.name as ciEntityName,
+        cci.icon as ciIcon,
+        a.fcd,
+        a.fcu,
+        a.lcd,
+        a.lcu
+        <include refid="searchProfileFrom"></include>
+        LEFT JOIN cmdb_ci cci ON cci.id = cct.ci_id
+        WHERE a.id in
+        <foreach collection="idList" open="(" separator="," close=")" item="id">
+            #{id}
+        </foreach>
+        ORDER BY a.lcd DESC
+    </select>
+
+    <select id="checkProfileNameIsRepeats" resultType="int">
+        SELECT count(1)
+        FROM autoexec_profile
+        WHERE id != #{id}
+          AND name =#{name}
+    </select>
+
+    <resultMap id="autoexecOperationMap" type="codedriver.framework.autoexec.dto.AutoexecOperationVo">
+        <id column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="type" property="type"/>
+        <result column="execMode" property="execMode"/>
+        <result column="typeId" property="typeId"/>
+        <result column="typeName" property="typeName"/>
+        <result column="description" property="description"/>
+        <result column="configStr" property="configStr"/>
+        <association property="riskVo" javaType="codedriver.framework.autoexec.dto.AutoexecRiskVo">
+            <result column="riskId" property="id"/>
+            <result column="riskName" property="name"/>
+            <result column="riskColor" property="color"/>
+        </association>
+    </resultMap>
+
+    <select id="getAutoexecOperationVoByProfileId" resultMap="autoexecOperationMap">
+        (SELECT a.`id`,
+                a.`name`,
+                'script'      AS `type`,
+                a.`exec_mode` AS execMode,
+                a.`type_id`   AS typeId,
+                ate.`name`    AS typeName,
+                a.`risk_id`   AS riskId,
+                ar.`name`     AS riskName,
+                ar.`color`    AS riskColor,
+                a.`description`
+         FROM `autoexec_script` a
+                  JOIN `autoexec_script_version` b ON a.`id` = b.`script_id`
+                  LEFT JOIN autoexec_type ate ON a.`type_id` = ate.`id`
+                  LEFT JOIN autoexec_risk ar ON a.`risk_id` = ar.`id`
+         WHERE b.`is_active` = 1
+           and a.`id` in
+               (select operation_id
+                from autoexec_profile_operation
+                where profile_id = #{value}))
+        union
+        (
+            select a.`id`,
+                   a.`name`,
+                   'tool'        as `type`,
+                   a.`exec_mode` as execMode,
+                   a.`type_id`   as typeId,
+                   ate.`name`    as typeName,
+                   a.`risk_id`   as riskId,
+                   ar.`name`     as riskName,
+                   ar.`color`    as riskColor,
+                   a.`description`
+            from `autoexec_tool` a
+                     LEFT JOIN autoexec_type ate ON a.`type_id` = ate.`id`
+                     LEFT JOIN autoexec_risk ar ON a.`risk_id` = ar.`id`
+            where a.`is_active` = 1
+              and a.`id` in
+                  (select operation_id
+                   from autoexec_profile_operation
+                   where profile_id = #{value}))
+    </select>
+
+    <delete id="deleteProfileById">
+        DELETE
+        FROM autoexec_profile
+        WHERE id = #{value}
+    </delete>
+
+    <delete id="deleteProfileOperationByProfileId">
+        DELETE
+        FROM autoexec_profile_operation
+        WHERE profile_id = #{value}
+    </delete>
+
+    <delete id="deleteProfileOperationByOperationId">
+        DELETE
+        FROM autoexec_profile_operation
+        WHERE operation_id = #{value}
+    </delete>
+</mapper>
