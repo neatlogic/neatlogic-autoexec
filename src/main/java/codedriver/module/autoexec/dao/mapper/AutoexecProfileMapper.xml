@@ -47,6 +47,10 @@
         <if test="operationId != null">
             LEFT JOIN autoexec_profile_operation apo ON apo.profile_id = a.id
         </if>
+        <include refid="searchProfileWhere"></include>
+    </sql>
+
+    <sql id="searchProfileWhere">
         <where>
             <if test="keyword != null and keyword != ''">
                 AND (a.`name` LIKE CONCAT('%',#{keyword}, '%') OR a.`description` LIKE CONCAT('%',#{keyword}, '%'))
@@ -85,7 +89,6 @@
     <resultMap id="profileMap" type="codedriver.framework.autoexec.dto.profile.AutoexecProfileVo">
         <result column="id" property="id"/>
         <result column="name" property="name"/>
-        <result column="configStr" property="configStr"/>
         <result column="description" property="description"/>
         <result column="fromSystemId" property="fromSystemId"/>
         <result column="fromSystemName" property="fromSystemName"/>
@@ -109,7 +112,6 @@
         SELECT a.id,
         a.name,
         a.description,
-        a.config AS configStr,
         a.system_id AS fromSystemId,
         <if test="fromSystemId != null and fromSystemId != -1 ">
             cc.name as fromSystemName,
@@ -197,7 +199,6 @@
         SELECT a.id,
         a.name,
         a.description,
-        a.config as configStr,
         a.system_id AS fromSystemId,
         <if test="fromSystemId != null and fromSystemId != -1 ">
             cc.name as fromSystemName,
@@ -209,8 +210,9 @@
         a.fcu,
         a.lcd,
         a.lcu
-        <include refid="searchProfile"></include>
+        <include refid="searchProfileFrom"></include>
         LEFT JOIN cmdb_ci cci ON cci.id = cct.ci_id
+        <include refid="searchProfileWhere"></include>
         ORDER BY a.lcd DESC
         LIMIT #{startNum}, #{pageSize}
     </select>
