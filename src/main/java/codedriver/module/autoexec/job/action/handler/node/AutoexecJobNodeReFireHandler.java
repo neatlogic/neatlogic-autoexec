@@ -81,9 +81,9 @@ public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
         phaseVo.setStatus(JobPhaseStatus.RUNNING.getValue());
         autoexecJobMapper.updateJobPhaseStatus(phaseVo);
         jobVo.setExecuteJobPhaseList(Collections.singletonList(phaseVo));
-        if (CollectionUtils.isNotEmpty(jobVo.getPhaseList())) {
+        //if (CollectionUtils.isNotEmpty(jobVo.getPhaseList())) {
             executeNode(jobVo);
-        }
+       // }
         return null;
     }
 }
