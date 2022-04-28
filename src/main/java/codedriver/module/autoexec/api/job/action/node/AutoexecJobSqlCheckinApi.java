@@ -1,17 +1,15 @@
 package codedriver.module.autoexec.api.job.action.node;
 
-import codedriver.framework.autoexec.constvalue.AutoexecJobSqlOperType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobSqlDetailVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobSqlVo;
+import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.crossover.CrossoverServiceFactory;
 import codedriver.framework.deploy.crossover.IDeploySqlCrossoverMapper;
 import codedriver.framework.deploy.dto.sql.DeploySqlDetailVo;
-import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
-import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -37,9 +35,6 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
 
     @Resource
     AutoexecJobMapper autoexecJobMapper;
-
-    @Resource
-    AutoexecJobService autoexecJobService;
 
     @Override
     public String getName() {
@@ -85,8 +80,7 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
             }
 
             if (CollectionUtils.isNotEmpty(sqlVoArray)) {
-                List<AutoexecJobSqlDetailVo> newSqlList = sqlVoArray.toJavaList(AutoexecJobSqlDetailVo.class);
-                for (AutoexecJobSqlDetailVo newSqlVo : newSqlList) {
+                for (AutoexecJobSqlDetailVo newSqlVo : sqlVoArray.toJavaList(AutoexecJobSqlDetailVo.class)) {
                     AutoexecJobSqlDetailVo oldSqlVo = allJobSqlVoMap.get(newSqlVo.getNodeId());
                     if (oldSqlVo == null) {
                         insertSqlList.add(newSqlVo);
@@ -128,8 +122,7 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
             List<DeploySqlDetailVo> updateSqlList = new ArrayList<>();
 
             if (CollectionUtils.isNotEmpty(sqlVoArray)) {
-                List<DeploySqlDetailVo> newSqlList = sqlVoArray.toJavaList(DeploySqlDetailVo.class);
-                for (DeploySqlDetailVo newSqlVo : newSqlList) {
+                for (DeploySqlDetailVo newSqlVo : sqlVoArray.toJavaList(DeploySqlDetailVo.class)) {
                     DeploySqlDetailVo oldSqlVo = allDeploySqlMap.get(newSqlVo.getSqlFile());
                     if (oldSqlVo == null) {
                         insertSqlList.add(newSqlVo);
@@ -143,7 +136,7 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
                     updateSqlList.add(oldSqlVo);
                 }
                 if (CollectionUtils.isNotEmpty(allSqlIdList)) {
-                    autoexecJobMapper.updateJobDeploySqlIsDeleteByIdList(allSqlIdList);
+                    iDeploySqlCrossoverMapper.updateJobDeploySqlIsDeleteByIdList(allSqlIdList);
                 }
                 if (CollectionUtils.isNotEmpty(insertSqlList)) {
                     for (DeploySqlDetailVo insertSqlVo : insertSqlList) {

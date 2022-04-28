@@ -1,6 +1,5 @@
 package codedriver.module.autoexec.api.job.action.node;
 
-import codedriver.framework.autoexec.constvalue.AutoexecJobSqlOperType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobSqlDetailVo;
 import codedriver.framework.crossover.CrossoverServiceFactory;
