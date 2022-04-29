@@ -3,7 +3,7 @@ package codedriver.module.autoexec.api.job.action.node;
 import codedriver.framework.autoexec.constvalue.AutoexecOperType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecSqlDetailVo;
-import codedriver.framework.deploy.dto.sql.DeployJobSqlVo;
+import codedriver.framework.deploy.dto.sql.DeploySqlVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.crossover.CrossoverServiceFactory;
 import codedriver.framework.deploy.constvalue.DeployOperType;
@@ -112,7 +112,7 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
                 }
                 if (CollectionUtils.isNotEmpty(insertSqlList)) {
                     for (DeploySqlDetailVo insertSqlVo : insertSqlList) {
-                        iDeploySqlCrossoverMapper.insertDeploySql(new DeployJobSqlVo(paramObj.getLong("jobId"), insertSqlVo.getId()));
+                        iDeploySqlCrossoverMapper.insertDeploySql(new DeploySqlVo(paramObj.getLong("jobId"), insertSqlVo.getId(), paramObj.getLong("nodeId"), paramObj.getString("nodeName")));
                         iDeploySqlCrossoverMapper.insertDeploySqlDetail(insertSqlVo);
                     }
                 }

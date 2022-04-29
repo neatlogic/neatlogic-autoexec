@@ -8,7 +8,7 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.crossover.CrossoverServiceFactory;
 import codedriver.framework.deploy.constvalue.DeployOperType;
 import codedriver.framework.deploy.crossover.IDeploySqlCrossoverMapper;
-import codedriver.framework.deploy.dto.sql.DeployJobSqlVo;
+import codedriver.framework.deploy.dto.sql.DeploySqlVo;
 import codedriver.framework.deploy.dto.sql.DeploySqlDetailVo;
 import codedriver.framework.restful.annotation.Description;
 import codedriver.framework.restful.annotation.Input;
@@ -56,6 +56,8 @@ public class AutoexecJobSqlUpdateApi extends PublicApiComponentBase {
             @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资产id"),
             @Param(name = "host", type = ApiParamType.STRING, desc = "ip"),
             @Param(name = "port", type = ApiParamType.INTEGER, desc = "端口"),
+            @Param(name = "runnerId", type = ApiParamType.STRING, desc = "runner id"),
+            @Param(name = "runnerPort", type = ApiParamType.INTEGER, desc = "runner 端口"),
             @Param(name = "status", type = ApiParamType.ENUM, isRequired = true, rule = "pending,running,aborting,aborted,succeed,failed,ignored,waitInput", desc = "状态"),
             @Param(name = "operType", type = ApiParamType.ENUM, rule = "auto,deploy", isRequired = true, desc = "来源类型")
     })
@@ -84,7 +86,7 @@ public class AutoexecJobSqlUpdateApi extends PublicApiComponentBase {
             if (oldDeploySqlVo != null) {
                 iDeploySqlCrossoverMapper.updateJobDeploySqlDetailIsDeleteAndStatusAndMd5AndLcdById(paramDeploySqlVo.getStatus(), paramDeploySqlVo.getMd5(), oldDeploySqlVo.getId());
             } else {
-                iDeploySqlCrossoverMapper.insertDeploySql(new DeployJobSqlVo(paramObj.getLong("jobId"), paramDeploySqlVo.getId()));
+                iDeploySqlCrossoverMapper.insertDeploySql(new DeploySqlVo(paramObj.getLong("jobId"), paramDeploySqlVo.getId(),paramObj.getLong("nodeId"),paramObj.getString("nodeName")));
                 iDeploySqlCrossoverMapper.insertDeploySqlDetail(paramDeploySqlVo);
             }
         }
