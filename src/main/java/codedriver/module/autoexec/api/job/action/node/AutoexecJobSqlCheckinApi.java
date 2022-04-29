@@ -2,7 +2,7 @@ package codedriver.module.autoexec.api.job.action.node;
 
 import codedriver.framework.autoexec.constvalue.AutoexecOperType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
-import codedriver.framework.autoexec.dto.job.AutoexecJobSqlDetailVo;
+import codedriver.framework.autoexec.dto.job.AutoexecSqlDetailVo;
 import codedriver.framework.deploy.dto.sql.DeployJobSqlVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.crossover.CrossoverServiceFactory;
@@ -61,7 +61,7 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
             @Param(name = "moduleId", type = ApiParamType.LONG, desc = "模块id"),
             @Param(name = "envId", type = ApiParamType.LONG, desc = "环境id"),
             @Param(name = "version", type = ApiParamType.LONG, desc = "版本"),
-            @Param(name = "operType", type = ApiParamType.STRING, isRequired = true, desc = "标记")
+            @Param(name = "operType", type = ApiParamType.ENUM, rule = "auto,deploy", isRequired = true, desc = "来源类型")
     })
     @Output({
     })
@@ -72,7 +72,7 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
         if (StringUtils.equals(paramObj.getString("operType"), AutoexecOperType.AUTOEXEC.getValue())) {
             Date nowLcd = new Date();
             if (CollectionUtils.isNotEmpty(sqlVoArray)) {
-                for (AutoexecJobSqlDetailVo sqlDetailVo : sqlVoArray.toJavaList(AutoexecJobSqlDetailVo.class)) {
+                for (AutoexecSqlDetailVo sqlDetailVo : sqlVoArray.toJavaList(AutoexecSqlDetailVo.class)) {
                     sqlDetailVo.setLcd(nowLcd);
                     autoexecJobMapper.insertJobSqlDetail(sqlDetailVo);
                 }

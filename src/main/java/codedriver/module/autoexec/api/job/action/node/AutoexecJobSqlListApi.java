@@ -2,7 +2,7 @@ package codedriver.module.autoexec.api.job.action.node;
 
 import codedriver.framework.autoexec.constvalue.AutoexecOperType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
-import codedriver.framework.autoexec.dto.job.AutoexecJobSqlDetailVo;
+import codedriver.framework.autoexec.dto.job.AutoexecSqlDetailVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.crossover.CrossoverServiceFactory;
 import codedriver.framework.deploy.constvalue.DeployOperType;
@@ -46,8 +46,8 @@ public class AutoexecJobSqlListApi extends PublicApiComponentBase {
     }
 
     @Input({
-            @Param(name = "sqlVoList", type = ApiParamType.JSONARRAY, desc = "自动化sql文件列表"),
-            @Param(name = "operType", type = ApiParamType.STRING, isRequired = true, desc = "标记")
+            @Param(name = "sqlVoList", type = ApiParamType.JSONARRAY, desc = "sql文件列表"),
+            @Param(name = "operType", type = ApiParamType.ENUM, rule = "auto,deploy", isRequired = true, desc = "来源类型")
     })
     @Output({
     })
@@ -57,7 +57,7 @@ public class AutoexecJobSqlListApi extends PublicApiComponentBase {
         JSONArray SqlVoArray = paramObj.getJSONArray("sqlVoList");
         if (CollectionUtils.isNotEmpty(SqlVoArray)) {
             if (StringUtils.equals(paramObj.getString("operType"), AutoexecOperType.AUTOEXEC.getValue())) {
-                return autoexecJobMapper.getJobSqlDetailList(SqlVoArray.toJavaList(AutoexecJobSqlDetailVo.class));
+                return autoexecJobMapper.getJobSqlDetailList(SqlVoArray.toJavaList(AutoexecSqlDetailVo.class));
             } else if (StringUtils.equals(paramObj.getString("operType"), DeployOperType.DEPLOY.getValue())) {
                 IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
                 return iDeploySqlCrossoverMapper.getJobDeploySqlDetailList(SqlVoArray.toJavaList(DeploySqlDetailVo.class));

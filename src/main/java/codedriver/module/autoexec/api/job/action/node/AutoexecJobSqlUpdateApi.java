@@ -2,7 +2,7 @@ package codedriver.module.autoexec.api.job.action.node;
 
 import codedriver.framework.autoexec.constvalue.AutoexecOperType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
-import codedriver.framework.autoexec.dto.job.AutoexecJobSqlDetailVo;
+import codedriver.framework.autoexec.dto.job.AutoexecSqlDetailVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.crossover.CrossoverServiceFactory;
@@ -57,7 +57,7 @@ public class AutoexecJobSqlUpdateApi extends PublicApiComponentBase {
             @Param(name = "host", type = ApiParamType.STRING, desc = "ip"),
             @Param(name = "port", type = ApiParamType.INTEGER, desc = "端口"),
             @Param(name = "status", type = ApiParamType.ENUM, isRequired = true, rule = "pending,running,aborting,aborted,succeed,failed,ignored,waitInput", desc = "状态"),
-            @Param(name = "operType", type = ApiParamType.STRING, isRequired = true, desc = "标记")
+            @Param(name = "operType", type = ApiParamType.ENUM, rule = "auto,deploy", isRequired = true, desc = "来源类型")
     })
     @Output({
     })
@@ -68,8 +68,8 @@ public class AutoexecJobSqlUpdateApi extends PublicApiComponentBase {
             throw new AutoexecJobNotFoundException(paramObj.getLong("jobId"));
         }
         if (StringUtils.equals(paramObj.getString("operType"), AutoexecOperType.AUTOEXEC.getValue())) {
-            AutoexecJobSqlDetailVo paramSqlVo = new AutoexecJobSqlDetailVo(paramObj);
-            AutoexecJobSqlDetailVo oldSqlVo = autoexecJobMapper.getJobSqlDetailByJobIdAndNodeIdAndSqlFile(paramSqlVo.getJobId(), paramSqlVo.getNodeId(), paramSqlVo.getSqlFile());
+            AutoexecSqlDetailVo paramSqlVo = new AutoexecSqlDetailVo(paramObj);
+            AutoexecSqlDetailVo oldSqlVo = autoexecJobMapper.getJobSqlDetailByJobIdAndNodeIdAndSqlFile(paramSqlVo.getJobId(), paramSqlVo.getNodeId(), paramSqlVo.getSqlFile());
             if (oldSqlVo != null) {
                 autoexecJobMapper.updateJobSqlDetailIsDeleteAndStatusAndMd5AndLcdById(paramSqlVo.getStatus(), paramSqlVo.getMd5(), oldSqlVo.getId());
             } else {
