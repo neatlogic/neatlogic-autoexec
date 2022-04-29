@@ -8,8 +8,8 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.crossover.CrossoverServiceFactory;
 import codedriver.framework.deploy.constvalue.DeployOperType;
 import codedriver.framework.deploy.crossover.IDeploySqlCrossoverMapper;
-import codedriver.framework.deploy.dto.sql.DeploySqlVo;
 import codedriver.framework.deploy.dto.sql.DeploySqlDetailVo;
+import codedriver.framework.deploy.dto.sql.DeploySqlVo;
 import codedriver.framework.restful.annotation.Description;
 import codedriver.framework.restful.annotation.Input;
 import codedriver.framework.restful.annotation.Output;
@@ -21,7 +21,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Date;
 
 /**
  * @author longrf
@@ -72,21 +71,17 @@ public class AutoexecJobSqlUpdateApi extends PublicApiComponentBase {
         if (StringUtils.equals(paramObj.getString("operType"), AutoexecOperType.AUTOEXEC.getValue())) {
             AutoexecSqlDetailVo paramSqlVo = new AutoexecSqlDetailVo(paramObj);
             AutoexecSqlDetailVo oldSqlVo = autoexecJobMapper.getJobSqlDetailByJobIdAndNodeIdAndSqlFile(paramSqlVo.getJobId(), paramSqlVo.getNodeId(), paramSqlVo.getSqlFile());
-            if (oldSqlVo != null) {
-                autoexecJobMapper.updateJobSqlDetailIsDeleteAndStatusAndMd5AndLcdById(paramSqlVo.getStatus(), paramSqlVo.getMd5(), oldSqlVo.getId());
-            } else {
-                paramSqlVo.setLcd(new Date());
+            if (autoexecJobMapper.updateJobSqlDetailIsDeleteAndStatusAndMd5AndLcdById(paramSqlVo.getStatus(), paramSqlVo.getMd5(), oldSqlVo.getId()) == 0) {
                 autoexecJobMapper.insertJobSqlDetail(paramSqlVo);
             }
         } else if (StringUtils.equals(paramObj.getString("operType"), DeployOperType.DEPLOY.getValue())) {
             IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
-            //TODO 发起作业时还要补 插入发布作业的执行sql文件 的逻辑
             DeploySqlDetailVo paramDeploySqlVo = new DeploySqlDetailVo(paramObj);
             DeploySqlDetailVo oldDeploySqlVo = iDeploySqlCrossoverMapper.getAutoexecJobIdByDeploySqlDetailVo(paramDeploySqlVo);
             if (oldDeploySqlVo != null) {
                 iDeploySqlCrossoverMapper.updateJobDeploySqlDetailIsDeleteAndStatusAndMd5AndLcdById(paramDeploySqlVo.getStatus(), paramDeploySqlVo.getMd5(), oldDeploySqlVo.getId());
             } else {
-                iDeploySqlCrossoverMapper.insertDeploySql(new DeploySqlVo(paramObj.getLong("jobId"), paramDeploySqlVo.getId(),paramObj.getLong("nodeId"),paramObj.getString("nodeName")));
+                iDeploySqlCrossoverMapper.insertDeploySql(new DeploySqlVo(paramObj.getLong("jobId"), paramDeploySqlVo.getId()));
                 iDeploySqlCrossoverMapper.insertDeploySqlDetail(paramDeploySqlVo);
             }
         }

@@ -72,9 +72,13 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
         if (StringUtils.equals(paramObj.getString("operType"), AutoexecOperType.AUTOEXEC.getValue())) {
             Date nowLcd = new Date();
             if (CollectionUtils.isNotEmpty(sqlVoArray)) {
-                for (AutoexecSqlDetailVo sqlDetailVo : sqlVoArray.toJavaList(AutoexecSqlDetailVo.class)) {
-                    sqlDetailVo.setLcd(nowLcd);
-                    autoexecJobMapper.insertJobSqlDetail(sqlDetailVo);
+                List<AutoexecSqlDetailVo> insertSqlList = sqlVoArray.toJavaList(AutoexecSqlDetailVo.class);
+                if (insertSqlList.size() > 100) {
+                    for (int i = 0; i < (insertSqlList.size() / 100); i++) {
+                        autoexecJobMapper.insertJobSqlDetailList(insertSqlList.subList(i * 100, (1 + 1) * 100), nowLcd);
+                    }
+                } else {
+                    autoexecJobMapper.insertJobSqlDetailList(insertSqlList, nowLcd);
                 }
             }
             List<Long> deleteSqlDetailList = autoexecJobMapper.getJobSqlDetailByJobIdAndLcd(paramObj.getLong("jobId"), nowLcd);
@@ -85,9 +89,9 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
             IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
 
             DeploySqlDetailVo deployVersionSql = new DeploySqlDetailVo(paramObj.getLong("systemId"), paramObj.getLong("moduleId"), paramObj.getLong("envId"), paramObj.getString("version"));
-            List<DeploySqlDetailVo> allDeploySqlList = iDeploySqlCrossoverMapper.getAllJobDeploySqlDetailList(deployVersionSql);
-            Map<String, DeploySqlDetailVo> allDeploySqlMap = allDeploySqlList.stream().collect(Collectors.toMap(DeploySqlDetailVo::getSqlFile, e -> e));
-            List<Long> allSqlIdList = allDeploySqlList.stream().map(DeploySqlDetailVo::getId).collect(Collectors.toList());
+            List<DeploySqlDetailVo> oldDeploySqlList = iDeploySqlCrossoverMapper.getAllJobDeploySqlDetailList(deployVersionSql);
+            Map<String, DeploySqlDetailVo> allDeploySqlMap = oldDeploySqlList.stream().collect(Collectors.toMap(DeploySqlDetailVo::getSqlFile, e -> e));
+            List<Long> needDeleteSqlIdList = oldDeploySqlList.stream().map(DeploySqlDetailVo::getId).collect(Collectors.toList());
 
             List<DeploySqlDetailVo> insertSqlList = new ArrayList<>();
             List<DeploySqlDetailVo> updateSqlList = new ArrayList<>();
@@ -99,20 +103,19 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
                         insertSqlList.add(newSqlVo);
                         continue;
                     }
-                    allSqlIdList.remove(oldSqlVo.getId());
+                    needDeleteSqlIdList.remove(oldSqlVo.getId());
                     if (oldSqlVo.getIsDelete() == 0 && StringUtils.equals(oldSqlVo.getStatus(), newSqlVo.getStatus()) && StringUtils.equals(oldSqlVo.getMd5(), newSqlVo.getMd5())) {
                         continue;
                     }
-                    oldSqlVo.setStatus(newSqlVo.getStatus());
-                    oldSqlVo.setMd5(newSqlVo.getMd5());
-                    updateSqlList.add(oldSqlVo);
+                 newSqlVo.setId(oldSqlVo.getId());
+                    updateSqlList.add(newSqlVo);
                 }
-                if (CollectionUtils.isNotEmpty(allSqlIdList)) {
-                    iDeploySqlCrossoverMapper.updateJobDeploySqlIsDeleteByIdList(allSqlIdList);
+                if (CollectionUtils.isNotEmpty(needDeleteSqlIdList)) {
+                    iDeploySqlCrossoverMapper.updateJobDeploySqlIsDeleteByIdList(needDeleteSqlIdList);
                 }
                 if (CollectionUtils.isNotEmpty(insertSqlList)) {
                     for (DeploySqlDetailVo insertSqlVo : insertSqlList) {
-                        iDeploySqlCrossoverMapper.insertDeploySql(new DeploySqlVo(paramObj.getLong("jobId"), insertSqlVo.getId(), paramObj.getLong("nodeId"), paramObj.getString("nodeName")));
+                        iDeploySqlCrossoverMapper.insertDeploySql(new DeploySqlVo(paramObj.getLong("jobId"), insertSqlVo.getId()));
                         iDeploySqlCrossoverMapper.insertDeploySqlDetail(insertSqlVo);
                     }
                 }
