@@ -1,10 +1,12 @@
 package codedriver.module.autoexec.api.job.action.node;
 
+import codedriver.framework.autoexec.constvalue.AutoexecOperType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobSqlDetailVo;
-import codedriver.framework.autoexec.dto.job.AutoexecJobSqlVo;
+import codedriver.framework.deploy.dto.sql.DeployJobSqlVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.crossover.CrossoverServiceFactory;
+import codedriver.framework.deploy.constvalue.DeployOperType;
 import codedriver.framework.deploy.crossover.IDeploySqlCrossoverMapper;
 import codedriver.framework.deploy.dto.sql.DeploySqlDetailVo;
 import codedriver.framework.restful.annotation.*;
@@ -19,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -52,13 +55,12 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
     }
 
     @Input({
-            @Param(name = "sqlVoList", type = ApiParamType.JSONARRAY, desc = "作业sql文件列表"),
+            @Param(name = "sqlVoList", type = ApiParamType.JSONARRAY, desc = "sql文件列表"),
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id"),
             @Param(name = "systemId", type = ApiParamType.LONG, desc = "系统id"),
             @Param(name = "moduleId", type = ApiParamType.LONG, desc = "模块id"),
             @Param(name = "envId", type = ApiParamType.LONG, desc = "环境id"),
             @Param(name = "version", type = ApiParamType.LONG, desc = "版本"),
-            @Param(name = "sqlVoList", type = ApiParamType.JSONARRAY, desc = "作业sql文件列表"),
             @Param(name = "operType", type = ApiParamType.STRING, isRequired = true, desc = "标记")
     })
     @Output({
@@ -67,50 +69,19 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         JSONArray sqlVoArray = paramObj.getJSONArray("sqlVoList");
-
-        if (StringUtils.equals(paramObj.getString("operType"), AutoexecJobSqlOperType.AUTO.getValue())) {
-            List<Long> allSqlIdList = new ArrayList<>();
-            List<AutoexecJobSqlDetailVo> insertSqlList = new ArrayList<>();
-            List<AutoexecJobSqlDetailVo> updateSqlList = new ArrayList<>();
-
-            List<AutoexecJobSqlDetailVo> allJobSqlList = autoexecJobMapper.getJobAllSqlDetail(paramObj.getLong("jobId"));
-            Map<Long, AutoexecJobSqlDetailVo> allJobSqlVoMap = allJobSqlList.stream().collect(Collectors.toMap(AutoexecJobSqlDetailVo::getNodeId, e -> e));
-            if (CollectionUtils.isNotEmpty(allJobSqlList)) {
-                allSqlIdList = allJobSqlList.stream().map(AutoexecJobSqlDetailVo::getId).collect(Collectors.toList());
-            }
-
+        if (StringUtils.equals(paramObj.getString("operType"), AutoexecOperType.AUTOEXEC.getValue())) {
+            Date nowLcd = new Date();
             if (CollectionUtils.isNotEmpty(sqlVoArray)) {
-                for (AutoexecJobSqlDetailVo newSqlVo : sqlVoArray.toJavaList(AutoexecJobSqlDetailVo.class)) {
-                    AutoexecJobSqlDetailVo oldSqlVo = allJobSqlVoMap.get(newSqlVo.getNodeId());
-                    if (oldSqlVo == null) {
-                        insertSqlList.add(newSqlVo);
-                        continue;
-                    }
-                    allSqlIdList.remove(oldSqlVo.getId());
-                    if (oldSqlVo.getIsDelete() == 0 && StringUtils.equals(oldSqlVo.getStatus(), newSqlVo.getStatus()) && StringUtils.equals(oldSqlVo.getMd5(), newSqlVo.getMd5())) {
-                        continue;
-                    }
-                    oldSqlVo.setStatus(newSqlVo.getStatus());
-                    oldSqlVo.setMd5(newSqlVo.getMd5());
-                    updateSqlList.add(oldSqlVo);
+                for (AutoexecJobSqlDetailVo sqlDetailVo : sqlVoArray.toJavaList(AutoexecJobSqlDetailVo.class)) {
+                    sqlDetailVo.setLcd(nowLcd);
+                    autoexecJobMapper.insertJobSqlDetail(sqlDetailVo);
                 }
             }
-
-            if (CollectionUtils.isNotEmpty(allSqlIdList)) {
-                autoexecJobMapper.updateJobSqlIsDeleteByIdList(allSqlIdList);
+            List<Long> deleteSqlDetailList = autoexecJobMapper.getJobSqlDetailByJobIdAndLcd(paramObj.getLong("jobId"), nowLcd);
+            if (CollectionUtils.isNotEmpty(deleteSqlDetailList)) {
+                autoexecJobMapper.updateJobSqlIsDeleteByIdList(deleteSqlDetailList);
             }
-            if (CollectionUtils.isNotEmpty(insertSqlList)) {
-                for (AutoexecJobSqlDetailVo insertSqlVo : insertSqlList) {
-                    autoexecJobMapper.insertAutoexecJobSql(new AutoexecJobSqlVo(paramObj.getLong("jobId"), insertSqlVo.getId()));
-                    autoexecJobMapper.insertJobSqlDetail(insertSqlVo);
-                }
-            }
-            if (CollectionUtils.isNotEmpty(updateSqlList)) {
-                for (AutoexecJobSqlDetailVo updateSqlVo : updateSqlList) {
-                    autoexecJobMapper.updateJobSqlDetailIsDeleteAndStatusAndMd5AndLcdById(updateSqlVo.getStatus(), updateSqlVo.getMd5(), updateSqlVo.getId());
-                }
-            }
-        } else if (StringUtils.equals(paramObj.getString("operType"), AutoexecJobSqlOperType.DEPLOY.getValue())) {
+        } else if (StringUtils.equals(paramObj.getString("operType"), DeployOperType.DEPLOY.getValue())) {
             IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
 
             DeploySqlDetailVo deployVersionSql = new DeploySqlDetailVo(paramObj.getLong("systemId"), paramObj.getLong("moduleId"), paramObj.getLong("envId"), paramObj.getString("version"));
@@ -126,6 +97,7 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
                     DeploySqlDetailVo oldSqlVo = allDeploySqlMap.get(newSqlVo.getSqlFile());
                     if (oldSqlVo == null) {
                         insertSqlList.add(newSqlVo);
+                        continue;
                     }
                     allSqlIdList.remove(oldSqlVo.getId());
                     if (oldSqlVo.getIsDelete() == 0 && StringUtils.equals(oldSqlVo.getStatus(), newSqlVo.getStatus()) && StringUtils.equals(oldSqlVo.getMd5(), newSqlVo.getMd5())) {
@@ -140,8 +112,8 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
                 }
                 if (CollectionUtils.isNotEmpty(insertSqlList)) {
                     for (DeploySqlDetailVo insertSqlVo : insertSqlList) {
-//                        autoexecJobMapper.insertAutoexecJobSql(new AutoexecJobSqlVo(jobId, insertSqlVo.getId()));
-//                        autoexecJobMapper.insertJobSqlDetail(insertSqlVo);
+                        iDeploySqlCrossoverMapper.insertDeploySql(new DeployJobSqlVo(paramObj.getLong("jobId"), insertSqlVo.getId()));
+                        iDeploySqlCrossoverMapper.insertDeploySqlDetail(insertSqlVo);
                     }
                 }
                 if (CollectionUtils.isNotEmpty(updateSqlList)) {

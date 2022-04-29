@@ -1,11 +1,13 @@
 package codedriver.module.autoexec.api.job.action.node;
 
+import codedriver.framework.autoexec.constvalue.AutoexecOperType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobSqlDetailVo;
+import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.crossover.CrossoverServiceFactory;
+import codedriver.framework.deploy.constvalue.DeployOperType;
 import codedriver.framework.deploy.crossover.IDeploySqlCrossoverMapper;
 import codedriver.framework.deploy.dto.sql.DeploySqlDetailVo;
-import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
@@ -16,7 +18,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.List;
 
 /**
  * @author longrf
@@ -55,13 +56,11 @@ public class AutoexecJobSqlListApi extends PublicApiComponentBase {
     public Object myDoService(JSONObject paramObj) throws Exception {
         JSONArray SqlVoArray = paramObj.getJSONArray("sqlVoList");
         if (CollectionUtils.isNotEmpty(SqlVoArray)) {
-            if (StringUtils.equals(paramObj.getString("operType"), AutoexecJobSqlOperType.AUTO.getValue())) {
-                List<AutoexecJobSqlDetailVo> sqlVoList = SqlVoArray.toJavaList(AutoexecJobSqlDetailVo.class);
-                return autoexecJobMapper.getJobSqlDetailList(sqlVoList);
-            } else if (StringUtils.equals(paramObj.getString("operType"), AutoexecJobSqlOperType.DEPLOY.getValue())) {
+            if (StringUtils.equals(paramObj.getString("operType"), AutoexecOperType.AUTOEXEC.getValue())) {
+                return autoexecJobMapper.getJobSqlDetailList(SqlVoArray.toJavaList(AutoexecJobSqlDetailVo.class));
+            } else if (StringUtils.equals(paramObj.getString("operType"), DeployOperType.DEPLOY.getValue())) {
                 IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
-                List<DeploySqlDetailVo> sqlVoList = SqlVoArray.toJavaList(DeploySqlDetailVo.class);
-                return iDeploySqlCrossoverMapper.getJobDeploySqlDetailList(sqlVoList);
+                return iDeploySqlCrossoverMapper.getJobDeploySqlDetailList(SqlVoArray.toJavaList(DeploySqlDetailVo.class));
             }
         }
         return null;
