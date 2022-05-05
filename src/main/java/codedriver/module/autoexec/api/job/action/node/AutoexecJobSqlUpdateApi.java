@@ -35,7 +35,7 @@ public class AutoexecJobSqlUpdateApi extends PublicApiComponentBase {
 
     @Override
     public String getName() {
-        return "添加作业执行sql文件状态";
+        return "更新作业执行sql文件状态";
     }
 
     @Override
@@ -62,7 +62,7 @@ public class AutoexecJobSqlUpdateApi extends PublicApiComponentBase {
     })
     @Output({
     })
-    @Description(desc = "添加作业执行sql文件状态")
+    @Description(desc = "更新作业执行sql文件状态")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         if (autoexecJobMapper.getJobInfo(paramObj.getLong("jobId")) == null) {
@@ -70,16 +70,16 @@ public class AutoexecJobSqlUpdateApi extends PublicApiComponentBase {
         }
         if (StringUtils.equals(paramObj.getString("operType"), AutoexecOperType.AUTOEXEC.getValue())) {
             AutoexecSqlDetailVo paramSqlVo = new AutoexecSqlDetailVo(paramObj);
-            AutoexecSqlDetailVo oldSqlVo = autoexecJobMapper.getJobSqlDetailByJobIdAndNodeIdAndSqlFile(paramSqlVo.getJobId(), paramSqlVo.getNodeId(), paramSqlVo.getSqlFile());
-            if (autoexecJobMapper.updateJobSqlDetailIsDeleteAndStatusAndMd5AndLcdById(paramSqlVo.getStatus(), paramSqlVo.getMd5(), oldSqlVo.getId()) == 0) {
-                autoexecJobMapper.insertJobSqlDetail(paramSqlVo);
+            AutoexecSqlDetailVo oldSqlVo = autoexecJobMapper.getSqlDetailByJobIdAndNodeIdAndSqlFile(paramSqlVo.getJobId(), paramSqlVo.getNodeId(), paramSqlVo.getSqlFile());
+            if (autoexecJobMapper.updateSqlDetailIsDeleteAndStatusAndMd5AndLcdById(paramSqlVo.getStatus(), paramSqlVo.getMd5(), oldSqlVo.getId()) == 0) {
+                autoexecJobMapper.insertSqlDetail(paramSqlVo);
             }
         } else if (StringUtils.equals(paramObj.getString("operType"), DeployOperType.DEPLOY.getValue())) {
             IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
             DeploySqlDetailVo paramDeploySqlVo = new DeploySqlDetailVo(paramObj);
             DeploySqlDetailVo oldDeploySqlVo = iDeploySqlCrossoverMapper.getAutoexecJobIdByDeploySqlDetailVo(paramDeploySqlVo);
             if (oldDeploySqlVo != null) {
-                iDeploySqlCrossoverMapper.updateJobDeploySqlDetailIsDeleteAndStatusAndMd5AndLcdById(paramDeploySqlVo.getStatus(), paramDeploySqlVo.getMd5(), oldDeploySqlVo.getId());
+                iDeploySqlCrossoverMapper.updateDeploySqlDetailIsDeleteAndStatusAndMd5AndLcdById(paramDeploySqlVo.getStatus(), paramDeploySqlVo.getMd5(), oldDeploySqlVo.getId());
             } else {
                 iDeploySqlCrossoverMapper.insertDeploySql(new DeploySqlVo(paramObj.getLong("jobId"), paramDeploySqlVo.getId()));
                 iDeploySqlCrossoverMapper.insertDeploySqlDetail(paramDeploySqlVo);

@@ -60,7 +60,7 @@ public class AutoexecJobSqlListApi extends PublicApiComponentBase {
                 return autoexecJobMapper.getJobSqlDetailList(SqlVoArray.toJavaList(AutoexecSqlDetailVo.class));
             } else if (StringUtils.equals(paramObj.getString("operType"), DeployOperType.DEPLOY.getValue())) {
                 IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
-                return iDeploySqlCrossoverMapper.getJobDeploySqlDetailList(SqlVoArray.toJavaList(DeploySqlDetailVo.class));
+                return iDeploySqlCrossoverMapper.getDeploySqlDetailList(SqlVoArray.toJavaList(DeploySqlDetailVo.class));
             }
         }
         return null;
