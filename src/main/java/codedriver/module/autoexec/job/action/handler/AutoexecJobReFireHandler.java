@@ -19,7 +19,7 @@ import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBas
 import codedriver.framework.dto.RestVo;
 import codedriver.framework.dto.runner.RunnerMapVo;
 import codedriver.framework.integration.authentication.enums.AuthenticateType;
-import codedriver.framework.util.RestUtil;
+import codedriver.framework.util.HttpRequestUtil;
 import codedriver.module.autoexec.core.AutoexecJobAuthActionManager;
 import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
@@ -31,7 +31,6 @@ import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * @author lvzk
@@ -75,7 +74,6 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             //更新没有删除的节点为"未开始"状态
             autoexecJobMapper.updateJobPhaseNodeStatusByJobIdAndIsDelete(jobVo.getId(), JobNodeStatus.PENDING.getValue(),0);
             jobVo.setIsFirstFire(1);
-            executeGroup(jobVo);
         } else if (Objects.equals(jobVo.getAction(), JobAction.REFIRE.getValue())) {
             int executeGroupSort;
             /*寻找中止|暂停|失败的phase
@@ -90,17 +88,14 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             if(CollectionUtils.isEmpty(autoexecJobPhaseVos)){
                 return null;
             }
-            executeGroupSort = autoexecJobPhaseVos.get(0).getJobGroupVo().getSort();
+            jobVo.setExecuteJobGroupVo(autoexecJobPhaseVos.get(0).getJobGroupVo());
             //获取group
-            int finalExecuteGroupSort = executeGroupSort;
-            jobVo.setExecuteJobPhaseList(autoexecJobPhaseVos.stream().filter(o->Objects.equals(o.getJobGroupVo().getSort(), finalExecuteGroupSort)).collect(Collectors.toList()));
             autoexecJobService.getAutoexecJobDetail(jobVo);
-            //补充配置，只保留满足条件（该sort下，未开始、失败、已暂停或已中止）的phase
-            //jobVo.setPhaseList(jobVo.getPhaseList().stream().filter(o -> jobPhaseIdList.contains(o.getId())).collect(Collectors.toList()));
             if (CollectionUtils.isNotEmpty(jobVo.getPhaseList())) {
                 new AutoexecJobAuthActionManager.Builder().addReFireJob().build().setAutoexecJobAction(jobVo);
             }
         }
+        executeGroup(jobVo);
         return null;
     }
 
@@ -119,22 +114,23 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             throw new AutoexecJobRunnerNotFoundException(jobVo.getPhaseNameList());
         }
         checkRunnerHealth(runnerVos);
-        try {
+
             for (RunnerMapVo runner : runnerVos) {
                 String url = runner.getUrl() + "api/rest/job/all/reset";
                 paramJson.put("passThroughEnv", new JSONObject() {{
                     put("runnerId", runner.getRunnerMapId());
                     //put("phaseSort", jobVo.getCurrentGroupSort());
                 }});
-                restVo = new RestVo.Builder(url, AuthenticateType.BUILDIN.getValue()).setPayload(paramJson).build();
-                result = RestUtil.sendPostRequest(restVo);
-                JSONObject resultJson = JSONObject.parseObject(result);
+
+                HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
+                if (StringUtils.isNotBlank(requestUtil.getError())) {
+                    throw new AutoexecJobRunnerConnectRefusedException(url);
+                }
+                JSONObject resultJson = requestUtil.getResultJson();
                 if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                    throw new AutoexecJobRunnerHttpRequestException(restVo.getUrl() + ":" + resultJson.getString("Message"));
+                    throw new AutoexecJobRunnerHttpRequestException(url + ":" + requestUtil.getError());
                 }
             }
-        } catch (Exception ex) {
-            throw new AutoexecJobRunnerConnectRefusedException(restVo.getUrl() + " " + result);
-        }
+
     }
 }
