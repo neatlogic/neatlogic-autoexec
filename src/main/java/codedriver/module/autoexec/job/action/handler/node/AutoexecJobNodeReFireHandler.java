@@ -42,6 +42,7 @@ public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
 
     @Override
     public boolean myValidate(AutoexecJobVo jobVo) {
+        currentPhaseIdValid(jobVo);
         JSONObject jsonObj = jobVo.getActionParam();
         List<Long> resourceIdList = JSONObject.parseArray(jsonObj.getJSONArray("resourceIdList").toJSONString(), Long.class);
         //如果是重跑节点，则nodeId 必填

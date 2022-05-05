@@ -56,14 +56,13 @@ public class AutoexecJobPhaseRoundInformHandler extends AutoexecJobActionHandler
         informParam.put("action", "informRoundContinue");
         informParam.put("groupNo", groupSort);
         jsonObj.put("informParam", informParam);
-        AutoexecJobPhaseVo phaseVo = jobVo.getPhaseList().get(0);
+        AutoexecJobPhaseVo phaseVo = jobVo.getCurrentPhase();
         //寻找下一个phase执行当前round,如果不存在下一个phase 则啥都不做
         //AutoexecJobPhaseVo nextJobPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndGroupSortAndSort(phaseVo.getJobId(), groupSort, phaseVo.getSort() + 1);
         //if (nextJobPhaseVo != null) {
-        AutoexecJobPhaseVo jobPhaseVo = jobVo.getPhaseList().get(0);
-        informParam.put("phaseName", jobPhaseVo.getName());
+        informParam.put("phaseName", phaseVo.getName());
         informParam.put("roundNo", jsonObj.getInteger("roundNo"));
-        List<RunnerMapVo> runnerVos = autoexecJobMapper.getJobRunnerListByJobIdAndGroupId(phaseVo.getJobId(), jobPhaseVo.getGroupId());
+        List<RunnerMapVo> runnerVos = autoexecJobMapper.getJobRunnerListByJobIdAndGroupId(phaseVo.getJobId(), phaseVo.getGroupId());
         runnerVos = runnerVos.stream().filter(o -> StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
         checkRunnerHealth(runnerVos);
         for (RunnerMapVo runnerVo : runnerVos) {

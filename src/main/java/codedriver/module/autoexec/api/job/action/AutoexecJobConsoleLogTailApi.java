@@ -8,7 +8,9 @@ package codedriver.module.autoexec.api.job.action;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.JobAction;
+import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -45,6 +47,9 @@ public class AutoexecJobConsoleLogTailApi extends PrivateApiComponentBase {
         return null;
     }
 
+    @Resource
+    private AutoexecJobMapper autoexecJobMapper;
+
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "作业Id"),
             @Param(name = "runnerId", type = ApiParamType.LONG, isRequired = true, desc = "runnerId"),
@@ -62,7 +67,11 @@ public class AutoexecJobConsoleLogTailApi extends PrivateApiComponentBase {
     })
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        AutoexecJobVo jobVo = new AutoexecJobVo();
+        Long jobId = paramObj.getLong("jobId");
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        if (jobVo == null) {
+            throw new AutoexecJobNotFoundException(jobId);
+        }
         jobVo.setActionParam(paramObj);
         IAutoexecJobActionHandler nodeAuditListAction = AutoexecJobActionHandlerFactory.getAction(JobAction.CONSOLE_LOG_TAIL.getValue());
         JSONObject result = nodeAuditListAction.doService(jobVo);

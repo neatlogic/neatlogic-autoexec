@@ -54,10 +54,8 @@ public class AutoexecJobPhaseNodeAuditDownloadApi extends PrivateBinaryStreamApi
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         AutoexecJobVo jobVo = new AutoexecJobVo();
-        jobVo.setId(paramObj.getLong("jobId"));
-        jobVo.setCurrentPhaseId(paramObj.getLong("jobPhaseId"));
-        jobVo.setCurrentNodeResourceId(paramObj.getLong("resourceId"));
         jobVo.setActionParam(paramObj);
+        jobVo.setAction(JobAction.DOWNLOAD_NODE_AUDIT.getValue());
         IAutoexecJobActionHandler downloadNodeAuditAction = AutoexecJobActionHandlerFactory.getAction(JobAction.DOWNLOAD_NODE_AUDIT.getValue());
         return downloadNodeAuditAction.doService(jobVo).get("auditContent");
     }

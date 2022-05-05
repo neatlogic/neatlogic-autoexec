@@ -60,15 +60,11 @@ public class AutoexecJobPhaseNodeIgnoreApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
-        AutoexecJobVo jobInfo = autoexecJobMapper.getJobInfo(jobId);
-        if (jobInfo == null) {
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId);
         }
-        AutoexecJobVo jobVo = new AutoexecJobVo();
-        jobVo.setId(jobId);
-        jobVo.setCurrentPhaseId(jsonObj.getLong("jobPhaseId"));
         jobVo.setActionParam(jsonObj);
-        jobVo.setExecUser(jobInfo.getExecUser());
         jobVo.setAction(JobAction.IGNORE_NODE.getValue());
         IAutoexecJobActionHandler ignoreNodeAction = AutoexecJobActionHandlerFactory.getAction(JobAction.IGNORE_NODE.getValue());
         return ignoreNodeAction.doService(jobVo);

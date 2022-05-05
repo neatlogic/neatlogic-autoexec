@@ -8,7 +8,9 @@ package codedriver.module.autoexec.api.job.action;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.JobAction;
+import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -18,6 +20,7 @@ import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiCompon
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
@@ -40,6 +43,8 @@ public class AutoexecJobConsoleLogAuditDownloadApi extends PrivateBinaryStreamAp
         return null;
     }
 
+    @Resource
+    private AutoexecJobMapper autoexecJobMapper;
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "作业Id"),
             @Param(name = "runnerId", type = ApiParamType.LONG, isRequired = true, desc = "runner Id"),
@@ -50,8 +55,13 @@ public class AutoexecJobConsoleLogAuditDownloadApi extends PrivateBinaryStreamAp
     @Description(desc = "下载作业控制台操作记录")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
-        AutoexecJobVo jobVo = new AutoexecJobVo();
+        Long jobId = paramObj.getLong("jobId");
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        if (jobVo == null) {
+            throw new AutoexecJobNotFoundException(jobId);
+        }
         jobVo.setActionParam(paramObj);
+        jobVo.setAction(JobAction.DOWNLOAD_CONSOLE_LOG_AUDIT.getValue());
         IAutoexecJobActionHandler nodeAuditListAction = AutoexecJobActionHandlerFactory.getAction(JobAction.DOWNLOAD_CONSOLE_LOG_AUDIT.getValue());
         return nodeAuditListAction.doService(jobVo);
     }
