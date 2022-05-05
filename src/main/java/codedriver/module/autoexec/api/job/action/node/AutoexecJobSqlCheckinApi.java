@@ -74,7 +74,11 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
             if (CollectionUtils.isNotEmpty(paramSqlVoArray)) {
                 List<AutoexecSqlDetailVo> insertSqlList = paramSqlVoArray.toJavaList(AutoexecSqlDetailVo.class);
                 if (insertSqlList.size() > 100) {
-                    for (int i = 0; i < (insertSqlList.size() + 100 - 1) / 100; i++) {
+                    int cyclicNumber = insertSqlList.size() / 100;
+                    if (insertSqlList.size() % 100 != 0) {
+                        cyclicNumber++;
+                    }
+                    for (int i = 0; i < cyclicNumber - 1; i++) {
                         autoexecJobMapper.insertSqlDetailList(insertSqlList.subList(i * 100, (Math.min((i + 1) * 100, insertSqlList.size()))), nowLcd);
                     }
                 } else {
