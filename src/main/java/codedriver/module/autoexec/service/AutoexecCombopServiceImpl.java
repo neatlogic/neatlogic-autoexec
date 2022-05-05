@@ -295,7 +295,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             if (argumentCount == null) {
                 argumentCount = 0;
             }
-            if (argumentCount != 0 && Objects.equals(mappingList.size(), argumentCount)) {
+            if (argumentCount != 0 && !Objects.equals(mappingList.size(), argumentCount)) {
                 throw new AutoexecParamMappingArgumentCountMismatchException(operationName, argumentParam.getName(), argumentCount);
             }
         }

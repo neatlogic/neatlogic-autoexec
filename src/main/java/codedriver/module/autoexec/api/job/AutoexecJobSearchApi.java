@@ -66,14 +66,10 @@ public class AutoexecJobSearchApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecJobVo jobVo = new AutoexecJobVo(jsonObj);
         return TableResultUtil.getResult(autoexecService.getJobList(jobVo), jobVo);
-
-
     }
 
     @Override
     public String getToken() {
         return "autoexec/job/search";
     }
-
-
 }
