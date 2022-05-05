@@ -68,11 +68,11 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
     @Description(desc = "检查作业执行sql文件状态")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        JSONArray sqlVoArray = paramObj.getJSONArray("sqlVoList");
+        JSONArray paramSqlVoArray = paramObj.getJSONArray("sqlVoList");
         if (StringUtils.equals(paramObj.getString("operType"), AutoexecOperType.AUTOEXEC.getValue())) {
             Date nowLcd = new Date();
-            if (CollectionUtils.isNotEmpty(sqlVoArray)) {
-                List<AutoexecSqlDetailVo> insertSqlList = sqlVoArray.toJavaList(AutoexecSqlDetailVo.class);
+            if (CollectionUtils.isNotEmpty(paramSqlVoArray)) {
+                List<AutoexecSqlDetailVo> insertSqlList = paramSqlVoArray.toJavaList(AutoexecSqlDetailVo.class);
                 if (insertSqlList.size() > 100) {
                     for (int i = 0; i < (insertSqlList.size() / 100); i++) {
                         autoexecJobMapper.insertSqlDetailList(insertSqlList.subList(i * 100, (1 + 1) * 100), nowLcd);
@@ -90,23 +90,26 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
 
             DeploySqlDetailVo deployVersionSql = new DeploySqlDetailVo(paramObj.getLong("systemId"), paramObj.getLong("moduleId"), paramObj.getLong("envId"), paramObj.getString("version"));
             List<DeploySqlDetailVo> oldDeploySqlList = iDeploySqlCrossoverMapper.getAllDeploySqlDetailList(deployVersionSql);
-            Map<String, DeploySqlDetailVo> allDeploySqlMap = oldDeploySqlList.stream().collect(Collectors.toMap(DeploySqlDetailVo::getSqlFile, e -> e));
+            Map<String, DeploySqlDetailVo> oldDeploySqlMap = oldDeploySqlList.stream().collect(Collectors.toMap(DeploySqlDetailVo::getSqlFile, e -> e));
             List<Long> needDeleteSqlIdList = oldDeploySqlList.stream().map(DeploySqlDetailVo::getId).collect(Collectors.toList());
 
             List<DeploySqlDetailVo> insertSqlList = new ArrayList<>();
             List<DeploySqlDetailVo> updateSqlList = new ArrayList<>();
 
-            if (CollectionUtils.isNotEmpty(sqlVoArray)) {
-                for (DeploySqlDetailVo newSqlVo : sqlVoArray.toJavaList(DeploySqlDetailVo.class)) {
-                    DeploySqlDetailVo oldSqlVo = allDeploySqlMap.get(newSqlVo.getSqlFile());
+            if (CollectionUtils.isNotEmpty(paramSqlVoArray)) {
+                for (DeploySqlDetailVo newSqlVo : paramSqlVoArray.toJavaList(DeploySqlDetailVo.class)) {
+                    DeploySqlDetailVo oldSqlVo = oldDeploySqlMap.get(newSqlVo.getSqlFile());
+                    //不存在则新增
                     if (oldSqlVo == null) {
                         insertSqlList.add(newSqlVo);
                         continue;
                     }
+                    //旧数据 - 需要更新的数据 = 需要删除的数据
                     needDeleteSqlIdList.remove(oldSqlVo.getId());
                     if (oldSqlVo.getIsDelete() == 0 && StringUtils.equals(oldSqlVo.getStatus(), newSqlVo.getStatus()) && StringUtils.equals(oldSqlVo.getMd5(), newSqlVo.getMd5())) {
                         continue;
                     }
+                    //需要更新的数据
                     newSqlVo.setId(oldSqlVo.getId());
                     updateSqlList.add(newSqlVo);
                 }
