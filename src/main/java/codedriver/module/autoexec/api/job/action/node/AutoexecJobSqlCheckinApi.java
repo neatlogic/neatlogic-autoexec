@@ -56,7 +56,7 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
 
     @Input({
             @Param(name = "sqlVoList", type = ApiParamType.JSONARRAY, desc = "sql文件列表"),
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id"),
+            @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "作业id"),
             @Param(name = "systemId", type = ApiParamType.LONG, desc = "系统id"),
             @Param(name = "moduleId", type = ApiParamType.LONG, desc = "模块id"),
             @Param(name = "envId", type = ApiParamType.LONG, desc = "环境id"),
@@ -107,7 +107,7 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
                     if (oldSqlVo.getIsDelete() == 0 && StringUtils.equals(oldSqlVo.getStatus(), newSqlVo.getStatus()) && StringUtils.equals(oldSqlVo.getMd5(), newSqlVo.getMd5())) {
                         continue;
                     }
-                 newSqlVo.setId(oldSqlVo.getId());
+                    newSqlVo.setId(oldSqlVo.getId());
                     updateSqlList.add(newSqlVo);
                 }
                 if (CollectionUtils.isNotEmpty(needDeleteSqlIdList)) {
