@@ -78,7 +78,7 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
                     if (insertSqlList.size() % 100 != 0) {
                         cyclicNumber++;
                     }
-                    for (int i = 0; i < cyclicNumber - 1; i++) {
+                    for (int i = 0; i <= cyclicNumber - 1; i++) {
                         autoexecJobMapper.insertSqlDetailList(insertSqlList.subList(i * 100, (Math.min((i + 1) * 100, insertSqlList.size()))), nowLcd);
                     }
                 } else {
