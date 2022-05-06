@@ -35,9 +35,16 @@ public class AutoexecJobNodeOutPutDownloadHandler extends AutoexecJobActionHandl
     }
 
     @Override
+    public boolean myValidate(AutoexecJobVo jobVo) {
+        currentPhaseIdValid(jobVo);
+        currentResourceIdValid(jobVo);
+        return true;
+    }
+
+    @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) throws Exception {
         AutoexecJobPhaseNodeVo nodeVo = jobVo.getCurrentNode();
-        AutoexecJobPhaseVo phaseVo = jobVo.getPhaseList().get(0);
+        AutoexecJobPhaseVo phaseVo = jobVo.getCurrentPhase();
         JSONObject paramObj = jobVo.getActionParam();
         paramObj.put("jobId", nodeVo.getJobId());
         paramObj.put("phase", nodeVo.getJobPhaseName());

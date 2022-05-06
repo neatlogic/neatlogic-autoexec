@@ -99,7 +99,7 @@ public class AutoexecJobPhaseNodeSearchApi extends PrivateApiComponentBase {
             int rowNum = autoexecJobMapper.searchJobPhaseNodeCount(jobPhaseNodeVo);
             jobPhaseNodeVo.setRowNum(rowNum);
             if(rowNum >0){
-                jobPhaseNodeVoList =  autoexecJobMapper.searchJobPhaseNode(jobPhaseNodeVo);
+                jobPhaseNodeVoList =  autoexecJobMapper.searchJobPhaseNodeWithResource(jobPhaseNodeVo);
             }
             result = TableResultUtil.getResult(jobPhaseNodeVoList,jobPhaseNodeVo);
         }

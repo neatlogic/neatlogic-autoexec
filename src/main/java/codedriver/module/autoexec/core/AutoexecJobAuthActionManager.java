@@ -6,7 +6,6 @@
 package codedriver.module.autoexec.core;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
-import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
@@ -46,9 +45,9 @@ public class AutoexecJobAuthActionManager {
     @PostConstruct
     public void actionDispatcherInit() {
         actionMap.put("fireJob", (jobVo) -> {
-            if (!Objects.equals(JobStatus.PENDING.getValue(),jobVo.getStatus()) && !jobVo.getPhaseList().stream().allMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.PENDING.getValue()))) {
-                throw new AutoexecJobCanNotFireException(jobVo.getId().toString());
-            }
+            //if (!Objects.equals(JobStatus.PENDING.getValue(),jobVo.getStatus()) && !jobVo.getPhaseList().stream().allMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.PENDING.getValue()))) {
+            //    throw new AutoexecJobCanNotFireException(jobVo.getId().toString());
+            //}
         });
 
         actionMap.put("pauseJob", (jobVo) -> {
@@ -70,10 +69,10 @@ public class AutoexecJobAuthActionManager {
         });
 
         actionMap.put("reFireJob", (jobVo) -> {
-            if (Arrays.asList(JobStatus.RUNNING.getValue(),
+            /*if (Arrays.asList(JobStatus.RUNNING.getValue(),
                     JobStatus.PENDING.getValue(),JobStatus.ABORTING.getValue()).contains(jobVo.getStatus())) {
                 throw new AutoexecJobCanNotRefireException(jobVo.getId().toString());
-            }
+            }*/
         });
 
         actionMap.put("resetJobNode", (jobVo) -> {

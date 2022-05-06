@@ -93,7 +93,7 @@ public class AutoexecJobAbortHandler extends AutoexecJobActionHandlerBase {
                 for (RunnerMapVo runner : runnerVos) {
                     paramJson.put("passThroughEnv", new JSONObject() {{
                         put("runnerId", runner.getRunnerMapId());
-                        put("phaseSort", jobVo.getCurrentPhaseSort());
+                        //put("phaseSort", jobVo.getCurrentGroupSort());
                     }});
                     url = runner.getUrl() + "api/rest/job/abort";
                     RestVo restVo = new RestVo.Builder(url, AuthenticateType.BUILDIN.getValue()).setPayload(paramJson).build();

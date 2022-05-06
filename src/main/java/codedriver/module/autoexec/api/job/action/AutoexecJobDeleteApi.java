@@ -56,13 +56,10 @@ public class AutoexecJobDeleteApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
-        AutoexecJobVo jobInfo = autoexecJobMapper.getJobInfo(jobId);
-        if (jobInfo == null) {
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId);
         }
-        AutoexecJobVo jobVo = new AutoexecJobVo();
-        jobVo.setId(jobId);
-        jobVo.setExecUser(jobInfo.getExecUser());
         jobVo.setAction(JobAction.DELETE.getValue());
         IAutoexecJobActionHandler deleteAction = AutoexecJobActionHandlerFactory.getAction(JobAction.DELETE.getValue());
         return deleteAction.doService(jobVo);

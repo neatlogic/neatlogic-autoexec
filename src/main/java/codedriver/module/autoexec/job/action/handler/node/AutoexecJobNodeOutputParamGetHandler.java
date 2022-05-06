@@ -35,10 +35,17 @@ public class AutoexecJobNodeOutputParamGetHandler extends AutoexecJobActionHandl
     }
 
     @Override
+    public boolean myValidate(AutoexecJobVo jobVo) {
+        currentPhaseIdValid(jobVo);
+        currentResourceIdValid(jobVo);
+        return true;
+    }
+
+    @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         JSONObject result = new JSONObject();
         AutoexecJobPhaseNodeVo nodeVo = jobVo.getCurrentNode();
-        AutoexecJobPhaseVo phaseVo = jobVo.getPhaseList().get(0);
+        AutoexecJobPhaseVo phaseVo = jobVo.getCurrentPhase();
         JSONObject paramJson = jobVo.getActionParam();
         paramJson.put("jobId", nodeVo.getJobId());
         paramJson.put("phase", nodeVo.getJobPhaseName());

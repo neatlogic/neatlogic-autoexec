@@ -1,46 +1,42 @@
 /*
- * Copyright (c)  2021 TechSure Co.,Ltd.  All Rights Reserved.
+ * Copyright(c) 2021. TechSure Co., Ltd. All Rights Reserved.
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  */
 
-package codedriver.module.autoexec.api.job.action;
+package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
-import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
-import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
-import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
- *
  * @author lvzk
- * @since 2021/6/2 15:20
+ * @since 2022/5/6 11:20
  **/
 
 @Service
-@Transactional
 @AuthAction(action = AUTOEXEC_BASE.class)
-@OperationType(type = OperationTypeEnum.OPERATE)
-public class AutoexecJobReFireApi extends PrivateApiComponentBase {
-
+@OperationType(type = OperationTypeEnum.SEARCH)
+public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
     @Resource
-    private AutoexecJobMapper autoexecJobMapper;
+    AutoexecJobMapper autoexecJobMapper;
 
     @Override
     public String getName() {
-        return "重跑作业";
+        return "获取作业阶段列表";
     }
 
     @Override
@@ -50,27 +46,34 @@ public class AutoexecJobReFireApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
-            @Param(name = "type", type = ApiParamType.ENUM, rule = "refireResetAll,refireAll", desc = "重跑类型：   重置并重跑所有：refireResetAll；重跑所有：refireAll", isRequired = true)
+            @Param(name = "phaseIdList", type = ApiParamType.JSONARRAY, desc = "作业阶段idList"),
     })
     @Output({
+            @Param(name = "status", type = ApiParamType.STRING, desc = "当作业状态"),
+            @Param(name = "phaseList", explode = AutoexecJobPhaseVo.class, desc = "作业阶段list"),
     })
-    @Description(desc = "重跑作业")
-    @ResubmitInterval(value = 4)
+    @Description(desc = "获取作业阶段列表接口")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
+        JSONObject result = new JSONObject();
         Long jobId = jsonObj.getLong("jobId");
+        List<Long> jobPhaseIdList = null;
+        if (jsonObj.containsKey("phaseIdList")) {
+            jobPhaseIdList = jsonObj.getJSONArray("phaseIdList").toJavaList(Long.class);
+        }
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId);
         }
-        jobVo.setAction(jsonObj.getString("type"));
-        jobVo.setIsFirstFire(1);
-        IAutoexecJobActionHandler refireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.REFIRE.getValue());
-        return refireAction.doService(jobVo);
+        result.put("status", jobVo.getStatus());
+        if (CollectionUtils.isNotEmpty(jobPhaseIdList)) {
+            result.put("phaseList", autoexecJobMapper.getJobPhaseListByJobIdAndPhaseIdList(jobId, jobPhaseIdList));
+        }
+        return result;
     }
 
     @Override
     public String getToken() {
-        return "autoexec/job/refire";
+        return "autoexec/job/phase/list";
     }
 }

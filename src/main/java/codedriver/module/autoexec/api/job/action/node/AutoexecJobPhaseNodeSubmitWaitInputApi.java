@@ -72,16 +72,11 @@ public class AutoexecJobPhaseNodeSubmitWaitInputApi extends PrivateApiComponentB
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long jobId = paramObj.getLong("jobId");
-        AutoexecJobVo jobInfo = autoexecJobMapper.getJobInfo(jobId);
-        if (jobInfo == null) {
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId);
         }
-        AutoexecJobVo jobVo = new AutoexecJobVo();
-        jobVo.setId(jobId);
-        jobVo.setCurrentPhaseId(paramObj.getLong("jobPhaseId"));
-        jobVo.setCurrentNodeResourceId(paramObj.getLong("resourceId"));
         jobVo.setActionParam(paramObj);
-        jobVo.setExecUser(jobInfo.getExecUser());
         jobVo.setAction(JobAction.SUBMIT_NODE_WAIT_INPUT.getValue());
         IAutoexecJobActionHandler submitNodeWaitInputAction = AutoexecJobActionHandlerFactory.getAction(JobAction.SUBMIT_NODE_WAIT_INPUT.getValue());
         return submitNodeWaitInputAction.doService(jobVo);
