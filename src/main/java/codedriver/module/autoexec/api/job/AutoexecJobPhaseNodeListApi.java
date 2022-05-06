@@ -7,6 +7,7 @@ package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
@@ -49,8 +50,9 @@ public class AutoexecJobPhaseNodeListApi extends PrivateApiComponentBase {
             @Param(name = "nodeIdList", type = ApiParamType.JSONARRAY, desc = "作业阶段节点idList"),
     })
     @Output({
-            @Param(name = "status", type = ApiParamType.STRING, desc = "当作业状态"),
-            @Param(name = "nodeList", explode = AutoexecJobPhaseNodeVo.class, desc = "作业阶段节点list"),
+            @Param(name = "status", type = ApiParamType.STRING, desc = "作业状态"),
+            @Param(name = "statusName", type = ApiParamType.STRING, desc = "作业状态名"),
+            @Param(name = "nodeList", explode = AutoexecJobPhaseNodeVo[].class, desc = "作业阶段节点list"),
     })
     @Description(desc = "获取作业阶段节点列表接口")
     @Override
@@ -66,6 +68,7 @@ public class AutoexecJobPhaseNodeListApi extends PrivateApiComponentBase {
             throw new AutoexecJobNotFoundException(jobId);
         }
         result.put("status", jobVo.getStatus());
+        result.put("statusName", JobStatus.getText(jobVo.getStatus()));
         if (CollectionUtils.isNotEmpty(nodeIdList)) {
             result.put("nodeList", autoexecJobMapper.getJobPhaseNodeListByNodeIdList(nodeIdList));
         }
