@@ -10,7 +10,6 @@ import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.exception.AutoexecJobHostPortRunnerNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import codedriver.framework.dto.RestVo;
@@ -37,9 +36,8 @@ public class AutoexecJobNodeAuditDownloadHandler extends AutoexecJobActionHandle
 
     @Override
     public boolean myValidate(AutoexecJobVo jobVo) {
-        if (StringUtils.isBlank(jobVo.getCurrentNode().getRunnerUrl())) {
-            throw new AutoexecJobHostPortRunnerNotFoundException(jobVo.getCurrentNode().getHost() + ":" + jobVo.getCurrentNode().getPort());
-        }
+        currentPhaseIdValid(jobVo);
+        currentResourceIdValid(jobVo);
         return true;
     }
 
@@ -51,7 +49,7 @@ public class AutoexecJobNodeAuditDownloadHandler extends AutoexecJobActionHandle
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) throws Exception {
         AutoexecJobPhaseNodeVo nodeVo = jobVo.getCurrentNode();
-        AutoexecJobPhaseVo phaseVo = jobVo.getPhaseList().get(0);
+        AutoexecJobPhaseVo phaseVo = jobVo.getCurrentPhase();
         JSONObject paramObj = jobVo.getActionParam();
         paramObj.put("jobId", nodeVo.getJobId());
         paramObj.put("phase", nodeVo.getJobPhaseName());

@@ -6,8 +6,6 @@
 package codedriver.module.autoexec.job.action.handler;
 
 import codedriver.framework.autoexec.constvalue.JobAction;
-import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
-import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
@@ -15,7 +13,6 @@ import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Objects;
 
 /**
  * @author lvzk
@@ -33,7 +30,9 @@ public class AutoexecJobFireHandler extends AutoexecJobActionHandlerBase {
 
     @Override
     public boolean myValidate(AutoexecJobVo jobVo) {
-        return Objects.equals(JobStatus.PENDING.getValue(), jobVo.getStatus()) || jobVo.getPhaseList().stream().allMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.PENDING.getValue()));
+        //List<AutoexecJobPhaseVo> executePhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndGroupSort(jobVo.getId(),jobVo.getExecuteJobGroupVo().getSort());
+        //return Objects.equals(JobStatus.PENDING.getValue(), jobVo.getStatus()) || executePhaseVoList.stream().allMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.PENDING.getValue()));
+        return true;
     }
 
     @Override
@@ -44,7 +43,7 @@ public class AutoexecJobFireHandler extends AutoexecJobActionHandlerBase {
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         autoexecJobMapper.getJobLockByJobId(jobVo.getId());
-        execute(jobVo);
+        executeGroup(jobVo);
         return new JSONObject(){{
             put("jobId",jobVo.getId());
         }};

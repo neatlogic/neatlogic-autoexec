@@ -33,11 +33,18 @@ public class AutoexecJobNodeLogTailHandler extends AutoexecJobActionHandlerBase 
     }
 
     @Override
+    public boolean myValidate(AutoexecJobVo jobVo) {
+        currentPhaseIdValid(jobVo);
+        currentResourceIdValid(jobVo);
+        return true;
+    }
+
+    @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         AutoexecJobPhaseNodeVo nodeVo = jobVo.getCurrentNode();
-        AutoexecJobPhaseVo phaseVo = jobVo.getPhaseList().get(0);
+        AutoexecJobPhaseVo phaseVo = jobVo.getCurrentPhase();
         JSONObject paramJson = jobVo.getActionParam();
-        paramJson.put("jobId", jobVo.getId());
+        paramJson.put("jobId", phaseVo.getJobId());
         paramJson.put("nodeId", nodeVo.getId());
         paramJson.put("resourceId", nodeVo.getResourceId());
         paramJson.put("phase", nodeVo.getJobPhaseName());

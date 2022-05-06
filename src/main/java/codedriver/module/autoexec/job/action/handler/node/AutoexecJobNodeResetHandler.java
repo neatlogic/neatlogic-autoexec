@@ -13,17 +13,14 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.exception.AutoexecJobPhaseNodeNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerConnectRefusedException;
+import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import codedriver.framework.dto.RestVo;
 import codedriver.framework.dto.runner.RunnerMapVo;
-import codedriver.framework.exception.type.ParamIrregularException;
 import codedriver.framework.integration.authentication.enums.AuthenticateType;
 import codedriver.framework.util.RestUtil;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,20 +55,13 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
 
     @Override
     public boolean myValidate(AutoexecJobVo jobVo) {
+        currentPhaseIdValid(jobVo);
         JSONObject jsonObj = jobVo.getActionParam();
         Integer isAll = jsonObj.getInteger("isAll");
         if (!Objects.equals(isAll, 1)) {
-            if (CollectionUtils.isEmpty(jsonObj.getJSONArray("resourceIdList"))) {
-                throw new ParamIrregularException("resourceIdList");
-            }
-            List<Long> resourceIdList = JSONObject.parseArray(jsonObj.getJSONArray("resourceIdList").toJSONString(), Long.class);
-            List<AutoexecJobPhaseNodeVo> nodeVoList = autoexecJobMapper.getJobPhaseNodeListByJobPhaseIdAndResourceIdList(jobVo.getCurrentPhaseId(), resourceIdList);
-            if (CollectionUtils.isEmpty(nodeVoList)) {
-                throw new AutoexecJobPhaseNodeNotFoundException(StringUtils.EMPTY, resourceIdList.stream().map(Object::toString).collect(Collectors.joining(",")));
-            }
-            jobVo.setPhaseNodeVoList(nodeVoList);
+            currentResourceIdListValid(jobVo);
         } else {
-            jobVo.setPhaseNodeVoList(autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseId(jobVo.getId(), jobVo.getCurrentPhaseId()));
+            jobVo.setExecuteJobNodeVoList(autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseId(jobVo.getId(), jobVo.getCurrentPhaseId()));
         }
         return true;
     }
@@ -82,7 +72,7 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
         //更新作业状态
         //autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobVo.getId(),JobStatus.RUNNING.getValue()));
         //更新阶段状态
-        AutoexecJobPhaseVo currentPhaseVo = jobVo.getPhaseList().get(0);
+        AutoexecJobPhaseVo currentPhaseVo = jobVo.getCurrentPhase();
         /*List<String> exceptStatus = Collections.singletonList(JobNodeStatus.IGNORED.getValue());
         List<AutoexecJobPhaseNodeVo> jobPhaseNodeVoList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseIdAndExceptStatus(currentPhaseVo.getJobId(), currentPhaseVo.getId(), exceptStatus);
         if(CollectionUtils.isNotEmpty(jobPhaseNodeVoList)&&jobPhaseNodeVoList.size() == 1){//如果该阶段只有一个节点
@@ -92,14 +82,14 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
         }
         autoexecJobMapper.updateJobPhaseStatus(currentPhaseVo);*/
         //重置节点 (status、starttime、endtime)
-        for (AutoexecJobPhaseNodeVo nodeVo : jobVo.getPhaseNodeVoList()) {
+        for (AutoexecJobPhaseNodeVo nodeVo : jobVo.getExecuteJobNodeVoList()) {
             nodeVo.setStatus(JobNodeStatus.PENDING.getValue());
             nodeVo.setStartTime(null);
             nodeVo.setEndTime(null);
             autoexecJobMapper.updateJobPhaseNodeById(nodeVo);
         }
-        autoexecJobMapper.updateJobPhaseNodeListStatus(jobVo.getPhaseNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()), JobNodeStatus.PENDING.getValue());
-        List<AutoexecJobPhaseNodeVo> nodeVoList = autoexecJobMapper.getJobPhaseNodeRunnerListByNodeIdList(jobVo.getPhaseNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()));
+        autoexecJobMapper.updateJobPhaseNodeListStatus(jobVo.getExecuteJobNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()), JobNodeStatus.PENDING.getValue());
+        List<AutoexecJobPhaseNodeVo> nodeVoList = autoexecJobMapper.getJobPhaseNodeRunnerListByNodeIdList(jobVo.getExecuteJobNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()));
         List<RunnerMapVo> runnerVos = new ArrayList<>();
         for (AutoexecJobPhaseNodeVo nodeVo : nodeVoList) {
             runnerVos.add(new RunnerMapVo(nodeVo.getRunnerUrl(), nodeVo.getRunnerMapId()));
@@ -116,7 +106,7 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
             paramJson.put("execUser", UserContext.get().getUserUuid(true));
             paramJson.put("phaseName", currentPhaseVo.getName());
             paramJson.put("execMode", currentPhaseVo.getExecMode());
-            paramJson.put("phaseNodeList", jobVo.getPhaseNodeVoList());
+            paramJson.put("phaseNodeList", jobVo.getExecuteJobNodeVoList());
             for (RunnerMapVo runner : runnerVos) {
                 String url = runner.getUrl() + "api/rest/job/phase/node/status/reset";
                 restVo = new RestVo.Builder(url, AuthenticateType.BUILDIN.getValue()).setPayload(paramJson).build();

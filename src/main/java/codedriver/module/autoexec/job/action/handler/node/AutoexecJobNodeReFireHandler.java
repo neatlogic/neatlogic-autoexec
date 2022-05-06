@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.job.action.handler.node;
 
 import codedriver.framework.autoexec.constvalue.JobAction;
+import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
@@ -18,6 +19,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -40,6 +42,7 @@ public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
 
     @Override
     public boolean myValidate(AutoexecJobVo jobVo) {
+        currentPhaseIdValid(jobVo);
         JSONObject jsonObj = jobVo.getActionParam();
         List<Long> resourceIdList = JSONObject.parseArray(jsonObj.getJSONArray("resourceIdList").toJSONString(), Long.class);
         //如果是重跑节点，则nodeId 必填
@@ -53,7 +56,7 @@ public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
         /*if(CollectionUtils.isNotEmpty(notExistResourceIdList)){
             throw new AutoexecJobPhaseNodeNotFoundException(StringUtils.EMPTY,notExistResourceIdList.toString());
         }*/
-        jobVo.setPhaseNodeVoList(nodeVoList);
+        jobVo.setExecuteJobNodeVoList(nodeVoList);
         return true;
     }
 
@@ -66,7 +69,7 @@ public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         //重跑单个节点无需激活下个phase
         jobVo.setIsNoFireNext(1);
-        List<AutoexecJobPhaseNodeVo> nodeVoList = jobVo.getPhaseNodeVoList();
+        List<AutoexecJobPhaseNodeVo> nodeVoList = jobVo.getExecuteJobNodeVoList();
         //重置节点开始和结束时间,以防 失败节点直接"重跑"导致耗时异常
         autoexecJobMapper.updateJobPhaseNodeResetStartTimeAndEndTimeByNodeIdList(nodeVoList.stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()));
         AutoexecJobPhaseNodeVo nodeVo = nodeVoList.get(0);
@@ -76,13 +79,12 @@ public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
             }
         }
         AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(nodeVo.getJobId(), nodeVo.getJobPhaseId());
-        jobVo.setCurrentPhaseSort(phaseVo.getSort());
-        autoexecJobService.getAutoexecJobDetail(jobVo, phaseVo.getSort());
-        //过滤仅需要当前phase的配置
-        jobVo.setPhaseList(jobVo.getPhaseList().stream().filter(o -> Objects.equals(phaseVo.getId(), o.getId())).collect(Collectors.toList()));
-        if (CollectionUtils.isNotEmpty(jobVo.getPhaseList())) {
-            execute(jobVo);
-        }
+        phaseVo.setStatus(JobPhaseStatus.RUNNING.getValue());
+        autoexecJobMapper.updateJobPhaseStatus(phaseVo);
+        jobVo.setExecuteJobPhaseList(Collections.singletonList(phaseVo));
+        //if (CollectionUtils.isNotEmpty(jobVo.getPhaseList())) {
+            executeNode(jobVo);
+       // }
         return null;
     }
 }
