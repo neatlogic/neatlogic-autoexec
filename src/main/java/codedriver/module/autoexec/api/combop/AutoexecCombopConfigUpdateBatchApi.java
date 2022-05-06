@@ -7,11 +7,14 @@ package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dto.combop.*;
+import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.Description;
 import codedriver.framework.restful.annotation.Input;
 import codedriver.framework.restful.annotation.Output;
+import codedriver.framework.restful.annotation.Param;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.util.UuidUtil;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -48,11 +51,18 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
         return null;
     }
 
-    @Input({})
+    @Input({
+            @Param(name = "idList", type = ApiParamType.JSONARRAY, desc = "id列表")
+    })
     @Output({})
     @Description(desc = "批量更新组合工具配置信息")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
+        List<Long> combopIdList = new ArrayList<>();
+        JSONArray idArray = paramObj.getJSONArray("idList");
+        if (CollectionUtils.isNotEmpty(idArray)) {
+            combopIdList = idArray.toJavaList(Long.class);
+        }
         AutoexecCombopVo searchVo = new AutoexecCombopVo();
         int rowNum = autoexecCombopMapper.getAutoexecCombopCount(searchVo);
         if (rowNum > 0) {
@@ -63,9 +73,9 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
                 searchVo.setCurrentPage(currentPage);
                 List<Long> idList = autoexecCombopMapper.getAutoexecCombopIdList(searchVo);
                 for (Long id : idList) {
-//                    if (!Objects.equals(id,588859829960704L)) {
-//                        continue;
-//                    }
+                    if (CollectionUtils.isNotEmpty(combopIdList) && !combopIdList.contains(id)) {
+                        continue;
+                    }
                     AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
                     AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
                     if(CollectionUtils.isNotEmpty(config.getCombopGroupList())) {
@@ -103,10 +113,10 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
             if (autoexecCombopPhaseVo != null) {
                 AutoexecCombopPhaseConfigVo autoexecCombopPhaseConfigVo = autoexecCombopPhaseVo.getConfig();
                 if (autoexecCombopPhaseConfigVo != null) {
-                    if (autoexecCombopPhaseConfigVo.getIsPresetExecuteConfig() == null) {
-                        Integer isPresetExecuteConfig = 0;
-                        AutoexecCombopExecuteConfigVo autoexecCombopExecuteConfigVo = autoexecCombopPhaseConfigVo.getExecuteConfig();
-                        if (autoexecCombopExecuteConfigVo != null) {
+                    AutoexecCombopExecuteConfigVo autoexecCombopExecuteConfigVo = autoexecCombopPhaseConfigVo.getExecuteConfig();
+                    if (autoexecCombopExecuteConfigVo != null) {
+                        if (autoexecCombopExecuteConfigVo.getIsPresetExecuteConfig() == null) {
+                            Integer isPresetExecuteConfig = 0;
                             if (autoexecCombopExecuteConfigVo.getProtocolId() != null) {
                                 isPresetExecuteConfig = 1;
                             } else if (StringUtils.isNotBlank(autoexecCombopExecuteConfigVo.getExecuteUser())) {
@@ -125,8 +135,8 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
                                     }
                                 }
                             }
+                            autoexecCombopExecuteConfigVo.setIsPresetExecuteConfig(isPresetExecuteConfig);
                         }
-                        autoexecCombopPhaseConfigVo.setIsPresetExecuteConfig(isPresetExecuteConfig);
                     }
                 }
                 Integer sort = autoexecCombopPhaseVo.getSort();
@@ -142,6 +152,8 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
                     phaseSort = 0;
                 }
                 autoexecCombopPhaseVo.setGroupUuid(combopGroupVo.getUuid());
+                autoexecCombopPhaseVo.setGroupSort(combopGroupVo.getSort());
+                autoexecCombopPhaseVo.setGroupId(combopGroupVo.getId());
                 autoexecCombopPhaseVo.setSort(phaseSort++);
             }
         }
