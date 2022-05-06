@@ -20,10 +20,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -94,9 +91,12 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
 
             DeploySqlDetailVo deployVersionSql = new DeploySqlDetailVo(paramObj.getLong("systemId"), paramObj.getLong("moduleId"), paramObj.getLong("envId"), paramObj.getString("version"));
             List<DeploySqlDetailVo> oldDeploySqlList = iDeploySqlCrossoverMapper.getAllDeploySqlDetailList(deployVersionSql);
-            Map<String, DeploySqlDetailVo> oldDeploySqlMap = oldDeploySqlList.stream().collect(Collectors.toMap(DeploySqlDetailVo::getSqlFile, e -> e));
-            List<Long> needDeleteSqlIdList = oldDeploySqlList.stream().map(DeploySqlDetailVo::getId).collect(Collectors.toList());
-
+            Map<String, DeploySqlDetailVo> oldDeploySqlMap = new HashMap<>();
+            List<Long> needDeleteSqlIdList = new ArrayList<>();
+            if (CollectionUtils.isNotEmpty(oldDeploySqlList)) {
+                oldDeploySqlMap = oldDeploySqlList.stream().collect(Collectors.toMap(DeploySqlDetailVo::getSqlFile, e -> e));
+                needDeleteSqlIdList = oldDeploySqlList.stream().map(DeploySqlDetailVo::getId).collect(Collectors.toList());
+            }
             List<DeploySqlDetailVo> insertSqlList = new ArrayList<>();
             List<DeploySqlDetailVo> updateSqlList = new ArrayList<>();
 
@@ -108,8 +108,10 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
                         insertSqlList.add(newSqlVo);
                         continue;
                     }
-                    //旧数据 - 需要更新的数据 = 需要删除的数据
-                    needDeleteSqlIdList.remove(oldSqlVo.getId());
+                    if (CollectionUtils.isNotEmpty(needDeleteSqlIdList)) {
+                        //旧数据 - 需要更新的数据 = 需要删除的数据
+                        needDeleteSqlIdList.remove(oldSqlVo.getId());
+                    }
                     if (oldSqlVo.getIsDelete() == 0 && StringUtils.equals(oldSqlVo.getStatus(), newSqlVo.getStatus()) && StringUtils.equals(oldSqlVo.getMd5(), newSqlVo.getMd5())) {
                         continue;
                     }
