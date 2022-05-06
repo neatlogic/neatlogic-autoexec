@@ -130,7 +130,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
          * 2、lastModified小于最近一次节点变动时间(lncd)
          */
         if (lastModifiedLong == 0L || lncd == null || lastModifiedLong < lncd.getTime()) {
-            int count = autoexecJobMapper.searchJobPhaseNodeCount(nodeParamVo);
+            int count = autoexecJobMapper.searchJobPhaseNodeByDistinctResourceIdCount(nodeParamVo);
             int pageCount = PageUtil.getPageCount(count, nodeParamVo.getPageSize());
             nodeParamVo.setPageCount(pageCount);
             List<AccountProtocolVo> protocolVoList = resourceCenterMapper.searchAccountProtocolListByProtocolName(new AccountProtocolVo());
@@ -152,7 +152,7 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                 for (int i = 1; i <= pageCount; i++) {
                     nodeParamVo.setCurrentPage(i);
                     nodeParamVo.setStartNum(nodeParamVo.getStartNum());
-                    List<AutoexecJobPhaseNodeVo> autoexecJobPhaseNodeVoList = autoexecJobMapper.searchJobPhaseNodeWithResource(nodeParamVo);
+                    List<AutoexecJobPhaseNodeVo> autoexecJobPhaseNodeVoList = autoexecJobMapper.searchJobPhaseNodeByDistinct(nodeParamVo);
                     if (CollectionUtils.isNotEmpty(autoexecJobPhaseNodeVoList)) {
                         //补充执行用户和账号信息（用户、密码）
                         Long protocolId = autoexecJobPhaseNodeVoList.get(0).getProtocolId();
@@ -184,7 +184,6 @@ public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiCompo
                                 }
                             }
                             nodeJson.put("username", finalUserName);
-                            nodeJson.put("nodeId", nodeVo.getId());
                             nodeJson.put("nodeName", nodeVo.getNodeName());
                             nodeJson.put("nodeType", nodeVo.getNodeType());
                             nodeJson.put("resourceId", nodeVo.getResourceId());

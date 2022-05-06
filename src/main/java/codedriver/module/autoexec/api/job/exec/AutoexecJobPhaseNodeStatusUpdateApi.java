@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -51,8 +52,8 @@ public class AutoexecJobPhaseNodeStatusUpdateApi extends PublicApiComponentBase 
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
+            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资产Id", isRequired = true),
             @Param(name = "phase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
-            @Param(name = "nodeId", type = ApiParamType.LONG, desc = "节点Id"),
             @Param(name = "host", type = ApiParamType.STRING, desc = "节点ip"),
             @Param(name = "port", type = ApiParamType.STRING, desc = "节点port"),
             @Param(name = "status", type = ApiParamType.STRING, desc = "状态", isRequired = true),
@@ -69,29 +70,27 @@ public class AutoexecJobPhaseNodeStatusUpdateApi extends PublicApiComponentBase 
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
+        Long resourceId = jsonObj.getLong("resourceId");
         JSONObject result = new JSONObject();
-        Long nodeId = jsonObj.getLong("nodeId");
-        if (nodeId != null && nodeId > 0) {
-            Integer failIgnore = jsonObj.getInteger("failIgnore");
-            String phaseName = jsonObj.getString("phase");
-            AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(jsonObj.getLong("jobId"), phaseName);
-            if (jobPhaseVo == null) {
-                throw new AutoexecJobPhaseNotFoundException(phaseName);
+        Integer failIgnore = jsonObj.getInteger("failIgnore");
+        String phaseName = jsonObj.getString("phase");
+        AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(jsonObj.getLong("jobId"), phaseName);
+        if (jobPhaseVo == null) {
+            throw new AutoexecJobPhaseNotFoundException(phaseName);
+        }
+        AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobIdAndJobPhaseNameAndResourceId(jobId, phaseName, resourceId);
+        if (nodeVo == null) {
+            throw new AutoexecJobPhaseNodeNotFoundException(phaseName, resourceId);
+        }
+        if (!Objects.equals(nodeVo.getStatus(), jsonObj.getString("status")) && !Arrays.asList(JobNodeStatus.SUCCEED.getValue(), JobNodeStatus.IGNORED.getValue(), JobNodeStatus.FAILED.getValue()).contains(nodeVo.getStatus())) {
+            nodeVo.setStatus(jsonObj.getString("status"));
+            //如果节点失败且failIgnore等于0，则表明失败中止;如果节点成功，则需要查询是否存在失败的phase
+            if (Objects.equals(nodeVo.getStatus(), JobNodeStatus.FAILED.getValue()) && Objects.equals(failIgnore, 0)) {
+                autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(nodeVo.getJobId(), nodeVo.getJobPhaseName());
+                jobPhaseVo.setStatus(JobPhaseStatus.FAILED.getValue());
+                autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(nodeVo.getJobPhaseId(), nodeVo.getStatus()));
             }
-            AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobNodeId(nodeId);
-            if (nodeVo == null) {
-                throw new AutoexecJobPhaseNodeNotFoundException(phaseName, nodeId);
-            }
-            if(!Objects.equals(nodeVo.getStatus(),jsonObj.getString("status"))) {
-                nodeVo.setStatus(jsonObj.getString("status"));
-                //如果节点失败且failIgnore等于0，则表明失败中止;如果节点成功，则需要查询是否存在失败的phase
-                if (Objects.equals(nodeVo.getStatus(), JobNodeStatus.FAILED.getValue()) && Objects.equals(failIgnore, 0)) {
-                    autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(nodeVo.getJobId(), nodeVo.getJobPhaseName());
-                    jobPhaseVo.setStatus(JobPhaseStatus.FAILED.getValue());
-                    autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(nodeVo.getJobPhaseId(), nodeVo.getStatus()));
-                }
-                autoexecJobMapper.updateJobPhaseNodeStatus(nodeVo);
-            }
+            autoexecJobMapper.updateJobPhaseNodeStatus(nodeVo);
         }
         return result;
     }
