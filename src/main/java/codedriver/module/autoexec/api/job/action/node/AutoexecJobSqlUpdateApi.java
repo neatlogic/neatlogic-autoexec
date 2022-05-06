@@ -71,7 +71,9 @@ public class AutoexecJobSqlUpdateApi extends PublicApiComponentBase {
         if (StringUtils.equals(paramObj.getString("operType"), AutoexecOperType.AUTOEXEC.getValue())) {
             AutoexecSqlDetailVo paramSqlVo = new AutoexecSqlDetailVo(paramObj);
             AutoexecSqlDetailVo oldSqlVo = autoexecJobMapper.getSqlDetailByJobIdAndNodeIdAndSqlFile(paramSqlVo.getJobId(), paramSqlVo.getNodeId(), paramSqlVo.getSqlFile());
-            if (autoexecJobMapper.updateSqlDetailIsDeleteAndStatusAndMd5AndLcdById(paramSqlVo.getStatus(), paramSqlVo.getMd5(), oldSqlVo.getId()) == 0) {
+            if (oldSqlVo != null) {
+                autoexecJobMapper.updateSqlDetailIsDeleteAndStatusAndMd5AndLcdById(paramSqlVo.getStatus(), paramSqlVo.getMd5(), oldSqlVo.getId());
+            } else {
                 autoexecJobMapper.insertSqlDetail(paramSqlVo);
             }
         } else if (StringUtils.equals(paramObj.getString("operType"), DeployOperType.DEPLOY.getValue())) {
@@ -79,7 +81,7 @@ public class AutoexecJobSqlUpdateApi extends PublicApiComponentBase {
             DeploySqlDetailVo paramDeploySqlVo = new DeploySqlDetailVo(paramObj);
             DeploySqlDetailVo oldDeploySqlVo = iDeploySqlCrossoverMapper.getAutoexecJobIdByDeploySqlDetailVo(paramDeploySqlVo);
             if (oldDeploySqlVo != null) {
-                iDeploySqlCrossoverMapper.updateDeploySqlDetailIsDeleteAndStatusAndMd5AndLcdById(paramDeploySqlVo.getStatus(), paramDeploySqlVo.getMd5(), oldDeploySqlVo.getId());
+                iDeploySqlCrossoverMapper.updateDeploySqlDetailIsDeleteAndStatusAndMd5ById(paramDeploySqlVo.getStatus(), paramDeploySqlVo.getMd5(), oldDeploySqlVo.getId());
             } else {
                 iDeploySqlCrossoverMapper.insertDeploySql(new DeploySqlVo(paramObj.getLong("jobId"), paramDeploySqlVo.getId()));
                 iDeploySqlCrossoverMapper.insertDeploySqlDetail(paramDeploySqlVo);
