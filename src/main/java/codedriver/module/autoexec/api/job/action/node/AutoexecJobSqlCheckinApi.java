@@ -21,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -69,8 +70,7 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
     public Object myDoService(JSONObject paramObj) throws Exception {
         JSONArray paramSqlVoArray = paramObj.getJSONArray("sqlVoList");
         if (StringUtils.equals(paramObj.getString("operType"), AutoexecOperType.AUTOEXEC.getValue())) {
-            List<AutoexecSqlDetailVo> oldSqlList = autoexecJobMapper.getAllSqlByJobId(paramObj.getLong("jobId"));
-            List<Long> needDeleteSqlIdList = new ArrayList<>();
+            Date nowLcd = new Date();
             if (CollectionUtils.isNotEmpty(paramSqlVoArray)) {
                 List<AutoexecSqlDetailVo> insertSqlList = paramSqlVoArray.toJavaList(AutoexecSqlDetailVo.class);
                 if (insertSqlList.size() > 100) {
@@ -79,16 +79,13 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
                         cyclicNumber++;
                     }
                     for (int i = 0; i < cyclicNumber; i++) {
-                        autoexecJobMapper.insertSqlDetailList(insertSqlList.subList(i * 100, (Math.min((i + 1) * 100, insertSqlList.size()))));
+                        autoexecJobMapper.insertSqlDetailList(insertSqlList.subList(i * 100, (Math.min((i + 1) * 100, insertSqlList.size()))), nowLcd);
                     }
                 } else {
-                    autoexecJobMapper.insertSqlDetailList(insertSqlList);
-                }
-                if (CollectionUtils.isNotEmpty(oldSqlList)) {
-                    needDeleteSqlIdList = oldSqlList.stream().map(AutoexecSqlDetailVo::getNodeId).collect(Collectors.toList());
-                    needDeleteSqlIdList.removeAll(insertSqlList.stream().map(AutoexecSqlDetailVo::getNodeId).collect(Collectors.toList()));
+                    autoexecJobMapper.insertSqlDetailList(insertSqlList, nowLcd);
                 }
             }
+            List<Long> needDeleteSqlIdList = autoexecJobMapper.getSqlDetailByJobIdAndLcd(paramObj.getLong("jobId"), nowLcd);
             if (CollectionUtils.isNotEmpty(needDeleteSqlIdList)) {
                 autoexecJobMapper.updateSqlIsDeleteByIdList(needDeleteSqlIdList);
             }

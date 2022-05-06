@@ -60,7 +60,7 @@ public class AutoexecJobPhaseSqlSearchApi extends PrivateApiComponentBase {
             @Param(name = "jobPhaseId", type = ApiParamType.LONG, desc = "作业剧本id", isRequired = true),
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
             @Param(name = "statusList", type = ApiParamType.JSONARRAY, desc = "sql文件状态"),
-            @Param(name = "status", type = ApiParamType.STRING, desc = "当前阶段状态"),
+            @Param(name = "isDelete", type = ApiParamType.INTEGER, desc = "是否删除"),
             @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词(节点名称或ip)", xss = true),
             @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
             @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
@@ -98,8 +98,6 @@ public class AutoexecJobPhaseSqlSearchApi extends PrivateApiComponentBase {
                 result = TableResultUtil.getResult(autoexecJobMapper.searchJobPhaseSql(jobPhaseNodeVo), jobPhaseNodeVo);
             }
         }
-        //判断是否停止刷新作业详细
-        autoexecJobService.setIsRefresh(result, jobVo, paramObj.getString("status"));
         return result;
     }
 }
