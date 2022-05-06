@@ -19,6 +19,7 @@ import codedriver.framework.restful.annotation.Param;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.util.TableResultUtil;
+import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -36,6 +37,9 @@ public class AutoexecJobPhaseSqlSearchApi extends PrivateApiComponentBase {
 
     @Resource
     AutoexecJobMapper autoexecJobMapper;
+
+    @Resource
+    AutoexecJobService autoexecJobService;
 
     @Override
     public String getName() {
@@ -56,6 +60,7 @@ public class AutoexecJobPhaseSqlSearchApi extends PrivateApiComponentBase {
             @Param(name = "jobPhaseId", type = ApiParamType.LONG, desc = "作业剧本id", isRequired = true),
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
             @Param(name = "statusList", type = ApiParamType.JSONARRAY, desc = "sql文件状态"),
+            @Param(name = "status", type = ApiParamType.STRING, desc = "当前阶段状态"),
             @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词(节点名称或ip)", xss = true),
             @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
             @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
@@ -67,6 +72,7 @@ public class AutoexecJobPhaseSqlSearchApi extends PrivateApiComponentBase {
     })
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
+        JSONObject result = new JSONObject();
         AutoexecJobPhaseNodeVo jobPhaseNodeVo = JSONObject.toJavaObject(paramObj, AutoexecJobPhaseNodeVo.class);
 
         AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByPhaseId(paramObj.getLong("jobPhaseId"));
@@ -83,15 +89,17 @@ public class AutoexecJobPhaseSqlSearchApi extends PrivateApiComponentBase {
             int sqlCount = iDeploySqlCrossoverMapper.searchDeploySqlCount(jobPhaseNodeVo);
             if (sqlCount > 0) {
                 jobPhaseNodeVo.setRowNum(sqlCount);
-                return TableResultUtil.getResult(iDeploySqlCrossoverMapper.searchDeploySql(jobPhaseNodeVo), jobPhaseNodeVo);
+                result = TableResultUtil.getResult(iDeploySqlCrossoverMapper.searchDeploySql(jobPhaseNodeVo), jobPhaseNodeVo);
             }
         } else {
             int sqlCount = autoexecJobMapper.searchJobPhaseSqlCount(jobPhaseNodeVo);
             if (sqlCount > 0) {
                 jobPhaseNodeVo.setRowNum(sqlCount);
-                return TableResultUtil.getResult(autoexecJobMapper.searchJobPhaseSql(jobPhaseNodeVo), jobPhaseNodeVo);
+                result = TableResultUtil.getResult(autoexecJobMapper.searchJobPhaseSql(jobPhaseNodeVo), jobPhaseNodeVo);
             }
         }
-        return null;
+        //判断是否停止刷新作业详细
+        autoexecJobService.setIsRefresh(result, jobVo, paramObj.getString("status"));
+        return result;
     }
 }
