@@ -85,6 +85,7 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
+        jobVo.setStatus(status);
         AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(jobId, phaseName);
         if (jobPhaseVo == null) {
             throw new AutoexecJobPhaseNotFoundException(jobId + ":" + phaseName);
@@ -117,13 +118,6 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
         //更新phase_runner 状态
         autoexecJobMapper.updateJobPhaseRunnerStatus(Collections.singletonList(jobPhaseVo.getId()), runnerId, status);
 
-        //更新job 状态
-        if(isFirstFire ==1 && Objects.equals(status,JobPhaseStatus.RUNNING.getValue())){
-            AutoexecJobVo jobFireVo = new AutoexecJobVo(jobId,status);
-            jobFireVo.setAction(JobAction.FIRE.getValue());
-            autoexecJobMapper.updateJobStatus(jobFireVo);
-        }
-
         //判断所有该phase的runner 都是completed状态，phase 状态更改为completed
         if (Objects.equals(status, JobPhaseStatus.WAIT_INPUT.getValue())
                 || Objects.equals(status, JobPhaseStatus.FAILED.getValue())
@@ -140,14 +134,23 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
                 }
             }
         }
+        //更新job 状态
+        if(isFirstFire ==1){
+            jobVo.setAction(JobAction.FIRE.getValue());
+        }
+        if(Objects.equals(status,JobPhaseStatus.RUNNING.getValue())){
+            autoexecJobMapper.updateJobStatus(jobVo);
+        }
         //判断所有phase是否都已跑完（completed），如果是则需要更新job状态
         if (Objects.equals(status, JobPhaseStatus.COMPLETED.getValue()) || Objects.equals(status, JobNodeStatus.SUCCEED.getValue())) {
             List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobId);
             if (jobPhaseVoList.stream().allMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.COMPLETED.getValue()))) {
-                autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobId, JobStatus.COMPLETED.getValue()));
+                //防止local的时候status给的是succeed
+                jobVo.setStatus(JobPhaseStatus.COMPLETED.getValue());
+                autoexecJobMapper.updateJobStatus(jobVo);
             }
         } else if (Objects.equals(status, JobPhaseStatus.FAILED.getValue())) {
-            autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobId, JobStatus.FAILED.getValue()));
+            autoexecJobMapper.updateJobStatus(jobVo);
         }
         return null;
     }
