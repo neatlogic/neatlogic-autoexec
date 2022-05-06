@@ -67,8 +67,7 @@ public class AutoexecJobPhaseSqlSearchApi extends PrivateApiComponentBase {
             @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true")
     })
     @Output({
-            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, desc = "sql文件列表"),
-            @Param(name = "isRefresh", type = ApiParamType.INTEGER, isRequired = true, desc = "是否需要继续定时刷新，1:继续 0:停止")
+            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, desc = "sql文件列表")
     })
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
