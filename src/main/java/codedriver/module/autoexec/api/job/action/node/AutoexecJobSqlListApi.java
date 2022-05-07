@@ -18,6 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
 
 /**
  * @author longrf
@@ -46,8 +47,9 @@ public class AutoexecJobSqlListApi extends PublicApiComponentBase {
     }
 
     @Input({
-            @Param(name = "sqlVoList", type = ApiParamType.JSONARRAY, desc = "sql文件列表"),
-            @Param(name = "operType", type = ApiParamType.ENUM, rule = "auto,deploy", isRequired = true, desc = "来源类型")
+            @Param(name = "sqlInfoList", type = ApiParamType.JSONARRAY, desc = "sql文件列表"),
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id"),
+            @Param(name = "phaseName", type = ApiParamType.LONG, desc = "作业剧本名"),
     })
     @Output({
     })
@@ -56,8 +58,12 @@ public class AutoexecJobSqlListApi extends PublicApiComponentBase {
     public Object myDoService(JSONObject paramObj) throws Exception {
         JSONArray SqlVoArray = paramObj.getJSONArray("sqlVoList");
         if (CollectionUtils.isNotEmpty(SqlVoArray)) {
-            if (StringUtils.equals(paramObj.getString("operType"), AutoexecOperType.AUTOEXEC.getValue())) {
-                return autoexecJobMapper.getJobSqlDetailList(SqlVoArray.toJavaList(AutoexecSqlDetailVo.class));
+            if (StringUtils.equals(SqlVoArray.getJSONObject(0).getString("operType"), AutoexecOperType.AUTOEXEC.getValue())) {
+                List<AutoexecSqlDetailVo> sqlDetailVoList = SqlVoArray.toJavaList(AutoexecSqlDetailVo.class);
+                for (AutoexecSqlDetailVo sqlDetailVo : sqlDetailVoList) {
+                    sqlDetailVo.setPhaseName(paramObj.getString("phaseName"));
+                }
+                return autoexecJobMapper.getJobSqlDetailList(sqlDetailVoList);
             } else if (StringUtils.equals(paramObj.getString("operType"), DeployOperType.DEPLOY.getValue())) {
                 IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
                 return iDeploySqlCrossoverMapper.getDeploySqlDetailList(SqlVoArray.toJavaList(DeploySqlDetailVo.class));
