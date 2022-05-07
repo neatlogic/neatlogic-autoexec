@@ -49,27 +49,29 @@ public class AutoexecJobSqlUpdateApi extends PublicApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "作业 id"),
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业 id"),
             @Param(name = "nodeId", type = ApiParamType.LONG, desc = "节点 id"),
-            @Param(name = "sqlFile", type = ApiParamType.STRING, isRequired = true, desc = "sql文件名"),
+            @Param(name = "sqlFile", type = ApiParamType.STRING, desc = "sql文件名"),
             @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资产id"),
             @Param(name = "host", type = ApiParamType.STRING, desc = "ip"),
             @Param(name = "port", type = ApiParamType.INTEGER, desc = "端口"),
-            @Param(name = "runnerId", type = ApiParamType.STRING, desc = "runner id"),
+            @Param(name = "runnerIp", type = ApiParamType.STRING, desc = "runner ip"),
             @Param(name = "runnerPort", type = ApiParamType.INTEGER, desc = "runner 端口"),
-            @Param(name = "status", type = ApiParamType.ENUM, isRequired = true, rule = "pending,running,aborting,aborted,succeed,failed,ignored,waitInput", desc = "状态"),
-            @Param(name = "operType", type = ApiParamType.ENUM, rule = "auto,deploy", isRequired = true, desc = "来源类型")
+            @Param(name = "status", type = ApiParamType.ENUM, rule = "pending,running,aborting,aborted,succeed,failed,ignored,waitInput", desc = "状态"),
+            @Param(name = "operType", type = ApiParamType.ENUM, rule = "auto,deploy", /*isRequired = true,*/ desc = "来源类型")
     })
     @Output({
     })
     @Description(desc = "更新作业执行sql文件状态")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
+        String operType = paramObj.getJSONObject("sqlStatus").getString("operType");
         if (autoexecJobMapper.getJobInfo(paramObj.getLong("jobId")) == null) {
             throw new AutoexecJobNotFoundException(paramObj.getLong("jobId"));
         }
-        if (StringUtils.equals(paramObj.getString("operType"), AutoexecOperType.AUTOEXEC.getValue())) {
-            AutoexecSqlDetailVo paramSqlVo = new AutoexecSqlDetailVo(paramObj);
+        if (StringUtils.equals(operType, AutoexecOperType.AUTOEXEC.getValue())) {
+            AutoexecSqlDetailVo paramSqlVo = new AutoexecSqlDetailVo(paramObj.getJSONObject("sqlStatus"));
+            paramSqlVo.setPhaseName(paramObj.getString("phaseName"));
             if (autoexecJobMapper.updateSqlDetailIsDeleteAndStatusAndMd5AndLcd(paramSqlVo) == 0) {
                 autoexecJobMapper.insertSqlDetail(paramSqlVo);
             }

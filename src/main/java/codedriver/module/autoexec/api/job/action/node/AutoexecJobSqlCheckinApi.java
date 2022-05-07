@@ -59,7 +59,7 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
             @Param(name = "moduleName", type = ApiParamType.LONG, desc = "模块名"),
             @Param(name = "envName", type = ApiParamType.LONG, desc = "环境名"),
             @Param(name = "version", type = ApiParamType.LONG, desc = "版本"),
-            @Param(name = "operType", type = ApiParamType.ENUM, rule = "auto,deploy", isRequired = true, desc = "来源类型")
+            @Param(name = "operType", type = ApiParamType.ENUM, rule = "auto,deploy", desc = "来源类型")
     })
     @Output({
     })
@@ -67,7 +67,8 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         JSONArray paramSqlVoArray = paramObj.getJSONArray("sqlInfoList");
-        if (StringUtils.equals(paramObj.getString("operType"), AutoexecOperType.AUTOEXEC.getValue())) {
+        String operType = paramSqlVoArray.getJSONObject(0).getString("operType");
+        if (StringUtils.equals(operType, AutoexecOperType.AUTOEXEC.getValue())) {
             Date nowLcd = new Date();
             if (CollectionUtils.isNotEmpty(paramSqlVoArray)) {
                 List<AutoexecSqlDetailVo> insertSqlList = paramSqlVoArray.toJavaList(AutoexecSqlDetailVo.class);
