@@ -53,13 +53,13 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
 
     @Input({
             @Param(name = "sqlInfoList", type = ApiParamType.JSONARRAY, desc = "sql文件列表"),
-            @Param(name = "jobId", type = ApiParamType.LONG,  desc = "作业id"),
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id"),
             @Param(name = "sysId", type = ApiParamType.LONG, desc = "系统id"),
             @Param(name = "sysName", type = ApiParamType.LONG, desc = "系统名"),
             @Param(name = "moduleName", type = ApiParamType.LONG, desc = "模块名"),
             @Param(name = "envName", type = ApiParamType.LONG, desc = "环境名"),
             @Param(name = "version", type = ApiParamType.LONG, desc = "版本"),
-            @Param(name = "operType", type = ApiParamType.ENUM, rule = "auto,deploy", desc = "来源类型")
+            @Param(name = "operType", type = ApiParamType.ENUM, rule = "auto,deploy", isRequired = true, desc = "来源类型")
     })
     @Output({
     })
