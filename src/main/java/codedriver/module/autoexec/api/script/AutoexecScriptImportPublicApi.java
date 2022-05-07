@@ -9,6 +9,7 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.framework.autoexec.dto.catalog.AutoexecCatalogVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptArgumentVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.exception.core.ApiRuntimeException;
@@ -101,6 +102,9 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
             if (StringUtils.isBlank(newScriptVo.getExecMode())) {
                 faultMessages.add("执行方式为空");
             }
+            if (StringUtils.isBlank(newScriptVo.getEncoding())) {
+                faultMessages.add("脚本编码为空");
+            }
             if (StringUtils.isBlank(newScriptVo.getParser())) {
                 faultMessages.add("脚本解析器为空");
             }
@@ -118,6 +122,13 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
             }
             if (StringUtils.isNotBlank(newScriptVo.getParser()) && ScriptParser.getScriptParser(newScriptVo.getParser()) == null) {
                 faultMessages.add("脚本解析器：'" + newScriptVo.getParser() + "'不存在");
+            }
+            if (newScriptVo.getArgument() != null) {
+                try {
+                    autoexecService.validateArgument(newScriptVo.getArgument());
+                } catch (Exception ex) {
+                    faultMessages.add(ex.getMessage());
+                }
             }
             if (CollectionUtils.isNotEmpty(newScriptVo.getParamList())) {
                 try {
@@ -148,6 +159,9 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
                     AutoexecScriptVersionVo versionVo = getVersionVo(newScriptVo, 1);
                     autoexecScriptMapper.insertScript(newScriptVo);
                     autoexecScriptMapper.insertScriptVersion(versionVo);
+                    if (versionVo.getArgument() != null) {
+                        autoexecScriptMapper.insertScriptVersionArgument(versionVo.getArgument());
+                    }
                     autoexecScriptService.saveParamList(versionVo.getId(), versionVo.getParamList());
                     autoexecScriptService.saveLineList(newScriptVo.getId(), versionVo.getId(), versionVo.getLineList());
                     IFullTextIndexHandler fullTextIndexHandler = FullTextIndexHandlerFactory.getHandler(AutoexecFullTextIndexType.SCRIPT_DOCUMENT_VERSION);
@@ -164,6 +178,7 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
                     AutoexecScriptVersionVo oldVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(oldScriptVo.getId());
                     boolean needUpdate = true;
                     if (oldVersionVo != null) {
+                        oldVersionVo.setArgument(autoexecScriptMapper.getArgumentByVersionId(oldVersionVo.getId()));
                         oldVersionVo.setParamList(autoexecScriptMapper.getParamListByVersionId(oldVersionVo.getId()));
                         oldVersionVo.setLineList(autoexecScriptMapper.getLineListByVersionId(oldVersionVo.getId()));
                         if (!autoexecScriptService.checkScriptVersionNeedToUpdate(oldVersionVo, newVersionVo)) {
@@ -175,6 +190,9 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
                         }
                     }
                     if (needUpdate) {
+                        if (newVersionVo.getArgument() != null) {
+                            autoexecScriptMapper.insertScriptVersionArgument(newVersionVo.getArgument());
+                        }
                         autoexecScriptService.saveParamList(newVersionVo.getId(), newVersionVo.getParamList());
                         autoexecScriptService.saveLineList(newScriptVo.getId(), newVersionVo.getId(), newVersionVo.getLineList());
                         autoexecScriptMapper.insertScriptVersion(newVersionVo);
@@ -240,12 +258,18 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
         AutoexecScriptVersionVo versionVo = new AutoexecScriptVersionVo();
         versionVo.setScriptId(scriptVo.getId());
         versionVo.setTitle(scriptVo.getName());
+        versionVo.setEncoding(scriptVo.getEncoding());
         versionVo.setParser(scriptVo.getParser());
         versionVo.setIsActive(1);
         versionVo.setLcu(UserContext.get().getUserUuid());
         versionVo.setStatus(ScriptVersionStatus.PASSED.getValue());
         versionVo.setVersion(version);
         versionVo.setReviewer(UserContext.get().getUserUuid());
+        AutoexecScriptArgumentVo argument = scriptVo.getVersionArgument();
+        if (argument != null) {
+            argument.setScriptVersionId(versionVo.getId());
+            versionVo.setArgument(argument);
+        }
         versionVo.setParamList(scriptVo.getVersionParamList());
         versionVo.setLineList(scriptVo.getLineList());
         return versionVo;

@@ -42,7 +42,6 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id"),
             @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本Id"),
             @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id"),
             @Param(name = "sqlName", type = ApiParamType.STRING, desc = "sql名"),
@@ -62,10 +61,8 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecJobVo jobVo = new AutoexecJobVo();
-        jobVo.setId(paramObj.getLong("jobId"));
-        jobVo.setCurrentPhaseId(paramObj.getLong("jobPhaseId"));
-        jobVo.setCurrentNodeResourceId(paramObj.getLong("resourceId"));
         jobVo.setActionParam(paramObj);
+        jobVo.setAction(JobAction.TAIL_NODE_LOG.getValue());
         IAutoexecJobActionHandler tailNodeLogAction = AutoexecJobActionHandlerFactory.getAction(JobAction.TAIL_NODE_LOG.getValue());
         return tailNodeLogAction.doService(jobVo);
     }

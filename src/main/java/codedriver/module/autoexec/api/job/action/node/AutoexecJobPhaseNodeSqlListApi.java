@@ -51,10 +51,8 @@ public class AutoexecJobPhaseNodeSqlListApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecJobVo jobVo = new AutoexecJobVo();
-        jobVo.setId(paramObj.getLong("jobId"));
-        jobVo.setCurrentPhaseId(paramObj.getLong("jobPhaseId"));
-        jobVo.setCurrentNodeResourceId(paramObj.getLong("resourceId"));
         jobVo.setActionParam(paramObj);
+        jobVo.setAction(JobAction.GET_NODE_SQL_LIST.getValue());
         IAutoexecJobActionHandler getNodeSqlListAction = AutoexecJobActionHandlerFactory.getAction(JobAction.GET_NODE_SQL_LIST.getValue());
         return getNodeSqlListAction.doService(jobVo);
     }

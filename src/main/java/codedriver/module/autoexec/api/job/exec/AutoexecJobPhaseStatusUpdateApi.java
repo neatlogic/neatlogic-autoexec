@@ -5,10 +5,7 @@
 
 package codedriver.module.autoexec.api.job.exec;
 
-import codedriver.framework.autoexec.constvalue.ExecMode;
-import codedriver.framework.autoexec.constvalue.JobNodeStatus;
-import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
-import codedriver.framework.autoexec.constvalue.JobStatus;
+import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
@@ -72,18 +69,24 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
         String status = jsonObj.getString("status");
         JSONObject passThroughEnv = jsonObj.getJSONObject("passThroughEnv");
         Long runnerId = 0L;
+        int isFirstFire = 0;
         if (MapUtils.isNotEmpty(passThroughEnv)) {
             if (!passThroughEnv.containsKey("runnerId")) {
                 throw new AutoexecJobRunnerNotFoundException("runnerId");
             } else {
                 runnerId = passThroughEnv.getLong("runnerId");
             }
+
+            if (passThroughEnv.containsKey("isFirstFire")) {
+                isFirstFire = passThroughEnv.getInteger("isFirstFire");
+            }
         }
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
-        AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseLockByJobIdAndPhaseName(jobId, phaseName);
+        jobVo.setStatus(status);
+        AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(jobId, phaseName);
         if (jobPhaseVo == null) {
             throw new AutoexecJobPhaseNotFoundException(jobId + ":" + phaseName);
         }
@@ -121,15 +124,33 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
                 || Objects.equals(status, JobPhaseStatus.RUNNING.getValue())
                 ||autoexecJobMapper.getJobPhaseRunnerByNotStatusCount(Collections.singletonList(jobPhaseVo.getId()), JobPhaseStatus.COMPLETED.getValue()) == 0) {
             autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), status));
+            //因为runner（local）执行完成是不会回调更新node状态，所以需要在更新phase的时候更新node状态
+            /*if(Objects.equals(jobPhaseVo.getExecMode(),ExecMode.RUNNER.getValue()) && Objects.equals(status, JobPhaseStatus.COMPLETED.getValue())){
+                List<AutoexecJobPhaseNodeVo> nodeList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseId(jobId,jobPhaseVo.getId());
+                if(CollectionUtils.isNotEmpty(nodeList)) {
+                    AutoexecJobPhaseNodeVo runnerNode = nodeList.get(0);
+                    runnerNode.setStatus(JobNodeStatus.SUCCEED.getValue());
+                    autoexecJobMapper.updateJobPhaseNodeStatus(runnerNode);
+                }
+            }*/
+        }
+        //更新job 状态
+        if(isFirstFire ==1){
+            jobVo.setAction(JobAction.FIRE.getValue());
+        }
+        if(Objects.equals(status,JobPhaseStatus.RUNNING.getValue())){
+            autoexecJobMapper.updateJobStatus(jobVo);
         }
         //判断所有phase是否都已跑完（completed），如果是则需要更新job状态
         if (Objects.equals(status, JobPhaseStatus.COMPLETED.getValue()) || Objects.equals(status, JobNodeStatus.SUCCEED.getValue())) {
             List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobId);
             if (jobPhaseVoList.stream().allMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.COMPLETED.getValue()))) {
-                autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobId, JobStatus.COMPLETED.getValue()));
+                //防止local的时候status给的是succeed
+                jobVo.setStatus(JobPhaseStatus.COMPLETED.getValue());
+                autoexecJobMapper.updateJobStatus(jobVo);
             }
         } else if (Objects.equals(status, JobPhaseStatus.FAILED.getValue())) {
-            autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobId, JobStatus.FAILED.getValue()));
+            autoexecJobMapper.updateJobStatus(jobVo);
         }
         return null;
     }

@@ -19,7 +19,7 @@ import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBas
 import codedriver.framework.dto.RestVo;
 import codedriver.framework.dto.runner.RunnerMapVo;
 import codedriver.framework.integration.authentication.enums.AuthenticateType;
-import codedriver.framework.util.RestUtil;
+import codedriver.framework.util.HttpRequestUtil;
 import codedriver.module.autoexec.core.AutoexecJobAuthActionManager;
 import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
@@ -61,22 +61,21 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         if (Objects.equals(jobVo.getAction(), JobAction.RESET_REFIRE.getValue())) {
-            if (CollectionUtils.isEmpty(jobVo.getPhaseList())) {
-                jobVo.setPhaseList(autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId()));
-            }
             new AutoexecJobAuthActionManager.Builder().addReFireJob().build().setAutoexecJobAction(jobVo);
             jobVo.setStatus(JobStatus.PENDING.getValue());
             autoexecJobMapper.updateJobStatus(jobVo);
             resetAll(jobVo);
             autoexecJobMapper.updateJobPhaseStatusByJobId(jobVo.getId(), JobPhaseStatus.PENDING.getValue());//重置phase状态为pending
-            autoexecJobService.getAutoexecJobDetail(jobVo, 0);
-            jobVo.setCurrentPhaseSort(0);
+            //autoexecJobService.getAutoexecJobDetail(jobVo, 0);
+            //获取group
+            jobVo.setExecuteJobGroupVo(autoexecJobMapper.getJobGroupByJobIdAndSort(jobVo.getId(),0));
             //重刷所有phase node
             autoexecJobService.refreshJobNodeList(jobVo.getId(), null);
             //更新没有删除的节点为"未开始"状态
             autoexecJobMapper.updateJobPhaseNodeStatusByJobIdAndIsDelete(jobVo.getId(), JobNodeStatus.PENDING.getValue(),0);
+            jobVo.setIsFirstFire(1);
         } else if (Objects.equals(jobVo.getAction(), JobAction.REFIRE.getValue())) {
-            int sort = 0;
+            int executeGroupSort;
             /*寻找中止|暂停|失败的phase
              * 1、优先寻找pending|aborted|paused|failed phaseList
              * 2、没有满足1条件的，再寻找pending|aborted|paused|failed node 最小sort phaseList
@@ -89,20 +88,14 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             if(CollectionUtils.isEmpty(autoexecJobPhaseVos)){
                 return null;
             }
-            sort = autoexecJobPhaseVos.get(0).getSort();
-            //int finalSort = sort;
-            //List<Long> jobPhaseIdList = autoexecJobPhaseVos.stream().filter(p->p.getSort() == finalSort).map(AutoexecJobPhaseVo::getId).collect(Collectors.toList());
-            jobVo.setCurrentPhaseSort(sort);
-            autoexecJobService.getAutoexecJobDetail(jobVo, sort);
-            //补充配置，只保留满足条件（该sort下，未开始、失败、已暂停或已中止）的phase
-            //jobVo.setPhaseList(jobVo.getPhaseList().stream().filter(o -> jobPhaseIdList.contains(o.getId())).collect(Collectors.toList()));
+            jobVo.setExecuteJobGroupVo(autoexecJobPhaseVos.get(0).getJobGroupVo());
+            //获取group
+            autoexecJobService.getAutoexecJobDetail(jobVo);
             if (CollectionUtils.isNotEmpty(jobVo.getPhaseList())) {
                 new AutoexecJobAuthActionManager.Builder().addReFireJob().build().setAutoexecJobAction(jobVo);
             }
         }
-        if (CollectionUtils.isNotEmpty(jobVo.getPhaseList())) {
-            execute(jobVo);
-        }
+        executeGroup(jobVo);
         return null;
     }
 
@@ -121,22 +114,23 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             throw new AutoexecJobRunnerNotFoundException(jobVo.getPhaseNameList());
         }
         checkRunnerHealth(runnerVos);
-        try {
+
             for (RunnerMapVo runner : runnerVos) {
                 String url = runner.getUrl() + "api/rest/job/all/reset";
                 paramJson.put("passThroughEnv", new JSONObject() {{
                     put("runnerId", runner.getRunnerMapId());
-                    put("phaseSort", jobVo.getCurrentPhaseSort());
+                    //put("phaseSort", jobVo.getCurrentGroupSort());
                 }});
-                restVo = new RestVo.Builder(url, AuthenticateType.BUILDIN.getValue()).setPayload(paramJson).build();
-                result = RestUtil.sendPostRequest(restVo);
-                JSONObject resultJson = JSONObject.parseObject(result);
+
+                HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
+                if (StringUtils.isNotBlank(requestUtil.getError())) {
+                    throw new AutoexecJobRunnerConnectRefusedException(url);
+                }
+                JSONObject resultJson = requestUtil.getResultJson();
                 if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                    throw new AutoexecJobRunnerHttpRequestException(restVo.getUrl() + ":" + resultJson.getString("Message"));
+                    throw new AutoexecJobRunnerHttpRequestException(url + ":" + requestUtil.getError());
                 }
             }
-        } catch (Exception ex) {
-            throw new AutoexecJobRunnerConnectRefusedException(restVo.getUrl() + " " + result);
-        }
+
     }
 }

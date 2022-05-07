@@ -39,7 +39,9 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 保存组合工具基本信息接口
@@ -103,7 +105,7 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
     @Description(desc = "保存组合工具基本信息")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        AutoexecCombopVo autoexecCombopVo = JSON.toJavaObject(jsonObj, AutoexecCombopVo.class);
+        AutoexecCombopVo autoexecCombopVo = jsonObj.toJavaObject(AutoexecCombopVo.class);
         if (autoexecCombopMapper.checkAutoexecCombopNameIsRepeat(autoexecCombopVo) != null) {
             throw new AutoexecCombopNameRepeatException(autoexecCombopVo.getName());
         }
@@ -180,6 +182,16 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
                 autoexecCombopMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
             }
             autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
+            autoexecCombopMapper.deleteAutoexecCombopGroupByCombopId(id);
+            Map<String, AutoexecCombopGroupVo> groupMap = new HashMap<>();
+            List<AutoexecCombopGroupVo> combopGroupList = config.getCombopGroupList();
+            if (CollectionUtils.isNotEmpty(combopGroupList)) {
+                for (AutoexecCombopGroupVo autoexecCombopGroupVo : combopGroupList) {
+                    autoexecCombopGroupVo.setCombopId(id);
+                    autoexecCombopMapper.insertAutoexecCombopGroup(autoexecCombopGroupVo);
+                    groupMap.put(autoexecCombopGroupVo.getUuid(), autoexecCombopGroupVo);
+                }
+            }
 //            int iSort = 0;
             for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
                 if (autoexecCombopPhaseVo != null) {
@@ -195,6 +207,10 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
                             autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
                             autoexecCombopMapper.insertAutoexecCombopPhaseOperation(autoexecCombopPhaseOperationVo);
                         }
+                    }
+                    AutoexecCombopGroupVo autoexecCombopGroupVo = groupMap.get(autoexecCombopPhaseVo.getGroupUuid());
+                    if (autoexecCombopGroupVo != null) {
+                        autoexecCombopPhaseVo.setGroupId(autoexecCombopGroupVo.getId());
                     }
                     autoexecCombopMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);
                 }

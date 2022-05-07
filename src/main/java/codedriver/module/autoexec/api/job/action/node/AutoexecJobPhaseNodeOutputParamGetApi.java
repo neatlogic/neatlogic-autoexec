@@ -51,9 +51,8 @@ public class AutoexecJobPhaseNodeOutputParamGetApi extends PrivateApiComponentBa
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecJobVo jobVo = new AutoexecJobVo();
         jobVo.setId(paramObj.getLong("jobId"));
-        jobVo.setCurrentPhaseId(paramObj.getLong("jobPhaseId"));
-        jobVo.setCurrentNodeResourceId(paramObj.getLong("resourceId"));
         jobVo.setActionParam(paramObj);
+        jobVo.setAction(JobAction.GET_NODE_OUTPUT_PARAM.getValue());
         IAutoexecJobActionHandler getNodeOutputParamAction = AutoexecJobActionHandlerFactory.getAction(JobAction.GET_NODE_OUTPUT_PARAM.getValue());
         return getNodeOutputParamAction.doService(jobVo);
     }

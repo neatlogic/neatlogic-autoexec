@@ -14,10 +14,7 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecPhaseOperationParamVo;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
+import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.job.AutoexecJobInvokeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
@@ -33,6 +30,7 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.framework.autoexec.constvalue.AutoexecJobGroupPolicy;
 import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -42,10 +40,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author lvzk
@@ -101,8 +96,8 @@ public class AutoexecJobFromOperationCreateApi extends PrivateApiComponentBase {
         combopVo.setIsTest(true);
         AutoexecJobInvokeVo invokeVo = new AutoexecJobInvokeVo(jsonObj.getString("source"));
         AutoexecJobVo jobVo = autoexecJobService.saveAutoexecCombopJob(combopVo, invokeVo, null, paramJson);
+        jobVo.setIsFirstFire(1);
         jobVo.setAction(JobAction.FIRE.getValue());
-        jobVo.setCurrentPhaseSort(0);
         IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
         fireAction.doService(jobVo);
         return new JSONObject(){{
@@ -143,13 +138,17 @@ public class AutoexecJobFromOperationCreateApi extends PrivateApiComponentBase {
             phaseParam = new AutoexecPhaseOperationParamVo(toolVo);
         }
         checkJobExist(phaseParam);
-        initPhaseArray(combopPhaseArray,phaseParam);
+        AutoexecCombopGroupVo combopGroupVo = new AutoexecCombopGroupVo();
+        combopGroupVo.setPolicy(AutoexecJobGroupPolicy.ONESHOT.getName());
+        combopGroupVo.setSort(0);
+        initPhaseArray(combopPhaseArray,phaseParam,combopGroupVo);
         combopVo.setName("TEST_"+phaseParam.getName());
         combopVo.setId(phaseParam.getOperationId());
         combopVo.setOperationType(phaseParam.getOperationType());
         initRuntimeParamList(combopVo,phaseParam);
         combopVo.setConfig("{}");
         combopVo.getConfig().setCombopPhaseList(combopPhaseArray.toJavaList(AutoexecCombopPhaseVo.class));
+        combopVo.getConfig().setCombopGroupList(Collections.singletonList(combopGroupVo));
         return combopVo;
     }
 
@@ -186,10 +185,13 @@ public class AutoexecJobFromOperationCreateApi extends PrivateApiComponentBase {
      * 构建combopPhaseList
      * @param combopPhaseArray 虚拟组合工具phaseArray
      * @param phaseOperationParamVo scriptVersion|tool
+     * @param combopGroupVo 对应的groupVo
      */
-    private void initPhaseArray(JSONArray combopPhaseArray, AutoexecPhaseOperationParamVo phaseOperationParamVo){
+    private void initPhaseArray(JSONArray combopPhaseArray, AutoexecPhaseOperationParamVo phaseOperationParamVo, AutoexecCombopGroupVo combopGroupVo){
         combopPhaseArray.add(new JSONObject() {{
             put("sort", 0);
+            put("groupSort", combopGroupVo.getSort());
+            put("groupId", combopGroupVo.getId());
             put("name", "test_phase");
             put("execMode", phaseOperationParamVo.getExecMode());
             put("execModeName", ExecMode.getText(phaseOperationParamVo.getExecMode()));

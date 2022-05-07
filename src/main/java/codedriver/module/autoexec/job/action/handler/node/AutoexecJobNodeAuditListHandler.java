@@ -10,13 +10,11 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeAuditVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.exception.AutoexecJobHostPortRunnerNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import codedriver.framework.dao.mapper.UserMapper;
 import codedriver.framework.dto.UserVo;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -41,9 +39,8 @@ public class AutoexecJobNodeAuditListHandler extends AutoexecJobActionHandlerBas
 
     @Override
     public boolean myValidate(AutoexecJobVo jobVo) {
-        if (StringUtils.isBlank(jobVo.getCurrentNode().getRunnerUrl())) {
-            throw new AutoexecJobHostPortRunnerNotFoundException(jobVo.getCurrentNode().getHost() + ":" + jobVo.getCurrentNode().getPort());
-        }
+        currentPhaseIdValid(jobVo);
+        currentResourceIdValid(jobVo);
         return true;
     }
 
@@ -56,7 +53,7 @@ public class AutoexecJobNodeAuditListHandler extends AutoexecJobActionHandlerBas
     public JSONObject doMyService(AutoexecJobVo jobVo) throws Exception {
         JSONObject result = new JSONObject();
         AutoexecJobPhaseNodeVo nodeVo = jobVo.getCurrentNode();
-        AutoexecJobPhaseVo phaseVo = jobVo.getPhaseList().get(0);
+        AutoexecJobPhaseVo phaseVo = jobVo.getCurrentPhase();
         JSONObject paramObj = jobVo.getActionParam();
         paramObj.put("jobId", nodeVo.getJobId());
         paramObj.put("phase", nodeVo.getJobPhaseName());
