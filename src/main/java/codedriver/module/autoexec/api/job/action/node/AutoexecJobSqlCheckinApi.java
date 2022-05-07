@@ -92,7 +92,7 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
             if (CollectionUtils.isNotEmpty(needDeleteSqlIdList)) {
                 autoexecJobMapper.updateSqlIsDeleteByIdList(needDeleteSqlIdList);
             }
-        } else if (StringUtils.equals(paramObj.getString("operType"), DeployOperType.DEPLOY.getValue())) {
+        } else if (StringUtils.equals(operType, DeployOperType.DEPLOY.getValue())) {
             IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
 
             DeploySqlDetailVo deployVersionSql = new DeploySqlDetailVo(paramObj.getLong("systemId"), paramObj.getLong("moduleId"), paramObj.getLong("envId"), paramObj.getString("version"));
