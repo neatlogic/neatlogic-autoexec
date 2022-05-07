@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.api.job.exec;
 
+import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
 import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
@@ -19,6 +20,7 @@ import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -78,19 +81,28 @@ public class AutoexecJobPhaseNodeStatusUpdateApi extends PublicApiComponentBase 
         if (jobPhaseVo == null) {
             throw new AutoexecJobPhaseNotFoundException(phaseName);
         }
-        AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobIdAndJobPhaseNameAndResourceId(jobId, phaseName, resourceId);
-        if (nodeVo == null) {
-            throw new AutoexecJobPhaseNodeNotFoundException(phaseName, resourceId);
-        }
-        if (!Objects.equals(nodeVo.getStatus(), jsonObj.getString("status")) && !Arrays.asList(JobNodeStatus.SUCCEED.getValue(), JobNodeStatus.IGNORED.getValue(), JobNodeStatus.FAILED.getValue()).contains(nodeVo.getStatus())) {
-            nodeVo.setStatus(jsonObj.getString("status"));
-            //如果节点失败且failIgnore等于0，则表明失败中止;如果节点成功，则需要查询是否存在失败的phase
-            if (Objects.equals(nodeVo.getStatus(), JobNodeStatus.FAILED.getValue()) && Objects.equals(failIgnore, 0)) {
-                autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(nodeVo.getJobId(), nodeVo.getJobPhaseName());
-                jobPhaseVo.setStatus(JobPhaseStatus.FAILED.getValue());
-                autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(nodeVo.getJobPhaseId(), nodeVo.getStatus()));
+        if(Objects.equals(jobPhaseVo.getExecMode(), ExecMode.RUNNER.getValue())){
+            List<AutoexecJobPhaseNodeVo> nodeList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseId(jobId,jobPhaseVo.getId());
+            if(CollectionUtils.isNotEmpty(nodeList)) {
+                AutoexecJobPhaseNodeVo runnerNode = nodeList.get(0);
+                runnerNode.setStatus(jsonObj.getString("status"));
+                autoexecJobMapper.updateJobPhaseNodeStatus(runnerNode);
             }
-            autoexecJobMapper.updateJobPhaseNodeStatus(nodeVo);
+        }else {
+            AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobIdAndJobPhaseNameAndResourceId(jobId, phaseName, resourceId);
+            if (nodeVo == null) {
+                throw new AutoexecJobPhaseNodeNotFoundException(phaseName, resourceId);
+            }
+            if (!Objects.equals(nodeVo.getStatus(), jsonObj.getString("status")) && !Arrays.asList(JobNodeStatus.SUCCEED.getValue(), JobNodeStatus.IGNORED.getValue(), JobNodeStatus.FAILED.getValue()).contains(nodeVo.getStatus())) {
+                nodeVo.setStatus(jsonObj.getString("status"));
+                //如果节点失败且failIgnore等于0，则表明失败中止;如果节点成功，则需要查询是否存在失败的phase
+                if (Objects.equals(nodeVo.getStatus(), JobNodeStatus.FAILED.getValue()) && Objects.equals(failIgnore, 0)) {
+                    autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(nodeVo.getJobId(), nodeVo.getJobPhaseName());
+                    jobPhaseVo.setStatus(JobPhaseStatus.FAILED.getValue());
+                    autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(nodeVo.getJobPhaseId(), nodeVo.getStatus()));
+                }
+                autoexecJobMapper.updateJobPhaseNodeStatus(nodeVo);
+            }
         }
         return result;
     }

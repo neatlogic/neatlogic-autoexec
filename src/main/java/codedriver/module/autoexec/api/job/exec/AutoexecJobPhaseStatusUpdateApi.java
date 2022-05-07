@@ -125,14 +125,14 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
                 ||autoexecJobMapper.getJobPhaseRunnerByNotStatusCount(Collections.singletonList(jobPhaseVo.getId()), JobPhaseStatus.COMPLETED.getValue()) == 0) {
             autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), status));
             //因为runner（local）执行完成是不会回调更新node状态，所以需要在更新phase的时候更新node状态
-            if(Objects.equals(jobPhaseVo.getExecMode(),ExecMode.RUNNER.getValue()) && Objects.equals(status, JobPhaseStatus.COMPLETED.getValue())){
+            /*if(Objects.equals(jobPhaseVo.getExecMode(),ExecMode.RUNNER.getValue()) && Objects.equals(status, JobPhaseStatus.COMPLETED.getValue())){
                 List<AutoexecJobPhaseNodeVo> nodeList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseId(jobId,jobPhaseVo.getId());
                 if(CollectionUtils.isNotEmpty(nodeList)) {
                     AutoexecJobPhaseNodeVo runnerNode = nodeList.get(0);
                     runnerNode.setStatus(JobNodeStatus.SUCCEED.getValue());
                     autoexecJobMapper.updateJobPhaseNodeStatus(runnerNode);
                 }
-            }
+            }*/
         }
         //更新job 状态
         if(isFirstFire ==1){
