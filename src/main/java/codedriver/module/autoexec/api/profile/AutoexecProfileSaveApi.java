@@ -77,7 +77,7 @@ public class AutoexecProfileSaveApi extends PrivateApiComponentBase {
         autoexecProfileMapper.deleteProfileOperationByProfileId(paramProfileId);
         //保存profile和tool、script的关系
         autoexecProfileService.saveProfileOperation(profileVo.getId(), profileVo.getAutoexecOperationVoList());
-        autoexecProfileMapper.insertProfile(profileVo);
+        autoexecProfileService.insertProfile(profileVo);
 //        autoexecProfileMapper.insertProfileParam();
         return null;
     }

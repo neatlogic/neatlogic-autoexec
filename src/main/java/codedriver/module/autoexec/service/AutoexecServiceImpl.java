@@ -17,6 +17,7 @@ import codedriver.framework.autoexec.dto.AutoexecRiskVo;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
@@ -305,7 +306,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
     }
 
     @Override
-    public List<AutoexecParamVo> getAutoexecOperationParamVoList(List<AutoexecOperationVo> paramAutoexecOperationVoList, List<AutoexecParamVo> oldOperationParamList) {
+    public List<AutoexecParamVo> getAutoexecOperationParamVoList(List<AutoexecOperationVo> paramAutoexecOperationVoList, List<AutoexecProfileParamVo> oldOperationParamList) {
 
         List<Long> toolIdList = paramAutoexecOperationVoList.stream().filter(e -> StringUtils.equals(ToolType.TOOL.getValue(), e.getType())).map(AutoexecOperationVo::getId).collect(Collectors.toList());
         List<Long> scriptIdList = paramAutoexecOperationVoList.stream().filter(e -> StringUtils.equals(ToolType.SCRIPT.getValue(), e.getType())).map(AutoexecOperationVo::getId).collect(Collectors.toList());
@@ -325,12 +326,12 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
         newOperationParamVoList = newOperationParamVoList.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(comparing(AutoexecParamVo::getName))), ArrayList::new));
 
         //实时的参数信息
-        Map<String, AutoexecParamVo> newOperationParamMap = newOperationParamVoList.stream().collect(Collectors.toMap(AutoexecParamVo::getName, e -> e));
+        Map<String, AutoexecParamVo> newOperationParamMap = newOperationParamVoList.stream().collect(Collectors.toMap(AutoexecParamVo::getKey, e -> e));
 
         //旧的参数信息
-        Map<String, AutoexecParamVo> oldOperationParamMap = null;
+        Map<String, AutoexecProfileParamVo> oldOperationParamMap = null;
         if (CollectionUtils.isNotEmpty(oldOperationParamList)) {
-            oldOperationParamMap = oldOperationParamList.stream().collect(Collectors.toMap(AutoexecParamVo::getName, e -> e));
+            oldOperationParamMap = oldOperationParamList.stream().collect(Collectors.toMap(AutoexecProfileParamVo::getKey, e -> e));
         }
 
         //根据参数名称name替换对应的值

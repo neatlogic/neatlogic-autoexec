@@ -9,6 +9,7 @@ import codedriver.framework.autoexec.dto.AutoexecOperationVo;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 
 import java.util.List;
 
@@ -41,10 +42,10 @@ public interface AutoexecService {
      * @param oldOperationParamList        旧的参数list
      * @return
      */
-    List<AutoexecParamVo> getAutoexecOperationParamVoList(List<AutoexecOperationVo> paramAutoexecOperationVoList, List<AutoexecParamVo> oldOperationParamList);
+    List<AutoexecParamVo> getAutoexecOperationParamVoList(List<AutoexecOperationVo> paramAutoexecOperationVoList, List<AutoexecProfileParamVo> oldOperationParamList);
 
     /**
-     * 根据关联的operationVoList获取工具参数并与数据库存储的旧参数oldOperationParamList做去重处理
+     * 根据关operationVoList获取工具参数并做去重处理
      *
      * @param paramAutoexecOperationVoList 工具list
      * @return

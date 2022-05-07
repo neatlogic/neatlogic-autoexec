@@ -2,6 +2,7 @@ package codedriver.module.autoexec.dao.mapper;
 
 
 import codedriver.framework.autoexec.dto.AutoexecOperationVo;
+import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import org.apache.ibatis.annotations.Param;
 
@@ -28,6 +29,11 @@ public interface AutoexecProfileMapper {
     void insertAutoexecProfileOperation(@Param("profileId") Long profileId, @Param("operationIdList") List<Long> operationIdList, @Param("type") String type);
 
     void insertProfile(AutoexecProfileVo profileVo);
+
+    void insertAutoexecProfileParam(List<AutoexecProfileParamVo> paramList);
+
+    List<AutoexecProfileParamVo> getProfileParamListByProfileId(Long id);
+
 
     void deleteProfileById(Long id);
 

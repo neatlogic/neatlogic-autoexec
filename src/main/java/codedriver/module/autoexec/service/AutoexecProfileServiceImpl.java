@@ -5,6 +5,7 @@ import codedriver.framework.autoexec.constvalue.ToolType;
 import codedriver.framework.autoexec.crossover.IAutoexecServiceCrossoverService;
 import codedriver.framework.autoexec.dto.AutoexecOperationVo;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
+import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import codedriver.framework.autoexec.exception.AutoexecProfileIsNotFoundException;
 import codedriver.framework.crossover.CrossoverServiceFactory;
@@ -40,13 +41,13 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService {
             throw new AutoexecProfileIsNotFoundException(id);
         }
         IAutoexecServiceCrossoverService iAutoexecServiceCrossoverService = CrossoverServiceFactory.getApi(IAutoexecServiceCrossoverService.class);
-        return iAutoexecServiceCrossoverService.getAutoexecOperationParamVoList(profileVo.getAutoexecOperationVoList(), autoexecProfileMapper.getProfileVoById(id).getParamList());
+        return iAutoexecServiceCrossoverService.getAutoexecOperationParamVoList(profileVo.getAutoexecOperationVoList(), autoexecProfileMapper.getProfileParamListByProfileId(id));
     }
 
     /**
      * 保存profile和tool、script的关系
      *
-     * @param profileId profile id
+     * @param profileId               profile id
      * @param autoexecOperationVoList 自动化工具list
      */
     @Override
@@ -60,6 +61,20 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService {
         //script
         if (CollectionUtils.isNotEmpty(scriptIdList)) {
             autoexecProfileMapper.insertAutoexecProfileOperation(profileId, scriptIdList, ToolType.SCRIPT.getValue());
+        }
+    }
+
+    /**
+     * 保存profile、profile参数、profile参数引用全局参数的关系
+     *
+     * @param profileVo profile
+     */
+    @Override
+    public void insertProfile(AutoexecProfileVo profileVo) {
+        autoexecProfileMapper.insertProfile(profileVo);
+        List<AutoexecProfileParamVo> paramList = profileVo.getParamList();
+        if (CollectionUtils.isNotEmpty(paramList)) {
+            autoexecProfileMapper.insertAutoexecProfileParam(paramList);
         }
     }
 }

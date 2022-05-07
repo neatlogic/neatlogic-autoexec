@@ -35,6 +35,35 @@
             `lcd` = now(3)
     </insert>
 
+    <insert id="insertAutoexecProfileParam">
+        INSERT INTO autoexec_profile_param
+        (id,
+        key,
+        profile_id,
+        default_value,
+        oparation_id,
+        operation_type,
+        value_invoke_id,
+        value_invoke_type)
+        VALUES
+        <foreach collection="paramList" item="param" separator=",">
+            (#{param.id},
+            #{param.key},
+            #{param.profileId},
+            #{param.defaultValue},
+            #{param.operationId},
+            #{param.operationType},
+            #{param.valueInvokeId},
+            #{param.valueInvokeType})
+        </foreach>
+        ON DUPLICATE KEY
+        UPDATE `default_value` = VALUES(defaultValue),
+        `oparation_id` = VALUES(operationId),
+        `operation_type` = VALUES(operationType),
+        `value_invoke_id` =VALUES(valueInvokeId),
+        `value_invoke_type` = VALUES(valueInvokeType)
+    </insert>
+
     <select id="searchAutoexecProfileCount" parameterType="codedriver.framework.autoexec.dto.profile.AutoexecProfileVo"
             resultType="int">
         SELECT
@@ -215,6 +244,11 @@
         <include refid="searchProfileWhere"></include>
         ORDER BY a.lcd DESC
         LIMIT #{startNum}, #{pageSize}
+    </select>
+
+    <select id="getProfileParamListByProfileId"
+            resultType="codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo">
+
     </select>
 
     <delete id="deleteProfileById">
