@@ -9,6 +9,7 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeStatusCountVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
@@ -70,7 +71,16 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
         result.put("status", jobVo.getStatus());
         result.put("statusName", JobStatus.getText(jobVo.getStatus()));
         if (CollectionUtils.isNotEmpty(jobPhaseIdList)) {
-            result.put("phaseList", autoexecJobMapper.getJobPhaseListByJobIdAndPhaseIdList(jobId, jobPhaseIdList));
+            List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseIdList(jobId, jobPhaseIdList);
+            List<AutoexecJobPhaseNodeStatusCountVo> statusCountVoList = autoexecJobMapper.getJobPhaseNodeStatusCount(jobId);
+            for (AutoexecJobPhaseNodeStatusCountVo statusCountVo : statusCountVoList) {
+                for (AutoexecJobPhaseVo phaseVo : jobPhaseVoList) {
+                    if (statusCountVo.getJobPhaseId().equals(phaseVo.getId())) {
+                        phaseVo.addStatusCountVo(statusCountVo);
+                    }
+                }
+            }
+            result.put("phaseList", jobPhaseVoList);
         }
         return result;
     }
