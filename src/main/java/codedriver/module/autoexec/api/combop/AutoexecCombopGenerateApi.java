@@ -189,7 +189,25 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
         List<ParamMappingVo> argumentMappingList = new ArrayList<>();
         operationConfigVo.setArgumentMappingList(argumentMappingList);
         if (argumentParam != null) {
-            argumentMappingList.add(new ParamMappingVo(argumentParam.getKey(), ParamMappingMode.CONSTANT.getValue(), argumentParam.getKey()));
+            int sort = autoexecCombopParamVoList.size();
+            int argumentCount = argumentParam.getArgumentCount();
+            for (int i = 0; i < argumentCount; i++) {
+                AutoexecCombopParamVo autoexecCombopParamVo = new AutoexecCombopParamVo();
+                autoexecCombopParamVo.setKey("argument_" + i);
+                autoexecCombopParamVo.setName(argumentParam.getName() + "_" + i);
+                autoexecCombopParamVo.setDefaultValue(argumentParam.getDefaultValue());
+                autoexecCombopParamVo.setType(argumentParam.getType());
+                autoexecCombopParamVo.setDescription(argumentParam.getDescription());
+                autoexecCombopParamVo.setSort(sort++);
+                autoexecCombopParamVo.setMode(argumentParam.getMode());
+                autoexecCombopParamVo.setIsRequired(argumentParam.getIsRequired());
+                autoexecCombopParamVoList.add(autoexecCombopParamVo);
+                ParamMappingVo paramMappingVo = new ParamMappingVo();
+                paramMappingVo.setName(autoexecCombopParamVo.getName());
+                paramMappingVo.setMappingMode(ParamMappingMode.RUNTIME_PARAM.getValue());
+                paramMappingVo.setValue(autoexecCombopParamVo.getKey());
+                argumentMappingList.add(paramMappingVo);
+            }
         }
         phaseOperationVo.setConfig(JSONObject.toJSONString(operationConfigVo));
         /** 新建一个组 **/
