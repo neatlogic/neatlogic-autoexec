@@ -189,6 +189,7 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
         List<ParamMappingVo> argumentMappingList = new ArrayList<>();
         operationConfigVo.setArgumentMappingList(argumentMappingList);
         if (argumentParam != null) {
+            phaseOperationVo.setArgument(argumentParam);
             int sort = autoexecCombopParamVoList.size();
             int argumentCount = argumentParam.getArgumentCount();
             for (int i = 0; i < argumentCount; i++) {
