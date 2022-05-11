@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author lvzk
@@ -61,6 +62,7 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
         JSONObject result = new JSONObject();
         Long jobId = jsonObj.getLong("jobId");
         List<Long> jobPhaseIdList = null;
+        List<AutoexecJobPhaseVo> jobPhaseVoList = null;
         if (jsonObj.containsKey("phaseIdList")) {
             jobPhaseIdList = jsonObj.getJSONArray("phaseIdList").toJavaList(Long.class);
         }
@@ -68,20 +70,26 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId);
         }
-        result.put("status", jobVo.getStatus());
-        result.put("statusName", JobStatus.getText(jobVo.getStatus()));
-        if (CollectionUtils.isNotEmpty(jobPhaseIdList)) {
-            List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseIdList(jobId, jobPhaseIdList);
-            List<AutoexecJobPhaseNodeStatusCountVo> statusCountVoList = autoexecJobMapper.getJobPhaseNodeStatusCount(jobId);
+        if(CollectionUtils.isEmpty(jobPhaseIdList)){
+            jobPhaseVoList  = autoexecJobMapper.getJobPhaseListByJobId(jobId);
+        }else{
+            jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseIdList(jobId, jobPhaseIdList);
+        }
+        List<AutoexecJobPhaseNodeStatusCountVo> statusCountVoList = autoexecJobMapper.getJobPhaseNodeStatusCount(jobId);
+        AutoexecJobPhaseVo activePhaseVo = autoexecJobMapper.getJobActivePhase(jobId);
+        for (AutoexecJobPhaseVo phaseVo : jobPhaseVoList) {
             for (AutoexecJobPhaseNodeStatusCountVo statusCountVo : statusCountVoList) {
-                for (AutoexecJobPhaseVo phaseVo : jobPhaseVoList) {
-                    if (statusCountVo.getJobPhaseId().equals(phaseVo.getId())) {
-                        phaseVo.addStatusCountVo(statusCountVo);
-                    }
+                if (statusCountVo.getJobPhaseId().equals(phaseVo.getId())) {
+                    phaseVo.addStatusCountVo(statusCountVo);
                 }
             }
-            result.put("phaseList", jobPhaseVoList);
+            if(Objects.equals(phaseVo.getName(),activePhaseVo.getName())){
+                phaseVo.setIsActive(1);
+            }
         }
+        result.put("status", jobVo.getStatus());
+        result.put("statusName", JobStatus.getText(jobVo.getStatus()));
+        result.put("phaseList", jobPhaseVoList);
         return result;
     }
 
