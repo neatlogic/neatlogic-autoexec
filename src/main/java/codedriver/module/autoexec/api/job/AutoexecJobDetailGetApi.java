@@ -83,7 +83,7 @@ public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
         //获取当前phase
-        AutoexecJobPhaseVo jobCurrentPhaseVo = autoexecJobMapper.getJobCurrentPhase(jobId);
+        AutoexecJobPhaseVo jobCurrentPhaseVo = autoexecJobMapper.getJobActivePhase(jobId);
         //剧本列表
         List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobId);
         List<AutoexecJobPhaseNodeStatusCountVo> statusCountVoList = autoexecJobMapper.getJobPhaseNodeStatusCount(jobId);
