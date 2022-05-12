@@ -71,7 +71,6 @@ public class AutoexecJobSqlUpdateApi extends PublicApiComponentBase {
         } else if (StringUtils.equals(paramObj.getString("operType"), DeployOperType.DEPLOY.getValue())) {
             IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
             DeploySqlDetailVo paramDeploySqlVo = new DeploySqlDetailVo(paramObj.getJSONObject("sqlStatus"));
-            paramDeploySqlVo.setRunnerId(paramObj.getLong("runnerId"));
             DeploySqlDetailVo oldDeploySqlVo = iDeploySqlCrossoverMapper.getDeploySqlBySysIdAndModuleIdAndEnvIdAndVersionAndSqlFile(paramObj.getLong("sysId"), paramObj.getLong("envId"), paramObj.getLong("moduleId"), paramObj.getString("version"), paramDeploySqlVo.getSqlFile());
             if (oldDeploySqlVo != null) {
                 iDeploySqlCrossoverMapper.updateDeploySqlDetailIsDeleteAndStatusAndMd5ById(paramDeploySqlVo.getStatus(), paramDeploySqlVo.getMd5(), oldDeploySqlVo.getId());
