@@ -6,12 +6,14 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.dto.job.AutoexecSqlDetailVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.crossover.CrossoverServiceFactory;
 import codedriver.framework.deploy.constvalue.JobSource;
 import codedriver.framework.deploy.crossover.IDeploySqlCrossoverMapper;
+import codedriver.framework.deploy.dto.sql.DeploySqlDetailVo;
 import codedriver.framework.restful.annotation.Input;
 import codedriver.framework.restful.annotation.OperationType;
 import codedriver.framework.restful.annotation.Output;
@@ -25,6 +27,8 @@ import com.alibaba.nacos.api.utils.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author longrf
@@ -71,9 +75,7 @@ public class AutoexecJobPhaseSqlSearchApi extends PrivateApiComponentBase {
     })
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        JSONObject result = new JSONObject();
         AutoexecJobPhaseNodeVo jobPhaseNodeVo = JSONObject.toJavaObject(paramObj, AutoexecJobPhaseNodeVo.class);
-
         AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByPhaseId(paramObj.getLong("jobPhaseId"));
         if (phaseVo == null) {
             throw new AutoexecJobPhaseNotFoundException(paramObj.getLong("jobPhaseId").toString());
@@ -82,21 +84,23 @@ public class AutoexecJobPhaseSqlSearchApi extends PrivateApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(phaseVo.getJobId().toString());
         }
-
         if (StringUtils.equals(jobVo.getSource(), JobSource.DEPLOY.getValue())) {
+            List<DeploySqlDetailVo> returnList = new ArrayList<>();
             IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
             int sqlCount = iDeploySqlCrossoverMapper.searchDeploySqlCount(jobPhaseNodeVo);
             if (sqlCount > 0) {
                 jobPhaseNodeVo.setRowNum(sqlCount);
-                result = TableResultUtil.getResult(iDeploySqlCrossoverMapper.searchDeploySql(jobPhaseNodeVo), jobPhaseNodeVo);
+                returnList = iDeploySqlCrossoverMapper.searchDeploySql(jobPhaseNodeVo);
             }
+            return TableResultUtil.getResult(returnList, jobPhaseNodeVo);
         } else {
+            List<AutoexecSqlDetailVo> returnList = new ArrayList<>();
             int sqlCount = autoexecJobMapper.searchJobPhaseSqlCount(jobPhaseNodeVo);
             if (sqlCount > 0) {
                 jobPhaseNodeVo.setRowNum(sqlCount);
-                result = TableResultUtil.getResult(autoexecJobMapper.searchJobPhaseSql(jobPhaseNodeVo), jobPhaseNodeVo);
+                returnList = autoexecJobMapper.searchJobPhaseSql(jobPhaseNodeVo);
             }
+            return TableResultUtil.getResult(returnList, jobPhaseNodeVo);
         }
-        return result;
     }
 }
