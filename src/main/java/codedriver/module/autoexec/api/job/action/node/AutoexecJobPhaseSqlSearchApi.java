@@ -10,6 +10,7 @@ import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.crossover.CrossoverServiceFactory;
+import codedriver.framework.deploy.constvalue.JobSource;
 import codedriver.framework.deploy.crossover.IDeploySqlCrossoverMapper;
 import codedriver.framework.restful.annotation.Input;
 import codedriver.framework.restful.annotation.OperationType;
@@ -20,6 +21,7 @@ import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.util.TableResultUtil;
 import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.nacos.api.utils.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -81,20 +83,20 @@ public class AutoexecJobPhaseSqlSearchApi extends PrivateApiComponentBase {
             throw new AutoexecJobNotFoundException(phaseVo.getJobId().toString());
         }
 
-//        if (StringUtils.equals(jobVo.getSource(), JobSource.DEPLOY.getValue())) {
+        if (StringUtils.equals(jobVo.getSource(), JobSource.DEPLOY.getValue())) {
             IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
             int sqlCount = iDeploySqlCrossoverMapper.searchDeploySqlCount(jobPhaseNodeVo);
             if (sqlCount > 0) {
                 jobPhaseNodeVo.setRowNum(sqlCount);
                 result = TableResultUtil.getResult(iDeploySqlCrossoverMapper.searchDeploySql(jobPhaseNodeVo), jobPhaseNodeVo);
             }
-//        } else {
-//            int sqlCount = autoexecJobMapper.searchJobPhaseSqlCount(jobPhaseNodeVo);
-//            if (sqlCount > 0) {
-//                jobPhaseNodeVo.setRowNum(sqlCount);
-//                result = TableResultUtil.getResult(autoexecJobMapper.searchJobPhaseSql(jobPhaseNodeVo), jobPhaseNodeVo);
-//            }
-//        }
+        } else {
+            int sqlCount = autoexecJobMapper.searchJobPhaseSqlCount(jobPhaseNodeVo);
+            if (sqlCount > 0) {
+                jobPhaseNodeVo.setRowNum(sqlCount);
+                result = TableResultUtil.getResult(autoexecJobMapper.searchJobPhaseSql(jobPhaseNodeVo), jobPhaseNodeVo);
+            }
+        }
         return result;
     }
 }
