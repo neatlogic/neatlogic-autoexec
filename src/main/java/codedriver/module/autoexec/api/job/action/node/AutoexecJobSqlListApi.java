@@ -47,27 +47,33 @@ public class AutoexecJobSqlListApi extends PublicApiComponentBase {
     }
 
     @Input({
-            @Param(name = "sqlInfoList", type = ApiParamType.JSONARRAY, desc = "sql文件列表"),
+            @Param(name = "sqlInfoList", type = ApiParamType.JSONARRAY, desc = "sql列表"),
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id"),
-            @Param(name = "phaseName", type = ApiParamType.LONG, desc = "作业剧本名"),
+            @Param(name = "phaseName", type = ApiParamType.STRING, desc = "作业剧本名"),
+            @Param(name = "sysId", type = ApiParamType.LONG, desc = "系统id"),
+            @Param(name = "moduleId", type = ApiParamType.LONG, desc = "模块id"),
+            @Param(name = "envId", type = ApiParamType.LONG, desc = "环境id"),
+            @Param(name = "version", type = ApiParamType.STRING, desc = "版本"),
     })
     @Output({
     })
     @Description(desc = "获取作业执行sql文件状态列表")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        JSONArray SqlVoArray = paramObj.getJSONArray("sqlVoList");
-        if (CollectionUtils.isNotEmpty(SqlVoArray)) {
-            if (StringUtils.equals(SqlVoArray.getJSONObject(0).getString("operType"), AutoexecOperType.AUTOEXEC.getValue())) {
+        if (StringUtils.equals(paramObj.getString("operType"), AutoexecOperType.AUTOEXEC.getValue())) {
+            JSONArray SqlVoArray = paramObj.getJSONArray("sqlInfoList");
+            if (CollectionUtils.isNotEmpty(SqlVoArray)) {
                 List<AutoexecSqlDetailVo> sqlDetailVoList = SqlVoArray.toJavaList(AutoexecSqlDetailVo.class);
                 for (AutoexecSqlDetailVo sqlDetailVo : sqlDetailVoList) {
                     sqlDetailVo.setPhaseName(paramObj.getString("phaseName"));
                 }
                 return autoexecJobMapper.getJobSqlDetailList(sqlDetailVoList);
-            } else if (StringUtils.equals(paramObj.getString("operType"), DeployOperType.DEPLOY.getValue())) {
-                IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
-                return iDeploySqlCrossoverMapper.getDeploySqlDetailList(SqlVoArray.toJavaList(DeploySqlDetailVo.class));
             }
+        } else if (StringUtils.equals(paramObj.getString("operType"), DeployOperType.DEPLOY.getValue())) {
+            IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
+            JSONArray sqlVoArray = new JSONArray();
+            sqlVoArray.add(paramObj.toJavaObject(DeploySqlDetailVo.class));
+            return iDeploySqlCrossoverMapper.getDeploySqlDetailList(sqlVoArray.toJavaList(DeploySqlDetailVo.class));
         }
         return null;
     }
