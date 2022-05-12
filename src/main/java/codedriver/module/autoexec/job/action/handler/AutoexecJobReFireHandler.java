@@ -16,7 +16,6 @@ import codedriver.framework.autoexec.exception.AutoexecJobRunnerConnectRefusedEx
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
-import codedriver.framework.dto.RestVo;
 import codedriver.framework.dto.runner.RunnerMapVo;
 import codedriver.framework.integration.authentication.enums.AuthenticateType;
 import codedriver.framework.util.HttpRequestUtil;
@@ -70,7 +69,7 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             //获取group
             jobVo.setExecuteJobGroupVo(autoexecJobMapper.getJobGroupByJobIdAndSort(jobVo.getId(),0));
             //重刷所有phase node
-            autoexecJobService.refreshJobNodeList(jobVo.getId(), null);
+            autoexecJobService.refreshJobNodeList(jobVo.getId());
             //更新没有删除的节点为"未开始"状态
             autoexecJobMapper.updateJobPhaseNodeStatusByJobIdAndIsDelete(jobVo.getId(), JobNodeStatus.PENDING.getValue(),0);
             jobVo.setIsFirstFire(1);
@@ -107,8 +106,6 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
     private void resetAll(AutoexecJobVo jobVo) {
         JSONObject paramJson = new JSONObject();
         paramJson.put("jobId", jobVo.getId());
-        RestVo restVo = null;
-        String result = StringUtils.EMPTY;
         List<RunnerMapVo> runnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobVo.getId(), jobVo.getPhaseIdList());
         if (CollectionUtils.isEmpty(runnerVos)) {
             throw new AutoexecJobRunnerNotFoundException(jobVo.getPhaseNameList());

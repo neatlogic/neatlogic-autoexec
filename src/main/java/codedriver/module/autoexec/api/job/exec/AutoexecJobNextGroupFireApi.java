@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.api.job.exec;
 
 import codedriver.framework.autoexec.constvalue.JobAction;
+import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobGroupVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Objects;
 
 /**
  * @author lvzk
@@ -77,15 +79,20 @@ public class AutoexecJobNextGroupFireApi extends PublicApiComponentBase {
         autoexecJobMapper.updateJobPhaseRunnerFireNextByJobIdAndGroupSortAndRunnerId(jobId, groupSort, 1, runnerId);
         /*
          *判断是否满足激活下个phase条件
-         * 1、当前sort的所有phase都completed
+         * 1、当前sort的所有phase都completed,
          * 2、当前sort的所有phase的runner 都是completed，所有runner的"是否fireNext"标识都为1
          */
         if (autoexecJobService.checkIsAllActivePhaseIsCompleted(jobId, groupSort)) {
-            AutoexecJobGroupVo nextGroupVo = autoexecJobMapper.getJobGroupByJobIdAndSort(jobId, groupSort + 1);
-            if (nextGroupVo != null) {
-                jobVo.setExecuteJobGroupVo(nextGroupVo);
-                IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
-                fireAction.doService(jobVo);
+            if(Objects.equals(JobStatus.ABORTING.getValue(),jobVo.getStatus())){
+                jobVo.setStatus(JobStatus.ABORTED.getValue());
+                autoexecJobMapper.updateJobStatus(jobVo);
+            }else {
+                AutoexecJobGroupVo nextGroupVo = autoexecJobMapper.getJobGroupByJobIdAndSort(jobId, groupSort + 1);
+                if (nextGroupVo != null) {
+                    jobVo.setExecuteJobGroupVo(nextGroupVo);
+                    IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
+                    fireAction.doService(jobVo);
+                }
             }
         }
         return null;
