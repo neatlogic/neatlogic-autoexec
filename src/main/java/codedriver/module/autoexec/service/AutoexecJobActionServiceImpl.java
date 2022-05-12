@@ -177,10 +177,10 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                                                 if (CollectionUtils.isNotEmpty(param.getJSONArray("outputParamList"))) {
                                                     for (Object arg : param.getJSONArray("outputParamList")) {
                                                         JSONObject argJson = JSONObject.parseObject(arg.toString());
-                                                        put("opt", argJson.getString("key"));
-                                                        put("type", Objects.equals(argJson.getString("type"), OutputParamType.FILEPATH.getValue()) ? ParamType.FILE.getValue() : argJson.getString("type"));
-                                                        put("defaultValue",argJson.getString("defaultValue"));
-                                                        put(argJson.getString("key"), argJson);
+                                                        JSONObject outputParamJson = new JSONObject();
+                                                        put(argJson.getString("key"),outputParamJson);
+                                                        outputParamJson.put("type", argJson.getString("type"));
+                                                        outputParamJson.put("defaultValue",argJson.getString("defaultValue"));
                                                     }
                                                 }
                                             }});
