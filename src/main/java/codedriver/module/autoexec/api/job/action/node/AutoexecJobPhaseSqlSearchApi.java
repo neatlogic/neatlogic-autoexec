@@ -87,6 +87,7 @@ public class AutoexecJobPhaseSqlSearchApi extends PrivateApiComponentBase {
         if (StringUtils.equals(jobVo.getSource(), JobSource.DEPLOY.getValue())) {
             List<DeploySqlDetailVo> returnList = new ArrayList<>();
             IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
+            jobPhaseNodeVo.setJobPhaseName(autoexecJobMapper.getJobPhaseByPhaseId(jobPhaseNodeVo.getJobPhaseId()).getName());
             int sqlCount = iDeploySqlCrossoverMapper.searchDeploySqlCount(jobPhaseNodeVo);
             if (sqlCount > 0) {
                 jobPhaseNodeVo.setRowNum(sqlCount);
