@@ -18,6 +18,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -69,9 +70,9 @@ public class AutoexecJobSqlListApi extends PublicApiComponentBase {
             }
         } else if (StringUtils.equals(paramObj.getString("operType"), DeployOperType.DEPLOY.getValue())) {
             IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
-            JSONArray sqlVoArray = new JSONArray();
-            sqlVoArray.add(paramObj.toJavaObject(DeploySqlDetailVo.class));
-            return iDeploySqlCrossoverMapper.getDeploySqlDetailList(sqlVoArray.toJavaList(DeploySqlDetailVo.class));
+            List<DeploySqlDetailVo> sqlDetailVoList = new ArrayList<>();
+            sqlDetailVoList.add(paramObj.toJavaObject(DeploySqlDetailVo.class));
+            return iDeploySqlCrossoverMapper.getDeploySqlDetailList(sqlDetailVoList);
         }
         return null;
     }
