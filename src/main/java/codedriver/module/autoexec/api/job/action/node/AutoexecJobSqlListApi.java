@@ -54,6 +54,7 @@ public class AutoexecJobSqlListApi extends PublicApiComponentBase {
             @Param(name = "moduleId", type = ApiParamType.LONG, desc = "模块id"),
             @Param(name = "envId", type = ApiParamType.LONG, desc = "环境id"),
             @Param(name = "version", type = ApiParamType.STRING, desc = "版本"),
+            @Param(name = "operType", type = ApiParamType.ENUM, rule = "auto,deploy", isRequired = true, desc = "来源类型")
     })
     @Output({
     })
@@ -64,10 +65,7 @@ public class AutoexecJobSqlListApi extends PublicApiComponentBase {
             JSONArray SqlVoArray = paramObj.getJSONArray("sqlInfoList");
             if (CollectionUtils.isNotEmpty(SqlVoArray)) {
                 List<AutoexecSqlDetailVo> sqlDetailVoList = SqlVoArray.toJavaList(AutoexecSqlDetailVo.class);
-                for (AutoexecSqlDetailVo sqlDetailVo : sqlDetailVoList) {
-                    sqlDetailVo.setPhaseName(paramObj.getString("phaseName"));
-                }
-                return autoexecJobMapper.getJobSqlDetailList(sqlDetailVoList);
+                return autoexecJobMapper.getJobSqlDetailList(sqlDetailVoList, paramObj.getString("phaseName"));
             }
         } else if (StringUtils.equals(paramObj.getString("operType"), DeployOperType.DEPLOY.getValue())) {
             IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);

@@ -49,26 +49,26 @@ public class AutoexecJobSqlUpdateApi extends PublicApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业 id"),
-            @Param(name = "phaseName", type = ApiParamType.STRING, desc = "作业剧本名"),
-            @Param(name = "sqlStatus", type = ApiParamType.JSONOBJECT, desc = "sql状态"),
+            @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "作业 id"),
+            @Param(name = "phaseName", type = ApiParamType.STRING, isRequired = true, desc = "作业剧本名"),
+            @Param(name = "sqlStatus", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "sql状态"),
+            @Param(name = "operType", type = ApiParamType.ENUM, rule = "auto,deploy", isRequired = true, desc = "来源类型")
     })
     @Output({
     })
     @Description(desc = "更新作业执行sql文件状态")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        String operType = paramObj.getString("operType");
         if (autoexecJobMapper.getJobInfo(paramObj.getLong("jobId")) == null) {
             throw new AutoexecJobNotFoundException(paramObj.getLong("jobId"));
         }
-        if (StringUtils.equals(operType, AutoexecOperType.AUTOEXEC.getValue())) {
+        if (StringUtils.equals(paramObj.getString("operType"), AutoexecOperType.AUTOEXEC.getValue())) {
             AutoexecSqlDetailVo paramSqlVo = new AutoexecSqlDetailVo(paramObj.getJSONObject("sqlStatus"));
             paramSqlVo.setPhaseName(paramObj.getString("phaseName"));
             if (autoexecJobMapper.updateSqlDetailIsDeleteAndStatusAndMd5AndLcd(paramSqlVo) == 0) {
                 autoexecJobMapper.insertSqlDetail(paramSqlVo);
             }
-        } else if (StringUtils.equals(operType, DeployOperType.DEPLOY.getValue())) {
+        } else if (StringUtils.equals(paramObj.getString("operType"), DeployOperType.DEPLOY.getValue())) {
             IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
             DeploySqlDetailVo paramDeploySqlVo = new DeploySqlDetailVo(paramObj.getJSONObject("sqlStatus"));
             paramDeploySqlVo.setRunnerId(paramObj.getLong("runnerId"));
@@ -76,7 +76,7 @@ public class AutoexecJobSqlUpdateApi extends PublicApiComponentBase {
             if (oldDeploySqlVo != null) {
                 iDeploySqlCrossoverMapper.updateDeploySqlDetailIsDeleteAndStatusAndMd5ById(paramDeploySqlVo.getStatus(), paramDeploySqlVo.getMd5(), oldDeploySqlVo.getId());
             } else {
-                iDeploySqlCrossoverMapper.insertDeploySql(new DeploySqlVo(paramObj.getLong("jobId"),paramObj.getString("phaseName"), paramDeploySqlVo.getId()));
+                iDeploySqlCrossoverMapper.insertDeploySql(new DeploySqlVo(paramObj.getLong("jobId"), paramObj.getString("phaseName"), paramDeploySqlVo.getId()));
                 iDeploySqlCrossoverMapper.insertDeploySqlDetail(paramDeploySqlVo, paramObj.getLong("sysId"), paramObj.getLong("envId"), paramObj.getLong("moduleId"), paramObj.getString("version"), paramObj.getLong("runnerId"));
             }
         }
