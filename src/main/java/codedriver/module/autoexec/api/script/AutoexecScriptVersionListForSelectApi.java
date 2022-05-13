@@ -49,6 +49,7 @@ public class AutoexecScriptVersionListForSelectApi extends PrivateApiComponentBa
 
     @Input({
             @Param(name = "scriptId", type = ApiParamType.LONG, isRequired = true, desc = "脚本ID"),
+            @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词"),
             @Param(name = "excludeList", type = ApiParamType.JSONARRAY, desc = "需要排除的版本ID列表"),
             @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
             @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
