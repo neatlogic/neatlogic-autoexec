@@ -58,7 +58,7 @@ public class AutoexecJobAbortHandler extends AutoexecJobActionHandlerBase {
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         //更新job状态 为中止中
-        jobVo.setStatus(JobPhaseStatus.RUNNING.getValue());
+        jobVo.setStatus(JobPhaseStatus.ABORTING.getValue());
         autoexecJobMapper.updateJobStatus(jobVo);
         //更新phase状态 为中止中
         jobVo.setPhaseList(autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId()));

@@ -137,7 +137,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
                 autoexecJobMapper.insertJobPhaseNode(nodeVo);
                 nodeVo.setRunnerMapId(runnerMapVo.getRunnerMapId());
                 autoexecJobMapper.insertIgnoreJobPhaseNodeRunner(new AutoexecJobPhaseNodeRunnerVo(nodeVo));
-                autoexecJobMapper.insertJobPhaseRunner(nodeVo.getJobId(), nodeVo.getJobGroupId(),nodeVo.getJobPhaseId(),nodeVo.getRunnerMapId(),nodeVo.getLcd());
+                autoexecJobMapper.insertJobPhaseRunner(nodeVo.getJobId(), nodeVo.getJobGroupId(), nodeVo.getJobPhaseId(), nodeVo.getRunnerMapId(), nodeVo.getLcd());
                 autoexecJobMapper.updateJobPhaseNodeFrom(jobPhaseVo.getId(), AutoexecJobPhaseNodeFrom.PHASE.getValue());
             }
             //jobPhaseOperation
@@ -278,7 +278,12 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     }
 
     @Override
-    public void refreshJobPhaseNodeList(Long jobId, int sort, JSONObject executeConfig) {
+    public void refreshJobPhaseNodeList(Long jobId, List<AutoexecJobPhaseVo> jobPhaseVoList) {
+        refreshJobPhaseNodeList(jobId, jobPhaseVoList, null);
+    }
+
+    @Override
+    public void refreshJobPhaseNodeList(Long jobId, List<AutoexecJobPhaseVo> jobPhaseVoList, JSONObject executeConfig) {
         AutoexecCombopExecuteConfigVo combopExecuteConfigVo = null;
         //优先使用传进来的执行节点
         if (MapUtils.isNotEmpty(executeConfig)) {
@@ -297,10 +302,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
             userName = combopExecuteConfigVo.getExecuteUser();
             protocolId = combopExecuteConfigVo.getProtocolId();
         }
-        //获取当前所有target阶段
-        List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndGroupSort(jobId, sort);
         //只刷新当前target|sql阶段
-        List<AutoexecCombopPhaseVo> combopPhaseList = configVo.getCombopPhaseList().stream().filter(o -> o.getSort() == sort && Arrays.asList(ExecMode.TARGET.getValue(), ExecMode.SQL.getValue()).contains(o.getExecMode())).collect(Collectors.toList());
+        List<AutoexecCombopPhaseVo> combopPhaseList = configVo.getCombopPhaseList().stream().filter(o -> Arrays.asList(ExecMode.TARGET.getValue(), ExecMode.SQL.getValue()).contains(o.getExecMode())).collect(Collectors.toList());
         for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
             AutoexecCombopPhaseConfigVo combopPhaseExecuteConfigVo = autoexecCombopPhaseVo.getConfig();
             Optional<AutoexecJobPhaseVo> jobPhaseVoOptional = jobPhaseVoList.stream().filter(o -> Objects.equals(o.getName(), autoexecCombopPhaseVo.getName())).findFirst();
@@ -313,11 +316,14 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     }
 
     @Override
+    public void refreshJobNodeList(Long jobId) {
+        refreshJobNodeList(jobId, null);
+    }
+
+    @Override
     public void refreshJobNodeList(Long jobId, JSONObject executeConfig) {
         List<AutoexecJobPhaseVo> phaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobId);
-        for (AutoexecJobPhaseVo phaseVo : phaseVoList) {
-            refreshJobPhaseNodeList(jobId, phaseVo.getSort(), executeConfig);
-        }
+        refreshJobPhaseNodeList(jobId, phaseVoList, executeConfig);
     }
 
     @Override

@@ -7,10 +7,13 @@ package codedriver.module.autoexec.service;
 
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobInvokeVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import com.alibaba.fastjson.JSONObject;
 
 import java.util.Date;
+import java.util.List;
+
 /**
  * @since 2021/4/12 18:44
  **/
@@ -59,11 +62,23 @@ public interface AutoexecJobService {
      * 3、update 剩下所有job_node（即跑过的历史节点） lcd小于 phase lcd 的作业节点 标示 "is_delete" = 1
      * 4、删除该阶段所有不是最近更新的phase runner
      *
-     * @param jobId         作业id
-     * @param sort          当前激活剧本顺序
-     * @param executeConfig 执行时的参数（执行目标，用户，协议）
+     * @param jobId          作业id
+     * @param jobPhaseVoList 需要刷新节点的phase
+     * @param executeConfig  执行时的参数（执行目标，用户，协议）
      */
-    void refreshJobPhaseNodeList(Long jobId, int sort, JSONObject executeConfig);
+    void refreshJobPhaseNodeList(Long jobId, List<AutoexecJobPhaseVo> jobPhaseVoList, JSONObject executeConfig);
+
+    /**
+     * 刷新激活剧本的所有节点信息
+     * 1、找到所有满足条件的执行节点update 如果update 返回值为0 则 insert
+     * 2、删除所有状态为"pending"（即没跑过的历史节点）的node 以及对应的runner
+     * 3、update 剩下所有job_node（即跑过的历史节点） lcd小于 phase lcd 的作业节点 标示 "is_delete" = 1
+     * 4、删除该阶段所有不是最近更新的phase runner
+     *
+     * @param jobId          作业id
+     * @param jobPhaseVoList 需要刷新节点的phase
+     */
+    void refreshJobPhaseNodeList(Long jobId, List<AutoexecJobPhaseVo> jobPhaseVoList);
 
     /**
      * 刷新作业所有阶段节点信息
@@ -73,6 +88,14 @@ public interface AutoexecJobService {
      * @param executeConfig 执行时的参数（执行目标，用户，协议）
      */
     void refreshJobNodeList(Long jobId, JSONObject executeConfig);
+
+    /**
+     * 刷新作业所有阶段节点信息
+     * 遍历phaseList刷新节点
+     *
+     * @param jobId         作业id
+     */
+    void refreshJobNodeList(Long jobId);
 
     /**
      * 刷新作业运行参数

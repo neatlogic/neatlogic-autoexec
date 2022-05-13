@@ -248,6 +248,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                     List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfigVo.getPhaseOperationList();
                     if (CollectionUtils.isNotEmpty(phaseOperationList)) {
                         for (AutoexecCombopPhaseOperationVo phaseOperationVo : phaseOperationList) {
+                            AutoexecParamVo argumentParam = null;
                             AutoexecOperationVo autoexecToolAndScriptVo = null;
                             List<? extends AutoexecParamVo> autoexecParamVoList = new ArrayList<>();
                             if (Objects.equals(phaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
@@ -255,6 +256,10 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                                 if (autoexecScriptVo != null) {
                                     autoexecToolAndScriptVo = new AutoexecOperationVo(autoexecScriptVo);
                                     autoexecParamVoList = autoexecScriptMapper.getParamListByScriptId(phaseOperationVo.getOperationId());
+                                    AutoexecScriptVersionVo autoexecScriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(phaseOperationVo.getOperationId());
+                                    if (autoexecScriptVersionVo != null) {
+                                        argumentParam = autoexecScriptMapper.getArgumentByVersionId(autoexecScriptVersionVo.getId());
+                                    }
                                 }
                             } else if (Objects.equals(phaseOperationVo.getOperationType(), CombopOperationType.TOOL.getValue())) {
                                 AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(phaseOperationVo.getOperationId());
@@ -265,6 +270,10 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                                         JSONArray paramArray = toolConfig.getJSONArray("paramList");
                                         if (CollectionUtils.isNotEmpty(paramArray)) {
                                             autoexecParamVoList = paramArray.toJavaList(AutoexecParamVo.class);
+                                        }
+                                        JSONObject argumentJson = toolConfig.getJSONObject("argument");
+                                        if (MapUtils.isNotEmpty(argumentJson)) {
+                                            argumentParam = JSONObject.toJavaObject(argumentJson, AutoexecParamVo.class);
                                         }
                                     }
                                 }
@@ -296,6 +305,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                                 }
                                 phaseOperationVo.setInputParamList(inputParamList);
                                 phaseOperationVo.setOutputParamList(outputParamList);
+                                phaseOperationVo.setArgument(argumentParam);
                             }
                         }
                     }

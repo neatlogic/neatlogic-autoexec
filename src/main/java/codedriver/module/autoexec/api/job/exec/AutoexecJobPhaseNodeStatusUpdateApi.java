@@ -13,7 +13,6 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecJobPhaseNodeNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
@@ -74,7 +73,6 @@ public class AutoexecJobPhaseNodeStatusUpdateApi extends PublicApiComponentBase 
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
         Long resourceId = jsonObj.getLong("resourceId");
-        JSONObject result = new JSONObject();
         Integer failIgnore = jsonObj.getInteger("failIgnore");
         String phaseName = jsonObj.getString("phase");
         AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(jsonObj.getLong("jobId"), phaseName);
@@ -91,7 +89,9 @@ public class AutoexecJobPhaseNodeStatusUpdateApi extends PublicApiComponentBase 
         }else {
             AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobIdAndJobPhaseNameAndResourceId(jobId, phaseName, resourceId);
             if (nodeVo == null) {
-                throw new AutoexecJobPhaseNodeNotFoundException(phaseName, resourceId);
+                return null;
+                //不抛异常影响其它节点运行，ignore 就好
+                //throw new AutoexecJobPhaseNodeNotFoundException(phaseName, resourceId);
             }
             if (!Objects.equals(nodeVo.getStatus(), jsonObj.getString("status")) && !Arrays.asList(JobNodeStatus.SUCCEED.getValue(), JobNodeStatus.IGNORED.getValue(), JobNodeStatus.FAILED.getValue()).contains(nodeVo.getStatus())) {
                 nodeVo.setStatus(jsonObj.getString("status"));
@@ -104,7 +104,7 @@ public class AutoexecJobPhaseNodeStatusUpdateApi extends PublicApiComponentBase 
                 autoexecJobMapper.updateJobPhaseNodeStatus(nodeVo);
             }
         }
-        return result;
+        return null;
     }
 
     @Override

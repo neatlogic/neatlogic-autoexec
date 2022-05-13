@@ -16,8 +16,6 @@ import codedriver.framework.autoexec.constvalue.JobSource;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
-import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeStatusCountVo;
-import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
@@ -26,31 +24,26 @@ import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.service.AutoexecCombopService;
-import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.List;
 import java.util.Objects;
 
 /**
  * @author lvzk
- * @since 2021/4/13 11:20
+ * @since 2022/5/11 11:20
  **/
 
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
-public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
+public class AutoexecJobInfoGetApi extends PrivateApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
 
     @Resource
     AutoexecCombopMapper autoexecCombopMapper;
-
-    @Resource
-    AutoexecJobService autoexecJobService;
 
     @Resource
     AutoexecCombopService autoexecCombopService;
@@ -66,35 +59,21 @@ public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
-            @Param(name = "status", type = ApiParamType.STRING, desc = "当作业状态"),
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true)
     })
     @Output({
-            @Param(explode = AutoexecJobVo[].class, desc = "列表"),
-            @Param(name = "isRefresh", type = ApiParamType.INTEGER, isRequired = true, desc = "是否需要继续定时刷新，1:继续 0:停止")
+            @Param(explode = AutoexecJobVo.class, desc = "列表"),
     })
-    @Description(desc = "获取作业详情，包括：剧本列表、作业基本信息、操作按钮")
+    @Description(desc = "获取作业详情")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
+        JSONObject result = new JSONObject();
         Long jobId = jsonObj.getLong("jobId");
         //作业基本信息
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
-        //获取当前phase
-        AutoexecJobPhaseVo jobCurrentPhaseVo = autoexecJobMapper.getJobActivePhase(jobId);
-        //剧本列表
-        List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobId);
-        List<AutoexecJobPhaseNodeStatusCountVo> statusCountVoList = autoexecJobMapper.getJobPhaseNodeStatusCount(jobId);
-        for (AutoexecJobPhaseNodeStatusCountVo statusCountVo : statusCountVoList) {
-            for (AutoexecJobPhaseVo phaseVo : jobPhaseVoList) {
-                if (statusCountVo.getJobPhaseId().equals(phaseVo.getId())) {
-                    phaseVo.addStatusCountVo(statusCountVo);
-                }
-            }
-        }
-        jobVo.setPhaseList(jobPhaseVoList);
         //判断是否有执行与接管权限
         if (UserContext.get().getUserUuid().equals(jobVo.getExecUser())) {
             jobVo.setIsCanExecute(1);
@@ -109,15 +88,11 @@ public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
                 jobVo.setIsCanTakeOver(1);
             }
         }
-        JSONObject result = JSONObject.parseObject(JSONObject.toJSON(jobVo).toString());
-        //判断是否停止刷新作业详细
-        autoexecJobService.setIsRefresh(result, jobVo, jsonObj.getString("status"));
-        result.put("jobCurrentPhaseName", jobCurrentPhaseVo.getName());
-        return result;
+        return jobVo;
     }
 
     @Override
     public String getToken() {
-        return "autoexec/job/detail/get";
+        return "autoexec/job/info/get";
     }
 }

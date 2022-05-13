@@ -9,8 +9,10 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.framework.autoexec.dto.job.AutoexecJobGroupVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -22,24 +24,26 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 
 /**
+ *
  * @author lvzk
- * @since 2021/4/21 15:20
+ * @since 2021/6/2 15:20
  **/
 
 @Service
 @Transactional
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.OPERATE)
-public class AutoexecJobAbortApi extends PrivateApiComponentBase {
+public class AutoexecJobPhaseReFireApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecJobMapper autoexecJobMapper;
 
     @Override
     public String getName() {
-        return "中止作业";
+        return "重跑作业阶段";
     }
 
     @Override
@@ -48,25 +52,32 @@ public class AutoexecJobAbortApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
+            @Param(name = "phaseId", type = ApiParamType.LONG, desc = "作业阶段id", isRequired = true),
     })
     @Output({
     })
-    @Description(desc = "中止作业")
+    @Description(desc = "重跑作业阶段接口")
+    @ResubmitInterval(value = 4)
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        Long jobId = jsonObj.getLong("jobId");
-        AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
-        if (jobVo == null) {
-            throw new AutoexecJobNotFoundException(jobId);
+        Long phaseId = jsonObj.getLong("phaseId");
+        AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByPhaseId(phaseId);
+        if(phaseVo==null){
+            throw new AutoexecJobPhaseNotFoundException(phaseId.toString());
         }
-        jobVo.setAction(JobAction.ABORT.getValue());
-        IAutoexecJobActionHandler abortAction = AutoexecJobActionHandlerFactory.getAction(JobAction.ABORT.getValue());
-        return abortAction.doService(jobVo);
+        AutoexecJobGroupVo jobGroupVo = autoexecJobMapper.getJobGroupById(phaseVo.getGroupId());
+        phaseVo.setJobGroupVo(jobGroupVo);
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(phaseVo.getJobId());
+        jobVo.setExecuteJobGroupVo(jobGroupVo);
+        jobVo.setExecuteJobPhaseList(Collections.singletonList(phaseVo));
+        jobVo.setAction(JobAction.REFIRE_PHASE.getValue());
+        jobVo.setIsNoFireNext(1);
+        IAutoexecJobActionHandler refireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.REFIRE_PHASE.getValue());
+        return refireAction.doService(jobVo);
     }
 
     @Override
     public String getToken() {
-        return "autoexec/job/abort";
+        return "autoexec/job/phase/refire";
     }
 }
