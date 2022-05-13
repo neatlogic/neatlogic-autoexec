@@ -77,10 +77,10 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
                         cyclicNumber++;
                     }
                     for (int i = 0; i < cyclicNumber; i++) {
-                        autoexecJobMapper.insertSqlDetailList(insertSqlList.subList(i * 100, (Math.min((i + 1) * 100, insertSqlList.size()))), paramObj.getString("phaseName"), nowLcd);
+                        autoexecJobMapper.insertSqlDetailList(insertSqlList.subList(i * 100, (Math.min((i + 1) * 100, insertSqlList.size()))), paramObj.getString("phaseName"),paramObj.getLong("runnerId"), nowLcd);
                     }
                 } else {
-                    autoexecJobMapper.insertSqlDetailList(insertSqlList, paramObj.getString("phaseName"), nowLcd);
+                    autoexecJobMapper.insertSqlDetailList(insertSqlList, paramObj.getString("phaseName"),paramObj.getLong("runnerId"), nowLcd);
                 }
             }
             List<Long> needDeleteSqlIdList = autoexecJobMapper.getSqlDetailByJobIdAndPhaseNameAndLcd(paramObj.getLong("jobId"), paramObj.getString("phaseName"), nowLcd);

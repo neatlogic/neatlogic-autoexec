@@ -66,6 +66,7 @@ public class AutoexecJobSqlUpdateApi extends PublicApiComponentBase {
             AutoexecSqlDetailVo paramSqlVo = new AutoexecSqlDetailVo(paramObj.getJSONObject("sqlStatus"));
             paramSqlVo.setPhaseName(paramObj.getString("phaseName"));
             if (autoexecJobMapper.updateSqlDetailIsDeleteAndStatusAndMd5AndLcd(paramSqlVo) == 0) {
+                paramSqlVo.setRunnerId(paramObj.getLong("runnerId"));
                 autoexecJobMapper.insertSqlDetail(paramSqlVo);
             }
         } else if (StringUtils.equals(paramObj.getString("operType"), DeployOperType.DEPLOY.getValue())) {
