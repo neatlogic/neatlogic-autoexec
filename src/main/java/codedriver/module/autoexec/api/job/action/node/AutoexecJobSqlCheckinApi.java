@@ -8,14 +8,14 @@ import codedriver.framework.crossover.CrossoverServiceFactory;
 import codedriver.framework.deploy.constvalue.DeployOperType;
 import codedriver.framework.deploy.crossover.IDeploySqlCrossoverMapper;
 import codedriver.framework.deploy.dto.sql.DeploySqlDetailVo;
-import codedriver.framework.deploy.dto.sql.DeploySqlVo;
+import codedriver.framework.deploy.dto.sql.DeploySqlJobPhaseVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.nacos.api.utils.StringUtils;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,12 +52,13 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
     }
 
     @Input({
-            @Param(name = "sqlVoList", type = ApiParamType.JSONARRAY, desc = "sql文件列表"),
+            @Param(name = "sqlInfoList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "sql文件列表"),
             @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "作业id"),
-            @Param(name = "systemId", type = ApiParamType.LONG, desc = "系统id"),
+            @Param(name = "phaseName", type = ApiParamType.STRING, isRequired = true, desc = "作业剧本名"),
+            @Param(name = "sysId", type = ApiParamType.LONG, desc = "系统id"),
             @Param(name = "moduleId", type = ApiParamType.LONG, desc = "模块id"),
             @Param(name = "envId", type = ApiParamType.LONG, desc = "环境id"),
-            @Param(name = "version", type = ApiParamType.LONG, desc = "版本"),
+            @Param(name = "version", type = ApiParamType.STRING, desc = "版本"),
             @Param(name = "operType", type = ApiParamType.ENUM, rule = "auto,deploy", isRequired = true, desc = "来源类型")
     })
     @Output({
@@ -65,7 +66,7 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
     @Description(desc = "检查作业执行sql文件状态")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        JSONArray paramSqlVoArray = paramObj.getJSONArray("sqlVoList");
+        JSONArray paramSqlVoArray = paramObj.getJSONArray("sqlInfoList");
         if (StringUtils.equals(paramObj.getString("operType"), AutoexecOperType.AUTOEXEC.getValue())) {
             Date nowLcd = new Date();
             if (CollectionUtils.isNotEmpty(paramSqlVoArray)) {
@@ -76,21 +77,20 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
                         cyclicNumber++;
                     }
                     for (int i = 0; i < cyclicNumber; i++) {
-                        autoexecJobMapper.insertSqlDetailList(insertSqlList.subList(i * 100, (Math.min((i + 1) * 100, insertSqlList.size()))), nowLcd);
+                        autoexecJobMapper.insertSqlDetailList(insertSqlList.subList(i * 100, (Math.min((i + 1) * 100, insertSqlList.size()))), paramObj.getString("phaseName"),paramObj.getLong("runnerId"), nowLcd);
                     }
                 } else {
-                    autoexecJobMapper.insertSqlDetailList(insertSqlList, nowLcd);
+                    autoexecJobMapper.insertSqlDetailList(insertSqlList, paramObj.getString("phaseName"),paramObj.getLong("runnerId"), nowLcd);
                 }
             }
-            List<Long> needDeleteSqlIdList = autoexecJobMapper.getSqlDetailByJobIdAndLcd(paramObj.getLong("jobId"), nowLcd);
+            List<Long> needDeleteSqlIdList = autoexecJobMapper.getSqlDetailByJobIdAndPhaseNameAndLcd(paramObj.getLong("jobId"), paramObj.getString("phaseName"), nowLcd);
             if (CollectionUtils.isNotEmpty(needDeleteSqlIdList)) {
                 autoexecJobMapper.updateSqlIsDeleteByIdList(needDeleteSqlIdList);
             }
         } else if (StringUtils.equals(paramObj.getString("operType"), DeployOperType.DEPLOY.getValue())) {
             IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
 
-            DeploySqlDetailVo deployVersionSql = new DeploySqlDetailVo(paramObj.getLong("systemId"), paramObj.getLong("moduleId"), paramObj.getLong("envId"), paramObj.getString("version"));
-            List<DeploySqlDetailVo> oldDeploySqlList = iDeploySqlCrossoverMapper.getAllDeploySqlDetailList(deployVersionSql);
+            List<DeploySqlDetailVo> oldDeploySqlList = iDeploySqlCrossoverMapper.getAllDeploySqlDetailList(new DeploySqlDetailVo(paramObj.getLong("sysId"), paramObj.getLong("moduleId"), paramObj.getLong("envId"), paramObj.getString("version"), paramObj.getString("phaseName")));
             Map<String, DeploySqlDetailVo> oldDeploySqlMap = new HashMap<>();
             List<Long> needDeleteSqlIdList = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(oldDeploySqlList)) {
@@ -124,8 +124,8 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
                 }
                 if (CollectionUtils.isNotEmpty(insertSqlList)) {
                     for (DeploySqlDetailVo insertSqlVo : insertSqlList) {
-                        iDeploySqlCrossoverMapper.insertDeploySql(new DeploySqlVo(paramObj.getLong("jobId"), insertSqlVo.getId()));
-                        iDeploySqlCrossoverMapper.insertDeploySqlDetail(insertSqlVo);
+                        iDeploySqlCrossoverMapper.insertDeploySql(new DeploySqlJobPhaseVo(paramObj.getLong("jobId"), paramObj.getString("phaseName"), insertSqlVo.getId()));
+                        iDeploySqlCrossoverMapper.insertDeploySqlDetail(insertSqlVo, paramObj.getLong("sysId"), paramObj.getLong("envId"), paramObj.getLong("moduleId"), paramObj.getString("version"), paramObj.getLong("runnerId"));
                     }
                 }
                 if (CollectionUtils.isNotEmpty(updateSqlList)) {

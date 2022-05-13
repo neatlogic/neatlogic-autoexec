@@ -18,6 +18,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author longrf
@@ -46,7 +48,13 @@ public class AutoexecJobSqlListApi extends PublicApiComponentBase {
     }
 
     @Input({
-            @Param(name = "sqlVoList", type = ApiParamType.JSONARRAY, desc = "sql文件列表"),
+            @Param(name = "sqlInfoList", type = ApiParamType.JSONARRAY, desc = "sql列表"),
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id"),
+            @Param(name = "phaseName", type = ApiParamType.STRING, desc = "作业剧本名"),
+            @Param(name = "sysId", type = ApiParamType.LONG, desc = "系统id"),
+            @Param(name = "moduleId", type = ApiParamType.LONG, desc = "模块id"),
+            @Param(name = "envId", type = ApiParamType.LONG, desc = "环境id"),
+            @Param(name = "version", type = ApiParamType.STRING, desc = "版本"),
             @Param(name = "operType", type = ApiParamType.ENUM, rule = "auto,deploy", isRequired = true, desc = "来源类型")
     })
     @Output({
@@ -54,14 +62,17 @@ public class AutoexecJobSqlListApi extends PublicApiComponentBase {
     @Description(desc = "获取作业执行sql文件状态列表")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        JSONArray SqlVoArray = paramObj.getJSONArray("sqlVoList");
-        if (CollectionUtils.isNotEmpty(SqlVoArray)) {
-            if (StringUtils.equals(paramObj.getString("operType"), AutoexecOperType.AUTOEXEC.getValue())) {
-                return autoexecJobMapper.getJobSqlDetailList(SqlVoArray.toJavaList(AutoexecSqlDetailVo.class));
-            } else if (StringUtils.equals(paramObj.getString("operType"), DeployOperType.DEPLOY.getValue())) {
-                IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
-                return iDeploySqlCrossoverMapper.getDeploySqlDetailList(SqlVoArray.toJavaList(DeploySqlDetailVo.class));
+        if (StringUtils.equals(paramObj.getString("operType"), AutoexecOperType.AUTOEXEC.getValue())) {
+            JSONArray SqlVoArray = paramObj.getJSONArray("sqlInfoList");
+            if (CollectionUtils.isNotEmpty(SqlVoArray)) {
+                List<AutoexecSqlDetailVo> sqlDetailVoList = SqlVoArray.toJavaList(AutoexecSqlDetailVo.class);
+                return autoexecJobMapper.getJobSqlDetailList(sqlDetailVoList, paramObj.getString("phaseName"));
             }
+        } else if (StringUtils.equals(paramObj.getString("operType"), DeployOperType.DEPLOY.getValue())) {
+            IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
+            List<DeploySqlDetailVo> sqlDetailVoList = new ArrayList<>();
+            sqlDetailVoList.add(paramObj.toJavaObject(DeploySqlDetailVo.class));
+            return iDeploySqlCrossoverMapper.getDeploySqlDetailList(sqlDetailVoList);
         }
         return null;
     }

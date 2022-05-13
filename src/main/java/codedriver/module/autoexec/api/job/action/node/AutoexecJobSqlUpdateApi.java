@@ -9,7 +9,7 @@ import codedriver.framework.crossover.CrossoverServiceFactory;
 import codedriver.framework.deploy.constvalue.DeployOperType;
 import codedriver.framework.deploy.crossover.IDeploySqlCrossoverMapper;
 import codedriver.framework.deploy.dto.sql.DeploySqlDetailVo;
-import codedriver.framework.deploy.dto.sql.DeploySqlVo;
+import codedriver.framework.deploy.dto.sql.DeploySqlJobPhaseVo;
 import codedriver.framework.restful.annotation.Description;
 import codedriver.framework.restful.annotation.Input;
 import codedriver.framework.restful.annotation.Output;
@@ -50,14 +50,8 @@ public class AutoexecJobSqlUpdateApi extends PublicApiComponentBase {
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "作业 id"),
-            @Param(name = "nodeId", type = ApiParamType.LONG, desc = "节点 id"),
-            @Param(name = "sqlFile", type = ApiParamType.STRING, isRequired = true, desc = "sql文件名"),
-            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资产id"),
-            @Param(name = "host", type = ApiParamType.STRING, desc = "ip"),
-            @Param(name = "port", type = ApiParamType.INTEGER, desc = "端口"),
-            @Param(name = "runnerId", type = ApiParamType.STRING, desc = "runner id"),
-            @Param(name = "runnerPort", type = ApiParamType.INTEGER, desc = "runner 端口"),
-            @Param(name = "status", type = ApiParamType.ENUM, isRequired = true, rule = "pending,running,aborting,aborted,succeed,failed,ignored,waitInput", desc = "状态"),
+            @Param(name = "phaseName", type = ApiParamType.STRING, isRequired = true, desc = "作业剧本名"),
+            @Param(name = "sqlStatus", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "sql状态"),
             @Param(name = "operType", type = ApiParamType.ENUM, rule = "auto,deploy", isRequired = true, desc = "来源类型")
     })
     @Output({
@@ -69,19 +63,21 @@ public class AutoexecJobSqlUpdateApi extends PublicApiComponentBase {
             throw new AutoexecJobNotFoundException(paramObj.getLong("jobId"));
         }
         if (StringUtils.equals(paramObj.getString("operType"), AutoexecOperType.AUTOEXEC.getValue())) {
-            AutoexecSqlDetailVo paramSqlVo = new AutoexecSqlDetailVo(paramObj);
+            AutoexecSqlDetailVo paramSqlVo = new AutoexecSqlDetailVo(paramObj.getJSONObject("sqlStatus"));
+            paramSqlVo.setPhaseName(paramObj.getString("phaseName"));
             if (autoexecJobMapper.updateSqlDetailIsDeleteAndStatusAndMd5AndLcd(paramSqlVo) == 0) {
+                paramSqlVo.setRunnerId(paramObj.getLong("runnerId"));
                 autoexecJobMapper.insertSqlDetail(paramSqlVo);
             }
         } else if (StringUtils.equals(paramObj.getString("operType"), DeployOperType.DEPLOY.getValue())) {
             IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
-            DeploySqlDetailVo paramDeploySqlVo = new DeploySqlDetailVo(paramObj);
-            DeploySqlDetailVo oldDeploySqlVo = iDeploySqlCrossoverMapper.getAutoexecJobIdByDeploySqlDetailVo(paramDeploySqlVo);
+            DeploySqlDetailVo paramDeploySqlVo = new DeploySqlDetailVo(paramObj.getJSONObject("sqlStatus"));
+            DeploySqlDetailVo oldDeploySqlVo = iDeploySqlCrossoverMapper.getDeploySqlBySysIdAndModuleIdAndEnvIdAndVersionAndSqlFile(paramObj.getLong("sysId"), paramObj.getLong("envId"), paramObj.getLong("moduleId"), paramObj.getString("version"), paramDeploySqlVo.getSqlFile());
             if (oldDeploySqlVo != null) {
                 iDeploySqlCrossoverMapper.updateDeploySqlDetailIsDeleteAndStatusAndMd5ById(paramDeploySqlVo.getStatus(), paramDeploySqlVo.getMd5(), oldDeploySqlVo.getId());
             } else {
-                iDeploySqlCrossoverMapper.insertDeploySql(new DeploySqlVo(paramObj.getLong("jobId"), paramDeploySqlVo.getId()));
-                iDeploySqlCrossoverMapper.insertDeploySqlDetail(paramDeploySqlVo);
+                iDeploySqlCrossoverMapper.insertDeploySql(new DeploySqlJobPhaseVo(paramObj.getLong("jobId"), paramObj.getString("phaseName"), paramDeploySqlVo.getId()));
+                iDeploySqlCrossoverMapper.insertDeploySqlDetail(paramDeploySqlVo, paramObj.getLong("sysId"), paramObj.getLong("envId"), paramObj.getLong("moduleId"), paramObj.getString("version"), paramObj.getLong("runnerId"));
             }
         }
         return null;
