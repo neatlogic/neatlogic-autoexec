@@ -17,6 +17,7 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -37,6 +38,9 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
 
+    @Resource
+    AutoexecJobService autoexecJobService;
+
     @Override
     public String getName() {
         return "获取作业阶段列表";
@@ -49,6 +53,7 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
+            @Param(name = "jobStatus", type = ApiParamType.STRING, desc = "作业状态", isRequired = true),
             @Param(name = "phaseIdList", type = ApiParamType.JSONARRAY, desc = "作业阶段idList"),
     })
     @Output({
@@ -70,9 +75,9 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId);
         }
-        if(CollectionUtils.isEmpty(jobPhaseIdList)){
-            jobPhaseVoList  = autoexecJobMapper.getJobPhaseListByJobId(jobId);
-        }else{
+        if (CollectionUtils.isEmpty(jobPhaseIdList)) {
+            jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobId);
+        } else {
             jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseIdList(jobId, jobPhaseIdList);
         }
         List<AutoexecJobPhaseNodeStatusCountVo> statusCountVoList = autoexecJobMapper.getJobPhaseNodeStatusCount(jobId);
@@ -83,10 +88,11 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
                     phaseVo.addStatusCountVo(statusCountVo);
                 }
             }
-            if(Objects.equals(phaseVo.getName(),activePhaseVo.getName())){
+            if (Objects.equals(phaseVo.getName(), activePhaseVo.getName())) {
                 phaseVo.setIsActive(1);
             }
         }
+        autoexecJobService.setIsRefresh(result, jobVo, jsonObj.getString("jobStatus"));
         result.put("status", jobVo.getStatus());
         result.put("statusName", JobStatus.getText(jobVo.getStatus()));
         result.put("phaseList", jobPhaseVoList);

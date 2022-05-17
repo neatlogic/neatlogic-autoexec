@@ -7,7 +7,6 @@ package codedriver.module.autoexec.job.action.handler.node;
 
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
-import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import com.alibaba.fastjson.JSONObject;
@@ -60,7 +59,7 @@ public class AutoexecJobNodeLogTailHandler extends AutoexecJobActionHandlerBase 
         if(StringUtils.isBlank(paramJson.getString("sqlName"))) {//获取node节点的状态（包括operation status）
             AutoexecJobPhaseNodeVo phaseNodeVo = getNodeOperationStatus(paramJson);
             List<AutoexecJobPhaseNodeOperationStatusVo> operationStatusVos = phaseNodeVo.getOperationStatusVoList();
-            for (AutoexecJobPhaseNodeOperationStatusVo statusVo : operationStatusVos) {
+          /*  for (AutoexecJobPhaseNodeOperationStatusVo statusVo : operationStatusVos) {
                 //如果存在pending|running 的节点|阶段 则继续tail
                 //如果operation的状态为null，表示还没刷新结果，继续tail
                 if (Objects.equals(phaseVo.getStatus(), JobPhaseStatus.PENDING.getValue())
@@ -76,9 +75,13 @@ public class AutoexecJobNodeLogTailHandler extends AutoexecJobActionHandlerBase 
                     result.put("isRefresh", 0);
                     break;
                 }
-            }
+            }*/
             result.put("operationStatusList", operationStatusVos);
             result.put("interact",phaseNodeVo.getInteract());
+            String nodeStatusOld = paramJson.getString("status");
+            if(Objects.equals(nodeStatusOld,JobNodeStatus.RUNNING.getValue()) || Objects.equals(phaseNodeVo.getStatus(),JobNodeStatus.RUNNING.getValue())){
+                result.put("isRefresh", 1);
+            }
         }else{//获取sql 状态
             AutoexecJobNodeSqlVo sqlStatusVo = getNodeSqlStatus(paramJson);
             if(sqlStatusVo != null && !Objects.equals(sqlStatusVo.getStatus(), JobNodeStatus.SUCCEED.getValue())){
