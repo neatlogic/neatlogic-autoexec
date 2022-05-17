@@ -87,7 +87,7 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
                 put("runnerId", runner.getRunnerMapId());
             }});
 
-            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
+            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setConnectTimeout(5000).setReadTimeout(5000).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
             if (StringUtils.isNotBlank(requestUtil.getError())) {
                 throw new AutoexecJobRunnerConnectRefusedException(url);
             }

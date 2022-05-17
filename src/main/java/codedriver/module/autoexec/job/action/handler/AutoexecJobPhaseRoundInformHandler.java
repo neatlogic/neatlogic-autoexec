@@ -68,7 +68,7 @@ public class AutoexecJobPhaseRoundInformHandler extends AutoexecJobActionHandler
         for (RunnerMapVo runnerVo : runnerVos) {
             String url = String.format("%s/api/rest/job/phase/round/inform", runnerVo.getUrl());
             String result = HttpRequestUtil.post(url)
-                    .setPayload(jsonObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN)
+                    .setPayload(jsonObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(5000).setReadTimeout(5000)
                     .sendRequest().getError();
             if (StringUtils.isNotBlank(result)) {
                 throw new AutoexecJobRunnerHttpRequestException(url + ":" + result);
