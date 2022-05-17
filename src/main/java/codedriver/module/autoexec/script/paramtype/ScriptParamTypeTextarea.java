@@ -66,7 +66,7 @@ public class ScriptParamTypeTextarea extends ScriptParamTypeBase {
         return new JSONObject() {
             {
                 this.put("type", "textarea");
-                this.put("maxlength", 500);
+                this.put("maxlength", 2048);
                 this.put("placeholder", "请输入");
             }
         };
