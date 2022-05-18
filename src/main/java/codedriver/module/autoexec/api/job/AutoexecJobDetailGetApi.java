@@ -109,11 +109,7 @@ public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
                 jobVo.setIsCanTakeOver(1);
             }
         }
-        JSONObject result = JSONObject.parseObject(JSONObject.toJSON(jobVo).toString());
-        //判断是否停止刷新作业详细
-        autoexecJobService.setIsRefresh(result, jobVo, jsonObj.getString("status"));
-        result.put("jobCurrentPhaseName", jobCurrentPhaseVo.getName());
-        return result;
+        return jobVo;
     }
 
     @Override
