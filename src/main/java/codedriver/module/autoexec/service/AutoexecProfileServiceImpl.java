@@ -76,7 +76,6 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService {
             //实时的参数信息
             Map<String, AutoexecProfileParamVo> newProfileParamMap = newProfileParamList.stream().collect(Collectors.toMap(AutoexecProfileParamVo::getKey, e -> e));
 
-
             //旧的参数信息
             Map<String, AutoexecProfileParamVo> oldProfileParamMap = null;
             if (CollectionUtils.isNotEmpty(oldProfileParamList)) {
@@ -135,14 +134,13 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService {
         if (CollectionUtils.isNotEmpty(profileParamVoList)) {
             for (AutoexecProfileParamVo paramVo : profileParamVoList) {
                 autoexecProfileMapper.deleteProfileParamByProfileParamId(paramVo.getId());
-                if (!CollectionUtils.isEmpty(paramVo.getValueInvokeVoList())) {
+                if (CollectionUtils.isEmpty(paramVo.getValueInvokeVoList())) {
                     continue;
                 }
                 for (AutoexecProfileParamValueVo valueVo : paramVo.getValueInvokeVoList()) {
                     valueVo.setProfileParamId(paramVo.getId());
                     insertParamValueVoList.add(valueVo);
                 }
-
             }
             Date nowLcd = new Date();
             //保存profile参数
