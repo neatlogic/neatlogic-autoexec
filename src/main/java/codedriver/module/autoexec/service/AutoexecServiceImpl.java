@@ -20,8 +20,11 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
+import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.script.paramtype.IScriptParamType;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
+import codedriver.framework.crossover.CrossoverServiceFactory;
+import codedriver.framework.deploy.crossover.IDeploySqlCrossoverMapper;
 import codedriver.framework.exception.type.*;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -395,4 +398,18 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
         return returnList;
     }
 
+
+    @Override
+    public void resetAutoexecJobSqlStatusByJobIdAndJobPhaseNameList(Long jobId, List<String> jobPhaseNameList) {
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        if (jobVo == null) {
+            throw new AutoexecJobNotFoundException(jobId);
+        }
+        if (StringUtils.equals(codedriver.framework.deploy.constvalue.JobSource.DEPLOY.getValue(), jobVo.getSource())) {
+            IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
+            iDeploySqlCrossoverMapper.resetDeploySqlStatusByJobIdAndPhaseNameList(jobId, jobPhaseNameList);
+        } else {
+            autoexecJobMapper.resetJobSqlStatusByJobIdAndPhaseNameList(jobId, jobPhaseNameList);
+        }
+    }
 }

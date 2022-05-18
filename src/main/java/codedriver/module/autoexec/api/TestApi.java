@@ -2,13 +2,12 @@ package codedriver.module.autoexec.api;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
-import codedriver.framework.autoexec.constvalue.JobStatus;
-import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.restful.annotation.Description;
 import codedriver.framework.restful.annotation.OperationType;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.module.autoexec.service.AutoexecService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -23,6 +22,9 @@ import javax.annotation.Resource;
 public class TestApi extends PrivateApiComponentBase{
 	@Resource
 	AutoexecJobMapper jobMapper;
+
+	@Resource
+	AutoexecService autoexecService;
 
 	@Override
 	public String getToken() {
@@ -42,7 +44,8 @@ public class TestApi extends PrivateApiComponentBase{
 	@Description(desc = "test")
 	@Override
 	public Object myDoService(JSONObject jsonObj) throws Exception {
-		jobMapper.updateJobStatus(new AutoexecJobVo(452608720166912L, JobStatus.COMPLETED.getValue()));
+//		jobMapper.updateJobStatus(new AutoexecJobVo(452608720166912L, JobStatus.COMPLETED.getValue()));
+		autoexecService.resetAutoexecJobSqlStatusByJobIdAndJobPhaseNameList(jsonObj.getLong("jobId"),jsonObj.getJSONArray("jobPhaseNameList").toJavaList(String.class));
 		return "asdf";
 	}
 
