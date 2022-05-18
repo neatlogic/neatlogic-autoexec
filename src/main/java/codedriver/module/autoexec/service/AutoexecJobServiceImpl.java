@@ -197,18 +197,22 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         //判断group是不是grayScale，如果是则从group中获取执行节点
         if (Objects.equals(jobGroupVo.getPolicy(), AutoexecJobGroupPolicy.GRAYSCALE.getName())) {
             AutoexecCombopGroupConfigVo groupConfig = jobGroupVo.getConfig();
-            executeConfigVo = groupConfig.getExecuteConfig();
-            //判断组执行节点是否配置
-            isGroupConfig = executeConfigVo.getExecuteNodeConfig() != null
-                    && (CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getTagList())
-                    || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getSelectNodeList())
-                    || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getInputNodeList())
-                    || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getParamList())
-                    || MapUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getFilter())
-            );
-            if (isGroupConfig) {
-                jobVo.setNodeFrom(AutoexecJobPhaseNodeFrom.GROUP.getValue());
-                isHasNode = getJobNodeList(executeConfigVo, jobVo, jobPhaseVo, userName, protocolId);
+            if(groupConfig != null) {
+                executeConfigVo = groupConfig.getExecuteConfig();
+                //判断组执行节点是否配置
+                if(executeConfigVo != null) {
+                    isGroupConfig = executeConfigVo.getExecuteNodeConfig() != null
+                            && (CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getTagList())
+                            || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getSelectNodeList())
+                            || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getInputNodeList())
+                            || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getParamList())
+                            || MapUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getFilter())
+                    );
+                    if (isGroupConfig) {
+                        jobVo.setNodeFrom(AutoexecJobPhaseNodeFrom.GROUP.getValue());
+                        isHasNode = getJobNodeList(executeConfigVo, jobVo, jobPhaseVo, userName, protocolId);
+                    }
+                }
             }
         } else {
             executeConfigVo = combopPhaseExecuteConfigVo.getExecuteConfig();
@@ -607,9 +611,13 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     }
 
     @Override
-    public void setIsRefresh(JSONObject paramObj, AutoexecJobVo jobVo, String status) {
+    public void setIsRefresh(JSONObject paramObj, AutoexecJobVo jobVo, String jobStatusOld) {
         paramObj.put("isRefresh", 1);
-        if (Objects.equals(status, JobStatus.COMPLETED.getValue()) && Arrays.asList(JobStatus.COMPLETED.getValue(), JobStatus.FAILED.getValue(), JobStatus.ABORTED.getValue()).contains(jobVo.getStatus())) {
+        if (Objects.equals(JobStatus.READY.getValue(), jobStatusOld)
+                || (Objects.equals(JobStatus.COMPLETED.getValue(), jobStatusOld) && Objects.equals(JobStatus.COMPLETED.getValue(), jobVo.getStatus()))
+                || (Objects.equals(JobStatus.ABORTED.getValue(), jobStatusOld) && Objects.equals(JobStatus.ABORTED.getValue(), jobVo.getStatus()))
+                || (Objects.equals(JobStatus.FAILED.getValue(), jobStatusOld) && Objects.equals(JobStatus.FAILED.getValue(), jobVo.getStatus()))
+        ) {
             paramObj.put("isRefresh", 0);
         }
     }

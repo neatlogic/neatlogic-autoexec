@@ -95,7 +95,7 @@ public class PurgeAutoexecJobDataSchedule extends PublicJobBase {
                             paramJson.put("passThroughEnv", new JSONObject() {{
                                 put("runnerId", runner.getRunnerMapId());
                             }});
-                            JSONObject resultJson = HttpRequestUtil.post(url).setAuthType(AuthenticateType.BUILDIN).setPayload(paramJson.toJSONString()).sendRequest().getResultJson();
+                            JSONObject resultJson = HttpRequestUtil.post(url).setConnectTimeout(5000).setReadTimeout(10000).setAuthType(AuthenticateType.BUILDIN).setPayload(paramJson.toJSONString()).sendRequest().getResultJson();
                             if (MapUtils.isEmpty(resultJson) || !resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
                                 logger.debug("清除作业异常："+url + ":" + resultJson.getString("Message"));
                             }

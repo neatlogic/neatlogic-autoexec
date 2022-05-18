@@ -7,9 +7,12 @@ package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.constvalue.JobNodeStatus;
+import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -21,7 +24,9 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author lvzk
@@ -47,6 +52,7 @@ public class AutoexecJobPhaseNodeListApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
+            @Param(name = "jobPhaseStatus", type = ApiParamType.STRING, desc = "作业阶段状态", isRequired = true),
             @Param(name = "nodeIdList", type = ApiParamType.JSONARRAY, desc = "作业阶段节点idList"),
     })
     @Output({
@@ -69,9 +75,37 @@ public class AutoexecJobPhaseNodeListApi extends PrivateApiComponentBase {
         }
         result.put("status", jobVo.getStatus());
         result.put("statusName", JobStatus.getText(jobVo.getStatus()));
+        Long phaseId = null;
+        //判断前端是否需要继续刷新
+        int isRefresh = 0;
+        String jobPhaseStatusOld = jsonObj.getString("jobPhaseStatus");
+        boolean nodeNeedRefresh = true;
         if (CollectionUtils.isNotEmpty(nodeIdList)) {
-            result.put("nodeList", autoexecJobMapper.getJobPhaseNodeListByNodeIdList(nodeIdList));
+            List<AutoexecJobPhaseNodeVo> nodeVoList = autoexecJobMapper.getJobPhaseNodeListByNodeIdList(nodeIdList);
+            if (CollectionUtils.isNotEmpty(nodeVoList)) {
+                phaseId = nodeVoList.get(0).getJobPhaseId();
+                AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByPhaseId(phaseId);
+                //node存在失败的节点，无需刷新
+                if (nodeVoList.stream().anyMatch(o -> Arrays.asList(JobNodeStatus.FAILED.getValue(), JobNodeStatus.ABORTED.getValue()).contains(o.getStatus()))) {
+                    nodeNeedRefresh = false;
+                }
+                //node如果都是succeed｜ignored，无需刷新
+                if (nodeVoList.stream().allMatch(o -> Arrays.asList(JobNodeStatus.IGNORED.getValue(), JobNodeStatus.SUCCEED.getValue()).contains(o.getStatus()))) {
+                    nodeNeedRefresh = false;
+                }
+                //phase是pending，无需刷新
+                if (Objects.equals(JobPhaseStatus.PENDING.getValue(), phaseVo.getStatus())) {
+                    nodeNeedRefresh = false;
+                }
+                //phase如果是running，需刷新
+                if (nodeNeedRefresh || (Objects.equals(JobPhaseStatus.RUNNING.getValue(), jobPhaseStatusOld) || Objects.equals(JobPhaseStatus.RUNNING.getValue(), phaseVo.getStatus()))
+                ) {
+                    isRefresh = 1;
+                }
+            }
+            result.put("nodeList", nodeVoList);
         }
+        result.put("isRefresh", isRefresh);
         return result;
     }
 
