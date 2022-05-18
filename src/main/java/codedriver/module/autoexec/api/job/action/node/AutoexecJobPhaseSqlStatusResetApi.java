@@ -54,7 +54,6 @@ public class AutoexecJobPhaseSqlStatusResetApi extends PrivateApiComponentBase {
         //1、当前作业下的某个阶段的sql文件批量重置  入参：jobId、jobPhaseName、sqlFileList
         //2、当前作业的多个阶段重置               入参：jobId、jonPhaseNameList
         Long jobId = paramObj.getLong("jobId");
-        JSONArray jobPhaseNameArray = paramObj.getJSONArray("jobPhaseNameList");
         JSONArray sqlFileArray = paramObj.getJSONArray("sqlFileList");
         if (CollectionUtils.isNotEmpty(sqlFileArray)) {
             //1、当前作业下的某个阶段的sql文件批量重置
@@ -64,8 +63,12 @@ public class AutoexecJobPhaseSqlStatusResetApi extends PrivateApiComponentBase {
             }
             autoexecService.resetAutoexecJobSqlStatusByJobIdAndJobPhaseNameAndSqlFileList(jobId,jobPhaseName, sqlFileArray.toJavaList(String.class));
         } else {
+            JSONArray jonPhaseNameArray = paramObj.getJSONArray("jobPhaseNameList");
+            if (CollectionUtils.isEmpty(jonPhaseNameArray)) {
+                throw new ParamNotExistsException("jobPhaseNameList");
+            }
             //2、当前作业的多个阶段重置
-            autoexecService.resetAutoexecJobSqlStatusByJobIdAndJobPhaseNameList(paramObj.getLong("jobId"), paramObj.getJSONArray("jobPhaseNameList").toJavaList(String.class));
+            autoexecService.resetAutoexecJobSqlStatusByJobIdAndJobPhaseNameList(paramObj.getLong("jobId"), jonPhaseNameArray.toJavaList(String.class));
         }
         return null;
     }
