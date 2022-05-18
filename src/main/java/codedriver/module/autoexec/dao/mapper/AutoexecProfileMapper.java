@@ -2,10 +2,12 @@ package codedriver.module.autoexec.dao.mapper;
 
 
 import codedriver.framework.autoexec.dto.AutoexecOperationVo;
+import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamValueVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -24,16 +26,19 @@ public interface AutoexecProfileMapper {
 
     List<AutoexecProfileVo> searchAutoexecProfile(AutoexecProfileVo paramProfileVo);
 
+    List<AutoexecProfileParamVo> getProfileParamListByProfileId(Long id);
+
+    List<Long> getNeedDeleteProfileParamIdListByProfileIdAndLcd(@Param("profileId") Long profileId, @Param("lcd") Date lcd);
+
     AutoexecProfileVo getProfileVoById(Long id);
 
     void insertAutoexecProfileOperation(@Param("profileId") Long profileId, @Param("operationIdList") List<Long> operationIdList, @Param("type") String type);
 
     void insertProfile(AutoexecProfileVo profileVo);
 
-    void insertAutoexecProfileParam(List<AutoexecProfileParamVo> paramList);
+    void insertAutoexecProfileParamList(@Param("paramList") List<AutoexecProfileParamVo> paramList, @Param("profileId") Long profileId, @Param("lcd") Date lcd);
 
-    List<AutoexecProfileParamVo> getProfileParamListByProfileId(Long id);
-
+    void insertProfileParamValueInvokeList(@Param("paramValueInvokeVoList") List<AutoexecProfileParamValueVo> paramValueInvokeVoList);
 
     void deleteProfileById(Long id);
 
@@ -41,4 +46,13 @@ public interface AutoexecProfileMapper {
 
     void deleteProfileOperationByOperationId(Long id);
 
+    void deleteProfileParamValueInvokeByProfileId(Long paramProfileId);
+
+    void deleteProfileParamByProfileId(Long paramProfileId);
+
+    void deleteProfileParamByIdList(@Param("idList") List<Long> idList);
+
+    void deleteProfileParamValueInvokeByParamIdList(@Param("idList") List<Long> idList);
+
+    void deleteProfileParamByProfileParamId(Long id);
 }

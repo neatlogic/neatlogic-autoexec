@@ -17,7 +17,6 @@ import codedriver.framework.autoexec.dto.AutoexecRiskVo;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
@@ -316,8 +315,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
     }
 
     @Override
-    public List<AutoexecParamVo> getAutoexecOperationParamVoList(List<AutoexecOperationVo> paramAutoexecOperationVoList, List<AutoexecProfileParamVo> oldOperationParamList) {
-
+    public List<AutoexecParamVo> getAutoexecOperationParamVoList(List<AutoexecOperationVo> paramAutoexecOperationVoList) {
         List<Long> toolIdList = paramAutoexecOperationVoList.stream().filter(e -> StringUtils.equals(ToolType.TOOL.getValue(), e.getType())).map(AutoexecOperationVo::getId).collect(Collectors.toList());
         List<Long> scriptIdList = paramAutoexecOperationVoList.stream().filter(e -> StringUtils.equals(ToolType.SCRIPT.getValue(), e.getType())).map(AutoexecOperationVo::getId).collect(Collectors.toList());
         //获取新的参数列表
@@ -327,42 +325,15 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
         if (CollectionUtils.isNotEmpty(autoexecOperationVoList)) {
             for (AutoexecOperationVo operationVo : autoexecOperationVoList) {
                 if (CollectionUtils.isNotEmpty(operationVo.getInputParamList())) {
-                    newOperationParamVoList.addAll(operationVo.getInputParamList());
+                    for (AutoexecParamVo paramVo : operationVo.getInputParamList()) {
+                        paramVo.setOperationId(operationVo.getId());
+                        paramVo.setOperationType(operationVo.getType());
+                    }
                 }
+                newOperationParamVoList.addAll(operationVo.getInputParamList());
             }
         }
-
-        //根据name（唯一键）去重
-        newOperationParamVoList = newOperationParamVoList.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(comparing(AutoexecParamVo::getName))), ArrayList::new));
-
-        //实时的参数信息
-        Map<String, AutoexecParamVo> newOperationParamMap = newOperationParamVoList.stream().collect(Collectors.toMap(AutoexecParamVo::getKey, e -> e));
-
-        //旧的参数信息
-        Map<String, AutoexecProfileParamVo> oldOperationParamMap = null;
-        if (CollectionUtils.isNotEmpty(oldOperationParamList)) {
-            oldOperationParamMap = oldOperationParamList.stream().collect(Collectors.toMap(AutoexecProfileParamVo::getKey, e -> e));
-        }
-
-        //根据参数名称name替换对应的值
-        if (MapUtils.isNotEmpty(newOperationParamMap) && MapUtils.isNotEmpty(oldOperationParamMap)) {
-            for (String newParamName : newOperationParamMap.keySet()) {
-                if (oldOperationParamMap.containsKey(newParamName) && StringUtils.equals(oldOperationParamMap.get(newParamName).getType(), newOperationParamMap.get(newParamName).getType())) {
-                    newOperationParamMap.get(newParamName).setDefaultValue(oldOperationParamMap.get(newParamName).getDefaultValue());
-                }
-            }
-        }
-
-        List<AutoexecParamVo> returnList = new ArrayList<>();
-        for (String name : newOperationParamMap.keySet()) {
-            returnList.add(newOperationParamMap.get(name));
-        }
-        return returnList;
-    }
-
-    @Override
-    public List<AutoexecParamVo> getAutoexecOperationParamVoList(List<AutoexecOperationVo> paramAutoexecOperationVoList) {
-        return getAutoexecOperationParamVoList(paramAutoexecOperationVoList, null);
+        return newOperationParamVoList.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(comparing(AutoexecParamVo::getKey))), ArrayList::new));
     }
 
     /**
@@ -395,5 +366,4 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
         }
         return returnList;
     }
-
 }

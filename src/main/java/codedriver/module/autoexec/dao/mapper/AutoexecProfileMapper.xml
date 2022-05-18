@@ -27,41 +27,47 @@
                 NOW(3),
                 #{fcu},
                 NOW(3),
-                #{fcu})
-                ON DUPLICATE KEY
+                #{fcu}) ON DUPLICATE KEY
         UPDATE `name` = #{name},
             `description` = #{description},
+            `system_id` = #{fromSystemId},
             `lcu` = #{lcu},
             `lcd` = now(3)
     </insert>
 
-    <insert id="insertAutoexecProfileParam">
-        INSERT INTO autoexec_profile_param
-        (id,
-        key,
-        profile_id,
-        default_value,
-        oparation_id,
-        operation_type,
-        value_invoke_id,
-        value_invoke_type)
+    <insert id="insertAutoexecProfileParamList">
+        INSERT INTO autoexec_profile_param ( `id`, `key`,`type`, `profile_id`, `default_value`, `operation_id`,
+        `operation_type`, `lcd` )
         VALUES
         <foreach collection="paramList" item="param" separator=",">
             (#{param.id},
             #{param.key},
-            #{param.profileId},
-            #{param.defaultValue},
+            #{param.type},
+            #{profileId},
+            #{param.defaultValueStr},
             #{param.operationId},
             #{param.operationType},
-            #{param.valueInvokeId},
-            #{param.valueInvokeType})
+            #{lcd})
         </foreach>
         ON DUPLICATE KEY
-        UPDATE `default_value` = VALUES(defaultValue),
-        `oparation_id` = VALUES(operationId),
-        `operation_type` = VALUES(operationType),
-        `value_invoke_id` =VALUES(valueInvokeId),
-        `value_invoke_type` = VALUES(valueInvokeType)
+        UPDATE `type` =VALUES(type),
+        `lcd`=#{lcd},
+        `default_value` =VALUES(default_value),
+        `operation_id` =VALUES(operation_id),
+        `operation_type` =VALUES(operation_type)
+    </insert>
+
+    <insert id="insertProfileParamValueInvokeList">
+        INSERT INTO autoexec_profile_param_value_invoke
+        (`id`,`profile_param_id`,`value_invoke_id`)
+        VALUES
+        <foreach collection="paramValueInvokeVoList" item="vo" separator=",">
+            (#{vo.id},
+            #{vo.profileParamId},
+            #{vo.invokeId})
+        </foreach>
+        ON DUPLICATE KEY
+        UPDATE `value_invoke_id` =VALUES(value_invoke_id)
     </insert>
 
     <select id="searchAutoexecProfileCount" parameterType="codedriver.framework.autoexec.dto.profile.AutoexecProfileVo"
@@ -90,21 +96,27 @@
             <if test="ciEntityId != null">
                 and dpc.`ci_entity_id` = #{ciEntityId}
             </if>
-            <if test="fromSystemId = -1 ">
-                and a.system_id = -1
-            </if>
-            <if test="fromSystemId != null and fromSystemId != -1 ">
-                and cc.`id` = #{fromSystemId}
-            </if>
+            <choose>
+                <when test="fromSystemId == -1">
+                    and a.system_id = -1
+                </when>
+                <when test="fromSystemId != null">
+                    and cc.`id` = #{fromSystemId}
+                </when>
+            </choose>
         </where>
     </sql>
 
     <sql id="searchProfileFrom">
         FROM
         `autoexec_profile` a
-        <if test="fromSystemId != null and fromSystemId != -1 ">
-            LEFT JOIN cmdb_cientity cc ON cc.id = a.system_id
-        </if>
+        <choose>
+            <when test="fromSystemId == -1">
+            </when>
+            <otherwise>
+                LEFT JOIN cmdb_cientity cc ON cc.id = a.system_id
+            </otherwise>
+        </choose>
         LEFT JOIN autoexec_profile_cientity dpc ON dpc.profile_id=a.id
         LEFT JOIN cmdb_cientity cct ON cct.id = dpc.ci_entity_id
     </sql>
@@ -229,9 +241,13 @@
         a.name,
         a.description,
         a.system_id AS fromSystemId,
-        <if test="fromSystemId != null and fromSystemId != -1 ">
-            cc.name as fromSystemName,
-        </if>
+        <choose>
+            <when test="fromSystemId == -1">
+            </when>
+            <otherwise>
+                cc.name as fromSystemName,
+            </otherwise>
+        </choose>
         cct.id AS ciEntityId,
         cct.name as ciEntityName,
         cci.icon as ciIcon,
@@ -246,9 +262,46 @@
         LIMIT #{startNum}, #{pageSize}
     </select>
 
-    <select id="getProfileParamListByProfileId"
-            resultType="codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo">
+    <resultMap id="profileParamMap" type="codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo">
+        <id column="id" property="id"/>
+        <result column="key" property="key"/>
+        <result column="type" property="type"/>
+        <result column="operationId" property="operationId"/>
+        <result column="operationType" property="operationType"/>
+        <result column="defaultValue" property="defaultValue"/>
+        <collection property="valueInvokeVoList"
+                    ofType="codedriver.framework.autoexec.dto.profile.AutoexecProfileParamValueVo">
+            <result column="paramValueId" property="id"/>
+            <result column="paramId" property="profileParamId"/>
+            <result column="invokeId" property="invokeId"/>
+            <result column="invokeValue" property="invokeValue"/>
+        </collection>
+    </resultMap>
 
+    <select id="getProfileParamListByProfileId" resultMap="profileParamMap">
+        SELECT
+            app.id,
+            app.key,
+            app.type,
+            app.default_value AS defaultValue,
+            app.operation_id AS operationId,
+            app.operation_type AS operationType,
+            appvi.id AS paramValueId,
+            appvi.profile_param_id AS paramId,
+            appvi.value_invoke_id AS invokeId,
+            agp.value AS invokeValue
+        FROM
+            autoexec_profile_param app
+                LEFT JOIN autoexec_profile_param_value_invoke appvi ON appvi.profile_param_id = app.id
+                LEFT JOIN autoexec_global_param agp ON agp.id = appvi.value_invoke_id
+        WHERE app.profile_id = #{value}
+    </select>
+
+    <select id="getNeedDeleteProfileParamIdListByProfileIdAndLcd" resultType="java.lang.Long">
+        SELECT id
+        FROM autoexec_profile_param
+        WHERE profile_id = #{profileId}
+          AND lcd != #{lcd}
     </select>
 
     <delete id="deleteProfileById">
@@ -268,4 +321,45 @@
         FROM autoexec_profile_operation
         WHERE operation_id = #{value}
     </delete>
+
+    <delete id="deleteProfileParamValueInvokeByProfileId">
+        DELETE
+        FROM autoexec_profile_param_value_invoke
+        WHERE profile_param_id IN (
+            SELECT app.id
+            FROM autoexec_profile_param app
+                     JOIN autoexec_profile ap ON ap.id = app.profile_id
+            WHERE ap.id = #{value})
+    </delete>
+
+    <delete id="deleteProfileParamByProfileId">
+        DELETE
+        FROM autoexec_profile_param
+        WHERE profile_id = #{value}
+    </delete>
+
+    <delete id="deleteProfileParamByIdList">
+        DELETE
+        FROM autoexec_profile_param
+        WHERE id IN
+        <foreach collection="idList" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <delete id="deleteProfileParamValueInvokeByParamIdList">
+        DELETE
+        FROM autoexec_profile_param_value_invoke
+        WHERE profile_param_id IN
+        <foreach collection="idList" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+    <delete id="deleteProfileParamByProfileParamId">
+        DELETE
+        FROM autoexec_profile_param_value_invoke
+        WHERE profile_param_id = #{value}
+    </delete>
+
 </mapper>
