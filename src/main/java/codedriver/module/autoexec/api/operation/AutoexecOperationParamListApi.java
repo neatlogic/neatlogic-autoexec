@@ -1,4 +1,4 @@
-package codedriver.module.autoexec.api;
+package codedriver.module.autoexec.api.operation;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
@@ -20,7 +20,7 @@ import javax.annotation.Resource;
 @AuthAction(action = AUTOEXEC_BASE.class)
 @Service
 @OperationType(type = OperationTypeEnum.SEARCH)
-public class AutoexecProfileParamListApi extends PrivateApiComponentBase {
+public class AutoexecOperationParamListApi extends PrivateApiComponentBase {
 
     @Resource
     AutoexecService autoexecService;
