@@ -67,4 +67,12 @@ public interface AutoexecService {
      * @param jobPhaseNameList 作业剧本列表
      */
     void resetAutoexecJobSqlStatusByJobIdAndJobPhaseNameList(Long jobId, List<String> jobPhaseNameList);
+
+    /**
+     * 根据作业id和剧本名称和sql文件列表重置sql文件转台
+     * @param jobId 作业id
+     * @param jobPhaseName 作业阶段名称
+     * @param sqlFileList sql文件列表
+     */
+    void resetAutoexecJobSqlStatusByJobIdAndJobPhaseNameAndSqlFileList(Long jobId, String jobPhaseName, List<String> sqlFileList);
 }

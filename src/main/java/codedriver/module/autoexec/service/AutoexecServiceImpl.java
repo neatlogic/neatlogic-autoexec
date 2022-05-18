@@ -412,4 +412,18 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
             autoexecJobMapper.resetJobSqlStatusByJobIdAndPhaseNameList(jobId, jobPhaseNameList);
         }
     }
+
+    @Override
+    public void resetAutoexecJobSqlStatusByJobIdAndJobPhaseNameAndSqlFileList(Long jobId, String jobPhaseName, List<String> sqlFileList) {
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        if (jobVo == null) {
+            throw new AutoexecJobNotFoundException(jobId);
+        }
+        if (StringUtils.equals(codedriver.framework.deploy.constvalue.JobSource.DEPLOY.getValue(), jobVo.getSource())) {
+            IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
+            iDeploySqlCrossoverMapper.resetDeploySqlStatusByJobIdAndPhaseNameAndSqlFileList(jobId, jobPhaseName, sqlFileList);
+        } else {
+            autoexecJobMapper.resetJobSqlStatusByJobIdAndPhaseNameAndSqlFileList(jobId, jobPhaseName, sqlFileList);
+        }
+    }
 }
