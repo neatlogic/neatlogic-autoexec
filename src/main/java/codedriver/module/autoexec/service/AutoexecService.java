@@ -50,4 +50,12 @@ public interface AutoexecService {
      * @return
      */
     List<AutoexecOperationVo> getAutoexecOperationByScriptIdAndToolIdList(List<Long> scriptIdList, List<Long> toolIdList);
+
+    /**
+     * 根据作业id和剧本名称重置sql文件状态
+     *
+     * @param jobId            作业id
+     * @param jobPhaseNameList 作业剧本列表
+     */
+    void resetAutoexecJobSqlStatusByJobIdAndJobPhaseNameList(Long jobId, List<String> jobPhaseNameList);
 }

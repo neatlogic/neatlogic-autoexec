@@ -92,7 +92,7 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
                 phaseVo.setIsActive(1);
             }
         }
-        autoexecJobService.setIsRefresh(result, jobVo, jsonObj.getString("jobStatus"));
+        autoexecJobService.setIsRefresh(jobPhaseVoList,result, jobVo, jsonObj.getString("jobStatus"));
         result.put("status", jobVo.getStatus());
         result.put("statusName", JobStatus.getText(jobVo.getStatus()));
         result.put("phaseList", jobPhaseVoList);

@@ -103,8 +103,6 @@ public class AutoexecJobPhaseNodeSearchApi extends PrivateApiComponentBase {
             }
             result = TableResultUtil.getResult(jobPhaseNodeVoList,jobPhaseNodeVo);
         }
-        //判断是否停止刷新作业详细
-        autoexecJobService.setIsRefresh(result, jobVo,jsonObj.getString("status"));
         return result;
     }
 

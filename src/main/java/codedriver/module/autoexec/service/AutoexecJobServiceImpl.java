@@ -197,10 +197,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
         //判断group是不是grayScale，如果是则从group中获取执行节点
         if (Objects.equals(jobGroupVo.getPolicy(), AutoexecJobGroupPolicy.GRAYSCALE.getName())) {
             AutoexecCombopGroupConfigVo groupConfig = jobGroupVo.getConfig();
-            if(groupConfig != null) {
+            if (groupConfig != null) {
                 executeConfigVo = groupConfig.getExecuteConfig();
                 //判断组执行节点是否配置
-                if(executeConfigVo != null) {
+                if (executeConfigVo != null) {
                     isGroupConfig = executeConfigVo.getExecuteNodeConfig() != null
                             && (CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getTagList())
                             || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getSelectNodeList())
@@ -611,12 +611,14 @@ public class AutoexecJobServiceImpl implements AutoexecJobService {
     }
 
     @Override
-    public void setIsRefresh(JSONObject paramObj, AutoexecJobVo jobVo, String jobStatusOld) {
+    public void setIsRefresh(List<AutoexecJobPhaseVo> jobPhaseVoList, JSONObject paramObj, AutoexecJobVo jobVo, String jobStatusOld) {
         paramObj.put("isRefresh", 1);
-        if (Objects.equals(JobStatus.READY.getValue(), jobStatusOld)
-                || (Objects.equals(JobStatus.COMPLETED.getValue(), jobStatusOld) && Objects.equals(JobStatus.COMPLETED.getValue(), jobVo.getStatus()))
-                || (Objects.equals(JobStatus.ABORTED.getValue(), jobStatusOld) && Objects.equals(JobStatus.ABORTED.getValue(), jobVo.getStatus()))
-                || (Objects.equals(JobStatus.FAILED.getValue(), jobStatusOld) && Objects.equals(JobStatus.FAILED.getValue(), jobVo.getStatus()))
+        if (Objects.equals(JobStatus.READY.getValue(), jobStatusOld) ||
+                (
+                        (Objects.equals(JobStatus.COMPLETED.getValue(), jobStatusOld) && Objects.equals(JobStatus.COMPLETED.getValue(), jobVo.getStatus()))
+                                || (Objects.equals(JobStatus.ABORTED.getValue(), jobStatusOld) && Objects.equals(JobStatus.ABORTED.getValue(), jobVo.getStatus()))
+                                || (Objects.equals(JobStatus.FAILED.getValue(), jobStatusOld) && Objects.equals(JobStatus.FAILED.getValue(), jobVo.getStatus()))
+                ) && jobPhaseVoList.stream().noneMatch(o -> Objects.equals(JobPhaseStatus.RUNNING.getValue(), o.getStatus()))
         ) {
             paramObj.put("isRefresh", 0);
         }

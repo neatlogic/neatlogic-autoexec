@@ -93,7 +93,7 @@ public interface AutoexecJobService {
      * 刷新作业所有阶段节点信息
      * 遍历phaseList刷新节点
      *
-     * @param jobId         作业id
+     * @param jobId 作业id
      */
     void refreshJobNodeList(Long jobId);
 
@@ -112,7 +112,7 @@ public interface AutoexecJobService {
      * @param JobVo    作业
      * @param status   上一次状态，得确保上两次状态的查询都是"已完成"或"已成功"，前端才停止刷新
      */
-    void setIsRefresh(JSONObject paramObj, AutoexecJobVo JobVo, String status);
+    void setIsRefresh(List<AutoexecJobPhaseVo> jobPhaseList, JSONObject paramObj, AutoexecJobVo JobVo, String status);
 
     /**
      * 删除作业
