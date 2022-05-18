@@ -60,9 +60,10 @@ public class AutoexecJobPhaseSqlStatusResetApi extends PrivateApiComponentBase {
         if (CollectionUtils.isNotEmpty(sqlIdArray)) {
             if (StringUtils.equals(JobSource.DEPLOY.getValue(), jobVo.getSource())) {
                 IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
-                iDeploySqlCrossoverMapper.resetDeploySqlStatusBySqlIdList(sqlIdArray);
-            }else {
-                autoexecJobMapper.resetJobSqlStatusBySqlIdList(sqlIdArray);}
+                iDeploySqlCrossoverMapper.resetDeploySqlStatusBySqlIdList(sqlIdArray.toJavaList(Long.class));
+            } else {
+                autoexecJobMapper.resetJobSqlStatusBySqlIdList(sqlIdArray);
+            }
         }
         return null;
     }
