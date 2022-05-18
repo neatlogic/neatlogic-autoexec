@@ -339,11 +339,6 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
         return newOperationParamVoList.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(comparing(AutoexecParamVo::getKey))), ArrayList::new));
     }
 
-    @Override
-    public List<AutoexecParamVo> getAutoexecOperationParamVoList(List<AutoexecOperationVo> paramAutoexecOperationVoList) {
-        return getAutoexecOperationParamVoList(paramAutoexecOperationVoList, null);
-    }
-
     /**
      * 根据scriptIdList和toolIdList获取对应的operationVoList
      *
