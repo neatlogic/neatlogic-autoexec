@@ -405,12 +405,12 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId);
         }
-//        if (StringUtils.equals(codedriver.framework.deploy.constvalue.JobSource.DEPLOY.getValue(), jobVo.getSource())) {
+        if (StringUtils.equals(codedriver.framework.deploy.constvalue.JobSource.DEPLOY.getValue(), jobVo.getSource())) {
             IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
             iDeploySqlCrossoverMapper.resetDeploySqlStatusByJobIdAndPhaseNameList(jobId, jobPhaseNameList);
-//        } else {
-//            autoexecJobMapper.resetJobSqlStatusByJobIdAndPhaseNameList(jobId, jobPhaseNameList);
-//        }
+        } else {
+            autoexecJobMapper.resetJobSqlStatusByJobIdAndPhaseNameList(jobId, jobPhaseNameList);
+        }
     }
 
     @Override
@@ -419,11 +419,11 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId);
         }
-//        if (StringUtils.equals(codedriver.framework.deploy.constvalue.JobSource.DEPLOY.getValue(), jobVo.getSource())) {
+        if (StringUtils.equals(codedriver.framework.deploy.constvalue.JobSource.DEPLOY.getValue(), jobVo.getSource())) {
             IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
             iDeploySqlCrossoverMapper.resetDeploySqlStatusByJobIdAndPhaseNameAndSqlFileList(jobId, jobPhaseName, sqlFileList);
-//        } else {
-//            autoexecJobMapper.resetJobSqlStatusByJobIdAndPhaseNameAndSqlFileList(jobId, jobPhaseName, sqlFileList);
-//        }
+        } else {
+            autoexecJobMapper.resetJobSqlStatusByJobIdAndPhaseNameAndSqlFileList(jobId, jobPhaseName, sqlFileList);
+        }
     }
 }
