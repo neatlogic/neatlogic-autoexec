@@ -370,6 +370,10 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                     if (!Objects.equals(preNodeOutputParamVo.getType(), inputParamVo.getType())) {
                         throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, value);
                     }
+                } else if (Objects.equals(mappingMode, ParamMappingMode.PROFILE.getValue())) {
+
+                } else if (Objects.equals(mappingMode, ParamMappingMode.GLOBAL_PARAM.getValue())) {
+
                 } else {
                     throw new AutoexecParamMappingIncorrectException(operationName, key);
                 }
