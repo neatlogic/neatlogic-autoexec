@@ -8,6 +8,7 @@ package codedriver.module.autoexec.api.job.exec;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseOperationVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseOperationNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionHasNoActivedException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
@@ -56,6 +57,7 @@ public class AutoexecJobPhaseOperationScriptGetApi extends PublicApiComponentBas
     }
 
     @Input({
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
             @Param(name = "operationId", type = ApiParamType.STRING, desc = "作业操作id（opName_opId）", isRequired = true),
             @Param(name = "lastModified", type = ApiParamType.DOUBLE, desc = "最后修改时间（秒，支持小数位）")
     })
@@ -67,6 +69,7 @@ public class AutoexecJobPhaseOperationScriptGetApi extends PublicApiComponentBas
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
         String operationId = jsonObj.getString("operationId");
+        Long jobId = jsonObj.getLong("jobId");
         BigDecimal lastModified = null;
         if(jsonObj.getDouble("lastModified") != null) {
             lastModified = new BigDecimal(Double.toString(jsonObj.getDouble("lastModified")));
@@ -76,7 +79,11 @@ public class AutoexecJobPhaseOperationScriptGetApi extends PublicApiComponentBas
         if(jobPhaseOperationVo == null) {
             throw new AutoexecJobPhaseOperationNotFoundException(opId.toString());
         }
-        AutoexecScriptVersionVo scriptVersionVo = autoexecScriptMapper.getVersionByVersionId(jobPhaseOperationVo.getVersionId());
+        AutoexecScriptVersionVo scriptVersionVoOld = autoexecScriptMapper.getVersionByVersionId(jobPhaseOperationVo.getVersionId());
+        if (scriptVersionVoOld == null) {
+            throw new AutoexecScriptNotFoundException(jobPhaseOperationVo.getName()+":"+jobPhaseOperationVo.getVersionId());
+        }
+        AutoexecScriptVersionVo scriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(scriptVersionVoOld.getScriptId());
         if (scriptVersionVo == null) {
             throw new AutoexecScriptVersionHasNoActivedException(jobPhaseOperationVo.getName());
         }
@@ -91,7 +98,8 @@ public class AutoexecJobPhaseOperationScriptGetApi extends PublicApiComponentBas
         }
         String script = autoexecCombopService.getOperationActiveVersionScriptByOperation(scriptVersionVo);
         result.put("script", script);
-
+        //update job 对应operation version_id
+        autoexecJobMapper.updateJobPhaseOperationVersionIdByJobIdAndOperationId(scriptVersionVo.getId(), jobId, scriptVersionVo.getScriptId());
         return result;
     }
 
