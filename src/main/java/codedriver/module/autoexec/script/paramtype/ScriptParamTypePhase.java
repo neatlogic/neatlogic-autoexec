@@ -53,7 +53,7 @@ public class ScriptParamTypePhase extends ScriptParamTypeBase {
      */
     @Override
     public int getSort() {
-        return 17;
+        return 15;
     }
 
     /**
