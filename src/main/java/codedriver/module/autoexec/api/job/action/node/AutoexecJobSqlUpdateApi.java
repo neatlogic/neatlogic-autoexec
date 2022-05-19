@@ -50,7 +50,7 @@ public class AutoexecJobSqlUpdateApi extends PublicApiComponentBase {
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "作业 id"),
-            @Param(name = "phaseName", type = ApiParamType.STRING, isRequired = true, desc = "作业剧本名"),
+            @Param(name = "phaseName", type = ApiParamType.STRING, isRequired = true, desc = "作业剧本名（执行sql）"),
             @Param(name = "sqlStatus", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "sql状态"),
             @Param(name = "operType", type = ApiParamType.ENUM, rule = "auto,deploy", isRequired = true, desc = "来源类型")
     })
@@ -67,6 +67,7 @@ public class AutoexecJobSqlUpdateApi extends PublicApiComponentBase {
             paramSqlVo.setPhaseName(paramObj.getString("phaseName"));
             if (autoexecJobMapper.updateSqlDetailIsDeleteAndStatusAndMd5AndLcd(paramSqlVo) == 0) {
                 paramSqlVo.setRunnerId(paramObj.getLong("runnerId"));
+                paramSqlVo.setJobId(paramObj.getLong("jobId"));
                 autoexecJobMapper.insertSqlDetail(paramSqlVo);
             }
         } else if (StringUtils.equals(paramObj.getString("operType"), DeployOperType.DEPLOY.getValue())) {
