@@ -374,6 +374,8 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
 
                 } else if (Objects.equals(mappingMode, ParamMappingMode.GLOBAL_PARAM.getValue())) {
 
+                } else if (Objects.equals(mappingMode, ParamMappingMode.SQL_PHASE.getValue())) {
+
                 } else {
                     throw new AutoexecParamMappingIncorrectException(operationName, key);
                 }
