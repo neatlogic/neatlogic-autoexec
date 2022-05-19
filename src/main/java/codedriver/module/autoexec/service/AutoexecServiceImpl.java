@@ -70,6 +70,19 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
      */
     @Override
     public void validateParamList(List<? extends AutoexecParamVo> paramList) {
+        if (CollectionUtils.isNotEmpty(paramList)) {
+            List<? extends AutoexecParamVo> inputParamList = paramList.stream().filter(o -> Objects.equals(ParamMode.INPUT.getValue(), o.getMode())).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(inputParamList)) {
+                doValidateParamList(inputParamList);
+            }
+            List<? extends AutoexecParamVo> outParamList = paramList.stream().filter(o -> Objects.equals(ParamMode.OUTPUT.getValue(), o.getMode())).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(outParamList)) {
+                doValidateParamList(outParamList);
+            }
+        }
+    }
+
+    private void doValidateParamList(List<? extends AutoexecParamVo> paramList) {
         Set<String> keySet = new HashSet<>(paramList.size());
         for (int i = 0; i < paramList.size(); i++) {
             AutoexecParamVo param = paramList.get(i);
@@ -121,7 +134,6 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 }
             }
         }
-
     }
 
     @Override
