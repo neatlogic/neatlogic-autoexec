@@ -30,6 +30,7 @@ import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 /**
  * @author lvzk
@@ -74,7 +75,8 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             autoexecJobMapper.updateJobPhaseNodeStatusByJobIdAndIsDelete(jobVo.getId(), JobNodeStatus.PENDING.getValue(),0);
             jobVo.setIsFirstFire(1);
         } else if (Objects.equals(jobVo.getAction(), JobAction.REFIRE.getValue())) {
-            int executeGroupSort;
+            jobVo.setStatus(JobStatus.PENDING.getValue());
+            autoexecJobMapper.updateJobStatus(jobVo);
             /*寻找中止|暂停|失败的phase
              * 1、优先寻找pending|aborted|paused|failed phaseList
              * 2、没有满足1条件的，再寻找pending|aborted|paused|failed node 最小sort phaseList
@@ -87,12 +89,14 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             if(CollectionUtils.isEmpty(autoexecJobPhaseVos)){
                 return null;
             }
+            autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(autoexecJobPhaseVos.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()), JobPhaseStatus.PENDING.getValue());
             jobVo.setExecuteJobGroupVo(autoexecJobPhaseVos.get(0).getJobGroupVo());
             //获取group
             autoexecJobService.getAutoexecJobDetail(jobVo);
             if (CollectionUtils.isNotEmpty(jobVo.getPhaseList())) {
                 new AutoexecJobAuthActionManager.Builder().addReFireJob().build().setAutoexecJobAction(jobVo);
             }
+            jobVo.setIsNoFireNext(0);
         }
         executeGroup(jobVo);
         return null;
