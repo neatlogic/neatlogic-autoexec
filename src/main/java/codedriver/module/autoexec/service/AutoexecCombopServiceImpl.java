@@ -20,6 +20,7 @@ import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.dto.AuthenticationInfoVo;
 import codedriver.framework.service.AuthenticationInfoService;
+import codedriver.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -49,6 +50,9 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
 
     @Resource
     private AuthenticationInfoService authenticationInfoService;
+
+    @Resource
+    AutoexecGlobalParamMapper autoexecGlobalParamMapper;
 
     /**
      * 设置当前用户可操作按钮权限列表
@@ -373,8 +377,6 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 } else if (Objects.equals(mappingMode, ParamMappingMode.PROFILE.getValue())) {
 
                 } else if (Objects.equals(mappingMode, ParamMappingMode.GLOBAL_PARAM.getValue())) {
-
-                } else if (Objects.equals(mappingMode, ParamMappingMode.SQL_PHASE.getValue())) {
 
                 } else {
                     throw new AutoexecParamMappingIncorrectException(operationName, key);
