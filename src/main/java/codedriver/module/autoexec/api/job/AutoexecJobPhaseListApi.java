@@ -7,6 +7,7 @@ package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeStatusCountVo;
@@ -81,14 +82,13 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
             jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseIdList(jobId, jobPhaseIdList);
         }
         List<AutoexecJobPhaseNodeStatusCountVo> statusCountVoList = autoexecJobMapper.getJobPhaseNodeStatusCount(jobId);
-        AutoexecJobPhaseVo activePhaseVo = autoexecJobMapper.getJobActivePhase(jobId);
         for (AutoexecJobPhaseVo phaseVo : jobPhaseVoList) {
             for (AutoexecJobPhaseNodeStatusCountVo statusCountVo : statusCountVoList) {
                 if (statusCountVo.getJobPhaseId().equals(phaseVo.getId())) {
                     phaseVo.addStatusCountVo(statusCountVo);
                 }
             }
-            if (Objects.equals(phaseVo.getName(), activePhaseVo.getName())) {
+            if (Objects.equals(phaseVo.getStatus(), JobPhaseStatus.RUNNING.getValue())) {
                 phaseVo.setIsActive(1);
             }
         }
