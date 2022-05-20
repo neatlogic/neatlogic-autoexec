@@ -70,4 +70,11 @@ public interface AutoexecCombopService {
      * @param autoexecCombopPhaseVo 阶段信息
      */
     void needExecuteConfig(AutoexecCombopVo autoexecCombopVo, AutoexecCombopPhaseVo autoexecCombopPhaseVo);
+
+    /**
+     * 保存组合工具配置信息
+     * @param autoexecCombopVo
+     * @param isCopy
+     */
+    void saveAutoexecCombopConfig(AutoexecCombopVo autoexecCombopVo, boolean isCopy);
 }

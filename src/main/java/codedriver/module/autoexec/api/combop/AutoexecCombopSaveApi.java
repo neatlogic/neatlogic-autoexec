@@ -120,14 +120,7 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
                 throw new NotifyPolicyNotFoundException(autoexecCombopVo.getNotifyPolicyId().toString());
             }
         }
-        AutoexecCombopTemplateVo autoexecCombopTemplateVo = null;
-        Long combopTemplateId = autoexecCombopVo.getCombopTemplateId();
-        if (combopTemplateId != null) {
-            autoexecCombopTemplateVo = autoexecCombopTemplateMapper.getAutoexecCombopTemplateById(combopTemplateId);
-            if (autoexecCombopTemplateVo == null) {
-                throw new AutoexecCombopTemplateNotFoundException(combopTemplateId);
-            }
-        }
+
         Long id = jsonObj.getLong("id");
         if (id == null) {
             if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(true), AUTOEXEC_COMBOP_ADD.class.getSimpleName())) {
@@ -135,10 +128,6 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             }
             autoexecCombopVo.setOperationType(CombopOperationType.COMBOP.getValue());
             autoexecCombopVo.setOwner(UserContext.get().getUserUuid(true));
-            if (autoexecCombopTemplateVo != null) {
-                autoexecCombopVo.setConfig(autoexecCombopTemplateVo.getConfigStr());
-            }
-//            autoexecCombopVo.setConfig("{}");
             autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
         } else {
             String owner = autoexecCombopVo.getOwner();
@@ -171,10 +160,8 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             AutoexecCombopConfigVo oldConfigVo = oldAutoexecCombopVo.getConfig();
             /** 更新组合工具阶段列表数据时，需要保留执行目标的配置信息 **/
             config.setExecuteConfig(oldConfigVo.getExecuteConfig());
-            if (combopTemplateId == null) {
-                /** 保存前，校验组合工具是否配置正确，不正确不可以保存 **/
-                autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo, false);
-            }
+            /** 保存前，校验组合工具是否配置正确，不正确不可以保存 **/
+            autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo, false);
 
             List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
 
@@ -183,38 +170,7 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             }
             autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
             autoexecCombopMapper.deleteAutoexecCombopGroupByCombopId(id);
-            Map<String, AutoexecCombopGroupVo> groupMap = new HashMap<>();
-            List<AutoexecCombopGroupVo> combopGroupList = config.getCombopGroupList();
-            if (CollectionUtils.isNotEmpty(combopGroupList)) {
-                for (AutoexecCombopGroupVo autoexecCombopGroupVo : combopGroupList) {
-                    autoexecCombopGroupVo.setCombopId(id);
-                    autoexecCombopMapper.insertAutoexecCombopGroup(autoexecCombopGroupVo);
-                    groupMap.put(autoexecCombopGroupVo.getUuid(), autoexecCombopGroupVo);
-                }
-            }
-//            int iSort = 0;
-            for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
-                if (autoexecCombopPhaseVo != null) {
-                    autoexecCombopPhaseVo.setCombopId(id);
-//                    autoexecCombopPhaseVo.setSort(iSort++);
-                    AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
-                    List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
-                    Long combopPhaseId = autoexecCombopPhaseVo.getId();
-                    int jSort = 0;
-                    for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
-                        if (autoexecCombopPhaseOperationVo != null) {
-                            autoexecCombopPhaseOperationVo.setSort(jSort++);
-                            autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
-                            autoexecCombopMapper.insertAutoexecCombopPhaseOperation(autoexecCombopPhaseOperationVo);
-                        }
-                    }
-                    AutoexecCombopGroupVo autoexecCombopGroupVo = groupMap.get(autoexecCombopPhaseVo.getGroupUuid());
-                    if (autoexecCombopGroupVo != null) {
-                        autoexecCombopPhaseVo.setGroupId(autoexecCombopGroupVo.getId());
-                    }
-                    autoexecCombopMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);
-                }
-            }
+            autoexecCombopService.saveAutoexecCombopConfig(autoexecCombopVo, false);
             autoexecCombopMapper.updateAutoexecCombopById(autoexecCombopVo);
         }
 

@@ -21,13 +21,16 @@ import codedriver.framework.restful.core.IValid;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
+import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 复制组合工具接口
@@ -43,6 +46,9 @@ public class AutoexecCombopCopyApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
+
+    @Resource
+    private AutoexecCombopService autoexecCombopService;
 
     @Resource
     private AutoexecTypeMapper autoexecTypeMapper;
@@ -95,33 +101,8 @@ public class AutoexecCombopCopyApi extends PrivateApiComponentBase {
         autoexecCombopVo.setFcu(userUuid);
         autoexecCombopVo.setOperationType(CombopOperationType.COMBOP.getValue());
         autoexecCombopVo.setDescription(jsonObj.getString("description"));
-        AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
+        autoexecCombopService.saveAutoexecCombopConfig(autoexecCombopVo, true);
         Long combopId = autoexecCombopVo.getId();
-        int iSort = 0;
-        List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
-        if(CollectionUtils.isNotEmpty(combopPhaseList)){
-            for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
-                if (autoexecCombopPhaseVo != null) {
-                    autoexecCombopPhaseVo.setId(null);
-                    autoexecCombopPhaseVo.setCombopId(combopId);
-                    autoexecCombopPhaseVo.setSort(iSort++);
-                    AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
-                    List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
-                    if (CollectionUtils.isNotEmpty(phaseOperationList)) {
-                        Long combopPhaseId = autoexecCombopPhaseVo.getId();
-                        int jSort = 0;
-                        for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
-                            if (autoexecCombopPhaseOperationVo != null) {
-                                autoexecCombopPhaseOperationVo.setSort(jSort++);
-                                autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
-                                autoexecCombopMapper.insertAutoexecCombopPhaseOperation(autoexecCombopPhaseOperationVo);
-                            }
-                        }
-                    }
-                    autoexecCombopMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);
-                }
-            }
-        }
         autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
 
         List<AutoexecCombopParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);

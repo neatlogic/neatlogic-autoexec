@@ -48,6 +48,22 @@
         where `id` = #{value}
     </select>
 
+    <select id="getGlobalParamByKey" resultType="codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo">
+        select `id`,
+               `key`,
+               `name`,
+               `type`,
+               `default_value` as defaultValue,
+               `description`,
+               `fcu`,
+               `fcd`,
+               `lcu`,
+               `lcd`
+        from `autoexec_global_param`
+        where `key` = #{value}
+        limit 1
+    </select>
+
     <sql id="searchGlobalParam">
         from autoexec_global_param
         <where>
