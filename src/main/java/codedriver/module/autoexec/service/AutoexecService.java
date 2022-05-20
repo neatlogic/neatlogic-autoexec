@@ -35,16 +35,7 @@ public interface AutoexecService {
     void updateAutoexecCombopConfig(AutoexecCombopConfigVo config);
 
     /**
-     * 根据关联的operationVoList获取工具参数并与数据库存储的旧参数oldOperationParamList做去重处理
-     *
-     * @param paramAutoexecOperationVoList 工具list
-     * @param oldOperationParamList        旧的参数list
-     * @return
-     */
-    List<AutoexecParamVo> getAutoexecOperationParamVoList(List<AutoexecOperationVo> paramAutoexecOperationVoList, List<AutoexecParamVo> oldOperationParamList);
-
-    /**
-     * 根据关联的operationVoList获取工具参数并与数据库存储的旧参数oldOperationParamList做去重处理
+     * 根据关operationVoList获取工具参数并做去重处理
      *
      * @param paramAutoexecOperationVoList 工具list
      * @return

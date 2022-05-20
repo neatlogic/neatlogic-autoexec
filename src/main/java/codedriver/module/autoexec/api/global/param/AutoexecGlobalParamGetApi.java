@@ -59,8 +59,8 @@ public class AutoexecGlobalParamGetApi extends PrivateApiComponentBase {
         if (globalParamVo == null) {
             throw new AutoexecGlobalParamIsNotFoundException(paramId);
         }
-        if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), globalParamVo.getType()) && StringUtils.isNotBlank(globalParamVo.getValue()) && globalParamVo.getValue().startsWith(CiphertextPrefix.RC4.getValue())) {
-            globalParamVo.setValue(RC4Util.decrypt(globalParamVo.getValue().substring(4)));
+        if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), globalParamVo.getType()) && StringUtils.isNotBlank(globalParamVo.getDefaultValueStr()) && globalParamVo.getDefaultValueStr().startsWith(CiphertextPrefix.RC4.getValue())) {
+            globalParamVo.setDefaultValue(RC4Util.decrypt(globalParamVo.getDefaultValueStr().substring(4)));
         }
         return globalParamVo;
     }

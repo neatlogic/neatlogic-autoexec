@@ -63,7 +63,7 @@ public class AutoexecProfileGetApi extends PrivateApiComponentBase {
         //获取profile关联的tool、script工具
         profileVo.setAutoexecOperationVoList(autoexecProfileMapper.getAutoexecOperationVoByProfileId(id));
         //获取profile参数
-        profileVo.setParamList(autoexecProfileService.getProfileParamById(id));
+        profileVo.setProfileParamVoList(autoexecProfileService.getProfileParamListById(id));
         return profileVo;
     }
 }
