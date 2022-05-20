@@ -8,14 +8,14 @@
 <mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecGlobalParamMapper">
 
     <insert id="insertGlobalParam" parameterType="codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo">
-        INSERT INTO `autoexec_global_param` (`id`, `name`, `display_name`, `type`, `value`, `description`, `fcu`,
+        INSERT INTO `autoexec_global_param` (`id`, `key`, `name`, `type`, `default_value`, `description`, `fcu`,
                                              `fcd`, `lcu`, `lcd`)
-        VALUES (#{id}, #{name}, #{displayName}, #{type}, #{value}, #{description}, #{fcu}, now(3), #{lcu},
+        VALUES (#{id}, #{key}, #{name}, #{type}, #{defaultValue}, #{description}, #{fcu}, now(3), #{lcu},
                 now(3)) ON DUPLICATE KEY
-        UPDATE `name` = #{name},
-            `display_name` = #{displayName},
+        UPDATE `key` = #{key},
+            `name` = #{name},
             `type`= #{type},
-            `value` = #{value},
+            `default_value` = #{defaultValue},
             `description` = #{description},
             `lcu` = #{lcu},
             `lcd` = now(3)
@@ -35,10 +35,10 @@
 
     <select id="getGlobalParamById" resultType="codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo">
         select `id`,
+               `key`,
                `name`,
-               `display_name` as displayName,
                `type`,
-               `value`,
+               `default_value` as defaultValue,
                `description`,
                `fcu`,
                `fcd`,
@@ -52,8 +52,8 @@
         from autoexec_global_param
         <where>
             <if test="keyword != null and keyword != ''">
-                and (`name` LIKE CONCAT('%', #{keyword}, '%')
-                OR `display_name` LIKE CONCAT('%',#{keyword}, '%')
+                and (`key` LIKE CONCAT('%', #{keyword}, '%')
+                OR `name` LIKE CONCAT('%',#{keyword}, '%')
                 OR `description` LIKE CONCAT('%',#{keyword}, '%'))
             </if>
         </where>
@@ -66,10 +66,10 @@
 
     <select id="getGlobalParam" resultType="codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo" parameterType="codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo">
         select `id`,
+        `key`,
         `name`,
-        `display_name` as displayName,
         `type`,
-        `value`,
+        `default_value`,
         `description`,
         `fcu`,
         `fcd`,
@@ -90,10 +90,10 @@
     <select id="getGlobalParamListByIdList"
             resultType="codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo">
         select `id`,
+        `key`,
         `name`,
-        `display_name` as displayName,
         `type`,
-        `value`,
+        `default_value`,
         `description`,
         `fcu`,
         `fcd`,
@@ -107,18 +107,18 @@
         ORDER BY `lcd` DESC
     </select>
 
-    <select id="checkGlobalParamNameIsRepeat" resultType="int">
-        select count(id)
+    <select id="checkGlobalParamKeyIsRepeat" resultType="int">
+        select count(`id`)
         from autoexec_global_param
-        where id != #{id}
-          and name =#{name}
+        where `id` != #{id}
+          and `key` = #{key}
     </select>
 
-    <select id="checkGlobalParamDisplayNameIsRepeat" resultType="int">
-        select count(id)
+    <select id="checkGlobalParamNameIsRepeat" resultType="int">
+        select count(`id`)
         from autoexec_global_param
-        where id != #{id}
-          and display_name =#{displayName}
+        where `id` != #{id}
+          and `name` =#{name}
     </select>
 
 </mapper>

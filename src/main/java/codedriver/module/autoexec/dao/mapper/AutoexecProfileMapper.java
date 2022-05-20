@@ -2,10 +2,12 @@ package codedriver.module.autoexec.dao.mapper;
 
 
 import codedriver.framework.autoexec.dto.AutoexecOperationVo;
-import codedriver.framework.autoexec.dto.profile.AutoexecProfileOperationVo;
+import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamValueVo;
+import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import org.apache.ibatis.annotations.Param;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -20,11 +22,15 @@ public interface AutoexecProfileMapper {
 
     int checkProfileNameIsRepeats(AutoexecProfileVo vo);
 
-    List<Long> getAutoexecProfileIdList(AutoexecProfileVo profileVo);
+    List<AutoexecOperationVo> getAutoexecOperationVoByProfileId(Long id);
 
-    List<AutoexecProfileVo> getProfileListByIdList(@Param("idList") List<Long> idList);
+    List<AutoexecProfileVo> searchAutoexecProfile(AutoexecProfileVo paramProfileVo);
 
-    List<AutoexecProfileOperationVo> getProfileOperationVoListByProfileId(Long id);
+    List<AutoexecProfileParamVo> getProfileParamListByProfileId(Long id);
+
+    List<AutoexecProfileVo> getProfileInfoListByIdList(@Param("idList") List<Long> idList);
+
+    List<Long> getNeedDeleteProfileParamIdListByProfileIdAndLcd(@Param("profileId") Long profileId, @Param("lcd") Date lcd);
 
     AutoexecProfileVo getProfileVoById(Long id);
 
@@ -32,7 +38,9 @@ public interface AutoexecProfileMapper {
 
     void insertProfile(AutoexecProfileVo profileVo);
 
-    void updateProfile(AutoexecProfileVo profileVo);
+    void insertAutoexecProfileParamList(@Param("paramList") List<AutoexecProfileParamVo> paramList, @Param("profileId") Long profileId, @Param("lcd") Date lcd);
+
+    void insertProfileParamValueInvokeList(@Param("paramValueInvokeVoList") List<AutoexecProfileParamValueVo> paramValueInvokeVoList);
 
     void deleteProfileById(Long id);
 
@@ -40,6 +48,12 @@ public interface AutoexecProfileMapper {
 
     void deleteProfileOperationByOperationId(Long id);
 
-    List<AutoexecOperationVo> getAutoexecOperationVoByProfileId(Long id);
+    void deleteProfileParamValueInvokeByProfileId(Long paramProfileId);
+
+    void deleteProfileParamByProfileId(Long paramProfileId);
+
+    void deleteProfileParamByIdList(@Param("idList") List<Long> idList);
+
+    void deleteProfileParamValueInvokeByParamIdList(@Param("idList") List<Long> idList);
 
 }

@@ -69,17 +69,16 @@ public class AutoexecProfileSaveApi extends PrivateApiComponentBase {
         if (paramProfileId != null && autoexecProfileMapper.checkProfileIsExists(paramProfileId) == 0) {
             throw new AutoexecProfileIsNotFoundException(paramProfileId);
         }
-
-        //删除profile和tool、script的关系
-        autoexecProfileMapper.deleteProfileOperationByProfileId(paramProfileId);
-        //保存profile和tool、script的关系
-        autoexecProfileService.saveProfileOperation(profileVo.getId(), profileVo.getAutoexecOperationVoList());
+        if (autoexecProfileMapper.checkProfileNameIsRepeats(profileVo) > 0) {
+            throw new AutoexecProfileNameRepeatsException(profileVo.getName());
+        }
 
         if (paramProfileId != null) {
-            autoexecProfileMapper.updateProfile(profileVo);
-        } else {
-            autoexecProfileMapper.insertProfile(profileVo);
+            //删除profile引用tool、script的关系
+            autoexecProfileMapper.deleteProfileOperationByProfileId(paramProfileId);
         }
+        //保存profile、profile参数、profile参数值引用全局参数的关系、profile引用tool、script的关系
+        autoexecProfileService.saveProfile(profileVo);
         return null;
     }
 
