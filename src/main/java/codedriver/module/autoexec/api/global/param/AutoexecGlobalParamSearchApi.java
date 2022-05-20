@@ -13,7 +13,6 @@ import codedriver.framework.restful.annotation.OperationType;
 import codedriver.framework.restful.annotation.Param;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.util.TableResultUtil;
 import codedriver.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
@@ -66,11 +65,17 @@ public class AutoexecGlobalParamSearchApi extends PrivateApiComponentBase {
             globalParamVo.setRowNum(paramCount);
             GlobalParamList = autoexecGlobalParamMapper.getGlobalParam(globalParamVo);
             for (AutoexecGlobalParamVo paramVo : GlobalParamList) {
-                if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), paramVo.getType()) && StringUtils.isNotBlank(paramVo.getValue()) && paramVo.getValue().startsWith(CiphertextPrefix.RC4.getValue())) {
-                    paramVo.setValue(RC4Util.decrypt(paramVo.getValue().substring(4)));
+                if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), paramVo.getType()) && StringUtils.isNotBlank(paramVo.getDefaultValueStr()) && paramVo.getDefaultValueStr().startsWith(CiphertextPrefix.RC4.getValue())) {
+                    paramVo.setDefaultValue(RC4Util.decrypt(paramVo.getDefaultValueStr().substring(4)));
                 }
             }
         }
-        return TableResultUtil.getResult(GlobalParamList, globalParamVo);
+        JSONObject returnObj = new JSONObject();
+        returnObj.put("pageSize", globalParamVo.getPageSize());
+        returnObj.put("pageCount", globalParamVo.getPageCount());
+        returnObj.put("rowNum", globalParamVo.getRowNum());
+        returnObj.put("currentPage", globalParamVo.getCurrentPage());
+        returnObj.put("tbodyList", GlobalParamList);
+        return returnObj;
     }
 }

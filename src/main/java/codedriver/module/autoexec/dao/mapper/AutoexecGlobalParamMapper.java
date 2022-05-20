@@ -24,9 +24,9 @@ public interface AutoexecGlobalParamMapper {
 
     List<AutoexecGlobalParamVo> getGlobalParam(AutoexecGlobalParamVo globalParamVo);
 
-    int checkGlobalParamNameIsRepeat(AutoexecGlobalParamVo globalParamVo);
+    int checkGlobalParamKeyIsRepeat(AutoexecGlobalParamVo globalParamVo);
 
-    int checkGlobalParamDisplayNameIsRepeat(AutoexecGlobalParamVo globalParamVo);
+    int checkGlobalParamNameIsRepeat(AutoexecGlobalParamVo globalParamVo);
 
     void insertGlobalParam(AutoexecGlobalParamVo paramVo);
 
