@@ -74,7 +74,7 @@ public class ScriptParamTypePhase extends ScriptParamTypeBase {
 
     @Override
     public Boolean myNeedDataSource() {
-        return true;
+        return false;
     }
 
     @Override
