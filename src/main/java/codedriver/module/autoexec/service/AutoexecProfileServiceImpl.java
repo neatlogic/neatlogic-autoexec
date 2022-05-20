@@ -4,15 +4,11 @@ package codedriver.module.autoexec.service;
 import codedriver.framework.autoexec.constvalue.AutoexecFromType;
 import codedriver.framework.autoexec.constvalue.AutoexecProfileParamInvokeType;
 import codedriver.framework.autoexec.constvalue.ToolType;
-import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
-import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.framework.autoexec.dto.AutoexecOperationVo;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamValueVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
-import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
-import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.exception.AutoexecProfileHasBeenReferredException;
 import codedriver.framework.autoexec.exception.AutoexecProfileIsNotFoundException;
 import codedriver.framework.dependency.core.DependencyManager;
@@ -39,57 +35,13 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService {
     @Resource
     AutoexecService autoexecService;
 
-    @Resource
-    private AutoexecScriptMapper autoexecScriptMapper;
-
-    @Resource
-    private AutoexecToolMapper autoexecToolMapper;
-
     @Override
     public List<AutoexecProfileParamVo> getProfileParamListById(Long id) {
         AutoexecProfileVo profileVo = autoexecProfileMapper.getProfileVoById(id);
         if (profileVo == null) {
             throw new AutoexecProfileIsNotFoundException(id);
         }
-
-        List<AutoexecProfileParamVo> returnList = new ArrayList<>();
-        List<AutoexecParamVo> newOperationParamList = autoexecService.getAutoexecOperationParamVoList(profileVo.getAutoexecOperationVoList());
-        //根据key（唯一键）去重
-        if (CollectionUtils.isEmpty(newOperationParamList)) {
-            return returnList;
-        }
-
-        //实时的参数信息
-        List<AutoexecProfileParamVo> newProfileParamList = new ArrayList<>();
-        for (AutoexecParamVo paramVo : newOperationParamList) {
-            newProfileParamList.add(new AutoexecProfileParamVo(paramVo));
-        }
-        Map<String, AutoexecProfileParamVo> newProfileParamMap = newProfileParamList.stream().collect(Collectors.toMap(AutoexecProfileParamVo::getKey, e -> e));
-
-        //旧的参数信息
-        List<AutoexecProfileParamVo> oldProfileParamList = autoexecProfileMapper.getProfileParamListByProfileId(id);
-        Map<String, AutoexecProfileParamVo> oldProfileParamMap = null;
-        if (CollectionUtils.isNotEmpty(oldProfileParamList)) {
-            oldProfileParamMap = oldProfileParamList.stream().collect(Collectors.toMap(AutoexecProfileParamVo::getKey, e -> e));
-        }
-
-        //根据参数key替换对应的值
-        if (MapUtils.isNotEmpty(newProfileParamMap) && MapUtils.isNotEmpty(oldProfileParamMap)) {
-            for (String newParamKey : newProfileParamMap.keySet()) {
-                if (oldProfileParamMap.containsKey(newParamKey) && StringUtils.equals(oldProfileParamMap.get(newParamKey).getType(), newProfileParamMap.get(newParamKey).getType())) {
-                    newProfileParamMap.get(newParamKey).setDefaultValue(oldProfileParamMap.get(newParamKey).getDefaultValue());
-                    newProfileParamMap.get(newParamKey).setValueInvokeVoList(oldProfileParamMap.get(newParamKey).getValueInvokeVoList());
-                    newProfileParamMap.get(newParamKey).setValueInvokeType(oldProfileParamMap.get(newParamKey).getValueInvokeType());
-                } else {
-                    newProfileParamMap.get(newParamKey).setValueInvokeType(AutoexecProfileParamInvokeType.CONSTANT.getValue());
-                }
-            }
-        }
-        for (String key : newProfileParamMap.keySet()) {
-            returnList.add(newProfileParamMap.get(key));
-        }
-
-        return returnList;
+        return getLatestParamList(profileVo);
     }
 
     /**
@@ -124,26 +76,24 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService {
 
         //保存profile参数、profile参数值引用全局参数的关系
         List<AutoexecProfileParamVo> profileParamVoList = profileVo.getProfileParamVoList();
-        List<AutoexecProfileParamValueVo> insertParamValueVoList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(profileParamVoList)) {
             for (AutoexecProfileParamVo paramVo : profileParamVoList) {
-                if (CollectionUtils.isEmpty(paramVo.getValueInvokeVoList())) {
-                    continue;
-                }
-                for (AutoexecProfileParamValueVo valueVo : paramVo.getValueInvokeVoList()) {
-                    valueVo.setProfileParamId(paramVo.getId());
-                    valueVo.setInvokeType(paramVo.getValueInvokeType());
-                    insertParamValueVoList.add(valueVo);
+                if (StringUtils.equals(AutoexecProfileParamInvokeType.GLOBAL_PARAM.getValue(), paramVo.getValueInvokeType())) {
+                    List<AutoexecProfileParamValueVo> insertParamValueVoList = new ArrayList<>();
+                    for (AutoexecProfileParamValueVo valueVo : paramVo.getValueInvokeVoList()) {
+                        valueVo.setProfileParamId(paramVo.getId());
+                        valueVo.setInvokeType(paramVo.getValueInvokeType());
+                        insertParamValueVoList.add(valueVo);
+                    }
+                    if (CollectionUtils.isNotEmpty(insertParamValueVoList)) {
+                        //保存profile参数引用全局参数的关系
+                        autoexecProfileMapper.insertProfileParamValueInvokeList(insertParamValueVoList);
+                    }
                 }
             }
             Date nowLcd = new Date();
             //保存profile参数
             autoexecProfileMapper.insertAutoexecProfileParamList(profileParamVoList, profileVo.getId(), nowLcd);
-            if (CollectionUtils.isNotEmpty(insertParamValueVoList)) {
-                //保存profile参数引用全局参数的关系
-                autoexecProfileMapper.insertProfileParamValueInvokeList(insertParamValueVoList);
-            }
-
             //删除多余的profile参数 和 参数引用全局参数的关系
             List<Long> needDeleteParamIdList = autoexecProfileMapper.getNeedDeleteProfileParamIdListByProfileIdAndLcd(profileVo.getId(), nowLcd);
             if (CollectionUtils.isNotEmpty(needDeleteParamIdList)) {
@@ -199,7 +149,7 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService {
         if (CollectionUtils.isEmpty(keyList)) {
             return null;
         }
-        List<AutoexecProfileParamVo> profileParamList = autoexecProfileMapper.getProfileParamListByProfileId(profileId);
+        List<AutoexecProfileParamVo> profileParamList = getLatestParamList(profileVo);
         if (CollectionUtils.isEmpty(profileParamList)) {
             return null;
         }
@@ -218,33 +168,7 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService {
                 valueList.add(paramVo.getValueInvokeVoList().stream().map(AutoexecProfileParamValueVo::getInvokeValue).collect(Collectors.toList()));
             } else if (StringUtils.equals(paramVo.getValueInvokeType(), AutoexecProfileParamInvokeType.CONSTANT.getValue())) {
                 //获取profile的默认值
-                if (!Objects.isNull(paramVo.getDefaultValue())) {
-                    valueList.add(paramVo.getDefaultValue());
-                } else {
-                    if (StringUtils.equals(paramVo.getOperationType(), ToolType.SCRIPT.getValue())) {
-                        //  取最新版本的script
-                        AutoexecScriptVersionVo activeScriptVersion = autoexecScriptMapper.getActiveVersionByScriptId(paramVo.getOperationId());
-                        if (activeScriptVersion == null) {
-                            List<AutoexecScriptVersionParamVo> scriptInputParamList = autoexecScriptMapper.getParamListByVersionId(activeScriptVersion.getId());
-                            if (CollectionUtils.isNotEmpty(scriptInputParamList)) {
-                                Map<String, Object> scriptParamMap = scriptInputParamList.stream().collect(Collectors.toMap(AutoexecScriptVersionParamVo::getKey, AutoexecScriptVersionParamVo::getDefaultValue));
-                                if (scriptParamMap.containsKey(key)) {
-                                    valueList.add(scriptParamMap.get(key));
-                                }
-                            }
-                        }
-                    } else if (StringUtils.equals(paramVo.getOperationType(), ToolType.TOOL.getValue())) {
-                        //  取tool
-                        List<AutoexecParamVo> toolInputParamList = autoexecToolMapper.getToolById(paramVo.getOperationId()).getInputParamList();
-                        if (CollectionUtils.isNotEmpty(toolInputParamList)) {
-                            Map<String, Object> toolParamMap = toolInputParamList.stream().collect(Collectors.toMap(AutoexecParamVo::getKey, AutoexecParamVo::getDefaultValue));
-                            if (toolParamMap.containsKey(key)) {
-
-                                valueList.add(toolParamMap.get(key));
-                            }
-                        }
-                    }
-                }
+                valueList.add(paramVo.getDefaultValue());
             }
             returnMap.put(paramVo.getKey(), valueList);
         }
@@ -257,10 +181,74 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService {
      * @param idList profile id列表
      * @return
      */
-    List<AutoexecProfileVo> getProfileVoListByIdList(List<Long> idList) {
+    @Override
+    public  List<AutoexecProfileVo> getProfileVoListByIdList(List<Long> idList) {
         if (CollectionUtils.isEmpty(idList)) {
             return null;
         }
-        return autoexecProfileMapper.getProfileInfoListByIdList(idList);
+        List<AutoexecProfileVo> returnList = autoexecProfileMapper.getProfileInfoListByIdList(idList);
+        if (CollectionUtils.isEmpty(returnList)) {
+            return null;
+        }
+        for (AutoexecProfileVo profileVo : returnList) {
+            profileVo.setProfileParamVoList(getLatestParamList(profileVo));
+        }
+        return returnList;
+    }
+
+    /**
+     * 获取最新的profile参数列表
+     *
+     * @param profileVo profile
+     * @return
+     */
+    public List<AutoexecProfileParamVo> getLatestParamList(AutoexecProfileVo profileVo) {
+        List<AutoexecProfileParamVo> returnList = new ArrayList<>();
+
+        List<AutoexecParamVo> newOperationParamList = autoexecService.getAutoexecOperationParamVoList(profileVo.getAutoexecOperationVoList());
+        //根据key（唯一键）去重
+        if (CollectionUtils.isEmpty(newOperationParamList)) {
+            return returnList;
+        }
+
+        //实时的参数信息
+        List<AutoexecProfileParamVo> newProfileParamList = new ArrayList<>();
+        for (AutoexecParamVo paramVo : newOperationParamList) {
+            newProfileParamList.add(new AutoexecProfileParamVo(paramVo));
+        }
+        Map<String, AutoexecProfileParamVo> newProfileParamMap = newProfileParamList.stream().collect(Collectors.toMap(AutoexecProfileParamVo::getKey, e -> e));
+
+        //旧的参数信息
+        List<AutoexecProfileParamVo> oldProfileParamList = autoexecProfileMapper.getProfileParamListByProfileId(profileVo.getId());
+        Map<String, AutoexecProfileParamVo> oldProfileParamMap = null;
+        if (CollectionUtils.isNotEmpty(oldProfileParamList)) {
+            oldProfileParamMap = oldProfileParamList.stream().collect(Collectors.toMap(AutoexecProfileParamVo::getKey, e -> e));
+        }
+
+        //根据参数key替换对应的值：
+        //新旧参数的key和type都相同时，才会进行替换值和查询参数引用全局参数的关系
+        if (MapUtils.isNotEmpty(newProfileParamMap) && MapUtils.isNotEmpty(oldProfileParamMap)) {
+            for (String newParamKey : newProfileParamMap.keySet()) {
+
+                AutoexecProfileParamVo newParamVo = newProfileParamMap.get(newParamKey);
+                AutoexecProfileParamVo oldParamVo = oldProfileParamMap.get(newParamKey);
+
+                if (oldParamVo != null && StringUtils.equals(oldParamVo.getType(), newParamVo.getType())) {
+                    if (StringUtils.equals(AutoexecProfileParamInvokeType.GLOBAL_PARAM.getValue(), oldParamVo.getValueInvokeType())) {
+                        newParamVo.setValueInvokeVoList(oldParamVo.getValueInvokeVoList());
+                    } else if (StringUtils.equals(AutoexecProfileParamInvokeType.CONSTANT.getValue(), oldParamVo.getValueInvokeType())) {
+                        newParamVo.setDefaultValue(oldParamVo.getDefaultValue());
+                    }
+                    newParamVo.setValueInvokeType(oldParamVo.getValueInvokeType());
+                } else {
+                    newParamVo.setValueInvokeType(AutoexecProfileParamInvokeType.CONSTANT.getValue());
+                }
+            }
+        }
+        for (String key : newProfileParamMap.keySet()) {
+            returnList.add(newProfileParamMap.get(key));
+        }
+
+        return returnList;
     }
 }

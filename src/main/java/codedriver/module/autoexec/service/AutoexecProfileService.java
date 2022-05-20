@@ -53,4 +53,13 @@ public interface AutoexecProfileService {
      * @return
      */
     Map<String, List<Object>> getAutoexecProfileParamListByKeyListAndProfileId(List<String> keyList, Long profileId);
+
+
+    /**
+     * 批量根据profileId列表获取对应的profile列表
+     *
+     * @param idList profile id列表
+     * @return
+     */
+    public List<AutoexecProfileVo> getProfileVoListByIdList(List<Long> idList);
 }
