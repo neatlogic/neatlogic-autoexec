@@ -63,7 +63,7 @@ public class AutoexecCombopProfileListApi extends PrivateApiComponentBase {
             @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "主键id")
     })
     @Output({
-            @Param(explode = AutoexecCombopParamVo[].class, desc = "参数列表")
+            @Param(explode = AutoexecProfileVo[].class, desc = "参数列表")
     })
     @Description(desc = "查询组合工具预置参数集列表")
     @Override
