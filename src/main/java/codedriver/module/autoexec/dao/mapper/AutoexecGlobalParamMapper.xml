@@ -10,12 +10,12 @@
     <insert id="insertGlobalParam" parameterType="codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo">
         INSERT INTO `autoexec_global_param` (`id`, `key`, `name`, `type`, `default_value`, `description`, `fcu`,
                                              `fcd`, `lcu`, `lcd`)
-        VALUES (#{id}, #{key}, #{name}, #{type}, #{defaultValue}, #{description}, #{fcu}, now(3), #{lcu},
+        VALUES (#{id}, #{key}, #{name}, #{type}, #{defaultValueStr}, #{description}, #{fcu}, now(3), #{lcu},
                 now(3)) ON DUPLICATE KEY
         UPDATE `key` = #{key},
             `name` = #{name},
             `type`= #{type},
-            `default_value` = #{defaultValue},
+            `default_value` = #{defaultValueStr},
             `description` = #{description},
             `lcu` = #{lcu},
             `lcd` = now(3)
@@ -69,7 +69,7 @@
         `key`,
         `name`,
         `type`,
-        `default_value`,
+        `default_value` as defaultValue,
         `description`,
         `fcu`,
         `fcd`,
