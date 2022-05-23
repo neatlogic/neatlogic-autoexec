@@ -51,16 +51,18 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService {
      */
     @Override
     public void saveProfileOperation(Long profileId, List<AutoexecOperationVo> autoexecOperationVoList) {
+        Date nowLcd = new Date();
         List<Long> toolIdList = autoexecOperationVoList.stream().filter(e -> StringUtils.equals(ToolType.TOOL.getValue(), e.getType())).map(AutoexecOperationVo::getId).collect(Collectors.toList());
         List<Long> scriptIdList = autoexecOperationVoList.stream().filter(e -> StringUtils.equals(ToolType.SCRIPT.getValue(), e.getType())).map(AutoexecOperationVo::getId).collect(Collectors.toList());
         //tool
         if (CollectionUtils.isNotEmpty(toolIdList)) {
-            autoexecProfileMapper.insertAutoexecProfileOperation(profileId, toolIdList, ToolType.TOOL.getValue());
+            autoexecProfileMapper.insertAutoexecProfileOperation(profileId, toolIdList, ToolType.TOOL.getValue(), nowLcd);
         }
         //script
         if (CollectionUtils.isNotEmpty(scriptIdList)) {
-            autoexecProfileMapper.insertAutoexecProfileOperation(profileId, scriptIdList, ToolType.SCRIPT.getValue());
+            autoexecProfileMapper.insertAutoexecProfileOperation(profileId, scriptIdList, ToolType.SCRIPT.getValue(), nowLcd);
         }
+        autoexecProfileMapper.deleteProfileOperationByProfileIdAndLcd(profileId, nowLcd);
     }
 
     /**

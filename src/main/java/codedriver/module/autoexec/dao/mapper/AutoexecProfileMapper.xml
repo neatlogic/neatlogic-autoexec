@@ -3,11 +3,13 @@
 <mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecProfileMapper">
 
     <insert id="insertAutoexecProfileOperation">
-        INSERT INTO autoexec_profile_operation ( profile_id, operation_id ,type)
+        INSERT INTO autoexec_profile_operation ( profile_id, operation_id ,type,lcd)
         VALUES
         <foreach collection="operationIdList" item="operationId" separator=",">
-            (#{profileId},#{operationId},#{type})
+            (#{profileId},#{operationId},#{type},#{lcd})
         </foreach>
+        ON DUPLICATE KEY UPDATE
+        lcd = lcd
     </insert>
 
     <insert id="insertProfile" parameterType="codedriver.framework.autoexec.dto.profile.AutoexecProfileVo">
@@ -406,6 +408,13 @@
         <foreach collection="idList" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
+    </delete>
+
+    <delete id="deleteProfileOperationByProfileIdAndLcd">
+        DELETE
+        FROM autoexec_profile_operation
+        WHERE profile_id = #{profileId}
+          AND lcd != #{lcd}
     </delete>
 
 </mapper>
