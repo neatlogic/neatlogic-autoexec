@@ -116,7 +116,7 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
         }
         //查询各级子目录
         searchVo.setCatalogIdList(autoexecScriptService.getCatalogIdList(searchVo.getCatalogId()));
-
+        // execMode为native的工具可以被任意阶段引用，不受阶段的execMode限制
         tbodyList.addAll(autoexecScriptMapper.searchScriptAndTool(searchVo));
         if (searchVo.getNeedPage()) {
             int rowNum = autoexecScriptMapper.searchScriptAndToolCount(searchVo);

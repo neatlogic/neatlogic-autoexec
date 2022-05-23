@@ -8,8 +8,8 @@ package codedriver.module.autoexec.api.script;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
-import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.ScriptParser;
+import codedriver.framework.autoexec.constvalue.ScriptExecMode;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
@@ -170,7 +170,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
         if (risk == null) {
             failReasonList.add("不存在的操作级别：" + scriptVo.getRiskName());
         }
-        if (ExecMode.getExecMode(scriptVo.getExecMode()) == null) {
+        if (ScriptExecMode.getExecMode(scriptVo.getExecMode()) == null) {
             failReasonList.add("不存在的执行方式：" + scriptVo.getExecMode());
         }
         if (CollectionUtils.isEmpty(failReasonList)) {
