@@ -5,9 +5,6 @@
 
 package codedriver.module.autoexec.service;
 
-import codedriver.framework.asynchronization.threadlocal.UserContext;
-import codedriver.framework.auth.core.AuthActionChecker;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.crossover.IAutoexecServiceCrossoverService;
 import codedriver.framework.autoexec.dao.mapper.*;
@@ -15,16 +12,15 @@ import codedriver.framework.autoexec.dto.AutoexecOperationVo;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecRiskVo;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
-import codedriver.framework.autoexec.dto.combop.*;
-import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseConfigVo;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseOperationVo;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
-import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.script.paramtype.IScriptParamType;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
-import codedriver.framework.crossover.CrossoverServiceFactory;
-import codedriver.framework.deploy.crossover.IDeploySqlCrossoverMapper;
 import codedriver.framework.exception.type.*;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -186,71 +182,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
         }
     }
 
-    @Override
-    public List<AutoexecJobVo> getJobList(AutoexecJobVo jobVo) {
-        List<AutoexecJobVo> jobVoList = new ArrayList<>();
-        int rowNum = autoexecJobMapper.searchJobCount(jobVo);
-        if (rowNum > 0) {
-            jobVo.setRowNum(rowNum);
-            List<Long> jobIdList = autoexecJobMapper.searchJobId(jobVo);
-            if (CollectionUtils.isNotEmpty(jobIdList)) {
-                Map<String, ArrayList<Long>> operationIdMap = new HashMap<>();
-                jobVoList = autoexecJobMapper.searchJob(jobIdList);
-                //补充来源operation信息
-                Map<Long, String> operationIdNameMap = new HashMap<>();
-                List<AutoexecCombopVo> combopVoList = null;
-                List<AutoexecScriptVersionVo> scriptVoList;
-                List<AutoexecOperationVo> toolVoList;
-                operationIdMap.put(CombopOperationType.COMBOP.getValue(), new ArrayList<>());
-                operationIdMap.put(CombopOperationType.SCRIPT.getValue(), new ArrayList<>());
-                operationIdMap.put(CombopOperationType.TOOL.getValue(), new ArrayList<>());
-                jobVoList.forEach(o -> {
-                    operationIdMap.get(o.getOperationType()).add(o.getOperationId());
-                });
-                if (CollectionUtils.isNotEmpty(operationIdMap.get(CombopOperationType.COMBOP.getValue()))) {
-                    combopVoList = autoexecCombopMapper.getAutoexecCombopByIdList(operationIdMap.get(CombopOperationType.COMBOP.getValue()));
-                    combopVoList.forEach(o -> operationIdNameMap.put(o.getId(), o.getName()));
-                }
-                if (CollectionUtils.isNotEmpty(operationIdMap.get(CombopOperationType.SCRIPT.getValue()))) {
-                    scriptVoList = autoexecScriptMapper.getVersionByVersionIdList(operationIdMap.get(CombopOperationType.SCRIPT.getValue()));
-                    scriptVoList.forEach(o -> operationIdNameMap.put(o.getId(), o.getTitle()));
-                }
-                if (CollectionUtils.isNotEmpty(operationIdMap.get(CombopOperationType.TOOL.getValue()))) {
-                    toolVoList = autoexecToolMapper.getToolListByIdList(operationIdMap.get(CombopOperationType.TOOL.getValue()));
-                    toolVoList.forEach(o -> operationIdNameMap.put(o.getId(), o.getName()));
-                }
-                Map<Long, AutoexecCombopVo> combopVoMap = null;
-                if (CollectionUtils.isNotEmpty(combopVoList)) {
-                    combopVoMap = combopVoList.stream().collect(Collectors.toMap(AutoexecCombopVo::getId, o -> o));
-                }
-                Boolean hasAutoexecScriptModifyAuth = AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class);
-                for (AutoexecJobVo vo : jobVoList) {
-                    vo.setOperationName(operationIdNameMap.get(vo.getOperationId()));
-                    // 有组合工具执行权限，只能接管作业，执行用户才能执行或撤销作业
-                    if (UserContext.get().getUserUuid().equals(vo.getExecUser())) {
-                        vo.setIsCanExecute(1);
-                    } else if ((Objects.equals(jobVo.getSource(), JobSource.TEST.getValue()) && hasAutoexecScriptModifyAuth)
-                            || (MapUtils.isNotEmpty(combopVoMap) && autoexecCombopService.checkOperableButton(combopVoMap.get(vo.getOperationId()), CombopAuthorityAction.EXECUTE))) {
-                        vo.setIsCanTakeOver(1);
-                    }
-                }
-                /*  jobVoList.forEach(j -> {
-            //判断是否有编辑权限
-            if(Objects.equals(j.getOperationType(), CombopOperationType.COMBOP.getValue())) {
-                AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(j.getOperationId());
-                if (combopVo == null) {
-                    throw new AutoexecCombopNotFoundException(j.getOperationId());
-                }
-                autoexecCombopService.setOperableButtonList(combopVo);
-                if (combopVo.getEditable() == 1) {
-                    jobVo.setIsCanEdit(1);
-                }
-            }
-        });*/
-            }
-        }
-        return jobVoList;
-    }
+
 
     @Override
     public void updateAutoexecCombopConfig(AutoexecCombopConfigVo config) {
@@ -382,21 +314,4 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
         return returnList;
     }
 
-
-    @Override
-    public void resetAutoexecJobSqlStatusByJobIdAndJobPhaseNameList(Long jobId, List<String> jobPhaseNameList) {
-        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
-        if (jobVo == null) {
-            throw new AutoexecJobNotFoundException(jobId);
-        }
-        if (StringUtils.equals(codedriver.framework.deploy.constvalue.JobSource.DEPLOY.getValue(), jobVo.getSource())) {
-            IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
-            List<Long> sqlIdList = iDeploySqlCrossoverMapper.getJobSqlIdListByJobIdAndJobPhaseNameList(jobId, jobPhaseNameList);
-            if (CollectionUtils.isNotEmpty(sqlIdList)) {
-                iDeploySqlCrossoverMapper.resetDeploySqlStatusBySqlIdList(sqlIdList);
-            }
-        } else {
-            autoexecJobMapper.resetJobSqlStatusByJobIdAndPhaseNameList(jobId, jobPhaseNameList);
-        }
-    }
 }
