@@ -7,7 +7,6 @@ import codedriver.framework.autoexec.dto.scenario.AutoexecScenarioVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.dependency.core.DependencyManager;
 import codedriver.framework.restful.annotation.Description;
-
 import codedriver.framework.restful.annotation.Input;
 import codedriver.framework.restful.annotation.OperationType;
 import codedriver.framework.restful.annotation.Param;
@@ -15,7 +14,9 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.util.TableResultUtil;
 import codedriver.module.autoexec.dao.mapper.AutoexecScenarioMapper;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -55,21 +56,29 @@ public class AutoexecScenarioSearchApi extends PrivateApiComponentBase {
             @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
             @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
             @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
+            @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "默认值"),
             @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true")
     })
     @Description(desc = "查询场景列表接口")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        AutoexecScenarioVo paramScenarioVo = paramObj.toJavaObject(AutoexecScenarioVo.class);
+        AutoexecScenarioVo paramScenarioVo = new AutoexecScenarioVo();
         List<AutoexecScenarioVo> returnScenarioList = new ArrayList<>();
-        int ScenarioCount = autoexecScenarioMapper.getScenarioCount(paramScenarioVo);
-        if (ScenarioCount > 0) {
-            paramScenarioVo.setRowNum(ScenarioCount);
+        JSONArray defaultValue = paramObj.getJSONArray("defaultValue");
+        if (CollectionUtils.isNotEmpty(defaultValue)) {
+            paramScenarioVo.setDefaultValue(defaultValue);
             returnScenarioList = autoexecScenarioMapper.searchScenario(paramScenarioVo);
-            Map<Object, Integer> ciEntityReferredCountMap = DependencyManager.getBatchDependencyCount(AutoexecFromType.AUTOEXEC_SCENARIO_CIENTITY, returnScenarioList.stream().map(AutoexecScenarioVo::getId).collect(Collectors.toList()));
-            if (!ciEntityReferredCountMap.isEmpty()) {
-                for (AutoexecScenarioVo scenarioVo : returnScenarioList) {
-                    scenarioVo.setCiEntityReferredCount(ciEntityReferredCountMap.get(scenarioVo.getId()));
+        } else {
+            paramScenarioVo = paramObj.toJavaObject(AutoexecScenarioVo.class);
+            int ScenarioCount = autoexecScenarioMapper.getScenarioCount(paramScenarioVo);
+            if (ScenarioCount > 0) {
+                paramScenarioVo.setRowNum(ScenarioCount);
+                returnScenarioList = autoexecScenarioMapper.searchScenario(paramScenarioVo);
+                Map<Object, Integer> ciEntityReferredCountMap = DependencyManager.getBatchDependencyCount(AutoexecFromType.AUTOEXEC_SCENARIO_CIENTITY, returnScenarioList.stream().map(AutoexecScenarioVo::getId).collect(Collectors.toList()));
+                if (!ciEntityReferredCountMap.isEmpty()) {
+                    for (AutoexecScenarioVo scenarioVo : returnScenarioList) {
+                        scenarioVo.setCiEntityReferredCount(ciEntityReferredCountMap.get(scenarioVo.getId()));
+                    }
                 }
             }
         }
