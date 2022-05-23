@@ -65,7 +65,7 @@ public class AutoexecProfileSearchApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecProfileVo paramProfileVo = JSON.toJavaObject(paramObj, AutoexecProfileVo.class);
-        List<AutoexecProfileVo> returnList = null;
+        List<AutoexecProfileVo> returnList = new ArrayList<>();
         int profileCount = autoexecProfileMapper.searchAutoexecProfileCount(paramProfileVo);
         if (profileCount > 0) {
             paramProfileVo.setRowNum(profileCount);
