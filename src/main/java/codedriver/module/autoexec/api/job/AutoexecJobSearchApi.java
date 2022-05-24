@@ -14,7 +14,7 @@ import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.util.TableResultUtil;
-import codedriver.module.autoexec.service.AutoexecService;
+import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
@@ -32,7 +32,7 @@ public class AutoexecJobSearchApi extends PrivateApiComponentBase {
 
 
     @Resource
-    AutoexecService autoexecService;
+    AutoexecJobService autoexecJobService;
 
     @Override
     public String getName() {
@@ -65,7 +65,7 @@ public class AutoexecJobSearchApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecJobVo jobVo = new AutoexecJobVo(jsonObj);
-        return TableResultUtil.getResult(autoexecService.getJobList(jobVo), jobVo);
+        return TableResultUtil.getResult(autoexecJobService.getJobList(jobVo), jobVo);
     }
 
     @Override

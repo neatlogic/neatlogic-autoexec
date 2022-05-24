@@ -1,9 +1,9 @@
 package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
-import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.ScriptParser;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
+import codedriver.framework.autoexec.constvalue.ScriptExecMode;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
@@ -117,7 +117,7 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
             if (StringUtils.isNotBlank(newScriptVo.getRiskName()) && autoexecRiskMapper.getRiskIdByName(newScriptVo.getRiskName()) == null) {
                 faultMessages.add("操作级别：'" + newScriptVo.getRiskName() + "'不存在");
             }
-            if (StringUtils.isNotBlank(newScriptVo.getExecMode()) && ExecMode.getExecMode(newScriptVo.getExecMode()) == null) {
+            if (StringUtils.isNotBlank(newScriptVo.getExecMode()) && ScriptExecMode.getExecMode(newScriptVo.getExecMode()) == null) {
                 faultMessages.add("执行方式：'" + newScriptVo.getExecMode() + "'不存在");
             }
             if (StringUtils.isNotBlank(newScriptVo.getParser()) && ScriptParser.getScriptParser(newScriptVo.getParser()) == null) {

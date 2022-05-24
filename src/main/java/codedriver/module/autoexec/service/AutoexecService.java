@@ -8,7 +8,6 @@ package codedriver.module.autoexec.service;
 import codedriver.framework.autoexec.dto.AutoexecOperationVo;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
-import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 
 import java.util.List;
 
@@ -30,8 +29,6 @@ public interface AutoexecService {
 
     void mergeConfig(AutoexecParamVo autoexecParamVo);
 
-    List<AutoexecJobVo> getJobList(AutoexecJobVo jobVo);
-
     void updateAutoexecCombopConfig(AutoexecCombopConfigVo config);
 
     /**
@@ -51,11 +48,4 @@ public interface AutoexecService {
      */
     List<AutoexecOperationVo> getAutoexecOperationByScriptIdAndToolIdList(List<Long> scriptIdList, List<Long> toolIdList);
 
-    /**
-     * 根据作业id和剧本名称重置sql文件状态
-     *
-     * @param jobId            作业id
-     * @param jobPhaseNameList 作业剧本列表
-     */
-    void resetAutoexecJobSqlStatusByJobIdAndJobPhaseNameList(Long jobId, List<String> jobPhaseNameList);
 }
