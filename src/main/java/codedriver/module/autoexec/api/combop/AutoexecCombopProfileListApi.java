@@ -23,7 +23,9 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * 查询组合工具预置参数集列表
@@ -81,7 +83,7 @@ public class AutoexecCombopProfileListApi extends PrivateApiComponentBase {
         if (CollectionUtils.isEmpty(combopPhaseList)) {
             return new ArrayList<>();
         }
-        List<Long> profileIdList = new ArrayList<>();
+        Set<Long> profileIdSet = new HashSet<>();
         for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseList) {
             AutoexecCombopPhaseConfigVo phaseConfigVo = combopPhaseVo.getConfig();
             if (phaseConfigVo == null) {
@@ -98,14 +100,14 @@ public class AutoexecCombopProfileListApi extends PrivateApiComponentBase {
                 }
                 Long profileId = operationConfigVo.getProfileId();
                 if (profileId != null) {
-                    profileIdList.add(profileId);
+                    profileIdSet.add(profileId);
                 }
             }
         }
-        if (CollectionUtils.isEmpty(profileIdList)) {
+        if (CollectionUtils.isEmpty(profileIdSet)) {
             return new ArrayList<>();
         }
-        List<AutoexecProfileVo> profileList = autoexecProfileService.getProfileVoListByIdList(profileIdList);
+        List<AutoexecProfileVo> profileList = autoexecProfileService.getProfileVoListByIdList(new ArrayList<>(profileIdSet));
         if (CollectionUtils.isNotEmpty(profileList)) {
             return profileList;
         }

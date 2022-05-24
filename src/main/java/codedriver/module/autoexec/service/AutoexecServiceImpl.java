@@ -12,16 +12,17 @@ import codedriver.framework.autoexec.dto.AutoexecOperationVo;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecRiskVo;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseConfigVo;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseOperationVo;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
+import codedriver.framework.autoexec.dto.combop.*;
+import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
+import codedriver.framework.autoexec.dto.scenario.AutoexecScenarioVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.script.paramtype.IScriptParamType;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import codedriver.framework.exception.type.*;
+import codedriver.module.autoexec.dao.mapper.AutoexecProfileMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecScenarioMapper;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -54,6 +55,11 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
 
     @Resource
     private AutoexecCombopService autoexecCombopService;
+
+    @Resource
+    AutoexecScenarioMapper autoexecScenarioMapper;
+    @Resource
+    AutoexecProfileMapper autoexecProfileMapper;
 
     static Pattern paramKeyPattern = Pattern.compile("^[A-Za-z_\\d]+$");
 
@@ -186,6 +192,18 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
 
     @Override
     public void updateAutoexecCombopConfig(AutoexecCombopConfigVo config) {
+        List<AutoexecCombopScenarioVo> combopScenarioList = config.getScenarioList();
+        if (CollectionUtils.isNotEmpty(combopScenarioList)) {
+            for (AutoexecCombopScenarioVo combopScenarioVo : combopScenarioList) {
+                Long scenarioId = combopScenarioVo.getScenarioId();
+                if (scenarioId != null) {
+                    AutoexecScenarioVo autoexecScenarioVo = autoexecScenarioMapper.getScenarioById(scenarioId);
+                    if (autoexecScenarioVo != null) {
+                        combopScenarioVo.setScenarioName(autoexecScenarioVo.getName());
+                    }
+                }
+            }
+        }
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
         if (CollectionUtils.isNotEmpty(combopPhaseList)) {
             for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseList) {
@@ -252,6 +270,16 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                                 phaseOperationVo.setInputParamList(inputParamList);
                                 phaseOperationVo.setOutputParamList(outputParamList);
                                 phaseOperationVo.setArgument(argumentParam);
+                            }
+                            AutoexecCombopPhaseOperationConfigVo operationConfigVo = phaseOperationVo.getConfig();
+                            if (operationConfigVo != null) {
+                                Long profileId = operationConfigVo.getProfileId();
+                                if (profileId != null) {
+                                    AutoexecProfileVo autoexecProfileVo = autoexecProfileMapper.getProfileVoById(profileId);
+                                    if (autoexecProfileVo != null) {
+                                        operationConfigVo.setProfileName(autoexecProfileVo.getName());
+                                    }
+                                }
                             }
                         }
                     }
