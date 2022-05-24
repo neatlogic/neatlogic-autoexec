@@ -52,6 +52,7 @@ public class AutoexecProfileSearchApi extends PrivateApiComponentBase {
             @Param(name = "type", desc = "工具类型", type = ApiParamType.STRING),
             @Param(name = "ciEntityId", type = ApiParamType.LONG, desc = "关联配置项id"),
             @Param(name = "fromSystemId", type = ApiParamType.LONG, desc = "所属系统id"),
+            @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "默认值"),
             @Param(name = "keyword", desc = "关键词（名称、描述）", type = ApiParamType.STRING),
             @Param(name = "currentPage", desc = "当前页", type = ApiParamType.INTEGER),
             @Param(name = "needPage", desc = "是否分页", type = ApiParamType.BOOLEAN),

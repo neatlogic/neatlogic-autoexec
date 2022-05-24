@@ -107,6 +107,12 @@
                     and cc.`id` = #{fromSystemId}
                 </when>
             </choose>
+            <if test="defaultValue != null and defaultValue.size() > 0">
+                AND a.`id` IN
+                <foreach collection="defaultValue" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
         </where>
     </sql>
 
