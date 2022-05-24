@@ -3,11 +3,13 @@
 <mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecProfileMapper">
 
     <insert id="insertAutoexecProfileOperation">
-        INSERT INTO autoexec_profile_operation ( profile_id, operation_id ,type)
+        INSERT INTO autoexec_profile_operation ( profile_id, operation_id ,type,lcd)
         VALUES
         <foreach collection="operationIdList" item="operationId" separator=",">
-            (#{profileId},#{operationId},#{type})
+            (#{profileId},#{operationId},#{type},#{lcd})
         </foreach>
+        ON DUPLICATE KEY UPDATE
+        lcd = #{lcd}
     </insert>
 
     <insert id="insertProfile" parameterType="codedriver.framework.autoexec.dto.profile.AutoexecProfileVo">
@@ -299,6 +301,7 @@
             <result column="invokeKey" property="invokeKey"/>
             <result column="invokeName" property="invokeName"/>
             <result column="invokeValue" property="invokeValue"/>
+            <result column="invokeType" property="invokeType"/>
         </collection>
     </resultMap>
 
@@ -316,7 +319,8 @@
             appvi.value_invoke_id AS invokeId,
             agp.key AS invokeKey,
             agp.name AS invokeName,
-            agp.default_value AS invokeValue
+            agp.default_value AS invokeValue,
+            agp.type AS invokeType
         FROM
             autoexec_profile_param app
                 LEFT JOIN autoexec_profile_param_value_invoke appvi ON appvi.profile_param_id = app.id
@@ -406,6 +410,13 @@
         <foreach collection="idList" item="id" open="(" separator="," close=")">
             #{id}
         </foreach>
+    </delete>
+
+    <delete id="deleteProfileOperationByProfileIdAndLcd">
+        DELETE
+        FROM autoexec_profile_operation
+        WHERE profile_id = #{profileId}
+          AND lcd != #{lcd}
     </delete>
 
 </mapper>
