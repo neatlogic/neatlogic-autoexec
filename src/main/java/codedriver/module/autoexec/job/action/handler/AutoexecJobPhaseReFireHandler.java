@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.job.action.handler;
 
+import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.constvalue.JobStatus;
@@ -25,7 +26,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -57,6 +60,10 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         AutoexecJobPhaseVo jobPhaseVo = jobVo.getExecuteJobPhaseList().get(0);
+        //如果是sqlfile类型的phase 需额外清除状态
+        if(Objects.equals(ExecMode.SQL.getValue(),jobPhaseVo.getExecMode())){
+            autoexecJobService.resetAutoexecJobSqlStatusByJobIdAndJobPhaseNameList(jobVo.getId(), Collections.singletonList(jobPhaseVo.getName()));
+        }
         resetPhase(jobVo);
         jobVo.setStatus(JobStatus.RUNNING.getValue());
         autoexecJobMapper.updateJobStatus(jobVo);
