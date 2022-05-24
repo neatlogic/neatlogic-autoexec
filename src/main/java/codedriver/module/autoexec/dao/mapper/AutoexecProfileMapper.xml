@@ -9,7 +9,7 @@
             (#{profileId},#{operationId},#{type},#{lcd})
         </foreach>
         ON DUPLICATE KEY UPDATE
-        lcd = lcd
+        lcd = #{lcd}
     </insert>
 
     <insert id="insertProfile" parameterType="codedriver.framework.autoexec.dto.profile.AutoexecProfileVo">
