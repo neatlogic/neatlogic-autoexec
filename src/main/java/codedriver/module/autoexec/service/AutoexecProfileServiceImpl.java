@@ -2,6 +2,7 @@ package codedriver.module.autoexec.service;
 
 
 import codedriver.framework.autoexec.constvalue.AutoexecFromType;
+import codedriver.framework.autoexec.constvalue.AutoexecGlobalParamType;
 import codedriver.framework.autoexec.constvalue.AutoexecProfileParamInvokeType;
 import codedriver.framework.autoexec.constvalue.ToolType;
 import codedriver.framework.autoexec.dto.AutoexecOperationVo;
@@ -11,6 +12,8 @@ import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import codedriver.framework.autoexec.exception.AutoexecProfileHasBeenReferredException;
 import codedriver.framework.autoexec.exception.AutoexecProfileIsNotFoundException;
+import codedriver.framework.common.constvalue.CiphertextPrefix;
+import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.dependency.core.DependencyManager;
 import codedriver.module.autoexec.dao.mapper.AutoexecProfileMapper;
 import org.apache.commons.collections4.CollectionUtils;
@@ -235,10 +238,19 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService {
 
             if (oldParamVo != null && StringUtils.equals(oldParamVo.getType(), newParamVo.getType())) {
                 if (StringUtils.equals(AutoexecProfileParamInvokeType.GLOBAL_PARAM.getValue(), oldParamVo.getValueInvokeType())) {
+                    for (AutoexecProfileParamValueVo paramValueVo : oldParamVo.getValueInvokeVoList()) {
+                        if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), paramValueVo.getInvokeType()) && !Objects.isNull(paramValueVo.getInvokeValue()) && paramValueVo.getInvokeValue().toString().startsWith(CiphertextPrefix.RC4.getValue())) {
+                            paramValueVo.setInvokeValue(RC4Util.decrypt(paramValueVo.getInvokeValue().toString().substring(4)));
+                        }
+                    }
                     newParamVo.setValueInvokeVoList(oldParamVo.getValueInvokeVoList());
                     newParamVo.setValueInvokeType(AutoexecProfileParamInvokeType.GLOBAL_PARAM.getValue());
                 } else if (StringUtils.equals(AutoexecProfileParamInvokeType.CONSTANT.getValue(), oldParamVo.getValueInvokeType())) {
-                    newParamVo.setDefaultValue(oldParamVo.getDefaultValue());
+                    if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), newParamVo.getType()) && StringUtils.isNotBlank(newParamVo.getDefaultValueStr()) && newParamVo.getDefaultValueStr().startsWith(CiphertextPrefix.RC4.getValue())) {
+                        newParamVo.setDefaultValue(RC4Util.decrypt(newParamVo.getDefaultValueStr().substring(4)));
+                    } else {
+                        newParamVo.setDefaultValue(oldParamVo.getDefaultValue());
+                    }
                 }
             }
         }

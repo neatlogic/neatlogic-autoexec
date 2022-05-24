@@ -301,6 +301,7 @@
             <result column="invokeKey" property="invokeKey"/>
             <result column="invokeName" property="invokeName"/>
             <result column="invokeValue" property="invokeValue"/>
+            <result column="invokeType" property="invokeType"/>
         </collection>
     </resultMap>
 
@@ -318,7 +319,8 @@
             appvi.value_invoke_id AS invokeId,
             agp.key AS invokeKey,
             agp.name AS invokeName,
-            agp.default_value AS invokeValue
+            agp.default_value AS invokeValue,
+            agp.type AS invokeType
         FROM
             autoexec_profile_param app
                 LEFT JOIN autoexec_profile_param_value_invoke appvi ON appvi.profile_param_id = app.id
