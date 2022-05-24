@@ -43,19 +43,11 @@ import static java.util.stream.Collectors.toCollection;
 public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCrossoverService {
 
     @Resource
-    AutoexecJobMapper autoexecJobMapper;
-    @Resource
-    AutoexecCombopMapper autoexecCombopMapper;
-    @Resource
     AutoexecScriptMapper autoexecScriptMapper;
     @Resource
     AutoexecToolMapper autoexecToolMapper;
     @Resource
     private AutoexecRiskMapper autoexecRiskMapper;
-
-    @Resource
-    private AutoexecCombopService autoexecCombopService;
-
     @Resource
     AutoexecScenarioMapper autoexecScenarioMapper;
     @Resource
