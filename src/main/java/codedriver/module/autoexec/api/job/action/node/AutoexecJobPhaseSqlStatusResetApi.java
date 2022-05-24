@@ -14,10 +14,12 @@ import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.nacos.api.utils.StringUtils;
-import org.apache.commons.collections4.CollectionUtils;
+import com.alibaba.nacos.common.utils.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author longrf
@@ -46,7 +48,9 @@ public class AutoexecJobPhaseSqlStatusResetApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
-            @Param(name = "sqlIdList", type = ApiParamType.JSONARRAY, desc = "sql文件列表")
+            @Param(name = "sqlIdList", type = ApiParamType.JSONARRAY, desc = "sql文件列表"),
+            @Param(name = "phaseName", type = ApiParamType.STRING, desc = "剧本名称"),
+            @Param(name = "isAll", type = ApiParamType.INTEGER, desc = "是否全部重置,1:是 0:否,则sqlIdList不能为空"),
     })
     @Output({
     })
@@ -57,12 +61,31 @@ public class AutoexecJobPhaseSqlStatusResetApi extends PrivateApiComponentBase {
             throw new AutoexecJobNotFoundException(paramObj.getLong("jobId"));
         }
         JSONArray sqlIdArray = paramObj.getJSONArray("sqlIdList");
-        if (CollectionUtils.isNotEmpty(sqlIdArray)) {
-            if (StringUtils.equals(JobSource.DEPLOY.getValue(), jobVo.getSource())) {
-                IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
+
+        if (StringUtils.equals(JobSource.DEPLOY.getValue(), jobVo.getSource())) {
+            //发布
+            IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
+            if (!Objects.isNull(paramObj.getInteger("isAll")) && paramObj.getInteger("isAll") == 1) {
+                //重置phase的所有sql文件状态
+                List<Long> deleteSqlIdList = iDeploySqlCrossoverMapper.getJobSqlIdListByJobIdAndJobPhaseName(paramObj.getLong("jobId"),paramObj.getString("phaseName") );
+                if (CollectionUtils.isNotEmpty(deleteSqlIdList)) {
+                    iDeploySqlCrossoverMapper.resetDeploySqlStatusBySqlIdList(deleteSqlIdList);
+                }
+            } else if (CollectionUtils.isNotEmpty(sqlIdArray)) {
+                //批量重置sql文件状态
                 iDeploySqlCrossoverMapper.resetDeploySqlStatusBySqlIdList(sqlIdArray.toJavaList(Long.class));
-            } else {
-                autoexecJobMapper.resetJobSqlStatusBySqlIdList(sqlIdArray);
+            }
+        } else {
+            //自动化
+            if (!Objects.isNull(paramObj.getInteger("isAll")) && paramObj.getInteger("isAll") == 1) {
+                //重置phase的所有sql文件状态
+                List<Long> deleteSqlIdList = autoexecJobMapper.getJobSqlIdListByJobIdAndJobPhaseName(paramObj.getLong("jobId"), paramObj.getString("phaseName"));
+                if (CollectionUtils.isNotEmpty(deleteSqlIdList)) {
+                    autoexecJobMapper.resetJobSqlStatusBySqlIdList(deleteSqlIdList);
+                }
+            } else if (CollectionUtils.isNotEmpty(sqlIdArray)) {
+                //批量重置sql文件状态
+                autoexecJobMapper.resetJobSqlStatusBySqlIdList(sqlIdArray.toJavaList(Long.class));
             }
         }
         return null;
