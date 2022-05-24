@@ -34,7 +34,7 @@ public interface AutoexecProfileMapper {
 
     AutoexecProfileVo getProfileVoById(Long id);
 
-    void insertAutoexecProfileOperation(@Param("profileId") Long profileId, @Param("operationIdList") List<Long> operationIdList, @Param("type") String type);
+    void insertAutoexecProfileOperation(@Param("profileId") Long profileId, @Param("operationIdList") List<Long> operationIdList, @Param("type") String type, @Param("lcd") Date lcd);
 
     void insertProfile(AutoexecProfileVo profileVo);
 
@@ -56,4 +56,5 @@ public interface AutoexecProfileMapper {
 
     void deleteProfileParamValueInvokeByParamIdList(@Param("idList") List<Long> idList);
 
+    void deleteProfileOperationByProfileIdAndLcd(@Param("profileId") Long profileId, @Param("lcd") Date lcd);
 }

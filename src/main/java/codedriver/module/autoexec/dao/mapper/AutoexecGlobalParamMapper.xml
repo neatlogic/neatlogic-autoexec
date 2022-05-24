@@ -72,6 +72,12 @@
                 OR `name` LIKE CONCAT('%',#{keyword}, '%')
                 OR `description` LIKE CONCAT('%',#{keyword}, '%'))
             </if>
+            <if test="typeList != null and typeList.size()>0">
+                and `type` in
+                <foreach collection="typeList" item="item" open="(" separator="," close=")">
+                    #{item}
+                </foreach>
+            </if>
             <if test="defaultValue != null and defaultValue.size() > 0">
                 AND `id` IN
                 <foreach collection="defaultValue" item="item" open="(" separator="," close=")">
