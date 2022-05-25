@@ -155,6 +155,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             runtimeParamMap = autoexecCombopParamVoList.stream().collect(Collectors.toMap(e -> e.getKey(), e -> e));
         }
         Map<String, AutoexecParamVo> preNodeOutputParamMap = new HashMap<>();
+        Map<String, String> preNodeNameMap = new HashMap<>();
         for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
             if (autoexecCombopPhaseVo == null) {
                 continue;
@@ -223,6 +224,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                             inputParamNameMap.put(paramVo.getKey(), paramVo.getName());
                         } else if (Objects.equals(paramVo.getMode(), ParamMode.OUTPUT.getValue())) {
                             preNodeOutputParamMap.put(uuid + "&&" + operationName + "&&" + operationUuid + "&&" + paramVo.getKey(), paramVo);
+                            preNodeNameMap.put(uuid, autoexecCombopPhaseVo.getName());
                         }
                     }
                 }
@@ -239,10 +241,10 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                     }
                     //验证输入参数
                     List<ParamMappingVo> paramMappingList = operationConfig.getParamMappingList();
-                    validateParam(paramMappingList, inputParamMap, null, runtimeParamMap, preNodeOutputParamMap, operationName, profileParamMap);
+                    validateParam(paramMappingList, inputParamMap, null, runtimeParamMap, preNodeOutputParamMap, operationName, profileParamMap, preNodeNameMap);
                     //验证自由参数
                     List<ParamMappingVo> argumentMappingList = operationConfig.getArgumentMappingList();
-                    validateParam(argumentMappingList, inputParamMap, argumentParam, runtimeParamMap, preNodeOutputParamMap, operationName, profileParamMap);
+                    validateParam(argumentMappingList, inputParamMap, argumentParam, runtimeParamMap, preNodeOutputParamMap, operationName, profileParamMap, preNodeNameMap);
                 }
                 if (MapUtils.isNotEmpty(inputParamMap)) {
                     Set<String> inputParamSet = new HashSet<>();
@@ -305,7 +307,8 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             Map<String, AutoexecCombopParamVo> runtimeParamMap,
             Map<String, AutoexecParamVo> preNodeOutputParamMap,
             String operationName,
-            Map<String, AutoexecProfileParamVo> profileParamMap
+            Map<String, AutoexecProfileParamVo> profileParamMap,
+            Map<String, String> preNodeNameMap
     ) {
         if (argumentParam != null) {
             Integer argumentCount = argumentParam.getArgumentCount();
@@ -374,18 +377,18 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 } else if (Objects.equals(mappingMode, ParamMappingMode.PRE_NODE_OUTPUT_PARAM.getValue())) {
                     AutoexecParamVo preNodeOutputParamVo = preNodeOutputParamMap.get(value);
                     if (preNodeOutputParamVo == null) {
-                        throw new AutoexecParamMappingTargetNotFoundException(operationName, key, value);
+                        throw new AutoexecParamMappingTargetNotFoundException(operationName, key, conversionPreNodeParamPath(preNodeNameMap, value));
                     }
                     if (!Objects.equals(preNodeOutputParamVo.getType(), inputParamVo.getType())) {
-                        throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, value);
+                        throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, conversionPreNodeParamPath(preNodeNameMap, value));
                     }
                 } else if (Objects.equals(mappingMode, ParamMappingMode.PRE_NODE_OUTPUT_PARAM_KEY.getValue())) {
                     AutoexecParamVo preNodeOutputParamVo = preNodeOutputParamMap.get(value);
                     if (preNodeOutputParamVo == null) {
-                        throw new AutoexecParamMappingTargetNotFoundException(operationName, key, value);
+                        throw new AutoexecParamMappingTargetNotFoundException(operationName, key, conversionPreNodeParamPath(preNodeNameMap, value));
                     }
                     if (!Objects.equals(preNodeOutputParamVo.getType(), inputParamVo.getType())) {
-                        throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, value);
+                        throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, conversionPreNodeParamPath(preNodeNameMap, value));
                     }
                 } else if (Objects.equals(mappingMode, ParamMappingMode.PROFILE.getValue())) {
                     AutoexecProfileParamVo profileParamVo = profileParamMap.get(key);
@@ -396,7 +399,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                         throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, value);
                     }
                 } else if (Objects.equals(mappingMode, ParamMappingMode.GLOBAL_PARAM.getValue())) {
-                    AutoexecGlobalParamVo globalParamVo = autoexecGlobalParamMapper.getGlobalParamByKey(key);
+                    AutoexecGlobalParamVo globalParamVo = autoexecGlobalParamMapper.getGlobalParamByKey(value);
                     if (globalParamVo == null) {
                         throw new AutoexecParamMappingTargetNotFoundException(operationName, key, value);
                     }
@@ -410,6 +413,31 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         }
     }
 
+    /**
+     * 将“698fb4fbd08b4bdbb7094922795f98bc&&linbq_0427&&d3126570321145858bb37b93f8d39112&&outc”转换成“阶段一.linbq_0427.outc”
+     * @param preNodeNameMap
+     * @param value
+     * @return
+     */
+    private String conversionPreNodeParamPath(Map<String, String> preNodeNameMap, String value) {
+        System.out.println(value);
+        String[] split = value.split("&&");
+        String preNodeName = preNodeNameMap.get(split[0]);
+        StringBuilder stringBuilder = new StringBuilder();
+        if (StringUtils.isNotBlank(preNodeName)) {
+            stringBuilder.append(preNodeName);
+            stringBuilder.append(".");
+        }
+        if (split.length > 1) {
+            stringBuilder.append(split[1]);
+            stringBuilder.append(".");
+        }
+        if (split.length > 3) {
+            stringBuilder.append(split[3]);
+        }
+        System.out.println(stringBuilder.toString());
+        return stringBuilder.toString();
+    }
     @Override
     public String getOperationActiveVersionScriptByOperationId(Long operationId) {
         AutoexecScriptVersionVo scriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(operationId);
