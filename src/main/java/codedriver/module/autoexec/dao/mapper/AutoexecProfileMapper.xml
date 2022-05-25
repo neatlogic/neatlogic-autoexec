@@ -170,7 +170,7 @@
             <collection property="valueInvokeVoList"
                         ofType="codedriver.framework.autoexec.dto.profile.AutoexecProfileParamValueVo">
                 <id column="paramValueId" property="id"/>
-                <result column="paramId" property="profileParamId"/>
+                <result column="profileParamId" property="profileParamId"/>
                 <result column="invokeId" property="invokeId"/>
                 <result column="invokeValue" property="invokeValue"/>
             </collection>
@@ -356,6 +356,7 @@
         app.operation_type AS paramOperationType,
         app.value_invoke_type AS valueInvokeType,
         appvi.id AS paramValueId,
+        appvi.profile_param_id AS profileParamId,
         appvi.value_invoke_id AS invokeId,
         agp.default_value AS invokeValue
         FROM autoexec_profile ap
