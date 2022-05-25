@@ -2,6 +2,7 @@ package codedriver.module.autoexec.service;
 
 
 import codedriver.framework.autoexec.constvalue.AutoexecFromType;
+import codedriver.framework.autoexec.constvalue.AutoexecGlobalParamType;
 import codedriver.framework.autoexec.constvalue.AutoexecProfileParamInvokeType;
 import codedriver.framework.autoexec.constvalue.ToolType;
 import codedriver.framework.autoexec.dto.AutoexecOperationVo;
@@ -11,6 +12,8 @@ import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import codedriver.framework.autoexec.exception.AutoexecProfileHasBeenReferredException;
 import codedriver.framework.autoexec.exception.AutoexecProfileIsNotFoundException;
+import codedriver.framework.common.constvalue.CiphertextPrefix;
+import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.dependency.core.DependencyManager;
 import codedriver.module.autoexec.dao.mapper.AutoexecProfileMapper;
 import org.apache.commons.collections4.CollectionUtils;
@@ -51,16 +54,18 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService {
      */
     @Override
     public void saveProfileOperation(Long profileId, List<AutoexecOperationVo> autoexecOperationVoList) {
+        Date nowLcd = new Date();
         List<Long> toolIdList = autoexecOperationVoList.stream().filter(e -> StringUtils.equals(ToolType.TOOL.getValue(), e.getType())).map(AutoexecOperationVo::getId).collect(Collectors.toList());
         List<Long> scriptIdList = autoexecOperationVoList.stream().filter(e -> StringUtils.equals(ToolType.SCRIPT.getValue(), e.getType())).map(AutoexecOperationVo::getId).collect(Collectors.toList());
         //tool
         if (CollectionUtils.isNotEmpty(toolIdList)) {
-            autoexecProfileMapper.insertAutoexecProfileOperation(profileId, toolIdList, ToolType.TOOL.getValue());
+            autoexecProfileMapper.insertAutoexecProfileOperation(profileId, toolIdList, ToolType.TOOL.getValue(), nowLcd);
         }
         //script
         if (CollectionUtils.isNotEmpty(scriptIdList)) {
-            autoexecProfileMapper.insertAutoexecProfileOperation(profileId, scriptIdList, ToolType.SCRIPT.getValue());
+            autoexecProfileMapper.insertAutoexecProfileOperation(profileId, scriptIdList, ToolType.SCRIPT.getValue(), nowLcd);
         }
+        autoexecProfileMapper.deleteProfileOperationByProfileIdAndLcd(profileId, nowLcd);
     }
 
     /**
@@ -76,7 +81,9 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService {
         //保存profile参数、profile参数值引用全局参数的关系
         List<AutoexecProfileParamVo> profileParamVoList = profileVo.getProfileParamVoList();
         List<Long> needDeleteParamIdList = new ArrayList<>();
+        List<Long> needDeleteParamValueIdList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(profileParamVoList)) {
+            Date nowLcd = new Date();
             for (AutoexecProfileParamVo paramVo : profileParamVoList) {
                 if (StringUtils.equals(AutoexecProfileParamInvokeType.GLOBAL_PARAM.getValue(), paramVo.getValueInvokeType())) {
                     List<AutoexecProfileParamValueVo> insertParamValueVoList = new ArrayList<>();
@@ -87,20 +94,28 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService {
                     }
                     //保存profile参数引用全局参数的关系
                     if (CollectionUtils.isNotEmpty(insertParamValueVoList)) {
-                        autoexecProfileMapper.insertProfileParamValueInvokeList(insertParamValueVoList);
+                        autoexecProfileMapper.insertProfileParamValueInvokeList(insertParamValueVoList, nowLcd);
                     }
+                    needDeleteParamValueIdList.addAll(autoexecProfileMapper.getNeedDeleteProfileParamValueIdListByParamIdAndLcd(paramVo.getId(), nowLcd));
                 }
             }
-            Date nowLcd = new Date();
+
             //保存profile参数
             autoexecProfileMapper.insertAutoexecProfileParamList(profileParamVoList, profileVo.getId(), nowLcd);
             needDeleteParamIdList.addAll(autoexecProfileMapper.getNeedDeleteProfileParamIdListByProfileIdAndLcd(profileVo.getId(), nowLcd));
         }
-        //删除多余的profile参数 和 参数引用全局参数的关系
+
+        //删除多余的profile参数
         if (CollectionUtils.isNotEmpty(needDeleteParamIdList)) {
             autoexecProfileMapper.deleteProfileParamByIdList(needDeleteParamIdList);
             autoexecProfileMapper.deleteProfileParamValueInvokeByParamIdList(needDeleteParamIdList);
         }
+
+        //删除多余的profile参数引用全局参数的关系
+        if (CollectionUtils.isNotEmpty(needDeleteParamValueIdList)) {
+            autoexecProfileMapper.deleteProfileParamValueInvokeByValueIdList(needDeleteParamValueIdList);
+        }
+
         //保存profile和tool、script的关系
         saveProfileOperation(profileVo.getId(), profileVo.getAutoexecOperationVoList());
     }
@@ -232,11 +247,21 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService {
             AutoexecProfileParamVo oldParamVo = oldProfileParamMap.get(newParamKey);
 
             if (oldParamVo != null && StringUtils.equals(oldParamVo.getType(), newParamVo.getType())) {
+                newParamVo.setId(oldParamVo.getId());
                 if (StringUtils.equals(AutoexecProfileParamInvokeType.GLOBAL_PARAM.getValue(), oldParamVo.getValueInvokeType())) {
+                    for (AutoexecProfileParamValueVo paramValueVo : oldParamVo.getValueInvokeVoList()) {
+                        if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), paramValueVo.getInvokeType()) && !Objects.isNull(paramValueVo.getInvokeValue()) && paramValueVo.getInvokeValue().toString().startsWith(CiphertextPrefix.RC4.getValue())) {
+                            paramValueVo.setInvokeValue(RC4Util.decrypt(paramValueVo.getInvokeValue().toString().substring(4)));
+                        }
+                    }
                     newParamVo.setValueInvokeVoList(oldParamVo.getValueInvokeVoList());
                     newParamVo.setValueInvokeType(AutoexecProfileParamInvokeType.GLOBAL_PARAM.getValue());
                 } else if (StringUtils.equals(AutoexecProfileParamInvokeType.CONSTANT.getValue(), oldParamVo.getValueInvokeType())) {
-                    newParamVo.setDefaultValue(oldParamVo.getDefaultValue());
+                    if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), oldParamVo.getType()) && StringUtils.isNotBlank(oldParamVo.getDefaultValueStr()) && oldParamVo.getDefaultValueStr().startsWith(CiphertextPrefix.RC4.getValue())) {
+                        newParamVo.setDefaultValue(RC4Util.decrypt(oldParamVo.getDefaultValueStr().substring(4)));
+                    } else {
+                        newParamVo.setDefaultValue(oldParamVo.getDefaultValue());
+                    }
                 }
             }
         }

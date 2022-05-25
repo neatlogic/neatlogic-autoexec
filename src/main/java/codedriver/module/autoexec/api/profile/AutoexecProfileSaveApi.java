@@ -72,11 +72,6 @@ public class AutoexecProfileSaveApi extends PrivateApiComponentBase {
         if (autoexecProfileMapper.checkProfileNameIsRepeats(profileVo) > 0) {
             throw new AutoexecProfileNameRepeatsException(profileVo.getName());
         }
-
-        if (paramProfileId != null) {
-            //删除profile引用tool、script的关系
-            autoexecProfileMapper.deleteProfileOperationByProfileId(paramProfileId);
-        }
         //保存profile、profile参数、profile参数值引用全局参数的关系、profile引用tool、script的关系
         autoexecProfileService.saveProfile(profileVo);
         return null;
