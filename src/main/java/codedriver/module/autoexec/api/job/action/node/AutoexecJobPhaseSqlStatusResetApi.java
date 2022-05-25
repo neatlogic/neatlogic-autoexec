@@ -67,9 +67,9 @@ public class AutoexecJobPhaseSqlStatusResetApi extends PrivateApiComponentBase {
             IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
             if (!Objects.isNull(paramObj.getInteger("isAll")) && paramObj.getInteger("isAll") == 1) {
                 //重置phase的所有sql文件状态
-                List<Long> deleteSqlIdList = iDeploySqlCrossoverMapper.getJobSqlIdListByJobIdAndJobPhaseName(paramObj.getLong("jobId"),paramObj.getString("phaseName") );
-                if (CollectionUtils.isNotEmpty(deleteSqlIdList)) {
-                    iDeploySqlCrossoverMapper.resetDeploySqlStatusBySqlIdList(deleteSqlIdList);
+                List<Long> resetSqlIdList = iDeploySqlCrossoverMapper.getJobSqlIdListByJobIdAndJobPhaseName(paramObj.getLong("jobId"),paramObj.getString("phaseName") );
+                if (CollectionUtils.isNotEmpty(resetSqlIdList)) {
+                    iDeploySqlCrossoverMapper.resetDeploySqlStatusBySqlIdList(resetSqlIdList);
                 }
             } else if (CollectionUtils.isNotEmpty(sqlIdArray)) {
                 //批量重置sql文件状态
@@ -79,9 +79,9 @@ public class AutoexecJobPhaseSqlStatusResetApi extends PrivateApiComponentBase {
             //自动化
             if (!Objects.isNull(paramObj.getInteger("isAll")) && paramObj.getInteger("isAll") == 1) {
                 //重置phase的所有sql文件状态
-                List<Long> deleteSqlIdList = autoexecJobMapper.getJobSqlIdListByJobIdAndJobPhaseName(paramObj.getLong("jobId"), paramObj.getString("phaseName"));
-                if (CollectionUtils.isNotEmpty(deleteSqlIdList)) {
-                    autoexecJobMapper.resetJobSqlStatusBySqlIdList(deleteSqlIdList);
+                List<Long> resetSqlIdList = autoexecJobMapper.getJobSqlIdListByJobIdAndJobPhaseName(paramObj.getLong("jobId"), paramObj.getString("phaseName"));
+                if (CollectionUtils.isNotEmpty(resetSqlIdList)) {
+                    autoexecJobMapper.resetJobSqlStatusBySqlIdList(resetSqlIdList);
                 }
             } else if (CollectionUtils.isNotEmpty(sqlIdArray)) {
                 //批量重置sql文件状态
