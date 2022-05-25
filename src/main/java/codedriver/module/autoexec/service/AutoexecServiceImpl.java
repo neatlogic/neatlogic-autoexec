@@ -297,7 +297,9 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                         paramVo.setOperationType(operationVo.getType());
                     }
                 }
-                newOperationParamVoList.addAll(inputParamList);
+                if (CollectionUtils.isNotEmpty(inputParamList)) {
+                    newOperationParamVoList.addAll(inputParamList);
+                }
             }
         }
         return newOperationParamVoList.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(comparing(AutoexecParamVo::getKey))), ArrayList::new));

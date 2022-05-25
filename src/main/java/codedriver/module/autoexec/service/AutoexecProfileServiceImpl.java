@@ -237,6 +237,7 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService {
             AutoexecProfileParamVo oldParamVo = oldProfileParamMap.get(newParamKey);
 
             if (oldParamVo != null && StringUtils.equals(oldParamVo.getType(), newParamVo.getType())) {
+                newParamVo.setId(oldParamVo.getId());
                 if (StringUtils.equals(AutoexecProfileParamInvokeType.GLOBAL_PARAM.getValue(), oldParamVo.getValueInvokeType())) {
                     for (AutoexecProfileParamValueVo paramValueVo : oldParamVo.getValueInvokeVoList()) {
                         if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), paramValueVo.getInvokeType()) && !Objects.isNull(paramValueVo.getInvokeValue()) && paramValueVo.getInvokeValue().toString().startsWith(CiphertextPrefix.RC4.getValue())) {
@@ -246,8 +247,8 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService {
                     newParamVo.setValueInvokeVoList(oldParamVo.getValueInvokeVoList());
                     newParamVo.setValueInvokeType(AutoexecProfileParamInvokeType.GLOBAL_PARAM.getValue());
                 } else if (StringUtils.equals(AutoexecProfileParamInvokeType.CONSTANT.getValue(), oldParamVo.getValueInvokeType())) {
-                    if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), newParamVo.getType()) && StringUtils.isNotBlank(newParamVo.getDefaultValueStr()) && newParamVo.getDefaultValueStr().startsWith(CiphertextPrefix.RC4.getValue())) {
-                        newParamVo.setDefaultValue(RC4Util.decrypt(newParamVo.getDefaultValueStr().substring(4)));
+                    if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), oldParamVo.getType()) && StringUtils.isNotBlank(oldParamVo.getDefaultValueStr()) && oldParamVo.getDefaultValueStr().startsWith(CiphertextPrefix.RC4.getValue())) {
+                        newParamVo.setDefaultValue(RC4Util.decrypt(oldParamVo.getDefaultValueStr().substring(4)));
                     } else {
                         newParamVo.setDefaultValue(oldParamVo.getDefaultValue());
                     }

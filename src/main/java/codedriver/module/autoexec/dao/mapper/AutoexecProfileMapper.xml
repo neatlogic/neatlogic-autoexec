@@ -158,24 +158,6 @@
             <id column="profileOperationId" property="id"/>
             <result column="profileOperationType" property="type"/>
         </collection>
-        <collection property="profileParamVoList"
-                    ofType="codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo">
-            <id column="paramId" property="id"/>
-            <result column="key" property="key"/>
-            <result column="type" property="type"/>
-            <result column="paramOperationId" property="operationId"/>
-            <result column="paramOperationType" property="operationType"/>
-            <result column="valueInvokeType" property="valueInvokeType"/>
-            <result column="defaultValue" property="defaultValue"/>
-            <collection property="valueInvokeVoList"
-                        ofType="codedriver.framework.autoexec.dto.profile.AutoexecProfileParamValueVo">
-                <id column="paramValueId" property="id"/>
-                <result column="profileParamId" property="profileParamId"/>
-                <result column="invokeId" property="invokeId"/>
-                <result column="invokeValue" property="invokeValue"/>
-            </collection>
-
-        </collection>
     </resultMap>
 
     <select id="getProfileVoById" resultMap="profileMap">
@@ -347,23 +329,9 @@
         ap.description,
         ap.system_id AS fromSystemId,
         dpo.type AS profileOperationType,
-        dpo.operation_id as profileOperationId,
-        app.id AS paramId,
-        app.key,
-        app.type,
-        app.default_value AS defaultValue,
-        app.operation_id AS paramOperationId,
-        app.operation_type AS paramOperationType,
-        app.value_invoke_type AS valueInvokeType,
-        appvi.id AS paramValueId,
-        appvi.profile_param_id AS profileParamId,
-        appvi.value_invoke_id AS invokeId,
-        agp.default_value AS invokeValue
+        dpo.operation_id as profileOperationId
         FROM autoexec_profile ap
         left join autoexec_profile_operation dpo on dpo.profile_id = ap.id
-        LEFT JOIN autoexec_profile_param app ON ap.id = app.profile_id
-        LEFT JOIN autoexec_profile_param_value_invoke appvi ON appvi.profile_param_id = app.id
-        LEFT JOIN autoexec_global_param agp ON agp.id = appvi.value_invoke_id
         WHERE ap.id IN
         <foreach collection="idList" item="id" open="(" close=")" separator=",">
             #{id}
