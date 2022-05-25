@@ -81,7 +81,9 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService {
         //保存profile参数、profile参数值引用全局参数的关系
         List<AutoexecProfileParamVo> profileParamVoList = profileVo.getProfileParamVoList();
         List<Long> needDeleteParamIdList = new ArrayList<>();
+        List<Long> needDeleteParamValueIdList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(profileParamVoList)) {
+            Date nowLcd = new Date();
             for (AutoexecProfileParamVo paramVo : profileParamVoList) {
                 if (StringUtils.equals(AutoexecProfileParamInvokeType.GLOBAL_PARAM.getValue(), paramVo.getValueInvokeType())) {
                     List<AutoexecProfileParamValueVo> insertParamValueVoList = new ArrayList<>();
@@ -92,20 +94,28 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService {
                     }
                     //保存profile参数引用全局参数的关系
                     if (CollectionUtils.isNotEmpty(insertParamValueVoList)) {
-                        autoexecProfileMapper.insertProfileParamValueInvokeList(insertParamValueVoList);
+                        autoexecProfileMapper.insertProfileParamValueInvokeList(insertParamValueVoList, nowLcd);
                     }
+                    needDeleteParamValueIdList.addAll(autoexecProfileMapper.getNeedDeleteProfileParamValueIdListByParamIdAndLcd(paramVo.getId(), nowLcd));
                 }
             }
-            Date nowLcd = new Date();
+
             //保存profile参数
             autoexecProfileMapper.insertAutoexecProfileParamList(profileParamVoList, profileVo.getId(), nowLcd);
             needDeleteParamIdList.addAll(autoexecProfileMapper.getNeedDeleteProfileParamIdListByProfileIdAndLcd(profileVo.getId(), nowLcd));
         }
-        //删除多余的profile参数 和 参数引用全局参数的关系
+
+        //删除多余的profile参数
         if (CollectionUtils.isNotEmpty(needDeleteParamIdList)) {
             autoexecProfileMapper.deleteProfileParamByIdList(needDeleteParamIdList);
             autoexecProfileMapper.deleteProfileParamValueInvokeByParamIdList(needDeleteParamIdList);
         }
+
+        //删除多余的profile参数引用全局参数的关系
+        if (CollectionUtils.isNotEmpty(needDeleteParamValueIdList)) {
+            autoexecProfileMapper.deleteProfileParamValueInvokeByValueIdList(needDeleteParamValueIdList);
+        }
+
         //保存profile和tool、script的关系
         saveProfileOperation(profileVo.getId(), profileVo.getAutoexecOperationVoList());
     }
@@ -237,6 +247,7 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService {
             AutoexecProfileParamVo oldParamVo = oldProfileParamMap.get(newParamKey);
 
             if (oldParamVo != null && StringUtils.equals(oldParamVo.getType(), newParamVo.getType())) {
+                newParamVo.setId(oldParamVo.getId());
                 if (StringUtils.equals(AutoexecProfileParamInvokeType.GLOBAL_PARAM.getValue(), oldParamVo.getValueInvokeType())) {
                     for (AutoexecProfileParamValueVo paramValueVo : oldParamVo.getValueInvokeVoList()) {
                         if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), paramValueVo.getInvokeType()) && !Objects.isNull(paramValueVo.getInvokeValue()) && paramValueVo.getInvokeValue().toString().startsWith(CiphertextPrefix.RC4.getValue())) {
@@ -246,8 +257,8 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService {
                     newParamVo.setValueInvokeVoList(oldParamVo.getValueInvokeVoList());
                     newParamVo.setValueInvokeType(AutoexecProfileParamInvokeType.GLOBAL_PARAM.getValue());
                 } else if (StringUtils.equals(AutoexecProfileParamInvokeType.CONSTANT.getValue(), oldParamVo.getValueInvokeType())) {
-                    if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), newParamVo.getType()) && StringUtils.isNotBlank(newParamVo.getDefaultValueStr()) && newParamVo.getDefaultValueStr().startsWith(CiphertextPrefix.RC4.getValue())) {
-                        newParamVo.setDefaultValue(RC4Util.decrypt(newParamVo.getDefaultValueStr().substring(4)));
+                    if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), oldParamVo.getType()) && StringUtils.isNotBlank(oldParamVo.getDefaultValueStr()) && oldParamVo.getDefaultValueStr().startsWith(CiphertextPrefix.RC4.getValue())) {
+                        newParamVo.setDefaultValue(RC4Util.decrypt(oldParamVo.getDefaultValueStr().substring(4)));
                     } else {
                         newParamVo.setDefaultValue(oldParamVo.getDefaultValue());
                     }

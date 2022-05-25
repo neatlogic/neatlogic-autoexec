@@ -32,6 +32,8 @@ public interface AutoexecProfileMapper {
 
     List<Long> getNeedDeleteProfileParamIdListByProfileIdAndLcd(@Param("profileId") Long profileId, @Param("lcd") Date lcd);
 
+    List<Long> getNeedDeleteProfileParamValueIdListByParamIdAndLcd(@Param("paramId") Long paramId, @Param("lcd") Date lcd);
+
     AutoexecProfileVo getProfileVoById(Long id);
 
     void insertAutoexecProfileOperation(@Param("profileId") Long profileId, @Param("operationIdList") List<Long> operationIdList, @Param("type") String type, @Param("lcd") Date lcd);
@@ -40,7 +42,7 @@ public interface AutoexecProfileMapper {
 
     void insertAutoexecProfileParamList(@Param("paramList") List<AutoexecProfileParamVo> paramList, @Param("profileId") Long profileId, @Param("lcd") Date lcd);
 
-    void insertProfileParamValueInvokeList(@Param("paramValueInvokeVoList") List<AutoexecProfileParamValueVo> paramValueInvokeVoList);
+    void insertProfileParamValueInvokeList(@Param("paramValueInvokeVoList") List<AutoexecProfileParamValueVo> paramValueInvokeVoList, @Param("lcd") Date lcd);
 
     void deleteProfileById(Long id);
 
@@ -55,6 +57,8 @@ public interface AutoexecProfileMapper {
     void deleteProfileParamByIdList(@Param("idList") List<Long> idList);
 
     void deleteProfileParamValueInvokeByParamIdList(@Param("idList") List<Long> idList);
+
+    void deleteProfileParamValueInvokeByValueIdList(@Param("idList") List<Long> idList);
 
     void deleteProfileOperationByProfileIdAndLcd(@Param("profileId") Long profileId, @Param("lcd") Date lcd);
 }
