@@ -155,16 +155,16 @@
         </collection>
         <collection property="autoexecOperationVoList"
                     ofType="codedriver.framework.autoexec.dto.AutoexecOperationVo">
-            <id column="operationId" property="id"/>
-            <result column="type" property="type"/>
+            <id column="profileOperationId" property="id"/>
+            <result column="profileOperationType" property="type"/>
         </collection>
         <collection property="profileParamVoList"
                     ofType="codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo">
-            <id column="id" property="id"/>
+            <id column="paramId" property="id"/>
             <result column="key" property="key"/>
             <result column="type" property="type"/>
-            <result column="operationId" property="operationId"/>
-            <result column="operationType" property="operationType"/>
+            <result column="paramOperationId" property="operationId"/>
+            <result column="paramOperationType" property="operationType"/>
             <result column="valueInvokeType" property="valueInvokeType"/>
             <result column="defaultValue" property="defaultValue"/>
             <collection property="valueInvokeVoList"
@@ -188,8 +188,8 @@
         </if>
         cct.id AS ciEntityId,
         cct.name as ciEntityName,
-        dpo.type,
-        dpo.operation_id as operationId,
+        dpo.type AS profileOperationType,
+        dpo.operation_id as profileOperationId,
         a.fcd,
         a.fcu,
         a.lcd,
@@ -343,23 +343,26 @@
 
     <select id="getProfileInfoListByIdList" resultMap="profileMap">
         SELECT ap.id,
-               ap.name,
-               ap.description,
-               ap.system_id           AS fromSystemId,
-               app.id                 AS paramId,
-               app.key,
-               app.type,
-               app.default_value      AS defaultValue,
-               app.operation_id       AS operationId,
-               app.operation_type     AS operationType,
-               app.value_invoke_type  AS valueInvokeType,
-               appvi.id               AS paramValueId,
-               appvi.value_invoke_id  AS invokeId,
-               agp.default_value      AS invokeValue
+        ap.name,
+        ap.description,
+        ap.system_id AS fromSystemId,
+        dpo.type AS profileOperationType,
+        dpo.operation_id as profileOperationId,
+        app.id AS paramId,
+        app.key,
+        app.type,
+        app.default_value AS defaultValue,
+        app.operation_id AS paramOperationId,
+        app.operation_type AS paramOperationType,
+        app.value_invoke_type AS valueInvokeType,
+        appvi.id AS paramValueId,
+        appvi.value_invoke_id AS invokeId,
+        agp.default_value AS invokeValue
         FROM autoexec_profile ap
-                 LEFT JOIN autoexec_profile_param app ON ap.id = app.profile_id
-                 LEFT JOIN autoexec_profile_param_value_invoke appvi ON appvi.profile_param_id = app.id
-                 LEFT JOIN autoexec_global_param agp ON agp.id = appvi.value_invoke_id
+        left join autoexec_profile_operation dpo on dpo.profile_id = ap.id
+        LEFT JOIN autoexec_profile_param app ON ap.id = app.profile_id
+        LEFT JOIN autoexec_profile_param_value_invoke appvi ON appvi.profile_param_id = app.id
+        LEFT JOIN autoexec_global_param agp ON agp.id = appvi.value_invoke_id
         WHERE ap.id IN
         <foreach collection="idList" item="id" open="(" close=")" separator=",">
             #{id}

@@ -181,7 +181,6 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
     }
 
 
-
     @Override
     public void updateAutoexecCombopConfig(AutoexecCombopConfigVo config) {
         List<AutoexecCombopScenarioVo> combopScenarioList = config.getScenarioList();
@@ -291,13 +290,14 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
 
         if (CollectionUtils.isNotEmpty(autoexecOperationVoList)) {
             for (AutoexecOperationVo operationVo : autoexecOperationVoList) {
-                if (CollectionUtils.isNotEmpty(operationVo.getInputParamList())) {
-                    for (AutoexecParamVo paramVo : operationVo.getInputParamList()) {
+                List<AutoexecParamVo> inputParamList = operationVo.getInputParamList();
+                if (CollectionUtils.isNotEmpty(inputParamList)) {
+                    for (AutoexecParamVo paramVo : inputParamList) {
                         paramVo.setOperationId(operationVo.getId());
                         paramVo.setOperationType(operationVo.getType());
                     }
                 }
-                newOperationParamVoList.addAll(operationVo.getInputParamList());
+                newOperationParamVoList.addAll(inputParamList);
             }
         }
         return newOperationParamVoList.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(comparing(AutoexecParamVo::getKey))), ArrayList::new));
