@@ -388,9 +388,9 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                         throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, value);
                     }
                 } else if (Objects.equals(mappingMode, ParamMappingMode.PROFILE.getValue())) {
-                    AutoexecProfileParamVo profileParamVo = profileParamMap.get(value);
+                    AutoexecProfileParamVo profileParamVo = profileParamMap.get(key);
                     if (profileParamVo == null) {
-                        throw new AutoexecParamMappingTargetNotFoundException(operationName, key, value);
+                        throw new AutoexecParamMappingTargetNotFoundException(operationName, key, key);
                     }
                     if (!Objects.equals(profileParamVo.getType(), inputParamVo.getType())) {
                         throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, value);
