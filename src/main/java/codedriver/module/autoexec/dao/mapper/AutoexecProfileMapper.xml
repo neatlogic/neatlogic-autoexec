@@ -390,6 +390,15 @@
         </foreach>
     </delete>
 
+    <delete id="deleteProfileParamValueInvokeByParamIdList">
+        DELETE
+        FROM autoexec_profile_param_value_invoke
+        WHERE profile_param_id IN
+        <foreach collection="idList" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
     <delete id="deleteProfileParamValueInvokeByValueIdList">
         DELETE
         FROM autoexec_profile_param_value_invoke

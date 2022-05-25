@@ -56,6 +56,8 @@ public interface AutoexecProfileMapper {
 
     void deleteProfileParamByIdList(@Param("idList") List<Long> idList);
 
+    void deleteProfileParamValueInvokeByParamIdList(@Param("idList") List<Long> idList);
+
     void deleteProfileParamValueInvokeByValueIdList(@Param("idList") List<Long> idList);
 
     void deleteProfileOperationByProfileIdAndLcd(@Param("profileId") Long profileId, @Param("lcd") Date lcd);

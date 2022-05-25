@@ -108,6 +108,7 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService {
         //删除多余的profile参数
         if (CollectionUtils.isNotEmpty(needDeleteParamIdList)) {
             autoexecProfileMapper.deleteProfileParamByIdList(needDeleteParamIdList);
+            autoexecProfileMapper.deleteProfileParamValueInvokeByParamIdList(needDeleteParamIdList);
         }
 
         //删除多余的profile参数引用全局参数的关系
