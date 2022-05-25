@@ -741,7 +741,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 iDeploySqlCrossoverMapper.resetDeploySqlStatusBySqlIdList(sqlIdList);
             }
         } else {
-            autoexecJobMapper.resetJobSqlStatusByJobIdAndPhaseNameList(jobId, jobPhaseNameList);
+            List<Long> deleteSqlIdList = autoexecJobMapper.getJobSqlIdListByJobIdAndJobPhaseNameList(jobId, jobPhaseNameList);
+            if (CollectionUtils.isNotEmpty(deleteSqlIdList)) {
+                autoexecJobMapper.resetJobSqlStatusBySqlIdList(deleteSqlIdList);
+            }
         }
     }
 }
