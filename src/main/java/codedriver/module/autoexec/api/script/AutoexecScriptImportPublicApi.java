@@ -1,9 +1,9 @@
 package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
+import codedriver.framework.autoexec.constvalue.ScriptExecMode;
 import codedriver.framework.autoexec.constvalue.ScriptParser;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
-import codedriver.framework.autoexec.constvalue.ScriptExecMode;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
@@ -101,9 +101,6 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
             }
             if (StringUtils.isBlank(newScriptVo.getExecMode())) {
                 faultMessages.add("执行方式为空");
-            }
-            if (StringUtils.isBlank(newScriptVo.getEncoding())) {
-                faultMessages.add("脚本编码为空");
             }
             if (StringUtils.isBlank(newScriptVo.getParser())) {
                 faultMessages.add("脚本解析器为空");
@@ -258,7 +255,6 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
         AutoexecScriptVersionVo versionVo = new AutoexecScriptVersionVo();
         versionVo.setScriptId(scriptVo.getId());
         versionVo.setTitle(scriptVo.getName());
-        versionVo.setEncoding(scriptVo.getEncoding());
         versionVo.setParser(scriptVo.getParser());
         versionVo.setIsActive(1);
         versionVo.setLcu(UserContext.get().getUserUuid());

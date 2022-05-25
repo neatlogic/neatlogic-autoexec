@@ -10,6 +10,7 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.autoexec.constvalue.ChangeType;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
+import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptArgumentVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
@@ -30,7 +31,6 @@ import codedriver.framework.matrix.dto.MatrixVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.module.autoexec.service.AutoexecScriptService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -166,10 +166,6 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
         compareParamList(targetInputParamList, sourceInputParamList);
         compareParamList(targetOutputParamList, sourceOutputParamList);
         compareArgument(source.getArgument(), target.getArgument());
-        if (!Objects.equals(source.getEncoding(), target.getEncoding())) {
-            source.setEncoding("<span class='update'>" + source.getEncoding() + "</span>");
-            target.setEncoding("<span class='update'>" + target.getEncoding() + "</span>");
-        }
         if (!Objects.equals(source.getParser(), target.getParser())) {
             source.setParser("<span class='update'>" + source.getParser() + "</span>");
             target.setParser("<span class='update'>" + target.getParser() + "</span>");

@@ -132,9 +132,6 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService, IAutoex
      */
     @Override
     public boolean checkScriptVersionNeedToUpdate(AutoexecScriptVersionVo before, AutoexecScriptVersionVo after) {
-        if (!Objects.equals(before.getEncoding(), after.getEncoding())) {
-            return true;
-        }
         if (!Objects.equals(before.getParser(), after.getParser())) {
             return true;
         }

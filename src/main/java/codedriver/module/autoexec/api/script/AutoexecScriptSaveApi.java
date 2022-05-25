@@ -106,7 +106,6 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
          */
         AutoexecScriptVersionVo versionVo = new AutoexecScriptVersionVo();
         versionVo.setTitle(jsonObj.getString("title"));
-        versionVo.setEncoding(scriptVo.getEncoding());
         versionVo.setParser(scriptVo.getParser());
         versionVo.setLcu(UserContext.get().getUserUuid());
         versionVo.setStatus(ScriptVersionStatus.DRAFT.getValue());
@@ -133,7 +132,6 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
                 }
                 // 检查内容是否有变更，没有则不执行更新
                 AutoexecScriptVersionVo newVersion = new AutoexecScriptVersionVo();
-                newVersion.setEncoding(scriptVo.getEncoding());
                 newVersion.setParser(scriptVo.getParser());
                 newVersion.setParamList(scriptVo.getVersionParamList());
                 newVersion.setLineList(scriptVo.getLineList());
