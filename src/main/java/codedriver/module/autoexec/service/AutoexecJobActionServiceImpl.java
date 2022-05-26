@@ -7,7 +7,9 @@ package codedriver.module.autoexec.service;
 
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
-import codedriver.framework.autoexec.constvalue.*;
+import codedriver.framework.autoexec.constvalue.JobAction;
+import codedriver.framework.autoexec.constvalue.ParamMappingMode;
+import codedriver.framework.autoexec.constvalue.ToolType;
 import codedriver.framework.autoexec.crossover.IAutoexecJobActionCrossoverService;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
@@ -16,7 +18,6 @@ import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.exception.AutoexecCombopCannotExecuteException;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecJobThreadCountException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import codedriver.framework.autoexec.script.paramtype.IScriptParamType;
@@ -82,7 +83,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         paramJson.put("roundCount", jobVo.getThreadCount());
         paramJson.put("execUser", UserContext.get().getUserUuid(true));
         paramJson.put("passThroughEnv", null); //回调需要的返回的参数
-        JSONArray paramArray = jobVo.getParam();
+        JSONArray paramArray = jobVo.getParamArray();
         JSONObject argJson = new JSONObject() {{
             for (Object paramObj : paramArray) {
                 JSONObject paramTmp = JSONObject.parseObject(paramObj.toString());
@@ -216,15 +217,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
 
     @Override
     public AutoexecJobVo validateCreateJobFromCombop(JSONObject jsonObj, boolean isNeedAuth) {
-        Long combopId = jsonObj.getLong("combopId");
-        String source = jsonObj.getString("source");
-        int threadCount = jsonObj.getInteger("threadCount") == null ? 64 : jsonObj.getInteger("threadCount");
-        JSONObject paramJson = jsonObj.getJSONObject("param");
-        Date planStartTime = jsonObj.getDate("planStartTime");
-        String triggerType = jsonObj.getString("triggerType");
-        AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
+        AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(jsonObj.getLong("combopId"));
         if (combopVo == null) {
-            throw new AutoexecCombopNotFoundException(combopId);
+            throw new AutoexecCombopNotFoundException(jsonObj.getLong("combopId"));
         }
 
         //作业执行权限校验
@@ -254,17 +249,12 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
 
         }
         autoexecCombopService.verifyAutoexecCombopConfig(combopVo, true);
-        //TODO 校验执行参数
 
-        //并发数必须是2的n次方
-        if ((threadCount & (threadCount - 1)) != 0) {
-            throw new AutoexecJobThreadCountException();
-        }
-        AutoexecJobInvokeVo invokeVo = new AutoexecJobInvokeVo(jsonObj.getLong("invokeId"), source);
-        if (jsonObj.containsKey("name")) {
-            combopVo.setName(jsonObj.getString("name"));
-        }
-        AutoexecJobVo jobVo = autoexecJobService.saveAutoexecCombopJob(combopVo, invokeVo, threadCount, paramJson, planStartTime, triggerType);
+
+        AutoexecJobVo jobVo = JSONObject.toJavaObject(jsonObj, AutoexecJobVo.class);
+        jobVo.setConfigStr(combopVo.getConfigStr());
+        jobVo.setRunTimeParamList(autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopVo.getId()));
+        autoexecJobService.saveAutoexecCombopJob(combopVo,jobVo);
         jobVo.setAction(JobAction.FIRE.getValue());
         //jobVo.setCurrentGroupSort(0);
         return jobVo;

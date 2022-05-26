@@ -15,7 +15,6 @@ import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecPhaseOperationParamVo;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
-import codedriver.framework.autoexec.dto.job.AutoexecJobInvokeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
@@ -30,7 +29,6 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.constvalue.AutoexecJobGroupPolicy;
 import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -93,11 +91,13 @@ public class AutoexecJobFromOperationCreateApi extends PrivateApiComponentBase {
             AutoexecCombopExecuteConfigVo executeConfigVo = JSON.toJavaObject(jsonObj.getJSONObject("executeConfig"), AutoexecCombopExecuteConfigVo.class);
             combopVo.getConfig().setExecuteConfig(executeConfigVo);
         }
-        combopVo.setIsTest(true);
-        AutoexecJobInvokeVo invokeVo = new AutoexecJobInvokeVo(jsonObj.getString("source"));
-        AutoexecJobVo jobVo = autoexecJobService.saveAutoexecCombopJob(combopVo, invokeVo, null, paramJson);
+        jsonObj.put("source",JobSource.TEST.getValue());
+        AutoexecJobVo jobVo = JSONObject.toJavaObject(jsonObj, AutoexecJobVo.class);
+        jobVo.setRunTimeParamList(combopVo.getRuntimeParamList());
+        jobVo.setOperationType(jsonObj.getString("type"));
         jobVo.setIsFirstFire(1);
         jobVo.setAction(JobAction.FIRE.getValue());
+        autoexecJobService.saveAutoexecCombopJob(combopVo, jobVo);
         IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
         fireAction.doService(jobVo);
         return new JSONObject(){{

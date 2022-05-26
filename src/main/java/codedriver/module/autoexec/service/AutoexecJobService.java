@@ -6,12 +6,10 @@
 package codedriver.module.autoexec.service;
 
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
-import codedriver.framework.autoexec.dto.job.AutoexecJobInvokeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import com.alibaba.fastjson.JSONObject;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -20,24 +18,10 @@ import java.util.List;
 public interface AutoexecJobService {
     /**
      * 通过combopVo保存作业配置
-     *
-     * @param combopVo    组合工具vo
-     * @param threadCount 并发线程数
-     * @return jobId
+     *  @param combopVo    组合工具vo
+     * @param jobVo 作业vo
      */
-    AutoexecJobVo saveAutoexecCombopJob(AutoexecCombopVo combopVo, AutoexecJobInvokeVo invokeVo, Integer threadCount, JSONObject paramJson) throws Exception;
-
-    /**
-     * 通过combopVo保存作业配置
-     *
-     * @param combopVo      组合工具vo
-     * @param threadCount   并发线程数
-     * @param planStartTime 计划时间
-     * @param triggerType   触发方式
-     * @return
-     * @throws Exception
-     */
-    AutoexecJobVo saveAutoexecCombopJob(AutoexecCombopVo combopVo, AutoexecJobInvokeVo invokeVo, Integer threadCount, JSONObject paramJson, Date planStartTime, String triggerType) throws Exception;
+     void saveAutoexecCombopJob(AutoexecCombopVo combopVo, AutoexecJobVo jobVo) throws Exception;
 
     /**
      * sort 为null 则补充job全部信息 ，否则返回当前sort的所有剧本

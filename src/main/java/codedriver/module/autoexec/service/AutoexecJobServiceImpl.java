@@ -75,26 +75,22 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     ResourceCenterMapper resourceCenterMapper;
 
     @Override
-    public AutoexecJobVo saveAutoexecCombopJob(AutoexecCombopVo combopVo, AutoexecJobInvokeVo invokeVo, Integer threadCount, JSONObject paramJson) {
-        return saveAutoexecCombopJob(combopVo, invokeVo, threadCount, paramJson, null, null);
-    }
-
-    @Override
-    public AutoexecJobVo saveAutoexecCombopJob(AutoexecCombopVo combopVo, AutoexecJobInvokeVo invokeVo, Integer threadCount, JSONObject paramJson, Date planStartTime, String triggerType) {
+    public void saveAutoexecCombopJob(AutoexecCombopVo combopVo,AutoexecJobVo jobVo) {
         AutoexecCombopConfigVo config = combopVo.getConfig();
-        if (combopVo.getIsTest() == null || !combopVo.getIsTest()) {
-            combopVo.setOperationType(CombopOperationType.COMBOP.getValue());
-            combopVo.setRuntimeParamList(autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopVo.getId()));
+        if (jobVo.getPlanStartTime() != null && StringUtils.isNotBlank(jobVo.getTriggerType())) {
+            jobVo.setStatus(JobStatus.READY.getValue());
+        }else {
+            jobVo.setStatus(JobStatus.PENDING.getValue());
         }
-        AutoexecJobVo jobVo = new AutoexecJobVo(combopVo, invokeVo.getSource(), threadCount, paramJson, planStartTime, triggerType);
         //更新关联来源关系
-        invokeVo.setJobId(jobVo.getId());
-        if (!Objects.equals(JobSource.HUMAN.getValue(), invokeVo.getSource())) {
+        if (!Objects.equals(JobSource.HUMAN.getValue(), jobVo.getSource())) {
+            AutoexecJobInvokeVo invokeVo = new AutoexecJobInvokeVo(jobVo.getOperationId(), jobVo.getSource());
+            invokeVo.setJobId(jobVo.getId());
             autoexecJobMapper.insertIgnoreIntoJobInvoke(invokeVo);
         }
         //保存作业基本信息
         autoexecJobMapper.insertJob(jobVo);
-        autoexecJobMapper.insertIgnoreJobParamContent(new AutoexecJobParamContentVo(jobVo.getParamHash(), jobVo.getParamStr()));
+        autoexecJobMapper.insertIgnoreJobParamContent(new AutoexecJobParamContentVo(jobVo.getParamHash(), jobVo.getParamArrayStr()));
         //保存作业执行目标
         AutoexecCombopExecuteConfigVo combopExecuteConfigVo = config.getExecuteConfig();
         String userName = StringUtils.EMPTY;
@@ -157,7 +153,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     AutoexecScriptVo scriptVo;
                     AutoexecScriptVersionVo scriptVersionVo;
                     String script;
-                    if (combopVo.getIsTest() != null && combopVo.getIsTest()) {
+                    if (Objects.equals(jobVo.getSource(),JobSource.TEST.getValue())) {
                         scriptVersionVo = autoexecScriptMapper.getVersionByVersionId(operationId);
                         if (scriptVersionVo == null) {
                             throw new AutoexecScriptVersionNotFoundException(operationId);
@@ -180,7 +176,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 jobPhaseOperationVoList.add(jobPhaseOperationVo);
             }
         }
-        return jobVo;
     }
 
     /**
@@ -281,8 +276,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 }
             }
         }
-        jobVo.setParamStr(combopParamsResult.toJSONString());
-        autoexecJobMapper.insertIgnoreJobParamContent(new AutoexecJobParamContentVo(jobVo.getParamHash(), jobVo.getParamStr()));
+        jobVo.setParamArrayStr(combopParamsResult.toJSONString());
+        autoexecJobMapper.insertIgnoreJobParamContent(new AutoexecJobParamContentVo(jobVo.getParamHash(), jobVo.getParamArrayStr()));
         autoexecJobMapper.updateJobParamHashById(jobVo.getId(), jobVo.getParamHash());
     }
 
@@ -339,7 +334,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     public void getAutoexecJobDetail(AutoexecJobVo jobVo) {
         AutoexecJobParamContentVo paramContentVo = autoexecJobMapper.getJobParamContent(jobVo.getParamHash());
         if (paramContentVo != null) {
-            jobVo.setParamStr(paramContentVo.getContent());
+            jobVo.setParamArrayStr(paramContentVo.getContent());
         }
         List<AutoexecJobPhaseVo> jobPhaseVoList = jobVo.getPhaseList();
         AutoexecJobGroupVo executeJobGroupVo = jobVo.getExecuteJobGroupVo();
@@ -465,7 +460,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     private boolean updateNodeResourceByParam(AutoexecJobVo jobVo, AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, AutoexecJobPhaseVo jobPhaseVo, String userName, Long protocolId) {
         List<String> paramList = executeNodeConfigVo.getParamList();
         if (CollectionUtils.isNotEmpty(paramList)) {
-            JSONArray paramArray = jobVo.getParam();
+            JSONArray paramArray = jobVo.getParamArray();
             Set<Long> resourceIdSet = new HashSet<>();
             if (CollectionUtils.isNotEmpty(paramArray)) {
                 List<Object> paramObjList = paramArray.stream().filter(p -> paramList.contains(((JSONObject) p).getString("key"))).collect(Collectors.toList());

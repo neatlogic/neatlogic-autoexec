@@ -15,7 +15,9 @@ import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.framework.util.TimeUtil;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -62,7 +64,15 @@ public class AutoexecJobCombopSearchApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
-        AutoexecJobVo jobVo = new AutoexecJobVo(jsonObj);
+        JSONObject startTimeJson = jsonObj.getJSONObject("startTime");
+        if (MapUtils.isNotEmpty(startTimeJson)) {
+            JSONObject timeJson = TimeUtil.getStartTimeAndEndTimeByDateJson(startTimeJson);
+            jsonObj.put("startTime",timeJson.getDate("startTime"));
+            jsonObj.put("endTime",timeJson.getDate("endTime"));
+        }
+        jsonObj.put("operationId",jsonObj.getLong("combopId"));
+        jsonObj.put("invokeId",jsonObj.getLong("scheduleId"));
+        AutoexecJobVo jobVo = JSONObject.toJavaObject(jsonObj, AutoexecJobVo.class);
         List<AutoexecCombopVo> combopVoList = autoexecJobMapper.searchJobWithCombopView(jobVo);
         result.put("tbodyList", combopVoList);
         if (jobVo.getNeedPage()) {
