@@ -24,6 +24,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -90,7 +91,7 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
                     phaseVo.addStatusCountVo(statusCountVo);
                 }
             }
-            if (Objects.equals(phaseVo.getStatus(), JobPhaseStatus.RUNNING.getValue()) || (Objects.equals(phaseVo.getIsActive(), null) && i == (jobPhaseVoList.size() - 1))) {
+            if (!Objects.equals(phaseVo.getIsActive(), null) && (Arrays.asList(JobPhaseStatus.RUNNING.getValue(),JobPhaseStatus.FAILED.getValue(),JobPhaseStatus.ABORTED.getValue()).contains(phaseVo.getStatus()) || i == (jobPhaseVoList.size() - 1))) {
                 phaseVo.setIsActive(1);
             }
         }

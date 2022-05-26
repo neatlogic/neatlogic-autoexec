@@ -75,8 +75,6 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             jobVo.setIsFirstFire(1);
             needSqlFileResetStatusPhaseNameList = autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId()).stream().filter(o -> Objects.equals(o.getExecMode(), ExecMode.SQL.getValue())).map(AutoexecJobPhaseVo::getName).collect(Collectors.toList());
         } else if (Objects.equals(jobVo.getAction(), JobAction.REFIRE.getValue())) {
-            jobVo.setStatus(JobStatus.PENDING.getValue());
-            autoexecJobMapper.updateJobStatus(jobVo);
             /*寻找中止|暂停|失败的phase
              * 1、优先寻找pending|aborted|paused|failed phaseList
              * 2、没有满足1条件的，再寻找pending|aborted|paused|failed node 最小sort phaseList
@@ -89,6 +87,8 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             if (CollectionUtils.isEmpty(autoexecJobPhaseVos)) {
                 return null;
             }
+            jobVo.setStatus(JobStatus.PENDING.getValue());
+            autoexecJobMapper.updateJobStatus(jobVo);
             needSqlFileResetStatusPhaseNameList = autoexecJobPhaseVos.stream().filter(o -> Objects.equals(o.getExecMode(), ExecMode.SQL.getValue())).map(AutoexecJobPhaseVo::getName).collect(Collectors.toList());
             autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(autoexecJobPhaseVos.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()), JobPhaseStatus.PENDING.getValue());
             jobVo.setExecuteJobGroupVo(autoexecJobPhaseVos.get(0).getJobGroupVo());
