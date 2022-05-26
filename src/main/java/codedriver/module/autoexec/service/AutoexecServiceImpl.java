@@ -86,8 +86,9 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 String name = param.getName();
                 String type = param.getType();
                 Integer isRequired = param.getIsRequired();
+                int index = i + 1;
                 if (StringUtils.isBlank(key)) {
-                    throw new ParamNotExistsException(i + 1, "英文名");
+                    throw new ParamNotExistsException(index, "英文名");
                 }
                 if (keySet.contains(key)) {
                     throw new ParamRepeatsException(key);
@@ -98,32 +99,32 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                     throw new ParamIrregularException(key);
                 }
                 if (StringUtils.isBlank(name)) {
-                    throw new ParamNotExistsException(i + 1, key, "中文名");
+                    throw new ParamNotExistsException(index, key, "中文名");
                 }
                 if (!paramNamePattern.matcher(name).matches()) {
-                    throw new ParamIrregularException(i + 1, key, name);
+                    throw new ParamIrregularException(index, key, name);
                 }
                 if (param instanceof AutoexecScriptVersionParamVo && StringUtils.isBlank(mode)) {
-                    throw new ParamNotExistsException(i + 1, key, "参数模式");
+                    throw new ParamNotExistsException(index, key, "参数模式");
                 }
                 if (StringUtils.isNotBlank(mode) && ParamMode.getParamMode(mode) == null) {
-                    throw new ParamIrregularException(i + 1, key, mode);
+                    throw new ParamIrregularException(index, key, mode);
                 }
                 if (StringUtils.isBlank(type)) {
-                    throw new ParamNotExistsException(i + 1, key, "控件类型");
+                    throw new ParamNotExistsException(index, key, "控件类型");
                 }
                 if (ParamMode.INPUT.getValue().equals(param.getMode())) {
                     ParamType paramType = ParamType.getParamType(type);
                     if (paramType == null) {
-                        throw new ParamIrregularException(i + 1, key, type);
+                        throw new ParamIrregularException(index, key, type);
                     }
                     if (isRequired == null) {
-                        throw new ParamNotExistsException(i + 1, key, "是否必填");
+                        throw new ParamNotExistsException(index, key, "是否必填");
                     }
                 } else {
                     OutputParamType paramType = OutputParamType.getParamType(type);
                     if (paramType == null) {
-                        throw new ParamIrregularException(i + 1, key, type);
+                        throw new ParamIrregularException(index, key, type);
                     }
                 }
             }
