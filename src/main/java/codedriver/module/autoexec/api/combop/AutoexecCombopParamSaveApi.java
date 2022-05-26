@@ -105,29 +105,29 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
             if (autoexecCombopParamVo != null) {
                 String key = autoexecCombopParamVo.getKey();
                 if (StringUtils.isBlank(key)) {
-                    throw new ParamNotExistsException("paramList.[" + i + "].key");
+                    throw new ParamNotExistsException(i + 1, "英文名");
                 }
                 if (!keyPattern.matcher(key).matches()) {
-                    throw new ParamIrregularException("paramList.[" + i + "].key");
+                    throw new ParamIrregularException(key);
                 }
                 String name = autoexecCombopParamVo.getName();
                 if (StringUtils.isBlank(name)) {
-                    throw new ParamNotExistsException("paramList.[" + i + "].name");
+                    throw new ParamNotExistsException(i + 1, key, "中文名");
                 }
                 if (!namePattern.matcher(name).matches()) {
-                    throw new ParamIrregularException("paramList.[" + i + "].name");
+                    throw new ParamIrregularException(i + 1, key, name);
                 }
                 Integer isRequired = autoexecCombopParamVo.getIsRequired();
                 if (isRequired == null) {
-                    throw new ParamNotExistsException("paramList.[" + i + "].isRequired");
+                    throw new ParamNotExistsException(i + 1, key, "是否必填");
                 }
                 String type = autoexecCombopParamVo.getType();
                 if (StringUtils.isBlank(type)) {
-                    throw new ParamNotExistsException("paramList.[" + i + "].type");
+                    throw new ParamNotExistsException(i + 1, key, "控件类型");
                 }
                 ParamType paramType = ParamType.getParamType(type);
                 if (paramType == null) {
-                    throw new ParamIrregularException("paramList.[" + i + "].type");
+                    throw new ParamIrregularException(i + 1, key, type);
                 }
                 Object value = autoexecCombopParamVo.getDefaultValue();
                 // 如果默认值不以"RC4:"开头，说明修改了密码，则重新加密
