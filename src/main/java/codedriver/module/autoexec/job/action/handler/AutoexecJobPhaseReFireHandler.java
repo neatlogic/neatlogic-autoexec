@@ -64,10 +64,12 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
         if(Objects.equals(ExecMode.SQL.getValue(),jobPhaseVo.getExecMode())){
             autoexecJobService.resetAutoexecJobSqlStatusByJobIdAndJobPhaseNameList(jobVo.getId(), Collections.singletonList(jobPhaseVo.getName()));
         }
-        resetPhase(jobVo);
+        if (Objects.equals(jobVo.getAction(), JobAction.RESET_REFIRE.getValue())) {
+            resetPhase(jobVo);
+            autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(jobVo.getExecuteJobPhaseList().stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()), JobPhaseStatus.PENDING.getValue());
+        }
         jobVo.setStatus(JobStatus.RUNNING.getValue());
         autoexecJobMapper.updateJobStatus(jobVo);
-        autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(jobVo.getExecuteJobPhaseList().stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()), JobPhaseStatus.PENDING.getValue());
         jobPhaseVo.setJobGroupVo(autoexecJobMapper.getJobGroupById(jobPhaseVo.getGroupId()));
         autoexecJobService.refreshJobPhaseNodeList(jobVo.getId(), jobVo.getExecuteJobPhaseList());
         executeGroup(jobVo);

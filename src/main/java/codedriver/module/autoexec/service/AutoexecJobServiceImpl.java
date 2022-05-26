@@ -75,11 +75,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     ResourceCenterMapper resourceCenterMapper;
 
     @Override
-    public void saveAutoexecCombopJob(AutoexecCombopVo combopVo,AutoexecJobVo jobVo) {
+    public void saveAutoexecCombopJob(AutoexecCombopVo combopVo, AutoexecJobVo jobVo) {
         AutoexecCombopConfigVo config = combopVo.getConfig();
         if (jobVo.getPlanStartTime() != null && StringUtils.isNotBlank(jobVo.getTriggerType())) {
             jobVo.setStatus(JobStatus.READY.getValue());
-        }else {
+        } else {
             jobVo.setStatus(JobStatus.PENDING.getValue());
         }
         //更新关联来源关系
@@ -100,25 +100,34 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             userName = combopExecuteConfigVo.getExecuteUser();
             protocolId = combopExecuteConfigVo.getProtocolId();
         }
-        //保存group
-        Map<Long, AutoexecJobGroupVo> combopIdJobGroupVoMap = new HashMap<>();
+        //获取group Map
+        Map<Long, AutoexecJobGroupVo> combopIdJobGroupVoMap = new LinkedHashMap<>();
         for (AutoexecCombopGroupVo combopGroupVo : config.getCombopGroupList()) {
             AutoexecJobGroupVo jobGroupVo = new AutoexecJobGroupVo(combopGroupVo);
             jobGroupVo.setJobId(jobVo.getId());
-            autoexecJobMapper.insertJobGroup(jobGroupVo);
-            if (jobGroupVo.getSort() == 0) {
-                //设置首先执行的group
-                jobVo.setExecuteJobGroupVo(jobGroupVo);
-            }
             combopIdJobGroupVoMap.put(combopGroupVo.getId(), jobGroupVo);
-
         }
         //保存阶段
         List<AutoexecJobPhaseVo> jobPhaseVoList = new ArrayList<>();
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
+        List<AutoexecCombopScenarioVo> scenarioList = config.getScenarioList();
+        List<String> scenarioPhaseNameList = null;
+        if (jobVo.getScenarioId() != null && CollectionUtils.isNotEmpty(scenarioList)) {
+            Optional<AutoexecCombopScenarioVo> scenarioVoOptional = scenarioList.stream().filter(o -> Objects.equals(o.getScenarioId(), jobVo.getScenarioId())).findFirst();
+            if (scenarioVoOptional.isPresent()) {
+                AutoexecCombopScenarioVo scenarioVo = scenarioVoOptional.get();
+                scenarioPhaseNameList = scenarioVo.getCombopPhaseNameList();
+            }
+        }
+        List<Long> combopGroupIdList = new ArrayList<>();//记录真正使用的group
         for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
+            //如果不是场景定义的phase则无需保存
+            if (CollectionUtils.isNotEmpty(scenarioPhaseNameList) && !scenarioPhaseNameList.contains(autoexecCombopPhaseVo.getName())) {
+                continue;
+            }
             AutoexecJobPhaseVo jobPhaseVo = new AutoexecJobPhaseVo(autoexecCombopPhaseVo, jobVo.getId(), combopIdJobGroupVoMap);
             autoexecJobMapper.insertJobPhase(jobPhaseVo);
+            combopGroupIdList.add(autoexecCombopPhaseVo.getGroupId());
             jobPhaseVoList.add(jobPhaseVo);
             AutoexecCombopPhaseConfigVo combopPhaseExecuteConfigVo = autoexecCombopPhaseVo.getConfig();
             //jobPhaseNode
@@ -153,7 +162,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     AutoexecScriptVo scriptVo;
                     AutoexecScriptVersionVo scriptVersionVo;
                     String script;
-                    if (Objects.equals(jobVo.getSource(),JobSource.TEST.getValue())) {
+                    if (Objects.equals(jobVo.getSource(), JobSource.TEST.getValue())) {
                         scriptVersionVo = autoexecScriptMapper.getVersionByVersionId(operationId);
                         if (scriptVersionVo == null) {
                             throw new AutoexecScriptVersionNotFoundException(operationId);
@@ -174,6 +183,18 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 assert jobPhaseOperationVo != null;
                 autoexecJobMapper.insertIgnoreJobParamContent(new AutoexecJobParamContentVo(jobPhaseOperationVo.getParamHash(), jobPhaseOperationVo.getParamStr()));
                 jobPhaseOperationVoList.add(jobPhaseOperationVo);
+            }
+        }
+        //保存group
+        int i =0;
+        for (Map.Entry<Long, AutoexecJobGroupVo> groupVoEntry: combopIdJobGroupVoMap.entrySet()) {
+            if(combopGroupIdList.contains(groupVoEntry.getKey())) {
+                groupVoEntry.getValue().setSort(i);
+                autoexecJobMapper.insertJobGroup(groupVoEntry.getValue());
+                if(i == 0){
+                    jobVo.setExecuteJobGroupVo(groupVoEntry.getValue());
+                }
+                i++;
             }
         }
     }
@@ -720,7 +741,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
         return jobVoList;
     }
-
 
 
     @Override

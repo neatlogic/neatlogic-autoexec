@@ -53,6 +53,7 @@ public class AutoexecJobPhaseReFireApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "phaseId", type = ApiParamType.LONG, desc = "作业阶段id", isRequired = true),
+            @Param(name = "type", type = ApiParamType.ENUM, rule = "refireResetAll,refireAll", desc = "重跑类型：   重置并重跑所有：refireResetAll；重跑所有：refireAll,默认重置并重跑所有")
     })
     @Output({
     })
@@ -70,7 +71,10 @@ public class AutoexecJobPhaseReFireApi extends PrivateApiComponentBase {
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(phaseVo.getJobId());
         jobVo.setExecuteJobGroupVo(jobGroupVo);
         jobVo.setExecuteJobPhaseList(Collections.singletonList(phaseVo));
-        jobVo.setAction(JobAction.REFIRE_PHASE.getValue());
+        jobVo.setAction(JobAction.RESET_REFIRE.getValue());
+        if(jsonObj.containsKey("type")){
+            jobVo.setAction(jsonObj.getString("type"));
+        }
         jobVo.setIsNoFireNext(1);
         IAutoexecJobActionHandler refireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.REFIRE_PHASE.getValue());
         return refireAction.doService(jobVo);

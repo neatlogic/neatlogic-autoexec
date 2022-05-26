@@ -15,10 +15,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -64,6 +61,8 @@ public class AutoexecJobNodeOutputParamGetHandler extends AutoexecJobActionHandl
             Long jobPhaseId = paramJson.getLong("phaseId");
             List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseId(jobId, jobPhaseId);
             List<AutoexecJobParamContentVo> paramContentVoList = autoexecJobMapper.getJobParamContentList(operationVoList.stream().map(AutoexecJobPhaseOperationVo::getParamHash).collect(Collectors.toList()));
+            AutoexecJobPhaseNodeVo phaseNodeVo = getNodeOperationStatus(paramJson);
+            List<AutoexecJobPhaseNodeOperationStatusVo> operationStatusVos = phaseNodeVo.getOperationStatusVoList();
             operationOutputParamArray = new JSONArray() {{
                 for (AutoexecJobPhaseOperationVo operationVo : operationVoList) {
                     add(new JSONObject() {{
@@ -86,6 +85,8 @@ public class AutoexecJobNodeOutputParamGetHandler extends AutoexecJobActionHandl
                         });
                         outputParamList = outputParamList.stream().sorted(Comparator.comparing(AutoexecJobParamVo::getSort)).collect(Collectors.toList());
                         put("paramList", outputParamList);
+                        Optional<AutoexecJobPhaseNodeOperationStatusVo> operationStatusVoOptional = operationStatusVos.stream().filter(o->Objects.equals(o.getName(),operationVo.getName())).findFirst();
+                        operationStatusVoOptional.ifPresent(autoexecJobPhaseNodeOperationStatusVo -> put("status", autoexecJobPhaseNodeOperationStatusVo.getStatus()));
                     }});
                 }
             }};
