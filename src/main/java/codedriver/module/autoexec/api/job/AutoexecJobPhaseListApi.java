@@ -26,7 +26,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author lvzk
@@ -84,6 +83,7 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
         }
         List<AutoexecJobPhaseNodeStatusCountVo> statusCountVoList = autoexecJobMapper.getJobPhaseNodeStatusCount(jobId);
 
+        boolean isHasActivePhase = false;
         for (int i = 0; i < jobPhaseVoList.size(); i++) {
             AutoexecJobPhaseVo phaseVo = jobPhaseVoList.get(i);
             for (AutoexecJobPhaseNodeStatusCountVo statusCountVo : statusCountVoList) {
@@ -91,8 +91,9 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
                     phaseVo.addStatusCountVo(statusCountVo);
                 }
             }
-            if (!Objects.equals(phaseVo.getIsActive(), null) && (Arrays.asList(JobPhaseStatus.RUNNING.getValue(),JobPhaseStatus.FAILED.getValue(),JobPhaseStatus.ABORTED.getValue()).contains(phaseVo.getStatus()) || i == (jobPhaseVoList.size() - 1))) {
+            if (!isHasActivePhase && (Arrays.asList(JobPhaseStatus.RUNNING.getValue(), JobPhaseStatus.FAILED.getValue(), JobPhaseStatus.ABORTED.getValue()).contains(phaseVo.getStatus()) || i == (jobPhaseVoList.size() - 1))) {
                 phaseVo.setIsActive(1);
+                isHasActivePhase = true;
             }
         }
         autoexecJobService.setIsRefresh(jobPhaseVoList, result, jobVo, jsonObj.getString("jobStatus"));
