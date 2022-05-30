@@ -77,14 +77,14 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     @Override
     public void saveAutoexecCombopJob(AutoexecCombopVo combopVo, AutoexecJobVo jobVo) {
         AutoexecCombopConfigVo config = combopVo.getConfig();
-        if (jobVo.getPlanStartTime() != null && StringUtils.isNotBlank(jobVo.getTriggerType())) {
+        if (Objects.equals(JobTriggerType.MANUAL.getValue(), jobVo.getTriggerType())) {
             jobVo.setStatus(JobStatus.READY.getValue());
         } else {
             jobVo.setStatus(JobStatus.PENDING.getValue());
         }
         //更新关联来源关系
         if (!Objects.equals(JobSource.HUMAN.getValue(), jobVo.getSource())) {
-            AutoexecJobInvokeVo invokeVo = new AutoexecJobInvokeVo(jobVo.getOperationId(), jobVo.getSource());
+            AutoexecJobInvokeVo invokeVo = new AutoexecJobInvokeVo(jobVo.getInvokeId(), jobVo.getSource());
             invokeVo.setJobId(jobVo.getId());
             autoexecJobMapper.insertIgnoreIntoJobInvoke(invokeVo);
         }
@@ -125,6 +125,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             if (CollectionUtils.isNotEmpty(scenarioPhaseNameList) && !scenarioPhaseNameList.contains(autoexecCombopPhaseVo.getName())) {
                 continue;
             }
+            //根据作业来源执行对应保存阶段的动作
+
             AutoexecJobPhaseVo jobPhaseVo = new AutoexecJobPhaseVo(autoexecCombopPhaseVo, jobVo.getId(), combopIdJobGroupVoMap);
             autoexecJobMapper.insertJobPhase(jobPhaseVo);
             combopGroupIdList.add(autoexecCombopPhaseVo.getGroupId());
@@ -186,12 +188,12 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             }
         }
         //保存group
-        int i =0;
-        for (Map.Entry<Long, AutoexecJobGroupVo> groupVoEntry: combopIdJobGroupVoMap.entrySet()) {
-            if(combopGroupIdList.contains(groupVoEntry.getKey())) {
+        int i = 0;
+        for (Map.Entry<Long, AutoexecJobGroupVo> groupVoEntry : combopIdJobGroupVoMap.entrySet()) {
+            if (combopGroupIdList.contains(groupVoEntry.getKey())) {
                 groupVoEntry.getValue().setSort(i);
                 autoexecJobMapper.insertJobGroup(groupVoEntry.getValue());
-                if(i == 0){
+                if (i == 0) {
                     jobVo.setExecuteJobGroupVo(groupVoEntry.getValue());
                 }
                 i++;
@@ -687,14 +689,13 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 Map<String, ArrayList<Long>> operationIdMap = new HashMap<>();
                 jobVoList = autoexecJobMapper.searchJob(jobIdList);
                 //补充来源operation信息
+                //TODO 来源类目应该是 来源id 比如 工单id，而不是operationId
                 Map<Long, String> operationIdNameMap = new HashMap<>();
                 List<AutoexecCombopVo> combopVoList = null;
                 List<AutoexecScriptVersionVo> scriptVoList;
                 List<AutoexecOperationVo> toolVoList;
-                operationIdMap.put(CombopOperationType.COMBOP.getValue(), new ArrayList<>());
-                operationIdMap.put(CombopOperationType.SCRIPT.getValue(), new ArrayList<>());
-                operationIdMap.put(CombopOperationType.TOOL.getValue(), new ArrayList<>());
                 jobVoList.forEach(o -> {
+                    operationIdMap.computeIfAbsent(o.getOperationType(), k -> new ArrayList<>());
                     operationIdMap.get(o.getOperationType()).add(o.getOperationId());
                 });
                 if (CollectionUtils.isNotEmpty(operationIdMap.get(CombopOperationType.COMBOP.getValue()))) {

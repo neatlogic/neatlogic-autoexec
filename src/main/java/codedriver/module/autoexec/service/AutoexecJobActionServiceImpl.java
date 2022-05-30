@@ -275,7 +275,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             jobVo.setExecuteJobGroupVo(autoexecJobMapper.getJobGroupByJobIdAndSort(jobVo.getId(), 0));
             autoexecJobService.getAutoexecJobDetail(jobVo);
             IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
-            jobVo.setAction(JobAction.FIRE.getValue());
+            jobVo.setIsFirstFire(1);
             fireAction.doService(jobVo);
         }
     }
