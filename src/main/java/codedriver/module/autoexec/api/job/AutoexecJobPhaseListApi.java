@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 2021. TechSure Co., Ltd. All Rights Reserved.
+ * Copyright(c) 2022 TechSure Co., Ltd. All Rights Reserved.
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  */
 
@@ -7,7 +7,6 @@ package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
-import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeStatusCountVo;
@@ -24,7 +23,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -54,7 +52,6 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
-            @Param(name = "jobStatus", type = ApiParamType.STRING, desc = "作业状态", isRequired = true),
             @Param(name = "phaseIdList", type = ApiParamType.JSONARRAY, desc = "作业阶段idList"),
     })
     @Output({
@@ -83,7 +80,7 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
         }
         List<AutoexecJobPhaseNodeStatusCountVo> statusCountVoList = autoexecJobMapper.getJobPhaseNodeStatusCount(jobId);
 
-        boolean isHasActivePhase = false;
+       /* boolean isHasActivePhase = false;
         for (int i = 0; i < jobPhaseVoList.size(); i++) {
             AutoexecJobPhaseVo phaseVo = jobPhaseVoList.get(i);
             for (AutoexecJobPhaseNodeStatusCountVo statusCountVo : statusCountVoList) {
@@ -96,7 +93,7 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
                 isHasActivePhase = true;
             }
         }
-        autoexecJobService.setIsRefresh(jobPhaseVoList, result, jobVo, jsonObj.getString("jobStatus"));
+        autoexecJobService.setIsRefresh(jobPhaseVoList, result, jobVo, jsonObj.getString("jobStatus"));*/
         result.put("status", jobVo.getStatus());
         result.put("statusName", JobStatus.getText(jobVo.getStatus()));
         result.put("phaseList", jobPhaseVoList);
