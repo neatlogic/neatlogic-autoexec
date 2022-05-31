@@ -6,6 +6,8 @@
 package codedriver.module.autoexec.service;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
+import codedriver.framework.auth.core.AuthActionChecker;
+import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.crossover.IAutoexecCombopCrossoverService;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
@@ -58,6 +60,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
 
     @Resource
     private AutoexecGlobalParamMapper autoexecGlobalParamMapper;
+
     /**
      * 设置当前用户可操作按钮权限列表
      *
@@ -66,7 +69,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
     @Override
     public void setOperableButtonList(AutoexecCombopVo autoexecCombopVo) {
         String userUuid = UserContext.get().getUserUuid(true);
-        if (Objects.equals(autoexecCombopVo.getOwner(), userUuid)) {
+        if (AuthActionChecker.check(AUTOEXEC_MODIFY.class) || Objects.equals(autoexecCombopVo.getOwner(), userUuid)) {
 //            autoexecCombopVo.setViewable(1);
             autoexecCombopVo.setEditable(1);
             autoexecCombopVo.setDeletable(1);
@@ -298,9 +301,9 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
      * @param argumentParam         自由参数
      * @param runtimeParamMap       运行参数
      * @param preNodeOutputParamMap 上游节点出参
-     * @param operationName 操作工具名
+     * @param operationName         操作工具名
      */
-    private void validateParam (
+    private void validateParam(
             List<ParamMappingVo> mappingList,
             Map<String, AutoexecParamVo> inputParamMap,
             AutoexecParamVo argumentParam,
@@ -415,6 +418,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
 
     /**
      * 将“698fb4fbd08b4bdbb7094922795f98bc&&linbq_0427&&d3126570321145858bb37b93f8d39112&&outc”转换成“阶段一.linbq_0427.outc”
+     *
      * @param preNodeNameMap
      * @param value
      * @return
@@ -438,6 +442,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         System.out.println(stringBuilder.toString());
         return stringBuilder.toString();
     }
+
     @Override
     public String getOperationActiveVersionScriptByOperationId(Long operationId) {
         AutoexecScriptVersionVo scriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(operationId);
@@ -516,7 +521,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             }
         }
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
-        if(CollectionUtils.isNotEmpty(combopPhaseList)) {
+        if (CollectionUtils.isNotEmpty(combopPhaseList)) {
             for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
                 if (autoexecCombopPhaseVo != null) {
                     if (isCopy) {
