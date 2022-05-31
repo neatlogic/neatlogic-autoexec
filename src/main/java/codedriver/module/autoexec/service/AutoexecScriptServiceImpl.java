@@ -433,13 +433,16 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService, IAutoex
             dependencyInfoConfig.put("scriptId", scriptVo.getId());
             dependencyInfoConfig.put("scriptName", scriptVo.getName());
             dependencyInfoConfig.put("versionId", versionVo.getId());
+            if (versionVo.getStatusVo() != null) {
+                dependencyInfoConfig.put("versionStatus", version.getStatusVo().getValue());
+                dependencyInfoConfig.put("versionStatusText", version.getStatusVo().getText());
+            }
             String pathFormatString = pathFormat + "-${DATA.scriptName}";
             String urlFormat = "";
             //submitted的页面不一样
             if (Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), status)) {
                 urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/review-detail?versionId=${DATA.versionId}";
             } else if (version != null) {
-                dependencyInfoConfig.put("versionStatus", version.getStatus());
                 urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/script-detail?scriptId=${DATA.scriptId}&status=${DATA.versionStatus}";
             }
             return new DependencyInfoVo(scriptVo.getId(), dependencyInfoConfig, pathFormatString, urlFormat, groupName);
