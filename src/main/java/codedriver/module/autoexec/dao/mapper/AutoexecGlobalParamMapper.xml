@@ -97,7 +97,7 @@
         <include refid="searchGlobalParam"></include>
     </select>
 
-    <select id="searchGlobalParam" resultType="codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo" parameterType="codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo">
+    <select id="getGlobalParam" resultType="codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo" parameterType="codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo">
         select `id`,
         `key`,
         `name`,

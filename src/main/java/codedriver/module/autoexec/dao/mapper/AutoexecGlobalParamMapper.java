@@ -24,7 +24,7 @@ public interface AutoexecGlobalParamMapper {
 
     List<AutoexecGlobalParamVo> getGlobalParamListByIdList(@Param("idList") List<Long> idList);
 
-    List<AutoexecGlobalParamVo> searchGlobalParam(AutoexecGlobalParamVo globalParamVo);
+    List<AutoexecGlobalParamVo> getGlobalParam(AutoexecGlobalParamVo globalParamVo);
 
     int checkGlobalParamKeyIsRepeat(AutoexecGlobalParamVo globalParamVo);
 

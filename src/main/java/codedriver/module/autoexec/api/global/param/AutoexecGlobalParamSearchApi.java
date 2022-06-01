@@ -65,7 +65,7 @@ public class AutoexecGlobalParamSearchApi extends PrivateApiComponentBase {
         int paramCount = autoexecGlobalParamMapper.getGlobalParamCount(globalParamVo);
         if (paramCount > 0) {
             globalParamVo.setRowNum(paramCount);
-            GlobalParamList = autoexecGlobalParamMapper.searchGlobalParam(globalParamVo);
+            GlobalParamList = autoexecGlobalParamMapper.getGlobalParam(globalParamVo);
             for (AutoexecGlobalParamVo paramVo : GlobalParamList) {
                 if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), paramVo.getType()) && StringUtils.isNotBlank(paramVo.getDefaultValueStr()) && paramVo.getDefaultValueStr().startsWith(CiphertextPrefix.RC4.getValue())) {
                     paramVo.setDefaultValue(RC4Util.decrypt(paramVo.getDefaultValueStr().substring(4)));
