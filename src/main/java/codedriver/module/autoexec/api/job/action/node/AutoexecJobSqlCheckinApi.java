@@ -2,7 +2,9 @@ package codedriver.module.autoexec.api.job.action.node;
 
 import codedriver.framework.autoexec.constvalue.AutoexecOperType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecSqlDetailVo;
+import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.crossover.CrossoverServiceFactory;
 import codedriver.framework.deploy.constvalue.DeployOperType;
@@ -68,6 +70,10 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         JSONArray paramSqlVoArray = paramObj.getJSONArray("sqlInfoList");
+        AutoexecJobPhaseVo targetPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(paramObj.getLong("jobId"), paramObj.getString("targetPhaseName"));
+        if (targetPhaseVo == null) {
+            throw new AutoexecJobPhaseNotFoundException(paramObj.getString("targetPhaseName"));
+        }
         if (StringUtils.equals(paramObj.getString("operType"), AutoexecOperType.AUTOEXEC.getValue())) {
             Date nowLcd = new Date();
             if (CollectionUtils.isNotEmpty(paramSqlVoArray)) {
@@ -78,10 +84,10 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
                         cyclicNumber++;
                     }
                     for (int i = 0; i < cyclicNumber; i++) {
-                        autoexecJobMapper.insertSqlDetailList(insertSqlList.subList(i * 100, (Math.min((i + 1) * 100, insertSqlList.size()))), paramObj.getString("targetPhaseName"),paramObj.getLong("runnerId"), nowLcd);
+                        autoexecJobMapper.insertSqlDetailList(insertSqlList.subList(i * 100, (Math.min((i + 1) * 100, insertSqlList.size()))), targetPhaseVo.getName(), targetPhaseVo.getId(), paramObj.getLong("runnerId"), nowLcd);
                     }
                 } else {
-                    autoexecJobMapper.insertSqlDetailList(insertSqlList, paramObj.getString("targetPhaseName"),paramObj.getLong("runnerId"), nowLcd);
+                    autoexecJobMapper.insertSqlDetailList(insertSqlList, targetPhaseVo.getName(), targetPhaseVo.getId(), paramObj.getLong("runnerId"), nowLcd);
                 }
             }
             List<Long> needDeleteSqlIdList = autoexecJobMapper.getSqlDetailByJobIdAndPhaseNameAndLcd(paramObj.getLong("jobId"), paramObj.getString("targetPhaseName"), nowLcd);
