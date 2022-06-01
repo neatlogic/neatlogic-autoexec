@@ -12,6 +12,7 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
+import codedriver.framework.autoexec.util.AutoexecUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -60,7 +61,7 @@ public class AutoexecJobNodeSqlListGetHandler extends AutoexecJobActionHandlerBa
 
         result.put("isRefresh", 1);
         String url = paramObj.getString("runnerUrl") + "/api/rest/job/phase/node/sql/list";
-        JSONArray sqlArray = JSONObject.parseArray(requestRunner(url, paramObj));
+        JSONArray sqlArray = JSONObject.parseArray(AutoexecUtil.requestRunner(url, paramObj));
         List<AutoexecJobNodeSqlVo> sqlList =  sqlArray.toJavaList(AutoexecJobNodeSqlVo.class);
         if(Objects.equals(paramObj.getString("status"),JobNodeStatus.SUCCEED.getValue())&&CollectionUtils.isNotEmpty(sqlList)&&sqlList.stream().allMatch(o->Objects.equals(o.getStatus(),JobNodeStatus.SUCCEED.getValue()))){
             result.put("isRefresh", 0);
