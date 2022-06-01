@@ -9,6 +9,9 @@ import codedriver.framework.autoexec.constvalue.OutputParamType;
 import codedriver.framework.autoexec.constvalue.ParamDataSource;
 import codedriver.framework.autoexec.constvalue.ParamMode;
 import codedriver.framework.autoexec.constvalue.ParamType;
+import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.exception.AutoexecRiskNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecToolParamDatasourceEmptyException;
@@ -21,9 +24,7 @@ import codedriver.framework.exception.type.ParamTypeNotFoundException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
-import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
-import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
-import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
+import codedriver.framework.util.RegexUtils;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
@@ -64,10 +65,10 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
     }
 
     @Input({
-            @Param(name = "opName", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5/]+$", maxLength = 50, isRequired = true, desc = "工具名称"),
+            @Param(name = "opName", type = ApiParamType.REGEX, rule = RegexUtils.NAME, maxLength = 50, isRequired = true, desc = "工具名称"),
             @Param(name = "opType", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sqlfile,native", isRequired = true, desc = "执行方式"),
-            @Param(name = "typeName", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", maxLength = 50, isRequired = true, desc = "工具分类名称"),
-            @Param(name = "riskName", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", maxLength = 50, isRequired = true, desc = "操作级别名称"),
+            @Param(name = "typeName", type = ApiParamType.REGEX, rule = RegexUtils.NAME, maxLength = 50, isRequired = true, desc = "工具分类名称"),
+            @Param(name = "riskName", type = ApiParamType.REGEX, rule = RegexUtils.NAME, maxLength = 50, isRequired = true, desc = "操作级别名称"),
             @Param(name = "interpreter", type = ApiParamType.ENUM, rule = "python,ruby,vbscript,perl,powershell,cmd,bash,ksh,csh,sh,javascript", isRequired = true, desc = "解析器"),
             @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
             @Param(name = "option", type = ApiParamType.JSONARRAY,

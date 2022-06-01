@@ -28,6 +28,7 @@ import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.IValid;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.framework.util.RegexUtils;
 import codedriver.framework.util.UuidUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -52,7 +53,6 @@ import java.util.Objects;
 @AuthAction(action = AUTOEXEC_COMBOP_ADD.class)
 @OperationType(type = OperationTypeEnum.CREATE)
 public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
-
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
     @Resource
@@ -80,7 +80,7 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
     @Input({
             @Param(name = "operationId", type = ApiParamType.LONG, isRequired = true, desc = "脚本/工具主键id"),
             @Param(name = "operationType", type = ApiParamType.ENUM, rule = "script,tool", isRequired = true, desc = "脚本/工具"),
-            @Param(name = "name", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", isRequired = true, minLength = 1, maxLength = 70, desc = "显示名"),
+            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, isRequired = true, minLength = 1, maxLength = 70, desc = "显示名"),
             @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
             @Param(name = "typeId", type = ApiParamType.LONG, isRequired = true, desc = "类型id")
     })

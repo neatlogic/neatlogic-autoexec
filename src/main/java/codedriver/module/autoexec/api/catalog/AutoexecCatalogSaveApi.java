@@ -13,6 +13,7 @@ import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.IValid;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.framework.util.RegexUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
@@ -47,7 +48,7 @@ public class AutoexecCatalogSaveApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "id", type = ApiParamType.LONG, desc = "目录id"),
-            @Param(name = "name", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", desc = "名称", maxLength = 50, isRequired = true, xss = true),
+            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, desc = "名称", maxLength = 50, isRequired = true, xss = true),
             @Param(name = "parentId", type = ApiParamType.LONG, desc = "父目录id"),
     })
     @Output({@Param(name = "id", type = ApiParamType.LONG, desc = "目录id")})

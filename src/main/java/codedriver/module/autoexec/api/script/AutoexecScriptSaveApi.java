@@ -27,6 +27,7 @@ import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.IValid;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.framework.util.RegexUtils;
 import codedriver.module.autoexec.fulltextindex.AutoexecFullTextIndexType;
 import codedriver.module.autoexec.service.AutoexecScriptService;
 import codedriver.module.autoexec.service.AutoexecService;
@@ -73,13 +74,13 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             @Param(name = "id", type = ApiParamType.LONG, desc = "脚本ID(没有id和versionId,表示首次创建脚本;有id没有versionId,表示新增一个版本;没有id有versionId,表示编辑某个版本)"),
             @Param(name = "versionId", type = ApiParamType.LONG, desc = "脚本版本ID"),
 //            @Param(name = "uk", type = ApiParamType.REGEX, rule = "^[A-Za-z]+$", isRequired = true, xss = true, desc = "唯一标识"),
-            @Param(name = "name", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", maxLength = 50, isRequired = true, xss = true, desc = "名称"),
+            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, maxLength = 50, isRequired = true, xss = true, desc = "名称"),
             @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sqlfile,native", desc = "执行方式", isRequired = true),
             @Param(name = "typeId", type = ApiParamType.LONG, desc = "脚本分类ID", isRequired = true),
             @Param(name = "catalogId", type = ApiParamType.LONG, desc = "工具目录ID", isRequired = true),
             @Param(name = "riskId", type = ApiParamType.LONG, desc = "操作级别ID", isRequired = true),
             @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
-            @Param(name = "title", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", maxLength = 50, isRequired = true, xss = true, desc = "版本标题"),
+            @Param(name = "title", type = ApiParamType.REGEX, rule = RegexUtils.NAME, maxLength = 50, isRequired = true, xss = true, desc = "版本标题"),
             @Param(name = "paramList", type = ApiParamType.JSONARRAY, desc = "参数列表"),
             @Param(name = "argument", type = ApiParamType.JSONOBJECT, desc = "自由参数"),
             @Param(name = "encoding", type = ApiParamType.ENUM, rule = "UTF-8,GBK", desc = "脚本编码"),

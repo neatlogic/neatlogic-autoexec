@@ -16,6 +16,7 @@ import codedriver.framework.restful.annotation.Input;
 import codedriver.framework.restful.annotation.Param;
 import codedriver.framework.restful.core.IValid;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.framework.util.RegexUtils;
 import codedriver.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -53,7 +54,7 @@ public class AutoexecGlobalParamSaveApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "id", type = ApiParamType.LONG, desc = "参数id"),
-            @Param(name = "key", type = ApiParamType.REGEX, rule = "^[a-zA-Z0-9_\\.]+$", isRequired = true, desc = "参数名"),
+            @Param(name = "key", type = ApiParamType.REGEX, rule = RegexUtils.ENGLISH_NUMBER_NAME, isRequired = true, desc = "参数名"),
             @Param(name = "name", type = ApiParamType.STRING, isRequired = true, desc = "显示名"),
             @Param(name = "type", type = ApiParamType.STRING, isRequired = true, desc = "类型"),
             @Param(name = "defaultValue", type = ApiParamType.NOAUTH, isRequired = true, desc = "默认值"),

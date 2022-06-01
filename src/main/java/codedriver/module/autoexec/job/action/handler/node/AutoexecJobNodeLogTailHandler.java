@@ -53,7 +53,7 @@ public class AutoexecJobNodeLogTailHandler extends AutoexecJobActionHandlerBase 
         paramJson.put("port", nodeVo.getPort());
         paramJson.put("runnerUrl", nodeVo.getRunnerUrl());
         paramJson.put("execMode", phaseVo.getExecMode());
-        paramJson.put("direction", "down");
+        paramJson.put("direction", StringUtils.isBlank(paramJson.getString("direction"))?"down":paramJson.getString("direction"));
         String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/log/tail";
         JSONObject result = JSONObject.parseObject(AutoexecUtil.requestRunner(url, paramJson));
         result.put("isRefresh", 0);
