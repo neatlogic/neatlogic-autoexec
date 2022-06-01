@@ -7,6 +7,7 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
 import codedriver.framework.autoexec.job.source.action.AutoexecJobSourceActionHandlerBase;
+import codedriver.framework.autoexec.util.AutoexecUtil;
 import codedriver.framework.integration.authentication.enums.AuthenticateType;
 import codedriver.framework.util.HttpRequestUtil;
 import com.alibaba.fastjson.JSONObject;
@@ -36,7 +37,7 @@ public class AutoexecJobSourceHandler extends AutoexecJobSourceActionHandlerBase
         JSONObject paramObj = jobVo.getActionParam();
         paramObj.put("jobId", nodeVo.getJobId());
         paramObj.put("phase", nodeVo.getJobPhaseName());
-        return requestRunner(nodeVo.getRunnerUrl()+"/api/rest/job/phase/node/sql/content/get", paramObj);
+        return AutoexecUtil.requestRunner(nodeVo.getRunnerUrl()+"/api/rest/job/phase/node/sql/content/get", paramObj);
     }
 
     @Override
