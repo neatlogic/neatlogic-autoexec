@@ -46,6 +46,8 @@ public class AutoexecJobSourceHandler extends AutoexecJobSourceActionHandlerBase
         JSONObject paramObj = jobVo.getActionParam();
         paramObj.put("jobId", nodeVo.getJobId());
         paramObj.put("phase", nodeVo.getJobPhaseName());
+        UserContext.get().getResponse().setContentType("text/plain");
+        UserContext.get().getResponse().setHeader("Content-Disposition", " attachment; filename=\"" + paramObj.getString("sqlName") + "\"");
         String url = nodeVo.getRunnerUrl()+"/api/binary/job/phase/node/sql/file/download";
         String result = HttpRequestUtil.download(url, "POST", UserContext.get().getResponse().getOutputStream()).setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest().getError();
 
