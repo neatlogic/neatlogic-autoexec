@@ -391,58 +391,35 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService, IAutoex
 
     @Override
     public DependencyInfoVo getScriptDependencyPageUrl(Map<String, Object> map, Long scriptId, String groupName, String pathFormat) {
-
-        AutoexecScriptVersionVo version = null;
-        Boolean hasStatus = false;
+        AutoexecScriptVersionVo version;
         AutoexecScriptVo scriptVo = autoexecScriptMapper.getScriptBaseInfoById(scriptId);
         if (scriptVo == null) {
             return null;
         }
-
-        List<AutoexecScriptVersionVo> versionVoList = autoexecScriptMapper.getScriptVersionListByScriptId(scriptId);
-        AutoexecScriptVersionVo versionVo = versionVoList.get(0);
-        String status = versionVo.getStatus();
-
-        if (Objects.equals(ScriptVersionStatus.PASSED.getValue(), status)) {
-            AutoexecScriptVersionVo activeVersion = autoexecScriptMapper.getActiveVersionByScriptId(scriptId);
-            if (activeVersion != null) {
-                version = activeVersion;
-                hasStatus = true;
-            } else {
-                throw new AutoexecScriptVersionHasNoActivedException();
-            }
-        } else if (hasStatus == false && Objects.equals(ScriptVersionStatus.DRAFT.getValue(), status)) {
-            AutoexecScriptVersionVo recentlyDraftVersion = autoexecScriptMapper.getRecentlyVersionByScriptIdAndStatus(scriptId, ScriptVersionStatus.DRAFT.getValue());
-            if (recentlyDraftVersion != null) {
-                version = recentlyDraftVersion;
-                hasStatus = true;
-            } else {
-                throw new AutoexecScriptHasNoDraftVersionException();
-            }
-        } else if (hasStatus == false && Objects.equals(ScriptVersionStatus.REJECTED.getValue(), status)) {
-            AutoexecScriptVersionVo recentlyRejectedVersion = autoexecScriptMapper.getRecentlyVersionByScriptIdAndStatus(scriptId, ScriptVersionStatus.REJECTED.getValue());
-            if (recentlyRejectedVersion != null) {
-                version = recentlyRejectedVersion;
-                hasStatus = true;
-            } else {
-                throw new AutoexecScriptHasNoRejectedVersionException();
+        // 按照“激活-草稿-待审核-已驳回”的顺序查找当前脚本的版本
+        version = autoexecScriptMapper.getActiveVersionByScriptId(scriptId);
+        if (version == null) {
+            version = autoexecScriptMapper.getRecentlyVersionByScriptIdAndStatus(scriptId, ScriptVersionStatus.DRAFT.getValue());
+            if (version == null) {
+                version = autoexecScriptMapper.getRecentlyVersionByScriptIdAndStatus(scriptId, ScriptVersionStatus.SUBMITTED.getValue());
+                if (version == null) {
+                    version = autoexecScriptMapper.getRecentlyVersionByScriptIdAndStatus(scriptId, ScriptVersionStatus.REJECTED.getValue());
+                }
             }
         }
-        if (scriptVo != null && StringUtils.isNotBlank(status)) {
+        if (version != null) {
             JSONObject dependencyInfoConfig = new JSONObject();
             dependencyInfoConfig.put("scriptId", scriptVo.getId());
             dependencyInfoConfig.put("scriptName", scriptVo.getName());
-            dependencyInfoConfig.put("versionId", versionVo.getId());
-            if (versionVo.getStatusVo() != null) {
-                dependencyInfoConfig.put("versionStatus", versionVo.getStatusVo().getValue());
-                dependencyInfoConfig.put("versionStatusText", versionVo.getStatusVo().getText());
-            }
+            dependencyInfoConfig.put("versionId", version.getId());
+            dependencyInfoConfig.put("versionStatus", version.getStatus());
+            dependencyInfoConfig.put("versionStatusText", ScriptVersionStatus.getText(version.getStatus()));
             String pathFormatString = pathFormat + "-${DATA.scriptName}";
-            String urlFormat = "";
+            String urlFormat;
             //submitted的页面不一样
-            if (Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), status)) {
+            if (Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), version.getStatus())) {
                 urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/review-detail?versionId=${DATA.versionId}";
-            } else if (version != null) {
+            } else {
                 urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/script-detail?scriptId=${DATA.scriptId}&status=${DATA.versionStatus}";
             }
             return new DependencyInfoVo(scriptVo.getId(), dependencyInfoConfig, pathFormatString, urlFormat, groupName);
