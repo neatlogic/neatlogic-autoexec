@@ -434,8 +434,8 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService, IAutoex
             dependencyInfoConfig.put("scriptName", scriptVo.getName());
             dependencyInfoConfig.put("versionId", versionVo.getId());
             if (versionVo.getStatusVo() != null) {
-                dependencyInfoConfig.put("versionStatus", version.getStatusVo().getValue());
-                dependencyInfoConfig.put("versionStatusText", version.getStatusVo().getText());
+                dependencyInfoConfig.put("versionStatus", versionVo.getStatusVo().getValue());
+                dependencyInfoConfig.put("versionStatusText", versionVo.getStatusVo().getText());
             }
             String pathFormatString = pathFormat + "-${DATA.scriptName}";
             String urlFormat = "";
