@@ -9,6 +9,7 @@ import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
 import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
+import codedriver.framework.autoexec.util.AutoexecUtil;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -54,7 +55,7 @@ public class AutoexecJobNodeLogTailHandler extends AutoexecJobActionHandlerBase 
         paramJson.put("execMode", phaseVo.getExecMode());
         paramJson.put("direction", "down");
         String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/log/tail";
-        JSONObject result = JSONObject.parseObject(requestRunner(url, paramJson));
+        JSONObject result = JSONObject.parseObject(AutoexecUtil.requestRunner(url, paramJson));
         result.put("isRefresh", 0);
         if(StringUtils.isBlank(paramJson.getString("sqlName"))) {//获取node节点的状态（包括operation status）
             AutoexecJobPhaseNodeVo phaseNodeVo = getNodeOperationStatus(paramJson);
