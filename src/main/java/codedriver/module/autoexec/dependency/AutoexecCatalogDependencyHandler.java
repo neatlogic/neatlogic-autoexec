@@ -71,7 +71,7 @@ public class AutoexecCatalogDependencyHandler extends CustomTableDependencyHandl
     protected DependencyInfoVo parse(Object dependencyObj) {
         if (dependencyObj instanceof Map) {
             Map<String, Object> map = (Map) dependencyObj;
-            return  autoexecScriptService.getScriptDependencyPageUrl(map, (Long) map.get("id"),this.getGroupName(), AutoexecFromType.AUTOEXEC_CATALOG.getText());
+            return  autoexecScriptService.getScriptDependencyPageUrl(map, (Long) map.get("id"),this.getGroupName());
         }
         return null;
     }
