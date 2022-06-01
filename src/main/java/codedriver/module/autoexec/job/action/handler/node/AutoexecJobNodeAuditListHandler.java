@@ -11,6 +11,7 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
+import codedriver.framework.autoexec.util.AutoexecUtil;
 import codedriver.framework.dao.mapper.UserMapper;
 import codedriver.framework.dto.UserVo;
 import com.alibaba.fastjson.JSONArray;
@@ -66,7 +67,7 @@ public class AutoexecJobNodeAuditListHandler extends AutoexecJobActionHandlerBas
         paramObj.put("execMode", phaseVo.getExecMode());
         String url = paramObj.getString("runnerUrl") + "/api/rest/job/phase/node/execute/audit/list";
         List<AutoexecJobPhaseNodeAuditVo> auditList = new ArrayList<>();
-        JSONArray auditArray = JSONArray.parseArray(requestRunner(url, paramObj));
+        JSONArray auditArray = JSONArray.parseArray(AutoexecUtil.requestRunner(url, paramObj));
         for (Object audit : auditArray) {
             JSONObject auditJson = (JSONObject) audit;
             AutoexecJobPhaseNodeAuditVo auditVo = new AutoexecJobPhaseNodeAuditVo(auditJson);

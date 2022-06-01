@@ -9,6 +9,7 @@ import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
+import codedriver.framework.autoexec.util.AutoexecUtil;
 import codedriver.framework.dao.mapper.runner.RunnerMapper;
 import codedriver.framework.dto.runner.RunnerVo;
 import com.alibaba.fastjson.JSONObject;
@@ -53,6 +54,6 @@ public class AutoexecJobConsoleLogTailHandler extends AutoexecJobActionHandlerBa
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         JSONObject paramObj = jobVo.getActionParam();
         String url = paramObj.getString("runnerUrl") + "/api/rest/job/console/log/tail";
-        return JSONObject.parseObject(requestRunner(url, paramObj));
+        return JSONObject.parseObject(AutoexecUtil.requestRunner(url, paramObj));
     }
 }

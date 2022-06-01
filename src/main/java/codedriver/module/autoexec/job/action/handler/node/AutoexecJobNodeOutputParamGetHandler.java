@@ -8,6 +8,7 @@ package codedriver.module.autoexec.job.action.handler.node;
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
+import codedriver.framework.autoexec.util.AutoexecUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.MapUtils;
@@ -55,7 +56,7 @@ public class AutoexecJobNodeOutputParamGetHandler extends AutoexecJobActionHandl
         paramJson.put("execMode", phaseVo.getExecMode());
         JSONArray operationOutputParamArray = null;
         String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/output/param/get";
-        JSONObject statusJson = JSONObject.parseObject(requestRunner(url, paramJson));
+        JSONObject statusJson = JSONObject.parseObject(AutoexecUtil.requestRunner(url, paramJson));
         if (MapUtils.isNotEmpty(statusJson)) {
             Long jobId = paramJson.getLong("jobId");
             Long jobPhaseId = paramJson.getLong("phaseId");
