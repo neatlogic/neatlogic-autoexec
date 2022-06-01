@@ -15,8 +15,10 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicBinaryStreamApiComponentBase;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONWriter;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -86,7 +88,7 @@ public class AutoexecScriptExportPublicApi extends PublicBinaryStreamApiComponen
                     script.setArgument(autoexecScriptMapper.getArgumentByVersionId(version.getId()));
                     script.setParamList(autoexecScriptMapper.getAutoexecParamVoListByVersionId(version.getId()));
                     script.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
-                    writer.writeObject(script);
+                    writer.writeObject(JSONObject.parseObject(JSON.toJSONString(script, SerializerFeature.DisableCircularReferenceDetect)));// 解决json循环引用问题
                 }
                 writer.endArray();
                 writer.flush();
