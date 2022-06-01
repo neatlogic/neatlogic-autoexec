@@ -5,11 +5,13 @@
 
 package codedriver.module.autoexec.api.tool;
 
-import codedriver.framework.autoexec.constvalue.OutputParamType;
-import codedriver.framework.autoexec.constvalue.ParamDataSource;
-import codedriver.framework.autoexec.constvalue.ParamMode;
-import codedriver.framework.autoexec.constvalue.ParamType;
+import codedriver.framework.autoexec.constvalue.*;
+import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
+import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
+import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import codedriver.framework.autoexec.exception.AutoexecRiskNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecToolParamDatasourceEmptyException;
 import codedriver.framework.autoexec.exception.AutoexecToolParamDatasourceFormatIllegalException;
@@ -21,9 +23,8 @@ import codedriver.framework.exception.type.ParamTypeNotFoundException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
-import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
-import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
-import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecProfileMapper;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
@@ -33,11 +34,16 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Collections;
+import java.util.Date;
 import java.util.Objects;
+import java.util.regex.Pattern;
 
 @Service
 @OperationType(type = OperationTypeEnum.OPERATE)
 public class AutoexecToolRegisterApi extends PublicApiComponentBase {
+
+    final Pattern defualtValuePattern = Pattern.compile("\\$\\{.*:.*\\}");
 
     @Resource
     private AutoexecToolMapper autoexecToolMapper;
@@ -47,6 +53,12 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
 
     @Resource
     private AutoexecRiskMapper autoexecRiskMapper;
+
+    @Resource
+    private AutoexecGlobalParamMapper autoexecGbobalParamMapper;
+
+    @Resource
+    private AutoexecProfileMapper autoexecProfileMapper;
 
     @Override
     public String getToken() {
@@ -93,6 +105,7 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
         String typeName = jsonObj.getString("typeName");
         String riskName = jsonObj.getString("riskName");
         String interpreter = jsonObj.getString("interpreter");
+        String defaultProfile = jsonObj.getString("defaultProfile");
         String description = jsonObj.getString("description");
         JSONArray option = jsonObj.getJSONArray("option");
         JSONObject argument = jsonObj.getJSONObject("argument");
@@ -120,6 +133,14 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
         vo.setTypeId(typeId);
         vo.setRiskId(riskId);
         vo.setDescription(description);
+        if (StringUtils.isNotBlank(defaultProfile)) {
+            AutoexecProfileVo profile = autoexecProfileMapper.getProfileVoByName(defaultProfile);
+            if (profile == null) {
+                profile = new AutoexecProfileVo(defaultProfile, -1L);
+                autoexecProfileMapper.insertProfile(profile);
+            }
+            autoexecProfileMapper.insertAutoexecProfileOperation(profile.getId(), Collections.singletonList(vo.getId()), ToolType.TOOL.getValue(), new Date());
+        }
         JSONObject config = new JSONObject();
         if (CollectionUtils.isNotEmpty(paramList)) {
             config.put("paramList", paramList);
@@ -160,8 +181,30 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                 param.put("description", value.getString("help"));
                 String type = value.getString("type");
                 Object defaultValue = value.get("defaultValue");
-                ParamType paramType = ParamType.getParamType(type);
-                if (paramType != null) {
+                // 如果defaultValue是引用全局参数
+                if (defaultValue != null && defualtValuePattern.matcher(defaultValue.toString()).matches()) {
+                    String referenceParam = defaultValue.toString().replaceAll("\\$", "").replaceAll("\\{", "").replaceAll("\\}", "");
+                    String[] split = referenceParam.split(":");
+                    String mappingMode = split[0];
+                    String mappingValue = split[1];
+                    if (mappingMode.equals("global")) {
+                        if (autoexecGbobalParamMapper.getGlobalParamByKey(mappingValue) == null) {
+                            // 如果不存在名为{mappingValue}的全局参数，则创建
+                            AutoexecGlobalParamType paramType = AutoexecGlobalParamType.getParamType(type);
+                            if (paramType == null) {
+                                throw new ParamTypeNotFoundException(type);
+                            }
+                            AutoexecGlobalParamVo globalParamVo = new AutoexecGlobalParamVo(mappingValue, mappingValue, paramType.getValue());
+                            autoexecGbobalParamMapper.insertGlobalParam(globalParamVo);
+                        }
+                        param.put("paramMappingMode", ParamMappingMode.GLOBAL_PARAM.getValue());
+                        param.put("defaultValue", mappingValue);
+                    }
+                } else {
+                    ParamType paramType = ParamType.getParamType(type);
+                    if (paramType == null) {
+                        throw new ParamTypeNotFoundException(type);
+                    }
                     type = paramType.getValue();
                     if (ScriptParamTypeFactory.getHandler(type).needDataSource()) {
                         if (defaultValue == null) {
@@ -196,11 +239,9 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                         config.put("dataSource", ParamDataSource.STATIC.getValue());
                         config.put("dataList", dataList);
                         param.put("config", config);
+                        param.put("defaultValue", defaultValue);
                     }
-                } else {
-                    throw new ParamTypeNotFoundException(type);
                 }
-                param.put("defaultValue", defaultValue);
                 param.put("type", type);
                 param.put("sort", i);
                 paramList.add(param);

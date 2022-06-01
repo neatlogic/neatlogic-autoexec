@@ -347,6 +347,20 @@
         </foreach>
     </select>
 
+    <select id="getProfileVoByName" resultType="codedriver.framework.autoexec.dto.profile.AutoexecProfileVo">
+        SELECT
+        `id`,
+        `name`,
+        `description`,
+        `system_id` AS fromSystemId,
+        `fcd`,
+        `fcu`,
+        `lcd`,
+        `lcu`
+        FROM `autoexec_profile`
+        WHERE `name` = #{name}
+    </select>
+
     <delete id="deleteProfileById">
         DELETE
         FROM autoexec_profile
