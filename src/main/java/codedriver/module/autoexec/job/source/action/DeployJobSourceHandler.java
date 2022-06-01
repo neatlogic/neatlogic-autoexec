@@ -45,8 +45,8 @@ public class DeployJobSourceHandler extends AutoexecJobSourceActionHandlerBase {
         paramObj.put("envId", sqlDetailVo.getEnvId());
         paramObj.put("version", sqlDetailVo.getVersion());
         ICiEntityCrossoverMapper ciEntityCrossoverMapper = CrossoverServiceFactory.getApi(ICiEntityCrossoverMapper.class);
-        CiEntityVo ciEntityVo = ciEntityCrossoverMapper.getCiEntityBaseInfoById(sqlDetailVo.getEnvId());
-        paramObj.put("envName", ciEntityVo.getName());
+        CiEntityVo envCiEntity = ciEntityCrossoverMapper.getCiEntityBaseInfoById(sqlDetailVo.getEnvId());
+        paramObj.put("envName", envCiEntity.getName());
         AutoexecJobPhaseNodeVo nodeVo = jobVo.getCurrentNode();
         return requestRunner(nodeVo.getRunnerUrl() + "/api/rest/deploy/sql/content/get", paramObj);
     }
@@ -61,8 +61,8 @@ public class DeployJobSourceHandler extends AutoexecJobSourceActionHandlerBase {
         paramObj.put("envId", sqlDetailVo.getEnvId());
         paramObj.put("version", sqlDetailVo.getVersion());
         ICiEntityCrossoverMapper ciEntityCrossoverMapper = CrossoverServiceFactory.getApi(ICiEntityCrossoverMapper.class);
-        CiEntityVo ciEntityVo = ciEntityCrossoverMapper.getCiEntityBaseInfoById(sqlDetailVo.getEnvId());
-        paramObj.put("envName", ciEntityVo.getName());
+        CiEntityVo envCiEntity = ciEntityCrossoverMapper.getCiEntityBaseInfoById(sqlDetailVo.getEnvId());
+        paramObj.put("envName", envCiEntity.getName());
         AutoexecJobPhaseNodeVo nodeVo = jobVo.getCurrentNode();
         String url = nodeVo.getRunnerUrl() + "/api/binary/deploy/sql/file/download";
         String result = HttpRequestUtil.download(url, "POST", UserContext.get().getResponse().getOutputStream()).setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest().getError();
