@@ -97,6 +97,7 @@ public class AutoexecJobFromOperationCreateApi extends PrivateApiComponentBase {
         jobVo.setOperationType(jsonObj.getString("type"));
         jobVo.setIsFirstFire(1);
         jobVo.setAction(JobAction.FIRE.getValue());
+        jobVo.setInvokeId(jobVo.getOperationId());
         autoexecJobService.saveAutoexecCombopJob(combopVo, jobVo);
         IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
         fireAction.doService(jobVo);

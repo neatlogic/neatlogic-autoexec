@@ -19,6 +19,8 @@ import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFac
 import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import codedriver.framework.common.constvalue.SystemUser;
 import codedriver.framework.dao.mapper.UserMapper;
+import codedriver.framework.dto.UserVo;
+import codedriver.framework.filter.core.LoginAuthHandlerBase;
 import codedriver.framework.scheduler.core.JobBase;
 import codedriver.framework.scheduler.dto.JobObject;
 import codedriver.module.autoexec.service.AutoexecJobActionService;
@@ -112,7 +114,9 @@ public class AutoexecScheduleJob extends JobBase {
             paramObj.put("invokeId", autoexecScheduleVo.getId());
             paramObj.put("operationId", autoexecCombopVo.getId());
             paramObj.put("operationType", CombopOperationType.COMBOP.getValue());
-            UserContext.init(userMapper.getUserByUuid(autoexecScheduleVo.getFcu()), SystemUser.SYSTEM.getTimezone());
+            UserVo fcuVo = userMapper.getUserByUuid(autoexecScheduleVo.getFcu());
+            UserContext.init(fcuVo, SystemUser.SYSTEM.getTimezone());
+            UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(fcuVo).getCc());
             AutoexecJobVo jobVo = autoexecJobActionService.validateCreateJobFromCombop(paramObj, false);
             jobVo.setAction(JobAction.FIRE.getValue());
             IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
