@@ -137,13 +137,17 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
                 }
             }
             if (faultMessages.isEmpty()) {
-                newScriptVo.setCatalogId(AutoexecCatalogVo.ROOT_ID);
                 String catalogName = newScriptVo.getCatalogName();
+                boolean hasCatalog = false;
                 if (StringUtils.isNotBlank(catalogName)) {
                     AutoexecCatalogVo catalog = autoexecCatalogMapper.getAutoexecCatalogByName(catalogName);
                     if (catalog != null) {
+                        hasCatalog = true;
                         newScriptVo.setCatalogId(catalog.getId());
                     }
+                }
+                if (!hasCatalog) {
+                    newScriptVo.setCatalogId(AutoexecCatalogVo.ROOT_ID);
                 }
                 Long typeId = autoexecTypeMapper.getTypeIdByName(newScriptVo.getTypeName());
                 Long riskId = autoexecRiskMapper.getRiskIdByName(newScriptVo.getRiskName());
