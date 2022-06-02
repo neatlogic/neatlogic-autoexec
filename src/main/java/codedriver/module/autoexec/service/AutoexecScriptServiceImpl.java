@@ -15,7 +15,6 @@ import codedriver.framework.autoexec.constvalue.ParamMode;
 import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.constvalue.ScriptAndToolOperate;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
-import codedriver.framework.autoexec.crossover.IAutoexecScriptServiceCrossoverService;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
@@ -39,7 +38,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-public class AutoexecScriptServiceImpl implements AutoexecScriptService, IAutoexecScriptServiceCrossoverService {
+public class AutoexecScriptServiceImpl implements AutoexecScriptService{
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
@@ -390,7 +389,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService, IAutoex
     }
 
     @Override
-    public DependencyInfoVo getScriptDependencyPageUrl(Map<String, Object> map, Long scriptId, String groupName, String pathFormat) {
+    public DependencyInfoVo getScriptDependencyPageUrl(Map<String, Object> map, Long scriptId, String groupName) {
         AutoexecScriptVersionVo version;
         AutoexecScriptVo scriptVo = autoexecScriptMapper.getScriptBaseInfoById(scriptId);
         if (scriptVo == null) {
@@ -414,7 +413,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService, IAutoex
             dependencyInfoConfig.put("versionId", version.getId());
             dependencyInfoConfig.put("versionStatus", version.getStatus());
             dependencyInfoConfig.put("versionStatusText", ScriptVersionStatus.getText(version.getStatus()));
-            String pathFormatString = pathFormat + "-${DATA.scriptName}";
+            String pathFormatString =  "自定义工具库-${DATA.scriptName}";
             String urlFormat;
             //submitted的页面不一样
             if (Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), version.getStatus())) {
