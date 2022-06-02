@@ -197,7 +197,7 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                             AutoexecGlobalParamVo globalParamVo = new AutoexecGlobalParamVo(mappingValue, mappingValue, paramType.getValue());
                             autoexecGbobalParamMapper.insertGlobalParam(globalParamVo);
                         }
-                        param.put("paramMappingMode", ParamMappingMode.GLOBAL_PARAM.getValue());
+                        param.put("mappingMode", ParamMappingMode.GLOBAL_PARAM.getValue());
                         param.put("defaultValue", mappingValue);
                     }
                 } else {
