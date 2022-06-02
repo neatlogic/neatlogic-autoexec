@@ -409,11 +409,14 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService{
         if (version != null) {
             JSONObject dependencyInfoConfig = new JSONObject();
             dependencyInfoConfig.put("scriptId", scriptVo.getId());
-            dependencyInfoConfig.put("scriptName", scriptVo.getName());
+//            dependencyInfoConfig.put("scriptName", scriptVo.getName());
             dependencyInfoConfig.put("versionId", version.getId());
             dependencyInfoConfig.put("versionStatus", version.getStatus());
-            dependencyInfoConfig.put("versionStatusText", ScriptVersionStatus.getText(version.getStatus()));
-            String pathFormatString =  "自定义工具库-${DATA.scriptName}";
+//            dependencyInfoConfig.put("versionStatusText", ScriptVersionStatus.getText(version.getStatus()));
+            List<String> pathList = new ArrayList<>();
+            pathList.add("自定义工具库");
+            String lastName = scriptVo.getName();
+//            String pathFormatString =  "自定义工具库-${DATA.scriptName}";
             String urlFormat;
             //submitted的页面不一样
             if (Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), version.getStatus())) {
@@ -421,7 +424,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService{
             } else {
                 urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/script-detail?scriptId=${DATA.scriptId}&status=${DATA.versionStatus}";
             }
-            return new DependencyInfoVo(scriptVo.getId(), dependencyInfoConfig, pathFormatString, urlFormat, groupName);
+            return new DependencyInfoVo(scriptVo.getId(), dependencyInfoConfig, lastName, pathList, urlFormat, groupName);
         }
         return null;
     }
