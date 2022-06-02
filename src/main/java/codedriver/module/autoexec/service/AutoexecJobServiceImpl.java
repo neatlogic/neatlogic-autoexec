@@ -89,6 +89,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             autoexecJobMapper.insertIgnoreIntoJobInvoke(invokeVo);
         }
         //保存作业基本信息
+        if(StringUtils.isBlank(jobVo.getName())){
+            jobVo.setName(combopVo.getName());
+        }
         autoexecJobMapper.insertJob(jobVo);
         autoexecJobMapper.insertIgnoreJobParamContent(new AutoexecJobParamContentVo(jobVo.getParamHash(), jobVo.getParamArrayStr()));
         //保存作业执行目标
