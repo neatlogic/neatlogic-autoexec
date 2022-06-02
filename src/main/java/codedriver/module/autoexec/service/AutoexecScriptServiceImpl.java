@@ -412,7 +412,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService{
 //            dependencyInfoConfig.put("scriptName", scriptVo.getName());
             dependencyInfoConfig.put("versionId", version.getId());
             dependencyInfoConfig.put("versionStatus", version.getStatus());
-//            dependencyInfoConfig.put("versionStatusText", ScriptVersionStatus.getText(version.getStatus()));
+            dependencyInfoConfig.put("versionStatusText", ScriptVersionStatus.getText(version.getStatus()));
             List<String> pathList = new ArrayList<>();
             pathList.add("自定义工具库");
             String lastName = scriptVo.getName();
