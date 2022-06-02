@@ -14,6 +14,7 @@ import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.common.dto.ValueTextVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -103,12 +104,17 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
         if (autoexecCombopConfigVo == null) {
             return resultObj;
         }
+        List<String> phaseNameList = new ArrayList<>();
         List<AutoexecCombopPhaseVo> combopPhaseList = autoexecCombopConfigVo.getCombopPhaseList();
         if (CollectionUtils.isEmpty(combopPhaseList)) {
             return resultObj;
         }
         JSONArray allExportParamList = new JSONArray();
         for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
+            String phaseName = autoexecCombopPhaseVo.getName();
+            if (!phaseNameList.contains(phaseName)) {
+                phaseNameList.add(phaseName);
+            }
             AutoexecCombopPhaseConfigVo autoexecCombopPhaseConfigVo = autoexecCombopPhaseVo.getConfig();
             if (autoexecCombopPhaseConfigVo != null) {
                 List<AutoexecCombopPhaseOperationVo> phaseOperationList = autoexecCombopPhaseConfigVo.getPhaseOperationList();
@@ -255,6 +261,13 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
             }
         }
         resultObj.put("executeParamList", executeParamList);
+        List<ValueTextVo> phaseList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(phaseNameList)) {
+            for (String phaseName : phaseNameList) {
+                phaseList.add(new ValueTextVo(phaseName, phaseName));
+            }
+        }
+        resultObj.put("phaseList", phaseList);
         return resultObj;
     }
 }
