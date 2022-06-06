@@ -105,7 +105,7 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
                 needDeleteSqlIdList = oldDeploySqlList.stream().map(DeploySqlDetailVo::getId).collect(Collectors.toList());
             }
             List<DeploySqlDetailVo> insertSqlList = new ArrayList<>();
-            List<DeploySqlDetailVo> updateSqlList = new ArrayList<>();
+            List<Long> reEnabledSqlList = new ArrayList<>();
 
             if (CollectionUtils.isNotEmpty(paramSqlVoArray)) {
                 for (DeploySqlDetailVo newSqlVo : paramSqlVoArray.toJavaList(DeploySqlDetailVo.class)) {
@@ -119,15 +119,13 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
                         //旧数据 - 需要更新的数据 = 需要删除的数据
                         needDeleteSqlIdList.remove(oldSqlVo.getId());
                     }
-                    if (oldSqlVo.getIsDelete() == 0 && StringUtils.equals(oldSqlVo.getStatus(), newSqlVo.getStatus()) && StringUtils.equals(oldSqlVo.getMd5(), newSqlVo.getMd5())) {
-                        continue;
+                    if (oldSqlVo.getIsDelete() == 1) {
+                        //需要重新启用的数据
+                        reEnabledSqlList.add(oldSqlVo.getId());
                     }
-                    //需要更新的数据
-                    newSqlVo.setId(oldSqlVo.getId());
-                    updateSqlList.add(newSqlVo);
                 }
                 if (CollectionUtils.isNotEmpty(needDeleteSqlIdList)) {
-                    iDeploySqlCrossoverMapper.updateDeploySqlIsDeleteByIdList(needDeleteSqlIdList);
+                    iDeploySqlCrossoverMapper.updateDeploySqlIsDeleteByIdList(needDeleteSqlIdList, 1);
                 }
                 if (CollectionUtils.isNotEmpty(insertSqlList)) {
                     for (DeploySqlDetailVo insertSqlVo : insertSqlList) {
@@ -135,10 +133,8 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
                         iDeploySqlCrossoverMapper.insertDeploySqlDetail(insertSqlVo, paramObj.getLong("sysId"), paramObj.getLong("envId"), paramObj.getLong("moduleId"), paramObj.getString("version"), paramObj.getLong("runnerId"));
                     }
                 }
-                if (CollectionUtils.isNotEmpty(updateSqlList)) {
-                    for (DeploySqlDetailVo updateSqlVo : updateSqlList) {
-                        iDeploySqlCrossoverMapper.updateDeploySqlDetailIsDeleteAndStatusAndMd5ById(updateSqlVo.getStatus(), updateSqlVo.getMd5(), updateSqlVo.getId());
-                    }
+                if (CollectionUtils.isNotEmpty(reEnabledSqlList)) {
+                    iDeploySqlCrossoverMapper.updateDeploySqlIsDeleteByIdList(reEnabledSqlList, 0);
                 }
             }
         }
