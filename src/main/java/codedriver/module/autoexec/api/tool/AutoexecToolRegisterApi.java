@@ -162,8 +162,16 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                 if (paramType != null) {
                     type = paramType.getValue();
                     if (ScriptParamTypeFactory.getHandler(type).needDataSource()) {
-                        if (dataSource == null) {
+                        if (CollectionUtils.isEmpty(dataSource)) {
                             throw new AutoexecToolParamDatasourceEmptyException(key);
+                        }
+                        for (int j = 0; j < dataSource.size(); j++) {
+                            JSONObject data = dataSource.getJSONObject(j);
+                            String dataText = data.getString("text");
+                            String dataValue = data.getString("value");
+                            if (StringUtils.isBlank(dataText) || StringUtils.isBlank(dataValue)) {
+                                throw new AutoexecToolParamDatasourceIllegalException(key);
+                            }
                         }
                         JSONObject config = new JSONObject();
                         config.put("dataSource", ParamDataSource.STATIC.getValue());
