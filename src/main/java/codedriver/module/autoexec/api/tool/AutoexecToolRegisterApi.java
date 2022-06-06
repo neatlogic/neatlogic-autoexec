@@ -13,10 +13,7 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
-import codedriver.framework.autoexec.exception.AutoexecRiskNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecToolParamDatasourceEmptyException;
-import codedriver.framework.autoexec.exception.AutoexecToolParamDatasourceFormatIllegalException;
-import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
+import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.exception.type.ParamNotExistsException;
@@ -26,7 +23,6 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
 import codedriver.framework.util.RegexUtils;
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections.MapUtils;
 import org.apache.commons.collections4.CollectionUtils;
@@ -72,7 +68,7 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
             @Param(name = "interpreter", type = ApiParamType.ENUM, rule = "python,ruby,vbscript,perl,powershell,cmd,bash,ksh,csh,sh,javascript", isRequired = true, desc = "解析器"),
             @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
             @Param(name = "option", type = ApiParamType.JSONARRAY,
-                    desc = "入参(当控件类型为[select,multiselect,radio,checkbox]时，需要在defaultValue字段填写数据源，格式如下：[{\"text\":\"否\",\"value\":\"0\",\"selected\":\"true\"},{\"text\":\"是\",\"value\":\"1\"}])"),
+                    desc = "入参(当控件类型为[select,multiselect,radio,checkbox]时，需要在dataSource字段填写数据源，格式如下：[{\"text\":\"否\",\"value\":\"0\"},{\"text\":\"是\",\"value\":\"1\"}]，defaultValue字段填写数据源中的value值)"),
             @Param(name = "argument", type = ApiParamType.JSONOBJECT, desc = "{\n" +
                     "        \"name\":\"日志路径\",\n" +
                     "        \"help\":\"日志路径，支持通配符和反引号\",\n" +
@@ -161,41 +157,17 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                 param.put("description", value.getString("help"));
                 String type = value.getString("type");
                 Object defaultValue = value.get("defaultValue");
+                JSONArray dataSource = value.getJSONArray("dataSource");
                 ParamType paramType = ParamType.getParamType(type);
                 if (paramType != null) {
                     type = paramType.getValue();
                     if (ScriptParamTypeFactory.getHandler(type).needDataSource()) {
-                        if (defaultValue == null) {
+                        if (dataSource == null) {
                             throw new AutoexecToolParamDatasourceEmptyException(key);
-                        }
-                        JSONArray list;
-                        try {
-                            list = JSONArray.parseArray(defaultValue.toString());
-                        } catch (JSONException ex) {
-                            throw new AutoexecToolParamDatasourceFormatIllegalException(key);
-                        }
-                        JSONArray defaultValueList = new JSONArray();
-                        JSONArray dataList = new JSONArray();
-                        for (Object o : list) {
-                            JSONObject object = (JSONObject) o;
-                            if (Objects.equals(object.getString("selected"), "true")) {
-                                defaultValueList.add(object.get("value"));
-                                object.remove("selected");
-                            }
-                            dataList.add(object);
-                        }
-                        if (defaultValueList.size() > 0) {
-                            if (Objects.equals(paramType, ParamType.SELECT) || Objects.equals(paramType, ParamType.RADIO)) {
-                                defaultValue = defaultValueList.get(0);
-                            } else if (Objects.equals(paramType, ParamType.MULTISELECT) || Objects.equals(paramType, ParamType.CHECKBOX)) {
-                                defaultValue = defaultValueList;
-                            }
-                        } else {
-                            defaultValue = null;
                         }
                         JSONObject config = new JSONObject();
                         config.put("dataSource", ParamDataSource.STATIC.getValue());
-                        config.put("dataList", dataList);
+                        config.put("dataList", dataSource);
                         param.put("config", config);
                     }
                 } else {
