@@ -62,7 +62,7 @@ public class AutoexecJobNodeOutputParamGetHandler extends AutoexecJobActionHandl
             Long jobPhaseId = paramJson.getLong("phaseId");
             List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseId(jobId, jobPhaseId);
             List<AutoexecJobParamContentVo> paramContentVoList = autoexecJobMapper.getJobParamContentList(operationVoList.stream().map(AutoexecJobPhaseOperationVo::getParamHash).collect(Collectors.toList()));
-            AutoexecJobPhaseNodeVo phaseNodeVo = getNodeOperationStatus(paramJson);
+            AutoexecJobPhaseNodeVo phaseNodeVo = getNodeOperationStatus(paramJson,true);
             List<AutoexecJobPhaseNodeOperationStatusVo> operationStatusVos = phaseNodeVo.getOperationStatusVoList();
             operationOutputParamArray = new JSONArray() {{
                 for (AutoexecJobPhaseOperationVo operationVo : operationVoList) {
