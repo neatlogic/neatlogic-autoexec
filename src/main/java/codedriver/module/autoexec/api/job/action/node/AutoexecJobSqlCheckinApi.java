@@ -120,13 +120,12 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
                         needDeleteSqlIdList.remove(oldSqlVo.getId());
                     }
                     if (oldSqlVo.getIsDelete() == 1) {
-                        //需要更新的数据
-                        newSqlVo.setId(oldSqlVo.getId());
-                        reEnabledSqlList.add(newSqlVo.getId());
+                        //需要重新启用的数据
+                        reEnabledSqlList.add(oldSqlVo.getId());
                     }
                 }
                 if (CollectionUtils.isNotEmpty(needDeleteSqlIdList)) {
-                    iDeploySqlCrossoverMapper.updateDeploySqlIsDeleteByIdList(needDeleteSqlIdList);
+                    iDeploySqlCrossoverMapper.updateDeploySqlIsDeleteByIdList(needDeleteSqlIdList, 1);
                 }
                 if (CollectionUtils.isNotEmpty(insertSqlList)) {
                     for (DeploySqlDetailVo insertSqlVo : insertSqlList) {
@@ -135,7 +134,7 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
                     }
                 }
                 if (CollectionUtils.isNotEmpty(reEnabledSqlList)) {
-                    iDeploySqlCrossoverMapper.reEnabledDeploySqlDetailById(reEnabledSqlList);
+                    iDeploySqlCrossoverMapper.updateDeploySqlIsDeleteByIdList(reEnabledSqlList, 0);
                 }
             }
         }
