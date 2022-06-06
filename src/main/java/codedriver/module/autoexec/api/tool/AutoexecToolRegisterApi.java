@@ -179,6 +179,10 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                 String type = value.getString("type");
                 Object defaultValue = value.get("defaultValue");
                 JSONArray dataSource = value.getJSONArray("dataSource");
+                ParamType paramType = ParamType.getParamType(type);
+                if (paramType == null) {
+                    throw new ParamTypeNotFoundException(type);
+                }
                 if (defaultValue != null && defualtValuePattern.matcher(defaultValue.toString()).matches()) {
                     String mappingParam = defaultValue.toString().replaceAll("\\$", "").replaceAll("\\{", "").replaceAll("\\}", "");
                     String[] split = mappingParam.split(":");
@@ -187,20 +191,18 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                     if (mappingMode.equals("global")) {
                         if (autoexecGbobalParamMapper.getGlobalParamByKey(mappingValue) == null) {
                             // 如果不存在名为{mappingValue}的全局参数，则创建
-                            AutoexecGlobalParamType paramType = AutoexecGlobalParamType.getParamType(type);
-                            if (paramType == null) {
+                            AutoexecGlobalParamType globalParamType = AutoexecGlobalParamType.getParamType(type);
+                            if (globalParamType == null) {
                                 throw new ParamTypeNotFoundException(type);
                             }
-                            AutoexecGlobalParamVo globalParamVo = new AutoexecGlobalParamVo(mappingValue, mappingValue, paramType.getValue());
+                            AutoexecGlobalParamVo globalParamVo = new AutoexecGlobalParamVo(mappingValue, mappingValue, globalParamType.getValue());
                             autoexecGbobalParamMapper.insertGlobalParam(globalParamVo);
                         }
                         param.put("mappingMode", ParamMappingMode.GLOBAL_PARAM.getValue());
                         param.put("defaultValue", mappingValue);
                     }
-                }
-                ParamType paramType = ParamType.getParamType(type);
-                if (paramType != null) {
-                    type = paramType.getValue();
+                } else {
+                    param.put("defaultValue", defaultValue);
                     if (ScriptParamTypeFactory.getHandler(type).needDataSource()) {
                         if (CollectionUtils.isEmpty(dataSource)) {
                             throw new AutoexecToolParamDatasourceEmptyException(key);
@@ -216,11 +218,6 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                         config.put("dataList", dataSource);
                         param.put("config", config);
                     }
-                } else {
-                    throw new ParamTypeNotFoundException(type);
-                }
-                if (!param.containsKey("defaultValue")) {
-                    param.put("defaultValue", defaultValue);
                 }
                 param.put("type", type);
                 param.put("sort", i);
