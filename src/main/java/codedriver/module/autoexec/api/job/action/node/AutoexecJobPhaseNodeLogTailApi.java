@@ -8,7 +8,6 @@ package codedriver.module.autoexec.api.job.action.node;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.JobAction;
-import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeOperationStatusVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
@@ -55,7 +54,7 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
             @Param(name = "endPos", type = ApiParamType.LONG, isRequired = true, desc = "日志读取结束位置"),
             @Param(name = "logPos", type = ApiParamType.LONG, isRequired = true, desc = "读取到的位置"),
             @Param(name = "last", type = ApiParamType.LONG, isRequired = true, desc = "日志读取内容"),
-            @Param(name = "operationStatusList", explode = AutoexecJobPhaseNodeOperationStatusVo[].class, desc = "作业剧本节点操作状态列表"),
+            @Param(name = "interact", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "作业节点等待输入渲染json"),
             @Param(name = "isRefresh", type = ApiParamType.INTEGER, isRequired = true, desc = "是否需要继续定时刷新，1:继续 0:停止")
     })
     @Override
