@@ -18,7 +18,7 @@ public interface AutoexecProfileService {
      * 根据profileId获取profile参数
      *
      * @param id id
-     * @return
+     * @return profile参数列表
      */
     List<AutoexecProfileParamVo> getProfileParamListById(Long id);
 
@@ -27,7 +27,7 @@ public interface AutoexecProfileService {
      * 在删除profile时会删除此关系，在删除script的时候也会删除此关系
      *
      * @param profileId               profile id
-     * @param autoexecOperationVoList 自动化工具list
+     * @param autoexecOperationVoList 自动化工具列表
      */
     void saveProfileOperation(Long profileId, List<AutoexecOperationVo> autoexecOperationVoList);
 
@@ -50,7 +50,7 @@ public interface AutoexecProfileService {
      *
      * @param keyList   key列表
      * @param profileId profile id
-     * @return
+     * @return profile的key、value的map
      */
     Map<String, List<Object>> getAutoexecProfileParamListByKeyListAndProfileId(List<String> keyList, Long profileId);
 
@@ -59,7 +59,7 @@ public interface AutoexecProfileService {
      * 批量根据profileId列表获取对应的profile列表
      *
      * @param idList profile id列表
-     * @return
+     * @return profile列表
      */
-    public List<AutoexecProfileVo> getProfileVoListByIdList(List<Long> idList);
+     List<AutoexecProfileVo> getProfileVoListByIdList(List<Long> idList);
 }

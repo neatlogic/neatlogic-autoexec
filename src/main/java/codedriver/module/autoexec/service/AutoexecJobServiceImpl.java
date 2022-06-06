@@ -89,6 +89,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             autoexecJobMapper.insertIgnoreIntoJobInvoke(invokeVo);
         }
         //保存作业基本信息
+        if(StringUtils.isBlank(jobVo.getName())){
+            jobVo.setName(combopVo.getName());
+        }
         autoexecJobMapper.insertJob(jobVo);
         autoexecJobMapper.insertIgnoreJobParamContent(new AutoexecJobParamContentVo(jobVo.getParamHash(), jobVo.getParamArrayStr()));
         //保存作业执行目标
@@ -689,7 +692,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 Map<String, ArrayList<Long>> operationIdMap = new HashMap<>();
                 jobVoList = autoexecJobMapper.searchJob(jobIdList);
                 //补充来源operation信息
-                //TODO 来源类目应该是 来源id 比如 工单id，而不是operationId
+                //TODO  invoke id 比如 工单id，而不是operationId
                 Map<Long, String> operationIdNameMap = new HashMap<>();
                 List<AutoexecCombopVo> combopVoList = null;
                 List<AutoexecScriptVersionVo> scriptVoList;

@@ -50,6 +50,7 @@ public class AutoexecJobPhaseNodeResetApi extends PrivateApiComponentBase {
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
             @Param(name = "jobPhaseId", type = ApiParamType.STRING, desc = "作业阶段Id", isRequired = true),
+            @Param(name = "sqlIdList", type = ApiParamType.JSONARRAY, desc = "sql文件列表"),
             @Param(name = "resourceIdList", type = ApiParamType.JSONARRAY, desc = "作业节点资产idList"),
             @Param(name = "isAll", type = ApiParamType.INTEGER, desc = "是否全部重置,1:是 0:否,则nodeIdList不能为空"),
 

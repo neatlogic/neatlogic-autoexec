@@ -7,6 +7,7 @@ package codedriver.module.autoexec.schedule.plugin;
 
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
+import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.constvalue.JobSource;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
@@ -18,6 +19,8 @@ import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFac
 import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import codedriver.framework.common.constvalue.SystemUser;
 import codedriver.framework.dao.mapper.UserMapper;
+import codedriver.framework.dto.UserVo;
+import codedriver.framework.filter.core.LoginAuthHandlerBase;
 import codedriver.framework.scheduler.core.JobBase;
 import codedriver.framework.scheduler.dto.JobObject;
 import codedriver.module.autoexec.service.AutoexecJobActionService;
@@ -103,16 +106,21 @@ public class AutoexecScheduleJob extends JobBase {
         AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
         if (autoexecCombopVo == null) {
             schedulerManager.unloadJob(jobObject);
-        }
+        }else {
 //        System.out.println(new Date() + "执行定时作业：'" + autoexecScheduleVo.getName() + "'");
-        JSONObject paramObj = autoexecScheduleVo.getConfig();
-        paramObj.put("combopId", combopId);
-        paramObj.put("source", JobSource.AUTOEXEC_SCHEDULE.getValue());
-        paramObj.put("invokeId", autoexecScheduleVo.getId());
-        UserContext.init(userMapper.getUserByUuid(autoexecScheduleVo.getFcu()), SystemUser.SYSTEM.getTimezone());
-        AutoexecJobVo jobVo = autoexecJobActionService.validateCreateJobFromCombop(paramObj, false);
-        jobVo.setAction(JobAction.FIRE.getValue());
-        IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
-        fireAction.doService(jobVo);
+            JSONObject paramObj = autoexecScheduleVo.getConfig();
+            paramObj.put("combopId", combopId);
+            paramObj.put("source", JobSource.AUTOEXEC_SCHEDULE.getValue());
+            paramObj.put("invokeId", autoexecScheduleVo.getId());
+            paramObj.put("operationId", autoexecCombopVo.getId());
+            paramObj.put("operationType", CombopOperationType.COMBOP.getValue());
+            UserVo fcuVo = userMapper.getUserByUuid(autoexecScheduleVo.getFcu());
+            UserContext.init(fcuVo, SystemUser.SYSTEM.getTimezone());
+            UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(fcuVo).getCc());
+            AutoexecJobVo jobVo = autoexecJobActionService.validateCreateJobFromCombop(paramObj, false);
+            jobVo.setAction(JobAction.FIRE.getValue());
+            IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
+            fireAction.doService(jobVo);
+        }
     }
 }

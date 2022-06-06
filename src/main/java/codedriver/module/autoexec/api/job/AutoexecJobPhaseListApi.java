@@ -79,21 +79,13 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
             jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseIdList(jobId, jobPhaseIdList);
         }
         List<AutoexecJobPhaseNodeStatusCountVo> statusCountVoList = autoexecJobMapper.getJobPhaseNodeStatusCount(jobId);
-
-       /* boolean isHasActivePhase = false;
-        for (int i = 0; i < jobPhaseVoList.size(); i++) {
-            AutoexecJobPhaseVo phaseVo = jobPhaseVoList.get(i);
+        for (AutoexecJobPhaseVo phaseVo : jobPhaseVoList) {
             for (AutoexecJobPhaseNodeStatusCountVo statusCountVo : statusCountVoList) {
                 if (statusCountVo.getJobPhaseId().equals(phaseVo.getId())) {
                     phaseVo.addStatusCountVo(statusCountVo);
                 }
             }
-            if (!isHasActivePhase && (Arrays.asList(JobPhaseStatus.RUNNING.getValue(), JobPhaseStatus.FAILED.getValue(), JobPhaseStatus.ABORTED.getValue()).contains(phaseVo.getStatus()) || i == (jobPhaseVoList.size() - 1))) {
-                phaseVo.setIsActive(1);
-                isHasActivePhase = true;
-            }
         }
-        autoexecJobService.setIsRefresh(jobPhaseVoList, result, jobVo, jsonObj.getString("jobStatus"));*/
         result.put("status", jobVo.getStatus());
         result.put("statusName", JobStatus.getText(jobVo.getStatus()));
         result.put("phaseList", jobPhaseVoList);

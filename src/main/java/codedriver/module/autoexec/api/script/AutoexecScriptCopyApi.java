@@ -16,6 +16,7 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.framework.util.RegexUtils;
 import codedriver.module.autoexec.service.AutoexecScriptService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -57,7 +58,7 @@ public class AutoexecScriptCopyApi extends PrivateApiComponentBase {
     @Input({
             @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "脚本ID"),
 //            @Param(name = "uk", type = ApiParamType.REGEX, rule = "^[A-Za-z]+$", isRequired = true, xss = true, desc = "唯一标识"),
-            @Param(name = "name", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5]+$", maxLength = 50, isRequired = true, xss = true, desc = "名称"),
+            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, maxLength = 50, isRequired = true, xss = true, desc = "名称"),
             @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sqlfile,native", desc = "执行方式", isRequired = true),
             @Param(name = "typeId", type = ApiParamType.LONG, desc = "脚本分类ID", isRequired = true),
             @Param(name = "catalogId", type = ApiParamType.LONG, desc = "工具目录ID", isRequired = true),

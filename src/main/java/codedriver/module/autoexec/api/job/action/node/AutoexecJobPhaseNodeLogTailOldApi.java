@@ -3,14 +3,13 @@
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  */
 
-package codedriver.module.autoexec.api.job.action;
+package codedriver.module.autoexec.api.job.action.node;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.JobAction;
-import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeOperationStatusVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -20,26 +19,22 @@ import codedriver.framework.restful.annotation.Output;
 import codedriver.framework.restful.annotation.Param;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
-
 /**
  * @author lvzk
- * @since 2021/5/31 16:49
+ * @since 2021/5/13 16:49
  **/
 @Service
+@Deprecated
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
-public class AutoexecJobConsoleLogTailApi extends PrivateApiComponentBase {
-    @Resource
-    AutoexecJobService autoexecJobService;
+public class AutoexecJobPhaseNodeLogTailOldApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取作业console日志";
+        return "获取剧本节点执行日志";
     }
 
     @Override
@@ -47,14 +42,12 @@ public class AutoexecJobConsoleLogTailApi extends PrivateApiComponentBase {
         return null;
     }
 
-    @Resource
-    private AutoexecJobMapper autoexecJobMapper;
-
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "作业Id"),
-            @Param(name = "runnerId", type = ApiParamType.LONG, isRequired = true, desc = "runnerId"),
-            @Param(name = "logPos", type = ApiParamType.LONG, isRequired = true, desc = "日志读取位置,-1:获取最新的数据"),
-            @Param(name = "status", type = ApiParamType.STRING, desc = "当前作业状态"),
+            @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本Id"),
+            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id"),
+            @Param(name = "sqlName", type = ApiParamType.STRING, desc = "sql名"),
+            @Param(name = "status", type = ApiParamType.STRING, isRequired = true, desc = "node status ,用于判断刷新状态"),
+            @Param(name = "logPos", type = ApiParamType.LONG, isRequired = true, desc = "日志读取位置,-1:获取最新的数据。如果是向上读'up'，则每次向上滚动加载传startPos。如果是向下读 'down'，则每次向下加载传endPos"),
             @Param(name = "direction", type = ApiParamType.ENUM, rule = "up,down", isRequired = true, desc = "读取方向，up:向上读，down:向下读")
     })
     @Output({
@@ -63,24 +56,20 @@ public class AutoexecJobConsoleLogTailApi extends PrivateApiComponentBase {
             @Param(name = "endPos", type = ApiParamType.LONG, isRequired = true, desc = "日志读取结束位置"),
             @Param(name = "logPos", type = ApiParamType.LONG, isRequired = true, desc = "读取到的位置"),
             @Param(name = "last", type = ApiParamType.LONG, isRequired = true, desc = "日志读取内容"),
+            @Param(name = "operationStatusList", explode = AutoexecJobPhaseNodeOperationStatusVo[].class, desc = "作业剧本节点操作状态列表"),
             @Param(name = "isRefresh", type = ApiParamType.INTEGER, isRequired = true, desc = "是否需要继续定时刷新，1:继续 0:停止")
     })
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        Long jobId = paramObj.getLong("jobId");
-        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
-        if (jobVo == null) {
-            throw new AutoexecJobNotFoundException(jobId);
-        }
+        AutoexecJobVo jobVo = new AutoexecJobVo();
         jobVo.setActionParam(paramObj);
-        IAutoexecJobActionHandler nodeAuditListAction = AutoexecJobActionHandlerFactory.getAction(JobAction.CONSOLE_LOG_TAIL_NEW.getValue());
-        JSONObject result = nodeAuditListAction.doService(jobVo);
-        autoexecJobService.setIsRefresh(autoexecJobMapper.getJobPhaseListByJobId(jobId), result, jobVo, paramObj.getString("status"));
-        return result;
+        jobVo.setAction(JobAction.TAIL_NODE_LOG.getValue());
+        IAutoexecJobActionHandler tailNodeLogAction = AutoexecJobActionHandlerFactory.getAction(JobAction.TAIL_NODE_LOG.getValue());
+        return tailNodeLogAction.doService(jobVo);
     }
 
     @Override
     public String getToken() {
-        return "/autoexec/job/console/log/tail/new";
+        return "/autoexec/job/phase/node/log/tail";
     }
 }

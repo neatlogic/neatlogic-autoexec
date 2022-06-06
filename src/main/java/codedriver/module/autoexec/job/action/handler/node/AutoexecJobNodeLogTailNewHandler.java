@@ -24,12 +24,12 @@ import java.util.Objects;
  * @since 2021/11/9 12:18
  **/
 @Service
-public class AutoexecJobNodeLogTailHandler extends AutoexecJobActionHandlerBase {
-    private final static Logger logger = LoggerFactory.getLogger(AutoexecJobNodeLogTailHandler.class);
+public class AutoexecJobNodeLogTailNewHandler extends AutoexecJobActionHandlerBase {
+    private final static Logger logger = LoggerFactory.getLogger(AutoexecJobNodeLogTailNewHandler.class);
 
     @Override
     public String getName() {
-        return JobAction.TAIL_NODE_LOG.getValue();
+        return JobAction.TAIL_NODE_LOG_NEW.getValue();
     }
 
     @Override
@@ -53,7 +53,7 @@ public class AutoexecJobNodeLogTailHandler extends AutoexecJobActionHandlerBase 
         paramJson.put("runnerUrl", nodeVo.getRunnerUrl());
         paramJson.put("execMode", phaseVo.getExecMode());
         paramJson.put("direction", StringUtils.isBlank(paramJson.getString("direction"))?"down":paramJson.getString("direction"));
-        String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/log/tail";
+        String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/log/tail/new";
         JSONObject result = JSONObject.parseObject(AutoexecUtil.requestRunner(url, paramJson));
         result.put("isRefresh", 0);
         if(StringUtils.isBlank(paramJson.getString("sqlName"))) {//获取node节点的状态（包括operation status）
