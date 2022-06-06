@@ -45,7 +45,6 @@ public class AutoexecJobNodeLogTailHandler extends AutoexecJobActionHandlerBase 
         AutoexecJobPhaseVo phaseVo = jobVo.getCurrentPhase();
         JSONObject paramJson = jobVo.getActionParam();
         paramJson.put("jobId", phaseVo.getJobId());
-        paramJson.put("nodeId", nodeVo.getId());
         paramJson.put("resourceId", nodeVo.getResourceId());
         paramJson.put("phase", nodeVo.getJobPhaseName());
         paramJson.put("phaseId", nodeVo.getJobPhaseId());

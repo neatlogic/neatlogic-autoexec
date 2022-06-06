@@ -45,8 +45,8 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
             @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本Id"),
             @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id"),
             @Param(name = "sqlName", type = ApiParamType.STRING, desc = "sql名"),
-            @Param(name = "status", type = ApiParamType.STRING, desc = "node status ,用于判断刷新状态"),
-            @Param(name = "logPos", type = ApiParamType.LONG, isRequired = true, desc = "日志读取位置,-1:获取最新的数据"),
+            @Param(name = "status", type = ApiParamType.STRING, isRequired = true, desc = "node status ,用于判断刷新状态"),
+            @Param(name = "logPos", type = ApiParamType.LONG, isRequired = true, desc = "日志读取位置,-1:获取最新的数据。如果是向上读'up'，则每次向上滚动加载传startPos。如果是向下读 'down'，则每次向下加载传endPos"),
             @Param(name = "direction", type = ApiParamType.ENUM, rule = "up,down", isRequired = true, desc = "读取方向，up:向上读，down:向下读")
     })
     @Output({
