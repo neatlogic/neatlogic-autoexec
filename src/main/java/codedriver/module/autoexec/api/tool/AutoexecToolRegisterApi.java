@@ -61,7 +61,7 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
     }
 
     @Input({
-            @Param(name = "opName", type = ApiParamType.REGEX, rule = RegexUtils.NAME, maxLength = 50, isRequired = true, desc = "工具名称"),
+            @Param(name = "opName", type = ApiParamType.REGEX, rule = "^[A-Za-z_\\d\\u4e00-\\u9fa5/]+$", maxLength = 50, isRequired = true, desc = "工具名称"),
             @Param(name = "opType", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sqlfile,native", isRequired = true, desc = "执行方式"),
             @Param(name = "typeName", type = ApiParamType.REGEX, rule = RegexUtils.NAME, maxLength = 50, isRequired = true, desc = "工具分类名称"),
             @Param(name = "riskName", type = ApiParamType.REGEX, rule = RegexUtils.NAME, maxLength = 50, isRequired = true, desc = "操作级别名称"),
