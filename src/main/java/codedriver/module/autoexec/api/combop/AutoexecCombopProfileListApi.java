@@ -12,10 +12,12 @@ import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.exception.type.ParamNotExistsException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.service.AutoexecProfileService;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -59,7 +61,8 @@ public class AutoexecCombopProfileListApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "主键id")
+            @Param(name = "combopId", type = ApiParamType.LONG, desc = "主键id"),
+            @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "默认值")
     })
     @Output({
             @Param(explode = AutoexecProfileVo[].class, desc = "参数列表")
@@ -67,47 +70,54 @@ public class AutoexecCombopProfileListApi extends PrivateApiComponentBase {
     @Description(desc = "查询组合工具预置参数集列表")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        Long combopId = jsonObj.getLong("combopId");
-        AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
-        if (autoexecCombopVo == null) {
-            throw new AutoexecCombopNotFoundException(combopId);
-        }
-        AutoexecCombopConfigVo combopConfig = autoexecCombopVo.getConfig();
-        if (combopConfig == null) {
-            return new ArrayList<>();
-        }
-        List<AutoexecCombopPhaseVo> combopPhaseList = combopConfig.getCombopPhaseList();
-        if (CollectionUtils.isEmpty(combopPhaseList)) {
-            return new ArrayList<>();
-        }
         Set<Long> profileIdSet = new HashSet<>();
-        for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseList) {
-            AutoexecCombopPhaseConfigVo phaseConfigVo = combopPhaseVo.getConfig();
-            if (phaseConfigVo == null) {
-                continue;
+        JSONArray defaultValue = jsonObj.getJSONArray("defaultValue");
+        if (CollectionUtils.isNotEmpty(defaultValue)) {
+            List<Long> profileIdList = defaultValue.toJavaList(Long.class);
+            profileIdSet.addAll(profileIdList);
+        } else {
+            Long combopId = jsonObj.getLong("combopId");
+            if (combopId == null) {
+                throw new ParamNotExistsException("combopId", "defaultValue");
             }
-            List<AutoexecCombopPhaseOperationVo> combopPhaseOperationList = phaseConfigVo.getPhaseOperationList();
-            if (CollectionUtils.isEmpty(combopPhaseOperationList)) {
-                continue;
+            AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
+            if (autoexecCombopVo == null) {
+                throw new AutoexecCombopNotFoundException(combopId);
             }
-            for (AutoexecCombopPhaseOperationVo combopPhaseOperationVo : combopPhaseOperationList) {
-                AutoexecCombopPhaseOperationConfigVo operationConfigVo = combopPhaseOperationVo.getConfig();
-                if (operationConfigVo == null) {
+            AutoexecCombopConfigVo combopConfig = autoexecCombopVo.getConfig();
+            if (combopConfig == null) {
+                return new ArrayList<>();
+            }
+            List<AutoexecCombopPhaseVo> combopPhaseList = combopConfig.getCombopPhaseList();
+            if (CollectionUtils.isEmpty(combopPhaseList)) {
+                return new ArrayList<>();
+            }
+            for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseList) {
+                AutoexecCombopPhaseConfigVo phaseConfigVo = combopPhaseVo.getConfig();
+                if (phaseConfigVo == null) {
                     continue;
                 }
-                Long profileId = operationConfigVo.getProfileId();
-                if (profileId != null) {
-                    profileIdSet.add(profileId);
+                List<AutoexecCombopPhaseOperationVo> combopPhaseOperationList = phaseConfigVo.getPhaseOperationList();
+                if (CollectionUtils.isEmpty(combopPhaseOperationList)) {
+                    continue;
+                }
+                for (AutoexecCombopPhaseOperationVo combopPhaseOperationVo : combopPhaseOperationList) {
+                    AutoexecCombopPhaseOperationConfigVo operationConfigVo = combopPhaseOperationVo.getConfig();
+                    if (operationConfigVo == null) {
+                        continue;
+                    }
+                    Long profileId = operationConfigVo.getProfileId();
+                    if (profileId != null) {
+                        profileIdSet.add(profileId);
+                    }
                 }
             }
         }
+
         if (CollectionUtils.isEmpty(profileIdSet)) {
             return new ArrayList<>();
         }
         List<AutoexecProfileVo> profileList = autoexecProfileService.getProfileVoListByIdList(new ArrayList<>(profileIdSet));
-        if (CollectionUtils.isNotEmpty(profileList)) {
-            return profileList;
-        }
-        return new ArrayList<>();
+        return profileList;
     }
 }
