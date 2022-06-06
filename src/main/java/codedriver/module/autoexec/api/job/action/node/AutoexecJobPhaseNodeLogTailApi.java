@@ -24,7 +24,7 @@ import org.springframework.stereotype.Service;
 
 /**
  * @author lvzk
- * @since 2021/5/13 16:49
+ * @since 2022/6/6 14:49
  **/
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
@@ -63,12 +63,12 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
         AutoexecJobVo jobVo = new AutoexecJobVo();
         jobVo.setActionParam(paramObj);
         jobVo.setAction(JobAction.TAIL_NODE_LOG.getValue());
-        IAutoexecJobActionHandler tailNodeLogAction = AutoexecJobActionHandlerFactory.getAction(JobAction.TAIL_NODE_LOG.getValue());
+        IAutoexecJobActionHandler tailNodeLogAction = AutoexecJobActionHandlerFactory.getAction(JobAction.TAIL_NODE_LOG_NEW.getValue());
         return tailNodeLogAction.doService(jobVo);
     }
 
     @Override
     public String getToken() {
-        return "/autoexec/job/phase/node/log/tail";
+        return "/autoexec/job/phase/node/log/tail/new";
     }
 }

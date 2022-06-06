@@ -33,7 +33,7 @@ import javax.annotation.Resource;
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
-public class AutoexecJobConsoleLogTailApi extends PrivateApiComponentBase {
+public class AutoexecJobConsoleLogTailOldApi extends PrivateApiComponentBase {
     @Resource
     AutoexecJobService autoexecJobService;
 
@@ -73,7 +73,7 @@ public class AutoexecJobConsoleLogTailApi extends PrivateApiComponentBase {
             throw new AutoexecJobNotFoundException(jobId);
         }
         jobVo.setActionParam(paramObj);
-        IAutoexecJobActionHandler nodeAuditListAction = AutoexecJobActionHandlerFactory.getAction(JobAction.CONSOLE_LOG_TAIL_NEW.getValue());
+        IAutoexecJobActionHandler nodeAuditListAction = AutoexecJobActionHandlerFactory.getAction(JobAction.CONSOLE_LOG_TAIL.getValue());
         JSONObject result = nodeAuditListAction.doService(jobVo);
         autoexecJobService.setIsRefresh(autoexecJobMapper.getJobPhaseListByJobId(jobId), result, jobVo, paramObj.getString("status"));
         return result;
@@ -81,6 +81,6 @@ public class AutoexecJobConsoleLogTailApi extends PrivateApiComponentBase {
 
     @Override
     public String getToken() {
-        return "/autoexec/job/console/log/tail/new";
+        return "/autoexec/job/console/log/tail";
     }
 }
