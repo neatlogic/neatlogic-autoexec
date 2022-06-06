@@ -1,25 +1,23 @@
 package codedriver.module.autoexec.api.job.action.node;
 
+import codedriver.framework.autoexec.constvalue.AutoexecOperType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
+import codedriver.framework.autoexec.job.source.action.AutoexecJobSourceActionHandlerFactory;
+import codedriver.framework.autoexec.job.source.action.IAutoexecJobSourceActionHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
-import codedriver.framework.crossover.CrossoverServiceFactory;
+import codedriver.framework.deploy.constvalue.DeployOperType;
 import codedriver.framework.deploy.constvalue.JobSource;
-import codedriver.framework.deploy.crossover.IDeploySqlCrossoverMapper;
 import codedriver.framework.restful.annotation.Input;
 import codedriver.framework.restful.annotation.Output;
 import codedriver.framework.restful.annotation.Param;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.nacos.api.utils.StringUtils;
-import com.alibaba.nacos.common.utils.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.List;
-import java.util.Objects;
 
 /**
  * @author longrf
@@ -60,33 +58,13 @@ public class AutoexecJobPhaseSqlStatusResetApi extends PrivateApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(paramObj.getLong("jobId"));
         }
-        JSONArray sqlIdArray = paramObj.getJSONArray("sqlIdList");
-
+        IAutoexecJobSourceActionHandler handler;
         if (StringUtils.equals(JobSource.DEPLOY.getValue(), jobVo.getSource())) {
-            //发布
-            IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
-            if (!Objects.isNull(paramObj.getInteger("isAll")) && paramObj.getInteger("isAll") == 1) {
-                //重置phase的所有sql文件状态
-                List<Long> resetSqlIdList = iDeploySqlCrossoverMapper.getJobSqlIdListByJobIdAndJobPhaseName(paramObj.getLong("jobId"),paramObj.getString("phaseName") );
-                if (CollectionUtils.isNotEmpty(resetSqlIdList)) {
-                    iDeploySqlCrossoverMapper.resetDeploySqlStatusBySqlIdList(resetSqlIdList);
-                }
-            } else if (CollectionUtils.isNotEmpty(sqlIdArray)) {
-                //批量重置sql文件状态
-                iDeploySqlCrossoverMapper.resetDeploySqlStatusBySqlIdList(sqlIdArray.toJavaList(Long.class));
-            }
+            handler = AutoexecJobSourceActionHandlerFactory.getAction(DeployOperType.DEPLOY.getValue());
+            handler.resetSqlStatus(paramObj, jobVo);
         } else {
-            //自动化
-            if (!Objects.isNull(paramObj.getInteger("isAll")) && paramObj.getInteger("isAll") == 1) {
-                //重置phase的所有sql文件状态
-                List<Long> resetSqlIdList = autoexecJobMapper.getJobSqlIdListByJobIdAndJobPhaseName(paramObj.getLong("jobId"), paramObj.getString("phaseName"));
-                if (CollectionUtils.isNotEmpty(resetSqlIdList)) {
-                    autoexecJobMapper.resetJobSqlStatusBySqlIdList(resetSqlIdList);
-                }
-            } else if (CollectionUtils.isNotEmpty(sqlIdArray)) {
-                //批量重置sql文件状态
-                autoexecJobMapper.resetJobSqlStatusBySqlIdList(sqlIdArray.toJavaList(Long.class));
-            }
+            handler = AutoexecJobSourceActionHandlerFactory.getAction(AutoexecOperType.AUTOEXEC.getValue());
+            handler.resetSqlStatus(paramObj, jobVo);
         }
         return null;
     }
