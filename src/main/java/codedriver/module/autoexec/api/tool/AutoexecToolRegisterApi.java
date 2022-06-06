@@ -5,14 +5,13 @@
 
 package codedriver.module.autoexec.api.tool;
 
-import codedriver.framework.autoexec.constvalue.OutputParamType;
-import codedriver.framework.autoexec.constvalue.ParamDataSource;
-import codedriver.framework.autoexec.constvalue.ParamMode;
-import codedriver.framework.autoexec.constvalue.ParamType;
+import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
+import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
+import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -22,6 +21,8 @@ import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
 import codedriver.framework.util.RegexUtils;
+import codedriver.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecProfileMapper;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections.MapUtils;
@@ -178,6 +179,25 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                 String type = value.getString("type");
                 Object defaultValue = value.get("defaultValue");
                 JSONArray dataSource = value.getJSONArray("dataSource");
+                if (defaultValue != null && defualtValuePattern.matcher(defaultValue.toString()).matches()) {
+                    String mappingParam = defaultValue.toString().replaceAll("\\$", "").replaceAll("\\{", "").replaceAll("\\}", "");
+                    String[] split = mappingParam.split(":");
+                    String mappingMode = split[0];
+                    String mappingValue = split[1];
+                    if (mappingMode.equals("global")) {
+                        if (autoexecGbobalParamMapper.getGlobalParamByKey(mappingValue) == null) {
+                            // 如果不存在名为{mappingValue}的全局参数，则创建
+                            AutoexecGlobalParamType paramType = AutoexecGlobalParamType.getParamType(type);
+                            if (paramType == null) {
+                                throw new ParamTypeNotFoundException(type);
+                            }
+                            AutoexecGlobalParamVo globalParamVo = new AutoexecGlobalParamVo(mappingValue, mappingValue, paramType.getValue());
+                            autoexecGbobalParamMapper.insertGlobalParam(globalParamVo);
+                        }
+                        param.put("mappingMode", ParamMappingMode.GLOBAL_PARAM.getValue());
+                        param.put("defaultValue", mappingValue);
+                    }
+                }
                 ParamType paramType = ParamType.getParamType(type);
                 if (paramType != null) {
                     type = paramType.getValue();
@@ -199,7 +219,9 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                 } else {
                     throw new ParamTypeNotFoundException(type);
                 }
-                param.put("defaultValue", defaultValue);
+                if (!param.containsKey("defaultValue")) {
+                    param.put("defaultValue", defaultValue);
+                }
                 param.put("type", type);
                 param.put("sort", i);
                 paramList.add(param);
