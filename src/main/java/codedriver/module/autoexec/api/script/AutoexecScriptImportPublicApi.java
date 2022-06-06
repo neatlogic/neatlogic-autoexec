@@ -79,7 +79,6 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
     public Object myDoService(JSONObject paramObj, JSONReader jsonReader) throws Exception {
 
         // 根据名称判断脚本存不存在，如果存在且内容有变化就生成新的激活版本，不存在直接生成新的激活版本
-        // todo 部分参数不支持，如单选、复选、下拉、节点、账号，文件参数不支持默认值
         // todo 用户令牌可用之后，要根据导入用户决定是否自动审核通过
         JSONArray faultArray = new JSONArray();
         jsonReader.startArray();
@@ -137,13 +136,17 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
                 }
             }
             if (faultMessages.isEmpty()) {
-                newScriptVo.setCatalogId(AutoexecCatalogVo.ROOT_ID);
                 String catalogName = newScriptVo.getCatalogName();
+                boolean hasCatalog = false;
                 if (StringUtils.isNotBlank(catalogName)) {
                     AutoexecCatalogVo catalog = autoexecCatalogMapper.getAutoexecCatalogByName(catalogName);
                     if (catalog != null) {
+                        hasCatalog = true;
                         newScriptVo.setCatalogId(catalog.getId());
                     }
+                }
+                if (!hasCatalog) {
+                    newScriptVo.setCatalogId(AutoexecCatalogVo.ROOT_ID);
                 }
                 Long typeId = autoexecTypeMapper.getTypeIdByName(newScriptVo.getTypeName());
                 Long riskId = autoexecRiskMapper.getRiskIdByName(newScriptVo.getRiskName());

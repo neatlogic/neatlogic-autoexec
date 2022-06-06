@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.stephandler.component;
 
+import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobEnvVo;
 import codedriver.framework.process.constvalue.*;
@@ -169,6 +170,8 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                 if (autoexecJobId == null) {
                     paramObj.put("source", AutoExecJobProcessSource.ITSM.getValue());
                     paramObj.put("threadCount", 32);
+                    paramObj.put("operationId",combopId);
+                    paramObj.put("operationType", CombopOperationType.COMBOP.getValue());
                     paramObj.put("invokeId", currentProcessTaskStepVo.getId());
                     try {
                         autoexecJobActionService.validateCreateJob(paramObj, false);
