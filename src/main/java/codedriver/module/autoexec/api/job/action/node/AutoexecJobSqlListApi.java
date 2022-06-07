@@ -3,14 +3,10 @@ package codedriver.module.autoexec.api.job.action.node;
 import codedriver.framework.autoexec.constvalue.AutoexecOperType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecSqlDetailVo;
-import codedriver.framework.cmdb.attrvaluehandler.core.AttrValueHandlerFactory;
 import codedriver.framework.cmdb.crossover.IAttrCrossoverMapper;
-import codedriver.framework.cmdb.crossover.ICiCrossoverMapper;
 import codedriver.framework.cmdb.crossover.ICiEntityCrossoverMapper;
 import codedriver.framework.cmdb.crossover.ICiEntityCrossoverService;
 import codedriver.framework.cmdb.dto.ci.AttrVo;
-import codedriver.framework.cmdb.dto.ci.CiVo;
-import codedriver.framework.cmdb.dto.cientity.AttrEntityVo;
 import codedriver.framework.cmdb.dto.cientity.CiEntityVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.crossover.CrossoverServiceFactory;
@@ -74,8 +70,7 @@ public class AutoexecJobSqlListApi extends PublicApiComponentBase {
             String phaseName = paramObj.getString("phaseName");
 
             if (Objects.nonNull(jobId) && StringUtils.isNotEmpty(phaseName)) {
-                List<Long> returnSqlIdList = autoexecJobMapper.getJobSqlIdListByJobIdAndJobPhaseName(jobId, phaseName);
-                List<AutoexecSqlDetailVo> returnSqlList = autoexecJobMapper.getJobSqlDetailListByIdList(returnSqlIdList);
+                List<AutoexecSqlDetailVo> returnSqlList = autoexecJobMapper.getJobSqlDetailListByJobIdAndPhaseName(jobId, phaseName);
                 if (CollectionUtils.isNotEmpty(returnSqlList)) {
                     for (AutoexecSqlDetailVo sqlDetailVo : returnSqlList) {
                         ICiEntityCrossoverMapper ciEntityCrossoverMapper = CrossoverServiceFactory.getApi(ICiEntityCrossoverMapper.class);
