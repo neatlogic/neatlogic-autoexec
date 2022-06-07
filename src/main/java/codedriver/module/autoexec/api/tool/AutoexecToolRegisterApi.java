@@ -42,7 +42,7 @@ import java.util.regex.Pattern;
 @OperationType(type = OperationTypeEnum.OPERATE)
 public class AutoexecToolRegisterApi extends PublicApiComponentBase {
 
-    final Pattern defualtValuePattern = Pattern.compile("\\$\\{(.*:.*)\\}");
+    final Pattern defualtValuePattern = Pattern.compile("\\$\\{(.*):(.*)\\}");
 
     @Resource
     private AutoexecToolMapper autoexecToolMapper;
@@ -180,14 +180,13 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                 }
                 if (defaultValue != null && defualtValuePattern.matcher(defaultValue.toString()).matches()) {
                     Matcher matcher = defualtValuePattern.matcher(defaultValue.toString());
-                    String mappingParam = null;
+                    String mappingMode = null;
+                    String mappingValue = null;
                     while (matcher.find()) {
-                        mappingParam = matcher.group(1);
+                        mappingMode = matcher.group(1);
+                        mappingValue = matcher.group(2);
                     }
-                    if (mappingParam != null) {
-                        String[] split = mappingParam.split(":");
-                        String mappingMode = split[0];
-                        String mappingValue = split[1];
+                    if (mappingMode != null && mappingValue != null) {
                         String paramMappingMode = paramMappingModeMap.get(mappingMode);
                         if (paramMappingMode == null) {
                             throw new AutoexecParamMappingNotFoundException(key, mappingMode);
