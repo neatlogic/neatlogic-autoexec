@@ -7,7 +7,10 @@ package codedriver.module.autoexec.job.action.handler.node;
 
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
-import codedriver.framework.autoexec.dto.job.*;
+import codedriver.framework.autoexec.dto.job.AutoexecJobNodeSqlVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import codedriver.framework.autoexec.util.AutoexecUtil;
 import com.alibaba.fastjson.JSONObject;
@@ -16,7 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -24,12 +26,12 @@ import java.util.Objects;
  * @since 2021/11/9 12:18
  **/
 @Service
-public class AutoexecJobNodeLogTailHandler extends AutoexecJobActionHandlerBase {
-    private final static Logger logger = LoggerFactory.getLogger(AutoexecJobNodeLogTailHandler.class);
+public class AutoexecJobNodeLogTailNewHandler extends AutoexecJobActionHandlerBase {
+    private final static Logger logger = LoggerFactory.getLogger(AutoexecJobNodeLogTailNewHandler.class);
 
     @Override
     public String getName() {
-        return JobAction.TAIL_NODE_LOG.getValue();
+        return JobAction.TAIL_NODE_LOG_NEW.getValue();
     }
 
     @Override
@@ -53,30 +55,11 @@ public class AutoexecJobNodeLogTailHandler extends AutoexecJobActionHandlerBase 
         paramJson.put("runnerUrl", nodeVo.getRunnerUrl());
         paramJson.put("execMode", phaseVo.getExecMode());
         paramJson.put("direction", StringUtils.isBlank(paramJson.getString("direction"))?"down":paramJson.getString("direction"));
-        String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/log/tail";
+        String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/log/tail/new";
         JSONObject result = JSONObject.parseObject(AutoexecUtil.requestRunner(url, paramJson));
         result.put("isRefresh", 0);
         if(StringUtils.isBlank(paramJson.getString("sqlName"))) {//获取node节点的状态（包括operation status）
-            AutoexecJobPhaseNodeVo phaseNodeVo = getNodeOperationStatus(paramJson,true);
-            List<AutoexecJobPhaseNodeOperationStatusVo> operationStatusVos = phaseNodeVo.getOperationStatusVoList();
-          /*  for (AutoexecJobPhaseNodeOperationStatusVo statusVo : operationStatusVos) {
-                //如果存在pending|running 的节点|阶段 则继续tail
-                //如果operation的状态为null，表示还没刷新结果，继续tail
-                if (Objects.equals(phaseVo.getStatus(), JobPhaseStatus.PENDING.getValue())
-                        || Objects.equals(phaseVo.getStatus(), JobPhaseStatus.RUNNING.getValue())
-                        || StringUtils.isBlank(statusVo.getStatus())
-                        || Objects.equals(statusVo.getStatus(), JobNodeStatus.PENDING.getValue())
-                        || Objects.equals(statusVo.getStatus(), JobNodeStatus.RUNNING.getValue())) {
-                    result.put("isRefresh", 1);
-                    break;
-                }
-                //如果存在失败停止策略的操作节点，则停止tail
-                if (Objects.equals(paramJson.getString("status"),JobNodeStatus.SUCCEED.getValue())&&Objects.equals(statusVo.getStatus(), JobNodeStatus.FAILED.getValue()) && Objects.equals(statusVo.getFailIgnore(), 0)) {
-                    result.put("isRefresh", 0);
-                    break;
-                }
-            }*/
-            result.put("operationStatusList", operationStatusVos);
+            AutoexecJobPhaseNodeVo phaseNodeVo = getNodeOperationStatus(paramJson,false);
             result.put("interact",phaseNodeVo.getInteract());
             String nodeStatusOld = paramJson.getString("status");
             if(Objects.equals(nodeStatusOld,JobNodeStatus.RUNNING.getValue()) || Objects.equals(phaseNodeVo.getStatus(),JobNodeStatus.RUNNING.getValue())){

@@ -52,7 +52,7 @@ public class AutoexecJobNodeSubmitWaitInputHandler extends AutoexecJobActionHand
         paramObj.put("runnerUrl", nodeVo.getRunnerUrl());
         paramObj.put("execMode", phaseVo.getExecMode());
         //获取pipeFile 路径
-        AutoexecJobPhaseNodeVo phaseNodeVo = getNodeOperationStatus(paramObj);
+        AutoexecJobPhaseNodeVo phaseNodeVo = getNodeOperationStatus(paramObj,false);
         JSONObject interactJson = phaseNodeVo.getInteract();
         if(MapUtils.isNotEmpty(interactJson)){
             paramObj.put("pipeFile",interactJson.getString("pipeFile"));

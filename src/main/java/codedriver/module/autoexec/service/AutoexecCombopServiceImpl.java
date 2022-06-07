@@ -216,7 +216,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                         }
                         JSONObject argumentJson = toolConfig.getJSONObject("argument");
                         if (MapUtils.isNotEmpty(argumentJson)) {
-                            argumentParam = new AutoexecParamVo(argumentJson);
+                            argumentParam = argumentJson.toJavaObject(AutoexecParamVo.class);
                         }
                     }
                 }

@@ -7,7 +7,9 @@ package codedriver.module.autoexec.service;
 
 import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.crossover.IAutoexecServiceCrossoverService;
-import codedriver.framework.autoexec.dao.mapper.*;
+import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.framework.autoexec.dto.AutoexecOperationVo;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecRiskVo;
@@ -18,6 +20,7 @@ import codedriver.framework.autoexec.dto.scenario.AutoexecScenarioVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
+import codedriver.framework.autoexec.exception.AutoexecParamMappingNotFoundException;
 import codedriver.framework.autoexec.script.paramtype.IScriptParamType;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import codedriver.framework.exception.type.*;
@@ -86,6 +89,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 String name = param.getName();
                 String type = param.getType();
                 Integer isRequired = param.getIsRequired();
+                String mappingMode = param.getMappingMode();
                 int index = i + 1;
                 if (StringUtils.isBlank(key)) {
                     throw new ParamNotExistsException(index, "英文名");
@@ -120,6 +124,9 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                     }
                     if (isRequired == null) {
                         throw new ParamNotExistsException(index, key, "是否必填");
+                    }
+                    if (mappingMode != null && AutoexecProfileParamInvokeType.getParamType(mappingMode) == null) {
+                        throw new AutoexecParamMappingNotFoundException(key, mappingMode);
                     }
                 } else {
                     OutputParamType paramType = OutputParamType.getParamType(type);
