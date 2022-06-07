@@ -125,7 +125,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                     if (isRequired == null) {
                         throw new ParamNotExistsException(index, key, "是否必填");
                     }
-                    if (mappingMode != null && ScriptParamMappingMode.getParamMappingMode(mappingMode) == null) {
+                    if (mappingMode != null && AutoexecProfileParamInvokeType.getParamType(mappingMode) == null) {
                         throw new AutoexecParamMappingNotFoundException(key, mappingMode);
                     }
                 } else {
