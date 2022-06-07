@@ -173,6 +173,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     paramObj.put("operationId",combopId);
                     paramObj.put("operationType", CombopOperationType.COMBOP.getValue());
                     paramObj.put("invokeId", currentProcessTaskStepVo.getId());
+                    paramObj.put("isFirstFire", 1);
                     try {
                         autoexecJobActionService.validateCreateJob(paramObj, false);
 //                        AutoexecJobVo jobVo = autoexecJobActionService.validateCreateJobFromCombop(paramObj, false);

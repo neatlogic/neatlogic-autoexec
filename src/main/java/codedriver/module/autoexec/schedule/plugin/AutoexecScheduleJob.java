@@ -114,6 +114,7 @@ public class AutoexecScheduleJob extends JobBase {
             paramObj.put("invokeId", autoexecScheduleVo.getId());
             paramObj.put("operationId", autoexecCombopVo.getId());
             paramObj.put("operationType", CombopOperationType.COMBOP.getValue());
+            paramObj.put("isFirstFire", 1);
             UserVo fcuVo = userMapper.getUserByUuid(autoexecScheduleVo.getFcu());
             UserContext.init(fcuVo, SystemUser.SYSTEM.getTimezone());
             UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(fcuVo).getCc());

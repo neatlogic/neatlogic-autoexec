@@ -57,7 +57,7 @@ public class AutoexecJobNodeLogTailHandler extends AutoexecJobActionHandlerBase 
         JSONObject result = JSONObject.parseObject(AutoexecUtil.requestRunner(url, paramJson));
         result.put("isRefresh", 0);
         if(StringUtils.isBlank(paramJson.getString("sqlName"))) {//获取node节点的状态（包括operation status）
-            AutoexecJobPhaseNodeVo phaseNodeVo = getNodeOperationStatus(paramJson);
+            AutoexecJobPhaseNodeVo phaseNodeVo = getNodeOperationStatus(paramJson,true);
             List<AutoexecJobPhaseNodeOperationStatusVo> operationStatusVos = phaseNodeVo.getOperationStatusVoList();
           /*  for (AutoexecJobPhaseNodeOperationStatusVo statusVo : operationStatusVos) {
                 //如果存在pending|running 的节点|阶段 则继续tail
