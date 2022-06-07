@@ -1,3 +1,8 @@
+/*
+ * Copyright(c) 2022 TechSure Co., Ltd. All Rights Reserved.
+ * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
+ */
+
 package codedriver.module.autoexec.api.job.action.node;
 
 import codedriver.framework.auth.core.AuthAction;
@@ -44,7 +49,7 @@ public class AutoexecJobPhaseSqlSearchApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "作业剧本sql文件节点搜索";
+        return "搜索作业剧本sql文件节点";
     }
 
     @Override
