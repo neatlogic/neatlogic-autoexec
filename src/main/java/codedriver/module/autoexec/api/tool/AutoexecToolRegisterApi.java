@@ -12,10 +12,7 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
-import codedriver.framework.autoexec.exception.AutoexecRiskNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecToolParamDatasourceEmptyException;
-import codedriver.framework.autoexec.exception.AutoexecToolParamDatasourceIllegalException;
-import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
+import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.exception.type.ParamNotExistsException;
@@ -34,9 +31,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Collections;
-import java.util.Date;
-import java.util.Objects;
+import java.util.*;
 import java.util.regex.Pattern;
 
 @Service
@@ -191,7 +186,11 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                     String[] split = mappingParam.split(":");
                     String mappingMode = split[0];
                     String mappingValue = split[1];
-                    if (mappingMode.equals("global")) {
+                    String paramMappingMode = paramMappingModeMap.get(mappingMode);
+                    if (paramMappingMode == null) {
+                        throw new AutoexecParamMappingNotFoundException(key, mappingMode);
+                    }
+                    if (ScriptParamMappingMode.GLOBAL_PARAM.getValue().equals(paramMappingMode)) {
                         if (autoexecGbobalParamMapper.getGlobalParamByKey(mappingValue) == null) {
                             // 如果不存在名为{mappingValue}的全局参数，则创建
                             AutoexecGlobalParamType globalParamType = AutoexecGlobalParamType.getParamType(type);
@@ -262,5 +261,10 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
         return paramList;
     }
 
+    static Map<String, String> paramMappingModeMap = new HashMap<>();
+
+    static {
+        paramMappingModeMap.put("global", ScriptParamMappingMode.GLOBAL_PARAM.getValue());
+    }
 
 }
