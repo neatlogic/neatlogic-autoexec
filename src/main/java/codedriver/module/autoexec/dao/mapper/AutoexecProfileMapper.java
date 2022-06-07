@@ -36,6 +36,8 @@ public interface AutoexecProfileMapper {
 
     AutoexecProfileVo getProfileVoById(Long id);
 
+    AutoexecProfileVo getProfileVoByName(String name);
+
     void insertAutoexecProfileOperation(@Param("profileId") Long profileId, @Param("operationIdList") List<Long> operationIdList, @Param("type") String type, @Param("lcd") Date lcd);
 
     void insertProfile(AutoexecProfileVo profileVo);
