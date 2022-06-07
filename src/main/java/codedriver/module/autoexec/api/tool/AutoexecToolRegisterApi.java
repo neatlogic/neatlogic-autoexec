@@ -191,12 +191,12 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                         throw new AutoexecParamMappingNotFoundException(key, mappingMode);
                     }
                     if (ScriptParamMappingMode.GLOBAL_PARAM.getValue().equals(paramMappingMode)) {
+                        AutoexecGlobalParamType globalParamType = AutoexecGlobalParamType.getParamType(type);
+                        if (globalParamType == null) {
+                            throw new AutoexecGlobalParamTypeNotFoundException(key, type);
+                        }
                         if (autoexecGbobalParamMapper.getGlobalParamByKey(mappingValue) == null) {
                             // 如果不存在名为{mappingValue}的全局参数，则创建
-                            AutoexecGlobalParamType globalParamType = AutoexecGlobalParamType.getParamType(type);
-                            if (globalParamType == null) {
-                                throw new ParamTypeNotFoundException(type);
-                            }
                             AutoexecGlobalParamVo globalParamVo = new AutoexecGlobalParamVo(mappingValue, mappingValue, globalParamType.getValue());
                             autoexecGbobalParamMapper.insertGlobalParam(globalParamVo);
                         }
