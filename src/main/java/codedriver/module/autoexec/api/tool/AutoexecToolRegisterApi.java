@@ -9,6 +9,7 @@ import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
+import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
@@ -137,7 +138,7 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
             config.put("paramList", paramList);
         }
         if (MapUtils.isNotEmpty(argument)) {
-            config.put("argument", argument);
+            config.put("argument", new AutoexecParamVo(argument));
         }
         vo.setConfigStr(config.toJSONString());
         autoexecToolMapper.replaceTool(vo);
