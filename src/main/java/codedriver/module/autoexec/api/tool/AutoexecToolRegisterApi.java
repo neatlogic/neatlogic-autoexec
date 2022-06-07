@@ -12,7 +12,10 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
-import codedriver.framework.autoexec.exception.*;
+import codedriver.framework.autoexec.exception.AutoexecRiskNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecToolParamDatasourceEmptyException;
+import codedriver.framework.autoexec.exception.AutoexecToolParamDatasourceIllegalException;
+import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.exception.type.ParamNotExistsException;
@@ -198,7 +201,7 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                             AutoexecGlobalParamVo globalParamVo = new AutoexecGlobalParamVo(mappingValue, mappingValue, globalParamType.getValue());
                             autoexecGbobalParamMapper.insertGlobalParam(globalParamVo);
                         }
-                        param.put("mappingMode", ParamMappingMode.GLOBAL_PARAM.getValue());
+                        param.put("mappingMode", ScriptParamMappingMode.GLOBAL_PARAM.getValue());
                         param.put("defaultValue", mappingValue);
                     }
                 } else {
