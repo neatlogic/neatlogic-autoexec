@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author longrf
@@ -71,21 +72,25 @@ public class AutoexecJobSqlListApi extends PublicApiComponentBase {
 
             if (Objects.nonNull(jobId) && StringUtils.isNotEmpty(phaseName)) {
                 List<AutoexecSqlDetailVo> returnSqlList = autoexecJobMapper.getJobSqlDetailListByJobIdAndPhaseName(jobId, phaseName);
+                //补充访问地址信息
                 if (CollectionUtils.isNotEmpty(returnSqlList)) {
+                    ICiEntityCrossoverMapper ciEntityCrossoverMapper = CrossoverServiceFactory.getApi(ICiEntityCrossoverMapper.class);
+                    List<CiEntityVo> entityVoList = ciEntityCrossoverMapper.getCiEntityBaseInfoByIdList(returnSqlList.stream().map(AutoexecSqlDetailVo::getResourceId).collect(Collectors.toList()));
+                    Map<Long, CiEntityVo> ciEntityVoMap = entityVoList.stream().collect(Collectors.toMap(CiEntityVo::getId, e -> e));
+                    //循环sql列表，根据sqlVo里面resourceId获取访问地址
                     for (AutoexecSqlDetailVo sqlDetailVo : returnSqlList) {
-                        ICiEntityCrossoverMapper ciEntityCrossoverMapper = CrossoverServiceFactory.getApi(ICiEntityCrossoverMapper.class);
-                        CiEntityVo ciEntity = ciEntityCrossoverMapper.getCiEntityBaseInfoById(sqlDetailVo.getResourceId());
+                        CiEntityVo ciEntity = ciEntityVoMap.get(sqlDetailVo.getResourceId());
+                        //找到访问地址的属性id
                         IAttrCrossoverMapper attrCrossoverMapper = CrossoverServiceFactory.getApi(IAttrCrossoverMapper.class);
                         AttrVo attrVo = attrCrossoverMapper.getAttrByCiIdAndName(ciEntity.getCiId(), "access_endpoint");
-                        if (attrVo != null) {
-                            ICiEntityCrossoverService ciEntityService = CrossoverServiceFactory.getApi(ICiEntityCrossoverService.class);
-                            CiEntityVo ciEntityInfo = ciEntityService.getCiEntityById(ciEntity.getCiId(), sqlDetailVo.getResourceId());
-                            JSONObject valueJsonObject = ciEntityInfo.getAttrEntityData().getJSONObject("attr_" + attrVo.getId());
-                            if (valueJsonObject != null) {
-                                JSONArray valueList = valueJsonObject.getJSONArray("valueList");
-                                if (CollectionUtils.isNotEmpty(valueList)) {
-                                    sqlDetailVo.setAccessEndPoint(valueList.get(0).toString());
-                                }
+                        ICiEntityCrossoverService ciEntityService = CrossoverServiceFactory.getApi(ICiEntityCrossoverService.class);
+                        CiEntityVo ciEntityInfo = ciEntityService.getCiEntityById(ciEntity.getCiId(), sqlDetailVo.getResourceId());
+                        //根据访问地址的属性id获取对应的值
+                        JSONObject valueJsonObject = ciEntityInfo.getAttrEntityData().getJSONObject("attr_" + attrVo.getId());
+                        if (valueJsonObject != null) {
+                            JSONArray valueList = valueJsonObject.getJSONArray("valueList");
+                            if (CollectionUtils.isNotEmpty(valueList)) {
+                                sqlDetailVo.setAccessEndPoint(String.join(",", valueList.toJavaList(String.class)));
                             }
                         }
                     }
