@@ -62,12 +62,12 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
         AutoexecJobVo jobVo = new AutoexecJobVo();
         jobVo.setActionParam(paramObj);
         jobVo.setAction(JobAction.TAIL_NODE_LOG.getValue());
-        IAutoexecJobActionHandler tailNodeLogAction = AutoexecJobActionHandlerFactory.getAction(JobAction.TAIL_NODE_LOG_NEW.getValue());
+        IAutoexecJobActionHandler tailNodeLogAction = AutoexecJobActionHandlerFactory.getAction(JobAction.TAIL_NODE_LOG.getValue());
         return tailNodeLogAction.doService(jobVo);
     }
 
     @Override
     public String getToken() {
-        return "/autoexec/job/phase/node/log/tail/new";
+        return "/autoexec/job/phase/node/log/tail";
     }
 }
