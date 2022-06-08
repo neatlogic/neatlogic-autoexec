@@ -122,7 +122,7 @@ public class AutoexecJobSourceHandler extends AutoexecJobSourceActionHandlerBase
             } else {
                 autoexecJobMapper.insertSqlDetailList(insertSqlList, targetPhaseVo.getName(), targetPhaseVo.getId(), paramObj.getLong("runnerId"), nowLcd);
             }
-            List<Long> needDeleteSqlIdList = autoexecJobMapper.getSqlDetailIdByJobIdAndPhaseNameAndResourceIdAndLcd(paramObj.getLong("jobId"), insertSqlList.get(0).getResourceId(), paramObj.getString("targetPhaseName"), nowLcd);
+            List<Long> needDeleteSqlIdList = autoexecJobMapper.getSqlDetailIdListByJobIdAndPhaseNameAndResourceIdAndLcd(paramObj.getLong("jobId"), insertSqlList.get(0).getResourceId(), paramObj.getString("targetPhaseName"), nowLcd);
             if (CollectionUtils.isNotEmpty(needDeleteSqlIdList)) {
                 autoexecJobMapper.updateSqlIsDeleteByIdList(needDeleteSqlIdList);
             }
