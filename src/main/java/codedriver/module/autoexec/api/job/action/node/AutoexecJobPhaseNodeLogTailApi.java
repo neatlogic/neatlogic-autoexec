@@ -68,6 +68,6 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
 
     @Override
     public String getToken() {
-        return "/autoexec/job/phase/node/log/tail/new";
+        return "/autoexec/job/phase/node/log/tail";
     }
 }

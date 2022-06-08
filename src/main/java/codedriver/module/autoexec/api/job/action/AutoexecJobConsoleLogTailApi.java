@@ -81,6 +81,6 @@ public class AutoexecJobConsoleLogTailApi extends PrivateApiComponentBase {
 
     @Override
     public String getToken() {
-        return "/autoexec/job/console/log/tail/new";
+        return "/autoexec/job/console/log/tail";
     }
 }
