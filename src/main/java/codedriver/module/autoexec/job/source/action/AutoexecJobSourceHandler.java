@@ -131,8 +131,9 @@ public class AutoexecJobSourceHandler extends AutoexecJobSourceActionHandlerBase
 
     @Override
     public void updateSqlStatus(JSONObject paramObj) {
-        AutoexecSqlDetailVo paramSqlVo = new AutoexecSqlDetailVo(paramObj.getJSONObject("sqlStatus"));
+        AutoexecSqlDetailVo paramSqlVo = paramObj.getJSONObject("sqlStatus").toJavaObject(AutoexecSqlDetailVo.class);
         paramSqlVo.setPhaseName(paramObj.getString("phaseName"));
+        paramSqlVo.setJobId(paramObj.getLong("jobId"));
         if (autoexecJobMapper.updateSqlDetailIsDeleteAndStatusAndMd5AndLcd(paramSqlVo) == 0) {
             AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(paramObj.getLong("jobId"), paramObj.getString("phaseName"));
             if (phaseVo == null) {
