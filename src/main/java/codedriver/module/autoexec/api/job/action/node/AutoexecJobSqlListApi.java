@@ -3,6 +3,11 @@ package codedriver.module.autoexec.api.job.action.node;
 import codedriver.framework.autoexec.constvalue.AutoexecOperType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecSqlDetailVo;
+import codedriver.framework.cmdb.crossover.IAttrCrossoverMapper;
+import codedriver.framework.cmdb.crossover.ICiEntityCrossoverMapper;
+import codedriver.framework.cmdb.crossover.ICiEntityCrossoverService;
+import codedriver.framework.cmdb.dto.ci.AttrVo;
+import codedriver.framework.cmdb.dto.cientity.CiEntityVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.crossover.CrossoverServiceFactory;
 import codedriver.framework.deploy.constvalue.DeployOperType;
@@ -18,8 +23,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author longrf
@@ -48,7 +53,6 @@ public class AutoexecJobSqlListApi extends PublicApiComponentBase {
     }
 
     @Input({
-            @Param(name = "sqlInfoList", type = ApiParamType.JSONARRAY, desc = "sql列表"),
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id"),
             @Param(name = "phaseName", type = ApiParamType.STRING, desc = "作业剧本名"),
             @Param(name = "sysId", type = ApiParamType.LONG, desc = "系统id"),
@@ -63,11 +67,41 @@ public class AutoexecJobSqlListApi extends PublicApiComponentBase {
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         if (StringUtils.equals(paramObj.getString("operType"), AutoexecOperType.AUTOEXEC.getValue())) {
-            JSONArray SqlVoArray = paramObj.getJSONArray("sqlInfoList");
-            if (CollectionUtils.isNotEmpty(SqlVoArray)) {
-                List<AutoexecSqlDetailVo> sqlDetailVoList = SqlVoArray.toJavaList(AutoexecSqlDetailVo.class);
-                return autoexecJobMapper.getJobSqlDetailList(sqlDetailVoList, paramObj.getString("phaseName"));
+            Long jobId = paramObj.getLong("jobId");
+            String phaseName = paramObj.getString("phaseName");
+
+            if (Objects.nonNull(jobId) && StringUtils.isNotEmpty(phaseName)) {
+                List<AutoexecSqlDetailVo> returnSqlList = autoexecJobMapper.getJobSqlDetailListByJobIdAndPhaseName(jobId, phaseName);
+                //补充访问地址信息
+                if (CollectionUtils.isNotEmpty(returnSqlList)) {
+                    ICiEntityCrossoverMapper ciEntityCrossoverMapper = CrossoverServiceFactory.getApi(ICiEntityCrossoverMapper.class);
+                    List<CiEntityVo> entityVoList = ciEntityCrossoverMapper.getCiEntityBaseInfoByIdList(returnSqlList.stream().map(AutoexecSqlDetailVo::getResourceId).collect(Collectors.toList()));
+                    if (CollectionUtils.isNotEmpty(entityVoList)) {
+                        Map<Long, CiEntityVo> ciEntityVoMap = entityVoList.stream().collect(Collectors.toMap(CiEntityVo::getId, e -> e));
+                        //循环sql列表，根据sqlVo里面resourceId获取访问地址
+                        for (AutoexecSqlDetailVo sqlDetailVo : returnSqlList) {
+                            CiEntityVo ciEntity = ciEntityVoMap.get(sqlDetailVo.getResourceId());
+                            //找到访问地址的属性id
+                            IAttrCrossoverMapper attrCrossoverMapper = CrossoverServiceFactory.getApi(IAttrCrossoverMapper.class);
+                            AttrVo attrVo = attrCrossoverMapper.getAttrByCiIdAndName(ciEntity.getCiId(), "access_endpoint");
+                            ICiEntityCrossoverService ciEntityService = CrossoverServiceFactory.getApi(ICiEntityCrossoverService.class);
+                            CiEntityVo ciEntityInfo = ciEntityService.getCiEntityById(ciEntity.getCiId(), sqlDetailVo.getResourceId());
+                            //根据访问地址的属性id获取对应的值
+                            if (attrVo != null) {
+                                JSONObject valueJsonObject = ciEntityInfo.getAttrEntityData().getJSONObject("attr_" + attrVo.getId());
+                                if (valueJsonObject != null) {
+                                    JSONArray valueList = valueJsonObject.getJSONArray("valueList");
+                                    if (CollectionUtils.isNotEmpty(valueList)) {
+                                        sqlDetailVo.setAccessEndPoint(String.join(",", valueList.toJavaList(String.class)));
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                return returnSqlList;
             }
+
         } else if (StringUtils.equals(paramObj.getString("operType"), DeployOperType.DEPLOY.getValue())) {
             IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
             List<DeploySqlDetailVo> sqlDetailVoList = new ArrayList<>();
