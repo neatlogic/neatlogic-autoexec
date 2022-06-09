@@ -134,7 +134,8 @@ public class AutoexecJobSourceHandler extends AutoexecJobSourceActionHandlerBase
         AutoexecSqlDetailVo paramSqlVo = paramObj.getJSONObject("sqlStatus").toJavaObject(AutoexecSqlDetailVo.class);
         paramSqlVo.setPhaseName(paramObj.getString("phaseName"));
         paramSqlVo.setJobId(paramObj.getLong("jobId"));
-        if (autoexecJobMapper.updateSqlDetailIsDeleteAndStatusAndMd5AndLcd(paramSqlVo) == 0) {
+        AutoexecSqlDetailVo oldSqlDetailVo = autoexecJobMapper.getJobSqlByResourceIdAndJobIdAndJobPhaseNameAndSqlFile(paramObj.getLong("jobId"), paramObj.getString("phaseName"), paramObj.getString("sqlFile"));
+        if (oldSqlDetailVo == null) {
             AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(paramObj.getLong("jobId"), paramObj.getString("phaseName"));
             if (phaseVo == null) {
                 throw new AutoexecJobPhaseNotFoundException(paramObj.getString("phaseName"));
@@ -143,6 +144,9 @@ public class AutoexecJobSourceHandler extends AutoexecJobSourceActionHandlerBase
             paramSqlVo.setJobId(paramObj.getLong("jobId"));
             paramSqlVo.setPhaseId(phaseVo.getId());
             autoexecJobMapper.insertSqlDetail(paramSqlVo);
+        } else {
+            paramSqlVo.setId(oldSqlDetailVo.getId());
+            autoexecJobMapper.updateSqlDetailIsDeleteAndStatusAndMd5AndLcdById(paramSqlVo);
         }
     }
 
