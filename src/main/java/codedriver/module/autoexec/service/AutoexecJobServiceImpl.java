@@ -89,7 +89,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             autoexecJobMapper.insertIgnoreIntoJobInvoke(invokeVo);
         }
         //保存作业基本信息
-        if(StringUtils.isBlank(jobVo.getName())){
+        if (StringUtils.isBlank(jobVo.getName())) {
             jobVo.setName(combopVo.getName());
         }
         autoexecJobMapper.insertJob(jobVo);
@@ -333,7 +333,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             protocolId = combopExecuteConfigVo.getProtocolId();
         }
         //只刷新当前target|sql阶段
-        List<AutoexecCombopPhaseVo> combopPhaseList = configVo.getCombopPhaseList().stream().filter(o -> Arrays.asList(ExecMode.TARGET.getValue(),ExecMode.RUNNER_TARGET.getValue(), ExecMode.SQL.getValue()).contains(o.getExecMode())).collect(Collectors.toList());
+        List<AutoexecCombopPhaseVo> combopPhaseList = configVo.getCombopPhaseList().stream().filter(o -> Arrays.asList(ExecMode.TARGET.getValue(), ExecMode.RUNNER_TARGET.getValue(), ExecMode.SQL.getValue()).contains(o.getExecMode())).collect(Collectors.toList());
         for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
             AutoexecCombopPhaseConfigVo combopPhaseExecuteConfigVo = autoexecCombopPhaseVo.getConfig();
             Optional<AutoexecJobPhaseVo> jobPhaseVoOptional = jobPhaseVoList.stream().filter(o -> Objects.equals(o.getName(), autoexecCombopPhaseVo.getName())).findFirst();
@@ -519,7 +519,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      */
     private boolean updateNodeResourceByInputAndSelect(AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, AutoexecJobPhaseVo jobPhaseVo, String userName, Long protocolId) {
         List<AutoexecNodeVo> nodeVoList = new ArrayList<>();
-        List<ResourceVo> ipPortList = new ArrayList<>();
+        List<ResourceVo> ipPortNameList = new ArrayList<>();
         List<ResourceVo> lostIpPortList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getInputNodeList())) {
             nodeVoList.addAll(executeNodeConfigVo.getInputNodeList());
@@ -529,21 +529,21 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
         if (CollectionUtils.isNotEmpty(nodeVoList)) {
             nodeVoList.forEach(o -> {
-                ipPortList.add(new ResourceVo(o.getIp(), o.getPort()));
+                ipPortNameList.add(new ResourceVo(o.getIp(), o.getPort(), o.getName()));
             });
-            List<ResourceVo> resourceVoList = resourceCenterMapper.getResourceListByResourceVoList(ipPortList, TenantContext.get().getDataDbName());
+            List<ResourceVo> resourceVoList = resourceCenterMapper.getResourceListByResourceVoList(ipPortNameList, TenantContext.get().getDataDbName());
             if (CollectionUtils.isNotEmpty(resourceVoList)) {
                 //根据ip:port去重
                 resourceVoList = resourceVoList.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(r -> r.getIp() + ":" + r.getPort()))), ArrayList::new));
                 //如果根据ip port 找不到对应的资产，直接返回异常提示
                 List<ResourceVo> finalResourceVoList = resourceVoList;
-                lostIpPortList = ipPortList.stream().filter(s -> finalResourceVoList.stream().noneMatch(s1 -> Objects.equals(s1.getIp() + s1.getPort(), s.getIp() + s.getPort()))).collect(Collectors.toList());
+                lostIpPortList = ipPortNameList.stream().filter(s -> finalResourceVoList.stream().noneMatch(s1 -> Objects.equals(s1.getIp() + s1.getPort(), s.getIp() + s.getPort()))).collect(Collectors.toList());
                 if (CollectionUtils.isEmpty(lostIpPortList)) {
                     updateJobPhaseNode(jobPhaseVo, resourceVoList, userName, protocolId);
                     return true;
                 }
             } else {
-                lostIpPortList = ipPortList;
+                lostIpPortList = ipPortNameList;
             }
             //无须校验
            /* if (CollectionUtils.isNotEmpty(lostIpPortList)) {
