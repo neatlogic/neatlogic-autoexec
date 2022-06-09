@@ -5,6 +5,7 @@ import codedriver.framework.autoexec.constvalue.AutoexecFromType;
 import codedriver.framework.autoexec.constvalue.AutoexecGlobalParamType;
 import codedriver.framework.autoexec.constvalue.AutoexecProfileParamInvokeType;
 import codedriver.framework.autoexec.constvalue.ToolType;
+import codedriver.framework.autoexec.crossover.IAutoexecProfileCrossoverService;
 import codedriver.framework.autoexec.dto.AutoexecOperationVo;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamValueVo;
@@ -29,7 +30,7 @@ import java.util.stream.Collectors;
  * @date 2022/3/21 3:32 下午
  */
 @Service
-public class AutoexecProfileServiceImpl implements AutoexecProfileService {
+public class AutoexecProfileServiceImpl implements AutoexecProfileService, IAutoexecProfileCrossoverService {
 
     @Resource
     AutoexecProfileMapper autoexecProfileMapper;
