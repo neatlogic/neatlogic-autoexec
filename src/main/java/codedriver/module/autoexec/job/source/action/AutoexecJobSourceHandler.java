@@ -10,8 +10,11 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.dto.job.AutoexecSqlDetailVo;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
+import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import codedriver.framework.autoexec.job.source.action.AutoexecJobSourceActionHandlerBase;
 import codedriver.framework.autoexec.util.AutoexecUtil;
+import codedriver.framework.dao.mapper.runner.RunnerMapper;
+import codedriver.framework.dto.runner.RunnerMapVo;
 import codedriver.framework.integration.authentication.enums.AuthenticateType;
 import codedriver.framework.util.HttpRequestUtil;
 import codedriver.framework.util.TableResultUtil;
@@ -22,10 +25,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author longrf
@@ -36,6 +37,9 @@ public class AutoexecJobSourceHandler extends AutoexecJobSourceActionHandlerBase
 
     @Resource
     AutoexecJobMapper autoexecJobMapper;
+
+    @Resource
+    RunnerMapper runnerMapper;
 
     @Override
     public String getName() {
@@ -74,12 +78,23 @@ public class AutoexecJobSourceHandler extends AutoexecJobSourceActionHandlerBase
 
     @Override
     public void resetSqlStatus(JSONObject paramObj, AutoexecJobVo jobVo) {
+        List<AutoexecSqlDetailVo> resetSqlList = null;
         List<Long> resetSqlIdList = null;
         JSONArray sqlIdArray = paramObj.getJSONArray("sqlIdList");
         if (!Objects.isNull(paramObj.getInteger("isAll")) && paramObj.getInteger("isAll") == 1) {
             //重置phase的所有sql文件状态
-            resetSqlIdList = autoexecJobMapper.getJobSqlIdListByJobIdAndJobPhaseName(paramObj.getLong("jobId"), paramObj.getString("phaseName"));
-            jobVo.setExecuteJobNodeVoList(autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseName(jobVo.getId(), paramObj.getString("phaseName")));
+            resetSqlList = autoexecJobMapper.getJobSqlListByJobIdAndJobPhaseName(paramObj.getLong("jobId"), paramObj.getString("phaseName"));
+            resetSqlIdList = resetSqlList.stream().map(AutoexecSqlDetailVo::getId).collect(Collectors.toList());
+            List<AutoexecJobPhaseNodeVo> jobPhaseNodeVos = new ArrayList<>();
+            List<RunnerMapVo> runnerMapVos = runnerMapper.getRunnerByRunnerMapIdList(resetSqlList.stream().map(AutoexecSqlDetailVo::getRunnerId).collect(Collectors.toList()));
+            for (AutoexecSqlDetailVo resetSql : resetSqlList) {
+                Optional<RunnerMapVo> runnerMapVoOptional = runnerMapVos.stream().filter(o -> Objects.equals(o.getRunnerMapId(), resetSql.getRunnerId())).findFirst();
+                if (!runnerMapVoOptional.isPresent()) {
+                    throw new AutoexecJobRunnerNotFoundException(resetSql.getRunnerId().toString());
+                }
+                jobPhaseNodeVos.add(new AutoexecJobPhaseNodeVo(resetSql.getJobId(), resetSql.getPhaseName(), resetSql.getHost(), resetSql.getPort(), resetSql.getResourceId(), runnerMapVoOptional.get().getUrl(), resetSql.getRunnerId()));
+            }
+            jobVo.setExecuteJobNodeVoList(jobPhaseNodeVos);
         } else if (CollectionUtils.isNotEmpty(sqlIdArray)) {
             resetSqlIdList = sqlIdArray.toJavaList(Long.class);
             jobVo.setExecuteJobNodeVoList(autoexecJobMapper.getJobPhaseNodeListBySqlIdList(resetSqlIdList));
