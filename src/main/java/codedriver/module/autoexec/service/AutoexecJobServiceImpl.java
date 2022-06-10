@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  2021 TechSure Co.,Ltd.  All Rights Reserved.
+ * Copyright(c) 2022 TechSure Co., Ltd. All Rights Reserved.
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  */
 
@@ -717,7 +717,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 if (CollectionUtils.isNotEmpty(combopVoList)) {
                     combopVoMap = combopVoList.stream().collect(Collectors.toMap(AutoexecCombopVo::getId, o -> o));
                 }
-                Boolean hasAutoexecScriptModifyAuth = AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class);
+                boolean hasAutoexecScriptModifyAuth = AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class);
                 for (AutoexecJobVo vo : jobVoList) {
                     vo.setOperationName(operationIdNameMap.get(vo.getOperationId()));
                     // 有组合工具执行权限，只能接管作业，执行用户才能执行或撤销作业

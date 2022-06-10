@@ -8,7 +8,6 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
-import codedriver.framework.autoexec.dto.catalog.AutoexecCatalogVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptArgumentVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
@@ -110,6 +109,9 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
             if (StringUtils.isNotBlank(newScriptVo.getTypeName()) && autoexecTypeMapper.getTypeIdByName(newScriptVo.getTypeName()) == null) {
                 faultMessages.add("工具分类：'" + newScriptVo.getTypeName() + "'不存在");
             }
+            if (StringUtils.isNotBlank(newScriptVo.getCatalogName()) && autoexecCatalogMapper.getAutoexecCatalogByName(newScriptVo.getCatalogName()) == null) {
+                faultMessages.add("工具目录：'" + newScriptVo.getCatalogName() + "'不存在");
+            }
             if (StringUtils.isNotBlank(newScriptVo.getRiskName()) && autoexecRiskMapper.getRiskIdByName(newScriptVo.getRiskName()) == null) {
                 faultMessages.add("操作级别：'" + newScriptVo.getRiskName() + "'不存在");
             }
@@ -136,22 +138,9 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
                 }
             }
             if (faultMessages.isEmpty()) {
-                String catalogName = newScriptVo.getCatalogName();
-                boolean hasCatalog = false;
-                if (StringUtils.isNotBlank(catalogName)) {
-                    AutoexecCatalogVo catalog = autoexecCatalogMapper.getAutoexecCatalogByName(catalogName);
-                    if (catalog != null) {
-                        hasCatalog = true;
-                        newScriptVo.setCatalogId(catalog.getId());
-                    }
-                }
-                if (!hasCatalog) {
-                    newScriptVo.setCatalogId(AutoexecCatalogVo.ROOT_ID);
-                }
-                Long typeId = autoexecTypeMapper.getTypeIdByName(newScriptVo.getTypeName());
-                Long riskId = autoexecRiskMapper.getRiskIdByName(newScriptVo.getRiskName());
-                newScriptVo.setTypeId(typeId);
-                newScriptVo.setRiskId(riskId);
+                newScriptVo.setTypeId(autoexecTypeMapper.getTypeIdByName(newScriptVo.getTypeName()));
+                newScriptVo.setRiskId(autoexecRiskMapper.getRiskIdByName(newScriptVo.getRiskName()));
+                newScriptVo.setCatalogId(autoexecCatalogMapper.getAutoexecCatalogByName(newScriptVo.getCatalogName()).getId());
 
                 AutoexecScriptVo oldScriptVo = autoexecScriptMapper.getScriptBaseInfoByName(newScriptVo.getName());
                 if (oldScriptVo == null) {

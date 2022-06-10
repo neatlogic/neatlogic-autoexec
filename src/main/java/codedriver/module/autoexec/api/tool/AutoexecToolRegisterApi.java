@@ -26,8 +26,8 @@ import codedriver.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecProfileMapper;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -173,7 +173,7 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                 param.put("description", value.getString("help"));
                 String type = value.getString("type");
                 Object defaultValue = value.get("defaultValue");
-                JSONArray dataSource = value.getJSONArray("dataSource");
+                JSONObject dataSource = value.getJSONObject("dataSource");
                 ParamType paramType = ParamType.getParamType(type);
                 if (paramType == null) {
                     throw new ParamTypeNotFoundException(type);
@@ -208,18 +208,22 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                 } else {
                     param.put("defaultValue", defaultValue);
                     if (ScriptParamTypeFactory.getHandler(type).needDataSource()) {
-                        if (CollectionUtils.isEmpty(dataSource)) {
+                        if (MapUtils.isEmpty(dataSource)) {
                             throw new AutoexecToolParamDatasourceEmptyException(key);
                         }
-                        for (int j = 0; j < dataSource.size(); j++) {
-                            JSONObject data = dataSource.getJSONObject(j);
+                        JSONArray dataList = dataSource.getJSONArray("dataList");
+                        if (CollectionUtils.isEmpty(dataList)) {
+                            throw new AutoexecToolParamDatasourceIllegalException(key);
+                        }
+                        for (int j = 0; j < dataList.size(); j++) {
+                            JSONObject data = dataList.getJSONObject(j);
                             if (StringUtils.isBlank(data.getString("text")) || !data.containsKey("value")) {
                                 throw new AutoexecToolParamDatasourceIllegalException(key);
                             }
                         }
                         JSONObject config = new JSONObject();
                         config.put("dataSource", ParamDataSource.STATIC.getValue());
-                        config.put("dataList", dataSource);
+                        config.put("dataList", dataList);
                         param.put("config", config);
                     }
                 }
