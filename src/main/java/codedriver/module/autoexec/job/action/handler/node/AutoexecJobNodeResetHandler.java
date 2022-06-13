@@ -67,6 +67,7 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
 
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
+        List<AutoexecJobPhaseNodeVo> nodeVoList;
         //更新状态
         AutoexecJobPhaseVo currentPhaseVo = jobVo.getCurrentPhase();
         if (Objects.equals(currentPhaseVo.getExecMode(), ExecMode.SQL.getValue())) {
@@ -74,12 +75,11 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
             IAutoexecJobSourceActionHandler handler;
             if (StringUtils.equals(jobVo.getSource(), DeployOperType.DEPLOY.getValue())) {
                 handler = AutoexecJobSourceActionHandlerFactory.getAction(DeployOperType.DEPLOY.getValue());
-                //TODO 重置deploy mongodb节点状态
             } else {
                 handler = AutoexecJobSourceActionHandlerFactory.getAction(AutoexecOperType.AUTOEXEC.getValue());
             }
             handler.resetSqlStatus(jobVo.getActionParam(), jobVo);
-
+            nodeVoList = jobVo.getExecuteJobNodeVoList();
         } else {
             Integer isAll = jobVo.getActionParam().getInteger("isAll");
             if (!Objects.equals(isAll, 1)) {
@@ -95,9 +95,9 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
                 autoexecJobMapper.updateJobPhaseNodeById(nodeVo);
             }
             autoexecJobMapper.updateJobPhaseNodeListStatus(jobVo.getExecuteJobNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()), JobNodeStatus.PENDING.getValue());
+            nodeVoList = autoexecJobMapper.getJobPhaseNodeRunnerListByNodeIdList(jobVo.getExecuteJobNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()));
         }
         //重置mongodb node 状态
-        List<AutoexecJobPhaseNodeVo> nodeVoList = autoexecJobMapper.getJobPhaseNodeRunnerListByNodeIdList(jobVo.getExecuteJobNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()));
         List<RunnerMapVo> runnerVos = new ArrayList<>();
         for (AutoexecJobPhaseNodeVo nodeVo : nodeVoList) {
             runnerVos.add(new RunnerMapVo(nodeVo.getRunnerUrl(), nodeVo.getRunnerMapId()));
