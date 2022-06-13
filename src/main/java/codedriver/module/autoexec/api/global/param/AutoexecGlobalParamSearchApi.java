@@ -18,9 +18,7 @@ import codedriver.framework.restful.annotation.Param;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -73,14 +71,12 @@ public class AutoexecGlobalParamSearchApi extends PrivateApiComponentBase {
         if (paramCount > 0) {
             globalParamVo.setRowNum(paramCount);
             globalParamList = autoexecGlobalParamMapper.searchGlobalParam(globalParamVo);
-            Map<Object, Integer> profileGlobalParamDependencyCountMap = DependencyManager.getBatchDependencyCount(AutoexecFromType.AUTOEXEC_PROFILE_GLOBAL_PARAM, globalParamList.stream().map(AutoexecGlobalParamVo::getKey).collect(Collectors.toList()));
-            for (AutoexecGlobalParamVo paramVo : globalParamList) {
-                //补充profile依赖的全局参数个数
-                paramVo.setProfileReferredCount(profileGlobalParamDependencyCountMap.get(paramVo.getKey()));
-                //TODO 需要补组合工具依赖的全局参数个数
-
-            }
-
+//            for (AutoexecGlobalParamVo paramVo : globalParamList) {
+//                //TODO 补充profile依赖的全局参数个数
+//                Map<Object, Integer> profileGlobalParamDependencyCountMap = DependencyManager.getBatchDependencyCount(AutoexecFromType.AUTOEXEC_PROFILE_GLOBAL_PARAM, globalParamList.stream().map(AutoexecGlobalParamVo::getKey).collect(Collectors.toList()));
+//                paramVo.setProfileReferredCount(profileGlobalParamDependencyCountMap.get(paramVo.getKey()));
+//                //TODO 补充组合工具依赖的全局参数个数
+//            }
         }
         JSONObject returnObj = new JSONObject();
         returnObj.put("pageSize", globalParamVo.getPageSize());

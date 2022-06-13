@@ -114,8 +114,6 @@
                 LEFT JOIN cmdb_cientity cc ON cc.id = a.system_id
             </otherwise>
         </choose>
-        LEFT JOIN autoexec_profile_cientity dpc ON dpc.profile_id=a.id
-        LEFT JOIN cmdb_cientity cct ON cct.id = dpc.ci_entity_id
     </sql>
 
     <select id="checkProfileIsExists" resultType="int">
@@ -154,8 +152,6 @@
         <if test="fromSystemId != null and fromSystemId != -1 ">
             cc.name as fromSystemName,
         </if>
-        cct.id AS ciEntityId,
-        cct.name as ciEntityName,
         dpo.type AS profileOperationType,
         dpo.operation_id as profileOperationId,
         a.fcd,
@@ -244,15 +240,11 @@
                 cc.name as fromSystemName,
             </otherwise>
         </choose>
-        cct.id AS ciEntityId,
-        cct.name as ciEntityName,
-        cci.icon as ciIcon,
         a.fcd,
         a.fcu,
         a.lcd,
         a.lcu
         <include refid="searchProfileFrom"></include>
-        LEFT JOIN cmdb_ci cci ON cci.id = cct.ci_id
         <include refid="searchProfileWhere"></include>
         ORDER BY a.lcd DESC
         LIMIT #{startNum}, #{pageSize}

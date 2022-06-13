@@ -63,7 +63,7 @@ public class AutoexecGlobalParamDeleteApi extends PrivateApiComponentBase {
         if (DependencyManager.getDependencyCount(AutoexecFromType.AUTOEXEC_PROFILE_GLOBAL_PARAM, globalParamVo.getKey()) > 0) {
             throw new AutoexecGlobalParamHasBeenReferredException("profile");
         }
-        //TODO 需要补判断是否被profile引用
+        //TODO 补充是否被组合工具引用
         autoexecGlobalParamMapper.deleteGlobalParamById(paramId);
         return null;
     }

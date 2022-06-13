@@ -41,6 +41,6 @@ public class AutoexecOperationProfileDependencyHandler extends CustomTableDepend
 
     @Override
     public IFromType getFromType() {
-        return AutoexecFromType.AUTOEXEC_OPERATION_PROFILE;
+        return AutoexecFromType.AUTOEXEC_PROFILE_OPERATION;
     }
 }

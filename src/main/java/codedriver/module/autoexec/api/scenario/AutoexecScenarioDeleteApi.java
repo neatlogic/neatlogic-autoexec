@@ -57,10 +57,10 @@ public class AutoexecScenarioDeleteApi extends PrivateApiComponentBase {
         if (paramScenarioVo == null) {
             throw new AutoexecScenarioIsNotFoundException(paramId);
         }
-        //TODO 插入应用与场景关系的接口未完善，后续需要注意关系表的表结构
-        if (DependencyManager.getDependencyCount(AutoexecFromType.AUTOEXEC_SCENARIO_CIENTITY, paramId) > 0) {
-            throw new AutoexecScenarioHasBeenReferredException(paramScenarioVo.getName());
-        }
+        //TODO 判断是否被组合工具引用
+//        if (DependencyManager.getDependencyCount(AutoexecFromType.AUTOEXEC_SCENARIO_CIENTITY, paramId) > 0) {
+//            throw new AutoexecScenarioHasBeenReferredException(paramScenarioVo.getName());
+//        }
         autoexecScenarioMapper.deleteScenarioById(paramId);
         return null;
     }
