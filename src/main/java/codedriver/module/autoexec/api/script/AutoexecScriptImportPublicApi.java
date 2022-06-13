@@ -4,6 +4,7 @@ import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.ScriptExecMode;
 import codedriver.framework.autoexec.constvalue.ScriptParser;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
+import codedriver.framework.autoexec.constvalue.ToolType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
@@ -143,7 +144,9 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
                 newScriptVo.setCatalogId(autoexecCatalogMapper.getAutoexecCatalogByName(newScriptVo.getCatalogName()).getId());
 
                 AutoexecScriptVo oldScriptVo = autoexecScriptMapper.getScriptBaseInfoByName(newScriptVo.getName());
+                Long scriptId;
                 if (oldScriptVo == null) {
+                    scriptId = newScriptVo.getId();
                     newScriptVo.setFcu(UserContext.get().getUserUuid());
                     AutoexecScriptVersionVo versionVo = getVersionVo(newScriptVo, 1);
                     autoexecScriptMapper.insertScript(newScriptVo);
@@ -159,6 +162,7 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
                     }
                 } else {
                     newScriptVo.setId(oldScriptVo.getId());
+                    scriptId = newScriptVo.getId();
                     if (checkBaseInfoHasBeenChanged(newScriptVo, oldScriptVo)) {
                         autoexecScriptMapper.updateScriptBaseInfo(newScriptVo);
                     }
@@ -191,6 +195,7 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
                         }
                     }
                 }
+                autoexecService.saveProfile(newScriptVo.getProfileName(), scriptId, ToolType.TOOL.getValue());
             } else {
                 JSONObject faultObj = new JSONObject();
                 String item;

@@ -24,6 +24,7 @@ import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
 import codedriver.framework.util.RegexUtils;
 import codedriver.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecProfileMapper;
+import codedriver.module.autoexec.service.AutoexecService;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -58,6 +59,9 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
 
     @Resource
     private AutoexecProfileMapper autoexecProfileMapper;
+
+    @Resource
+    private AutoexecService autoexecService;
 
     @Override
     public String getToken() {
@@ -125,14 +129,7 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
         }
         vo.setTypeId(typeId);
         vo.setRiskId(riskId);
-        if (StringUtils.isNotBlank(defaultProfile)) {
-            AutoexecProfileVo profile = autoexecProfileMapper.getProfileVoByName(defaultProfile);
-            if (profile == null) {
-                profile = new AutoexecProfileVo(defaultProfile, -1L);
-                autoexecProfileMapper.insertProfile(profile);
-            }
-            autoexecProfileMapper.insertAutoexecProfileOperation(profile.getId(), Collections.singletonList(vo.getId()), ToolType.TOOL.getValue(), new Date());
-        }
+        autoexecService.saveProfile(defaultProfile, vo.getId(), ToolType.SCRIPT.getValue());
         JSONObject config = new JSONObject();
         if (CollectionUtils.isNotEmpty(paramList)) {
             config.put("paramList", paramList);

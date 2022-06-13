@@ -48,4 +48,14 @@ public interface AutoexecService {
      */
     List<AutoexecOperationVo> getAutoexecOperationByScriptIdAndToolIdList(List<Long> scriptIdList, List<Long> toolIdList);
 
+    /**
+     * 保存profile与工具或自定义工具的关联
+     * 若不存在名为{profileName}的profile，则先创建
+     *
+     * @param profileName
+     * @param operatioinId
+     * @param operationType 类型（工具或自定义工具）
+     */
+    void saveProfile(String profileName, Long operatioinId, String operationType);
+
 }

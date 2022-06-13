@@ -344,4 +344,15 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
         return returnList;
     }
 
+    @Override
+    public void saveProfile(String profileName, Long operatioinId, String operationType) {
+        if (StringUtils.isNotBlank(profileName) && operatioinId != null) {
+            AutoexecProfileVo profile = autoexecProfileMapper.getProfileVoByName(profileName);
+            if (profile == null) {
+                profile = new AutoexecProfileVo(profileName, -1L);
+                autoexecProfileMapper.insertProfile(profile);
+            }
+            autoexecProfileMapper.insertAutoexecProfileOperation(profile.getId(), Collections.singletonList(operatioinId), operationType, new Date());
+        }
+    }
 }
