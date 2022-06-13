@@ -37,7 +37,7 @@ public class AutoexecProfileGlobalParamDependencyHandler extends FixedTableDepen
             dependencyInfoConfig.put("profileId", profileId);
             List<String> pathList = new ArrayList<>();
             pathList.add("预制参数集");
-            String        urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/tool-profile-manage?id=${DATA.profileId}";
+            String urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/tool-profile-manage?id=${DATA.profileId}";
             return new DependencyInfoVo(profileVo.getId(), dependencyInfoConfig, profileVo.getName(), pathList, urlFormat, this.getGroupName());
 
         }
