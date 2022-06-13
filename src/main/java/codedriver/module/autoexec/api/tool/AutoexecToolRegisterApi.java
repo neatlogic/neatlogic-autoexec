@@ -129,7 +129,7 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
         }
         vo.setTypeId(typeId);
         vo.setRiskId(riskId);
-        autoexecService.saveProfile(defaultProfile, vo.getId(), ToolType.SCRIPT.getValue());
+        autoexecService.saveProfile(defaultProfile, vo.getId(), ToolType.TOOL.getValue());
         JSONObject config = new JSONObject();
         if (CollectionUtils.isNotEmpty(paramList)) {
             config.put("paramList", paramList);

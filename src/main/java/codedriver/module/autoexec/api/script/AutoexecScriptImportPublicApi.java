@@ -195,7 +195,7 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
                         }
                     }
                 }
-                autoexecService.saveProfile(newScriptVo.getProfileName(), scriptId, ToolType.TOOL.getValue());
+                autoexecService.saveProfile(newScriptVo.getProfileName(), scriptId, ToolType.SCRIPT.getValue());
             } else {
                 JSONObject faultObj = new JSONObject();
                 String item;
