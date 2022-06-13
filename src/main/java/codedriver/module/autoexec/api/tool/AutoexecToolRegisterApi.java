@@ -12,7 +12,6 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
-import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -23,7 +22,6 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
 import codedriver.framework.util.RegexUtils;
 import codedriver.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
-import codedriver.module.autoexec.dao.mapper.AutoexecProfileMapper;
 import codedriver.module.autoexec.service.AutoexecService;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -34,7 +32,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -56,9 +56,6 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
 
     @Resource
     private AutoexecGlobalParamMapper autoexecGbobalParamMapper;
-
-    @Resource
-    private AutoexecProfileMapper autoexecProfileMapper;
 
     @Resource
     private AutoexecService autoexecService;
@@ -129,7 +126,7 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
         }
         vo.setTypeId(typeId);
         vo.setRiskId(riskId);
-        autoexecService.saveProfile(defaultProfile, vo.getId(), ToolType.TOOL.getValue());
+        vo.setDefaultProfileId(autoexecService.saveProfileOperation(defaultProfile, vo.getId(), ToolType.TOOL.getValue()));
         JSONObject config = new JSONObject();
         if (CollectionUtils.isNotEmpty(paramList)) {
             config.put("paramList", paramList);

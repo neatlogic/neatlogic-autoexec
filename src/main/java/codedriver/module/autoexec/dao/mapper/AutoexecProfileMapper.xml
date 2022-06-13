@@ -361,6 +361,13 @@
         WHERE `name` = #{name}
     </select>
 
+    <select id="getProfileIdByProfileIdAndOperationId" resultType="java.lang.Long">
+        SELECT
+        `profile_id`
+        FROM `autoexec_profile_operation`
+        WHERE `profile_id` = #{profileId} AND `operation_id` = #{operationId}
+    </select>
+
     <delete id="deleteProfileById">
         DELETE
         FROM autoexec_profile

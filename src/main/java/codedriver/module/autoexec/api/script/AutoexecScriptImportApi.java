@@ -8,13 +8,14 @@ package codedriver.module.autoexec.api.script;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
-import codedriver.framework.autoexec.constvalue.ScriptParser;
 import codedriver.framework.autoexec.constvalue.ScriptExecMode;
+import codedriver.framework.autoexec.constvalue.ScriptParser;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.framework.autoexec.dto.catalog.AutoexecCatalogVo;
+import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptArgumentVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
@@ -25,6 +26,7 @@ import codedriver.framework.exception.file.FileNotUploadException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
+import codedriver.module.autoexec.dao.mapper.AutoexecProfileMapper;
 import codedriver.module.autoexec.service.AutoexecScriptService;
 import codedriver.module.autoexec.service.AutoexecService;
 import com.alibaba.fastjson.JSONArray;
@@ -66,6 +68,9 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
 
     @Resource
     private AutoexecRiskMapper autoexecRiskMapper;
+
+    @Resource
+    private AutoexecProfileMapper autoexecProfileMapper;
 
     @Resource
     private AutoexecScriptService autoexecScriptService;
@@ -172,6 +177,15 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
         }
         if (ScriptExecMode.getExecMode(scriptVo.getExecMode()) == null) {
             failReasonList.add("不存在的执行方式：" + scriptVo.getExecMode());
+        }
+        String defaultProfileName = scriptVo.getDefaultProfileName();
+        if (defaultProfileName != null) {
+            AutoexecProfileVo profile = autoexecProfileMapper.getProfileVoByName(defaultProfileName);
+            if (profile == null) {
+                failReasonList.add("不存在的profile：" + defaultProfileName);
+            } else if (autoexecProfileMapper.getProfileIdByProfileIdAndOperationId(profile.getId(), scriptVo.getId()) == null) {
+                failReasonList.add("profile ： " + defaultProfileName + "未关联：" + name);
+            }
         }
         if (CollectionUtils.isEmpty(failReasonList)) {
             if (oldScriptVo != null) {

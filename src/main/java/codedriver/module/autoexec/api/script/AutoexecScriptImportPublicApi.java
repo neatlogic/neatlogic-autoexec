@@ -1,15 +1,13 @@
 package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
-import codedriver.framework.autoexec.constvalue.ScriptExecMode;
-import codedriver.framework.autoexec.constvalue.ScriptParser;
-import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
-import codedriver.framework.autoexec.constvalue.ToolType;
+import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptArgumentVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.exception.core.ApiRuntimeException;
@@ -31,9 +29,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @SuppressWarnings("deprecation")
 @Service
@@ -80,7 +76,13 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
 
         // 根据名称判断脚本存不存在，如果存在且内容有变化就生成新的激活版本，不存在直接生成新的激活版本
         // todo 用户令牌可用之后，要根据导入用户决定是否自动审核通过
+        JSONObject result = new JSONObject();
         JSONArray faultArray = new JSONArray();
+        Set<String> newScriptArray = new HashSet<>(); // 新增的脚本
+        Set<String> updatedScriptArray = new HashSet<>(); // 更新了基本信息或生成了新版本的脚本
+        result.put("faultArray", faultArray);
+        result.put("newScriptArray", newScriptArray);
+        result.put("updatedScriptArray", updatedScriptArray);
         jsonReader.startArray();
         int i = 1;
         while (jsonReader.hasNext()) {
@@ -146,6 +148,7 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
                 AutoexecScriptVo oldScriptVo = autoexecScriptMapper.getScriptBaseInfoByName(newScriptVo.getName());
                 Long scriptId;
                 if (oldScriptVo == null) {
+                    newScriptArray.add(newScriptVo.getName());
                     scriptId = newScriptVo.getId();
                     newScriptVo.setFcu(UserContext.get().getUserUuid());
                     AutoexecScriptVersionVo versionVo = getVersionVo(newScriptVo, 1);
@@ -165,6 +168,7 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
                     scriptId = newScriptVo.getId();
                     if (checkBaseInfoHasBeenChanged(newScriptVo, oldScriptVo)) {
                         autoexecScriptMapper.updateScriptBaseInfo(newScriptVo);
+                        updatedScriptArray.add(newScriptVo.getName());
                     }
                     Integer maxVersion = autoexecScriptMapper.getMaxVersionByScriptId(oldScriptVo.getId());
                     AutoexecScriptVersionVo newVersionVo = getVersionVo(newScriptVo, maxVersion != null ? maxVersion + 1 : 1);
@@ -172,8 +176,10 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
                     boolean needUpdate = true;
                     if (oldVersionVo != null) {
                         oldVersionVo.setArgument(autoexecScriptMapper.getArgumentByVersionId(oldVersionVo.getId()));
-                        oldVersionVo.setParamList(autoexecScriptMapper.getParamListByVersionId(oldVersionVo.getId()));
+                        List<AutoexecScriptVersionParamVo> oldParamList = autoexecScriptMapper.getParamListByVersionId(oldVersionVo.getId());
+                        oldVersionVo.setParamList(oldParamList);
                         oldVersionVo.setLineList(autoexecScriptMapper.getLineListByVersionId(oldVersionVo.getId()));
+                        adjustParamConfig(oldParamList);
                         if (!autoexecScriptService.checkScriptVersionNeedToUpdate(oldVersionVo, newVersionVo)) {
                             needUpdate = false;
                         } else {
@@ -183,6 +189,7 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
                         }
                     }
                     if (needUpdate) {
+                        updatedScriptArray.add(newScriptVo.getName());
                         if (newVersionVo.getArgument() != null) {
                             autoexecScriptMapper.insertScriptVersionArgument(newVersionVo.getArgument());
                         }
@@ -195,7 +202,7 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
                         }
                     }
                 }
-                autoexecService.saveProfile(newScriptVo.getProfileName(), scriptId, ToolType.SCRIPT.getValue());
+                autoexecService.saveProfileOperation(newScriptVo.getDefaultProfileName(), scriptId, ToolType.SCRIPT.getValue());
             } else {
                 JSONObject faultObj = new JSONObject();
                 String item;
@@ -212,7 +219,30 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
         }
         jsonReader.endArray();
         jsonReader.close();
-        return faultArray;
+        return result;
+    }
+
+    /**
+     * 从autoexecscripts导入而来的脚本，参数中的config与系统的config结构不完全一致，
+     * 可能导致对比时误判，故校正原有的config，使其与导入的config保持一致
+     *
+     * @param oldParamList
+     */
+    private void adjustParamConfig(List<AutoexecScriptVersionParamVo> oldParamList) {
+        if (oldParamList.size() > 0) {
+            for (AutoexecScriptVersionParamVo paramVo : oldParamList) {
+                JSONObject config = paramVo.getConfig();
+                if (config != null) {
+                    if (needDataSourceTypeList.contains(paramVo.getType()) && ParamMode.INPUT.getValue().equals(paramVo.getMode())) {
+                        config.remove("type");
+                        config.remove("isReuqired");
+                        config.remove("defaulValue");
+                    } else {
+                        paramVo.setConfig(null);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -236,6 +266,9 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
             return true;
         }
         if (!Objects.equals(newScriptVo.getDescription(), oldScriptVo.getDescription())) {
+            return true;
+        }
+        if (!Objects.equals(newScriptVo.getDefaultProfileName(), oldScriptVo.getDefaultProfileName())) {
             return true;
         }
         return false;
@@ -266,5 +299,14 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
         versionVo.setParamList(scriptVo.getVersionParamList());
         versionVo.setLineList(scriptVo.getLineList());
         return versionVo;
+    }
+
+    static List<String> needDataSourceTypeList = new ArrayList<>();
+
+    static {
+        needDataSourceTypeList.add(ParamType.SELECT.getValue());
+        needDataSourceTypeList.add(ParamType.MULTISELECT.getValue());
+        needDataSourceTypeList.add(ParamType.RADIO.getValue());
+        needDataSourceTypeList.add(ParamType.CHECKBOX.getValue());
     }
 }

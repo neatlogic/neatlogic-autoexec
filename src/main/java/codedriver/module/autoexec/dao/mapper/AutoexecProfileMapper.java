@@ -38,6 +38,8 @@ public interface AutoexecProfileMapper {
 
     AutoexecProfileVo getProfileVoByName(String name);
 
+    Long getProfileIdByProfileIdAndOperationId(@Param("profileId") Long profileId, @Param("operationId") Long operationId);
+
     void insertAutoexecProfileOperation(@Param("profileId") Long profileId, @Param("operationIdList") List<Long> operationIdList, @Param("type") String type, @Param("lcd") Date lcd);
 
     void insertProfile(AutoexecProfileVo profileVo);

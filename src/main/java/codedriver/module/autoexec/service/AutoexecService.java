@@ -55,7 +55,8 @@ public interface AutoexecService {
      * @param profileName
      * @param operatioinId
      * @param operationType 类型（工具或自定义工具）
+     * @Return profileId
      */
-    void saveProfile(String profileName, Long operatioinId, String operationType);
+    Long saveProfileOperation(String profileName, Long operatioinId, String operationType);
 
 }
