@@ -2,15 +2,8 @@ package codedriver.module.autoexec.api.global.param;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
-import codedriver.framework.autoexec.constvalue.AutoexecFromType;
-import codedriver.framework.autoexec.constvalue.AutoexecGlobalParamType;
 import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
 import codedriver.framework.common.constvalue.ApiParamType;
-import codedriver.framework.common.constvalue.CiphertextPrefix;
-import codedriver.framework.common.dto.BasePageVo;
-import codedriver.framework.common.util.RC4Util;
-import codedriver.framework.dependency.core.DependencyManager;
-import codedriver.framework.dependency.dto.DependencyInfoVo;
 import codedriver.framework.restful.annotation.Description;
 import codedriver.framework.restful.annotation.Input;
 import codedriver.framework.restful.annotation.OperationType;
@@ -24,8 +17,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * @author longrf

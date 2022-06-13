@@ -279,7 +279,6 @@
         FROM autoexec_profile_param
         WHERE profile_id = #{profileId}
           AND lcd != #{lcd}
-            AND mapping_mode != 'constant'
     </select>
 
     <select id="getProfileInfoListByIdList" resultMap="profileMap">
