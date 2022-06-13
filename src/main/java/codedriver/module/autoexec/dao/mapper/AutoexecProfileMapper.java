@@ -2,7 +2,6 @@ package codedriver.module.autoexec.dao.mapper;
 
 
 import codedriver.framework.autoexec.dto.AutoexecOperationVo;
-import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamValueVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import org.apache.ibatis.annotations.Param;
@@ -51,8 +50,6 @@ public interface AutoexecProfileMapper {
     void deleteProfileParamByProfileId(Long paramProfileId);
 
     void deleteProfileParamByIdList(@Param("idList") List<Long> idList);
-
-    void deleteProfileParamValueInvokeByValueIdList(@Param("idList") List<Long> idList);
 
     void deleteProfileOperationByProfileIdAndLcd(@Param("profileId") Long profileId, @Param("lcd") Date lcd);
 }
