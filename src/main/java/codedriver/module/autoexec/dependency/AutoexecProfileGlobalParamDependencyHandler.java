@@ -15,7 +15,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author longrf
@@ -46,6 +45,6 @@ public class AutoexecProfileGlobalParamDependencyHandler extends FixedTableDepen
 
     @Override
     public IFromType getFromType() {
-        return AutoexecFromType.AUTOEXEC_PROFILE_GLOBAL_PARAM;
+        return AutoexecFromType.GLOBAL_PARAM;
     }
 }
