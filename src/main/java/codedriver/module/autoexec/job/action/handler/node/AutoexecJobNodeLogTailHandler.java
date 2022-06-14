@@ -71,7 +71,7 @@ public class AutoexecJobNodeLogTailHandler extends AutoexecJobActionHandlerBase 
                 nodeStatus = statusJson.getString("status");
             }
         }
-        if(Arrays.asList(JobNodeStatus.RUNNING.getValue(),JobNodeStatus.ABORTING.getValue(),JobNodeStatus.WAIT_INPUT.getValue()).contains(paramJson.getString("status")) || Arrays.asList(JobNodeStatus.RUNNING.getValue(),JobNodeStatus.ABORTING.getValue(),JobNodeStatus.WAIT_INPUT.getValue()).contains(nodeStatus)){
+        if(Arrays.asList(JobNodeStatus.RUNNING.getValue(),JobNodeStatus.ABORTING.getValue()).contains(paramJson.getString("status")) || Arrays.asList(JobNodeStatus.RUNNING.getValue(),JobNodeStatus.ABORTING.getValue()).contains(nodeStatus)){
             result.put("isRefresh", 1);
         }
         return result;
