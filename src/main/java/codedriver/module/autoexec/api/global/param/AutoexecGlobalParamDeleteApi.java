@@ -6,7 +6,6 @@ import codedriver.framework.autoexec.constvalue.AutoexecFromType;
 import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
 import codedriver.framework.autoexec.exception.AutoexecGlobalParamHasBeenReferredException;
 import codedriver.framework.autoexec.exception.AutoexecGlobalParamIsNotFoundException;
-import codedriver.framework.cmdb.exception.resourcecenter.ResourceCenterAccountHasBeenReferredException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.dependency.core.DependencyManager;
 import codedriver.framework.restful.annotation.Description;
@@ -59,11 +58,10 @@ public class AutoexecGlobalParamDeleteApi extends PrivateApiComponentBase {
         if (globalParamVo == null) {
             throw new AutoexecGlobalParamIsNotFoundException(paramId);
         }
-        //判断是否被profile引用
-        if (DependencyManager.getDependencyCount(AutoexecFromType.AUTOEXEC_PROFILE_GLOBAL_PARAM, globalParamVo.getKey()) > 0) {
+        //判断是否被profile、组合工具引用
+        if (DependencyManager.getDependencyCount(AutoexecFromType.GLOBAL_PARAM, globalParamVo.getKey()) > 0) {
             throw new AutoexecGlobalParamHasBeenReferredException("profile");
         }
-        //TODO 补充是否被组合工具引用
         autoexecGlobalParamMapper.deleteGlobalParamById(paramId);
         return null;
     }
