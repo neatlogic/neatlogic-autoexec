@@ -7,19 +7,19 @@ package codedriver.module.autoexec.job.action.handler.node;
 
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
-import codedriver.framework.autoexec.dto.job.AutoexecJobNodeSqlVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import codedriver.framework.autoexec.util.AutoexecUtil;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import java.util.Objects;
+import java.util.Arrays;
 
 /**
  * @author lvzk
@@ -58,18 +58,21 @@ public class AutoexecJobNodeLogTailHandler extends AutoexecJobActionHandlerBase 
         String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/log/tail";
         JSONObject result = JSONObject.parseObject(AutoexecUtil.requestRunner(url, paramJson));
         result.put("isRefresh", 0);
+        String nodeStatus = null;
         if(StringUtils.isBlank(paramJson.getString("sqlName"))) {//获取node节点的状态（包括operation status）
             AutoexecJobPhaseNodeVo phaseNodeVo = getNodeOperationStatus(paramJson,false);
             result.put("interact",phaseNodeVo.getInteract());
-            String nodeStatusOld = paramJson.getString("status");
-            if(Objects.equals(nodeStatusOld,JobNodeStatus.RUNNING.getValue()) || Objects.equals(phaseNodeVo.getStatus(),JobNodeStatus.RUNNING.getValue())){
-                result.put("isRefresh", 1);
-            }
+            nodeStatus = phaseNodeVo.getStatus();
         }else{//获取sql 状态
-            AutoexecJobNodeSqlVo sqlStatusVo = getNodeSqlStatus(paramJson);
-            if(sqlStatusVo != null && !Objects.equals(sqlStatusVo.getStatus(), JobNodeStatus.SUCCEED.getValue())){
-                result.put("isRefresh", 1);
+            url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/status/get";
+            JSONObject statusJson = JSONObject.parseObject(AutoexecUtil.requestRunner(url, paramJson));
+            if (MapUtils.isNotEmpty(statusJson)) {
+                result.put("interact",statusJson.get("interact"));
+                nodeStatus = statusJson.getString("status");
             }
+        }
+        if(Arrays.asList(JobNodeStatus.RUNNING.getValue(),JobNodeStatus.ABORTING.getValue(),JobNodeStatus.WAIT_INPUT.getValue()).contains(paramJson.getString("status")) || Arrays.asList(JobNodeStatus.RUNNING.getValue(),JobNodeStatus.ABORTING.getValue(),JobNodeStatus.WAIT_INPUT.getValue()).contains(nodeStatus)){
+            result.put("isRefresh", 1);
         }
         return result;
     }
