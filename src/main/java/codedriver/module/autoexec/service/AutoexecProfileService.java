@@ -52,7 +52,7 @@ public interface AutoexecProfileService {
      * @param profileId profile id
      * @return profile的key、value的map
      */
-    Map<String, List<Object>> getAutoexecProfileParamListByKeyListAndProfileId(List<String> keyList, Long profileId);
+    Map<String, Object> getAutoexecProfileParamListByKeyListAndProfileId(List<String> keyList, Long profileId);
 
 
     /**
