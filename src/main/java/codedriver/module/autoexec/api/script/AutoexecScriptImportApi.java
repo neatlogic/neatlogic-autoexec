@@ -179,7 +179,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
             failReasonList.add("不存在的执行方式：" + scriptVo.getExecMode());
         }
         String defaultProfileName = scriptVo.getDefaultProfileName();
-        if (defaultProfileName != null) {
+        if (StringUtils.isNotBlank(defaultProfileName)) {
             AutoexecProfileVo profile = autoexecProfileMapper.getProfileVoByName(defaultProfileName);
             if (profile == null) {
                 failReasonList.add("不存在的profile：" + defaultProfileName);
