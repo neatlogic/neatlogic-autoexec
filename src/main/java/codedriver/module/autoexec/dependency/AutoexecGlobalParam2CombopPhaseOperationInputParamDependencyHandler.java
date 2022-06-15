@@ -56,7 +56,6 @@ public class AutoexecGlobalParam2CombopPhaseOperationInputParamDependencyHandler
             if (!Objects.equals(combopPhaseVo.getId(), phaseId)) {
                 continue;
             }
-            Long operationId = Long.getLong(dependencyVo.getTo());
             AutoexecCombopPhaseConfigVo phaseConfigVo = combopPhaseVo.getConfig();
             if (phaseConfigVo == null) {
                 return null;
@@ -65,6 +64,7 @@ public class AutoexecGlobalParam2CombopPhaseOperationInputParamDependencyHandler
             if (CollectionUtils.isEmpty(phaseOperationList)) {
                 return null;
             }
+            Long operationId = Long.getLong(dependencyVo.getTo());
             for (AutoexecCombopPhaseOperationVo phaseOperationVo : phaseOperationList) {
                 if (phaseOperationVo == null) {
                     continue;
