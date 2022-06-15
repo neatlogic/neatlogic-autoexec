@@ -11,6 +11,7 @@ import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
+import codedriver.framework.autoexec.constvalue.ParamMappingMode;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.framework.autoexec.dto.combop.*;
@@ -30,6 +31,8 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.IValid;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.util.RegexUtils;
+import codedriver.module.autoexec.dependency.AutoexecGlobalParam2CombopPhaseOperationDependencyHandler;
+import codedriver.module.autoexec.dependency.AutoexecProfile2CombopPhaseOperationDependencyHandler;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -38,8 +41,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * 保存组合工具基本信息接口
@@ -124,6 +126,7 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             autoexecCombopVo.setOperationType(CombopOperationType.COMBOP.getValue());
             autoexecCombopVo.setOwner(UserContext.get().getUserUuid(true));
             autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
+            saveDependency(autoexecCombopVo);
         } else {
             String owner = autoexecCombopVo.getOwner();
             if (owner == null) {
@@ -165,8 +168,10 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             }
             autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
             autoexecCombopMapper.deleteAutoexecCombopGroupByCombopId(id);
+            deleteDependency(oldAutoexecCombopVo);
             autoexecCombopService.saveAutoexecCombopConfig(autoexecCombopVo, false);
             autoexecCombopMapper.updateAutoexecCombopById(autoexecCombopVo);
+            saveDependency(autoexecCombopVo);
         }
 
         return autoexecCombopVo.getId();
@@ -191,4 +196,107 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
 //            return new FieldValidResultVo();
 //        };
 //    }
+
+    private void saveDependency(AutoexecCombopVo autoexecCombopVo) {
+        AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
+        if (config == null) {
+            return;
+        }
+        List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
+        if (CollectionUtils.isEmpty(combopPhaseList)) {
+            return;
+        }
+        for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
+            if (autoexecCombopPhaseVo == null) {
+                return;
+            }
+            AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
+            if (phaseConfig == null) {
+                return;
+            }
+            List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
+            if (CollectionUtils.isEmpty(phaseOperationList)) {
+                return;
+            }
+            for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
+                if (autoexecCombopPhaseOperationVo != null) {
+                    saveDependency(autoexecCombopPhaseVo, autoexecCombopPhaseOperationVo);
+                }
+            }
+        }
+    }
+
+    private void saveDependency(AutoexecCombopPhaseVo combopPhaseVo, AutoexecCombopPhaseOperationVo phaseOperationVo) {
+        AutoexecCombopPhaseOperationConfigVo operationConfigVo = phaseOperationVo.getConfig();
+        if (operationConfigVo == null) {
+            return;
+        }
+        Long profileId = operationConfigVo.getProfileId();
+        if (profileId != null) {
+            JSONObject dependencyConfig = new JSONObject();
+            dependencyConfig.put("combopId", combopPhaseVo.getId());
+            dependencyConfig.put("combopName", combopPhaseVo.getName());
+            dependencyConfig.put("phaseUuid", combopPhaseVo.getUuid());
+            dependencyConfig.put("phaseName", combopPhaseVo.getName());
+            DependencyManager.insert(AutoexecProfile2CombopPhaseOperationDependencyHandler.class, profileId, phaseOperationVo.getOperationId(), dependencyConfig);
+        }
+        List<ParamMappingVo> paramMappingList = operationConfigVo.getParamMappingList();
+        if (org.apache.commons.collections.CollectionUtils.isNotEmpty(paramMappingList)) {
+            for (ParamMappingVo paramMappingVo : paramMappingList) {
+                if (Objects.equals(paramMappingVo.getMappingMode(), ParamMappingMode.GLOBAL_PARAM.getValue())) {
+                    JSONObject dependencyConfig = new JSONObject();
+                    dependencyConfig.put("combopId", combopPhaseVo.getId());
+                    dependencyConfig.put("combopName", combopPhaseVo.getName());
+                    dependencyConfig.put("phaseUuid", combopPhaseVo.getUuid());
+                    dependencyConfig.put("phaseName", combopPhaseVo.getName());
+                    dependencyConfig.put("type", "输入参数映射");
+                    DependencyManager.insert(AutoexecGlobalParam2CombopPhaseOperationDependencyHandler.class, paramMappingVo.getValue(), phaseOperationVo.getOperationId(), dependencyConfig);
+                }
+            }
+        }
+        List<ParamMappingVo> argumentMappingList = operationConfigVo.getArgumentMappingList();
+        if (org.apache.commons.collections.CollectionUtils.isNotEmpty(argumentMappingList)) {
+            for (ParamMappingVo paramMappingVo : argumentMappingList) {
+                if (Objects.equals(paramMappingVo.getMappingMode(), ParamMappingMode.GLOBAL_PARAM.getValue())) {
+                    JSONObject dependencyConfig = new JSONObject();
+                    dependencyConfig.put("combopId", combopPhaseVo.getId());
+                    dependencyConfig.put("combopName", combopPhaseVo.getName());
+                    dependencyConfig.put("phaseUuid", combopPhaseVo.getUuid());
+                    dependencyConfig.put("phaseName", combopPhaseVo.getName());
+                    dependencyConfig.put("type", "自由参数映射");
+                    DependencyManager.insert(AutoexecGlobalParam2CombopPhaseOperationDependencyHandler.class, paramMappingVo.getValue(), phaseOperationVo.getOperationId(), dependencyConfig);
+                }
+            }
+        }
+    }
+
+    private void deleteDependency(AutoexecCombopVo autoexecCombopVo) {
+        AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
+        if (config == null) {
+            return;
+        }
+        List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
+        if (CollectionUtils.isEmpty(combopPhaseList)) {
+            return;
+        }
+        for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
+            if (autoexecCombopPhaseVo == null) {
+                return;
+            }
+            AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
+            if (phaseConfig == null) {
+                return;
+            }
+            List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
+            if (CollectionUtils.isEmpty(phaseOperationList)) {
+                return;
+            }
+            for (AutoexecCombopPhaseOperationVo phaseOperationVo : phaseOperationList) {
+                if (phaseOperationVo != null) {
+                    DependencyManager.delete(AutoexecProfile2CombopPhaseOperationDependencyHandler.class, phaseOperationVo.getOperationId());
+                    DependencyManager.delete(AutoexecGlobalParam2CombopPhaseOperationDependencyHandler.class, phaseOperationVo.getOperationId());
+                }
+            }
+        }
+    }
 }
