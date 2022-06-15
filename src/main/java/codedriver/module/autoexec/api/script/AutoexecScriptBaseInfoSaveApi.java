@@ -56,6 +56,7 @@ public class AutoexecScriptBaseInfoSaveApi extends PrivateApiComponentBase {
             @Param(name = "catalogId", type = ApiParamType.LONG, desc = "工具目录ID", isRequired = true),
             @Param(name = "riskId", type = ApiParamType.LONG, desc = "操作级别ID", isRequired = true),
             @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
+            @Param(name = "defaultProfileId", type = ApiParamType.LONG, desc = "默认的profileId"),
     })
     @Output({
     })

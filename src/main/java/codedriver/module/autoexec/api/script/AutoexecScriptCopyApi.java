@@ -63,6 +63,7 @@ public class AutoexecScriptCopyApi extends PrivateApiComponentBase {
             @Param(name = "typeId", type = ApiParamType.LONG, desc = "脚本分类ID", isRequired = true),
             @Param(name = "catalogId", type = ApiParamType.LONG, desc = "工具目录ID", isRequired = true),
             @Param(name = "riskId", type = ApiParamType.LONG, desc = "操作级别ID", isRequired = true),
+            @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
     })
     @Output({
             @Param(type = ApiParamType.LONG, desc = "复制生成的脚本ID"),

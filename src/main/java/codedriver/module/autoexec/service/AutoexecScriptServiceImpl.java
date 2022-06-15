@@ -26,6 +26,7 @@ import codedriver.framework.common.constvalue.CiphertextPrefix;
 import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.dependency.dto.DependencyInfoVo;
 import codedriver.framework.dto.OperateVo;
+import codedriver.module.autoexec.dao.mapper.AutoexecProfileMapper;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -38,7 +39,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-public class AutoexecScriptServiceImpl implements AutoexecScriptService{
+public class AutoexecScriptServiceImpl implements AutoexecScriptService {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
@@ -54,6 +55,9 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService{
 
     @Resource
     private AutoexecService autoexecService;
+
+    @Resource
+    private AutoexecProfileMapper autoexecProfileMapper;
 
 
     /**
@@ -108,6 +112,15 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService{
         }
         if (autoexecRiskMapper.checkRiskIsExistsById(scriptVo.getRiskId()) == 0) {
             throw new AutoexecRiskNotFoundException(scriptVo.getRiskId());
+        }
+        Long defaultProfileId = scriptVo.getDefaultProfileId();
+        if (defaultProfileId != null) {
+            if (autoexecProfileMapper.checkProfileIsExists(defaultProfileId) == 0) {
+                throw new AutoexecProfileIsNotFoundException(defaultProfileId);
+            }
+            if (autoexecProfileMapper.getProfileIdByProfileIdAndOperationId(defaultProfileId, scriptVo.getId()) == null) {
+                throw new AutoexecProfileNotReferencedByOperationException(defaultProfileId, scriptVo.getId());
+            }
         }
     }
 
@@ -165,11 +178,12 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService{
         if (beforeLineList.size() != afterLineList.size()) {
             return true;
         }
-        Iterator<AutoexecScriptLineVo> beforeLineIterator = beforeLineList.iterator();
-        Iterator<AutoexecScriptLineVo> afterLineIterator = afterLineList.iterator();
-        while (beforeLineIterator.hasNext() && afterLineIterator.hasNext()) {
-            String beforeContent = beforeLineIterator.next().getContentHash();
-            String afterContent = DigestUtils.md5DigestAsHex(afterLineIterator.next().getContent().getBytes());
+        for (int i = 0; i < beforeLineList.size(); i++) {
+            String beforeContent = beforeLineList.get(i).getContentHash();
+            String afterContent = null;
+            if (StringUtils.isNotBlank(afterLineList.get(i).getContent())) {
+                afterContent = DigestUtils.md5DigestAsHex(afterLineList.get(i).getContent().getBytes());
+            }
             if (!Objects.equals(beforeContent, afterContent)) {
                 return true;
             }
