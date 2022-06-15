@@ -9,9 +9,14 @@ import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.exception.AutoexecJobInteractException;
+import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
+import codedriver.framework.integration.authentication.enums.AuthenticateType;
+import codedriver.framework.util.HttpRequestUtil;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -38,7 +43,6 @@ public class AutoexecJobNodeSubmitWaitInputHandler extends AutoexecJobActionHand
 
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
-        JSONObject result = new JSONObject();
         AutoexecJobPhaseNodeVo nodeVo = jobVo.getCurrentNode();
         AutoexecJobPhaseVo phaseVo = jobVo.getCurrentPhase();
         JSONObject paramObj = jobVo.getActionParam();
@@ -54,9 +58,20 @@ public class AutoexecJobNodeSubmitWaitInputHandler extends AutoexecJobActionHand
         //获取pipeFile 路径
         AutoexecJobPhaseNodeVo phaseNodeVo = getNodeOperationStatus(paramObj,false);
         JSONObject interactJson = phaseNodeVo.getInteract();
-        if(MapUtils.isNotEmpty(interactJson)){
-            paramObj.put("pipeFile",interactJson.getString("pipeFile"));
+        if(MapUtils.isEmpty(interactJson)){
+            throw new AutoexecJobInteractException();
         }
-        return result;
+        if(StringUtils.isBlank(interactJson.getString("pipeFile"))){
+            throw new AutoexecJobInteractException("pipeFile is blank");
+        }
+        paramObj.put("pipeFile",interactJson.getString("pipeFile"));
+        String url = String.format("%s/api/rest/job/phase/node/submit/waitInput", nodeVo.getRunnerUrl());
+        String result = HttpRequestUtil.post(url)
+                .setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(5000).setReadTimeout(5000)
+                .sendRequest().getError();
+        if (StringUtils.isNotBlank(result)) {
+            throw new AutoexecJobRunnerHttpRequestException(url + ":" + result);
+        }
+        return null;
     }
 }

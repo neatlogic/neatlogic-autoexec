@@ -79,7 +79,8 @@ public class AutoexecJobPhaseNodeSubmitWaitInputApi extends PrivateApiComponentB
         jobVo.setActionParam(paramObj);
         jobVo.setAction(JobAction.SUBMIT_NODE_WAIT_INPUT.getValue());
         IAutoexecJobActionHandler submitNodeWaitInputAction = AutoexecJobActionHandlerFactory.getAction(JobAction.SUBMIT_NODE_WAIT_INPUT.getValue());
-        return submitNodeWaitInputAction.doService(jobVo);
+        submitNodeWaitInputAction.doService(jobVo);
+        return null;
     }
 
     @Override

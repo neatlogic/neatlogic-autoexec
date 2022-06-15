@@ -2,7 +2,6 @@ package codedriver.module.autoexec.dao.mapper;
 
 
 import codedriver.framework.autoexec.dto.AutoexecOperationVo;
-import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamValueVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import org.apache.ibatis.annotations.Param;
@@ -32,8 +31,6 @@ public interface AutoexecProfileMapper {
 
     List<Long> getNeedDeleteProfileParamIdListByProfileIdAndLcd(@Param("profileId") Long profileId, @Param("lcd") Date lcd);
 
-    List<Long> getNeedDeleteProfileParamValueIdListByParamIdAndLcd(@Param("paramId") Long paramId, @Param("lcd") Date lcd);
-
     AutoexecProfileVo getProfileVoById(Long id);
 
     AutoexecProfileVo getProfileVoByName(String name);
@@ -46,23 +43,15 @@ public interface AutoexecProfileMapper {
 
     void insertAutoexecProfileParamList(@Param("paramList") List<AutoexecProfileParamVo> paramList, @Param("profileId") Long profileId, @Param("lcd") Date lcd);
 
-    void insertProfileParamValueInvokeList(@Param("paramValueInvokeVoList") List<AutoexecProfileParamValueVo> paramValueInvokeVoList, @Param("lcd") Date lcd);
-
     void deleteProfileById(Long id);
 
     void deleteProfileOperationByProfileId(Long id);
 
     void deleteProfileOperationByOperationId(Long id);
 
-    void deleteProfileParamValueInvokeByProfileId(Long paramProfileId);
-
     void deleteProfileParamByProfileId(Long paramProfileId);
 
     void deleteProfileParamByIdList(@Param("idList") List<Long> idList);
-
-    void deleteProfileParamValueInvokeByParamIdList(@Param("idList") List<Long> idList);
-
-    void deleteProfileParamValueInvokeByValueIdList(@Param("idList") List<Long> idList);
 
     void deleteProfileOperationByProfileIdAndLcd(@Param("profileId") Long profileId, @Param("lcd") Date lcd);
 }
