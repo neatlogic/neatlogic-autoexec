@@ -554,6 +554,124 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         }
     }
 
+    /**
+     * 保存阶段中操作工具对预置参数集和全局参数的引用关系
+     * @param autoexecCombopVo
+     */
+    @Override
+    public void saveDependency(AutoexecCombopVo autoexecCombopVo) {
+        AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
+        if (config == null) {
+            return;
+        }
+        List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
+        if (CollectionUtils.isEmpty(combopPhaseList)) {
+            return;
+        }
+        for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
+            if (autoexecCombopPhaseVo == null) {
+                continue;
+            }
+            AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
+            if (phaseConfig == null) {
+                continue;
+            }
+            List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
+            if (CollectionUtils.isEmpty(phaseOperationList)) {
+                continue;
+            }
+            for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
+                if (autoexecCombopPhaseOperationVo != null) {
+                    saveDependency(autoexecCombopPhaseVo, autoexecCombopPhaseOperationVo);
+                }
+            }
+        }
+    }
+
+    /**
+     * 保存阶段中操作工具对预置参数集和全局参数的引用关系
+     * @param combopPhaseVo
+     * @param phaseOperationVo
+     */
+    private void saveDependency(AutoexecCombopPhaseVo combopPhaseVo, AutoexecCombopPhaseOperationVo phaseOperationVo) {
+        AutoexecCombopPhaseOperationConfigVo operationConfigVo = phaseOperationVo.getConfig();
+        if (operationConfigVo == null) {
+            return;
+        }
+        Long profileId = operationConfigVo.getProfileId();
+        if (profileId != null) {
+            JSONObject dependencyConfig = new JSONObject();
+            dependencyConfig.put("combopId", combopPhaseVo.getId());
+            dependencyConfig.put("combopName", combopPhaseVo.getName());
+            dependencyConfig.put("phaseUuid", combopPhaseVo.getUuid());
+            dependencyConfig.put("phaseName", combopPhaseVo.getName());
+            DependencyManager.insert(AutoexecProfile2CombopPhaseOperationDependencyHandler.class, profileId, phaseOperationVo.getOperationId(), dependencyConfig);
+        }
+        List<ParamMappingVo> paramMappingList = operationConfigVo.getParamMappingList();
+        if (org.apache.commons.collections.CollectionUtils.isNotEmpty(paramMappingList)) {
+            for (ParamMappingVo paramMappingVo : paramMappingList) {
+                if (Objects.equals(paramMappingVo.getMappingMode(), ParamMappingMode.GLOBAL_PARAM.getValue())) {
+                    JSONObject dependencyConfig = new JSONObject();
+                    dependencyConfig.put("combopId", combopPhaseVo.getId());
+                    dependencyConfig.put("combopName", combopPhaseVo.getName());
+                    dependencyConfig.put("phaseUuid", combopPhaseVo.getUuid());
+                    dependencyConfig.put("phaseName", combopPhaseVo.getName());
+                    dependencyConfig.put("type", "输入参数映射");
+                    DependencyManager.insert(AutoexecGlobalParam2CombopPhaseOperationDependencyHandler.class, paramMappingVo.getValue(), phaseOperationVo.getOperationId(), dependencyConfig);
+                }
+            }
+        }
+        List<ParamMappingVo> argumentMappingList = operationConfigVo.getArgumentMappingList();
+        if (org.apache.commons.collections.CollectionUtils.isNotEmpty(argumentMappingList)) {
+            for (ParamMappingVo paramMappingVo : argumentMappingList) {
+                if (Objects.equals(paramMappingVo.getMappingMode(), ParamMappingMode.GLOBAL_PARAM.getValue())) {
+                    JSONObject dependencyConfig = new JSONObject();
+                    dependencyConfig.put("combopId", combopPhaseVo.getId());
+                    dependencyConfig.put("combopName", combopPhaseVo.getName());
+                    dependencyConfig.put("phaseUuid", combopPhaseVo.getUuid());
+                    dependencyConfig.put("phaseName", combopPhaseVo.getName());
+                    dependencyConfig.put("type", "自由参数映射");
+                    DependencyManager.insert(AutoexecGlobalParam2CombopPhaseOperationDependencyHandler.class, paramMappingVo.getValue(), phaseOperationVo.getOperationId(), dependencyConfig);
+                }
+            }
+        }
+    }
+
+    /**
+     * 删除阶段中操作工具对预置参数集和全局参数的引用关系
+     * @param autoexecCombopVo
+     */
+    @Override
+    public void deleteDependency(AutoexecCombopVo autoexecCombopVo) {
+        AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
+        if (config == null) {
+            return;
+        }
+        List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
+        if (CollectionUtils.isEmpty(combopPhaseList)) {
+            return;
+        }
+        for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
+            if (autoexecCombopPhaseVo == null) {
+                continue;
+            }
+            AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
+            if (phaseConfig == null) {
+                continue;
+            }
+            List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
+            if (CollectionUtils.isEmpty(phaseOperationList)) {
+                continue;
+            }
+            for (AutoexecCombopPhaseOperationVo phaseOperationVo : phaseOperationList) {
+                if (phaseOperationVo != null) {
+                    DependencyManager.delete(AutoexecProfile2CombopPhaseOperationDependencyHandler.class, phaseOperationVo.getOperationId());
+                    DependencyManager.delete(AutoexecGlobalParam2CombopPhaseOperationDependencyHandler.class, phaseOperationVo.getOperationId());
+                }
+            }
+        }
+    }
+
     @Override
     public String getOperationActiveVersionScriptByOperation(AutoexecScriptVersionVo scriptVersionVo) {
         List<AutoexecScriptLineVo> scriptLineVoList = autoexecScriptMapper.getLineListByVersionId(scriptVersionVo.getId());

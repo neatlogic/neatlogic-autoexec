@@ -126,7 +126,7 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             autoexecCombopVo.setOperationType(CombopOperationType.COMBOP.getValue());
             autoexecCombopVo.setOwner(UserContext.get().getUserUuid(true));
             autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
-            saveDependency(autoexecCombopVo);
+            autoexecCombopService.saveDependency(autoexecCombopVo);
         } else {
             String owner = autoexecCombopVo.getOwner();
             if (owner == null) {
@@ -168,10 +168,10 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             }
             autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
             autoexecCombopMapper.deleteAutoexecCombopGroupByCombopId(id);
-            deleteDependency(oldAutoexecCombopVo);
+            autoexecCombopService.deleteDependency(oldAutoexecCombopVo);
             autoexecCombopService.saveAutoexecCombopConfig(autoexecCombopVo, false);
             autoexecCombopMapper.updateAutoexecCombopById(autoexecCombopVo);
-            saveDependency(autoexecCombopVo);
+            autoexecCombopService.saveDependency(autoexecCombopVo);
         }
 
         return autoexecCombopVo.getId();
@@ -196,107 +196,4 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
 //            return new FieldValidResultVo();
 //        };
 //    }
-
-    private void saveDependency(AutoexecCombopVo autoexecCombopVo) {
-        AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
-        if (config == null) {
-            return;
-        }
-        List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
-        if (CollectionUtils.isEmpty(combopPhaseList)) {
-            return;
-        }
-        for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
-            if (autoexecCombopPhaseVo == null) {
-                return;
-            }
-            AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
-            if (phaseConfig == null) {
-                return;
-            }
-            List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
-            if (CollectionUtils.isEmpty(phaseOperationList)) {
-                return;
-            }
-            for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
-                if (autoexecCombopPhaseOperationVo != null) {
-                    saveDependency(autoexecCombopPhaseVo, autoexecCombopPhaseOperationVo);
-                }
-            }
-        }
-    }
-
-    private void saveDependency(AutoexecCombopPhaseVo combopPhaseVo, AutoexecCombopPhaseOperationVo phaseOperationVo) {
-        AutoexecCombopPhaseOperationConfigVo operationConfigVo = phaseOperationVo.getConfig();
-        if (operationConfigVo == null) {
-            return;
-        }
-        Long profileId = operationConfigVo.getProfileId();
-        if (profileId != null) {
-            JSONObject dependencyConfig = new JSONObject();
-            dependencyConfig.put("combopId", combopPhaseVo.getId());
-            dependencyConfig.put("combopName", combopPhaseVo.getName());
-            dependencyConfig.put("phaseUuid", combopPhaseVo.getUuid());
-            dependencyConfig.put("phaseName", combopPhaseVo.getName());
-            DependencyManager.insert(AutoexecProfile2CombopPhaseOperationDependencyHandler.class, profileId, phaseOperationVo.getOperationId(), dependencyConfig);
-        }
-        List<ParamMappingVo> paramMappingList = operationConfigVo.getParamMappingList();
-        if (org.apache.commons.collections.CollectionUtils.isNotEmpty(paramMappingList)) {
-            for (ParamMappingVo paramMappingVo : paramMappingList) {
-                if (Objects.equals(paramMappingVo.getMappingMode(), ParamMappingMode.GLOBAL_PARAM.getValue())) {
-                    JSONObject dependencyConfig = new JSONObject();
-                    dependencyConfig.put("combopId", combopPhaseVo.getId());
-                    dependencyConfig.put("combopName", combopPhaseVo.getName());
-                    dependencyConfig.put("phaseUuid", combopPhaseVo.getUuid());
-                    dependencyConfig.put("phaseName", combopPhaseVo.getName());
-                    dependencyConfig.put("type", "输入参数映射");
-                    DependencyManager.insert(AutoexecGlobalParam2CombopPhaseOperationDependencyHandler.class, paramMappingVo.getValue(), phaseOperationVo.getOperationId(), dependencyConfig);
-                }
-            }
-        }
-        List<ParamMappingVo> argumentMappingList = operationConfigVo.getArgumentMappingList();
-        if (org.apache.commons.collections.CollectionUtils.isNotEmpty(argumentMappingList)) {
-            for (ParamMappingVo paramMappingVo : argumentMappingList) {
-                if (Objects.equals(paramMappingVo.getMappingMode(), ParamMappingMode.GLOBAL_PARAM.getValue())) {
-                    JSONObject dependencyConfig = new JSONObject();
-                    dependencyConfig.put("combopId", combopPhaseVo.getId());
-                    dependencyConfig.put("combopName", combopPhaseVo.getName());
-                    dependencyConfig.put("phaseUuid", combopPhaseVo.getUuid());
-                    dependencyConfig.put("phaseName", combopPhaseVo.getName());
-                    dependencyConfig.put("type", "自由参数映射");
-                    DependencyManager.insert(AutoexecGlobalParam2CombopPhaseOperationDependencyHandler.class, paramMappingVo.getValue(), phaseOperationVo.getOperationId(), dependencyConfig);
-                }
-            }
-        }
-    }
-
-    private void deleteDependency(AutoexecCombopVo autoexecCombopVo) {
-        AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
-        if (config == null) {
-            return;
-        }
-        List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
-        if (CollectionUtils.isEmpty(combopPhaseList)) {
-            return;
-        }
-        for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
-            if (autoexecCombopPhaseVo == null) {
-                return;
-            }
-            AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
-            if (phaseConfig == null) {
-                return;
-            }
-            List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
-            if (CollectionUtils.isEmpty(phaseOperationList)) {
-                return;
-            }
-            for (AutoexecCombopPhaseOperationVo phaseOperationVo : phaseOperationList) {
-                if (phaseOperationVo != null) {
-                    DependencyManager.delete(AutoexecProfile2CombopPhaseOperationDependencyHandler.class, phaseOperationVo.getOperationId());
-                    DependencyManager.delete(AutoexecGlobalParam2CombopPhaseOperationDependencyHandler.class, phaseOperationVo.getOperationId());
-                }
-            }
-        }
-    }
 }

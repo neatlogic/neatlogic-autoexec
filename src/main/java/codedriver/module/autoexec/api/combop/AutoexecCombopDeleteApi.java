@@ -81,6 +81,7 @@ public class AutoexecCombopDeleteApi extends PrivateApiComponentBase {
                 autoexecCombopMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
             }
             autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
+            autoexecCombopService.deleteDependency(autoexecCombopVo);
         }
         return null;
     }
