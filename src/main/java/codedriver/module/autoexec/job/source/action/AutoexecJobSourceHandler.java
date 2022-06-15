@@ -52,12 +52,12 @@ public class AutoexecJobSourceHandler extends AutoexecJobSourceActionHandlerBase
     }
 
     @Override
-    public String getJobSqlContent(AutoexecJobVo jobVo) {
+    public JSONObject getJobSqlContent(AutoexecJobVo jobVo) {
         AutoexecJobPhaseNodeVo nodeVo = jobVo.getCurrentNode();
         JSONObject paramObj = jobVo.getActionParam();
         paramObj.put("jobId", nodeVo.getJobId());
         paramObj.put("phase", nodeVo.getJobPhaseName());
-        return AutoexecUtil.requestRunner(nodeVo.getRunnerUrl() + "/api/rest/job/phase/node/sql/content/get", paramObj);
+        return JSONObject.parseObject(AutoexecUtil.requestRunner(nodeVo.getRunnerUrl() + "/api/rest/job/phase/node/sql/content/get", paramObj));
     }
 
     @Override

@@ -40,17 +40,16 @@ public class AutoexecJobNodeSqlContentGetHandler extends AutoexecJobActionHandle
 
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
-        JSONObject result = new JSONObject();
         AutoexecJobVo jonInfo = autoexecJobMapper.getJobInfo(jobVo.getCurrentNode().getJobId());
         if (jonInfo != null) {
             if (StringUtils.equals(jonInfo.getSource(), DeployOperType.DEPLOY.getValue())) {
                 IAutoexecJobSourceActionHandler jobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(DeployOperType.DEPLOY.getValue());
-                result.put("content", jobSourceActionHandler.getJobSqlContent(jobVo));
+                return jobSourceActionHandler.getJobSqlContent(jobVo);
             } else {
                 IAutoexecJobSourceActionHandler jobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(AutoexecOperType.AUTOEXEC.getValue());
-                result.put("content", jobSourceActionHandler.getJobSqlContent(jobVo));
+                return jobSourceActionHandler.getJobSqlContent(jobVo);
             }
         }
-        return result;
+        return null;
     }
 }
