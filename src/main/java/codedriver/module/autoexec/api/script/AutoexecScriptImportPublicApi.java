@@ -146,10 +146,10 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
                 newScriptVo.setCatalogId(autoexecCatalogMapper.getAutoexecCatalogByName(newScriptVo.getCatalogName()).getId());
 
                 AutoexecScriptVo oldScriptVo = autoexecScriptMapper.getScriptBaseInfoByName(newScriptVo.getName());
-                Long scriptId;
+                Long scriptId = oldScriptVo != null ? oldScriptVo.getId() : newScriptVo.getId();
+                newScriptVo.setDefaultProfileId(autoexecService.saveProfileOperation(newScriptVo.getDefaultProfileName(), scriptId, ToolType.SCRIPT.getValue()));
                 if (oldScriptVo == null) {
                     newScriptArray.add(newScriptVo.getName());
-                    scriptId = newScriptVo.getId();
                     newScriptVo.setFcu(UserContext.get().getUserUuid());
                     AutoexecScriptVersionVo versionVo = getVersionVo(newScriptVo, 1);
                     autoexecScriptMapper.insertScript(newScriptVo);
@@ -165,7 +165,6 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
                     }
                 } else {
                     newScriptVo.setId(oldScriptVo.getId());
-                    scriptId = newScriptVo.getId();
                     if (checkBaseInfoHasBeenChanged(newScriptVo, oldScriptVo)) {
                         autoexecScriptMapper.updateScriptBaseInfo(newScriptVo);
                         updatedScriptArray.add(newScriptVo.getName());
@@ -202,7 +201,6 @@ public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentB
                         }
                     }
                 }
-                autoexecService.saveProfileOperation(newScriptVo.getDefaultProfileName(), scriptId, ToolType.SCRIPT.getValue());
             } else {
                 JSONObject faultObj = new JSONObject();
                 String item;

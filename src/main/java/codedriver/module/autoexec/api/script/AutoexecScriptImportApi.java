@@ -181,10 +181,10 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
         String defaultProfileName = scriptVo.getDefaultProfileName();
         if (StringUtils.isNotBlank(defaultProfileName)) {
             AutoexecProfileVo profile = autoexecProfileMapper.getProfileVoByName(defaultProfileName);
-            if (profile == null) {
-                failReasonList.add("不存在的profile：" + defaultProfileName);
-            } else if (autoexecProfileMapper.getProfileIdByProfileIdAndOperationId(profile.getId(), scriptVo.getId()) == null) {
-                failReasonList.add("profile ： " + defaultProfileName + "未关联：" + name);
+            if (profile == null || autoexecProfileMapper.getProfileIdByProfileIdAndOperationId(profile.getId(), scriptVo.getId()) == null) {
+                scriptVo.setDefaultProfileId(null);
+            } else {
+                scriptVo.setDefaultProfileId(profile.getId());
             }
         }
         if (CollectionUtils.isEmpty(failReasonList)) {
