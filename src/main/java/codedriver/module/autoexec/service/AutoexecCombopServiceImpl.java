@@ -668,6 +668,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 if (phaseOperationVo != null) {
                     DependencyManager.delete(AutoexecProfile2CombopPhaseOperationDependencyHandler.class, phaseOperationVo.getOperationId());
                     DependencyManager.delete(AutoexecGlobalParam2CombopPhaseOperationInputParamDependencyHandler.class, phaseOperationVo.getOperationId());
+                    DependencyManager.delete(AutoexecGlobalParam2CombopPhaseOperationArgumentParamDependencyHandler.class, phaseOperationVo.getOperationId());
                 }
             }
         }
