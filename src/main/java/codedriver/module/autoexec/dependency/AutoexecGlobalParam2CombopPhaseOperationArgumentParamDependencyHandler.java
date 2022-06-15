@@ -2,11 +2,11 @@
  * Copyright(c) 2021 TechSureCo.,Ltd.AllRightsReserved.
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  */
-
 package codedriver.module.autoexec.dependency;
 
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.autoexec.constvalue.AutoexecFromType;
+import codedriver.framework.autoexec.constvalue.ParamMappingMode;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.dependency.core.FixedTableDependencyHandlerBase;
@@ -24,7 +24,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Component
-public class AutoexecProfile2CombopPhaseOperationDependencyHandler extends FixedTableDependencyHandlerBase {
+public class AutoexecGlobalParam2CombopPhaseOperationArgumentParamDependencyHandler extends FixedTableDependencyHandlerBase {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
@@ -76,20 +76,33 @@ public class AutoexecProfile2CombopPhaseOperationDependencyHandler extends Fixed
                 if (operationConfigVo == null) {
                     return null;
                 }
-                if (operationConfigVo.getProfileId() == null) {
+                List<ParamMappingVo> argumentMappingList = operationConfigVo.getArgumentMappingList();
+                if (CollectionUtils.isEmpty(argumentMappingList)) {
                     return null;
                 }
-                String operationName = phaseOperationVo.getName();
-                String phaseName = combopPhaseVo.getName();
-                String combopName = autoexecCombopVo.getName();
-                JSONObject dependencyInfoConfig = new JSONObject();
-                dependencyInfoConfig.put("combopId", combopId);
-                List<String> pathList = new ArrayList<>();
-                pathList.add("组合工具");
-                pathList.add(combopName);
-                pathList.add(phaseName);
-                String urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/action-detail?id=${DATA.combopId}";
-                return new DependencyInfoVo(operationId, dependencyInfoConfig, operationName, pathList, urlFormat, this.getGroupName());
+                for (ParamMappingVo paramMappingVo : argumentMappingList) {
+                    if (paramMappingVo == null) {
+                        continue;
+                    }
+                    if (!Objects.equals(paramMappingVo.getMappingMode(), ParamMappingMode.GLOBAL_PARAM.getValue())) {
+                        continue;
+                    }
+                    if (Objects.equals(paramMappingVo.getValue(), dependencyVo.getFrom())) {
+                        String operationName = phaseOperationVo.getName();
+                        String phaseName = combopPhaseVo.getName();
+                        String combopName = autoexecCombopVo.getName();
+                        JSONObject dependencyInfoConfig = new JSONObject();
+                        dependencyInfoConfig.put("combopId", combopId);
+                        List<String> pathList = new ArrayList<>();
+                        pathList.add("组合工具");
+                        pathList.add(combopName);
+                        pathList.add(phaseName);
+                        pathList.add(operationName);
+                        String urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/action-detail?id=${DATA.combopId}";
+                        String value = operationId + "_" + System.currentTimeMillis();
+                        return new DependencyInfoVo(value, dependencyInfoConfig, "自由参数", pathList, urlFormat, this.getGroupName());
+                    }
+                }
             }
         }
         return null;
@@ -97,6 +110,6 @@ public class AutoexecProfile2CombopPhaseOperationDependencyHandler extends Fixed
 
     @Override
     public IFromType getFromType() {
-        return AutoexecFromType.PROFILE;
+        return AutoexecFromType.GLOBAL_PARAM;
     }
 }

@@ -26,7 +26,8 @@ import codedriver.framework.dependency.core.DependencyManager;
 import codedriver.framework.dto.AuthenticationInfoVo;
 import codedriver.framework.service.AuthenticationInfoService;
 import codedriver.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
-import codedriver.module.autoexec.dependency.AutoexecGlobalParam2CombopPhaseOperationDependencyHandler;
+import codedriver.module.autoexec.dependency.AutoexecGlobalParam2CombopPhaseOperationArgumentParamDependencyHandler;
+import codedriver.module.autoexec.dependency.AutoexecGlobalParam2CombopPhaseOperationInputParamDependencyHandler;
 import codedriver.module.autoexec.dependency.AutoexecProfile2CombopPhaseOperationDependencyHandler;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -603,7 +604,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             JSONObject dependencyConfig = new JSONObject();
             dependencyConfig.put("combopId", combopPhaseVo.getId());
             dependencyConfig.put("combopName", combopPhaseVo.getName());
-            dependencyConfig.put("phaseUuid", combopPhaseVo.getUuid());
+            dependencyConfig.put("phaseId", combopPhaseVo.getId());
             dependencyConfig.put("phaseName", combopPhaseVo.getName());
             DependencyManager.insert(AutoexecProfile2CombopPhaseOperationDependencyHandler.class, profileId, phaseOperationVo.getOperationId(), dependencyConfig);
         }
@@ -614,10 +615,11 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                     JSONObject dependencyConfig = new JSONObject();
                     dependencyConfig.put("combopId", combopPhaseVo.getId());
                     dependencyConfig.put("combopName", combopPhaseVo.getName());
-                    dependencyConfig.put("phaseUuid", combopPhaseVo.getUuid());
+                    dependencyConfig.put("phaseId", combopPhaseVo.getId());
                     dependencyConfig.put("phaseName", combopPhaseVo.getName());
-                    dependencyConfig.put("type", "输入参数映射");
-                    DependencyManager.insert(AutoexecGlobalParam2CombopPhaseOperationDependencyHandler.class, paramMappingVo.getValue(), phaseOperationVo.getOperationId(), dependencyConfig);
+                    dependencyConfig.put("key", paramMappingVo.getKey());
+                    dependencyConfig.put("name", paramMappingVo.getName());
+                    DependencyManager.insert(AutoexecGlobalParam2CombopPhaseOperationInputParamDependencyHandler.class, paramMappingVo.getValue(), phaseOperationVo.getOperationId(), dependencyConfig);
                 }
             }
         }
@@ -628,10 +630,9 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                     JSONObject dependencyConfig = new JSONObject();
                     dependencyConfig.put("combopId", combopPhaseVo.getId());
                     dependencyConfig.put("combopName", combopPhaseVo.getName());
-                    dependencyConfig.put("phaseUuid", combopPhaseVo.getUuid());
+                    dependencyConfig.put("phaseId", combopPhaseVo.getId());
                     dependencyConfig.put("phaseName", combopPhaseVo.getName());
-                    dependencyConfig.put("type", "自由参数映射");
-                    DependencyManager.insert(AutoexecGlobalParam2CombopPhaseOperationDependencyHandler.class, paramMappingVo.getValue(), phaseOperationVo.getOperationId(), dependencyConfig);
+                    DependencyManager.insert(AutoexecGlobalParam2CombopPhaseOperationArgumentParamDependencyHandler.class, paramMappingVo.getValue(), phaseOperationVo.getOperationId(), dependencyConfig);
                 }
             }
         }
@@ -666,7 +667,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             for (AutoexecCombopPhaseOperationVo phaseOperationVo : phaseOperationList) {
                 if (phaseOperationVo != null) {
                     DependencyManager.delete(AutoexecProfile2CombopPhaseOperationDependencyHandler.class, phaseOperationVo.getOperationId());
-                    DependencyManager.delete(AutoexecGlobalParam2CombopPhaseOperationDependencyHandler.class, phaseOperationVo.getOperationId());
+                    DependencyManager.delete(AutoexecGlobalParam2CombopPhaseOperationInputParamDependencyHandler.class, phaseOperationVo.getOperationId());
                 }
             }
         }
