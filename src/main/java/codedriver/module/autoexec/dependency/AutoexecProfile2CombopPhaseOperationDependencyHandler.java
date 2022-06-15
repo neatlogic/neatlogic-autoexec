@@ -76,7 +76,7 @@ public class AutoexecProfile2CombopPhaseOperationDependencyHandler extends Fixed
                 if (operationConfigVo == null) {
                     return null;
                 }
-                if (operationConfigVo.getProfileId() == null) {
+                if (!Objects.equals(operationConfigVo.getProfileId(), dependencyVo.getFrom())) {
                     return null;
                 }
                 String operationName = phaseOperationVo.getName();
