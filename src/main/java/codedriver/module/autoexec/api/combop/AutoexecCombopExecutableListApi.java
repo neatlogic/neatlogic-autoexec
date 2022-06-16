@@ -7,11 +7,16 @@ package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.framework.autoexec.dto.AutoexecTypeVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
+import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
+import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.dto.AuthenticationInfoVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -84,22 +89,33 @@ public class AutoexecCombopExecutableListApi extends PrivateApiComponentBase {
             searchVo.setRowNum(autoexecCombopList.size());
             return TableResultUtil.getResult(autoexecCombopList, searchVo);
         }
-        String userUuid = UserContext.get().getUserUuid(true);
-        AuthenticationInfoVo authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(userUuid);
-        Set<Long> idSet = autoexecCombopMapper.getExecutableAutoexecCombopIdListByKeywordAndAuthenticationInfo(searchVo.getKeyword(), searchVo.getTypeId(), authenticationInfoVo);
-        List<Long> idList = new ArrayList<>(idSet);
-        idList.sort(Comparator.reverseOrder());
-        int rowNum = idList.size();
-        searchVo.setRowNum(rowNum);
-        if (searchVo.getCurrentPage() <= searchVo.getPageCount()) {
-            int fromIndex = searchVo.getStartNum();
-            int toIndex = fromIndex + searchVo.getPageSize();
-            toIndex = toIndex >  rowNum ? rowNum : toIndex;
-            List<Long> currentPageIdList =  idList.subList(fromIndex, toIndex);
-            if (CollectionUtils.isNotEmpty(currentPageIdList)) {
-                autoexecCombopList = autoexecCombopMapper.getAutoexecCombopListByIdList(currentPageIdList);
+        if (AuthActionChecker.check(AUTOEXEC_MODIFY.class)) {
+            //用户拥有“自动化管理员权限”时，对所有的组合工具都有执行权限
+            int rowNum = autoexecCombopMapper.getAutoexecCombopCount(searchVo);
+            if (rowNum > 0) {
+                searchVo.setRowNum(rowNum);
+                autoexecCombopList = autoexecCombopMapper.getAutoexecCombopList(searchVo);
+            }
+        } else {
+            //用户没有“自动化管理员权限”时，组合工具维护人或者有执行授权
+            String userUuid = UserContext.get().getUserUuid(true);
+            AuthenticationInfoVo authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(userUuid);
+            Set<Long> idSet = autoexecCombopMapper.getExecutableAutoexecCombopIdListByKeywordAndAuthenticationInfo(searchVo.getKeyword(), searchVo.getTypeId(), authenticationInfoVo);
+            List<Long> idList = new ArrayList<>(idSet);
+            idList.sort(Comparator.reverseOrder());
+            int rowNum = idList.size();
+            searchVo.setRowNum(rowNum);
+            if (searchVo.getCurrentPage() <= searchVo.getPageCount()) {
+                int fromIndex = searchVo.getStartNum();
+                int toIndex = fromIndex + searchVo.getPageSize();
+                toIndex = toIndex >  rowNum ? rowNum : toIndex;
+                List<Long> currentPageIdList =  idList.subList(fromIndex, toIndex);
+                if (CollectionUtils.isNotEmpty(currentPageIdList)) {
+                    autoexecCombopList = autoexecCombopMapper.getAutoexecCombopListByIdList(currentPageIdList);
+                }
             }
         }
+
         return TableResultUtil.getResult(autoexecCombopList, searchVo);
     }
 }
