@@ -41,7 +41,7 @@ import java.util.regex.Pattern;
 @OperationType(type = OperationTypeEnum.OPERATE)
 public class AutoexecToolRegisterApi extends PublicApiComponentBase {
 
-    final Pattern defualtValuePattern = Pattern.compile("^\\s*\\$\\{\\s*global:\\s*(.*?)\\s*\\}\\s*$");
+    final Pattern defualtValuePattern = Pattern.compile("^\\s*\\$\\{\\s*global\\s*:\\s*(.*?)\\s*\\}\\s*$");
 
     @Resource
     private AutoexecToolMapper autoexecToolMapper;
