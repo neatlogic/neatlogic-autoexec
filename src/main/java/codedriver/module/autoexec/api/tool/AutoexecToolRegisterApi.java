@@ -32,8 +32,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -43,7 +41,7 @@ import java.util.regex.Pattern;
 @OperationType(type = OperationTypeEnum.OPERATE)
 public class AutoexecToolRegisterApi extends PublicApiComponentBase {
 
-    final Pattern defualtValuePattern = Pattern.compile("\\$\\{(.*):(.*)\\}");
+    final Pattern defualtValuePattern = Pattern.compile("^\\s*\\$\\{\\s*global:\\s*(.*?)\\s*\\}\\s*$");
 
     @Resource
     private AutoexecToolMapper autoexecToolMapper;
@@ -174,31 +172,24 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
                 }
                 if (defaultValue != null && defualtValuePattern.matcher(defaultValue.toString()).matches()) {
                     Matcher matcher = defualtValuePattern.matcher(defaultValue.toString());
-                    String mappingMode = null;
                     String mappingValue = null;
                     while (matcher.find()) {
-                        mappingMode = matcher.group(1);
-                        mappingValue = matcher.group(2);
+                        mappingValue = matcher.group(1);
                     }
-                    if (mappingMode != null && mappingValue != null) {
-                        String paramMappingMode = paramMappingModeMap.get(mappingMode);
-                        if (paramMappingMode == null) {
-                            throw new AutoexecParamMappingNotFoundException(key, mappingMode);
-                        }
-                        if (AutoexecProfileParamInvokeType.GLOBAL_PARAM.getValue().equals(paramMappingMode)) {
-                            AutoexecGlobalParamType globalParamType = AutoexecGlobalParamType.getParamType(type);
-                            if (globalParamType == null) {
-                                throw new AutoexecGlobalParamTypeNotFoundException(key, type);
-                            }
-                            if (autoexecGbobalParamMapper.getGlobalParamByKey(mappingValue) == null) {
-                                // 如果不存在名为{mappingValue}的全局参数，则创建
-                                AutoexecGlobalParamVo globalParamVo = new AutoexecGlobalParamVo(mappingValue, mappingValue, globalParamType.getValue());
-                                autoexecGbobalParamMapper.insertGlobalParam(globalParamVo);
-                            }
-                            param.put("mappingMode", AutoexecProfileParamInvokeType.GLOBAL_PARAM.getValue());
-                            param.put("defaultValue", mappingValue);
-                        }
+                    if (StringUtils.isBlank(mappingValue)) {
+                        throw new AutoexecGlobalParamValueEmptyException(key);
                     }
+                    AutoexecGlobalParamType globalParamType = AutoexecGlobalParamType.getParamType(type);
+                    if (globalParamType == null) {
+                        throw new AutoexecGlobalParamTypeNotFoundException(key, type);
+                    }
+                    if (autoexecGbobalParamMapper.getGlobalParamByKey(mappingValue) == null) {
+                        // 如果不存在名为{mappingValue}的全局参数，则创建
+                        AutoexecGlobalParamVo globalParamVo = new AutoexecGlobalParamVo(mappingValue, mappingValue, globalParamType.getValue());
+                        autoexecGbobalParamMapper.insertGlobalParam(globalParamVo);
+                    }
+                    param.put("mappingMode", AutoexecProfileParamInvokeType.GLOBAL_PARAM.getValue());
+                    param.put("defaultValue", mappingValue);
                 } else {
                     param.put("defaultValue", defaultValue);
                     if (ScriptParamTypeFactory.getHandler(type).needDataSource()) {
@@ -259,12 +250,6 @@ public class AutoexecToolRegisterApi extends PublicApiComponentBase {
             }
         }
         return paramList;
-    }
-
-    static Map<String, String> paramMappingModeMap = new HashMap<>();
-
-    static {
-        paramMappingModeMap.put("global", AutoexecProfileParamInvokeType.GLOBAL_PARAM.getValue());
     }
 
 }
