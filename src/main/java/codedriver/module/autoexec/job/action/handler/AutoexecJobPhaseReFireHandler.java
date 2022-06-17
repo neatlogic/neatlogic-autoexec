@@ -5,11 +5,9 @@
 
 package codedriver.module.autoexec.job.action.handler;
 
-import codedriver.framework.autoexec.constvalue.ExecMode;
-import codedriver.framework.autoexec.constvalue.JobAction;
-import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
-import codedriver.framework.autoexec.constvalue.JobStatus;
+import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerConnectRefusedException;
@@ -26,6 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
@@ -60,6 +59,10 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         AutoexecJobPhaseVo jobPhaseVo = jobVo.getExecuteJobPhaseList().get(0);
+        jobVo.setStatus(JobStatus.RUNNING.getValue());
+        autoexecJobMapper.updateJobStatus(jobVo);
+        jobPhaseVo.setStatus(JobPhaseStatus.RUNNING.getValue());
+        autoexecJobMapper.updateJobPhaseStatus(jobPhaseVo);
         //如果是sqlfile类型的phase 需额外清除状态
         if(Objects.equals(ExecMode.SQL.getValue(),jobPhaseVo.getExecMode())){
             autoexecJobService.resetAutoexecJobSqlStatusByJobIdAndJobPhaseNameList(jobVo.getId(), Collections.singletonList(jobPhaseVo.getName()));
@@ -69,9 +72,10 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
             autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(jobVo.getExecuteJobPhaseList().stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()), JobPhaseStatus.PENDING.getValue());
             autoexecJobService.refreshJobPhaseNodeList(jobVo.getId(), jobVo.getExecuteJobPhaseList());
         }
-        if(Objects.equals(jobVo.getAction(), JobAction.RESET_REFIRE.getValue()) || !Objects.equals(jobVo.getExecuteJobPhaseList().get(0).getStatus(),JobPhaseStatus.COMPLETED.getValue())) {
-            jobVo.setStatus(JobStatus.RUNNING.getValue());
-            autoexecJobMapper.updateJobStatus(jobVo);
+        if(Objects.equals(jobVo.getAction(), JobAction.REFIRE.getValue())) {
+            List<AutoexecJobPhaseNodeVo> needResetNodeList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseIdAndExceptStatus(jobVo.getId(),jobPhaseVo.getId(), Arrays.asList(JobNodeStatus.IGNORED.getValue(),JobNodeStatus.SUCCEED.getValue()));
+            autoexecJobMapper.updateJobPhaseNodeListStatus(needResetNodeList.stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()), JobNodeStatus.PENDING.getValue());
+            resetJobNodeStatus(jobVo,needResetNodeList);
         }
         jobPhaseVo.setJobGroupVo(autoexecJobMapper.getJobGroupById(jobPhaseVo.getGroupId()));
         executeGroup(jobVo);

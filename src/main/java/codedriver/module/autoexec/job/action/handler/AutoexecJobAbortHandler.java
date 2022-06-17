@@ -63,7 +63,7 @@ public class AutoexecJobAbortHandler extends AutoexecJobActionHandlerBase {
         //更新phase状态 为中止中
         jobVo.setPhaseList(autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId()));
         for (AutoexecJobPhaseVo jobPhase : jobVo.getPhaseList()) {
-            if (Objects.equals(jobPhase.getStatus(), JobPhaseStatus.RUNNING.getValue()) || Objects.equals(jobPhase.getStatus(), JobPhaseStatus.WAITING.getValue())) {
+            if (Arrays.asList(JobPhaseStatus.RUNNING.getValue(),JobPhaseStatus.WAITING.getValue(),JobPhaseStatus.WAIT_INPUT.getValue()).contains(jobPhase.getStatus())) {
                 jobPhase.setStatus(JobStatus.ABORTING.getValue());
                 autoexecJobMapper.updateJobPhaseStatus(jobPhase);
                 autoexecJobMapper.updateBatchJobPhaseRunnerStatus(jobPhase.getId(), JobPhaseStatus.ABORTING.getValue());

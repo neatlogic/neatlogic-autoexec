@@ -84,9 +84,6 @@
             <if test="operationId != null">
                 and apo.`operation_id` = #{operationId}
             </if>
-            <if test="ciEntityId != null">
-                and dpc.`ci_entity_id` = #{ciEntityId}
-            </if>
             <choose>
                 <when test="fromSystemId == -1">
                     and a.system_id = -1
@@ -244,8 +241,7 @@
         a.fcu,
         a.lcd,
         a.lcu
-        <include refid="searchProfileFrom"></include>
-        <include refid="searchProfileWhere"></include>
+        <include refid="searchProfile"></include>
         ORDER BY a.lcd DESC
         LIMIT #{startNum}, #{pageSize}
     </select>
@@ -308,6 +304,13 @@
         `lcu`
         FROM `autoexec_profile`
         WHERE `name` = #{name}
+    </select>
+
+    <select id="getProfileIdByProfileIdAndOperationId" resultType="java.lang.Long">
+        SELECT
+        `profile_id`
+        FROM `autoexec_profile_operation`
+        WHERE `profile_id` = #{profileId} AND `operation_id` = #{operationId}
     </select>
 
     <delete id="deleteProfileById">

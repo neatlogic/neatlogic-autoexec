@@ -128,8 +128,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             if (CollectionUtils.isNotEmpty(scenarioPhaseNameList) && !scenarioPhaseNameList.contains(autoexecCombopPhaseVo.getName())) {
                 continue;
             }
+            jobVo.setExecuteJobGroupVo(combopIdJobGroupVoMap.get(autoexecCombopPhaseVo.getGroupId()));
             //根据作业来源执行对应保存阶段的动作
-
             AutoexecJobPhaseVo jobPhaseVo = new AutoexecJobPhaseVo(autoexecCombopPhaseVo, jobVo.getId(), combopIdJobGroupVoMap);
             autoexecJobMapper.insertJobPhase(jobPhaseVo);
             combopGroupIdList.add(autoexecCombopPhaseVo.getGroupId());
