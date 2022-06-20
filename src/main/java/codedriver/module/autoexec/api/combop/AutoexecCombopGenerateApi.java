@@ -30,6 +30,7 @@ import codedriver.framework.restful.core.IValid;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.util.RegexUtils;
 import codedriver.framework.util.UuidUtil;
+import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -55,6 +56,8 @@ import java.util.Objects;
 public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
+    @Resource
+    private AutoexecCombopService autoexecCombopService;
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
     @Resource
@@ -264,6 +267,7 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
 
         autoexecCombopVo.setConfig(JSONObject.toJSONString(config));
         autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
+        autoexecCombopService.saveDependency(autoexecCombopVo);
         combopPhaseVo.setCombopId(combopId);
         autoexecCombopMapper.insertAutoexecCombopPhase(combopPhaseVo);
         phaseOperationVo.setCombopPhaseId(combopPhaseVo.getId());

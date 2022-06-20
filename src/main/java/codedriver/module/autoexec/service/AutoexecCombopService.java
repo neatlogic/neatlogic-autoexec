@@ -56,7 +56,7 @@ public interface AutoexecCombopService {
     /**
      * 通过操作id 获取当前激活版本脚本内容
      *
-     * @param operationId 操作Id
+     * @param operation 操作Id
      * @return 脚本内容
      */
     String getOperationActiveVersionScriptByOperation(AutoexecScriptVersionVo operation);
@@ -77,4 +77,16 @@ public interface AutoexecCombopService {
      * @param isCopy
      */
     void saveAutoexecCombopConfig(AutoexecCombopVo autoexecCombopVo, boolean isCopy);
+
+    /**
+     * 保存阶段中操作工具对预置参数集和全局参数的引用关系
+     * @param autoexecCombopVo
+     */
+    void saveDependency(AutoexecCombopVo autoexecCombopVo);
+
+    /**
+     * 删除阶段中操作工具对预置参数集和全局参数的引用关系
+     * @param autoexecCombopVo
+     */
+    void deleteDependency(AutoexecCombopVo autoexecCombopVo);
 }

@@ -161,27 +161,27 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             List<AutoexecCombopPhaseOperationVo> combopPhaseOperationList = combopPhaseExecuteConfigVo.getPhaseOperationList();
             for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : combopPhaseOperationList) {
                 String operationType = autoexecCombopPhaseOperationVo.getOperationType();
-                Long operationId = autoexecCombopPhaseOperationVo.getOperationId();
+                Long id = autoexecCombopPhaseOperationVo.getId();
                 AutoexecJobPhaseOperationVo jobPhaseOperationVo = null;
                 if (CombopOperationType.SCRIPT.getValue().equalsIgnoreCase(operationType)) {
                     AutoexecScriptVo scriptVo;
                     AutoexecScriptVersionVo scriptVersionVo;
                     String script;
                     if (Objects.equals(jobVo.getSource(), JobSource.TEST.getValue())) {
-                        scriptVersionVo = autoexecScriptMapper.getVersionByVersionId(operationId);
+                        scriptVersionVo = autoexecScriptMapper.getVersionByVersionId(id);
                         if (scriptVersionVo == null) {
-                            throw new AutoexecScriptVersionNotFoundException(operationId);
+                            throw new AutoexecScriptVersionNotFoundException(id);
                         }
                         scriptVo = autoexecScriptMapper.getScriptBaseInfoById(scriptVersionVo.getScriptId());
                         script = autoexecCombopService.getOperationActiveVersionScriptByOperation(scriptVersionVo);
                     } else {
-                        scriptVo = autoexecScriptMapper.getScriptBaseInfoById(operationId);
-                        scriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(operationId);
-                        script = autoexecCombopService.getOperationActiveVersionScriptByOperationId(operationId);
+                        scriptVo = autoexecScriptMapper.getScriptBaseInfoById(id);
+                        scriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(id);
+                        script = autoexecCombopService.getOperationActiveVersionScriptByOperationId(id);
                     }
                     jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, scriptVo, scriptVersionVo, script, jobPhaseVoList);
                 } else if (CombopOperationType.TOOL.getValue().equalsIgnoreCase(operationType)) {
-                    AutoexecToolVo toolVo = autoexecToolMapper.getToolById(operationId);
+                    AutoexecToolVo toolVo = autoexecToolMapper.getToolById(id);
                     jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, toolVo, jobPhaseVoList);
                 }
                 autoexecJobMapper.insertJobPhaseOperation(jobPhaseOperationVo);
