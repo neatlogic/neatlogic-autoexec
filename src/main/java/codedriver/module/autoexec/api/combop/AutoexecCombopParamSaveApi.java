@@ -15,8 +15,6 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.constvalue.CiphertextPrefix;
 import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.dependency.core.DependencyManager;
-import codedriver.framework.exception.type.ParamIrregularException;
-import codedriver.framework.exception.type.ParamNotExistsException;
 import codedriver.framework.exception.type.PermissionDeniedException;
 import codedriver.framework.restful.annotation.Description;
 import codedriver.framework.restful.annotation.Input;
@@ -27,6 +25,7 @@ import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.dependency.MatrixAutoexecCombopParamDependencyHandler;
 import codedriver.module.autoexec.service.AutoexecCombopService;
+import codedriver.module.autoexec.service.AutoexecService;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -39,7 +38,6 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.regex.Pattern;
 
 /**
  * 保存组合工具运行参数接口
@@ -58,6 +56,9 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopService autoexecCombopService;
+
+    @Resource
+    private AutoexecService autoexecService;
 
     @Override
     public String getToken() {
@@ -97,39 +98,15 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
         }
 
         List<AutoexecCombopParamVo> autoexecCombopParamVoList = new ArrayList<>();
-        Pattern keyPattern = Pattern.compile("^[A-Za-z_\\d]+$");
-        Pattern namePattern = Pattern.compile("^[A-Za-z_\\d\\u4e00-\\u9fa5]+$");
         JSONArray paramList = jsonObj.getJSONArray("paramList");
-        for (int i = 0; i < paramList.size(); i++) {
-            AutoexecCombopParamVo autoexecCombopParamVo = paramList.getObject(i, AutoexecCombopParamVo.class);
+        List<AutoexecCombopParamVo> runtimeParamList = paramList.toJavaList(AutoexecCombopParamVo.class);
+        autoexecService.validateRuntimeParamList(autoexecCombopParamVoList);
+        for (int i = 0; i < runtimeParamList.size(); i++) {
+            AutoexecCombopParamVo autoexecCombopParamVo = runtimeParamList.get(i);
             if (autoexecCombopParamVo != null) {
                 String key = autoexecCombopParamVo.getKey();
-                int index = i + 1;
-                if (StringUtils.isBlank(key)) {
-                    throw new ParamNotExistsException(index, "英文名");
-                }
-                if (!keyPattern.matcher(key).matches()) {
-                    throw new ParamIrregularException(key);
-                }
-                String name = autoexecCombopParamVo.getName();
-                if (StringUtils.isBlank(name)) {
-                    throw new ParamNotExistsException(index, key, "中文名");
-                }
-                if (!namePattern.matcher(name).matches()) {
-                    throw new ParamIrregularException(index, key, name);
-                }
-                Integer isRequired = autoexecCombopParamVo.getIsRequired();
-                if (isRequired == null) {
-                    throw new ParamNotExistsException(index, key, "是否必填");
-                }
                 String type = autoexecCombopParamVo.getType();
-                if (StringUtils.isBlank(type)) {
-                    throw new ParamNotExistsException(index, key, "控件类型");
-                }
                 ParamType paramType = ParamType.getParamType(type);
-                if (paramType == null) {
-                    throw new ParamIrregularException(index, key, type);
-                }
                 Object value = autoexecCombopParamVo.getDefaultValue();
                 // 如果默认值不以"RC4:"开头，说明修改了密码，则重新加密
                 if (paramType == ParamType.PASSWORD && value != null && !value.toString().startsWith(CiphertextPrefix.RC4.getValue())) {

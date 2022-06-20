@@ -24,6 +24,7 @@ import codedriver.framework.autoexec.exception.AutoexecParamMappingNotFoundExcep
 import codedriver.framework.autoexec.script.paramtype.IScriptParamType;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import codedriver.framework.exception.type.*;
+import codedriver.framework.util.RegexUtils;
 import codedriver.module.autoexec.dao.mapper.AutoexecProfileMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecScenarioMapper;
 import com.alibaba.fastjson.JSONArray;
@@ -162,6 +163,46 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
             }
         }
     }
+
+    @Override
+    public void validateRuntimeParamList(List<? extends AutoexecParamVo> runtimeParamList) {
+        if (CollectionUtils.isEmpty(runtimeParamList)) {
+            return;
+        }
+        int index = 1;
+        for (AutoexecParamVo autoexecParamVo : runtimeParamList) {
+            if (autoexecParamVo != null) {
+                String key = autoexecParamVo.getKey();
+                if (StringUtils.isBlank(key)) {
+                    throw new ParamNotExistsException(index, "英文名");
+                }
+                if (!RegexUtils.isMatch(key, RegexUtils.ENGLISH_NUMBER_NAME)) {
+                    throw new ParamIrregularException(key);
+                }
+                String name = autoexecParamVo.getName();
+                if (StringUtils.isBlank(name)) {
+                    throw new ParamNotExistsException(index, key, "中文名");
+                }
+                if (!RegexUtils.isMatch(name, RegexUtils.NAME_WITH_SLASH)) {
+                    throw new ParamIrregularException(index, key, name);
+                }
+                Integer isRequired = autoexecParamVo.getIsRequired();
+                if (isRequired == null) {
+                    throw new ParamNotExistsException(index, key, "是否必填");
+                }
+                String type = autoexecParamVo.getType();
+                if (StringUtils.isBlank(type)) {
+                    throw new ParamNotExistsException(index, key, "控件类型");
+                }
+                ParamType paramType = ParamType.getParamType(type);
+                if (paramType == null) {
+                    throw new ParamIrregularException(index, key, type);
+                }
+                index++;
+            }
+        }
+    }
+
 
     @Override
     public void mergeConfig(AutoexecParamVo autoexecParamVo) {
