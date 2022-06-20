@@ -215,17 +215,17 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                             AutoexecOperationVo autoexecToolAndScriptVo = null;
                             List<? extends AutoexecParamVo> autoexecParamVoList = new ArrayList<>();
                             if (Objects.equals(phaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
-                                AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(phaseOperationVo.getOperationId());
+                                AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(phaseOperationVo.getId());
                                 if (autoexecScriptVo != null) {
                                     autoexecToolAndScriptVo = new AutoexecOperationVo(autoexecScriptVo);
-                                    autoexecParamVoList = autoexecScriptMapper.getParamListByScriptId(phaseOperationVo.getOperationId());
-                                    AutoexecScriptVersionVo autoexecScriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(phaseOperationVo.getOperationId());
+                                    autoexecParamVoList = autoexecScriptMapper.getParamListByScriptId(phaseOperationVo.getId());
+                                    AutoexecScriptVersionVo autoexecScriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(phaseOperationVo.getId());
                                     if (autoexecScriptVersionVo != null) {
                                         argumentParam = autoexecScriptMapper.getArgumentByVersionId(autoexecScriptVersionVo.getId());
                                     }
                                 }
                             } else if (Objects.equals(phaseOperationVo.getOperationType(), CombopOperationType.TOOL.getValue())) {
-                                AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(phaseOperationVo.getOperationId());
+                                AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(phaseOperationVo.getId());
                                 if (autoexecToolVo != null) {
                                     autoexecToolAndScriptVo = new AutoexecOperationVo(autoexecToolVo);
                                     JSONObject toolConfig = autoexecToolVo.getConfig();

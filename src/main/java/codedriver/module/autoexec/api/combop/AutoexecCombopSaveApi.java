@@ -37,8 +37,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * 保存组合工具基本信息接口
@@ -123,6 +122,7 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             autoexecCombopVo.setOperationType(CombopOperationType.COMBOP.getValue());
             autoexecCombopVo.setOwner(UserContext.get().getUserUuid(true));
             autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
+            autoexecCombopService.saveDependency(autoexecCombopVo);
         } else {
             String owner = autoexecCombopVo.getOwner();
             if (owner == null) {
@@ -164,8 +164,10 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             }
             autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
             autoexecCombopMapper.deleteAutoexecCombopGroupByCombopId(id);
+            autoexecCombopService.deleteDependency(oldAutoexecCombopVo);
             autoexecCombopService.saveAutoexecCombopConfig(autoexecCombopVo, false);
             autoexecCombopMapper.updateAutoexecCombopById(autoexecCombopVo);
+            autoexecCombopService.saveDependency(autoexecCombopVo);
         }
 
         return autoexecCombopVo.getId();

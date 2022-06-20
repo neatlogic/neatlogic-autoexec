@@ -103,6 +103,7 @@ public class AutoexecCombopCopyApi extends PrivateApiComponentBase {
         autoexecCombopService.saveAutoexecCombopConfig(autoexecCombopVo, true);
         Long combopId = autoexecCombopVo.getId();
         autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
+        autoexecCombopService.saveDependency(autoexecCombopVo);
 
         List<AutoexecCombopParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
         if (CollectionUtils.isNotEmpty(runtimeParamList)) {

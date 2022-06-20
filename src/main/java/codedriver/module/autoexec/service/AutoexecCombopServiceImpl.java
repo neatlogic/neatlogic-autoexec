@@ -22,9 +22,13 @@ import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.exception.*;
+import codedriver.framework.dependency.core.DependencyManager;
 import codedriver.framework.dto.AuthenticationInfoVo;
 import codedriver.framework.service.AuthenticationInfoService;
 import codedriver.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
+import codedriver.module.autoexec.dependency.AutoexecGlobalParam2CombopPhaseOperationArgumentParamDependencyHandler;
+import codedriver.module.autoexec.dependency.AutoexecGlobalParam2CombopPhaseOperationInputParamDependencyHandler;
+import codedriver.module.autoexec.dependency.AutoexecProfile2CombopPhaseOperationDependencyHandler;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -189,7 +193,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 if (autoexecCombopPhaseOperationVo == null) {
                     continue;
                 }
-                Long operationId = autoexecCombopPhaseOperationVo.getOperationId();
+                Long id = autoexecCombopPhaseOperationVo.getId();
                 String operationUuid = autoexecCombopPhaseOperationVo.getUuid();
                 String operationName = autoexecCombopPhaseOperationVo.getName();
                 List<? extends AutoexecParamVo> autoexecParamVoList = new ArrayList<>();
@@ -197,16 +201,16 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 Map<String, String> inputParamNameMap = new HashMap<>();
                 AutoexecParamVo argumentParam = null;
                 if (Objects.equals(autoexecCombopPhaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
-                    AutoexecScriptVersionVo autoexecScriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(operationId);
+                    AutoexecScriptVersionVo autoexecScriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(id);
                     if (autoexecScriptVersionVo == null) {
-                        throw new AutoexecScriptNotFoundException(operationId);
+                        throw new AutoexecScriptNotFoundException(id);
                     }
-                    autoexecParamVoList = autoexecScriptMapper.getParamListByScriptId(operationId);
+                    autoexecParamVoList = autoexecScriptMapper.getParamListByScriptId(id);
                     argumentParam = autoexecScriptMapper.getArgumentByVersionId(autoexecScriptVersionVo.getId());
                 } else {
-                    AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(operationId);
+                    AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(id);
                     if (autoexecToolVo == null) {
-                        throw new AutoexecToolNotFoundException(operationId);
+                        throw new AutoexecToolNotFoundException(id);
                     }
                     JSONObject toolConfig = autoexecToolVo.getConfig();
                     if (MapUtils.isNotEmpty(toolConfig)) {
@@ -546,6 +550,125 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                         autoexecCombopPhaseVo.setGroupId(autoexecCombopGroupVo.getId());
                     }
                     autoexecCombopMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);
+                }
+            }
+        }
+    }
+
+    /**
+     * 保存阶段中操作工具对预置参数集和全局参数的引用关系
+     * @param autoexecCombopVo
+     */
+    @Override
+    public void saveDependency(AutoexecCombopVo autoexecCombopVo) {
+        AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
+        if (config == null) {
+            return;
+        }
+        List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
+        if (CollectionUtils.isEmpty(combopPhaseList)) {
+            return;
+        }
+        for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
+            if (autoexecCombopPhaseVo == null) {
+                continue;
+            }
+            AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
+            if (phaseConfig == null) {
+                continue;
+            }
+            List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
+            if (CollectionUtils.isEmpty(phaseOperationList)) {
+                continue;
+            }
+            for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
+                if (autoexecCombopPhaseOperationVo != null) {
+                    saveDependency(autoexecCombopVo, autoexecCombopPhaseVo, autoexecCombopPhaseOperationVo);
+                }
+            }
+        }
+    }
+
+    /**
+     * 保存阶段中操作工具对预置参数集和全局参数的引用关系
+     * @param combopPhaseVo
+     * @param phaseOperationVo
+     */
+    private void saveDependency(AutoexecCombopVo autoexecCombopVo, AutoexecCombopPhaseVo combopPhaseVo, AutoexecCombopPhaseOperationVo phaseOperationVo) {
+        AutoexecCombopPhaseOperationConfigVo operationConfigVo = phaseOperationVo.getConfig();
+        if (operationConfigVo == null) {
+            return;
+        }
+        Long profileId = operationConfigVo.getProfileId();
+        if (profileId != null) {
+            JSONObject dependencyConfig = new JSONObject();
+            dependencyConfig.put("combopId", autoexecCombopVo.getId());
+            dependencyConfig.put("combopName", autoexecCombopVo.getName());
+            dependencyConfig.put("phaseId", combopPhaseVo.getId());
+            dependencyConfig.put("phaseName", combopPhaseVo.getName());
+            DependencyManager.insert(AutoexecProfile2CombopPhaseOperationDependencyHandler.class, profileId, phaseOperationVo.getOperationId(), dependencyConfig);
+        }
+        List<ParamMappingVo> paramMappingList = operationConfigVo.getParamMappingList();
+        if (org.apache.commons.collections.CollectionUtils.isNotEmpty(paramMappingList)) {
+            for (ParamMappingVo paramMappingVo : paramMappingList) {
+                if (Objects.equals(paramMappingVo.getMappingMode(), ParamMappingMode.GLOBAL_PARAM.getValue())) {
+                    JSONObject dependencyConfig = new JSONObject();
+                    dependencyConfig.put("combopId", autoexecCombopVo.getId());
+                    dependencyConfig.put("combopName", autoexecCombopVo.getName());
+                    dependencyConfig.put("phaseId", combopPhaseVo.getId());
+                    dependencyConfig.put("phaseName", combopPhaseVo.getName());
+                    dependencyConfig.put("key", paramMappingVo.getKey());
+                    dependencyConfig.put("name", paramMappingVo.getName());
+                    DependencyManager.insert(AutoexecGlobalParam2CombopPhaseOperationInputParamDependencyHandler.class, paramMappingVo.getValue(), phaseOperationVo.getOperationId(), dependencyConfig);
+                }
+            }
+        }
+        List<ParamMappingVo> argumentMappingList = operationConfigVo.getArgumentMappingList();
+        if (org.apache.commons.collections.CollectionUtils.isNotEmpty(argumentMappingList)) {
+            for (ParamMappingVo paramMappingVo : argumentMappingList) {
+                if (Objects.equals(paramMappingVo.getMappingMode(), ParamMappingMode.GLOBAL_PARAM.getValue())) {
+                    JSONObject dependencyConfig = new JSONObject();
+                    dependencyConfig.put("combopId", autoexecCombopVo.getId());
+                    dependencyConfig.put("combopName", autoexecCombopVo.getName());
+                    dependencyConfig.put("phaseId", combopPhaseVo.getId());
+                    dependencyConfig.put("phaseName", combopPhaseVo.getName());
+                    DependencyManager.insert(AutoexecGlobalParam2CombopPhaseOperationArgumentParamDependencyHandler.class, paramMappingVo.getValue(), phaseOperationVo.getOperationId(), dependencyConfig);
+                }
+            }
+        }
+    }
+
+    /**
+     * 删除阶段中操作工具对预置参数集和全局参数的引用关系
+     * @param autoexecCombopVo
+     */
+    @Override
+    public void deleteDependency(AutoexecCombopVo autoexecCombopVo) {
+        AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
+        if (config == null) {
+            return;
+        }
+        List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
+        if (CollectionUtils.isEmpty(combopPhaseList)) {
+            return;
+        }
+        for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
+            if (autoexecCombopPhaseVo == null) {
+                continue;
+            }
+            AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
+            if (phaseConfig == null) {
+                continue;
+            }
+            List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
+            if (CollectionUtils.isEmpty(phaseOperationList)) {
+                continue;
+            }
+            for (AutoexecCombopPhaseOperationVo phaseOperationVo : phaseOperationList) {
+                if (phaseOperationVo != null) {
+                    DependencyManager.delete(AutoexecProfile2CombopPhaseOperationDependencyHandler.class, phaseOperationVo.getOperationId());
+                    DependencyManager.delete(AutoexecGlobalParam2CombopPhaseOperationInputParamDependencyHandler.class, phaseOperationVo.getOperationId());
+                    DependencyManager.delete(AutoexecGlobalParam2CombopPhaseOperationArgumentParamDependencyHandler.class, phaseOperationVo.getOperationId());
                 }
             }
         }
