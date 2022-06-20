@@ -583,7 +583,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             }
             for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
                 if (autoexecCombopPhaseOperationVo != null) {
-                    saveDependency(autoexecCombopPhaseVo, autoexecCombopPhaseOperationVo);
+                    saveDependency(autoexecCombopVo, autoexecCombopPhaseVo, autoexecCombopPhaseOperationVo);
                 }
             }
         }
@@ -594,7 +594,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
      * @param combopPhaseVo
      * @param phaseOperationVo
      */
-    private void saveDependency(AutoexecCombopPhaseVo combopPhaseVo, AutoexecCombopPhaseOperationVo phaseOperationVo) {
+    private void saveDependency(AutoexecCombopVo autoexecCombopVo, AutoexecCombopPhaseVo combopPhaseVo, AutoexecCombopPhaseOperationVo phaseOperationVo) {
         AutoexecCombopPhaseOperationConfigVo operationConfigVo = phaseOperationVo.getConfig();
         if (operationConfigVo == null) {
             return;
@@ -602,8 +602,8 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         Long profileId = operationConfigVo.getProfileId();
         if (profileId != null) {
             JSONObject dependencyConfig = new JSONObject();
-            dependencyConfig.put("combopId", combopPhaseVo.getId());
-            dependencyConfig.put("combopName", combopPhaseVo.getName());
+            dependencyConfig.put("combopId", autoexecCombopVo.getId());
+            dependencyConfig.put("combopName", autoexecCombopVo.getName());
             dependencyConfig.put("phaseId", combopPhaseVo.getId());
             dependencyConfig.put("phaseName", combopPhaseVo.getName());
             DependencyManager.insert(AutoexecProfile2CombopPhaseOperationDependencyHandler.class, profileId, phaseOperationVo.getOperationId(), dependencyConfig);
@@ -613,8 +613,8 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             for (ParamMappingVo paramMappingVo : paramMappingList) {
                 if (Objects.equals(paramMappingVo.getMappingMode(), ParamMappingMode.GLOBAL_PARAM.getValue())) {
                     JSONObject dependencyConfig = new JSONObject();
-                    dependencyConfig.put("combopId", combopPhaseVo.getId());
-                    dependencyConfig.put("combopName", combopPhaseVo.getName());
+                    dependencyConfig.put("combopId", autoexecCombopVo.getId());
+                    dependencyConfig.put("combopName", autoexecCombopVo.getName());
                     dependencyConfig.put("phaseId", combopPhaseVo.getId());
                     dependencyConfig.put("phaseName", combopPhaseVo.getName());
                     dependencyConfig.put("key", paramMappingVo.getKey());
@@ -628,8 +628,8 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             for (ParamMappingVo paramMappingVo : argumentMappingList) {
                 if (Objects.equals(paramMappingVo.getMappingMode(), ParamMappingMode.GLOBAL_PARAM.getValue())) {
                     JSONObject dependencyConfig = new JSONObject();
-                    dependencyConfig.put("combopId", combopPhaseVo.getId());
-                    dependencyConfig.put("combopName", combopPhaseVo.getName());
+                    dependencyConfig.put("combopId", autoexecCombopVo.getId());
+                    dependencyConfig.put("combopName", autoexecCombopVo.getName());
                     dependencyConfig.put("phaseId", combopPhaseVo.getId());
                     dependencyConfig.put("phaseName", combopPhaseVo.getName());
                     DependencyManager.insert(AutoexecGlobalParam2CombopPhaseOperationArgumentParamDependencyHandler.class, paramMappingVo.getValue(), phaseOperationVo.getOperationId(), dependencyConfig);

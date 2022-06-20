@@ -64,7 +64,7 @@ public class AutoexecGlobalParam2CombopPhaseOperationArgumentParamDependencyHand
             if (CollectionUtils.isEmpty(phaseOperationList)) {
                 return null;
             }
-            Long operationId = Long.getLong(dependencyVo.getTo());
+            Long operationId = Long.valueOf(dependencyVo.getTo());
             for (AutoexecCombopPhaseOperationVo phaseOperationVo : phaseOperationList) {
                 if (phaseOperationVo == null) {
                     continue;

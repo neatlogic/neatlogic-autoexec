@@ -33,6 +33,9 @@ public class AutoexecProfileGlobalParamDependencyHandler extends FixedTableDepen
         if (MapUtils.isNotEmpty(config)) {
             Long profileId = dependencyVo.getConfig().getLong("profileId");
             AutoexecProfileVo profileVo = autoexecProfileMapper.getProfileVoById(profileId);
+            if (profileVo == null) {
+                return null;
+            }
             dependencyInfoConfig.put("profileId", profileId);
             List<String> pathList = new ArrayList<>();
             pathList.add("预制参数集");
