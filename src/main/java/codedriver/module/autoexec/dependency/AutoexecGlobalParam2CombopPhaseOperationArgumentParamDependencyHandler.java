@@ -23,6 +23,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
+/**
+ * 组合工具阶段操作自由参数映射引用全局参数处理器
+ */
 @Component
 public class AutoexecGlobalParam2CombopPhaseOperationArgumentParamDependencyHandler extends FixedTableDependencyHandlerBase {
 

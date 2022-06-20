@@ -23,7 +23,9 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
+/**
+ * 组合工具阶段操作输入参数映射引用全局参数处理器
+ */
 @Component
 public class AutoexecGlobalParam2CombopPhaseOperationInputParamDependencyHandler extends FixedTableDependencyHandlerBase {
 

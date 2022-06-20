@@ -22,7 +22,9 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-
+/**
+ * 组合工具阶段操作引用预置参数集处理器
+ */
 @Component
 public class AutoexecProfile2CombopPhaseOperationDependencyHandler extends FixedTableDependencyHandlerBase {
 
