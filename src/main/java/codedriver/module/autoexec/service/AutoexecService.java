@@ -27,6 +27,12 @@ public interface AutoexecService {
      */
     void validateArgument(AutoexecParamVo argument);
 
+    /**
+     * 检验运行参数列表
+     * @param runtimeParamList
+     */
+    void validateRuntimeParamList(List<? extends AutoexecParamVo> runtimeParamList);
+
     void mergeConfig(AutoexecParamVo autoexecParamVo);
 
     void updateAutoexecCombopConfig(AutoexecCombopConfigVo config);
