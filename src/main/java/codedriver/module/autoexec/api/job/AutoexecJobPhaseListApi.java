@@ -65,7 +65,7 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
         JSONObject result = new JSONObject();
         Long jobId = jsonObj.getLong("jobId");
         List<Long> jobPhaseIdList = null;
-        List<AutoexecJobPhaseVo> jobPhaseVoList = null;
+        List<AutoexecJobPhaseVo> jobPhaseVoList;
         if (jsonObj.containsKey("phaseIdList")) {
             jobPhaseIdList = jsonObj.getJSONArray("phaseIdList").toJavaList(Long.class);
         }

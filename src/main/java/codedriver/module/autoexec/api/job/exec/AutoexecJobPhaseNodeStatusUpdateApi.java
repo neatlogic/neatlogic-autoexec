@@ -83,16 +83,16 @@ public class AutoexecJobPhaseNodeStatusUpdateApi extends PublicApiComponentBase 
             }
         }else {
             nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobIdAndJobPhaseNameAndResourceId(jobId, phaseName, resourceId);
-
         }
         //不抛异常影响其它节点运行，ignore 就好
         if (nodeVo == null) {
             return null;
         }
 
-        //如果node status 和原本的status 一样则无需更新
-        if (!Objects.equals(nodeVo.getStatus(), jsonObj.getString("status"))) {
+        //如果node status 和原本的status 或者  warnCount 一样则无需更新
+        if (!Objects.equals(nodeVo.getStatus(), jsonObj.getString("status")) || !Objects.equals(nodeVo.getWarnCount(), jsonObj.getInteger("warnCount"))) {
             nodeVo.setStatus(jsonObj.getString("status"));
+            nodeVo.setWarnCount(jsonObj.getInteger("warnCount"));
             autoexecJobMapper.updateJobPhaseNodeStatus(nodeVo);
         }
         return null;
