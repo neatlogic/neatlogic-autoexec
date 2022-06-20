@@ -113,7 +113,7 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
     private void resetAll(AutoexecJobVo jobVo) {
         JSONObject paramJson = new JSONObject();
         paramJson.put("jobId", jobVo.getId());
-        List<RunnerMapVo> runnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobVo.getId(), jobVo.getPhaseIdList());
+        List<RunnerMapVo> runnerVos = autoexecJobMapper.getJobPhaseRunnerMapByJobIdAndPhaseIdList(jobVo.getId(), jobVo.getPhaseIdList());
         if (CollectionUtils.isEmpty(runnerVos)) {
             throw new AutoexecJobRunnerNotFoundException(jobVo.getPhaseNameList());
         }

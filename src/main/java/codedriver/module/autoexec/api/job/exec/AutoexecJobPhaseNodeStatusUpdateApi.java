@@ -6,8 +6,6 @@
 package codedriver.module.autoexec.api.job.exec;
 
 import codedriver.framework.autoexec.constvalue.ExecMode;
-import codedriver.framework.autoexec.constvalue.JobNodeStatus;
-import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
@@ -26,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -59,7 +56,6 @@ public class AutoexecJobPhaseNodeStatusUpdateApi extends PublicApiComponentBase 
             @Param(name = "host", type = ApiParamType.STRING, desc = "节点ip"),
             @Param(name = "port", type = ApiParamType.STRING, desc = "节点port"),
             @Param(name = "status", type = ApiParamType.STRING, desc = "状态", isRequired = true),
-            @Param(name = "failIgnore", type = ApiParamType.INTEGER, desc = "失败是否继续，1：继续 0：停止", isRequired = true),
             @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数")
     })
     @Output({
@@ -73,36 +69,31 @@ public class AutoexecJobPhaseNodeStatusUpdateApi extends PublicApiComponentBase 
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
         Long resourceId = jsonObj.getLong("resourceId");
-        Integer failIgnore = jsonObj.getInteger("failIgnore");
         String phaseName = jsonObj.getString("phase");
+        AutoexecJobPhaseNodeVo nodeVo = null;
         AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(jsonObj.getLong("jobId"), phaseName);
         if (jobPhaseVo == null) {
             throw new AutoexecJobPhaseNotFoundException(phaseName);
         }
+        //获取node
         if(Objects.equals(jobPhaseVo.getExecMode(), ExecMode.RUNNER.getValue())){
             List<AutoexecJobPhaseNodeVo> nodeList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseId(jobId,jobPhaseVo.getId());
             if(CollectionUtils.isNotEmpty(nodeList)) {
-                AutoexecJobPhaseNodeVo runnerNode = nodeList.get(0);
-                runnerNode.setStatus(jsonObj.getString("status"));
-                autoexecJobMapper.updateJobPhaseNodeStatus(runnerNode);
+                nodeVo = nodeList.get(0);
             }
         }else {
-            AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobIdAndJobPhaseNameAndResourceId(jobId, phaseName, resourceId);
-            if (nodeVo == null) {
-                return null;
-                //不抛异常影响其它节点运行，ignore 就好
-                //throw new AutoexecJobPhaseNodeNotFoundException(phaseName, resourceId);
-            }
-            if (!Objects.equals(nodeVo.getStatus(), jsonObj.getString("status")) && !Arrays.asList(JobNodeStatus.SUCCEED.getValue(), JobNodeStatus.IGNORED.getValue(), JobNodeStatus.FAILED.getValue()).contains(nodeVo.getStatus())) {
-                nodeVo.setStatus(jsonObj.getString("status"));
-                //如果节点失败且failIgnore等于0，则表明失败中止;如果节点成功，则需要查询是否存在失败的phase
-                if (Objects.equals(nodeVo.getStatus(), JobNodeStatus.FAILED.getValue()) && Objects.equals(failIgnore, 0)) {
-                    autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(nodeVo.getJobId(), nodeVo.getJobPhaseName());
-                    jobPhaseVo.setStatus(JobPhaseStatus.FAILED.getValue());
-                    autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(nodeVo.getJobPhaseId(), nodeVo.getStatus()));
-                }
-                autoexecJobMapper.updateJobPhaseNodeStatus(nodeVo);
-            }
+            nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobIdAndJobPhaseNameAndResourceId(jobId, phaseName, resourceId);
+
+        }
+        //不抛异常影响其它节点运行，ignore 就好
+        if (nodeVo == null) {
+            return null;
+        }
+
+        //如果node status 和原本的status 一样则无需更新
+        if (!Objects.equals(nodeVo.getStatus(), jsonObj.getString("status"))) {
+            nodeVo.setStatus(jsonObj.getString("status"));
+            autoexecJobMapper.updateJobPhaseNodeStatus(nodeVo);
         }
         return null;
     }

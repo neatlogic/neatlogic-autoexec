@@ -5,11 +5,11 @@
 
 package codedriver.module.autoexec.api.job.exec;
 
-import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
 import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
+import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
-import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseRunnerVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
@@ -20,16 +20,12 @@ import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author lvzk
@@ -53,6 +49,12 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
         return null;
     }
 
+    /*
+     * 如果status = completed，表示除了“已忽略”的节点，其它节点已成功,将web端phase runner状态更新为completed
+     * 如果status = succeed 表示除了“已忽略”的节点，其它节点都已成功,将web端phase runner状态更新为completed
+     * 如果status = failed 表示存在“失败中止”节点，将web端phase runner状态更新为failed
+     */
+
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
             @Param(name = "phase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
@@ -66,20 +68,16 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
         String phaseName = jsonObj.getString("phase");
-        String status = jsonObj.getString("status");
+        String phaseRunnerStatus = jsonObj.getString("status");
+        Integer phaseRunnerWarnCount = jsonObj.getInteger("warnCount");
         JSONObject passThroughEnv = jsonObj.getJSONObject("passThroughEnv");
         Long runnerId = 0L;
-        int isFirstFire = 0;
         if (MapUtils.isNotEmpty(passThroughEnv)) {
             if (!passThroughEnv.containsKey("runnerId")) {
                 throw new AutoexecJobRunnerNotFoundException("runnerId");
             } else {
                 runnerId = passThroughEnv.getLong("runnerId");
             }
-
-/*            if (passThroughEnv.containsKey("isFirstFire")) {
-                isFirstFire = passThroughEnv.getInteger("isFirstFire");
-            }*/
         }
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         if (jobVo == null) {
@@ -89,64 +87,63 @@ public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
         if (jobPhaseVo == null) {
             throw new AutoexecJobPhaseNotFoundException(jobId + ":" + phaseName);
         }
-
-        if (Objects.equals(jobPhaseVo.getExecMode(), ExecMode.TARGET.getValue())) {
-            /*
-             * 如果status = completed，表示除了“失败继续”和“已忽略”的节点，其它节点已成功,将web端phase runner状态更新为completed
-             * 如果status = succeed 表示除了“已忽略”的节点，其它节点都已成功,将web端phase runner状态更新为completed
-             * 如果status = failed 表示存在“失败中止”节点，将web端phase runner状态更新为failed,phase 状态也是failed
-             */
-            if (Arrays.asList(JobPhaseStatus.COMPLETED.getValue(), JobNodeStatus.SUCCEED.getValue()).contains(status)) {
-                List<String> exceptStatus = Arrays.asList(JobNodeStatus.IGNORED.getValue(), JobNodeStatus.FAILED.getValue(), JobNodeStatus.SUCCEED.getValue());
-                List<AutoexecJobPhaseNodeVo> jobPhaseNodeVoList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseNameAndExceptStatusAndRunnerId(jobId, phaseName, exceptStatus, runnerId);
-                if (CollectionUtils.isNotEmpty(jobPhaseNodeVoList)) {
-                    //throw new AutoexecJobPhaseNodeStatusException(phaseName, status, StringUtils.join(jobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()), ","));
-                    //无需抛异常，因为autoexec python 程序不会校验单runner的phase的所有节点 是否已经跑完,才更新phase状态为completed
-                    return null;
-                }
-//            因为没法知道是失败node的哪一个operation失败，故暂不检查失败的node是否是“失败继续”策略
-//            jobPhaseNodeVoList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseNameAndStatus(jobId,phaseName,JobNodeStatus.FAILED.getValue());
-//            for(AutoexecJobPhaseNodeVo jobPhaseNodeVo : jobPhaseNodeVoList){
-//                autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseIdAndOperationId()
-//            }
-                status = JobPhaseStatus.COMPLETED.getValue();
-            }
-        } else {
-            if (Objects.equals(status, JobNodeStatus.SUCCEED.getValue())) {
-                status = JobPhaseStatus.COMPLETED.getValue();
-            }
+        //将succeed转成completed，前端不区分成功还是完成
+        if (Objects.equals(phaseRunnerStatus, JobNodeStatus.SUCCEED.getValue())) {
+            phaseRunnerStatus = JobPhaseStatus.COMPLETED.getValue();
         }
         //更新phase_runner 状态
-        autoexecJobMapper.updateJobPhaseRunnerStatus(Collections.singletonList(jobPhaseVo.getId()), runnerId, status);
-
-        //判断所有该phase的runner 都是completed状态，phase 状态更改为completed
-        if (Objects.equals(status, JobPhaseStatus.WAIT_INPUT.getValue())
-                || Objects.equals(status, JobPhaseStatus.FAILED.getValue())
-                || Objects.equals(status, JobPhaseStatus.RUNNING.getValue())
-                || autoexecJobMapper.getJobPhaseRunnerByNotStatusCount(Collections.singletonList(jobPhaseVo.getId()), JobPhaseStatus.COMPLETED.getValue()) == 0) {
-            autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), status));
-        }
-        //更新job 状态
-        jobVo.setStatus(status);
-        if (Objects.equals(status, JobPhaseStatus.RUNNING.getValue())) {
-            autoexecJobMapper.updateJobStatus(jobVo);
-        }
-        //判断所有phase是否都已跑完（completed），如果是则需要更新job状态
-        if (Objects.equals(status, JobPhaseStatus.COMPLETED.getValue()) || Objects.equals(status, JobNodeStatus.SUCCEED.getValue())) {
-            List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobId);
-            if (jobPhaseVoList.stream().allMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.COMPLETED.getValue()))) {
-                //防止local的时候status给的是succeed
-                jobVo.setStatus(JobPhaseStatus.COMPLETED.getValue());
-                autoexecJobMapper.updateJobStatus(jobVo);
-            }
-        } else if (Objects.equals(status, JobPhaseStatus.FAILED.getValue())) {
-            autoexecJobMapper.updateJobStatus(jobVo);
-        }
+        autoexecJobMapper.updateJobPhaseRunnerStatus(Collections.singletonList(jobPhaseVo.getId()), runnerId, phaseRunnerStatus, phaseRunnerWarnCount);
+        //更新job 和 phase 状态
+        updateJobPhaseStatus(jobVo,jobPhaseVo);
         return null;
     }
 
     @Override
     public String getToken() {
         return "autoexec/job/phase/status/update";
+    }
+
+
+    private void updateJobPhaseStatus(AutoexecJobVo jobVo,AutoexecJobPhaseVo jobPhaseVo) {
+        int warnCount = 0;
+        String finalJobPhaseStatus;
+        Map<String, Integer> statusCountMap = new HashMap<>();
+        statusCountMap.put(JobPhaseStatus.RUNNING.getValue(), 0);
+        statusCountMap.put(JobPhaseStatus.FAILED.getValue(), 0);
+        statusCountMap.put(JobPhaseStatus.ABORTED.getValue(), 0);
+        statusCountMap.put(JobPhaseStatus.COMPLETED.getValue(), 0);
+        statusCountMap.put(JobPhaseStatus.PENDING.getValue(), 0);
+        statusCountMap.put(JobPhaseStatus.WAIT_INPUT.getValue(), 0);
+        List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobPhaseVo.getJobId(), Collections.singletonList(jobPhaseVo.getId()));
+        for (AutoexecJobPhaseRunnerVo jobPhaseRunnerVo : jobPhaseRunnerVos) {
+            warnCount += jobPhaseRunnerVo.getWarnCount() == null ? 0 : jobPhaseRunnerVo.getWarnCount();
+            statusCountMap.put(jobPhaseRunnerVo.getStatus(), statusCountMap.get(jobPhaseRunnerVo.getStatus()) + 1);
+        }
+        if (statusCountMap.get(JobPhaseStatus.COMPLETED.getValue()) == jobPhaseRunnerVos.size()) {
+            finalJobPhaseStatus = JobPhaseStatus.COMPLETED.getValue();
+        } else if (statusCountMap.get(JobPhaseStatus.WAIT_INPUT.getValue()) > 0) {
+            finalJobPhaseStatus = JobPhaseStatus.WAIT_INPUT.getValue();
+        } else if (statusCountMap.get(JobPhaseStatus.RUNNING.getValue()) > 0) {
+            finalJobPhaseStatus = JobPhaseStatus.RUNNING.getValue();
+        } else if (statusCountMap.get(JobPhaseStatus.FAILED.getValue()) > 0) {
+            finalJobPhaseStatus = JobPhaseStatus.FAILED.getValue();
+        } else if (statusCountMap.get(JobPhaseStatus.ABORTED.getValue()) > 0) {
+            finalJobPhaseStatus = JobPhaseStatus.ABORTED.getValue();
+        } else {
+            finalJobPhaseStatus = JobPhaseStatus.PENDING.getValue();
+        }
+        autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), finalJobPhaseStatus, warnCount));
+        //autoexec是不会回调failed的作业状态，故如果存在失败的phase 则更新作业状态为failed
+        if(Objects.equals(finalJobPhaseStatus,JobPhaseStatus.FAILED.getValue())){
+            jobVo.setStatus(JobStatus.FAILED.getValue());
+            autoexecJobMapper.updateJobStatus(jobVo);
+        }else if (Objects.equals(finalJobPhaseStatus, JobPhaseStatus.COMPLETED.getValue())) {
+            //判断所有phase 是否都已跑完（completed），如果是则需要更新job状态
+            List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId());
+            if (jobPhaseVoList.stream().allMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.COMPLETED.getValue()))) {
+                jobVo.setStatus(JobPhaseStatus.COMPLETED.getValue());
+                autoexecJobMapper.updateJobStatus(jobVo);
+            }
+        }
     }
 }
