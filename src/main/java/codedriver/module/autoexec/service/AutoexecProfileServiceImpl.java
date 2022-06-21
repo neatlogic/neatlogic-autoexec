@@ -1,6 +1,7 @@
 package codedriver.module.autoexec.service;
 
 
+import codedriver.framework.autoexec.constvalue.AutoexecFromType;
 import codedriver.framework.autoexec.constvalue.AutoexecGlobalParamType;
 import codedriver.framework.autoexec.constvalue.AutoexecProfileParamInvokeType;
 import codedriver.framework.autoexec.constvalue.ToolType;
@@ -10,13 +11,14 @@ import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
+import codedriver.framework.autoexec.exception.AutoexecProfileHasBeenReferredException;
 import codedriver.framework.autoexec.exception.AutoexecProfileIsNotFoundException;
 import codedriver.framework.common.constvalue.CiphertextPrefix;
 import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.dependency.core.DependencyManager;
 import codedriver.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecProfileMapper;
-import codedriver.module.autoexec.dependency.AutoexecProfileGlobalParamDependencyHandler;
+import codedriver.module.autoexec.dependency.AutoexecGlobalParamProfileDependencyHandler;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -90,14 +92,14 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService, IAuto
             Date nowLcd = new Date();
             for (AutoexecProfileParamVo paramVo : profileParamVoList) {
                 //删除当前profile参数与全局参数的关系
-                DependencyManager.delete(AutoexecProfileGlobalParamDependencyHandler.class, paramVo.getId());
+                DependencyManager.delete(AutoexecGlobalParamProfileDependencyHandler.class, paramVo.getId());
                 //保存profile参数和globalParam的关系
                 if (StringUtils.equals(AutoexecProfileParamInvokeType.GLOBAL_PARAM.getValue(), paramVo.getMappingMode())) {
                     String globalParamKey = paramVo.getDefaultValueStr();
                     if (StringUtils.isNotEmpty(globalParamKey)) {
                         JSONObject dependencyConfig = new JSONObject();
                         dependencyConfig.put("profileId", profileVo.getId());
-                        DependencyManager.insert(AutoexecProfileGlobalParamDependencyHandler.class, globalParamKey, paramVo.getId(), dependencyConfig);
+                        DependencyManager.insert(AutoexecGlobalParamProfileDependencyHandler.class, globalParamKey, paramVo.getId(), dependencyConfig);
 
                     }
                 }
@@ -127,11 +129,11 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService, IAuto
         if (profileVo == null) {
             throw new AutoexecProfileIsNotFoundException(id);
         }
-        //查询是否被引用(产品确认：无需判断所属系统和关联工具，只需要考虑是否被系统、模块、环境使用)
-        //TODO 补充是否被系统、模块、环境使用的判断
-//        if (DependencyManager.getDependencyCount(AutoexecFromType.AUTOEXEC_PROFILE_CIENTITY, id) > 0) {
-//            throw new AutoexecProfileHasBeenReferredException(profileVo.getName());
-//        }
+        //查询是否被引用(产品确认：无需判断所属系统和关联工具，只需要考虑是否被组合工具使用)
+        if (DependencyManager.getDependencyCount(AutoexecFromType.PROFILE, id) > 0) {
+            throw new AutoexecProfileHasBeenReferredException(profileVo.getName());
+        }
+
         //删除profile的参数
         autoexecProfileMapper.deleteProfileParamByProfileId(id);
         //删除profile的关联工具关系
