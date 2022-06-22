@@ -18,8 +18,11 @@ import codedriver.framework.restful.annotation.Output;
 import codedriver.framework.restful.annotation.Param;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
 
 /**
  * @author lvzk
@@ -29,6 +32,9 @@ import org.springframework.stereotype.Service;
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
+
+    @Resource
+    AutoexecJobService autoexecJobService;
 
     @Override
     public String getName() {
@@ -46,7 +52,8 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
             @Param(name = "sqlName", type = ApiParamType.STRING, desc = "sql名"),
             @Param(name = "status", type = ApiParamType.STRING, isRequired = true, desc = "node status ,用于判断刷新状态"),
             @Param(name = "logPos", type = ApiParamType.LONG, isRequired = true, desc = "日志读取位置,-1:获取最新的数据。如果是向上读'up'，则每次向上滚动加载传startPos。如果是向下读 'down'，则每次向下加载传endPos"),
-            @Param(name = "direction", type = ApiParamType.ENUM, rule = "up,down", isRequired = true, desc = "读取方向，up:向上读，down:向下读")
+            @Param(name = "direction", type = ApiParamType.ENUM, rule = "up,down", isRequired = true, desc = "读取方向，up:向上读，down:向下读"),
+            @Param(name = "charset", type = ApiParamType.STRING, isRequired = true, desc = "字符编码")
     })
     @Output({
             @Param(name = "tailContent", type = ApiParamType.LONG, isRequired = true, desc = "内容"),
@@ -59,6 +66,7 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
     })
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
+        autoexecJobService.validateAutoexecJobLogCharset(paramObj.getString("charset"));
         AutoexecJobVo jobVo = new AutoexecJobVo();
         jobVo.setActionParam(paramObj);
         jobVo.setAction(JobAction.TAIL_NODE_LOG.getValue());

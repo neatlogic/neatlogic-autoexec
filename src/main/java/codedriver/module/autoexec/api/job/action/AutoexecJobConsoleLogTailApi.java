@@ -55,7 +55,8 @@ public class AutoexecJobConsoleLogTailApi extends PrivateApiComponentBase {
             @Param(name = "runnerId", type = ApiParamType.LONG, isRequired = true, desc = "runnerId"),
             @Param(name = "logPos", type = ApiParamType.LONG, isRequired = true, desc = "日志读取位置,-1:获取最新的数据"),
             @Param(name = "status", type = ApiParamType.STRING, desc = "当前作业状态"),
-            @Param(name = "direction", type = ApiParamType.ENUM, rule = "up,down", isRequired = true, desc = "读取方向，up:向上读，down:向下读")
+            @Param(name = "direction", type = ApiParamType.ENUM, rule = "up,down", isRequired = true, desc = "读取方向，up:向上读，down:向下读"),
+            @Param(name = "charset", type = ApiParamType.STRING, isRequired = true, desc = "字符编码")
     })
     @Output({
             @Param(name = "tailContent", type = ApiParamType.LONG, isRequired = true, desc = "内容"),
@@ -68,6 +69,7 @@ public class AutoexecJobConsoleLogTailApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long jobId = paramObj.getLong("jobId");
+        autoexecJobService.validateAutoexecJobLogCharset(paramObj.getString("charset"));
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId);
