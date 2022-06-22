@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 2021. TechSure Co., Ltd. All Rights Reserved.
+ * Copyright(c) 2022 TechSure Co., Ltd. All Rights Reserved.
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  */
 
@@ -50,6 +50,7 @@ public class AutoexecJobSearchApi extends PrivateApiComponentBase {
             @Param(name = "statusList", type = ApiParamType.JSONARRAY, desc = "作业状态"),
             @Param(name = "sourceList", type = ApiParamType.JSONARRAY, desc = "作业来源"),
             @Param(name = "typeIdList", type = ApiParamType.JSONARRAY, desc = "组合工具类型"),
+            @Param(name = "idList", type = ApiParamType.JSONARRAY, desc = "作业id列表，用于精确刷新作业状态"),
             @Param(name = "combopName", type = ApiParamType.STRING, desc = "组合工具"),
             @Param(name = "combopId", type = ApiParamType.LONG, desc = "组合工具Id"),
             @Param(name = "scheduleId", type = ApiParamType.LONG, desc = "组合工具定时作业Id"),
@@ -69,11 +70,11 @@ public class AutoexecJobSearchApi extends PrivateApiComponentBase {
         JSONObject startTimeJson = jsonObj.getJSONObject("startTime");
         if (MapUtils.isNotEmpty(startTimeJson)) {
             JSONObject timeJson = TimeUtil.getStartTimeAndEndTimeByDateJson(startTimeJson);
-            jsonObj.put("startTime",timeJson.getDate("startTime"));
-            jsonObj.put("endTime",timeJson.getDate("endTime"));
+            jsonObj.put("startTime", timeJson.getDate("startTime"));
+            jsonObj.put("endTime", timeJson.getDate("endTime"));
         }
-        jsonObj.put("operationId",jsonObj.getLong("combopId"));
-        jsonObj.put("invokeId",jsonObj.getLong("scheduleId"));
+        jsonObj.put("operationId", jsonObj.getLong("combopId"));
+        jsonObj.put("invokeId", jsonObj.getLong("scheduleId"));
         AutoexecJobVo jobVo = JSONObject.toJavaObject(jsonObj, AutoexecJobVo.class);
         return TableResultUtil.getResult(autoexecJobService.getJobList(jobVo), jobVo);
     }

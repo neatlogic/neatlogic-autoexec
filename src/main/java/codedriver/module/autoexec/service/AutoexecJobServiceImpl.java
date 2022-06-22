@@ -687,7 +687,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         int rowNum = autoexecJobMapper.searchJobCount(jobVo);
         if (rowNum > 0) {
             jobVo.setRowNum(rowNum);
-            List<Long> jobIdList = autoexecJobMapper.searchJobId(jobVo);
+            List<Long> jobIdList = CollectionUtils.isEmpty(jobVo.getIdList()) ? autoexecJobMapper.searchJobId(jobVo) : jobVo.getIdList();
             if (CollectionUtils.isNotEmpty(jobIdList)) {
                 Map<String, ArrayList<Long>> operationIdMap = new HashMap<>();
                 jobVoList = autoexecJobMapper.searchJob(jobIdList);
