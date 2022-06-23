@@ -121,8 +121,8 @@ public interface AutoexecJobService {
     /**
      * 校验作业日志字符编码
      *
-     * @param charset 字符编码
+     * @param encoding 字符编码
      */
-    void validateAutoexecJobLogCharset(String charset);
+    void validateAutoexecJobLogEncoding(String encoding);
 
 }

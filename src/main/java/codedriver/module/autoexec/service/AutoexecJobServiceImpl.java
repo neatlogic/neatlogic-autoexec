@@ -772,26 +772,26 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     }
 
     @Override
-    public void validateAutoexecJobLogCharset(String charset) {
-        ConfigVo charsetConfig = configMapper.getConfigByKey("autoexec.job.log.charset");
+    public void validateAutoexecJobLogEncoding(String encoding) {
+        ConfigVo encodingConfig = configMapper.getConfigByKey("autoexec.job.log.encoding");
         boolean configChecked = false;
-        if (charsetConfig != null) {
-            String charsetConfigValue = charsetConfig.getValue();
-            if (StringUtils.isNotBlank(charsetConfigValue)) {
+        if (encodingConfig != null) {
+            String encodingConfigValue = encodingConfig.getValue();
+            if (StringUtils.isNotBlank(encodingConfigValue)) {
                 try {
                     configChecked = true;
-                    JSONArray array = JSONArray.parseArray(charsetConfigValue);
-                    if (!array.contains(charset)) {
-                        throw new AutoexecJobLogCharsetIllegalException(charset);
+                    JSONArray array = JSONArray.parseArray(encodingConfigValue);
+                    if (!array.contains(encoding)) {
+                        throw new AutoexecJobLogEncodingIllegalException(encoding);
                     }
                 } catch (Exception ex) {
                     configChecked = false;
-                    logger.error("autoexec.job.log.charset格式非JsonArray");
+                    logger.error("autoexec.job.log.encoding格式非JsonArray");
                 }
             }
         }
-        if (!configChecked && JobLogCharset.getJobLogCharset(charset) == null) {
-            throw new AutoexecJobLogCharsetIllegalException(charset);
+        if (!configChecked && JobLogEncoding.getJobLogEncoding(encoding) == null) {
+            throw new AutoexecJobLogEncodingIllegalException(encoding);
         }
     }
 }

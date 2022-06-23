@@ -53,7 +53,7 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
             @Param(name = "status", type = ApiParamType.STRING, isRequired = true, desc = "node status ,用于判断刷新状态"),
             @Param(name = "logPos", type = ApiParamType.LONG, isRequired = true, desc = "日志读取位置,-1:获取最新的数据。如果是向上读'up'，则每次向上滚动加载传startPos。如果是向下读 'down'，则每次向下加载传endPos"),
             @Param(name = "direction", type = ApiParamType.ENUM, rule = "up,down", isRequired = true, desc = "读取方向，up:向上读，down:向下读"),
-            @Param(name = "charset", type = ApiParamType.STRING, desc = "字符编码", defaultValue = "UTF-8")
+            @Param(name = "encoding", type = ApiParamType.STRING, desc = "字符编码", defaultValue = "UTF-8")
     })
     @Output({
             @Param(name = "tailContent", type = ApiParamType.LONG, isRequired = true, desc = "内容"),
@@ -66,7 +66,7 @@ public class AutoexecJobPhaseNodeLogTailApi extends PrivateApiComponentBase {
     })
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        autoexecJobService.validateAutoexecJobLogCharset(paramObj.getString("charset"));
+        autoexecJobService.validateAutoexecJobLogEncoding(paramObj.getString("encoding"));
         AutoexecJobVo jobVo = new AutoexecJobVo();
         jobVo.setActionParam(paramObj);
         jobVo.setAction(JobAction.TAIL_NODE_LOG.getValue());
