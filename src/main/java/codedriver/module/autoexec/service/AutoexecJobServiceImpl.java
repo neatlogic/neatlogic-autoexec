@@ -31,8 +31,10 @@ import codedriver.framework.cmdb.dto.resourcecenter.ResourceVo;
 import codedriver.framework.common.util.IpUtil;
 import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.crossover.CrossoverServiceFactory;
+import codedriver.framework.dao.mapper.ConfigMapper;
 import codedriver.framework.dao.mapper.runner.RunnerMapper;
 import codedriver.framework.deploy.crossover.IDeploySqlCrossoverMapper;
+import codedriver.framework.dto.ConfigVo;
 import codedriver.framework.dto.runner.GroupNetworkVo;
 import codedriver.framework.dto.runner.RunnerGroupVo;
 import codedriver.framework.dto.runner.RunnerMapVo;
@@ -73,6 +75,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     RunnerMapper runnerMapper;
     @Resource
     ResourceCenterMapper resourceCenterMapper;
+    @Resource
+    ConfigMapper configMapper;
 
     @Override
     public void saveAutoexecCombopJob(AutoexecCombopVo combopVo, AutoexecJobVo jobVo) {
@@ -764,6 +768,30 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             if (CollectionUtils.isNotEmpty(deleteSqlIdList)) {
                 autoexecJobMapper.resetJobSqlStatusBySqlIdList(deleteSqlIdList);
             }
+        }
+    }
+
+    @Override
+    public void validateAutoexecJobLogEncoding(String encoding) {
+        ConfigVo encodingConfig = configMapper.getConfigByKey("autoexec.job.log.encoding");
+        boolean configChecked = false;
+        if (encodingConfig != null) {
+            String encodingConfigValue = encodingConfig.getValue();
+            if (StringUtils.isNotBlank(encodingConfigValue)) {
+                try {
+                    configChecked = true;
+                    JSONArray array = JSONArray.parseArray(encodingConfigValue);
+                    if (!array.contains(encoding)) {
+                        throw new AutoexecJobLogEncodingIllegalException(encoding);
+                    }
+                } catch (Exception ex) {
+                    configChecked = false;
+                    logger.error("autoexec.job.log.encoding格式非JsonArray");
+                }
+            }
+        }
+        if (!configChecked && JobLogEncoding.getJobLogEncoding(encoding) == null) {
+            throw new AutoexecJobLogEncodingIllegalException(encoding);
         }
     }
 }

@@ -18,10 +18,11 @@ import java.util.List;
 public interface AutoexecJobService {
     /**
      * 通过combopVo保存作业配置
-     *  @param combopVo    组合工具vo
-     * @param jobVo 作业vo
+     *
+     * @param combopVo 组合工具vo
+     * @param jobVo    作业vo
      */
-     void saveAutoexecCombopJob(AutoexecCombopVo combopVo, AutoexecJobVo jobVo) throws Exception;
+    void saveAutoexecCombopJob(AutoexecCombopVo combopVo, AutoexecJobVo jobVo) throws Exception;
 
     /**
      * sort 为null 则补充job全部信息 ，否则返回当前sort的所有剧本
@@ -116,5 +117,12 @@ public interface AutoexecJobService {
      * @param jobPhaseNameList 作业剧本列表
      */
     void resetAutoexecJobSqlStatusByJobIdAndJobPhaseNameList(Long jobId, List<String> jobPhaseNameList);
+
+    /**
+     * 校验作业日志字符编码
+     *
+     * @param encoding 字符编码
+     */
+    void validateAutoexecJobLogEncoding(String encoding);
 
 }
