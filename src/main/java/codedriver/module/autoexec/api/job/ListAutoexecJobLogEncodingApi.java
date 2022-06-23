@@ -25,7 +25,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -71,10 +70,7 @@ public class ListAutoexecJobLogEncodingApi extends PrivateApiComponentBase {
             }
         }
         if (CollectionUtils.isEmpty(result)) {
-            result = new ArrayList<>();
-            for (JobLogEncoding encoding : JobLogEncoding.values()) {
-                result.add(encoding.getValue());
-            }
+            result = JobLogEncoding.getJobLogEncodingValueList();
         }
         return result;
     }
