@@ -393,7 +393,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      * @param nodeVo 目标node
      * @return runnerId
      */
-    private Long getRunnerByIp(AutoexecJobPhaseNodeVo nodeVo) {
+    private Long getRunnerByTargetIp(AutoexecJobPhaseNodeVo nodeVo) {
         List<GroupNetworkVo> networkVoList = runnerMapper.getAllNetworkMask();
         for (GroupNetworkVo networkVo : networkVoList) {
             if (IpUtil.isBelongSegment(nodeVo.getHost(), networkVo.getNetworkIp(), networkVo.getMask())) {
@@ -615,7 +615,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         resourceVoList.forEach(resourceVo -> {
             AutoexecJobPhaseNodeVo jobPhaseNodeVo = new AutoexecJobPhaseNodeVo(resourceVo, jobPhaseVo.getJobId(), jobPhaseVo, JobNodeStatus.PENDING.getValue(), userName, protocolId);
             jobPhaseNodeVo.setPort(resourceVo.getPort());
-            jobPhaseNodeVo.setRunnerMapId(getRunnerByIp(jobPhaseNodeVo));
+            jobPhaseNodeVo.setRunnerMapId(getRunnerByTargetIp(jobPhaseNodeVo));
             if (jobPhaseNodeVo.getRunnerMapId() == null) {
                 throw new AutoexecJobRunnerNotMatchException(jobPhaseNodeVo.getHost());
             }
