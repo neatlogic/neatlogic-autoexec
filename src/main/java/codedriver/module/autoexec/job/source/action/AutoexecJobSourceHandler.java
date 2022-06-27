@@ -2,6 +2,7 @@ package codedriver.module.autoexec.job.source.action;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.AutoexecOperType;
+import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
@@ -9,11 +10,15 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.dto.job.AutoexecSqlDetailVo;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecJobRunnerGroupRunnerNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import codedriver.framework.autoexec.job.source.action.AutoexecJobSourceActionHandlerBase;
 import codedriver.framework.autoexec.util.AutoexecUtil;
+import codedriver.framework.common.util.IpUtil;
 import codedriver.framework.dao.mapper.runner.RunnerMapper;
+import codedriver.framework.dto.runner.GroupNetworkVo;
+import codedriver.framework.dto.runner.RunnerGroupVo;
 import codedriver.framework.dto.runner.RunnerMapVo;
 import codedriver.framework.integration.authentication.enums.AuthenticateType;
 import codedriver.framework.util.HttpRequestUtil;
@@ -163,6 +168,27 @@ public class AutoexecJobSourceHandler extends AutoexecJobSourceActionHandlerBase
             paramSqlVo.setId(oldSqlDetailVo.getId());
             autoexecJobMapper.updateSqlDetailById(paramSqlVo);
         }
+    }
+
+    @Override
+    public List<RunnerMapVo> getRunnerMapList(AutoexecJobVo jobVo) {
+        AutoexecJobPhaseVo jobPhaseVo = jobVo.getCurrentPhase();
+        List<RunnerMapVo> runnerMapVos = null;
+        if(Arrays.asList(ExecMode.TARGET.getValue(), ExecMode.RUNNER_TARGET.getValue()).contains(jobPhaseVo.getExecMode())){
+            List<GroupNetworkVo> networkVoList = runnerMapper.getAllNetworkMask();
+            for (GroupNetworkVo networkVo : networkVoList) {
+                if (IpUtil.isBelongSegment(jobPhaseVo.getCurrentNode().getHost(), networkVo.getNetworkIp(), networkVo.getMask())) {
+                    RunnerGroupVo groupVo = runnerMapper.getRunnerMapGroupById(networkVo.getGroupId());
+                    if (CollectionUtils.isEmpty(groupVo.getRunnerMapList())) {
+                        throw new AutoexecJobRunnerGroupRunnerNotFoundException(groupVo.getName() + "(" + networkVo.getGroupId() + ") ");
+                    }
+                    runnerMapVos = groupVo.getRunnerMapList();
+                }
+            }
+        }else{
+            runnerMapVos = runnerMapper.getAllRunnerMap();
+        }
+        return runnerMapVos;
     }
 
 }
