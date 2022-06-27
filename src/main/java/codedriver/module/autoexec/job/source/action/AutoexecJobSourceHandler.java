@@ -174,7 +174,7 @@ public class AutoexecJobSourceHandler extends AutoexecJobSourceActionHandlerBase
     public List<RunnerMapVo> getRunnerMapList(AutoexecJobVo jobVo) {
         AutoexecJobPhaseVo jobPhaseVo = jobVo.getCurrentPhase();
         List<RunnerMapVo> runnerMapVos = null;
-        if(Arrays.asList(ExecMode.TARGET.getValue(), ExecMode.RUNNER_TARGET.getValue()).contains(jobPhaseVo.getExecMode())){
+        /*if(Arrays.asList(ExecMode.TARGET.getValue(), ExecMode.RUNNER_TARGET.getValue()).contains(jobPhaseVo.getExecMode())){
             List<GroupNetworkVo> networkVoList = runnerMapper.getAllNetworkMask();
             for (GroupNetworkVo networkVo : networkVoList) {
                 if (IpUtil.isBelongSegment(jobPhaseVo.getCurrentNode().getHost(), networkVo.getNetworkIp(), networkVo.getMask())) {
@@ -187,7 +187,7 @@ public class AutoexecJobSourceHandler extends AutoexecJobSourceActionHandlerBase
             }
         }else{
             runnerMapVos = runnerMapper.getAllRunnerMap();
-        }
+        }*/
         return runnerMapVos;
     }
 
