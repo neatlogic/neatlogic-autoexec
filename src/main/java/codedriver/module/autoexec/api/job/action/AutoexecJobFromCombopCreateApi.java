@@ -64,7 +64,7 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         jsonObj.put("operationType", CombopOperationType.COMBOP.getValue());
         jsonObj.put("operationId", jsonObj.getLong("combopId"));
-        AutoexecJobVo jobVo = autoexecJobActionService.validateCreateJobFromCombop(jsonObj, true);
+        AutoexecJobVo jobVo = autoexecJobActionService.validateAndCreateJobFromCombop(jsonObj, true);
         IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
         jobVo.setAction(JobAction.FIRE.getValue());
         jobVo.setIsFirstFire(1);

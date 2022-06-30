@@ -13,15 +13,20 @@ import codedriver.framework.autoexec.constvalue.ToolType;
 import codedriver.framework.autoexec.crossover.IAutoexecJobActionCrossoverService;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.framework.autoexec.dto.AutoexecJobSourceVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.exception.AutoexecCombopCannotExecuteException;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecJobSourceInvalidException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
+import codedriver.framework.autoexec.job.source.action.AutoexecJobSourceActionHandlerFactory;
+import codedriver.framework.autoexec.job.source.action.IAutoexecJobSourceActionHandler;
 import codedriver.framework.autoexec.script.paramtype.IScriptParamType;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
+import codedriver.framework.autoexec.source.AutoexecJobSourceFactory;
 import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
 import codedriver.framework.dao.mapper.UserMapper;
@@ -216,12 +221,16 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
     }
 
     @Override
-    public AutoexecJobVo validateCreateJobFromCombop(JSONObject jsonObj, boolean isNeedAuth) {
-        AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(jsonObj.getLong("combopId"));
+    public AutoexecJobVo validateAndCreateJobFromCombop(JSONObject jsonObj, boolean isNeedAuth) {
+        AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get( jsonObj.getString("source"));
+        if (jobSourceVo == null) {
+            throw new AutoexecJobSourceInvalidException( jsonObj.getString("source"));
+        }
+        IAutoexecJobSourceActionHandler autoexecJobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(jobSourceVo.getType());
+        AutoexecCombopVo combopVo = autoexecJobSourceActionHandler.getAutoexecCombop(jsonObj);
         if (combopVo == null) {
             throw new AutoexecCombopNotFoundException(jsonObj.getLong("combopId"));
         }
-
         //作业执行权限校验
         if (isNeedAuth) {
             autoexecCombopService.setOperableButtonList(combopVo);
@@ -263,7 +272,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void validateCreateJob(JSONObject param, boolean isNeedAuth) throws Exception {
-        AutoexecJobVo jobVo = validateCreateJobFromCombop(param, isNeedAuth);
+        AutoexecJobVo jobVo = validateAndCreateJobFromCombop(param, isNeedAuth);
         IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
         fireAction.doService(jobVo);
     }

@@ -1,6 +1,5 @@
 package codedriver.module.autoexec.api.job.action.node;
 
-import codedriver.framework.autoexec.constvalue.AutoexecOperType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecSqlDetailVo;
 import codedriver.framework.cmdb.crossover.IAttrCrossoverMapper;
@@ -10,7 +9,7 @@ import codedriver.framework.cmdb.dto.ci.AttrVo;
 import codedriver.framework.cmdb.dto.cientity.CiEntityVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.crossover.CrossoverServiceFactory;
-import codedriver.framework.deploy.constvalue.DeployOperType;
+import codedriver.framework.deploy.constvalue.JobSourceType;
 import codedriver.framework.deploy.crossover.IDeploySqlCrossoverMapper;
 import codedriver.framework.deploy.dto.sql.DeploySqlDetailVo;
 import codedriver.framework.restful.annotation.*;
@@ -66,7 +65,7 @@ public class AutoexecJobSqlListApi extends PublicApiComponentBase {
     @Description(desc = "获取作业执行sql文件状态列表")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        if (StringUtils.equals(paramObj.getString("operType"), AutoexecOperType.AUTOEXEC.getValue())) {
+        if (StringUtils.equals(paramObj.getString("operType"), codedriver.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue())) {
             Long jobId = paramObj.getLong("jobId");
             String phaseName = paramObj.getString("phaseName");
 
@@ -102,7 +101,7 @@ public class AutoexecJobSqlListApi extends PublicApiComponentBase {
                 return returnSqlList;
             }
 
-        } else if (StringUtils.equals(paramObj.getString("operType"), DeployOperType.DEPLOY.getValue())) {
+        } else if (StringUtils.equals(paramObj.getString("operType"), JobSourceType.DEPLOY.getValue())) {
             IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
             List<DeploySqlDetailVo> sqlDetailVoList = new ArrayList<>();
             sqlDetailVoList.add(paramObj.toJavaObject(DeploySqlDetailVo.class));

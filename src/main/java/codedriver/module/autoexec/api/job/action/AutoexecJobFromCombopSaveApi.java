@@ -69,7 +69,7 @@ public class AutoexecJobFromCombopSaveApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         jsonObj.put("operationType", CombopOperationType.COMBOP.getValue());
         jsonObj.put("operationId", jsonObj.getLong("combopId"));
-        AutoexecJobVo jobVo = autoexecJobActionService.validateCreateJobFromCombop(jsonObj, true);
+        AutoexecJobVo jobVo = autoexecJobActionService.validateAndCreateJobFromCombop(jsonObj, true);
         // 保存之后，如果设置的人工触发，那只有点执行按钮才能触发；如果是自动触发，则启动一个定时作业；如果没到点就人工触发了，则取消定时作业，立即执行
         if (JobTriggerType.AUTO.getValue().equals(jsonObj.getString("triggerType"))) {
             IJob jobHandler = SchedulerManager.getHandler(AutoexecJobAutoFireJob.class.getName());

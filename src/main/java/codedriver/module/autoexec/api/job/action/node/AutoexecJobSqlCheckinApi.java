@@ -1,10 +1,9 @@
 package codedriver.module.autoexec.api.job.action.node;
 
-import codedriver.framework.autoexec.constvalue.AutoexecOperType;
 import codedriver.framework.autoexec.job.source.action.AutoexecJobSourceActionHandlerFactory;
 import codedriver.framework.autoexec.job.source.action.IAutoexecJobSourceActionHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
-import codedriver.framework.deploy.constvalue.DeployOperType;
+import codedriver.framework.deploy.constvalue.JobSourceType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
@@ -55,11 +54,11 @@ public class AutoexecJobSqlCheckinApi extends PublicApiComponentBase {
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         IAutoexecJobSourceActionHandler handler;
-        if (StringUtils.equals(paramObj.getString("operType"), AutoexecOperType.AUTOEXEC.getValue())) {
-            handler = AutoexecJobSourceActionHandlerFactory.getAction(AutoexecOperType.AUTOEXEC.getValue());
+        if (StringUtils.equals(paramObj.getString("operType"), codedriver.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue())) {
+            handler = AutoexecJobSourceActionHandlerFactory.getAction(codedriver.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
             handler.checkinSqlList(paramObj);
-        } else if (StringUtils.equals(paramObj.getString("operType"), DeployOperType.DEPLOY.getValue())) {
-            handler = AutoexecJobSourceActionHandlerFactory.getAction(DeployOperType.DEPLOY.getValue());
+        } else if (StringUtils.equals(paramObj.getString("operType"), JobSourceType.DEPLOY.getValue())) {
+            handler = AutoexecJobSourceActionHandlerFactory.getAction(JobSourceType.DEPLOY.getValue());
             handler.checkinSqlList(paramObj);
         }
         return null;

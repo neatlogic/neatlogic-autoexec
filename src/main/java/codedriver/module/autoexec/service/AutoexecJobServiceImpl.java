@@ -15,6 +15,7 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
+import codedriver.framework.autoexec.dto.AutoexecJobSourceVo;
 import codedriver.framework.autoexec.dto.AutoexecOperationVo;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
@@ -25,6 +26,7 @@ import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.autoexec.job.source.action.AutoexecJobSourceActionHandlerFactory;
 import codedriver.framework.autoexec.job.source.action.IAutoexecJobSourceActionHandler;
+import codedriver.framework.autoexec.source.AutoexecJobSourceFactory;
 import codedriver.framework.cmdb.crossover.IResourceCenterResourceCrossoverService;
 import codedriver.framework.cmdb.crossover.IResourceListApiCrossoverService;
 import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
@@ -34,7 +36,7 @@ import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.crossover.CrossoverServiceFactory;
 import codedriver.framework.dao.mapper.ConfigMapper;
 import codedriver.framework.dao.mapper.runner.RunnerMapper;
-import codedriver.framework.deploy.constvalue.DeployOperType;
+import codedriver.framework.deploy.constvalue.JobSourceType;
 import codedriver.framework.deploy.crossover.IDeploySqlCrossoverMapper;
 import codedriver.framework.dto.ConfigVo;
 import codedriver.framework.dto.runner.RunnerMapVo;
@@ -87,11 +89,12 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             jobVo.setStatus(JobStatus.PENDING.getValue());
         }
         //更新关联来源关系
-        if (!Objects.equals(JobSource.HUMAN.getValue(), jobVo.getSource())) {
-            AutoexecJobInvokeVo invokeVo = new AutoexecJobInvokeVo(jobVo.getInvokeId(), jobVo.getSource());
-            invokeVo.setJobId(jobVo.getId());
-            autoexecJobMapper.insertIgnoreIntoJobInvoke(invokeVo);
+        AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(jobVo.getSource());
+        if (jobSourceVo == null) {
+            throw new AutoexecJobSourceInvalidException(jobVo.getSource());
         }
+        AutoexecJobInvokeVo invokeVo = new AutoexecJobInvokeVo(jobVo.getId(),jobVo.getInvokeId(), jobVo.getSource(), jobSourceVo.getType());
+        autoexecJobMapper.insertIgnoreIntoJobInvoke(invokeVo);
         //保存作业基本信息
         if (StringUtils.isBlank(jobVo.getName())) {
             jobVo.setName(combopVo.getName());
@@ -147,9 +150,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             } else {
                 IAutoexecJobSourceActionHandler autoexecJobSourceActionHandler;
                 if (StringUtils.equals(codedriver.framework.deploy.constvalue.JobSource.DEPLOY.getValue(), jobVo.getSource())) {
-                    autoexecJobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(DeployOperType.DEPLOY.getValue());
+                    autoexecJobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(JobSourceType.DEPLOY.getValue());
                 } else {
-                    autoexecJobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(AutoexecOperType.AUTOEXEC.getValue());
+                    autoexecJobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(codedriver.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
                 }
                 List<RunnerMapVo> runnerMapList = autoexecJobSourceActionHandler.getRunnerMapList(jobVo);
                 if (CollectionUtils.isEmpty(runnerMapList)) {
@@ -404,9 +407,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         if (jobVo.getCurrentPhase().getCurrentNode() != null) {
             IAutoexecJobSourceActionHandler autoexecJobSourceActionHandler;
             if (StringUtils.equals(codedriver.framework.deploy.constvalue.JobSource.DEPLOY.getValue(), jobVo.getSource())) {
-                autoexecJobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(DeployOperType.DEPLOY.getValue());
+                autoexecJobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(JobSourceType.DEPLOY.getValue());
             } else {
-                autoexecJobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(AutoexecOperType.AUTOEXEC.getValue());
+                autoexecJobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(codedriver.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
             }
             List<RunnerMapVo> runnerMapVos = autoexecJobSourceActionHandler.getRunnerMapList(jobVo);
             if (CollectionUtils.isNotEmpty(runnerMapVos)) {

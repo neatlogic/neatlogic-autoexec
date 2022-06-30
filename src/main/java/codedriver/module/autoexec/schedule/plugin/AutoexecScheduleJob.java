@@ -118,7 +118,7 @@ public class AutoexecScheduleJob extends JobBase {
             UserVo fcuVo = userMapper.getUserByUuid(autoexecScheduleVo.getFcu());
             UserContext.init(fcuVo, SystemUser.SYSTEM.getTimezone());
             UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(fcuVo).getCc());
-            AutoexecJobVo jobVo = autoexecJobActionService.validateCreateJobFromCombop(paramObj, false);
+            AutoexecJobVo jobVo = autoexecJobActionService.validateAndCreateJobFromCombop(paramObj, false);
             jobVo.setAction(JobAction.FIRE.getValue());
             IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
             fireAction.doService(jobVo);

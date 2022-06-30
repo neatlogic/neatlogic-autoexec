@@ -5,13 +5,12 @@
 
 package codedriver.module.autoexec.job.action.handler.node;
 
-import codedriver.framework.autoexec.constvalue.AutoexecOperType;
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import codedriver.framework.autoexec.job.source.action.AutoexecJobSourceActionHandlerFactory;
 import codedriver.framework.autoexec.job.source.action.IAutoexecJobSourceActionHandler;
-import codedriver.framework.deploy.constvalue.DeployOperType;
+import codedriver.framework.deploy.constvalue.JobSourceType;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -42,11 +41,11 @@ public class AutoexecJobNodeSqlContentGetHandler extends AutoexecJobActionHandle
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         AutoexecJobVo jonInfo = autoexecJobMapper.getJobInfo(jobVo.getCurrentNode().getJobId());
         if (jonInfo != null) {
-            if (StringUtils.equals(jonInfo.getSource(), DeployOperType.DEPLOY.getValue())) {
-                IAutoexecJobSourceActionHandler jobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(DeployOperType.DEPLOY.getValue());
+            if (StringUtils.equals(jonInfo.getSource(), JobSourceType.DEPLOY.getValue())) {
+                IAutoexecJobSourceActionHandler jobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(JobSourceType.DEPLOY.getValue());
                 return jobSourceActionHandler.getJobSqlContent(jobVo);
             } else {
-                IAutoexecJobSourceActionHandler jobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(AutoexecOperType.AUTOEXEC.getValue());
+                IAutoexecJobSourceActionHandler jobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(codedriver.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
                 return jobSourceActionHandler.getJobSqlContent(jobVo);
             }
         }

@@ -1,13 +1,12 @@
 package codedriver.module.autoexec.api.job.action.node;
 
-import codedriver.framework.autoexec.constvalue.AutoexecOperType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.job.source.action.AutoexecJobSourceActionHandlerFactory;
 import codedriver.framework.autoexec.job.source.action.IAutoexecJobSourceActionHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
-import codedriver.framework.deploy.constvalue.DeployOperType;
+import codedriver.framework.deploy.constvalue.JobSourceType;
 import codedriver.framework.deploy.constvalue.JobSource;
 import codedriver.framework.restful.annotation.Input;
 import codedriver.framework.restful.annotation.Output;
@@ -60,10 +59,10 @@ public class AutoexecJobPhaseSqlStatusResetApi extends PrivateApiComponentBase {
         }
         IAutoexecJobSourceActionHandler handler;
         if (StringUtils.equals(JobSource.DEPLOY.getValue(), jobVo.getSource())) {
-            handler = AutoexecJobSourceActionHandlerFactory.getAction(DeployOperType.DEPLOY.getValue());
+            handler = AutoexecJobSourceActionHandlerFactory.getAction(JobSourceType.DEPLOY.getValue());
             handler.resetSqlStatus(paramObj, jobVo);
         } else {
-            handler = AutoexecJobSourceActionHandlerFactory.getAction(AutoexecOperType.AUTOEXEC.getValue());
+            handler = AutoexecJobSourceActionHandlerFactory.getAction(codedriver.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
             handler.resetSqlStatus(paramObj, jobVo);
         }
         return null;

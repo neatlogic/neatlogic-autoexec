@@ -5,7 +5,6 @@
 
 package codedriver.module.autoexec.job.action.handler.node;
 
-import codedriver.framework.autoexec.constvalue.AutoexecOperType;
 import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
@@ -16,7 +15,7 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import codedriver.framework.autoexec.job.source.action.AutoexecJobSourceActionHandlerFactory;
 import codedriver.framework.autoexec.job.source.action.IAutoexecJobSourceActionHandler;
-import codedriver.framework.deploy.constvalue.DeployOperType;
+import codedriver.framework.deploy.constvalue.JobSourceType;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -63,10 +62,10 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
         if (Objects.equals(currentPhaseVo.getExecMode(), ExecMode.SQL.getValue())) {
             jobVo.getActionParam().put("phaseName", currentPhaseVo.getName());
             IAutoexecJobSourceActionHandler handler;
-            if (StringUtils.equals(jobVo.getSource(), DeployOperType.DEPLOY.getValue())) {
-                handler = AutoexecJobSourceActionHandlerFactory.getAction(DeployOperType.DEPLOY.getValue());
+            if (StringUtils.equals(jobVo.getSource(), JobSourceType.DEPLOY.getValue())) {
+                handler = AutoexecJobSourceActionHandlerFactory.getAction(JobSourceType.DEPLOY.getValue());
             } else {
-                handler = AutoexecJobSourceActionHandlerFactory.getAction(AutoexecOperType.AUTOEXEC.getValue());
+                handler = AutoexecJobSourceActionHandlerFactory.getAction(codedriver.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
             }
             handler.resetSqlStatus(jobVo.getActionParam(), jobVo);
             nodeVoList = jobVo.getExecuteJobNodeVoList();
