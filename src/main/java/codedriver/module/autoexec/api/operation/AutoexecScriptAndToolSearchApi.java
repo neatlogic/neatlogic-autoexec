@@ -66,6 +66,7 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
             @Param(name = "catalogId", type = ApiParamType.LONG, desc = "工具目录ID"),
             @Param(name = "riskIdList", type = ApiParamType.JSONARRAY, desc = "操作级别ID列表"),
             @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "用于回显的工具或脚本ID列表"),
+            @Param(name = "excludeList", type = ApiParamType.JSONARRAY, desc = "用于排除搜索的工具或脚本ID列表"),
             @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
             @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
             @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
