@@ -22,6 +22,7 @@ import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.exception.*;
+import codedriver.framework.common.constvalue.GroupSearch;
 import codedriver.framework.dependency.core.DependencyManager;
 import codedriver.framework.dto.AuthenticationInfoVo;
 import codedriver.framework.service.AuthenticationInfoService;
@@ -61,6 +62,9 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
 
     @Resource
     private AutoexecProfileService autoexecProfileService;
+
+    @Resource
+    private AutoexecService autoexecService;
 
     @Resource
     private AutoexecGlobalParamMapper autoexecGlobalParamMapper;
@@ -369,7 +373,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                     }
                     continue;
                 }
-                String value = (String) valueObj;
+                String value = valueObj.toString();
                 if (StringUtils.isEmpty(value)) {
                     throw new AutoexecParamMappingNotMappedException(operationName, key);
                 }
@@ -403,7 +407,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                         throw new AutoexecParamMappingTargetNotFoundException(operationName, key, key);
                     }
                     if (!Objects.equals(profileParamVo.getType(), inputParamVo.getType())) {
-                        throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, value);
+                        throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, key);
                     }
                 } else if (Objects.equals(mappingMode, ParamMappingMode.GLOBAL_PARAM.getValue())) {
                     AutoexecGlobalParamVo globalParamVo = autoexecGlobalParamMapper.getGlobalParamByKey(value);
@@ -684,5 +688,23 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             }
         }
         return scriptSb.toString();
+    }
+
+    @Override
+    public AutoexecCombopVo getAutoexecCombopById(Long id) {
+        AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
+        if (autoexecCombopVo == null) {
+            return null;
+        }
+        autoexecCombopVo.setOwner(GroupSearch.USER.getValuePlugin() + autoexecCombopVo.getOwner());
+        List<AutoexecCombopParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
+        for (AutoexecCombopParamVo autoexecCombopParamVo : runtimeParamList) {
+            autoexecService.mergeConfig(autoexecCombopParamVo);
+        }
+        autoexecCombopVo.setRuntimeParamList(runtimeParamList);
+        AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
+        config.setRuntimeParamList(runtimeParamList);
+        autoexecService.updateAutoexecCombopConfig(config);
+        return autoexecCombopVo;
     }
 }

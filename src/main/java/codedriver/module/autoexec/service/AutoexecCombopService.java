@@ -89,4 +89,11 @@ public interface AutoexecCombopService {
      * @param autoexecCombopVo
      */
     void deleteDependency(AutoexecCombopVo autoexecCombopVo);
+
+    /**
+     * 获取组合工具信息
+     * @param id
+     * @return
+     */
+    AutoexecCombopVo getAutoexecCombopById(Long id);
 }
