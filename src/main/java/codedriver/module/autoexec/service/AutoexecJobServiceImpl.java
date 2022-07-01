@@ -36,7 +36,6 @@ import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.crossover.CrossoverServiceFactory;
 import codedriver.framework.dao.mapper.ConfigMapper;
 import codedriver.framework.dao.mapper.runner.RunnerMapper;
-import codedriver.framework.deploy.constvalue.JobSourceType;
 import codedriver.framework.deploy.crossover.IDeploySqlCrossoverMapper;
 import codedriver.framework.dto.ConfigVo;
 import codedriver.framework.dto.runner.RunnerMapVo;
@@ -93,7 +92,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         if (jobSourceVo == null) {
             throw new AutoexecJobSourceInvalidException(jobVo.getSource());
         }
-        AutoexecJobInvokeVo invokeVo = new AutoexecJobInvokeVo(jobVo.getId(),jobVo.getInvokeId(), jobVo.getSource(), jobSourceVo.getType());
+        AutoexecJobInvokeVo invokeVo = new AutoexecJobInvokeVo(jobVo.getId(), jobVo.getInvokeId(), jobVo.getSource(), jobSourceVo.getType());
         autoexecJobMapper.insertIgnoreIntoJobInvoke(invokeVo);
         //保存作业基本信息
         if (StringUtils.isBlank(jobVo.getName())) {
@@ -148,12 +147,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             if (Arrays.asList(ExecMode.TARGET.getValue(), ExecMode.RUNNER_TARGET.getValue()).contains(autoexecCombopPhaseVo.getExecMode())) {
                 initPhaseExecuteUserAndProtocolAndNode(userName, protocolId, jobVo, combopExecuteConfigVo, combopPhaseExecuteConfigVo);
             } else {
-                IAutoexecJobSourceActionHandler autoexecJobSourceActionHandler;
-                if (StringUtils.equals(codedriver.framework.deploy.constvalue.JobSource.DEPLOY.getValue(), jobVo.getSource())) {
-                    autoexecJobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(JobSourceType.DEPLOY.getValue());
-                } else {
-                    autoexecJobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(codedriver.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
-                }
+                IAutoexecJobSourceActionHandler autoexecJobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(jobSourceVo.getType());
                 List<RunnerMapVo> runnerMapList = autoexecJobSourceActionHandler.getRunnerMapList(jobVo);
                 if (CollectionUtils.isEmpty(runnerMapList)) {
                     throw new AutoexecJobRunnerNotMatchException();
@@ -405,12 +399,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      */
     private Long getRunnerByTargetIp(AutoexecJobVo jobVo) {
         if (jobVo.getCurrentPhase().getCurrentNode() != null) {
-            IAutoexecJobSourceActionHandler autoexecJobSourceActionHandler;
-            if (StringUtils.equals(codedriver.framework.deploy.constvalue.JobSource.DEPLOY.getValue(), jobVo.getSource())) {
-                autoexecJobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(JobSourceType.DEPLOY.getValue());
-            } else {
-                autoexecJobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(codedriver.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
+            AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(jobVo.getSource());
+            if (jobSourceVo == null) {
+                throw new AutoexecJobSourceInvalidException(jobVo.getSource());
             }
+            IAutoexecJobSourceActionHandler autoexecJobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(jobSourceVo.getType());
             List<RunnerMapVo> runnerMapVos = autoexecJobSourceActionHandler.getRunnerMapList(jobVo);
             if (CollectionUtils.isNotEmpty(runnerMapVos)) {
                 int runnerMapIndex = (int) (jobVo.getCurrentPhase().getCurrentNode().getId() % runnerMapVos.size());

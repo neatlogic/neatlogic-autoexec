@@ -184,10 +184,10 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                                                     for (Object arg : param.getJSONArray("outputParamList")) {
                                                         JSONObject argJson = JSONObject.parseObject(arg.toString());
                                                         JSONObject outputParamJson = new JSONObject();
-                                                        put(argJson.getString("key"),outputParamJson);
-                                                        outputParamJson.put("opt",argJson.getString("key"));
+                                                        put(argJson.getString("key"), outputParamJson);
+                                                        outputParamJson.put("opt", argJson.getString("key"));
                                                         outputParamJson.put("type", argJson.getString("type"));
-                                                        outputParamJson.put("defaultValue",argJson.getString("defaultValue"));
+                                                        outputParamJson.put("defaultValue", argJson.getString("defaultValue"));
                                                     }
                                                 }
                                             }});
@@ -200,6 +200,13 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                 }});
             }
         }});
+        //补充各个作业来源类型的特殊参数，如：发布的environment
+        AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(jobVo.getSource());
+        if (jobSourceVo == null) {
+            throw new AutoexecJobSourceInvalidException(jobVo.getSource());
+        }
+        IAutoexecJobSourceActionHandler autoexecJobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(jobSourceVo.getType());
+        autoexecJobSourceActionHandler.getFireParamJson(paramJson, jobVo);
     }
 
     /**
@@ -222,9 +229,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
 
     @Override
     public AutoexecJobVo validateAndCreateJobFromCombop(JSONObject jsonObj, boolean isNeedAuth) {
-        AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get( jsonObj.getString("source"));
+        AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(jsonObj.getString("source"));
         if (jobSourceVo == null) {
-            throw new AutoexecJobSourceInvalidException( jsonObj.getString("source"));
+            throw new AutoexecJobSourceInvalidException(jsonObj.getString("source"));
         }
         IAutoexecJobSourceActionHandler autoexecJobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(jobSourceVo.getType());
         AutoexecCombopVo combopVo = autoexecJobSourceActionHandler.getAutoexecCombop(jsonObj);
@@ -263,7 +270,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         AutoexecJobVo jobVo = JSONObject.toJavaObject(jsonObj, AutoexecJobVo.class);
         jobVo.setConfigStr(combopVo.getConfigStr());
         jobVo.setRunTimeParamList(autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopVo.getId()));
-        autoexecJobService.saveAutoexecCombopJob(combopVo,jobVo);
+        autoexecJobService.saveAutoexecCombopJob(combopVo, jobVo);
         jobVo.setAction(JobAction.FIRE.getValue());
         //jobVo.setCurrentGroupSort(0);
         return jobVo;
