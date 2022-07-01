@@ -578,7 +578,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             if (StringUtils.isBlank(sql)) {
                 return false;
             }
-            int count = resourceCenterMapper.getResourceCountNew(sql);
+            int count = resourceCenterMapper.getResourceCount(sql);
 //            int count = resourceCenterMapper.getResourceCount(searchVo);
             if (count > 0) {
                 int pageCount = PageUtil.getPageCount(count, searchVo.getPageSize());
