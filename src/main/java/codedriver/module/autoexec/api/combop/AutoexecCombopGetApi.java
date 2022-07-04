@@ -8,18 +8,14 @@ package codedriver.module.autoexec.api.combop;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.common.constvalue.ApiParamType;
-import codedriver.framework.common.constvalue.GroupSearch;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.module.autoexec.service.AutoexecCombopService;
-import codedriver.module.autoexec.service.AutoexecService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -39,13 +35,7 @@ import java.util.List;
 public class AutoexecCombopGetApi extends PrivateApiComponentBase {
 
     @Resource
-    private AutoexecCombopMapper autoexecCombopMapper;
-
-    @Resource
     private AutoexecCombopService autoexecCombopService;
-
-    @Resource
-    private AutoexecService autoexecService;
 
     @Override
     public String getToken() {
@@ -60,6 +50,11 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
     @Override
     public String getConfig() {
         return null;
+    }
+
+    @Override
+    public boolean disableReturnCircularReferenceDetect() {
+        return true;
     }
 
     @Input({
