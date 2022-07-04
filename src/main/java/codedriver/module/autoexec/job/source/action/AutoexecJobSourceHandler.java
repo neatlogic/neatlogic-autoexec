@@ -201,4 +201,9 @@ public class AutoexecJobSourceHandler extends AutoexecJobSourceActionHandlerBase
         return autoexecCombopMapper.getAutoexecCombopById(paramJson.getLong("combopId"));
     }
 
+    @Override
+    public void updateInvokeJob(JSONObject paramJson, AutoexecJobVo jobVo) {
+
+    }
+
 }
