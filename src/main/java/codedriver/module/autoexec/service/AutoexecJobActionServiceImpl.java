@@ -16,6 +16,7 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.AutoexecJobSourceVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
+import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
 import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.exception.AutoexecCombopCannotExecuteException;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
@@ -33,6 +34,7 @@ import codedriver.framework.dao.mapper.UserMapper;
 import codedriver.framework.dto.UserVo;
 import codedriver.framework.exception.user.UserNotFoundException;
 import codedriver.framework.filter.core.LoginAuthHandlerBase;
+import codedriver.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -73,6 +75,12 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
 
     @Resource
     UserMapper userMapper;
+
+    @Resource
+    AutoexecProfileServiceImpl autoexecProfileService;
+
+    @Resource
+    AutoexecGlobalParamMapper globalParamMapper;
 
     /**
      * 拼装给proxy的param
@@ -145,6 +153,33 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                                 put("execRound", jobPhase.getExecutePolicy());
                                 put("operations", new JSONArray() {{
                                     for (AutoexecJobPhaseOperationVo operationVo : jobPhase.getOperationList()) {
+                                        JSONObject param = operationVo.getParam();
+                                        JSONArray inputParamArray = param.getJSONArray("inputParamList");
+                                        Map<String, Object> profileKeyValueMap = new HashMap<>();
+                                        Map<String, Object> globalParamKeyValueMap = new HashMap<>();
+                                        //批量查询 profile 和 全局参数的值
+                                        if (CollectionUtils.isNotEmpty(inputParamArray) && operationVo.getProfileId() != null) {
+                                            List<String> profileKeyList = new ArrayList<>();
+                                            List<String> globalParamKeyList = new ArrayList<>();
+                                            for (int i = 0; i < inputParamArray.size(); i++) {
+                                                JSONObject inputParam = inputParamArray.getJSONObject(i);
+                                                if (Objects.equals(ParamMappingMode.PROFILE.getValue(), inputParam.getString("mappingMode"))) {
+                                                    profileKeyList.add(inputParam.getString("key"));
+                                                }
+                                                if (Objects.equals(ParamMappingMode.GLOBAL_PARAM.getValue(), inputParam.getString("mappingMode"))) {
+                                                    globalParamKeyList.add(inputParam.getString("value"));
+                                                }
+                                            }
+                                            profileKeyValueMap = autoexecProfileService.getAutoexecProfileParamListByKeyListAndProfileId(profileKeyList, operationVo.getProfileId());
+                                            if(CollectionUtils.isNotEmpty(globalParamKeyList)) {
+                                                List<AutoexecGlobalParamVo> globalParamVos = globalParamMapper.getGlobalParamByKeyList(globalParamKeyList);
+                                                if (CollectionUtils.isNotEmpty(globalParamVos)) {
+                                                    globalParamKeyValueMap = globalParamVos.stream().collect(Collectors.toMap(AutoexecGlobalParamVo::getKey, AutoexecGlobalParamVo::getDefaultValue));
+                                                }
+                                            }
+                                        }
+                                        Map<String, Object> finalProfileKeyValueMap = profileKeyValueMap;
+                                        Map<String, Object> finalGlobalParamKeyValueMap = globalParamKeyValueMap;
                                         add(new JSONObject() {{
                                             put("opId", operationVo.getName() + "_" + operationVo.getId());
                                             put("opName", operationVo.getName());
@@ -154,10 +189,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                                             put("scriptId", operationVo.getScriptId());
                                             put("interpreter", operationVo.getParser());
                                             //put("script", operationVo.getScript());
-                                            JSONObject param = operationVo.getParam();
                                             put("arg", param.getJSONObject("argument"));
                                             put("opt", new JSONObject() {{
-                                                for (Object arg : param.getJSONArray("inputParamList")) {
+                                                for (Object arg : inputParamArray) {
                                                     JSONObject argJson = JSONObject.parseObject(arg.toString());
                                                     String value = argJson.getString("value");
                                                     if (Objects.equals(ParamMappingMode.CONSTANT.getValue(), argJson.getString("mappingMode"))) {
@@ -166,6 +200,10 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                                                         put(argJson.getString("key"), String.format("${%s}", value));
                                                     } else if (Objects.equals(ParamMappingMode.PRE_NODE_OUTPUT_PARAM.getValue(), argJson.getString("mappingMode"))) {
                                                         put(argJson.getString("key"), value);
+                                                    } else if (Objects.equals(ParamMappingMode.PROFILE.getValue(), argJson.getString("mappingMode"))) {
+                                                        put(argJson.getString("key"), finalProfileKeyValueMap.get(argJson.getString("key")));
+                                                    } else if (Objects.equals(ParamMappingMode.GLOBAL_PARAM.getValue(), argJson.getString("mappingMode"))) {
+                                                        put(argJson.getString("key"), finalGlobalParamKeyValueMap.get(argJson.getString("value")));
                                                     } else {
                                                         put(argJson.getString("key"), StringUtils.EMPTY);
                                                     }
