@@ -177,6 +177,8 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService, IAuto
                 AutoexecGlobalParamVo globalParamVo = autoexecGlobalParamMapper.getGlobalParamByKey(paramVo.getDefaultValueStr());
                 if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), globalParamVo.getType()) && !Objects.isNull(globalParamVo.getDefaultValue()) && globalParamVo.getDefaultValueStr().startsWith(CiphertextPrefix.RC4.getValue())) {
                     paramVo.setDefaultValue(RC4Util.decrypt(globalParamVo.getDefaultValueStr().substring(4)));
+                }else{
+                    paramVo.setDefaultValue(globalParamVo.getDefaultValue());
                 }
             }
             returnMap.put(paramVo.getKey(), paramVo.getDefaultValue());
