@@ -18,6 +18,8 @@ public interface AutoexecGlobalParamMapper {
 
     AutoexecGlobalParamVo getGlobalParamByKey(String key);
 
+    List<AutoexecGlobalParamVo> getGlobalParamByKeyList(List<String> keyList);
+
     int getGlobalParamCount(AutoexecGlobalParamVo globalParamVo);
 
     List<Long> getGlobalParamIdList(AutoexecGlobalParamVo globalParamVo);
