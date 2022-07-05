@@ -8,6 +8,7 @@ import codedriver.framework.autoexec.crossover.IAutoexecProfileCrossoverService;
 import codedriver.framework.autoexec.dto.AutoexecOperationVo;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import codedriver.framework.autoexec.exception.AutoexecProfileIsNotFoundException;
@@ -176,7 +177,10 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService, IAuto
                 //获取引用的全局参数值
                 AutoexecGlobalParamVo globalParamVo = autoexecGlobalParamMapper.getGlobalParamByKey(paramVo.getDefaultValueStr());
                 if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), globalParamVo.getType()) && !Objects.isNull(globalParamVo.getDefaultValue()) && globalParamVo.getDefaultValueStr().startsWith(CiphertextPrefix.RC4.getValue())) {
-                    paramVo.setDefaultValue(RC4Util.decrypt(globalParamVo.getDefaultValueStr().substring(4)));
+                    //先解密
+                    String pwd = RC4Util.decrypt(globalParamVo.getDefaultValueStr().substring(4));
+                    //再加密
+                    paramVo.setDefaultValue("{ENCRYPTED}" + RC4Util.encrypt(AutoexecJobVo.AUTOEXEC_RC4_KEY, pwd));
                 }else{
                     paramVo.setDefaultValue(globalParamVo.getDefaultValue());
                 }
