@@ -18,7 +18,7 @@ import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundExceptio
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
-import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
+import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
@@ -34,7 +34,7 @@ import java.util.*;
 @Service
 @Transactional
 @OperationType(type = OperationTypeEnum.UPDATE)
-public class AutoexecJobPhaseStatusUpdateApi extends PublicApiComponentBase {
+public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
 
     @Resource
     AutoexecJobMapper autoexecJobMapper;
