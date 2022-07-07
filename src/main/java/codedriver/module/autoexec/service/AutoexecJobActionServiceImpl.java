@@ -18,9 +18,11 @@ import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
 import codedriver.framework.autoexec.dto.job.*;
+import codedriver.framework.autoexec.dto.scenario.AutoexecScenarioVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopCannotExecuteException;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobSourceInvalidException;
+import codedriver.framework.autoexec.exception.AutoexecScenarioIsNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import codedriver.framework.autoexec.job.source.action.AutoexecJobSourceActionHandlerFactory;
@@ -35,6 +37,7 @@ import codedriver.framework.dto.UserVo;
 import codedriver.framework.exception.user.UserNotFoundException;
 import codedriver.framework.filter.core.LoginAuthHandlerBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecScenarioMapper;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -81,6 +84,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
 
     @Resource
     AutoexecGlobalParamMapper globalParamMapper;
+
+    @Resource
+    AutoexecScenarioMapper autoexecScenarioMapper;
 
     /**
      * 拼装给proxy的param
@@ -303,6 +309,14 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
 
         }
         autoexecCombopService.verifyAutoexecCombopConfig(combopVo, true);
+        //根据场景名获取场景id
+        if(jsonObj.containsKey("scenarioName")){
+            AutoexecScenarioVo scenarioVo = autoexecScenarioMapper.getScenarioByName(jsonObj.getString("scenarioName"));
+            if(scenarioVo == null){
+                throw new AutoexecScenarioIsNotFoundException(jsonObj.getString("scenarioName"));
+            }
+            jsonObj.put("scenarioId",scenarioVo.getId());
+        }
 
 
         AutoexecJobVo jobVo = JSONObject.toJavaObject(jsonObj, AutoexecJobVo.class);

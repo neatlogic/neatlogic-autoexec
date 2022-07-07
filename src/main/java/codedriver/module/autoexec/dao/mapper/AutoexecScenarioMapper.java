@@ -17,6 +17,8 @@ public interface AutoexecScenarioMapper {
 
     AutoexecScenarioVo getScenarioById(Long paramId);
 
+    AutoexecScenarioVo getScenarioByName(String scenarioName);
+
     List<Long> getScenarioIdList(AutoexecScenarioVo paramScenarioVo);
 
     List<AutoexecScenarioVo> getScenarioListByIdList(@Param("idList") List<Long> idList);
@@ -28,4 +30,5 @@ public interface AutoexecScenarioMapper {
     void deleteScenarioById(Long paramId);
 
     List<AutoexecScenarioVo> searchScenario(AutoexecScenarioVo paramScenarioVo);
+
 }
