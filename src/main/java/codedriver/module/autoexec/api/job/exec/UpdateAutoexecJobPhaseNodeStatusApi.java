@@ -15,7 +15,7 @@ import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
-import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
+import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
@@ -34,8 +34,8 @@ import java.util.Objects;
 @Service
 @Transactional
 @OperationType(type = OperationTypeEnum.UPDATE)
-public class AutoexecJobPhaseNodeStatusUpdateApi extends PublicApiComponentBase {
-    static Logger logger = LoggerFactory.getLogger(AutoexecJobPhaseNodeStatusUpdateApi.class);
+public class UpdateAutoexecJobPhaseNodeStatusApi extends PrivateApiComponentBase {
+    static Logger logger = LoggerFactory.getLogger(UpdateAutoexecJobPhaseNodeStatusApi.class);
     @Resource
     AutoexecJobMapper autoexecJobMapper;
 

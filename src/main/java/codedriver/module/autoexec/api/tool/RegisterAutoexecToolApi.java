@@ -19,7 +19,7 @@ import codedriver.framework.exception.type.ParamNotExistsException;
 import codedriver.framework.exception.type.ParamTypeNotFoundException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
-import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
+import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.util.RegexUtils;
 import codedriver.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
 import codedriver.module.autoexec.service.AutoexecService;
@@ -39,7 +39,7 @@ import java.util.regex.Pattern;
 @Service
 @Transactional
 @OperationType(type = OperationTypeEnum.OPERATE)
-public class AutoexecToolRegisterApi extends PublicApiComponentBase {
+public class RegisterAutoexecToolApi extends PrivateApiComponentBase {
 
     final Pattern defualtValuePattern = Pattern.compile("^\\s*\\$\\{\\s*global\\s*:\\s*(.*?)\\s*\\}\\s*$");
 
