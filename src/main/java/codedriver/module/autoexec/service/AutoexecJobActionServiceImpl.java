@@ -150,12 +150,13 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                                     for (AutoexecJobPhaseOperationVo operationVo : jobPhase.getOperationList()) {
                                         JSONObject param = operationVo.getParam();
                                         JSONArray inputParamArray = param.getJSONArray("inputParamList");
+                                        JSONArray argumentList = param.getJSONArray("argumentList");
                                         Map<String, Object> profileKeyValueMap = new HashMap<>();
                                         Map<String, Object> globalParamKeyValueMap = new HashMap<>();
-                                        //批量查询 profile 和 全局参数的值
-                                        if (CollectionUtils.isNotEmpty(inputParamArray) && operationVo.getProfileId() != null) {
+                                        List<String> globalParamKeyList = new ArrayList<>();
+                                        //批量查询 inputParam profile 和 全局参数的值
+                                        if (CollectionUtils.isNotEmpty(inputParamArray)) {
                                             List<String> profileKeyList = new ArrayList<>();
-                                            List<String> globalParamKeyList = new ArrayList<>();
                                             for (int i = 0; i < inputParamArray.size(); i++) {
                                                 JSONObject inputParam = inputParamArray.getJSONObject(i);
                                                 if (Objects.equals(ParamMappingMode.PROFILE.getValue(), inputParam.getString("mappingMode"))) {
@@ -165,13 +166,26 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                                                     globalParamKeyList.add(inputParam.getString("value"));
                                                 }
                                             }
-                                            profileKeyValueMap = autoexecProfileService.getAutoexecProfileParamListByKeyListAndProfileId(profileKeyList, operationVo.getProfileId());
-                                            if(CollectionUtils.isNotEmpty(globalParamKeyList)) {
-                                                List<AutoexecGlobalParamVo> globalParamVos = globalParamMapper.getGlobalParamByKeyList(globalParamKeyList);
-                                                if (CollectionUtils.isNotEmpty(globalParamVos)) {
-                                                    globalParamKeyValueMap = globalParamVos.stream().collect(Collectors.toMap(AutoexecGlobalParamVo::getKey, AutoexecGlobalParamVo::getDefaultValue));
+                                            if(operationVo.getProfileId() != null) {
+                                                profileKeyValueMap = autoexecProfileService.getAutoexecProfileParamListByKeyListAndProfileId(profileKeyList, operationVo.getProfileId());
+                                            }
+                                        }
+                                        //批量查询 自由参数的全局参数
+                                        if(CollectionUtils.isNotEmpty(argumentList)){
+                                            for (int i = 0; i < argumentList.size(); i++) {
+                                                JSONObject argumentJson = argumentList.getJSONObject(i);
+                                                if (Objects.equals(ParamMappingMode.GLOBAL_PARAM.getValue(), argumentJson.getString("mappingMode"))) {
+                                                    globalParamKeyList.add(argumentJson.getString("value"));
                                                 }
                                             }
+                                        }
+
+                                        if(CollectionUtils.isNotEmpty(globalParamKeyList)) {
+                                            List<AutoexecGlobalParamVo> globalParamVos = globalParamMapper.getGlobalParamByKeyList(globalParamKeyList);
+                                            if (CollectionUtils.isNotEmpty(globalParamVos)) {
+                                                globalParamKeyValueMap = globalParamVos.stream().collect(Collectors.toMap(AutoexecGlobalParamVo::getKey, AutoexecGlobalParamVo::getDefaultValue));
+                                            }
+
                                         }
                                         Map<String, Object> finalProfileKeyValueMap = profileKeyValueMap;
                                         Map<String, Object> finalGlobalParamKeyValueMap = globalParamKeyValueMap;
@@ -184,7 +198,20 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                                             put("scriptId", operationVo.getScriptId());
                                             put("interpreter", operationVo.getParser());
                                             //put("script", operationVo.getScript());
-                                            put("arg", param.getJSONObject("argument"));
+                                            if(CollectionUtils.isNotEmpty(argumentList)) {
+                                                for (int i = 0; i < argumentList.size(); i++) {
+                                                    JSONObject argumentJson = argumentList.getJSONObject(i);
+                                                    argumentJson.remove("name");
+                                                    argumentJson.remove("description");
+                                                    if (Objects.equals(ParamMappingMode.RUNTIME_PARAM.getValue(), argumentJson.getString("mappingMode"))) {
+                                                        argumentJson.put("value", String.format("${%s}", argumentJson.getString("value")));
+                                                    }if (Objects.equals(ParamMappingMode.GLOBAL_PARAM.getValue(), argumentJson.getString("mappingMode"))) {
+                                                        argumentJson.put("value",finalGlobalParamKeyValueMap.get(argumentJson.getString("value")));
+                                                    }
+                                                    argumentJson.remove("mappingMode");
+                                                }
+                                            }
+                                            put("arg", argumentList);
                                             put("opt", new JSONObject() {{
                                                 for (Object arg : inputParamArray) {
                                                     JSONObject argJson = JSONObject.parseObject(arg.toString());
