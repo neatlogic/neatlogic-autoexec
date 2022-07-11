@@ -23,11 +23,14 @@ import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.exception.*;
+import codedriver.framework.cmdb.crossover.IResourceCenterCommonGenerateSqlCrossoverService;
+import codedriver.framework.cmdb.crossover.IResourceCenterCustomGenerateSqlCrossoverService;
 import codedriver.framework.cmdb.crossover.IResourceCenterResourceCrossoverService;
-import codedriver.framework.cmdb.crossover.IResourceListApiCrossoverService;
 import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import codedriver.framework.cmdb.dto.resourcecenter.ResourceVo;
+import codedriver.framework.cmdb.dto.resourcecenter.config.ResourceInfo;
+import codedriver.framework.cmdb.utils.ResourceSearchGenerateSqlUtil;
 import codedriver.framework.common.util.IpUtil;
 import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.crossover.CrossoverServiceFactory;
@@ -41,6 +44,7 @@ import codedriver.framework.dto.runner.RunnerMapVo;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import net.sf.jsqlparser.statement.select.PlainSelect;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -50,6 +54,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.collectingAndThen;
@@ -573,26 +578,36 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             IResourceCenterResourceCrossoverService resourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
             filterJson.put("pageSize", 100);
             ResourceSearchVo searchVo = resourceCrossoverService.assembleResourceSearchVo(filterJson);
-            IResourceCenterResourceCrossoverService resourceCenterResourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
-            String sql = resourceCenterResourceCrossoverService.getResourceCountSql(searchVo, "resource_ipobject");
-            if (StringUtils.isBlank(sql)) {
+            IResourceCenterCommonGenerateSqlCrossoverService resourceCenterCommonGenerateSqlCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterCommonGenerateSqlCrossoverService.class);
+            IResourceCenterCustomGenerateSqlCrossoverService resourceCenterCustomGenerateSqlCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterCustomGenerateSqlCrossoverService.class);
+            List<ResourceInfo> unavailableResourceInfoList = new ArrayList<>();
+            JSONObject paramObj = (JSONObject) JSONObject.toJSON(searchVo);
+            List<BiConsumer<ResourceSearchGenerateSqlUtil, PlainSelect>> biConsumerList = new ArrayList<>();
+            biConsumerList.add(resourceCenterCustomGenerateSqlCrossoverService.getBiConsumerByCommonCondition(paramObj, unavailableResourceInfoList));
+            biConsumerList.add(resourceCenterCustomGenerateSqlCrossoverService.getBiConsumerByProtocolIdList(searchVo.getProtocolIdList(), unavailableResourceInfoList));
+            biConsumerList.add(resourceCenterCustomGenerateSqlCrossoverService.getBiConsumerByTagIdList(searchVo.getTagIdList(), unavailableResourceInfoList));
+            biConsumerList.add(resourceCenterCustomGenerateSqlCrossoverService.getBiConsumerByKeyword(searchVo.getKeyword(), unavailableResourceInfoList));
+            PlainSelect plainSelect = resourceCenterCommonGenerateSqlCrossoverService.getResourceCountPlainSelect("resource_ipobject", biConsumerList);
+            if (plainSelect == null) {
                 return false;
             }
-            int count = resourceCenterMapper.getResourceCount(sql);
-//            int count = resourceCenterMapper.getResourceCount(searchVo);
+            int count = resourceCenterCommonGenerateSqlCrossoverService.getCount(plainSelect.toString());
             if (count > 0) {
                 int pageCount = PageUtil.getPageCount(count, searchVo.getPageSize());
                 for (int i = 1; i <= pageCount; i++) {
-                    filterJson.put("currentPage", i);
-                    filterJson.put("needPage", true);
-                    try {
-                        IResourceListApiCrossoverService resourceListApi = CrossoverServiceFactory.getApi(IResourceListApiCrossoverService.class);
-                        resourceJson = JSONObject.parseObject(JSONObject.toJSONString(resourceListApi.myDoService(filterJson)));
-                    } catch (Exception ex) {
-                        logger.error(ex.getMessage(), ex);
-                        return false;
+                    String sql = resourceCenterCommonGenerateSqlCrossoverService.getResourceIdListSql(plainSelect, i, 100);
+                    if (StringUtils.isBlank(sql)) {
+                        continue;
                     }
-                    List<ResourceVo> resourceVoList = JSONObject.parseArray(resourceJson.getString("tbodyList"), ResourceVo.class);
+                    List<Long> idList =  resourceCenterCommonGenerateSqlCrossoverService.getIdList(sql);
+                    if (CollectionUtils.isEmpty(idList)) {
+                        continue;
+                    }
+                    sql = resourceCenterCommonGenerateSqlCrossoverService.getResourceListByIdListSql("resource_ipobject", resourceCenterCustomGenerateSqlCrossoverService.getTheadList(), idList, unavailableResourceInfoList);
+                    if (StringUtils.isBlank(sql)) {
+                        continue;
+                    }
+                    List<ResourceVo> resourceVoList = resourceCenterCommonGenerateSqlCrossoverService.getResourceList(sql);
                     if (CollectionUtils.isNotEmpty(resourceVoList)) {
                         updateJobPhaseNode(jobPhaseVo, resourceVoList, userName, protocolId);
                     }
