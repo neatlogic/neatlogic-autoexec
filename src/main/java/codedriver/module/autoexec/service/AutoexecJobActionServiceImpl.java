@@ -213,21 +213,23 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                                             }
                                             put("arg", argumentList);
                                             put("opt", new JSONObject() {{
-                                                for (Object arg : inputParamArray) {
-                                                    JSONObject argJson = JSONObject.parseObject(arg.toString());
-                                                    String value = argJson.getString("value");
-                                                    if (Objects.equals(ParamMappingMode.CONSTANT.getValue(), argJson.getString("mappingMode"))) {
-                                                        put(argJson.getString("key"), getValueByParamType(argJson));
-                                                    } else if (Objects.equals(ParamMappingMode.RUNTIME_PARAM.getValue(), argJson.getString("mappingMode"))) {
-                                                        put(argJson.getString("key"), String.format("${%s}", value));
-                                                    } else if (Objects.equals(ParamMappingMode.PRE_NODE_OUTPUT_PARAM.getValue(), argJson.getString("mappingMode"))) {
-                                                        put(argJson.getString("key"), value);
-                                                    } else if (Objects.equals(ParamMappingMode.PROFILE.getValue(), argJson.getString("mappingMode"))) {
-                                                        put(argJson.getString("key"), finalProfileKeyValueMap.get(argJson.getString("key")));
-                                                    } else if (Objects.equals(ParamMappingMode.GLOBAL_PARAM.getValue(), argJson.getString("mappingMode"))) {
-                                                        put(argJson.getString("key"), finalGlobalParamKeyValueMap.get(argJson.getString("value")));
-                                                    } else {
-                                                        put(argJson.getString("key"), StringUtils.EMPTY);
+                                                if(CollectionUtils.isNotEmpty(inputParamArray)) {
+                                                    for (Object arg : inputParamArray) {
+                                                        JSONObject argJson = JSONObject.parseObject(arg.toString());
+                                                        String value = argJson.getString("value");
+                                                        if (Objects.equals(ParamMappingMode.CONSTANT.getValue(), argJson.getString("mappingMode"))) {
+                                                            put(argJson.getString("key"), getValueByParamType(argJson));
+                                                        } else if (Objects.equals(ParamMappingMode.RUNTIME_PARAM.getValue(), argJson.getString("mappingMode"))) {
+                                                            put(argJson.getString("key"), String.format("${%s}", value));
+                                                        } else if (Objects.equals(ParamMappingMode.PRE_NODE_OUTPUT_PARAM.getValue(), argJson.getString("mappingMode"))) {
+                                                            put(argJson.getString("key"), value);
+                                                        } else if (Objects.equals(ParamMappingMode.PROFILE.getValue(), argJson.getString("mappingMode"))) {
+                                                            put(argJson.getString("key"), finalProfileKeyValueMap.get(argJson.getString("key")));
+                                                        } else if (Objects.equals(ParamMappingMode.GLOBAL_PARAM.getValue(), argJson.getString("mappingMode"))) {
+                                                            put(argJson.getString("key"), finalGlobalParamKeyValueMap.get(argJson.getString("value")));
+                                                        } else {
+                                                            put(argJson.getString("key"), StringUtils.EMPTY);
+                                                        }
                                                     }
                                                 }
                                             }});
@@ -251,6 +253,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                                                     }
                                                 }
                                             }});
+                                            put("condition",param.getString("condition"));
+                                            put("if",param.getJSONArray("ifList"));
+                                            put("else",param.getJSONArray("elseList"));
                                         }});
                                     }
                                 }});
