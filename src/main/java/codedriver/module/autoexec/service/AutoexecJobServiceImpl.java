@@ -580,7 +580,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     if (CollectionUtils.isEmpty(idList)) {
                         continue;
                     }
-                    List<ResourceVo> resourceVoList = resourceCenterMapper.getResourceListByIdList(idList, TenantContext.get().getDbName());
+                    List<ResourceVo> resourceVoList = resourceCenterMapper.getResourceListByIdList(idList, TenantContext.get().getDataDbName());
                     if (CollectionUtils.isNotEmpty(resourceVoList)) {
                         updateJobPhaseNode(jobPhaseVo, resourceVoList, userName, protocolId);
                     }
