@@ -133,7 +133,7 @@ public class RegisterAutoexecToolApi extends PrivateApiComponentBase {
             config.put("argument", new AutoexecParamVo(argument));
         }
         vo.setConfigStr(config.toJSONString());
-        autoexecToolMapper.replaceTool(vo);
+        autoexecToolMapper.insertTool(vo);
 
         return null;
     }
