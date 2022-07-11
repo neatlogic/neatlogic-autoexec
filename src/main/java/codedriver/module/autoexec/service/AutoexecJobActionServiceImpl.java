@@ -146,125 +146,144 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                             add(new JSONObject() {{
                                 put("phaseName", jobPhase.getName());
                                 put("execRound", jobPhase.getExecutePolicy());
-                                put("operations", new JSONArray() {{
-                                    for (AutoexecJobPhaseOperationVo operationVo : jobPhase.getOperationList()) {
-                                        JSONObject param = operationVo.getParam();
-                                        JSONArray inputParamArray = param.getJSONArray("inputParamList");
-                                        JSONArray argumentList = param.getJSONArray("argumentList");
-                                        Map<String, Object> profileKeyValueMap = new HashMap<>();
-                                        Map<String, Object> globalParamKeyValueMap = new HashMap<>();
-                                        List<String> globalParamKeyList = new ArrayList<>();
-                                        //批量查询 inputParam profile 和 全局参数的值
-                                        if (CollectionUtils.isNotEmpty(inputParamArray)) {
-                                            List<String> profileKeyList = new ArrayList<>();
-                                            for (int i = 0; i < inputParamArray.size(); i++) {
-                                                JSONObject inputParam = inputParamArray.getJSONObject(i);
-                                                if (Objects.equals(ParamMappingMode.PROFILE.getValue(), inputParam.getString("mappingMode"))) {
-                                                    profileKeyList.add(inputParam.getString("key"));
-                                                }
-                                                if (Objects.equals(ParamMappingMode.GLOBAL_PARAM.getValue(), inputParam.getString("mappingMode"))) {
-                                                    globalParamKeyList.add(inputParam.getString("value"));
-                                                }
-                                            }
-                                            if(operationVo.getProfileId() != null) {
-                                                profileKeyValueMap = autoexecProfileService.getAutoexecProfileParamListByKeyListAndProfileId(profileKeyList, operationVo.getProfileId());
-                                            }
-                                        }
-                                        //批量查询 自由参数的全局参数
-                                        if(CollectionUtils.isNotEmpty(argumentList)){
-                                            for (int i = 0; i < argumentList.size(); i++) {
-                                                JSONObject argumentJson = argumentList.getJSONObject(i);
-                                                if (Objects.equals(ParamMappingMode.GLOBAL_PARAM.getValue(), argumentJson.getString("mappingMode"))) {
-                                                    globalParamKeyList.add(argumentJson.getString("value"));
-                                                }
-                                            }
-                                        }
-
-                                        if(CollectionUtils.isNotEmpty(globalParamKeyList)) {
-                                            List<AutoexecGlobalParamVo> globalParamVos = globalParamMapper.getGlobalParamByKeyList(globalParamKeyList);
-                                            if (CollectionUtils.isNotEmpty(globalParamVos)) {
-                                                globalParamKeyValueMap = globalParamVos.stream().collect(Collectors.toMap(AutoexecGlobalParamVo::getKey, AutoexecGlobalParamVo::getDefaultValue));
-                                            }
-
-                                        }
-                                        Map<String, Object> finalProfileKeyValueMap = profileKeyValueMap;
-                                        Map<String, Object> finalGlobalParamKeyValueMap = globalParamKeyValueMap;
-                                        add(new JSONObject() {{
-                                            put("opId", operationVo.getName() + "_" + operationVo.getId());
-                                            put("opName", operationVo.getName());
-                                            put("opType", operationVo.getExecMode());
-                                            put("failIgnore", operationVo.getFailIgnore());
-                                            put("isScript", Objects.equals(operationVo.getType(), ToolType.SCRIPT.getValue()) ? 1 : 0);
-                                            put("scriptId", operationVo.getScriptId());
-                                            put("interpreter", operationVo.getParser());
-                                            //put("script", operationVo.getScript());
-                                            if(CollectionUtils.isNotEmpty(argumentList)) {
-                                                for (int i = 0; i < argumentList.size(); i++) {
-                                                    JSONObject argumentJson = argumentList.getJSONObject(i);
-                                                    argumentJson.remove("name");
-                                                    argumentJson.remove("description");
-                                                    if (Objects.equals(ParamMappingMode.RUNTIME_PARAM.getValue(), argumentJson.getString("mappingMode"))) {
-                                                        argumentJson.put("value", String.format("${%s}", argumentJson.getString("value")));
-                                                    }if (Objects.equals(ParamMappingMode.GLOBAL_PARAM.getValue(), argumentJson.getString("mappingMode"))) {
-                                                        argumentJson.put("value",finalGlobalParamKeyValueMap.get(argumentJson.getString("value")));
-                                                    }
-                                                    argumentJson.remove("mappingMode");
-                                                }
-                                            }
-                                            put("arg", argumentList);
-                                            put("opt", new JSONObject() {{
-                                                if(CollectionUtils.isNotEmpty(inputParamArray)) {
-                                                    for (Object arg : inputParamArray) {
-                                                        JSONObject argJson = JSONObject.parseObject(arg.toString());
-                                                        String value = argJson.getString("value");
-                                                        if (Objects.equals(ParamMappingMode.CONSTANT.getValue(), argJson.getString("mappingMode"))) {
-                                                            put(argJson.getString("key"), getValueByParamType(argJson));
-                                                        } else if (Objects.equals(ParamMappingMode.RUNTIME_PARAM.getValue(), argJson.getString("mappingMode"))) {
-                                                            put(argJson.getString("key"), String.format("${%s}", value));
-                                                        } else if (Objects.equals(ParamMappingMode.PRE_NODE_OUTPUT_PARAM.getValue(), argJson.getString("mappingMode"))) {
-                                                            put(argJson.getString("key"), value);
-                                                        } else if (Objects.equals(ParamMappingMode.PROFILE.getValue(), argJson.getString("mappingMode"))) {
-                                                            put(argJson.getString("key"), finalProfileKeyValueMap.get(argJson.getString("key")));
-                                                        } else if (Objects.equals(ParamMappingMode.GLOBAL_PARAM.getValue(), argJson.getString("mappingMode"))) {
-                                                            put(argJson.getString("key"), finalGlobalParamKeyValueMap.get(argJson.getString("value")));
-                                                        } else {
-                                                            put(argJson.getString("key"), StringUtils.EMPTY);
-                                                        }
-                                                    }
-                                                }
-                                            }});
-                                            put("desc", new JSONObject() {{
-                                                if (CollectionUtils.isNotEmpty(param.getJSONArray("inputParamList"))) {
-                                                    for (Object arg : param.getJSONArray("inputParamList")) {
-                                                        JSONObject argJson = JSONObject.parseObject(arg.toString());
-                                                        put(argJson.getString("key"), argJson.getString("type"));
-                                                    }
-                                                }
-                                            }});
-                                            put("output", new JSONObject() {{
-                                                if (CollectionUtils.isNotEmpty(param.getJSONArray("outputParamList"))) {
-                                                    for (Object arg : param.getJSONArray("outputParamList")) {
-                                                        JSONObject argJson = JSONObject.parseObject(arg.toString());
-                                                        JSONObject outputParamJson = new JSONObject();
-                                                        put(argJson.getString("key"), outputParamJson);
-                                                        outputParamJson.put("opt", argJson.getString("key"));
-                                                        outputParamJson.put("type", argJson.getString("type"));
-                                                        outputParamJson.put("defaultValue", argJson.getString("defaultValue"));
-                                                    }
-                                                }
-                                            }});
-                                            put("condition",param.getString("condition"));
-                                            put("if",param.getJSONArray("ifList"));
-                                            put("else",param.getJSONArray("elseList"));
-                                        }});
-                                    }
-                                }});
+                                put("operations",getOperationFireParam(jobPhase.getOperationList()));
                             }});
                         }
                     }});
                 }});
             }
         }});
+    }
+
+    /**
+     * 获取作业工具param
+     * @param jobOperationVoList 作业工具列表
+     * @return 作业工具param
+     */
+    private JSONArray getOperationFireParam(List<AutoexecJobPhaseOperationVo> jobOperationVoList){
+        return new JSONArray() {{
+            for (AutoexecJobPhaseOperationVo operationVo : jobOperationVoList) {
+                JSONObject param = operationVo.getParam();
+                JSONArray inputParamArray = param.getJSONArray("inputParamList");
+                JSONArray argumentList = param.getJSONArray("argumentList");
+                Map<String, Object> profileKeyValueMap = new HashMap<>();
+                Map<String, Object> globalParamKeyValueMap = new HashMap<>();
+                List<String> globalParamKeyList = new ArrayList<>();
+                //批量查询 inputParam profile 和 全局参数的值
+                if (CollectionUtils.isNotEmpty(inputParamArray)) {
+                    List<String> profileKeyList = new ArrayList<>();
+                    for (int i = 0; i < inputParamArray.size(); i++) {
+                        JSONObject inputParam = inputParamArray.getJSONObject(i);
+                        if (Objects.equals(ParamMappingMode.PROFILE.getValue(), inputParam.getString("mappingMode"))) {
+                            profileKeyList.add(inputParam.getString("key"));
+                        }
+                        if (Objects.equals(ParamMappingMode.GLOBAL_PARAM.getValue(), inputParam.getString("mappingMode"))) {
+                            globalParamKeyList.add(inputParam.getString("value"));
+                        }
+                    }
+                    if(operationVo.getProfileId() != null) {
+                        profileKeyValueMap = autoexecProfileService.getAutoexecProfileParamListByKeyListAndProfileId(profileKeyList, operationVo.getProfileId());
+                    }
+                }
+                //批量查询 自由参数的全局参数
+                if(CollectionUtils.isNotEmpty(argumentList)){
+                    for (int i = 0; i < argumentList.size(); i++) {
+                        JSONObject argumentJson = argumentList.getJSONObject(i);
+                        if (Objects.equals(ParamMappingMode.GLOBAL_PARAM.getValue(), argumentJson.getString("mappingMode"))) {
+                            globalParamKeyList.add(argumentJson.getString("value"));
+                        }
+                    }
+                }
+
+                if(CollectionUtils.isNotEmpty(globalParamKeyList)) {
+                    List<AutoexecGlobalParamVo> globalParamVos = globalParamMapper.getGlobalParamByKeyList(globalParamKeyList);
+                    if (CollectionUtils.isNotEmpty(globalParamVos)) {
+                        globalParamKeyValueMap = globalParamVos.stream().collect(Collectors.toMap(AutoexecGlobalParamVo::getKey, AutoexecGlobalParamVo::getDefaultValue));
+                    }
+
+                }
+                Map<String, Object> finalProfileKeyValueMap = profileKeyValueMap;
+                Map<String, Object> finalGlobalParamKeyValueMap = globalParamKeyValueMap;
+                add(new JSONObject() {{
+                    put("opId", operationVo.getName() + "_" + operationVo.getId());
+                    put("opName", operationVo.getName());
+                    put("opType", operationVo.getExecMode());
+                    put("failIgnore", operationVo.getFailIgnore());
+                    put("isScript", Objects.equals(operationVo.getType(), ToolType.SCRIPT.getValue()) ? 1 : 0);
+                    put("scriptId", operationVo.getScriptId());
+                    put("interpreter", operationVo.getParser());
+                    //put("script", operationVo.getScript());
+                    if(CollectionUtils.isNotEmpty(argumentList)) {
+                        for (int i = 0; i < argumentList.size(); i++) {
+                            JSONObject argumentJson = argumentList.getJSONObject(i);
+                            argumentJson.remove("name");
+                            argumentJson.remove("description");
+                            if (Objects.equals(ParamMappingMode.RUNTIME_PARAM.getValue(), argumentJson.getString("mappingMode"))) {
+                                argumentJson.put("value", String.format("${%s}", argumentJson.getString("value")));
+                            }if (Objects.equals(ParamMappingMode.GLOBAL_PARAM.getValue(), argumentJson.getString("mappingMode"))) {
+                                argumentJson.put("value",finalGlobalParamKeyValueMap.get(argumentJson.getString("value")));
+                            }
+                            argumentJson.remove("mappingMode");
+                        }
+                    }
+                    put("arg", argumentList);
+                    put("opt", new JSONObject() {{
+                        if(CollectionUtils.isNotEmpty(inputParamArray)) {
+                            for (Object arg : inputParamArray) {
+                                JSONObject argJson = JSONObject.parseObject(arg.toString());
+                                String value = argJson.getString("value");
+                                if (Objects.equals(ParamMappingMode.CONSTANT.getValue(), argJson.getString("mappingMode"))) {
+                                    put(argJson.getString("key"), getValueByParamType(argJson));
+                                } else if (Objects.equals(ParamMappingMode.RUNTIME_PARAM.getValue(), argJson.getString("mappingMode"))) {
+                                    put(argJson.getString("key"), String.format("${%s}", value));
+                                } else if (Objects.equals(ParamMappingMode.PRE_NODE_OUTPUT_PARAM.getValue(), argJson.getString("mappingMode"))) {
+                                    put(argJson.getString("key"), value);
+                                } else if (Objects.equals(ParamMappingMode.PROFILE.getValue(), argJson.getString("mappingMode"))) {
+                                    put(argJson.getString("key"), finalProfileKeyValueMap.get(argJson.getString("key")));
+                                } else if (Objects.equals(ParamMappingMode.GLOBAL_PARAM.getValue(), argJson.getString("mappingMode"))) {
+                                    put(argJson.getString("key"), finalGlobalParamKeyValueMap.get(argJson.getString("value")));
+                                } else {
+                                    put(argJson.getString("key"), StringUtils.EMPTY);
+                                }
+                            }
+                        }
+                    }});
+                    put("desc", new JSONObject() {{
+                        if (CollectionUtils.isNotEmpty(param.getJSONArray("inputParamList"))) {
+                            for (Object arg : param.getJSONArray("inputParamList")) {
+                                JSONObject argJson = JSONObject.parseObject(arg.toString());
+                                put(argJson.getString("key"), argJson.getString("type"));
+                            }
+                        }
+                    }});
+                    put("output", new JSONObject() {{
+                        if (CollectionUtils.isNotEmpty(param.getJSONArray("outputParamList"))) {
+                            for (Object arg : param.getJSONArray("outputParamList")) {
+                                JSONObject argJson = JSONObject.parseObject(arg.toString());
+                                JSONObject outputParamJson = new JSONObject();
+                                put(argJson.getString("key"), outputParamJson);
+                                outputParamJson.put("opt", argJson.getString("key"));
+                                outputParamJson.put("type", argJson.getString("type"));
+                                outputParamJson.put("defaultValue", argJson.getString("defaultValue"));
+                            }
+                        }
+                    }});
+                    if(StringUtils.isNotBlank(param.getString("condition"))) {
+                        put("condition", param.getString("condition"));
+                        JSONArray ifArray = param.getJSONArray("ifList");
+                        if(CollectionUtils.isNotEmpty(ifArray)) {
+                            List<AutoexecJobPhaseOperationVo> ifJobOperationList = JSONObject.parseArray(ifArray.toJSONString(), AutoexecJobPhaseOperationVo.class);
+                            put("if", getOperationFireParam(ifJobOperationList));
+                        }
+                        JSONArray elseArray = param.getJSONArray("elseList");
+                        if(CollectionUtils.isNotEmpty(elseArray)) {
+                            List<AutoexecJobPhaseOperationVo> elseJobOperationList = JSONObject.parseArray(elseArray.toJSONString(), AutoexecJobPhaseOperationVo.class);
+                            put("else", getOperationFireParam(elseJobOperationList));
+                        }
+                    }
+                }});
+            }
+        }};
     }
 
     /**
