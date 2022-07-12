@@ -1,10 +1,12 @@
 package codedriver.module.autoexec.job.source.action;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
-import codedriver.framework.autoexec.constvalue.AutoexecOperType;
+import codedriver.framework.autoexec.constvalue.JobSourceType;
 import codedriver.framework.autoexec.constvalue.ExecMode;
+import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
@@ -44,11 +46,14 @@ public class AutoexecJobSourceHandler extends AutoexecJobSourceActionHandlerBase
     AutoexecJobMapper autoexecJobMapper;
 
     @Resource
+    AutoexecCombopMapper autoexecCombopMapper;
+
+    @Resource
     RunnerMapper runnerMapper;
 
     @Override
     public String getName() {
-        return AutoexecOperType.AUTOEXEC.getValue();
+        return JobSourceType.AUTOEXEC.getValue();
     }
 
     @Override
@@ -174,7 +179,7 @@ public class AutoexecJobSourceHandler extends AutoexecJobSourceActionHandlerBase
     public List<RunnerMapVo> getRunnerMapList(AutoexecJobVo jobVo) {
         AutoexecJobPhaseVo jobPhaseVo = jobVo.getCurrentPhase();
         List<RunnerMapVo> runnerMapVos = null;
-        /*if(Arrays.asList(ExecMode.TARGET.getValue(), ExecMode.RUNNER_TARGET.getValue()).contains(jobPhaseVo.getExecMode())){
+        if(Arrays.asList(ExecMode.TARGET.getValue(), ExecMode.RUNNER_TARGET.getValue()).contains(jobPhaseVo.getExecMode())){
             List<GroupNetworkVo> networkVoList = runnerMapper.getAllNetworkMask();
             for (GroupNetworkVo networkVo : networkVoList) {
                 if (IpUtil.isBelongSegment(jobPhaseVo.getCurrentNode().getHost(), networkVo.getNetworkIp(), networkVo.getMask())) {
@@ -187,8 +192,13 @@ public class AutoexecJobSourceHandler extends AutoexecJobSourceActionHandlerBase
             }
         }else{
             runnerMapVos = runnerMapper.getAllRunnerMap();
-        }*/
+        }
         return runnerMapVos;
+    }
+
+    @Override
+    public AutoexecCombopVo getAutoexecCombop(JSONObject paramJson) {
+        return autoexecCombopMapper.getAutoexecCombopById(paramJson.getLong("combopId"));
     }
 
 }

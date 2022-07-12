@@ -5,7 +5,7 @@
 
 package codedriver.module.autoexec.globallock;
 
-import codedriver.framework.autoexec.constvalue.AutoexecOperType;
+import codedriver.framework.autoexec.constvalue.JobSourceType;
 import codedriver.framework.dto.globallock.GlobalLockVo;
 import codedriver.framework.exception.core.ApiRuntimeException;
 import codedriver.framework.exception.type.ParamIrregularException;
@@ -23,7 +23,7 @@ import java.util.Optional;
 public class AutoexecJobGlobalLockHandler extends GlobalLockHandlerBase {
     @Override
     public String getHandler() {
-        return AutoexecOperType.AUTOEXEC.getValue();
+        return JobSourceType.AUTOEXEC.getValue();
     }
 
     @Override
@@ -59,7 +59,7 @@ public class AutoexecJobGlobalLockHandler extends GlobalLockHandlerBase {
         if(StringUtils.isBlank(jobId)){
             throw new ParamIrregularException("jobId");
         }
-        GlobalLockVo globalLockVo = new GlobalLockVo(AutoexecOperType.AUTOEXEC.getValue(),jobId,paramJson.toJSONString());
+        GlobalLockVo globalLockVo = new GlobalLockVo(JobSourceType.AUTOEXEC.getValue(),jobId,paramJson.toJSONString());
         GlobalLockManager.getLock(globalLockVo);
         if (globalLockVo.getIsLock() == 1) {
             jsonObject.put("lockId", globalLockVo.getId());
@@ -87,7 +87,7 @@ public class AutoexecJobGlobalLockHandler extends GlobalLockHandlerBase {
         }
         //预防如果不存在，需重新insert lock
         String jobId = paramJson.getString("jobId");
-        GlobalLockVo globalLockVo = new GlobalLockVo(lockId,AutoexecOperType.AUTOEXEC.getValue(),jobId,paramJson.toJSONString());
+        GlobalLockVo globalLockVo = new GlobalLockVo(lockId, JobSourceType.AUTOEXEC.getValue(),jobId,paramJson.toJSONString());
         GlobalLockManager.retryLock(globalLockVo);
         if (globalLockVo.getIsLock() == 1) {
             jsonObject.put("lockId", globalLockVo.getId());

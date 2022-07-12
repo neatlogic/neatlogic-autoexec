@@ -64,6 +64,18 @@
         where id = #{value}
     </select>
 
+    <select id="getScenarioByName" resultType="codedriver.framework.autoexec.dto.scenario.AutoexecScenarioVo">
+        select id,
+               name,
+               description,
+               fcu,
+               fcd,
+               lcu,
+               lcd
+        from autoexec_scenario
+        where name = #{value}
+    </select>
+
     <select id="checkScenarioNameIsRepeat" resultType="int"
             parameterType="codedriver.framework.autoexec.dto.scenario.AutoexecScenarioVo">
         select count(id)

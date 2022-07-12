@@ -27,7 +27,7 @@ public interface AutoexecJobActionService {
      *
      * @param isNeedAuth 是否需要鉴权
      */
-    AutoexecJobVo validateCreateJobFromCombop(JSONObject param, boolean isNeedAuth);
+    AutoexecJobVo validateAndCreateJobFromCombop(JSONObject param, boolean isNeedAuth);
 
     /**
      * 校验创建并激活作业

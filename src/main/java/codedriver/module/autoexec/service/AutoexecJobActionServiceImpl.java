@@ -13,16 +13,23 @@ import codedriver.framework.autoexec.constvalue.ToolType;
 import codedriver.framework.autoexec.crossover.IAutoexecJobActionCrossoverService;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.framework.autoexec.dto.AutoexecJobSourceVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
 import codedriver.framework.autoexec.dto.job.*;
+import codedriver.framework.autoexec.dto.scenario.AutoexecScenarioVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopCannotExecuteException;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecJobSourceInvalidException;
+import codedriver.framework.autoexec.exception.AutoexecScenarioIsNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
+import codedriver.framework.autoexec.job.source.action.AutoexecJobSourceActionHandlerFactory;
+import codedriver.framework.autoexec.job.source.action.IAutoexecJobSourceActionHandler;
 import codedriver.framework.autoexec.script.paramtype.IScriptParamType;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
+import codedriver.framework.autoexec.source.AutoexecJobSourceFactory;
 import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
 import codedriver.framework.dao.mapper.UserMapper;
@@ -30,6 +37,7 @@ import codedriver.framework.dto.UserVo;
 import codedriver.framework.exception.user.UserNotFoundException;
 import codedriver.framework.filter.core.LoginAuthHandlerBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecScenarioMapper;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -76,6 +84,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
 
     @Resource
     AutoexecGlobalParamMapper globalParamMapper;
+
+    @Resource
+    AutoexecScenarioMapper autoexecScenarioMapper;
 
     /**
      * 拼装给proxy的param
@@ -153,6 +164,13 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                 }});
             }
         }});
+        //补充各个作业来源类型的特殊参数，如：发布的environment
+        AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(jobVo.getSource());
+        if (jobSourceVo == null) {
+            throw new AutoexecJobSourceInvalidException(jobVo.getSource());
+        }
+        IAutoexecJobSourceActionHandler autoexecJobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(jobSourceVo.getType());
+        autoexecJobSourceActionHandler.getFireParamJson(paramJson, jobVo);
     }
 
     /**
@@ -307,12 +325,16 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
     }
 
     @Override
-    public AutoexecJobVo validateCreateJobFromCombop(JSONObject jsonObj, boolean isNeedAuth) {
-        AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(jsonObj.getLong("combopId"));
+    public AutoexecJobVo validateAndCreateJobFromCombop(JSONObject jsonObj, boolean isNeedAuth) {
+        AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(jsonObj.getString("source"));
+        if (jobSourceVo == null) {
+            throw new AutoexecJobSourceInvalidException(jsonObj.getString("source"));
+        }
+        IAutoexecJobSourceActionHandler autoexecJobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(jobSourceVo.getType());
+        AutoexecCombopVo combopVo = autoexecJobSourceActionHandler.getAutoexecCombop(jsonObj);
         if (combopVo == null) {
             throw new AutoexecCombopNotFoundException(jsonObj.getLong("combopId"));
         }
-
         //作业执行权限校验
         if (isNeedAuth) {
             autoexecCombopService.setOperableButtonList(combopVo);
@@ -340,11 +362,20 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
 
         }
         autoexecCombopService.verifyAutoexecCombopConfig(combopVo, true);
+        //根据场景名获取场景id
+        if(jsonObj.containsKey("scenarioName")){
+            AutoexecScenarioVo scenarioVo = autoexecScenarioMapper.getScenarioByName(jsonObj.getString("scenarioName"));
+            if(scenarioVo == null){
+                throw new AutoexecScenarioIsNotFoundException(jsonObj.getString("scenarioName"));
+            }
+            jsonObj.put("scenarioId",scenarioVo.getId());
+        }
 
 
         AutoexecJobVo jobVo = JSONObject.toJavaObject(jsonObj, AutoexecJobVo.class);
         jobVo.setConfigStr(combopVo.getConfigStr());
         jobVo.setRunTimeParamList(autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopVo.getId()));
+        autoexecJobSourceActionHandler.updateInvokeJob(jsonObj,jobVo);
         autoexecJobService.saveAutoexecCombopJob(combopVo, jobVo);
         jobVo.setAction(JobAction.FIRE.getValue());
         //jobVo.setCurrentGroupSort(0);
@@ -354,7 +385,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void validateCreateJob(JSONObject param, boolean isNeedAuth) throws Exception {
-        AutoexecJobVo jobVo = validateCreateJobFromCombop(param, isNeedAuth);
+        AutoexecJobVo jobVo = validateAndCreateJobFromCombop(param, isNeedAuth);
         IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
         fireAction.doService(jobVo);
     }

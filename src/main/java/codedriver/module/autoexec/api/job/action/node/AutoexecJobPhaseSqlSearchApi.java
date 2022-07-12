@@ -7,7 +7,6 @@ package codedriver.module.autoexec.api.job.action.node;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
-import codedriver.framework.autoexec.constvalue.AutoexecOperType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
@@ -17,7 +16,7 @@ import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException
 import codedriver.framework.autoexec.job.source.action.AutoexecJobSourceActionHandlerFactory;
 import codedriver.framework.autoexec.job.source.action.IAutoexecJobSourceActionHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
-import codedriver.framework.deploy.constvalue.DeployOperType;
+import codedriver.framework.deploy.constvalue.JobSourceType;
 import codedriver.framework.deploy.constvalue.JobSource;
 import codedriver.framework.restful.annotation.Input;
 import codedriver.framework.restful.annotation.OperationType;
@@ -88,10 +87,10 @@ public class AutoexecJobPhaseSqlSearchApi extends PrivateApiComponentBase {
         AutoexecJobPhaseNodeVo jobPhaseNodeVo = JSONObject.toJavaObject(paramObj, AutoexecJobPhaseNodeVo.class);
         IAutoexecJobSourceActionHandler handler;
         if (StringUtils.equals(jobVo.getSource(), JobSource.DEPLOY.getValue())) {
-            handler = AutoexecJobSourceActionHandlerFactory.getAction(DeployOperType.DEPLOY.getValue());
+            handler = AutoexecJobSourceActionHandlerFactory.getAction(JobSourceType.DEPLOY.getValue());
             return handler.searchJobPhaseSql(jobPhaseNodeVo);
         } else {
-            handler = AutoexecJobSourceActionHandlerFactory.getAction(AutoexecOperType.AUTOEXEC.getValue());
+            handler = AutoexecJobSourceActionHandlerFactory.getAction(codedriver.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
             return handler.searchJobPhaseSql(jobPhaseNodeVo);
         }
     }
