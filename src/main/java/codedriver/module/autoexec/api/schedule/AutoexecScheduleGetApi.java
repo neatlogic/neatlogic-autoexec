@@ -2,6 +2,7 @@ package codedriver.module.autoexec.api.schedule;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScheduleMapper;
 import codedriver.framework.autoexec.dto.schedule.AutoexecScheduleVo;
 import codedriver.framework.autoexec.exception.AutoexecScheduleNotFoundException;
@@ -21,6 +22,9 @@ public class AutoexecScheduleGetApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScheduleMapper autoexecScheduleMapper;
+
+    @Resource
+    private AutoexecCombopMapper autoexecCombopMapper;
 
     @Override
     public String getToken() {
@@ -50,6 +54,9 @@ public class AutoexecScheduleGetApi extends PrivateApiComponentBase {
         AutoexecScheduleVo autoexecScheduleVo = autoexecScheduleMapper.getAutoexecScheduleById(id);
         if (autoexecScheduleVo == null) {
             throw new AutoexecScheduleNotFoundException(id);
+        }
+        if (autoexecCombopMapper.checkAutoexecCombopIsExists(autoexecScheduleVo.getAutoexecCombopId()) == 0) {
+            autoexecScheduleVo.setAutoexecCombopId(null);
         }
         return autoexecScheduleVo;
     }

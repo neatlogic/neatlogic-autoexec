@@ -463,7 +463,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
     @Override
     public void needExecuteConfig(AutoexecCombopVo autoexecCombopVo, AutoexecCombopPhaseVo autoexecCombopPhaseVo) {
         String execMode = autoexecCombopPhaseVo.getExecMode();
-        if (!ExecMode.RUNNER.getValue().equals(execMode)) {
+        if (!ExecMode.RUNNER.getValue().equals(execMode) && !ExecMode.SQL.getValue().equals(execMode)) {
             boolean needExecuteUser = autoexecCombopVo.getNeedExecuteUser();
             boolean needProtocol = autoexecCombopVo.getNeedProtocol();
             boolean needExecuteNode = autoexecCombopVo.getNeedExecuteNode();
@@ -543,6 +543,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                         int jSort = 0;
                         for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
                             if (autoexecCombopPhaseOperationVo != null) {
+                                autoexecCombopPhaseOperationVo.setOperationId(null);
                                 autoexecCombopPhaseOperationVo.setSort(jSort++);
                                 autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
                                 autoexecCombopMapper.insertAutoexecCombopPhaseOperation(autoexecCombopPhaseOperationVo);
