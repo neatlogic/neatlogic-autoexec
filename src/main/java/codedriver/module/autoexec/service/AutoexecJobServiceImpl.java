@@ -24,7 +24,6 @@ import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.cmdb.crossover.IResourceCenterResourceCrossoverService;
-import codedriver.framework.cmdb.crossover.IResourceListApiCrossoverService;
 import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import codedriver.framework.cmdb.dto.resourcecenter.ResourceVo;
@@ -626,26 +625,15 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             IResourceCenterResourceCrossoverService resourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
             filterJson.put("pageSize", 100);
             ResourceSearchVo searchVo = resourceCrossoverService.assembleResourceSearchVo(filterJson);
-            IResourceCenterResourceCrossoverService resourceCenterResourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
-            String sql = resourceCenterResourceCrossoverService.getResourceCountSql(searchVo, "resource_ipobject");
-            if (StringUtils.isBlank(sql)) {
-                return false;
-            }
-            int count = resourceCenterMapper.getResourceCount(sql);
-//            int count = resourceCenterMapper.getResourceCount(searchVo);
+            int count = resourceCenterMapper.getResourceCount(searchVo);
             if (count > 0) {
                 int pageCount = PageUtil.getPageCount(count, searchVo.getPageSize());
                 for (int i = 1; i <= pageCount; i++) {
-                    filterJson.put("currentPage", i);
-                    filterJson.put("needPage", true);
-                    try {
-                        IResourceListApiCrossoverService resourceListApi = CrossoverServiceFactory.getApi(IResourceListApiCrossoverService.class);
-                        resourceJson = JSONObject.parseObject(JSONObject.toJSONString(resourceListApi.myDoService(filterJson)));
-                    } catch (Exception ex) {
-                        logger.error(ex.getMessage(), ex);
-                        return false;
+                    List<Long> idList = resourceCenterMapper.getResourceIdList(searchVo);
+                    if (CollectionUtils.isEmpty(idList)) {
+                        continue;
                     }
-                    List<ResourceVo> resourceVoList = JSONObject.parseArray(resourceJson.getString("tbodyList"), ResourceVo.class);
+                    List<ResourceVo> resourceVoList = resourceCenterMapper.getResourceListByIdList(idList, TenantContext.get().getDataDbName());
                     if (CollectionUtils.isNotEmpty(resourceVoList)) {
                         updateJobPhaseNode(jobPhaseVo, resourceVoList, userName, protocolId);
                     }
