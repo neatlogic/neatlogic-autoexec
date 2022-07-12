@@ -202,7 +202,7 @@ public class AutoexecJobFromOperationCreateApi extends PrivateApiComponentBase {
                 put("phaseOperationList" ,new JSONArray(){{
                     add(new JSONObject(){{
                         put("name", phaseOperationParamVo.getName().replaceAll("//","_"));
-                        put("operationId", phaseOperationParamVo.getOperationId());
+                        put("id", phaseOperationParamVo.getOperationId());
                         put("operationType",phaseOperationParamVo.getOperationType());
                         put("execMode",phaseOperationParamVo.getExecMode());
                         put("failPolicy", FailPolicy.STOP.getValue());

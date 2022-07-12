@@ -27,7 +27,7 @@ import codedriver.framework.crossover.CrossoverServiceFactory;
 import codedriver.framework.exception.type.ParamIrregularException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
-import codedriver.framework.restful.core.publicapi.PublicBinaryStreamApiComponentBase;
+import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
@@ -48,7 +48,7 @@ import java.util.stream.Collectors;
 @Service
 @Transactional
 @OperationType(type = OperationTypeEnum.SEARCH)
-public class AutoexecJobPhaseNodesDownloadApi extends PublicBinaryStreamApiComponentBase {
+public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComponentBase {
     @Autowired
     private AutoexecJobMapper autoexecJobMapper;
 

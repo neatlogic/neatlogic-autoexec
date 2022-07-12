@@ -28,7 +28,6 @@ import codedriver.framework.autoexec.job.source.action.AutoexecJobSourceActionHa
 import codedriver.framework.autoexec.job.source.action.IAutoexecJobSourceActionHandler;
 import codedriver.framework.autoexec.source.AutoexecJobSourceFactory;
 import codedriver.framework.cmdb.crossover.IResourceCenterResourceCrossoverService;
-import codedriver.framework.cmdb.crossover.IResourceListApiCrossoverService;
 import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import codedriver.framework.cmdb.dto.resourcecenter.ResourceVo;
@@ -165,39 +164,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 autoexecJobSourceActionHandler.updateJobRunnerMap(jobVo.getId(), runnerMapVo.getRunnerMapId());
             }
             //jobPhaseOperation
-            List<AutoexecJobPhaseOperationVo> jobPhaseOperationVoList = new ArrayList<>();
-            jobPhaseVo.setOperationList(jobPhaseOperationVoList);
             List<AutoexecCombopPhaseOperationVo> combopPhaseOperationList = combopPhaseExecuteConfigVo.getPhaseOperationList();
-            for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : combopPhaseOperationList) {
-                String operationType = autoexecCombopPhaseOperationVo.getOperationType();
-                Long id = autoexecCombopPhaseOperationVo.getId();
-                AutoexecJobPhaseOperationVo jobPhaseOperationVo = null;
-                if (CombopOperationType.SCRIPT.getValue().equalsIgnoreCase(operationType)) {
-                    AutoexecScriptVo scriptVo;
-                    AutoexecScriptVersionVo scriptVersionVo;
-                    String script;
-                    if (Objects.equals(jobVo.getSource(), JobSource.TEST.getValue())) {
-                        scriptVersionVo = autoexecScriptMapper.getVersionByVersionId(id);
-                        if (scriptVersionVo == null) {
-                            throw new AutoexecScriptVersionNotFoundException(id);
-                        }
-                        scriptVo = autoexecScriptMapper.getScriptBaseInfoById(scriptVersionVo.getScriptId());
-                        script = autoexecCombopService.getOperationActiveVersionScriptByOperation(scriptVersionVo);
-                    } else {
-                        scriptVo = autoexecScriptMapper.getScriptBaseInfoById(id);
-                        scriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(id);
-                        script = autoexecCombopService.getOperationActiveVersionScriptByOperationId(id);
-                    }
-                    jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, scriptVo, scriptVersionVo, script, jobPhaseVoList);
-                } else if (CombopOperationType.TOOL.getValue().equalsIgnoreCase(operationType)) {
-                    AutoexecToolVo toolVo = autoexecToolMapper.getToolById(id);
-                    jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, toolVo, jobPhaseVoList);
-                }
-                autoexecJobMapper.insertJobPhaseOperation(jobPhaseOperationVo);
-                assert jobPhaseOperationVo != null;
-                autoexecJobMapper.insertIgnoreJobParamContent(new AutoexecJobParamContentVo(jobPhaseOperationVo.getParamHash(), jobPhaseOperationVo.getParamStr()));
-                jobPhaseOperationVoList.add(jobPhaseOperationVo);
-            }
+            convertCombOperation2JobOperation(jobPhaseVo, jobPhaseVoList, combopPhaseOperationList, jobVo);
         }
         //保存group
         int i = 0;
@@ -209,6 +177,90 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     jobVo.setExecuteJobGroupVo(groupVoEntry.getValue());
                 }
                 i++;
+            }
+        }
+    }
+
+    /**
+     * 将组合工具的工具转为作业工具
+     * @param jobPhaseVo 当前作业阶段
+     * @param jobPhaseVoList 作业所有阶段
+     * @param combopPhaseOperationList 组合工具阶段工具列表
+     * @param jobVo 作业
+     * @return 作业工具列表
+     */
+    private List<AutoexecJobPhaseOperationVo> convertCombOperation2JobOperation(AutoexecJobPhaseVo jobPhaseVo, List<AutoexecJobPhaseVo> jobPhaseVoList, List<AutoexecCombopPhaseOperationVo> combopPhaseOperationList, AutoexecJobVo jobVo) {
+        List<AutoexecJobPhaseOperationVo> jobPhaseOperationVoList = new ArrayList<>();
+        jobPhaseVo.setOperationList(jobPhaseOperationVoList);
+        for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : combopPhaseOperationList) {
+            String operationType = autoexecCombopPhaseOperationVo.getOperationType();
+            Long id = autoexecCombopPhaseOperationVo.getId();
+            AutoexecJobPhaseOperationVo jobPhaseOperationVo = null;
+            if (CombopOperationType.SCRIPT.getValue().equalsIgnoreCase(operationType)) {
+                AutoexecScriptVo scriptVo;
+                AutoexecScriptVersionVo scriptVersionVo;
+                String script;
+                if (Objects.equals(jobVo.getSource(), JobSource.TEST.getValue())) {
+                    scriptVersionVo = autoexecScriptMapper.getVersionByVersionId(id);
+                    if (scriptVersionVo == null) {
+                        throw new AutoexecScriptVersionNotFoundException(id);
+                    }
+                    scriptVo = autoexecScriptMapper.getScriptBaseInfoById(scriptVersionVo.getScriptId());
+                    script = autoexecCombopService.getOperationActiveVersionScriptByOperation(scriptVersionVo);
+                } else {
+                    scriptVo = autoexecScriptMapper.getScriptBaseInfoById(id);
+                    scriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(id);
+                    script = autoexecCombopService.getOperationActiveVersionScriptByOperationId(id);
+                }
+                jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, scriptVo, scriptVersionVo, script, jobPhaseVoList);
+                initIfBlockOperation(autoexecCombopPhaseOperationVo, jobPhaseOperationVo, jobPhaseVo, jobPhaseVoList, jobVo);
+            } else {
+                AutoexecToolVo toolVo = autoexecToolMapper.getToolById(id);
+                jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, toolVo, jobPhaseVoList);
+                initIfBlockOperation(autoexecCombopPhaseOperationVo, jobPhaseOperationVo, jobPhaseVo, jobPhaseVoList, jobVo);
+            }
+            jobPhaseOperationVoList.add(jobPhaseOperationVo);
+            autoexecJobMapper.insertJobPhaseOperation(jobPhaseOperationVo);
+            autoexecJobMapper.insertIgnoreJobParamContent(new AutoexecJobParamContentVo(jobPhaseOperationVo.getParamHash(), jobPhaseOperationVo.getParamStr()));
+        }
+        return jobPhaseOperationVoList;
+    }
+
+    /**
+     *
+     * @param autoexecCombopPhaseOperationVo  组合工具阶段工具列表
+     * @param jobPhaseOperationVo 作业工具
+     * @param jobPhaseVo 当前作业阶段
+     * @param jobPhaseVoList 作业所有阶段列表
+     * @param jobVo 作业
+     */
+    private void initIfBlockOperation(AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo, AutoexecJobPhaseOperationVo jobPhaseOperationVo, AutoexecJobPhaseVo jobPhaseVo, List<AutoexecJobPhaseVo> jobPhaseVoList, AutoexecJobVo jobVo) {
+        AutoexecCombopPhaseOperationConfigVo combopPhaseOperationConfigVo = autoexecCombopPhaseOperationVo.getConfig();
+        if (combopPhaseOperationConfigVo != null) {
+            String ifBlockCondition = combopPhaseOperationConfigVo.getCondition();
+            if (StringUtils.isNotBlank(ifBlockCondition)) {
+                JSONObject paramObj = jobPhaseOperationVo.getParam();
+                paramObj.put("condition", combopPhaseOperationConfigVo.getCondition());
+                if (CollectionUtils.isNotEmpty(combopPhaseOperationConfigVo.getIfList())) {
+                    List<AutoexecCombopPhaseOperationVo> ifOperationList = combopPhaseOperationConfigVo.getIfList();
+                    ifOperationList.forEach(o->{
+                        o.setParentOperationId(jobPhaseOperationVo.getId());
+                        o.setParentOperationType("if");
+                    });
+                    List<AutoexecJobPhaseOperationVo> ifJobOperation = convertCombOperation2JobOperation(jobPhaseVo, jobPhaseVoList, ifOperationList, jobVo);
+
+                    paramObj.put("ifList", ifJobOperation);
+                }
+                if (CollectionUtils.isNotEmpty(combopPhaseOperationConfigVo.getElseList())) {
+                    List<AutoexecCombopPhaseOperationVo> elseOperationList = combopPhaseOperationConfigVo.getElseList();
+                    elseOperationList.forEach(o->{
+                        o.setParentOperationId(jobPhaseOperationVo.getId());
+                        o.setParentOperationType("else");
+                    });
+                    List<AutoexecJobPhaseOperationVo> elseJobOperation = convertCombOperation2JobOperation(jobPhaseVo, jobPhaseVoList, elseOperationList, jobVo);
+                    paramObj.put("elseList", elseJobOperation);
+                }
+                jobPhaseOperationVo.setParamStr(paramObj.toString());
             }
         }
     }
@@ -580,26 +632,15 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             IResourceCenterResourceCrossoverService resourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
             filterJson.put("pageSize", 100);
             ResourceSearchVo searchVo = resourceCrossoverService.assembleResourceSearchVo(filterJson);
-            IResourceCenterResourceCrossoverService resourceCenterResourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
-            String sql = resourceCenterResourceCrossoverService.getResourceCountSql(searchVo, "resource_ipobject");
-            if (StringUtils.isBlank(sql)) {
-                return false;
-            }
-            int count = resourceCenterMapper.getResourceCount(sql);
-//            int count = resourceCenterMapper.getResourceCount(searchVo);
+            int count = resourceCenterMapper.getResourceCount(searchVo);
             if (count > 0) {
                 int pageCount = PageUtil.getPageCount(count, searchVo.getPageSize());
                 for (int i = 1; i <= pageCount; i++) {
-                    filterJson.put("currentPage", i);
-                    filterJson.put("needPage", true);
-                    try {
-                        IResourceListApiCrossoverService resourceListApi = CrossoverServiceFactory.getApi(IResourceListApiCrossoverService.class);
-                        resourceJson = JSONObject.parseObject(JSONObject.toJSONString(resourceListApi.myDoService(filterJson)));
-                    } catch (Exception ex) {
-                        logger.error(ex.getMessage(), ex);
-                        return false;
+                    List<Long> idList = resourceCenterMapper.getResourceIdList(searchVo);
+                    if (CollectionUtils.isEmpty(idList)) {
+                        continue;
                     }
-                    List<ResourceVo> resourceVoList = JSONObject.parseArray(resourceJson.getString("tbodyList"), ResourceVo.class);
+                    List<ResourceVo> resourceVoList = resourceCenterMapper.getResourceListByIdList(idList, TenantContext.get().getDataDbName());
                     if (CollectionUtils.isNotEmpty(resourceVoList)) {
                         updateJobPhaseNode(jobVo, resourceVoList, userName, protocolId);
                     }

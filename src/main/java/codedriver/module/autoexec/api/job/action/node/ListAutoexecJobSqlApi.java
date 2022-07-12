@@ -14,7 +14,7 @@ import codedriver.framework.deploy.crossover.IDeploySqlCrossoverMapper;
 import codedriver.framework.deploy.dto.sql.DeploySqlDetailVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
-import codedriver.framework.restful.core.publicapi.PublicApiComponentBase;
+import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -22,7 +22,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -31,7 +34,7 @@ import java.util.stream.Collectors;
  */
 @Service
 @OperationType(type = OperationTypeEnum.UPDATE)
-public class AutoexecJobSqlListApi extends PublicApiComponentBase {
+public class ListAutoexecJobSqlApi extends PrivateApiComponentBase {
 
     @Resource
     AutoexecJobMapper autoexecJobMapper;
