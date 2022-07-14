@@ -60,31 +60,35 @@ public class UpdateAutoexecJobStatusApi extends PrivateApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
-        jobVo.setStatus(status);
-        if(Objects.equals(status,JobStatus.ABORTED.getValue())){
+
+        if (Objects.equals(status, JobStatus.ABORTED.getValue())) {
             statusIng = JobStatus.ABORTING.getValue();
-        }else if(Objects.equals(status,JobStatus.PAUSED.getValue())){
+        } else if (Objects.equals(status, JobStatus.PAUSED.getValue())) {
             statusIng = JobStatus.PAUSING.getValue();
         }
 
-        if(StringUtils.isNotBlank(statusIng)){
-            if(!jsonObj.containsKey("passThroughEnv")){
-                throw new ParamIrregularException("passThroughEnv");
-            }
-            JSONObject passThroughEnv = jsonObj.getJSONObject("passThroughEnv");
-            if(!passThroughEnv.containsKey("runnerId")){
-                throw new ParamIrregularException("runnerId");
-            }
-            Long runnerId = passThroughEnv.getLong("runnerId");
-            //update job phase runner
-            autoexecJobMapper.updateJobPhaseRunnerStatusByJobIdAndRunnerIdAndStatus(jobId,runnerId,status);
-            //如果该job runner 没有一个aborting|pausing phase 则更新为 aborted|paused
-            int statusIngCount = autoexecJobMapper.getJobPhaseRunnerCountByJobIdAndRunnerStatus(jobId,statusIng);
-            if(statusIngCount == 0){
+        if (StringUtils.isNotBlank(statusIng)) {
+            if(Objects.equals(statusIng, jobVo.getStatus())) {
                 jobVo.setStatus(status);
-                autoexecJobMapper.updateJobStatus(jobVo);
+                if (!jsonObj.containsKey("passThroughEnv")) {
+                    throw new ParamIrregularException("passThroughEnv");
+                }
+                JSONObject passThroughEnv = jsonObj.getJSONObject("passThroughEnv");
+                if (!passThroughEnv.containsKey("runnerId")) {
+                    throw new ParamIrregularException("runnerId");
+                }
+                Long runnerId = passThroughEnv.getLong("runnerId");
+                //update job phase runner
+                autoexecJobMapper.updateJobPhaseRunnerStatusByJobIdAndRunnerIdAndStatus(jobId, runnerId, status);
+                //如果该job runner 没有一个aborting|pausing phase 则更新为 aborted|paused
+                int statusIngCount = autoexecJobMapper.getJobPhaseRunnerCountByJobIdAndRunnerStatus(jobId, statusIng);
+                if (statusIngCount == 0) {
+                    jobVo.setStatus(status);
+                    autoexecJobMapper.updateJobStatus(jobVo);
+                }
             }
-        }else{
+        } else {
+            jobVo.setStatus(status);
             autoexecJobMapper.updateJobStatus(jobVo);
         }
 
