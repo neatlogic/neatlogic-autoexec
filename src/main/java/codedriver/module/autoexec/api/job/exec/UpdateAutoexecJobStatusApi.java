@@ -85,6 +85,8 @@ public class UpdateAutoexecJobStatusApi extends PrivateApiComponentBase {
             if (statusIngCount == 0) {
                 jobVo.setStatus(status);
                 autoexecJobMapper.updateJobStatus(jobVo);
+                //将中止中和暂停中的phase 状态更新为 已中止和已暂停
+                autoexecJobMapper.updateJobPhaseStatusByJobIdAndPhaseStatus(jobId, statusIng, status);
             }
             //}
         } else {
