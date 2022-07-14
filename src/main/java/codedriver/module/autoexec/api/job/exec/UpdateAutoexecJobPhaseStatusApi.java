@@ -106,19 +106,17 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
 
     private void updateJobPhaseStatus(AutoexecJobVo jobVo,AutoexecJobPhaseVo jobPhaseVo) {
         int warnCount = 0;
-        String finalJobPhaseStatus;
+        String finalJobPhaseStatus = JobPhaseStatus.PENDING.getValue();
         Map<String, Integer> statusCountMap = new HashMap<>();
-        statusCountMap.put(JobPhaseStatus.RUNNING.getValue(), 0);
-        statusCountMap.put(JobPhaseStatus.FAILED.getValue(), 0);
-        statusCountMap.put(JobPhaseStatus.ABORTED.getValue(), 0);
-        statusCountMap.put(JobPhaseStatus.COMPLETED.getValue(), 0);
-        statusCountMap.put(JobPhaseStatus.PENDING.getValue(), 0);
-        statusCountMap.put(JobPhaseStatus.WAIT_INPUT.getValue(), 0);
+        for(JobPhaseStatus jobStatus : JobPhaseStatus.values()){
+            statusCountMap.put(jobStatus.getValue(),0);
+        }
         List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobPhaseVo.getJobId(), Collections.singletonList(jobPhaseVo.getId()));
         for (AutoexecJobPhaseRunnerVo jobPhaseRunnerVo : jobPhaseRunnerVos) {
             warnCount += jobPhaseRunnerVo.getWarnCount() == null ? 0 : jobPhaseRunnerVo.getWarnCount();
             statusCountMap.put(jobPhaseRunnerVo.getStatus(), statusCountMap.get(jobPhaseRunnerVo.getStatus()) + 1);
         }
+
         if (statusCountMap.get(JobPhaseStatus.COMPLETED.getValue()) == jobPhaseRunnerVos.size()) {
             finalJobPhaseStatus = JobPhaseStatus.COMPLETED.getValue();
         } else if (statusCountMap.get(JobPhaseStatus.WAIT_INPUT.getValue()) > 0) {
@@ -129,7 +127,9 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
             finalJobPhaseStatus = JobPhaseStatus.FAILED.getValue();
         } else if (statusCountMap.get(JobPhaseStatus.ABORTED.getValue()) > 0) {
             finalJobPhaseStatus = JobPhaseStatus.ABORTED.getValue();
-        } else {
+        } else if (statusCountMap.get(JobPhaseStatus.PAUSED.getValue()) > 0) {
+            finalJobPhaseStatus = JobPhaseStatus.PAUSED.getValue();
+        }else {
             finalJobPhaseStatus = JobPhaseStatus.PENDING.getValue();
         }
         autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), finalJobPhaseStatus, warnCount));
