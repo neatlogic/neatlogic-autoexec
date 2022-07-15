@@ -34,6 +34,7 @@ import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
 import codedriver.framework.dao.mapper.UserMapper;
 import codedriver.framework.dto.UserVo;
+import codedriver.framework.exception.type.ParamIrregularException;
 import codedriver.framework.exception.user.UserNotFoundException;
 import codedriver.framework.filter.core.LoginAuthHandlerBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
@@ -371,6 +372,10 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             jsonObj.put("scenarioId",scenarioVo.getId());
         }
 
+        Integer threadCount = jsonObj.getInteger("threadCount");
+        if(threadCount == null || threadCount < 1){
+            throw  new ParamIrregularException("threadCount");
+        }
 
         AutoexecJobVo jobVo = JSONObject.toJavaObject(jsonObj, AutoexecJobVo.class);
         jobVo.setConfigStr(combopVo.getConfigStr());

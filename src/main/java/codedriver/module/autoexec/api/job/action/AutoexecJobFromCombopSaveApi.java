@@ -56,7 +56,7 @@ public class AutoexecJobFromCombopSaveApi extends PrivateApiComponentBase {
             @Param(name = "param", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "执行参数"),
             @Param(name = "source", type = ApiParamType.STRING, isRequired = true, desc = "来源 itsm|human   ITSM|人工发起的等，不传默认是人工发起的"),
             @Param(name = "invokeId", type = ApiParamType.LONG, desc = "来源id"),
-            @Param(name = "threadCount", type = ApiParamType.LONG, isRequired = true, desc = "并发线程,2的n次方 "),
+            @Param(name = "threadCount", type = ApiParamType.LONG, isRequired = true, desc = "并发线程,正整数 "),
             @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, desc = "执行目标"),
             @Param(name = "planStartTime", type = ApiParamType.LONG, isRequired = true, desc = "计划时间"),
             @Param(name = "triggerType", type = ApiParamType.ENUM, rule = "auto,manual", isRequired = true, desc = "触发方式"),

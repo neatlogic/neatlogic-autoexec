@@ -7,7 +7,7 @@ package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
-import codedriver.framework.autoexec.dto.job.AutoexecJobParamContentVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobContentVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.script.paramtype.IScriptParamType;
@@ -63,7 +63,7 @@ public class AutoexecJobRunTimeParamGetApi extends PrivateApiComponentBase {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
         //运行变量
-        AutoexecJobParamContentVo paramContentVo = autoexecJobMapper.getJobParamContent(jobVo.getParamHash());
+        AutoexecJobContentVo paramContentVo = autoexecJobMapper.getJobContent(jobVo.getParamHash());
         JSONArray runTimeParam = JSONObject.parseArray(paramContentVo.getContent());
         //集成数据特殊处理，截取text
         for (int i = 0; i < runTimeParam.size(); i++) {

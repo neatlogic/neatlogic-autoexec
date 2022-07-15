@@ -98,7 +98,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             jobVo.setName(combopVo.getName());
         }
         autoexecJobMapper.insertJob(jobVo);
-        autoexecJobMapper.insertIgnoreJobParamContent(new AutoexecJobParamContentVo(jobVo.getParamHash(), jobVo.getParamArrayStr()));
+        autoexecJobMapper.insertIgnoreJobContent(new AutoexecJobContentVo(jobVo.getParamHash(), jobVo.getParamArrayStr()));
         //保存作业执行目标
         AutoexecCombopExecuteConfigVo combopExecuteConfigVo = config.getExecuteConfig();
         String userName = StringUtils.EMPTY;
@@ -221,7 +221,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             }
             jobPhaseOperationVoList.add(jobPhaseOperationVo);
             autoexecJobMapper.insertJobPhaseOperation(jobPhaseOperationVo);
-            autoexecJobMapper.insertIgnoreJobParamContent(new AutoexecJobParamContentVo(jobPhaseOperationVo.getParamHash(), jobPhaseOperationVo.getParamStr()));
+            autoexecJobMapper.insertIgnoreJobContent(new AutoexecJobContentVo(jobPhaseOperationVo.getParamHash(), jobPhaseOperationVo.getParamStr()));
         }
         return jobPhaseOperationVoList;
     }
@@ -363,7 +363,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             }
         }
         jobVo.setParamArrayStr(combopParamsResult.toJSONString());
-        autoexecJobMapper.insertIgnoreJobParamContent(new AutoexecJobParamContentVo(jobVo.getParamHash(), jobVo.getParamArrayStr()));
+        autoexecJobMapper.insertIgnoreJobContent(new AutoexecJobContentVo(jobVo.getParamHash(), jobVo.getParamArrayStr()));
         autoexecJobMapper.updateJobParamHashById(jobVo.getId(), jobVo.getParamHash());
     }
 
@@ -380,6 +380,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             combopExecuteConfigVo = JSON.toJavaObject(executeConfig, AutoexecCombopExecuteConfigVo.class);
         }
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        jobVo.setConfigStr(autoexecJobMapper.getJobContent(jobVo.getConfigHash()).getContent());
         AutoexecCombopConfigVo configVo = JSON.toJavaObject(jobVo.getConfig(), AutoexecCombopConfigVo.class);
         //获取组合工具执行目标 执行用户和协议
         //非空场景，用于重跑替换执行配置（执行目标，用户，协议）
@@ -419,7 +420,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
 
     @Override
     public void getAutoexecJobDetail(AutoexecJobVo jobVo) {
-        AutoexecJobParamContentVo paramContentVo = autoexecJobMapper.getJobParamContent(jobVo.getParamHash());
+        AutoexecJobContentVo paramContentVo = autoexecJobMapper.getJobContent(jobVo.getParamHash());
         if (paramContentVo != null) {
             jobVo.setParamArrayStr(paramContentVo.getContent());
         }
@@ -435,7 +436,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseId(jobVo.getId(), phaseVo.getId());
             phaseVo.setOperationList(operationVoList);
             for (AutoexecJobPhaseOperationVo operationVo : operationVoList) {
-                paramContentVo = autoexecJobMapper.getJobParamContent(operationVo.getParamHash());
+                paramContentVo = autoexecJobMapper.getJobContent(operationVo.getParamHash());
                 if (paramContentVo != null) {
                     operationVo.setParamStr(paramContentVo.getContent());
                 }
