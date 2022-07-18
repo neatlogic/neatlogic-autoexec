@@ -83,7 +83,6 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "id", type = ApiParamType.LONG, desc = "主键id"),
-//            @Param(name = "uk", type = ApiParamType.STRING, isRequired = true, minLength = 1, maxLength = 70, desc = "唯一名"),
             @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, isRequired = true, minLength = 1, maxLength = 70, desc = "显示名"),
             @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
             @Param(name = "typeId", type = ApiParamType.LONG, isRequired = true, desc = "类型id"),
@@ -102,9 +101,6 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
         if (autoexecCombopMapper.checkAutoexecCombopNameIsRepeat(autoexecCombopVo) != null) {
             throw new AutoexecCombopNameRepeatException(autoexecCombopVo.getName());
         }
-//        if (autoexecCombopMapper.checkAutoexecCombopUkIsRepeat(autoexecCombopVo) != null) {
-//            throw new AutoexecCombopUkRepeatException(autoexecCombopVo.getUk());
-//        }
         if (autoexecTypeMapper.checkTypeIsExistsById(autoexecCombopVo.getTypeId()) == 0) {
             throw new AutoexecTypeNotFoundException(autoexecCombopVo.getTypeId());
         }
@@ -160,10 +156,10 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
 
             if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
-                autoexecCombopMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
+//                autoexecCombopMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
             }
-            autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
-            autoexecCombopMapper.deleteAutoexecCombopGroupByCombopId(id);
+//            autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
+//            autoexecCombopMapper.deleteAutoexecCombopGroupByCombopId(id);
             autoexecCombopService.deleteDependency(oldAutoexecCombopVo);
             autoexecCombopService.saveAutoexecCombopConfig(autoexecCombopVo, false);
             autoexecCombopMapper.updateAutoexecCombopById(autoexecCombopVo);
@@ -183,13 +179,4 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
         };
     }
 
-//    public IValid uk() {
-//        return jsonObj -> {
-//            AutoexecCombopVo autoexecCombopVo = JSON.toJavaObject(jsonObj, AutoexecCombopVo.class);
-//            if (autoexecCombopMapper.checkAutoexecCombopUkIsRepeat(autoexecCombopVo) != null) {
-//                return new FieldValidResultVo(new AutoexecCombopUkRepeatException(autoexecCombopVo.getUk()));
-//            }
-//            return new FieldValidResultVo();
-//        };
-//    }
 }

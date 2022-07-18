@@ -120,7 +120,7 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
                 List<AutoexecCombopPhaseOperationVo> phaseOperationList = autoexecCombopPhaseConfigVo.getPhaseOperationList();
                 if (CollectionUtils.isNotEmpty(phaseOperationList)) {
                     for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
-                        String name = autoexecCombopPhaseOperationVo.getName();
+                        String name = autoexecCombopPhaseOperationVo.getOperationName();
                         if (StringUtils.isNotBlank(name)) {
                             if (name.contains("setenvglobal") || name.contains("setenv")) {
                                 AutoexecCombopPhaseOperationConfigVo autoexecCombopPhaseOperationConfigVo = autoexecCombopPhaseOperationVo.getConfig();

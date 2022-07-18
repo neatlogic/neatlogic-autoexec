@@ -153,16 +153,17 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
         phaseOperationVo.setOperationType(autoexecToolAndScriptVo.getType());
         phaseOperationVo.setFailPolicy(FailPolicy.STOP.getValue());
         phaseOperationVo.setSort(0);
-        phaseOperationVo.setId(autoexecToolAndScriptVo.getId());
-        phaseOperationVo.setUk(autoexecToolAndScriptVo.getUk());
-        phaseOperationVo.setName(autoexecToolAndScriptVo.getName());
-        phaseOperationVo.setType(autoexecToolAndScriptVo.getType());
-        phaseOperationVo.setExecMode(autoexecToolAndScriptVo.getExecMode());
-        phaseOperationVo.setTypeId(autoexecToolAndScriptVo.getTypeId());
-        phaseOperationVo.setTypeName(autoexecToolAndScriptVo.getTypeName());
-        phaseOperationVo.setRiskId(autoexecToolAndScriptVo.getRiskId());
+//        phaseOperationVo.setId(autoexecToolAndScriptVo.getId());
+//        phaseOperationVo.setUk(autoexecToolAndScriptVo.getUk());
+//        phaseOperationVo.setName(autoexecToolAndScriptVo.getName());
+//        phaseOperationVo.setType(autoexecToolAndScriptVo.getType());
+//        phaseOperationVo.setExecMode(autoexecToolAndScriptVo.getExecMode());
+//        phaseOperationVo.setTypeId(autoexecToolAndScriptVo.getTypeId());
+//        phaseOperationVo.setTypeName(autoexecToolAndScriptVo.getTypeName());
+//        phaseOperationVo.setRiskId(autoexecToolAndScriptVo.getRiskId());
         AutoexecRiskVo riskVo = autoexecRiskMapper.getAutoexecRiskById(autoexecToolAndScriptVo.getRiskId());
-        phaseOperationVo.setRiskVo(riskVo);
+        autoexecToolAndScriptVo.setRiskVo(riskVo);
+//        phaseOperationVo.setRiskVo(riskVo);
         AutoexecCombopPhaseOperationConfigVo operationConfigVo = new AutoexecCombopPhaseOperationConfigVo();
         //paramMappingList
         List<ParamMappingVo> paramMappingList = new ArrayList<>();
@@ -179,8 +180,10 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
                 }
             }
         }
-        phaseOperationVo.setInputParamList(inputParamList);
-        phaseOperationVo.setOutputParamList(outputParamList);
+//        phaseOperationVo.setInputParamList(inputParamList);
+//        phaseOperationVo.setOutputParamList(outputParamList);
+        autoexecToolAndScriptVo.setInputParamList(inputParamList);
+        autoexecToolAndScriptVo.setOutputParamList(outputParamList);
         List<AutoexecCombopParamVo> autoexecCombopParamVoList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(inputParamList)) {
             for (AutoexecParamVo inputParamVo : inputParamList) {
@@ -192,7 +195,8 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
         List<ParamMappingVo> argumentMappingList = new ArrayList<>();
         operationConfigVo.setArgumentMappingList(argumentMappingList);
         if (argumentParam != null) {
-            phaseOperationVo.setArgument(argumentParam);
+//            phaseOperationVo.setArgument(argumentParam);
+            autoexecToolAndScriptVo.setArgument(argumentParam);
             int sort = autoexecCombopParamVoList.size();
             int argumentCount = argumentParam.getArgumentCount();
             for (int i = 0; i < argumentCount; i++) {
@@ -269,11 +273,11 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
         autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
         autoexecCombopService.saveDependency(autoexecCombopVo);
         combopPhaseVo.setCombopId(combopId);
-        autoexecCombopMapper.insertAutoexecCombopPhase(combopPhaseVo);
+//        autoexecCombopMapper.insertAutoexecCombopPhase(combopPhaseVo);
         phaseOperationVo.setCombopPhaseId(combopPhaseVo.getId());
-        autoexecCombopMapper.insertAutoexecCombopPhaseOperation(phaseOperationVo);
+//        autoexecCombopMapper.insertAutoexecCombopPhaseOperation(phaseOperationVo);
         combopGroupVo.setCombopId(combopId);
-        autoexecCombopMapper.insertAutoexecCombopGroup(combopGroupVo);
+//        autoexecCombopMapper.insertAutoexecCombopGroup(combopGroupVo);
 
         if (CollectionUtils.isNotEmpty(autoexecCombopParamVoList)) {
             int sort = 0;

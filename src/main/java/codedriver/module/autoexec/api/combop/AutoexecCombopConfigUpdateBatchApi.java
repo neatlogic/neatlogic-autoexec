@@ -165,17 +165,17 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
         List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
 
         if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
-            autoexecCombopMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
+//            autoexecCombopMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
         }
-        autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
-        autoexecCombopMapper.deleteAutoexecCombopGroupByCombopId(id);
+//        autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
+//        autoexecCombopMapper.deleteAutoexecCombopGroupByCombopId(id);
         Map<String, AutoexecCombopGroupVo> groupMap = new HashMap<>();
         AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
         List<AutoexecCombopGroupVo> combopGroupList = config.getCombopGroupList();
         if (CollectionUtils.isNotEmpty(combopGroupList)) {
             for (AutoexecCombopGroupVo autoexecCombopGroupVo : combopGroupList) {
                 autoexecCombopGroupVo.setCombopId(id);
-                autoexecCombopMapper.insertAutoexecCombopGroup(autoexecCombopGroupVo);
+//                autoexecCombopMapper.insertAutoexecCombopGroup(autoexecCombopGroupVo);
                 groupMap.put(autoexecCombopGroupVo.getUuid(), autoexecCombopGroupVo);
             }
         }
@@ -193,14 +193,14 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
                     if (autoexecCombopPhaseOperationVo != null) {
                         autoexecCombopPhaseOperationVo.setSort(jSort++);
                         autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
-                        autoexecCombopMapper.insertAutoexecCombopPhaseOperation(autoexecCombopPhaseOperationVo);
+//                        autoexecCombopMapper.insertAutoexecCombopPhaseOperation(autoexecCombopPhaseOperationVo);
                     }
                 }
                 AutoexecCombopGroupVo autoexecCombopGroupVo = groupMap.get(autoexecCombopPhaseVo.getGroupUuid());
                 if (autoexecCombopGroupVo != null) {
                     autoexecCombopPhaseVo.setGroupId(autoexecCombopGroupVo.getId());
                 }
-                autoexecCombopMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);
+//                autoexecCombopMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);
             }
         }
         autoexecCombopMapper.updateAutoexecCombopConfigById(autoexecCombopVo);

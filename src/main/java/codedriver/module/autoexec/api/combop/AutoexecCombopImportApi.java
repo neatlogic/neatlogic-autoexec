@@ -210,9 +210,9 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                                 autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
                                 phaseOperationList2.add(autoexecCombopPhaseOperationVo);
                                 if (Objects.equals(autoexecCombopPhaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
-                                    AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoByName(autoexecCombopPhaseOperationVo.getName());
+                                    AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoByName(autoexecCombopPhaseOperationVo.getOperationName());
                                     if (autoexecScriptVo == null) {
-                                        failureReasonSet.add("添加自定义工具：'" + autoexecCombopPhaseOperationVo.getName() + "'");
+                                        failureReasonSet.add("添加自定义工具：'" + autoexecCombopPhaseOperationVo.getOperationName() + "'");
                                     } else {
                                         AutoexecScriptVersionVo autoexecScriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(autoexecScriptVo.getId());
                                         if (autoexecScriptVersionVo == null) {
@@ -221,9 +221,9 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                                         autoexecCombopPhaseOperationVo.setOperationId(autoexecScriptVo.getId());
                                     }
                                 } else {
-                                    AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolByName(autoexecCombopPhaseOperationVo.getName());
+                                    AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolByName(autoexecCombopPhaseOperationVo.getOperationName());
                                     if (autoexecToolVo == null) {
-                                        failureReasonSet.add("添加工具：'" + autoexecCombopPhaseOperationVo.getName() + "'");
+                                        failureReasonSet.add("添加工具：'" + autoexecCombopPhaseOperationVo.getOperationName() + "'");
                                     } else if (Objects.equals(autoexecToolVo.getIsActive(), 0)) {
                                         failureReasonSet.add("启用工具：'" + autoexecToolVo.getName() + "'");
                                     } else {
@@ -243,9 +243,9 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
             } else {
                 List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
                 if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
-                    autoexecCombopMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
+//                    autoexecCombopMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
                 }
-                autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
+//                autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
                 autoexecCombopMapper.deleteAutoexecCombopParamByCombopId(id);
                 autoexecCombopMapper.updateAutoexecCombopById(autoexecCombopVo);
             }
@@ -257,10 +257,10 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                 autoexecCombopMapper.insertAutoexecCombopParamVoList(runtimeParamList);
             }
             for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList2) {
-                autoexecCombopMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);
+//                autoexecCombopMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);
             }
             for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList2) {
-                autoexecCombopMapper.insertAutoexecCombopPhaseOperation(autoexecCombopPhaseOperationVo);
+//                autoexecCombopMapper.insertAutoexecCombopPhaseOperation(autoexecCombopPhaseOperationVo);
             }
             return null;
         } else {

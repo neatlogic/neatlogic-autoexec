@@ -16,6 +16,7 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.framework.autoexec.dto.AutoexecJobSourceVo;
+import codedriver.framework.autoexec.dto.AutoexecOperationBaseVo;
 import codedriver.framework.autoexec.dto.AutoexecOperationVo;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
@@ -69,6 +70,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     AutoexecToolMapper autoexecToolMapper;
     @Resource
     private AutoexecCombopService autoexecCombopService;
+    @Resource
+    private AutoexecService autoexecService;
     @Resource
     AutoexecCombopMapper autoexecCombopMapper;
     @Resource
@@ -195,7 +198,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         jobPhaseVo.setOperationList(jobPhaseOperationVoList);
         for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : combopPhaseOperationList) {
             String operationType = autoexecCombopPhaseOperationVo.getOperationType();
-            Long id = autoexecCombopPhaseOperationVo.getId();
+            Long id = autoexecCombopPhaseOperationVo.getOperationId();
+            AutoexecOperationBaseVo autoexecOperationBaseVo = autoexecService.getAutoexecOperationBaseVoByIdAndType(id, operationType);
+            autoexecCombopPhaseOperationVo.setOperation(autoexecOperationBaseVo);
             AutoexecJobPhaseOperationVo jobPhaseOperationVo = null;
             if (CombopOperationType.SCRIPT.getValue().equalsIgnoreCase(operationType)) {
                 AutoexecScriptVo scriptVo;

@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.service;
 
+import codedriver.framework.autoexec.dto.AutoexecOperationBaseVo;
 import codedriver.framework.autoexec.dto.AutoexecOperationVo;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
@@ -36,6 +37,14 @@ public interface AutoexecService {
     void mergeConfig(AutoexecParamVo autoexecParamVo);
 
     void updateAutoexecCombopConfig(AutoexecCombopConfigVo config);
+
+    /**
+     * 根据id和类型获取自定义工具或工具信息
+     * @param id 自定义工具id或工具id
+     * @param type 类型
+     * @return
+     */
+    AutoexecOperationBaseVo getAutoexecOperationBaseVoByIdAndType(Long id, String type);
 
     /**
      * 根据关operationVoList获取工具参数并做去重处理
