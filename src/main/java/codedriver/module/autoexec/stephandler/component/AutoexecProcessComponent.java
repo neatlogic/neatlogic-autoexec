@@ -169,7 +169,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                 //如果工单步骤ID没有绑定自动化作业ID，则需要创建自动化作业
                 if (autoexecJobId == null) {
                     paramObj.put("source", AutoExecJobProcessSource.ITSM.getValue());
-                    paramObj.put("threadCount", 32);
+                    paramObj.put("roundCount", 32);
                     paramObj.put("operationId",combopId);
                     paramObj.put("operationType", CombopOperationType.COMBOP.getValue());
                     paramObj.put("invokeId", currentProcessTaskStepVo.getId());
