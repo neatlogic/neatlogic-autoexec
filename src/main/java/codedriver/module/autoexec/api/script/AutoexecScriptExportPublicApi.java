@@ -14,7 +14,7 @@ import codedriver.framework.autoexec.exception.AutoexecCatalogNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
-import codedriver.framework.restful.core.publicapi.PublicBinaryStreamApiComponentBase;
+import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONWriter;
@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 
 @Service
 @OperationType(type = OperationTypeEnum.SEARCH)
-public class AutoexecScriptExportPublicApi extends PublicBinaryStreamApiComponentBase {
+public class AutoexecScriptExportPublicApi extends PrivateBinaryStreamApiComponentBase {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
