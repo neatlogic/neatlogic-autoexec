@@ -30,7 +30,7 @@ import java.util.stream.Collectors;
 
 @Service
 @OperationType(type = OperationTypeEnum.SEARCH)
-public class AutoexecScriptExportPublicApi extends PrivateBinaryStreamApiComponentBase {
+public class AutoexecScriptExportForAutoexecApi extends PrivateBinaryStreamApiComponentBase {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
@@ -40,7 +40,7 @@ public class AutoexecScriptExportPublicApi extends PrivateBinaryStreamApiCompone
 
     @Override
     public String getToken() {
-        return "autoexec/script/export";
+        return "autoexec/script/export/forautoexec";
     }
 
     @Override
