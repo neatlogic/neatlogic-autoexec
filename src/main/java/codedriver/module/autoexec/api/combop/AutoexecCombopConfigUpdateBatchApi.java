@@ -174,7 +174,7 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
         List<AutoexecCombopGroupVo> combopGroupList = config.getCombopGroupList();
         if (CollectionUtils.isNotEmpty(combopGroupList)) {
             for (AutoexecCombopGroupVo autoexecCombopGroupVo : combopGroupList) {
-                autoexecCombopGroupVo.setCombopId(id);
+//                autoexecCombopGroupVo.setCombopId(id);
 //                autoexecCombopMapper.insertAutoexecCombopGroup(autoexecCombopGroupVo);
                 groupMap.put(autoexecCombopGroupVo.getUuid(), autoexecCombopGroupVo);
             }
@@ -183,7 +183,7 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
         for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
             if (autoexecCombopPhaseVo != null) {
-                autoexecCombopPhaseVo.setCombopId(id);
+//                autoexecCombopPhaseVo.setCombopId(id);
 //                    autoexecCombopPhaseVo.setSort(iSort++);
                 AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
                 List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
@@ -192,7 +192,7 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
                 for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
                     if (autoexecCombopPhaseOperationVo != null) {
                         autoexecCombopPhaseOperationVo.setSort(jSort++);
-                        autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
+//                        autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
 //                        autoexecCombopMapper.insertAutoexecCombopPhaseOperation(autoexecCombopPhaseOperationVo);
                     }
                 }

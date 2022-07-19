@@ -199,7 +199,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : combopPhaseOperationList) {
             String operationType = autoexecCombopPhaseOperationVo.getOperationType();
             Long id = autoexecCombopPhaseOperationVo.getOperationId();
-            AutoexecOperationBaseVo autoexecOperationBaseVo = autoexecService.getAutoexecOperationBaseVoByIdAndType(id, operationType);
+            String name = autoexecCombopPhaseOperationVo.getOperationName();
+            AutoexecOperationBaseVo autoexecOperationBaseVo = autoexecService.getAutoexecOperationBaseVoByIdAndType(id, name, operationType);
             autoexecCombopPhaseOperationVo.setOperation(autoexecOperationBaseVo);
             AutoexecJobPhaseOperationVo jobPhaseOperationVo = null;
             if (CombopOperationType.SCRIPT.getValue().equalsIgnoreCase(operationType)) {

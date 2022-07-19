@@ -13,6 +13,7 @@ import codedriver.framework.autoexec.crossover.IAutoexecCombopCrossoverService;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
+import codedriver.framework.autoexec.dto.AutoexecOperationBaseVo;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
@@ -191,81 +192,30 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 throw new AutoexecCombopPhaseAtLeastOneOperationException();
             }
             String uuid = autoexecCombopPhaseVo.getUuid();
+            preNodeNameMap.put(uuid, autoexecCombopPhaseVo.getName());
             for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
                 if (autoexecCombopPhaseOperationVo == null) {
                     continue;
                 }
-//                Long id = autoexecCombopPhaseOperationVo.getId();
-                Long operationId = autoexecCombopPhaseOperationVo.getOperationId();
-                String operationUuid = autoexecCombopPhaseOperationVo.getUuid();
-                String operationName = autoexecCombopPhaseOperationVo.getOperationName();
-                List<? extends AutoexecParamVo> autoexecParamVoList = new ArrayList<>();
-                Map<String, AutoexecParamVo> inputParamMap = new HashMap<>();
-                Map<String, String> inputParamNameMap = new HashMap<>();
-                AutoexecParamVo argumentParam = null;
-                if (Objects.equals(autoexecCombopPhaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
-                    AutoexecScriptVersionVo autoexecScriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(operationId);
-                    if (autoexecScriptVersionVo == null) {
-                        throw new AutoexecScriptNotFoundException(operationId);
-                    }
-                    autoexecParamVoList = autoexecScriptMapper.getParamListByScriptId(operationId);
-                    argumentParam = autoexecScriptMapper.getArgumentByVersionId(autoexecScriptVersionVo.getId());
-                } else {
-                    AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(operationId);
-                    if (autoexecToolVo == null) {
-                        throw new AutoexecToolNotFoundException(operationId);
-                    }
-                    JSONObject toolConfig = autoexecToolVo.getConfig();
-                    if (MapUtils.isNotEmpty(toolConfig)) {
-                        JSONArray paramArray = toolConfig.getJSONArray("paramList");
-                        if (CollectionUtils.isNotEmpty(paramArray)) {
-                            autoexecParamVoList = paramArray.toJavaList(AutoexecParamVo.class);
-                        }
-                        JSONObject argumentJson = toolConfig.getJSONObject("argument");
-                        if (MapUtils.isNotEmpty(argumentJson)) {
-                            argumentParam = argumentJson.toJavaObject(AutoexecParamVo.class);
-                        }
-                    }
-                }
-                if (CollectionUtils.isNotEmpty(autoexecParamVoList)) {
-                    for (AutoexecParamVo paramVo : autoexecParamVoList) {
-                        if (Objects.equals(paramVo.getMode(), ParamMode.INPUT.getValue())) {
-                            inputParamMap.put(paramVo.getKey(), paramVo);
-                            inputParamNameMap.put(paramVo.getKey(), paramVo.getName());
-                        } else if (Objects.equals(paramVo.getMode(), ParamMode.OUTPUT.getValue())) {
-                            preNodeOutputParamMap.put(uuid + "&&" + operationName + "&&" + operationUuid + "&&" + paramVo.getKey(), paramVo);
-                            preNodeNameMap.put(uuid, autoexecCombopPhaseVo.getName());
-                        }
-                    }
-                }
-
+                verifyAutoexecCombopPhaseOperationConfig(uuid, autoexecCombopPhaseOperationVo, preNodeOutputParamMap, runtimeParamMap, preNodeNameMap);
                 AutoexecCombopPhaseOperationConfigVo operationConfig = autoexecCombopPhaseOperationVo.getConfig();
-                if (operationConfig != null) {
-                    Map<String, AutoexecProfileParamVo> profileParamMap = new HashMap<>();
-                    Long profileId = operationConfig.getProfileId();
-                    if (profileId != null) {
-                        List<AutoexecProfileParamVo> profileParamList = autoexecProfileService.getProfileParamListById(profileId);
-                        if (CollectionUtils.isNotEmpty(profileParamList)) {
-                            profileParamMap = profileParamList.stream().collect(Collectors.toMap(e -> e.getKey(), e -> e));
+                List<AutoexecCombopPhaseOperationVo> ifList = operationConfig.getIfList();
+                if (CollectionUtils.isNotEmpty(ifList)) {
+                    for (AutoexecCombopPhaseOperationVo operationVo : ifList) {
+                        if (operationVo == null) {
+                            continue;
                         }
+                        verifyAutoexecCombopPhaseOperationConfig(uuid, operationVo, preNodeOutputParamMap, runtimeParamMap, preNodeNameMap);
                     }
-                    //验证输入参数
-                    List<ParamMappingVo> paramMappingList = operationConfig.getParamMappingList();
-                    validateParam(paramMappingList, inputParamMap, null, runtimeParamMap, preNodeOutputParamMap, operationName, profileParamMap, preNodeNameMap);
-                    //验证自由参数
-                    List<ParamMappingVo> argumentMappingList = operationConfig.getArgumentMappingList();
-                    validateParam(argumentMappingList, inputParamMap, argumentParam, runtimeParamMap, preNodeOutputParamMap, operationName, profileParamMap, preNodeNameMap);
                 }
-                if (MapUtils.isNotEmpty(inputParamMap)) {
-                    Set<String> inputParamSet = new HashSet<>();
-                    for (String key : inputParamMap.keySet()) {
-                        if (inputParamMap.containsKey(key)) {
-                            inputParamSet.add(inputParamNameMap.get(key) + "(" + key + ")");
-                        } else {
-                            inputParamSet.add(key);
+                List<AutoexecCombopPhaseOperationVo> elseList = operationConfig.getElseList();
+                if (CollectionUtils.isNotEmpty(elseList)) {
+                    for (AutoexecCombopPhaseOperationVo operationVo : elseList) {
+                        if (operationVo == null) {
+                            continue;
                         }
+                        verifyAutoexecCombopPhaseOperationConfig(uuid, operationVo, preNodeOutputParamMap, runtimeParamMap, preNodeNameMap);
                     }
-                    throw new AutoexecParamMappingNotMappedException(operationName, String.join("、", inputParamSet));
                 }
             }
         }
@@ -298,6 +248,71 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         }
 
         return true;
+    }
+
+    /**
+     * 验证输入参数映射和自由参数映射
+     * @param phaseUuid 阶段uuid
+     * @param autoexecCombopPhaseOperationVo 操作信息
+     * @param preNodeOutputParamMap 前置步骤输出参数
+     * @param runtimeParamMap 作业参数
+     * @param preNodeNameMap 前置步骤名称
+     */
+    private void verifyAutoexecCombopPhaseOperationConfig(
+            String phaseUuid,
+            AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo,
+            Map<String, AutoexecParamVo> preNodeOutputParamMap,
+            Map<String, AutoexecCombopParamVo> runtimeParamMap,
+            Map<String, String> preNodeNameMap) {
+        Long operationId = autoexecCombopPhaseOperationVo.getOperationId();
+        String operationUuid = autoexecCombopPhaseOperationVo.getUuid();
+        String operationName = autoexecCombopPhaseOperationVo.getOperationName();
+        String operationType = autoexecCombopPhaseOperationVo.getOperationType();
+        AutoexecOperationBaseVo autoexecOperationBaseVo = autoexecService.getAutoexecOperationBaseVoByIdAndType(operationId, operationName, operationType);
+        Map<String, AutoexecParamVo> inputParamMap = new HashMap<>();
+        Map<String, String> inputParamNameMap = new HashMap<>();
+        List<AutoexecParamVo> inputParamList = autoexecOperationBaseVo.getInputParamList();
+        if (CollectionUtils.isNotEmpty(inputParamList)) {
+            for (AutoexecParamVo paramVo : inputParamList) {
+                inputParamMap.put(paramVo.getKey(), paramVo);
+                inputParamNameMap.put(paramVo.getKey(), paramVo.getName());
+            }
+        }
+        List<AutoexecParamVo> outputParamList = autoexecOperationBaseVo.getOutputParamList();
+        if (CollectionUtils.isNotEmpty(outputParamList)) {
+            for (AutoexecParamVo paramVo : outputParamList) {
+                preNodeOutputParamMap.put(phaseUuid + "&&" + operationName + "&&" + operationUuid + "&&" + paramVo.getKey(), paramVo);
+            }
+        }
+        AutoexecParamVo argumentParam = autoexecOperationBaseVo.getArgument();
+        AutoexecCombopPhaseOperationConfigVo operationConfig = autoexecCombopPhaseOperationVo.getConfig();
+        if (operationConfig != null) {
+            Map<String, AutoexecProfileParamVo> profileParamMap = new HashMap<>();
+            Long profileId = operationConfig.getProfileId();
+            if (profileId != null) {
+                List<AutoexecProfileParamVo> profileParamList = autoexecProfileService.getProfileParamListById(profileId);
+                if (CollectionUtils.isNotEmpty(profileParamList)) {
+                    profileParamMap = profileParamList.stream().collect(Collectors.toMap(e -> e.getKey(), e -> e));
+                }
+            }
+            //验证输入参数
+            List<ParamMappingVo> paramMappingList = operationConfig.getParamMappingList();
+            validateParam(paramMappingList, inputParamMap, null, runtimeParamMap, preNodeOutputParamMap, operationName, profileParamMap, preNodeNameMap);
+            //验证自由参数
+            List<ParamMappingVo> argumentMappingList = operationConfig.getArgumentMappingList();
+            validateParam(argumentMappingList, inputParamMap, argumentParam, runtimeParamMap, preNodeOutputParamMap, operationName, profileParamMap, preNodeNameMap);
+        }
+        if (MapUtils.isNotEmpty(inputParamMap)) {
+            Set<String> inputParamSet = new HashSet<>();
+            for (String key : inputParamMap.keySet()) {
+                if (inputParamMap.containsKey(key)) {
+                    inputParamSet.add(inputParamNameMap.get(key) + "(" + key + ")");
+                } else {
+                    inputParamSet.add(key);
+                }
+            }
+            throw new AutoexecParamMappingNotMappedException(operationName, String.join("、", inputParamSet));
+        }
     }
 
     /**
@@ -513,7 +528,6 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
 
     @Override
     public void saveAutoexecCombopConfig(AutoexecCombopVo autoexecCombopVo, boolean isCopy) {
-        Long id = autoexecCombopVo.getId();
         AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
         Map<String, AutoexecCombopGroupVo> groupMap = new HashMap<>();
         List<AutoexecCombopGroupVo> combopGroupList = config.getCombopGroupList();
@@ -522,38 +536,57 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 if (isCopy) {
                     autoexecCombopGroupVo.setId(null);
                 }
-                autoexecCombopGroupVo.setCombopId(id);
-//                autoexecCombopMapper.insertAutoexecCombopGroup(autoexecCombopGroupVo);
                 groupMap.put(autoexecCombopGroupVo.getUuid(), autoexecCombopGroupVo);
             }
         }
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
         if (CollectionUtils.isNotEmpty(combopPhaseList)) {
             for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
-                if (autoexecCombopPhaseVo != null) {
-                    if (isCopy) {
-                        autoexecCombopPhaseVo.setId(null);
-                    }
-                    autoexecCombopPhaseVo.setCombopId(id);
-                    AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
-                    List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
-                    if (CollectionUtils.isNotEmpty(phaseOperationList)) {
-                        Long combopPhaseId = autoexecCombopPhaseVo.getId();
-                        int jSort = 0;
-                        for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
-                            if (autoexecCombopPhaseOperationVo != null) {
+                if (autoexecCombopPhaseVo == null) {
+                    continue;
+                }
+                if (isCopy) {
+                    autoexecCombopPhaseVo.setId(null);
+                }
+                AutoexecCombopGroupVo autoexecCombopGroupVo = groupMap.get(autoexecCombopPhaseVo.getGroupUuid());
+                if (autoexecCombopGroupVo != null) {
+                    autoexecCombopPhaseVo.setGroupId(autoexecCombopGroupVo.getId());
+                }
+                AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
+                List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
+                if (CollectionUtils.isNotEmpty(phaseOperationList)) {
+//                    int jSort = 0;
+                    for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
+                        if (autoexecCombopPhaseOperationVo != null) {
+                            if (isCopy) {
                                 autoexecCombopPhaseOperationVo.setId(null);
-                                autoexecCombopPhaseOperationVo.setSort(jSort++);
-                                autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
-//                                autoexecCombopMapper.insertAutoexecCombopPhaseOperation(autoexecCombopPhaseOperationVo);
+                            }
+//                            autoexecCombopPhaseOperationVo.setSort(jSort++);
+                            AutoexecCombopPhaseOperationConfigVo operationConfig = autoexecCombopPhaseOperationVo.getConfig();
+                            List<AutoexecCombopPhaseOperationVo> ifList = operationConfig.getIfList();
+                            if (CollectionUtils.isNotEmpty(ifList)) {
+                                for (AutoexecCombopPhaseOperationVo operationVo : ifList) {
+                                    if (operationVo == null) {
+                                        continue;
+                                    }
+                                    if (isCopy) {
+                                        operationVo.setId(null);
+                                    }
+                                }
+                            }
+                            List<AutoexecCombopPhaseOperationVo> elseList = operationConfig.getElseList();
+                            if (CollectionUtils.isNotEmpty(elseList)) {
+                                for (AutoexecCombopPhaseOperationVo operationVo : elseList) {
+                                    if (operationVo == null) {
+                                        continue;
+                                    }
+                                    if (isCopy) {
+                                        operationVo.setId(null);
+                                    }
+                                }
                             }
                         }
                     }
-                    AutoexecCombopGroupVo autoexecCombopGroupVo = groupMap.get(autoexecCombopPhaseVo.getGroupUuid());
-                    if (autoexecCombopGroupVo != null) {
-                        autoexecCombopPhaseVo.setGroupId(autoexecCombopGroupVo.getId());
-                    }
-//                    autoexecCombopMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);
                 }
             }
         }
@@ -586,8 +619,28 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 continue;
             }
             for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
-                if (autoexecCombopPhaseOperationVo != null) {
-                    saveDependency(autoexecCombopVo, autoexecCombopPhaseVo, autoexecCombopPhaseOperationVo);
+                if (autoexecCombopPhaseOperationVo == null) {
+                    continue;
+                }
+                saveDependency(autoexecCombopVo, autoexecCombopPhaseVo, autoexecCombopPhaseOperationVo);
+                AutoexecCombopPhaseOperationConfigVo operationConfig = autoexecCombopPhaseOperationVo.getConfig();
+                List<AutoexecCombopPhaseOperationVo> ifList = operationConfig.getIfList();
+                if (CollectionUtils.isNotEmpty(ifList)) {
+                    for (AutoexecCombopPhaseOperationVo operationVo : ifList) {
+                        if (operationVo == null) {
+                            continue;
+                        }
+                        saveDependency(autoexecCombopVo, autoexecCombopPhaseVo, operationVo);
+                    }
+                }
+                List<AutoexecCombopPhaseOperationVo> elseList = operationConfig.getElseList();
+                if (CollectionUtils.isNotEmpty(elseList)) {
+                    for (AutoexecCombopPhaseOperationVo operationVo : elseList) {
+                        if (operationVo == null) {
+                            continue;
+                        }
+                        saveDependency(autoexecCombopVo, autoexecCombopPhaseVo, operationVo);
+                    }
                 }
             }
         }
@@ -685,14 +738,48 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 continue;
             }
             for (AutoexecCombopPhaseOperationVo phaseOperationVo : phaseOperationList) {
-                if (phaseOperationVo != null) {
-                    DependencyManager.delete(AutoexecProfile2CombopPhaseOperationDependencyHandler.class, phaseOperationVo.getId());
-                    DependencyManager.delete(AutoexecGlobalParam2CombopPhaseOperationInputParamDependencyHandler.class, phaseOperationVo.getId());
-                    DependencyManager.delete(AutoexecGlobalParam2CombopPhaseOperationArgumentParamDependencyHandler.class, phaseOperationVo.getId());
-                    if (Objects.equals(phaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
-                        DependencyManager.delete(AutoexecScript2CombopPhaseOperationDependencyHandler.class, phaseOperationVo.getId());
-                    } else if (Objects.equals(phaseOperationVo.getOperationType(), CombopOperationType.TOOL.getValue())) {
-                        DependencyManager.delete(AutoexecTool2CombopPhaseOperationDependencyHandler.class, phaseOperationVo.getId());
+                if (phaseOperationVo == null) {
+                    continue;
+                }
+                DependencyManager.delete(AutoexecProfile2CombopPhaseOperationDependencyHandler.class, phaseOperationVo.getId());
+                DependencyManager.delete(AutoexecGlobalParam2CombopPhaseOperationInputParamDependencyHandler.class, phaseOperationVo.getId());
+                DependencyManager.delete(AutoexecGlobalParam2CombopPhaseOperationArgumentParamDependencyHandler.class, phaseOperationVo.getId());
+                if (Objects.equals(phaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
+                    DependencyManager.delete(AutoexecScript2CombopPhaseOperationDependencyHandler.class, phaseOperationVo.getId());
+                } else if (Objects.equals(phaseOperationVo.getOperationType(), CombopOperationType.TOOL.getValue())) {
+                    DependencyManager.delete(AutoexecTool2CombopPhaseOperationDependencyHandler.class, phaseOperationVo.getId());
+                }
+                AutoexecCombopPhaseOperationConfigVo operationConfig = phaseOperationVo.getConfig();
+                List<AutoexecCombopPhaseOperationVo> ifList = operationConfig.getIfList();
+                if (CollectionUtils.isNotEmpty(ifList)) {
+                    for (AutoexecCombopPhaseOperationVo operationVo : ifList) {
+                        if (operationVo == null) {
+                            continue;
+                        }
+                        DependencyManager.delete(AutoexecProfile2CombopPhaseOperationDependencyHandler.class, operationVo.getId());
+                        DependencyManager.delete(AutoexecGlobalParam2CombopPhaseOperationInputParamDependencyHandler.class, operationVo.getId());
+                        DependencyManager.delete(AutoexecGlobalParam2CombopPhaseOperationArgumentParamDependencyHandler.class, operationVo.getId());
+                        if (Objects.equals(operationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
+                            DependencyManager.delete(AutoexecScript2CombopPhaseOperationDependencyHandler.class, operationVo.getId());
+                        } else if (Objects.equals(operationVo.getOperationType(), CombopOperationType.TOOL.getValue())) {
+                            DependencyManager.delete(AutoexecTool2CombopPhaseOperationDependencyHandler.class, operationVo.getId());
+                        }
+                    }
+                }
+                List<AutoexecCombopPhaseOperationVo> elseList = operationConfig.getElseList();
+                if (CollectionUtils.isNotEmpty(elseList)) {
+                    for (AutoexecCombopPhaseOperationVo operationVo : elseList) {
+                        if (operationVo == null) {
+                            continue;
+                        }
+                        DependencyManager.delete(AutoexecProfile2CombopPhaseOperationDependencyHandler.class, operationVo.getId());
+                        DependencyManager.delete(AutoexecGlobalParam2CombopPhaseOperationInputParamDependencyHandler.class, operationVo.getId());
+                        DependencyManager.delete(AutoexecGlobalParam2CombopPhaseOperationArgumentParamDependencyHandler.class, operationVo.getId());
+                        if (Objects.equals(operationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
+                            DependencyManager.delete(AutoexecScript2CombopPhaseOperationDependencyHandler.class, operationVo.getId());
+                        } else if (Objects.equals(operationVo.getOperationType(), CombopOperationType.TOOL.getValue())) {
+                            DependencyManager.delete(AutoexecTool2CombopPhaseOperationDependencyHandler.class, operationVo.getId());
+                        }
                     }
                 }
             }

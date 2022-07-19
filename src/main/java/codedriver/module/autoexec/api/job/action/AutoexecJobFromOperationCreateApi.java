@@ -148,7 +148,7 @@ public class AutoexecJobFromOperationCreateApi extends PrivateApiComponentBase {
         combopVo.setId(phaseParam.getOperationId());
         combopVo.setOperationType(phaseParam.getOperationType());
         initRuntimeParamList(combopVo,phaseParam);
-        combopVo.setConfig("{}");
+        combopVo.setConfig(new AutoexecCombopConfigVo());
         combopVo.getConfig().setCombopPhaseList(combopPhaseArray.toJavaList(AutoexecCombopPhaseVo.class));
         combopVo.getConfig().setCombopGroupList(Collections.singletonList(combopGroupVo));
         return combopVo;

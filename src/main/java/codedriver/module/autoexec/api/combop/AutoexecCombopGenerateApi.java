@@ -217,7 +217,7 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
                 argumentMappingList.add(paramMappingVo);
             }
         }
-        phaseOperationVo.setConfig(JSONObject.toJSONString(operationConfigVo));
+        phaseOperationVo.setConfig(operationConfigVo);
         /** 新建一个组 **/
         AutoexecCombopGroupVo combopGroupVo = new AutoexecCombopGroupVo();
         combopGroupVo.setConfig("{}");
@@ -236,7 +236,7 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
         List<AutoexecCombopPhaseOperationVo> phaseOperationList = new ArrayList<>();
         phaseOperationList.add(phaseOperationVo);
         combopPhaseConfig.setPhaseOperationList(phaseOperationList);
-        combopPhaseVo.setConfig(JSONObject.toJSONString(combopPhaseConfig));
+        combopPhaseVo.setConfig(combopPhaseConfig);
 
         combopPhaseVo.setGroupUuid(combopGroupVo.getUuid());
         combopPhaseVo.setGroupSort(combopGroupVo.getSort());
@@ -269,14 +269,14 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
         autoexecCombopGroupList.add(combopGroupVo);
         config.setCombopGroupList(autoexecCombopGroupList);
 
-        autoexecCombopVo.setConfig(JSONObject.toJSONString(config));
+        autoexecCombopVo.setConfig(config);
         autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
         autoexecCombopService.saveDependency(autoexecCombopVo);
-        combopPhaseVo.setCombopId(combopId);
+//        combopPhaseVo.setCombopId(combopId);
 //        autoexecCombopMapper.insertAutoexecCombopPhase(combopPhaseVo);
-        phaseOperationVo.setCombopPhaseId(combopPhaseVo.getId());
+//        phaseOperationVo.setCombopPhaseId(combopPhaseVo.getId());
 //        autoexecCombopMapper.insertAutoexecCombopPhaseOperation(phaseOperationVo);
-        combopGroupVo.setCombopId(combopId);
+//        combopGroupVo.setCombopId(combopId);
 //        autoexecCombopMapper.insertAutoexecCombopGroup(combopGroupVo);
 
         if (CollectionUtils.isNotEmpty(autoexecCombopParamVoList)) {

@@ -197,7 +197,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
             for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
                 if (autoexecCombopPhaseVo != null) {
                     autoexecCombopPhaseVo.setId(null);
-                    autoexecCombopPhaseVo.setCombopId(id);
+//                    autoexecCombopPhaseVo.setCombopId(id);
                     autoexecCombopPhaseVo.setSort(iSort++);
                     AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
                     List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
@@ -207,7 +207,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                         for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
                             if (autoexecCombopPhaseOperationVo != null) {
                                 autoexecCombopPhaseOperationVo.setSort(jSort++);
-                                autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
+//                                autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
                                 phaseOperationList2.add(autoexecCombopPhaseOperationVo);
                                 if (Objects.equals(autoexecCombopPhaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
                                     AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoByName(autoexecCombopPhaseOperationVo.getOperationName());

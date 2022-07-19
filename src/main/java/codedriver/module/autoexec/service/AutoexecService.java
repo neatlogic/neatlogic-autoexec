@@ -41,10 +41,11 @@ public interface AutoexecService {
     /**
      * 根据id和类型获取自定义工具或工具信息
      * @param id 自定义工具id或工具id
+     * @param name 自定义工具名或工具名
      * @param type 类型
      * @return
      */
-    AutoexecOperationBaseVo getAutoexecOperationBaseVoByIdAndType(Long id, String type);
+    AutoexecOperationBaseVo getAutoexecOperationBaseVoByIdAndType(Long id, String name, String type);
 
     /**
      * 根据关operationVoList获取工具参数并做去重处理
