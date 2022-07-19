@@ -1,6 +1,7 @@
 package codedriver.module.autoexec.dao.mapper;
 
 
+import codedriver.framework.autoexec.crossover.IAutoexecGlobalParamCrossoverMapper;
 import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
 import org.apache.ibatis.annotations.Param;
 
@@ -10,7 +11,7 @@ import java.util.List;
  * @author longrf
  * @date 2022/4/18 7:02 下午
  */
-public interface AutoexecGlobalParamMapper {
+public interface AutoexecGlobalParamMapper extends IAutoexecGlobalParamCrossoverMapper {
 
     int checkGlobalParamIsExistsById(Long paramId);
 
@@ -28,6 +29,8 @@ public interface AutoexecGlobalParamMapper {
 
     List<AutoexecGlobalParamVo> searchGlobalParam(AutoexecGlobalParamVo globalParamVo);
 
+    List<AutoexecGlobalParamVo> getAllPasswordGlobalParam();
+
     int checkGlobalParamKeyIsRepeat(AutoexecGlobalParamVo globalParamVo);
 
     int checkGlobalParamNameIsRepeat(AutoexecGlobalParamVo globalParamVo);
@@ -35,4 +38,6 @@ public interface AutoexecGlobalParamMapper {
     void insertGlobalParam(AutoexecGlobalParamVo paramVo);
 
     void deleteGlobalParamById(Long paramId);
+
+    int updateGlobalParamPasswordById(@Param("id") Long id, @Param("password") String password);
 }

@@ -4,11 +4,10 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import codedriver.framework.autoexec.constvalue.AutoexecGlobalParamType;
 import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
-import codedriver.framework.autoexec.exception.AutoexecGlobalParamNameRepeatException;
 import codedriver.framework.autoexec.exception.AutoexecGlobalParamIsNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecGlobalParamKeyRepeatException;
+import codedriver.framework.autoexec.exception.AutoexecGlobalParamNameRepeatException;
 import codedriver.framework.common.constvalue.ApiParamType;
-import codedriver.framework.common.constvalue.CiphertextPrefix;
 import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.dto.FieldValidResultVo;
 import codedriver.framework.restful.annotation.Description;
@@ -74,8 +73,8 @@ public class AutoexecGlobalParamSaveApi extends PrivateApiComponentBase {
             throw new AutoexecGlobalParamIsNotFoundException(paramId);
         }
         // 如果参数值不以"RC4:"开头，说明密码需要加密
-        if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), globalParamVo.getType()) && StringUtils.isNotBlank(globalParamVo.getDefaultValueStr()) && !globalParamVo.getDefaultValueStr().startsWith(CiphertextPrefix.RC4.getValue())) {
-            globalParamVo.setDefaultValue(CiphertextPrefix.RC4.getValue() + RC4Util.encrypt((String) globalParamVo.getDefaultValue()));
+        if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), globalParamVo.getType()) && StringUtils.isNotBlank(globalParamVo.getDefaultValueStr())) {
+            globalParamVo.setDefaultValue(RC4Util.encrypt((String) globalParamVo.getDefaultValue()));
         }
         autoexecGlobalParamMapper.insertGlobalParam(globalParamVo);
         return null;
