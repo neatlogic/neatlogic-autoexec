@@ -162,11 +162,11 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
 
     private void updateDBdata(AutoexecCombopVo autoexecCombopVo) {
         Long id = autoexecCombopVo.getId();
-        List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
+//        List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
 
-        if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
+//        if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
 //            autoexecCombopMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
-        }
+//        }
 //        autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
 //        autoexecCombopMapper.deleteAutoexecCombopGroupByCombopId(id);
         Map<String, AutoexecCombopGroupVo> groupMap = new HashMap<>();

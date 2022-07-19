@@ -9,6 +9,7 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.autoexec.constvalue.ScriptAction;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
+import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
@@ -18,18 +19,24 @@ import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.dao.mapper.UserMapper;
+import codedriver.framework.dependency.core.DependencyManager;
+import codedriver.framework.dependency.dto.DependencyInfoVo;
 import codedriver.framework.exception.type.ParamNotExistsException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.module.autoexec.dependency.AutoexecScript2CombopPhaseOperationDependencyHandler;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import codedriver.module.autoexec.service.AutoexecScriptService;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -40,6 +47,9 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
+
+    @Resource
+    private AutoexecCombopMapper autoexecCombopMapper;
 
     @Resource
     private AutoexecCombopService autoexecCombopService;
@@ -147,9 +157,25 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         version.setParamList(paramList);
         version.setArgument(autoexecScriptMapper.getArgumentByVersionId(version.getId()));
         version.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
-        List<AutoexecCombopVo> combopList = autoexecScriptMapper.getReferenceListByScriptId(id);
-        script.setCombopList(combopList);
-        autoexecCombopService.setOperableButtonList(combopList);
+        List<Long> combopIdList = new ArrayList<>();
+        List<DependencyInfoVo> dependencyInfoList = DependencyManager.getDependencyList(AutoexecScript2CombopPhaseOperationDependencyHandler.class, id);
+        for (DependencyInfoVo dependencyInfoVo : dependencyInfoList) {
+            JSONObject config = dependencyInfoVo.getConfig();
+            if (MapUtils.isNotEmpty(config)) {
+                Long combopId = config.getLong("combopId");
+                if (combopId != null) {
+                    combopIdList.add(combopId);
+                }
+            }
+        }
+        if (CollectionUtils.isNotEmpty(combopIdList)) {
+            List<AutoexecCombopVo> combopList = autoexecCombopMapper.getAutoexecCombopByIdList(combopIdList);
+            script.setCombopList(combopList);
+            autoexecCombopService.setOperableButtonList(combopList);
+        }
+//        List<AutoexecCombopVo> combopList = autoexecScriptMapper.getReferenceListByScriptId(id);
+//        script.setCombopList(combopList);
+//        autoexecCombopService.setOperableButtonList(combopList);
         if (StringUtils.isNotBlank(version.getReviewer())) {
             version.setReviewerVo(userMapper.getUserBaseInfoByUuid(version.getReviewer()));
         }

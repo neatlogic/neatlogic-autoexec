@@ -153,11 +153,11 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             /** 保存前，校验组合工具是否配置正确，不正确不可以保存 **/
             autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo, false);
 
-            List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
+//            List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
 
-            if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
+//            if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
 //                autoexecCombopMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
-            }
+//            }
 //            autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
 //            autoexecCombopMapper.deleteAutoexecCombopGroupByCombopId(id);
             autoexecCombopService.deleteDependency(oldAutoexecCombopVo);

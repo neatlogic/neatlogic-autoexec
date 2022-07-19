@@ -241,10 +241,10 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
             if (oldAutoexecCombopVo == null) {
                 autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
             } else {
-                List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
-                if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
+//                List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
+//                if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
 //                    autoexecCombopMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
-                }
+//                }
 //                autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
                 autoexecCombopMapper.deleteAutoexecCombopParamByCombopId(id);
                 autoexecCombopMapper.updateAutoexecCombopById(autoexecCombopVo);
