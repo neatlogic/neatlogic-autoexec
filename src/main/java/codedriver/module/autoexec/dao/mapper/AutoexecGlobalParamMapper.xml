@@ -21,6 +21,11 @@
                    `lcu`           = #{lcu},
                    `lcd`           = now(3)
     </insert>
+    <update id="updateGlobalParamPasswordById">
+        update autoexec_global_param
+        set default_value = #{password}
+        where id = #{id}
+    </update>
 
     <delete id="deleteGlobalParamById">
         DELETE
@@ -65,7 +70,8 @@
         limit 1
     </select>
 
-    <select id="getGlobalParamByKeyList" resultType="codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo">
+    <select id="getGlobalParamByKeyList"
+            resultType="codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo">
         select `id`,
         `key`,
         `name`,
@@ -172,6 +178,21 @@
         from autoexec_global_param
         where `id` != #{id}
           and `name` = #{name}
+    </select>
+    <select id="getAllPasswordGlobalParam"
+            resultType="codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo">
+        select `id`,
+               `key`,
+               `name`,
+               `type`,
+               `default_value` as defaultValue,
+               `description`,
+               `fcu`,
+               `fcd`,
+               `lcu`,
+               `lcd`
+        from `autoexec_global_param`
+        where `type` = 'password'
     </select>
 
 </mapper>

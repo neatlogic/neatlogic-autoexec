@@ -71,7 +71,7 @@ public class AutoexecScheduleSaveApi extends PrivateApiComponentBase {
             @Param(name = "endTime", type = ApiParamType.LONG, desc = "结束时间"),
             @Param(name = "cron", type = ApiParamType.STRING, isRequired = true, desc = "corn表达式"),
             @Param(name = "isActive", type = ApiParamType.ENUM, isRequired = true, rule = "0,1", desc = "是否激活(0:禁用，1：激活)"),
-            @Param(name = "config", type = ApiParamType.JSONOBJECT, desc = "执行配置信息，包含param、executeConfig、threadCount等字段")
+            @Param(name = "config", type = ApiParamType.JSONOBJECT, desc = "执行配置信息，包含param、executeConfig、roundCount等字段")
     })
     @Output({
             @Param(name = "id", type = ApiParamType.STRING, isRequired = true, desc = "定时作业id")

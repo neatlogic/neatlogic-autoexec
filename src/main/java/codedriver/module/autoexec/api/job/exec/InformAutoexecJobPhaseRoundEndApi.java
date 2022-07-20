@@ -109,7 +109,7 @@ public class InformAutoexecJobPhaseRoundEndApi extends PrivateApiComponentBase {
     private boolean isJobPhaseRoundNodeAllCompleted(Integer jobGroupSort, AutoexecJobPhaseVo phaseVo, Integer roundNo) {
         List<Integer> roundCountList = new ArrayList<>();
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(phaseVo.getJobId());
-        Integer roundCount = jobVo.getThreadCount();
+        Integer roundCount = jobVo.getRoundCount();
         AutoexecJobPhaseNodeVo nodeParamVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), phaseVo.getName(), 0);
         int totalNodeCount = autoexecJobMapper.searchJobPhaseNodeCount(nodeParamVo);
         if (roundCount == null || roundCount <= 0) {

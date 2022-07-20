@@ -6,12 +6,9 @@
 package codedriver.module.autoexec.script.paramtype;
 
 import codedriver.framework.autoexec.constvalue.ParamType;
-import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeBase;
-import codedriver.framework.common.constvalue.CiphertextPrefix;
 import codedriver.framework.common.util.RC4Util;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -80,16 +77,7 @@ public class ScriptParamTypePassword extends ScriptParamTypeBase {
     @Override
     protected Object getMyTextByValue(Object value) {
         String valueStr = value.toString();
-        //先解密
-        String plain = valueStr;
-        if(valueStr.startsWith(CiphertextPrefix.RC4.getValue())){
-            valueStr = valueStr.replaceAll(CiphertextPrefix.RC4.getValue(), StringUtils.EMPTY);
-            plain = RC4Util.decrypt(valueStr);
-        }
-
-        //再按autoexec 的key 加密
-        value = "{ENCRYPTED}" + RC4Util.encrypt(AutoexecJobVo.AUTOEXEC_RC4_KEY, plain);
-        return value;
+        return RC4Util.encrypt(valueStr);
     }
 
     @Override

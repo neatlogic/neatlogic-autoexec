@@ -100,7 +100,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         paramJson.put("jobId", jobVo.getId());
         paramJson.put("tenant", TenantContext.get().getTenantUuid());
         paramJson.put("preJobId", null); //给后续ITSM对接使用
-        paramJson.put("roundCount", jobVo.getThreadCount());
+        paramJson.put("roundCount", jobVo.getRoundCount());
         paramJson.put("execUser", UserContext.get().getUserUuid(true));
         paramJson.put("passThroughEnv", null); //回调需要的返回的参数
         JSONArray paramArray = jobVo.getParamArray();
@@ -372,9 +372,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             jsonObj.put("scenarioId",scenarioVo.getId());
         }
 
-        Integer threadCount = jsonObj.getInteger("threadCount");
-        if(threadCount == null || threadCount < 1){
-            throw  new ParamIrregularException("threadCount");
+        Integer roundCount = jsonObj.getInteger("roundCount");
+        if(roundCount == null || roundCount < 1){
+            throw  new ParamIrregularException("roundCount");
         }
 
         AutoexecJobVo jobVo = JSONObject.toJavaObject(jsonObj, AutoexecJobVo.class);

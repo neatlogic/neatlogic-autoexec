@@ -172,7 +172,7 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                             if (accountOp.isPresent()) {
                                 AccountVo accountVoTmp = accountOp.get();
                                 nodeJson.put("protocol", accountVoTmp.getProtocol());
-                                nodeJson.put("password", "{ENCRYPTED}" + RC4Util.encrypt(AutoexecJobVo.AUTOEXEC_RC4_KEY, accountVoTmp.getPasswordPlain()));
+                                nodeJson.put("password", RC4Util.encrypt(accountVoTmp.getPasswordPlain()));
                                 nodeJson.put("protocolPort", accountVoTmp.getProtocolPort());
                             } else {
                                 Optional<AccountProtocolVo> protocolVo = protocolVoList.stream().filter(o -> Objects.equals(o.getId(), nodeVo.getProtocolId())).findFirst();

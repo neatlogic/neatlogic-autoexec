@@ -54,7 +54,7 @@ public class AutoexecJobFromCombopCreateApi extends PrivateApiComponentBase {
             @Param(name = "invokeId", type = ApiParamType.LONG, desc = "来源id"),
             @Param(name = "scenarioId", type = ApiParamType.LONG, desc = "场景id"),
             @Param(name = "scenarioName", type = ApiParamType.STRING, desc = "场景名, 如果入参也有scenarioId，则会以scenarioName为准"),
-            @Param(name = "threadCount", type = ApiParamType.LONG, isRequired = true, desc = "并发线程,2的n次方 "),
+            @Param(name = "roundCount", type = ApiParamType.LONG, isRequired = true, desc = "分组数 "),
             @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, desc = "执行目标"),
     })
     @Output({

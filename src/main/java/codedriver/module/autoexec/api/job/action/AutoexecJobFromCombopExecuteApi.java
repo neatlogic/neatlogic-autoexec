@@ -34,6 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.Date;
 
 /**
@@ -86,7 +87,7 @@ public class AutoexecJobFromCombopExecuteApi extends PrivateApiComponentBase {
         if (new Date().before(jobVo.getPlanStartTime()) && !AutoexecConfig.AUTOEXEC_JOB_IS_ALLOWED_MANUAL_TRIGGER_IN_ADVANCE()) {
             throw new AutoexecJobCannotExecuteInAdvanceException();
         }
-        if (!CombopOperationType.COMBOP.getValue().equals(jobVo.getOperationType())) {
+        if (!Arrays.asList(codedriver.framework.deploy.constvalue.CombopOperationType.PIPELINE.getValue(), CombopOperationType.COMBOP.getValue()).contains(jobVo.getOperationType())) {
             throw new AutoexecJobNotSupportedExecuteAndRevokeException();
         }
         // 执行作业、取消定时任务

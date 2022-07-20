@@ -6,7 +6,6 @@ import codedriver.framework.autoexec.constvalue.AutoexecGlobalParamType;
 import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
 import codedriver.framework.autoexec.exception.AutoexecGlobalParamIsNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
-import codedriver.framework.common.constvalue.CiphertextPrefix;
 import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.restful.annotation.Description;
 import codedriver.framework.restful.annotation.Input;
@@ -59,8 +58,8 @@ public class AutoexecGlobalParamGetApi extends PrivateApiComponentBase {
         if (globalParamVo == null) {
             throw new AutoexecGlobalParamIsNotFoundException(paramId);
         }
-        if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), globalParamVo.getType()) && StringUtils.isNotBlank(globalParamVo.getDefaultValueStr()) && globalParamVo.getDefaultValueStr().startsWith(CiphertextPrefix.RC4.getValue())) {
-            globalParamVo.setDefaultValue(RC4Util.decrypt(globalParamVo.getDefaultValueStr().substring(4)));
+        if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), globalParamVo.getType()) && StringUtils.isNotBlank(globalParamVo.getDefaultValueStr())) {
+            globalParamVo.setDefaultValue(RC4Util.decrypt(globalParamVo.getDefaultValueStr()));
         }
         return globalParamVo;
     }

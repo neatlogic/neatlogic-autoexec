@@ -16,7 +16,7 @@ import codedriver.framework.fulltextindex.core.IFullTextIndexHandler;
 import codedriver.framework.restful.annotation.Description;
 import codedriver.framework.restful.annotation.OperationType;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
-import codedriver.framework.restful.core.publicapi.PublicJsonStreamApiComponentBase;
+import codedriver.framework.restful.core.privateapi.PrivateJsonStreamApiComponentBase;
 import codedriver.module.autoexec.fulltextindex.AutoexecFullTextIndexType;
 import codedriver.module.autoexec.service.AutoexecScriptService;
 import codedriver.module.autoexec.service.AutoexecService;
@@ -35,7 +35,7 @@ import java.util.*;
 @Service
 @Transactional
 @OperationType(type = OperationTypeEnum.OPERATE)
-public class AutoexecScriptImportPublicApi extends PublicJsonStreamApiComponentBase {
+public class AutoexecScriptImportPublicApi extends PrivateJsonStreamApiComponentBase {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;

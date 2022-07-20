@@ -8,11 +8,11 @@ package codedriver.module.autoexec.api.combop;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.ParamType;
+import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
-import codedriver.framework.common.constvalue.CiphertextPrefix;
 import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.dependency.core.DependencyManager;
 import codedriver.framework.exception.type.PermissionDeniedException;
@@ -22,7 +22,6 @@ import codedriver.framework.restful.annotation.OperationType;
 import codedriver.framework.restful.annotation.Param;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.dependency.MatrixAutoexecCombopParamDependencyHandler;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import codedriver.module.autoexec.service.AutoexecService;
@@ -109,8 +108,8 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
                 ParamType paramType = ParamType.getParamType(type);
                 Object value = autoexecCombopParamVo.getDefaultValue();
                 // 如果默认值不以"RC4:"开头，说明修改了密码，则重新加密
-                if (paramType == ParamType.PASSWORD && value != null && !value.toString().startsWith(CiphertextPrefix.RC4.getValue())) {
-                    autoexecCombopParamVo.setDefaultValue(CiphertextPrefix.RC4.getValue() + RC4Util.encrypt((String) value));
+                if (paramType == ParamType.PASSWORD && value != null) {
+                    autoexecCombopParamVo.setDefaultValue(RC4Util.encrypt((String) value));
                 } else if (paramType == ParamType.SELECT || paramType == ParamType.MULTISELECT || paramType == ParamType.CHECKBOX || paramType == ParamType.RADIO) {
                     JSONObject config = autoexecCombopParamVo.getConfig();
                     if (MapUtils.isNotEmpty(config)) {
