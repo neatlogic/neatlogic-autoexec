@@ -354,9 +354,14 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
             AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(id);
             if (autoexecToolVo == null) {
                 if (StringUtils.isNotBlank(name)) {
-                    throw new AutoexecToolNotFoundException(name);
-                } else {
-                    throw new AutoexecToolNotFoundException(id);
+                    autoexecToolVo = autoexecToolMapper.getToolByName(name);
+                }
+                if (autoexecToolVo == null) {
+                    if (StringUtils.isNotBlank(name)) {
+                        throw new AutoexecToolNotFoundException(name);
+                    } else {
+                        throw new AutoexecToolNotFoundException(id);
+                    }
                 }
             }
             autoexecToolAndScriptVo = new AutoexecOperationVo(autoexecToolVo);
