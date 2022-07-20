@@ -206,4 +206,9 @@ public class AutoexecJobSourceHandler extends AutoexecJobSourceActionHandlerBase
         return autoexecCombopMapper.getAutoexecCombopById(paramJson.getLong("combopId"));
     }
 
+    @Override
+    public List<AutoexecJobPhaseNodeVo> getJobNodeListBySqlIdList(List<Long> sqlIdList) {
+        return autoexecJobMapper.getJobPhaseNodeListBySqlIdList(sqlIdList);
+    }
+
 }

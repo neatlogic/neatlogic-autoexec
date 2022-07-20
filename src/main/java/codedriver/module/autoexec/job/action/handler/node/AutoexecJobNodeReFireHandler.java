@@ -9,10 +9,14 @@ import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.framework.autoexec.dto.AutoexecJobSourceVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.exception.AutoexecJobSourceInvalidException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
+import codedriver.framework.autoexec.job.source.action.AutoexecJobSourceActionHandlerFactory;
+import codedriver.framework.autoexec.source.AutoexecJobSourceFactory;
 import codedriver.framework.exception.type.ParamIrregularException;
 import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONArray;
@@ -56,7 +60,11 @@ public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
             if(CollectionUtils.isEmpty(sqlIdArray)){
                 throw new ParamIrregularException("sqlIdList");
             }
-            nodeVoList = autoexecJobMapper.getJobPhaseNodeListBySqlIdList(sqlIdArray.toJavaList(Long.class));
+            AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(jobVo.getSource());
+            if (jobSourceVo == null) {
+                throw new AutoexecJobSourceInvalidException(jobVo.getSource());
+            }
+            nodeVoList = AutoexecJobSourceActionHandlerFactory.getAction(jobSourceVo.getType()).getJobNodeListBySqlIdList(sqlIdArray.toJavaList(Long.class));
         }else {
             nodeVoList = autoexecJobMapper.getJobPhaseNodeListByJobPhaseIdAndResourceIdList(jobVo.getCurrentPhaseId(), resourceIdList);
             //重置节点开始和结束时间,以防 失败节点直接"重跑"导致耗时异常
@@ -64,11 +72,11 @@ public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
         }
         jobVo.setExecuteJobNodeVoList(nodeVoList);
         //校验是否和当前phaseId一致
-        for (AutoexecJobPhaseNodeVo jobPhaseNodeVo : nodeVoList) {
+       /* for (AutoexecJobPhaseNodeVo jobPhaseNodeVo : nodeVoList) {
             if (!Objects.equals(jobPhaseNodeVo.getJobPhaseId(), jobVo.getCurrentPhaseId())) {
                 throw new ParamIrregularException("resourceIdList");
             }
-        }
+        }*/
         return true;
     }
 
