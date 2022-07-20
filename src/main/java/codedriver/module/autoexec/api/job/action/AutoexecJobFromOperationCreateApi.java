@@ -147,7 +147,8 @@ public class AutoexecJobFromOperationCreateApi extends PrivateApiComponentBase {
         combopVo.setName("TEST_"+phaseParam.getName());
         combopVo.setId(phaseParam.getOperationId());
         combopVo.setOperationType(phaseParam.getOperationType());
-        initRuntimeParamList(combopVo,phaseParam);
+        combopVo.setRuntimeParamList(phaseParam.getInputParamList());
+//        initRuntimeParamList(combopVo,phaseParam);
         combopVo.setConfig(new AutoexecCombopConfigVo());
         combopVo.getConfig().setCombopPhaseList(combopPhaseArray.toJavaList(AutoexecCombopPhaseVo.class));
         combopVo.getConfig().setCombopGroupList(Collections.singletonList(combopGroupVo));
@@ -173,15 +174,15 @@ public class AutoexecJobFromOperationCreateApi extends PrivateApiComponentBase {
      * @param combopVo 组合工具
      * @param phaseOperationParamVo scriptVersion|tool
      */
-    private void initRuntimeParamList(AutoexecCombopVo combopVo, AutoexecPhaseOperationParamVo phaseOperationParamVo) {
-        List<AutoexecCombopParamVo> runtimeParamList = new ArrayList<>();
-        if(CollectionUtils.isNotEmpty(phaseOperationParamVo.getInputParamList())) {
-            phaseOperationParamVo.getInputParamList().forEach(o -> {
-                runtimeParamList.add(new AutoexecCombopParamVo(o));
-            });
-            combopVo.setRuntimeParamList(runtimeParamList);
-        }
-    }
+//    private void initRuntimeParamList(AutoexecCombopVo combopVo, AutoexecPhaseOperationParamVo phaseOperationParamVo) {
+//        List<AutoexecCombopParamVo> runtimeParamList = new ArrayList<>();
+//        if(CollectionUtils.isNotEmpty(phaseOperationParamVo.getInputParamList())) {
+//            phaseOperationParamVo.getInputParamList().forEach(o -> {
+//                runtimeParamList.add(new AutoexecCombopParamVo(o));
+//            });
+//            combopVo.setRuntimeParamList(runtimeParamList);
+//        }
+//    }
 
     /**
      * 构建combopPhaseList
