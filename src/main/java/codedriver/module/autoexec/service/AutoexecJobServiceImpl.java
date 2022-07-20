@@ -817,7 +817,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
         if (StringUtils.equals(codedriver.framework.deploy.constvalue.JobSource.DEPLOY.getValue(), jobVo.getSource())) {
             IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
-            List<Long> sqlIdList = iDeploySqlCrossoverMapper.getJobSqlIdListByJobIdAndJobPhaseNameList(jobId, jobPhaseNameList);
+            List<Long> sqlIdList = iDeploySqlCrossoverMapper.getDeployJobSqlIdListByJobIdAndJobPhaseNameList(jobId, jobPhaseNameList);
             if (CollectionUtils.isNotEmpty(sqlIdList)) {
                 iDeploySqlCrossoverMapper.resetDeploySqlStatusBySqlIdList(sqlIdList);
             }

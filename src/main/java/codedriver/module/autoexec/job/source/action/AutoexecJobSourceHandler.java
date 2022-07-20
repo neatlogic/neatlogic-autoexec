@@ -176,6 +176,11 @@ public class AutoexecJobSourceHandler extends AutoexecJobSourceActionHandlerBase
     }
 
     @Override
+    public AutoexecSqlDetailVo getSqlDetail(AutoexecJobVo jobVo) {
+        return autoexecJobMapper.getJobSqlByJobPhaseIdAndResourceIdAndSqlName(jobVo.getActionParam().getLong("jobPhaseId"), jobVo.getActionParam().getLong("resourceId"), jobVo.getActionParam().getString("sqlName"));
+    }
+
+    @Override
     public List<RunnerMapVo> getRunnerMapList(AutoexecJobVo jobVo) {
         AutoexecJobPhaseVo jobPhaseVo = jobVo.getCurrentPhase();
         List<RunnerMapVo> runnerMapVos = null;
