@@ -9,6 +9,7 @@ import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
+import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.exception.AutoexecCombopNameRepeatException;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
@@ -29,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -105,12 +107,15 @@ public class AutoexecCombopCopyApi extends PrivateApiComponentBase {
         autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
         autoexecCombopService.saveDependency(autoexecCombopVo);
 
-        List<AutoexecCombopParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
+        List<AutoexecParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
         if (CollectionUtils.isNotEmpty(runtimeParamList)) {
-            for (AutoexecCombopParamVo autoexecCombopParamVo : runtimeParamList) {
+            List<AutoexecCombopParamVo> autoexecCombopParamList = new ArrayList<>();
+            for (AutoexecParamVo autoexecParamVo : runtimeParamList) {
+                AutoexecCombopParamVo autoexecCombopParamVo = new AutoexecCombopParamVo(autoexecParamVo);
                 autoexecCombopParamVo.setCombopId(combopId);
+                autoexecCombopParamList.add(autoexecCombopParamVo);
             }
-            autoexecCombopMapper.insertAutoexecCombopParamVoList(runtimeParamList);
+            autoexecCombopMapper.insertAutoexecCombopParamVoList(autoexecCombopParamList);
         }
         return combopId;
     }

@@ -10,6 +10,7 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.CombopNodeSpecify;
 import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.ParamMappingMode;
+import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
@@ -76,15 +77,15 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
             throw new AutoexecCombopNotFoundException(combopId);
         }
         JSONObject resultObj = new JSONObject();
-        Map<String, AutoexecCombopParamVo> autoexecCombopParamMap = new HashMap<>();
-        List<AutoexecCombopParamVo> autoexecCombopParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopId);
-        if (CollectionUtils.isNotEmpty(autoexecCombopParamList)) {
+        Map<String, AutoexecParamVo> autoexecParamMap = new HashMap<>();
+        List<AutoexecParamVo> autoexecParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopId);
+        if (CollectionUtils.isNotEmpty(autoexecParamList)) {
             JSONArray runtimeParamList = new JSONArray();
-            for (AutoexecCombopParamVo autoexecCombopParamVo : autoexecCombopParamList) {
+            for (AutoexecParamVo autoexecParamVo : autoexecParamList) {
                 JSONObject runtimeParamObj = new JSONObject();
-                runtimeParamObj.put("key", autoexecCombopParamVo.getKey());
-                runtimeParamObj.put("name", autoexecCombopParamVo.getName());
-                Object defaultValue = autoexecCombopParamVo.getDefaultValue();
+                runtimeParamObj.put("key", autoexecParamVo.getKey());
+                runtimeParamObj.put("name", autoexecParamVo.getName());
+                Object defaultValue = autoexecParamVo.getDefaultValue();
                 if (defaultValue != null) {
                     runtimeParamObj.put("mappingMode", ParamMappingMode.CONSTANT.getValue());
                     runtimeParamObj.put("value", defaultValue);
@@ -92,11 +93,11 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
                     runtimeParamObj.put("mappingMode", "");
                     runtimeParamObj.put("value", "");
                 }
-                runtimeParamObj.put("isRequired", autoexecCombopParamVo.getIsRequired());
-                runtimeParamObj.put("type", autoexecCombopParamVo.getType());
-                runtimeParamObj.put("config", autoexecCombopParamVo.getConfig());
+                runtimeParamObj.put("isRequired", autoexecParamVo.getIsRequired());
+                runtimeParamObj.put("type", autoexecParamVo.getType());
+                runtimeParamObj.put("config", autoexecParamVo.getConfig());
                 runtimeParamList.add(runtimeParamObj);
-                autoexecCombopParamMap.put(autoexecCombopParamVo.getKey(), autoexecCombopParamVo);
+                autoexecParamMap.put(autoexecParamVo.getKey(), autoexecParamVo);
             }
             resultObj.put("runtimeParamList", runtimeParamList);
         }

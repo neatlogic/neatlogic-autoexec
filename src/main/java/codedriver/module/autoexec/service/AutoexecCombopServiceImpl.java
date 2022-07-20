@@ -159,10 +159,10 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         if (CollectionUtils.isEmpty(combopPhaseList)) {
             throw new AutoexecCombopAtLeastOnePhaseException();
         }
-        Map<String, AutoexecCombopParamVo> runtimeParamMap = new HashMap<>();
-        List<AutoexecCombopParamVo> autoexecCombopParamVoList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(autoexecCombopVo.getId());
-        if (CollectionUtils.isNotEmpty(autoexecCombopParamVoList)) {
-            runtimeParamMap = autoexecCombopParamVoList.stream().collect(Collectors.toMap(e -> e.getKey(), e -> e));
+        Map<String, AutoexecParamVo> runtimeParamMap = new HashMap<>();
+        List<AutoexecParamVo> autoexecParamVoList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(autoexecCombopVo.getId());
+        if (CollectionUtils.isNotEmpty(autoexecParamVoList)) {
+            runtimeParamMap = autoexecParamVoList.stream().collect(Collectors.toMap(e -> e.getKey(), e -> e));
         }
         Map<String, AutoexecParamVo> preNodeOutputParamMap = new HashMap<>();
         Map<String, String> preNodeNameMap = new HashMap<>();
@@ -262,7 +262,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             String phaseUuid,
             AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo,
             Map<String, AutoexecParamVo> preNodeOutputParamMap,
-            Map<String, AutoexecCombopParamVo> runtimeParamMap,
+            Map<String, AutoexecParamVo> runtimeParamMap,
             Map<String, String> preNodeNameMap) {
         Long operationId = autoexecCombopPhaseOperationVo.getOperationId();
         String operationUuid = autoexecCombopPhaseOperationVo.getUuid();
@@ -329,7 +329,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             List<ParamMappingVo> mappingList,
             Map<String, AutoexecParamVo> inputParamMap,
             AutoexecParamVo argumentParam,
-            Map<String, AutoexecCombopParamVo> runtimeParamMap,
+            Map<String, AutoexecParamVo> runtimeParamMap,
             Map<String, AutoexecParamVo> preNodeOutputParamMap,
             String operationName,
             Map<String, AutoexecProfileParamVo> profileParamMap,
@@ -392,7 +392,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                     throw new AutoexecParamMappingNotMappedException(operationName, key);
                 }
                 if (Objects.equals(mappingMode, ParamMappingMode.RUNTIME_PARAM.getValue())) {
-                    AutoexecCombopParamVo runtimeParamVo = runtimeParamMap.get(value);
+                    AutoexecParamVo runtimeParamVo = runtimeParamMap.get(value);
                     if (runtimeParamVo == null) {
                         throw new AutoexecParamMappingTargetNotFoundException(operationName, key, value);
                     }
@@ -805,15 +805,13 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             return null;
         }
         autoexecCombopVo.setOwner(GroupSearch.USER.getValuePlugin() + autoexecCombopVo.getOwner());
-        List<AutoexecParamVo> runtimeParamList2 = new ArrayList<>();
-        List<AutoexecCombopParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
-        for (AutoexecCombopParamVo autoexecCombopParamVo : runtimeParamList) {
-            autoexecService.mergeConfig(autoexecCombopParamVo);
-            runtimeParamList2.add(autoexecCombopParamVo);
+        List<AutoexecParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
+        for (AutoexecParamVo autoexecParamVo : runtimeParamList) {
+            autoexecService.mergeConfig(autoexecParamVo);
         }
         autoexecCombopVo.setRuntimeParamList(runtimeParamList);
         AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
-        config.setRuntimeParamList(runtimeParamList2);
+        config.setRuntimeParamList(runtimeParamList);
         autoexecService.updateAutoexecCombopConfig(config);
         return autoexecCombopVo;
     }

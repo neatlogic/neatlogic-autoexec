@@ -9,6 +9,7 @@ import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
+import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
@@ -158,8 +159,8 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         AutoexecCombopVo oldAutoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
         if (oldAutoexecCombopVo != null) {
             if (equals(oldAutoexecCombopVo, autoexecCombopVo)) {
-                List<AutoexecCombopParamVo> autoexecCombopParamVoList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
-                if (Objects.equals(JSONObject.toJSONString(autoexecCombopParamVoList), JSONObject.toJSONString(autoexecCombopVo.getRuntimeParamList()))) {
+                List<AutoexecParamVo> autoexecParamVoList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
+                if (Objects.equals(JSONObject.toJSONString(autoexecParamVoList), JSONObject.toJSONString(autoexecCombopVo.getRuntimeParamList()))) {
                     return null;
                 }
             }
@@ -188,8 +189,8 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         }
         String userUuid = UserContext.get().getUserUuid(true);
         autoexecCombopVo.setFcu(userUuid);
-        List<AutoexecCombopPhaseVo> combopPhaseList2 = new ArrayList<>();
-        List<AutoexecCombopPhaseOperationVo> phaseOperationList2 = new ArrayList<>();
+//        List<AutoexecCombopPhaseVo> combopPhaseList2 = new ArrayList<>();
+//        List<AutoexecCombopPhaseOperationVo> phaseOperationList2 = new ArrayList<>();
         AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
 //        int iSort = 0;
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
@@ -208,7 +209,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                             if (autoexecCombopPhaseOperationVo != null) {
 //                                autoexecCombopPhaseOperationVo.setSort(jSort++);
 //                                autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
-                                phaseOperationList2.add(autoexecCombopPhaseOperationVo);
+//                                phaseOperationList2.add(autoexecCombopPhaseOperationVo);
                                 if (Objects.equals(autoexecCombopPhaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
                                     AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoByName(autoexecCombopPhaseOperationVo.getOperationName());
                                     if (autoexecScriptVo == null) {
@@ -233,7 +234,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                             }
                         }
                     }
-                    combopPhaseList2.add(autoexecCombopPhaseVo);
+//                    combopPhaseList2.add(autoexecCombopPhaseVo);
                 }
             }
         }
@@ -249,19 +250,22 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                 autoexecCombopMapper.deleteAutoexecCombopParamByCombopId(id);
                 autoexecCombopMapper.updateAutoexecCombopById(autoexecCombopVo);
             }
-            List<AutoexecCombopParamVo> runtimeParamList = autoexecCombopVo.getRuntimeParamList();
+            List<AutoexecParamVo> runtimeParamList = autoexecCombopVo.getRuntimeParamList();
             if (CollectionUtils.isNotEmpty(runtimeParamList)) {
-                for(AutoexecCombopParamVo paramVo : runtimeParamList){
-                    paramVo.setCombopId(id);
+                List<AutoexecCombopParamVo> autoexecCombopParamList = new ArrayList<>();
+                for(AutoexecParamVo paramVo : runtimeParamList){
+                    AutoexecCombopParamVo autoexecCombopParamVo = new AutoexecCombopParamVo(paramVo);
+                    autoexecCombopParamVo.setCombopId(id);
+                    autoexecCombopParamList.add(autoexecCombopParamVo);
                 }
-                autoexecCombopMapper.insertAutoexecCombopParamVoList(runtimeParamList);
+                autoexecCombopMapper.insertAutoexecCombopParamVoList(autoexecCombopParamList);
             }
-            for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList2) {
+//            for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList2) {
 //                autoexecCombopMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);
-            }
-            for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList2) {
+//            }
+//            for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList2) {
 //                autoexecCombopMapper.insertAutoexecCombopPhaseOperation(autoexecCombopPhaseOperationVo);
-            }
+//            }
             return null;
         } else {
             JSONObject resultObj = new JSONObject();

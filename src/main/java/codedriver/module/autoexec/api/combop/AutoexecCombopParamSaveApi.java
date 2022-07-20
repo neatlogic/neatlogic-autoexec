@@ -9,6 +9,7 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
@@ -90,8 +91,8 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
         if (Objects.equals(autoexecCombopVo.getEditable(), 0)) {
             throw new PermissionDeniedException();
         }
-        List<AutoexecCombopParamVo> autoexecCombopParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopId);
-        if (CollectionUtils.isNotEmpty(autoexecCombopParamList)) {
+        List<AutoexecParamVo> autoexecParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopId);
+        if (CollectionUtils.isNotEmpty(autoexecParamList)) {
             autoexecCombopMapper.deleteAutoexecCombopParamByCombopId(combopId);
             DependencyManager.delete(MatrixAutoexecCombopParamDependencyHandler.class, combopId);
         }
