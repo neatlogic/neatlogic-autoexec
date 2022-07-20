@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 
 /**
  * @author laiwt
@@ -74,7 +75,7 @@ public class AutoexecJobFromCombopRevokeApi extends PrivateApiComponentBase {
         if (!JobStatus.READY.getValue().equals(jobVo.getStatus()) || !UserContext.get().getUserUuid().equals(jobVo.getExecUser())) {
             throw new AutoexecJobCanNotRevokeException(jobId);
         }
-        if (!CombopOperationType.COMBOP.getValue().equals(jobVo.getOperationType())) {
+        if (!Arrays.asList(codedriver.framework.deploy.constvalue.CombopOperationType.PIPELINE.getValue(), CombopOperationType.COMBOP.getValue()).contains(jobVo.getOperationType())) {
             throw new AutoexecJobNotSupportedExecuteAndRevokeException();
         }
         jobVo.setStatus(JobStatus.REVOKED.getValue());

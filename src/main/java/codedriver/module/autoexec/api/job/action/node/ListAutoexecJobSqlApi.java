@@ -83,21 +83,7 @@ public class ListAutoexecJobSqlApi extends PrivateApiComponentBase {
                         //循环sql列表，根据sqlVo里面resourceId获取访问地址
                         for (AutoexecSqlDetailVo sqlDetailVo : returnSqlList) {
                             CiEntityVo ciEntity = ciEntityVoMap.get(sqlDetailVo.getResourceId());
-                            //找到访问地址的属性id
-                            IAttrCrossoverMapper attrCrossoverMapper = CrossoverServiceFactory.getApi(IAttrCrossoverMapper.class);
-                            AttrVo attrVo = attrCrossoverMapper.getAttrByCiIdAndName(ciEntity.getCiId(), "access_endpoint");
-                            ICiEntityCrossoverService ciEntityService = CrossoverServiceFactory.getApi(ICiEntityCrossoverService.class);
-                            CiEntityVo ciEntityInfo = ciEntityService.getCiEntityById(ciEntity.getCiId(), sqlDetailVo.getResourceId());
-                            //根据访问地址的属性id获取对应的值
-                            if (attrVo != null) {
-                                JSONObject valueJsonObject = ciEntityInfo.getAttrEntityData().getJSONObject("attr_" + attrVo.getId());
-                                if (valueJsonObject != null) {
-                                    JSONArray valueList = valueJsonObject.getJSONArray("valueList");
-                                    if (CollectionUtils.isNotEmpty(valueList)) {
-                                        sqlDetailVo.setAccessEndPoint(String.join(",", valueList.toJavaList(String.class)));
-                                    }
-                                }
-                            }
+                            sqlDetailVo.setServiceAddr(getServeAddr(ciEntity));
                         }
                     }
                 }
@@ -108,7 +94,44 @@ public class ListAutoexecJobSqlApi extends PrivateApiComponentBase {
             IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
             List<DeploySqlDetailVo> sqlDetailVoList = new ArrayList<>();
             sqlDetailVoList.add(paramObj.toJavaObject(DeploySqlDetailVo.class));
-            return iDeploySqlCrossoverMapper.getDeploySqlDetailList(sqlDetailVoList);
+            List<DeploySqlDetailVo> returnSqlList = iDeploySqlCrossoverMapper.getDeploySqlDetailList(sqlDetailVoList);
+            if (CollectionUtils.isNotEmpty(returnSqlList)) {
+                ICiEntityCrossoverMapper ciEntityCrossoverMapper = CrossoverServiceFactory.getApi(ICiEntityCrossoverMapper.class);
+                List<CiEntityVo> entityVoList = ciEntityCrossoverMapper.getCiEntityBaseInfoByIdList(returnSqlList.stream().map(DeploySqlDetailVo::getResourceId).collect(Collectors.toList()));
+                if (CollectionUtils.isNotEmpty(entityVoList)) {
+                    Map<Long, CiEntityVo> ciEntityVoMap = entityVoList.stream().collect(Collectors.toMap(CiEntityVo::getId, e -> e));
+                    //循环sql列表，根据sqlVo里面resourceId获取访问地址
+                    for (DeploySqlDetailVo sqlDetailVo : returnSqlList) {
+                        CiEntityVo ciEntity = ciEntityVoMap.get(sqlDetailVo.getResourceId());
+                        sqlDetailVo.setServiceAddr(getServeAddr(ciEntity));
+                    }
+                }
+            }
+            return returnSqlList;
+        }
+        return null;
+    }
+
+    /**
+     * 查询服务地址
+     * @param ciEntityVo 配置项
+     * @return 服务地址值
+     */
+    private String getServeAddr(CiEntityVo ciEntityVo) {
+
+        IAttrCrossoverMapper attrCrossoverMapper = CrossoverServiceFactory.getApi(IAttrCrossoverMapper.class);
+        AttrVo attrVo = attrCrossoverMapper.getAttrByCiIdAndName(ciEntityVo.getCiId(), "service_addr");
+        ICiEntityCrossoverService ciEntityService = CrossoverServiceFactory.getApi(ICiEntityCrossoverService.class);
+        CiEntityVo ciEntityInfo = ciEntityService.getCiEntityById(ciEntityVo.getCiId(), ciEntityVo.getId());
+        //根据访问地址的属性id获取对应的值
+        if (attrVo != null) {
+            JSONObject valueJsonObject = ciEntityInfo.getAttrEntityData().getJSONObject("attr_" + attrVo.getId());
+            if (valueJsonObject != null) {
+                JSONArray valueList = valueJsonObject.getJSONArray("valueList");
+                if (CollectionUtils.isNotEmpty(valueList)) {
+                    return String.join(",", valueList.toJavaList(String.class));
+                }
+            }
         }
         return null;
     }
