@@ -805,13 +805,15 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             return null;
         }
         autoexecCombopVo.setOwner(GroupSearch.USER.getValuePlugin() + autoexecCombopVo.getOwner());
+        List<AutoexecParamVo> runtimeParamList2 = new ArrayList<>();
         List<AutoexecCombopParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
         for (AutoexecCombopParamVo autoexecCombopParamVo : runtimeParamList) {
             autoexecService.mergeConfig(autoexecCombopParamVo);
+            runtimeParamList2.add(autoexecCombopParamVo);
         }
         autoexecCombopVo.setRuntimeParamList(runtimeParamList);
         AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
-        config.setRuntimeParamList(runtimeParamList);
+        config.setRuntimeParamList(runtimeParamList2);
         autoexecService.updateAutoexecCombopConfig(config);
         return autoexecCombopVo;
     }

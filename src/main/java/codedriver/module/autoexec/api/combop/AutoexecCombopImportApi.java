@@ -191,14 +191,14 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         List<AutoexecCombopPhaseVo> combopPhaseList2 = new ArrayList<>();
         List<AutoexecCombopPhaseOperationVo> phaseOperationList2 = new ArrayList<>();
         AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
-        int iSort = 0;
+//        int iSort = 0;
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
         if (CollectionUtils.isNotEmpty(combopPhaseList)) {
             for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
                 if (autoexecCombopPhaseVo != null) {
                     autoexecCombopPhaseVo.setId(null);
 //                    autoexecCombopPhaseVo.setCombopId(id);
-                    autoexecCombopPhaseVo.setSort(iSort++);
+//                    autoexecCombopPhaseVo.setSort(iSort++);
                     AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
                     List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
                     if (CollectionUtils.isNotEmpty(phaseOperationList)) {
@@ -206,7 +206,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                         int jSort = 0;
                         for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
                             if (autoexecCombopPhaseOperationVo != null) {
-                                autoexecCombopPhaseOperationVo.setSort(jSort++);
+//                                autoexecCombopPhaseOperationVo.setSort(jSort++);
 //                                autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
                                 phaseOperationList2.add(autoexecCombopPhaseOperationVo);
                                 if (Objects.equals(autoexecCombopPhaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
