@@ -91,6 +91,7 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
                     AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
                     AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
                     String oldConfigStr = JSONObject.toJSONString(config);
+                    System.out.println("id=" + id);
                     updateConfig(config);
                     String newConfigStr = JSONObject.toJSONString(config);
                     if (!Objects.equals(CombopOperationType.COMBOP.getValue(), autoexecCombopVo.getOperationType())) {
@@ -153,7 +154,7 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
                         phaseOperationVo.setOperationId(autoexecScriptVo.getId());
                         phaseOperationVo.setOperationName(autoexecScriptVo.getName());
                     }
-                } else if (Objects.equals(operationType, CombopOperationType.SCRIPT.getValue())) {
+                } else if (Objects.equals(operationType, CombopOperationType.TOOL.getValue())) {
                     AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(id);
                     if (autoexecToolVo != null) {
                         if (Objects.equals(id, operationId)) {
@@ -187,7 +188,7 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
                                 operationVo.setOperationId(autoexecScriptVo.getId());
                                 operationVo.setOperationName(autoexecScriptVo.getName());
                             }
-                        } else if (Objects.equals(operationType, CombopOperationType.SCRIPT.getValue())) {
+                        } else if (Objects.equals(operationType, CombopOperationType.TOOL.getValue())) {
                             AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(id);
                             if (autoexecToolVo != null) {
                                 if (Objects.equals(id, operationId)) {
@@ -222,7 +223,7 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
                                 operationVo.setOperationId(autoexecScriptVo.getId());
                                 operationVo.setOperationName(autoexecScriptVo.getName());
                             }
-                        } else if (Objects.equals(operationType, CombopOperationType.SCRIPT.getValue())) {
+                        } else if (Objects.equals(operationType, CombopOperationType.TOOL.getValue())) {
                             AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(id);
                             if (autoexecToolVo != null) {
                                 if (Objects.equals(id, operationId)) {
