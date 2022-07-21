@@ -143,15 +143,11 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
      * 1.每个阶段至少选择了一个工具
      * 2.引用上游出参或顶层参数，能找到来源（防止修改顶层参数或插件排序、或修改顶层参数带来的影响）
      *
-     * @param autoexecCombopVo 组合工具Vo对象
+     * @param config 组合工具Vo对象
      * @return
      */
     @Override
-    public boolean verifyAutoexecCombopConfig(AutoexecCombopVo autoexecCombopVo, boolean isExecuteJob) {
-        boolean isNeedExecuteUser = false;
-        boolean isNeedProtocol = false;
-        boolean isNeedExecuteNodeConfig = false;
-        AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
+    public boolean verifyAutoexecCombopConfig(AutoexecCombopConfigVo config, boolean isExecuteJob) {
         if (config == null) {
             throw new AutoexecCombopAtLeastOnePhaseException();
         }
@@ -159,8 +155,11 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         if (CollectionUtils.isEmpty(combopPhaseList)) {
             throw new AutoexecCombopAtLeastOnePhaseException();
         }
+        boolean isNeedExecuteUser = false;
+        boolean isNeedProtocol = false;
+        boolean isNeedExecuteNodeConfig = false;
         Map<String, AutoexecParamVo> runtimeParamMap = new HashMap<>();
-        List<AutoexecParamVo> autoexecParamVoList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(autoexecCombopVo.getId());
+        List<AutoexecParamVo> autoexecParamVoList = config.getRuntimeParamList();
         if (CollectionUtils.isNotEmpty(autoexecParamVoList)) {
             runtimeParamMap = autoexecParamVoList.stream().collect(Collectors.toMap(e -> e.getKey(), e -> e));
         }

@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.service;
 
 import codedriver.framework.autoexec.constvalue.CombopAuthorityAction;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
@@ -47,11 +48,11 @@ public interface AutoexecCombopService {
      * 1.每个阶段至少选择了一个工具
      * 2.引用上游出参或顶层参数，能找到来源（防止修改顶层参数或插件排序、或修改顶层参数带来的影响）
      *
-     * @param autoexecCombopVo 组合工具Vo对象
+     * @param autoexecCombopConfigVo 组合工具Vo对象配置信息
      * @param isExecuteJob     是否执行创建作业
      * @return 是否合法
      */
-    boolean verifyAutoexecCombopConfig(AutoexecCombopVo autoexecCombopVo, boolean isExecuteJob);
+    boolean verifyAutoexecCombopConfig(AutoexecCombopConfigVo autoexecCombopConfigVo, boolean isExecuteJob);
 
     /**
      * 通过操作id 获取当前激活版本脚本内容

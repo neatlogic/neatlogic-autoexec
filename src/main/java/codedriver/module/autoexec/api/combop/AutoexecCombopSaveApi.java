@@ -13,6 +13,7 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
+import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -149,8 +150,10 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             AutoexecCombopConfigVo oldConfigVo = oldAutoexecCombopVo.getConfig();
             /** 更新组合工具阶段列表数据时，需要保留执行目标的配置信息 **/
             config.setExecuteConfig(oldConfigVo.getExecuteConfig());
+            List<AutoexecParamVo> autoexecParamVoList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(autoexecCombopVo.getId());
+            config.setRuntimeParamList(autoexecParamVoList);
             /** 保存前，校验组合工具是否配置正确，不正确不可以保存 **/
-            autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo, false);
+            autoexecCombopService.verifyAutoexecCombopConfig(config, false);
 
             autoexecCombopService.deleteDependency(oldAutoexecCombopVo);
             autoexecCombopService.saveAutoexecCombopConfig(autoexecCombopVo, false);

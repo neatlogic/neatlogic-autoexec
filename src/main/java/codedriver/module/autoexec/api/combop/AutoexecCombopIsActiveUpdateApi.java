@@ -71,14 +71,15 @@ public class AutoexecCombopIsActiveUpdateApi extends PrivateApiComponentBase {
         if (isActive == null) {
             throw new AutoexecCombopNotFoundException(id);
         }
-        AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
+//        AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
+        AutoexecCombopVo autoexecCombopVo = autoexecCombopService.getAutoexecCombopById(id);
         autoexecCombopService.setOperableButtonList(autoexecCombopVo);
         if (Objects.equals(autoexecCombopVo.getEditable(), 0)) {
             throw new PermissionDeniedException();
         }
         /** 如果是激活组合工具，则需要校验该组合工具配置正确 **/
         if (isActive == 0) {
-            autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo, false);
+            autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo.getConfig(), false);
         }
         autoexecCombopVo.setLcu(UserContext.get().getUserUuid(true));
         autoexecCombopMapper.updateAutoexecCombopIsActiveById(autoexecCombopVo);
