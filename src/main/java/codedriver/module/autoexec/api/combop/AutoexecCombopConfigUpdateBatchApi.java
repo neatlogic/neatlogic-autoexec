@@ -153,7 +153,7 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
                         phaseOperationVo.setOperationId(autoexecScriptVo.getId());
                         phaseOperationVo.setOperationName(autoexecScriptVo.getName());
                     }
-                } else if (Objects.equals(operationType, CombopOperationType.SCRIPT.getValue())) {
+                } else if (Objects.equals(operationType, CombopOperationType.TOOL.getValue())) {
                     AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(id);
                     if (autoexecToolVo != null) {
                         if (Objects.equals(id, operationId)) {
@@ -187,7 +187,7 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
                                 operationVo.setOperationId(autoexecScriptVo.getId());
                                 operationVo.setOperationName(autoexecScriptVo.getName());
                             }
-                        } else if (Objects.equals(operationType, CombopOperationType.SCRIPT.getValue())) {
+                        } else if (Objects.equals(operationType, CombopOperationType.TOOL.getValue())) {
                             AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(id);
                             if (autoexecToolVo != null) {
                                 if (Objects.equals(id, operationId)) {
@@ -222,7 +222,7 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
                                 operationVo.setOperationId(autoexecScriptVo.getId());
                                 operationVo.setOperationName(autoexecScriptVo.getName());
                             }
-                        } else if (Objects.equals(operationType, CombopOperationType.SCRIPT.getValue())) {
+                        } else if (Objects.equals(operationType, CombopOperationType.TOOL.getValue())) {
                             AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(id);
                             if (autoexecToolVo != null) {
                                 if (Objects.equals(id, operationId)) {
