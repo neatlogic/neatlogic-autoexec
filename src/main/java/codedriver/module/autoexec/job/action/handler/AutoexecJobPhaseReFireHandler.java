@@ -64,7 +64,7 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
         jobPhaseVo.setStatus(JobPhaseStatus.RUNNING.getValue());
         autoexecJobMapper.updateJobPhaseStatus(jobPhaseVo);
         //如果是sqlfile类型的phase 需额外清除状态
-        if(Objects.equals(ExecMode.SQL.getValue(),jobPhaseVo.getExecMode())){
+        if (Objects.equals(ExecMode.SQL.getValue(), jobPhaseVo.getExecMode()) && Objects.equals(jobVo.getActionParam().getInteger("isAll"), 1)) {
             autoexecJobService.resetAutoexecJobSqlStatusByJobIdAndJobPhaseNameList(jobVo.getId(), Collections.singletonList(jobPhaseVo.getName()));
         }
         if (Objects.equals(jobVo.getAction(), JobAction.RESET_REFIRE.getValue())) {
@@ -72,10 +72,10 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
             autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(jobVo.getExecuteJobPhaseList().stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()), JobPhaseStatus.PENDING.getValue());
             autoexecJobService.refreshJobPhaseNodeList(jobVo.getId(), jobVo.getExecuteJobPhaseList());
         }
-        if(Objects.equals(jobVo.getAction(), JobAction.REFIRE.getValue())) {
-            List<AutoexecJobPhaseNodeVo> needResetNodeList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseIdAndExceptStatus(jobVo.getId(),jobPhaseVo.getId(), Arrays.asList(JobNodeStatus.IGNORED.getValue(),JobNodeStatus.SUCCEED.getValue()));
+        if (Objects.equals(jobVo.getAction(), JobAction.REFIRE.getValue())) {
+            List<AutoexecJobPhaseNodeVo> needResetNodeList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseIdAndExceptStatus(jobVo.getId(), jobPhaseVo.getId(), Arrays.asList(JobNodeStatus.IGNORED.getValue(), JobNodeStatus.SUCCEED.getValue()));
             autoexecJobMapper.updateJobPhaseNodeListStatus(needResetNodeList.stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()), JobNodeStatus.PENDING.getValue());
-            resetJobNodeStatus(jobVo,needResetNodeList);
+            resetJobNodeStatus(jobVo, needResetNodeList);
         }
         jobPhaseVo.setJobGroupVo(autoexecJobMapper.getJobGroupById(jobPhaseVo.getGroupId()));
         executeGroup(jobVo);
