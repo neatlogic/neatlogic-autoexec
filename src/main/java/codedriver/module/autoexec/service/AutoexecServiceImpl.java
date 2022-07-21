@@ -263,8 +263,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                     if (phaseOperationVo == null) {
                         continue;
                     }
-                    AutoexecOperationBaseVo autoexecOperationBaseVo = getAutoexecOperationBaseVoByIdAndType(phaseOperationVo.getOperationId(), phaseOperationVo.getOperationName(), phaseOperationVo.getOperationType());
-                    phaseOperationVo.setOperation(autoexecOperationBaseVo);
+                    getAutoexecOperationBaseVoByIdAndType(phaseOperationVo);
                     AutoexecCombopPhaseOperationConfigVo operationConfigVo = phaseOperationVo.getConfig();
                     if (operationConfigVo == null) {
                         continue;
@@ -284,8 +283,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                             if (operationVo == null) {
                                 continue;
                             }
-                            AutoexecOperationBaseVo operationBaseVo = getAutoexecOperationBaseVoByIdAndType(operationVo.getOperationId(), operationVo.getOperationName(), operationVo.getOperationType());
-                            operationVo.setOperation(operationBaseVo);
+                            getAutoexecOperationBaseVoByIdAndType(operationVo);
                             AutoexecCombopPhaseOperationConfigVo operationConfig = operationVo.getConfig();
                             if (operationConfig == null) {
                                 continue;
@@ -307,8 +305,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                             if (operationVo == null) {
                                 continue;
                             }
-                            AutoexecOperationBaseVo operationBaseVo = getAutoexecOperationBaseVoByIdAndType(operationVo.getOperationId(), operationVo.getOperationName(), operationVo.getOperationType());
-                            operationVo.setOperation(operationBaseVo);
+                            getAutoexecOperationBaseVoByIdAndType(operationVo);
                             AutoexecCombopPhaseOperationConfigVo operationConfig = operationVo.getConfig();
                             if (operationConfig == null) {
                                 continue;
@@ -330,9 +327,12 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
     }
 
     @Override
-    public AutoexecOperationBaseVo getAutoexecOperationBaseVoByIdAndType(Long id, String name, String type) {
+    public AutoexecOperationBaseVo getAutoexecOperationBaseVoByIdAndType(AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo) {
         AutoexecOperationBaseVo autoexecToolAndScriptVo = null;
         List<? extends AutoexecParamVo> autoexecParamVoList = new ArrayList<>();
+        Long id = autoexecCombopPhaseOperationVo.getOperationId();
+        String name = autoexecCombopPhaseOperationVo.getOperationName();
+        String type = autoexecCombopPhaseOperationVo.getOperationType();
         if (Objects.equals(type, CombopOperationType.SCRIPT.getValue())) {
             AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(id);
             if (autoexecScriptVo == null) {
@@ -397,6 +397,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
             autoexecToolAndScriptVo.setInputParamList(inputParamList);
             autoexecToolAndScriptVo.setOutputParamList(outputParamList);
             autoexecToolAndScriptVo.setRiskVo(riskVo);
+            autoexecCombopPhaseOperationVo.setOperation(autoexecToolAndScriptVo);
         }
         return autoexecToolAndScriptVo;
     }

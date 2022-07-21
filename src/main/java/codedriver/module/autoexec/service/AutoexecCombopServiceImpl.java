@@ -263,11 +263,9 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             Map<String, AutoexecParamVo> preNodeOutputParamMap,
             Map<String, AutoexecParamVo> runtimeParamMap,
             Map<String, String> preNodeNameMap) {
-        Long operationId = autoexecCombopPhaseOperationVo.getOperationId();
         String operationUuid = autoexecCombopPhaseOperationVo.getUuid();
         String operationName = autoexecCombopPhaseOperationVo.getOperationName();
-        String operationType = autoexecCombopPhaseOperationVo.getOperationType();
-        AutoexecOperationBaseVo autoexecOperationBaseVo = autoexecService.getAutoexecOperationBaseVoByIdAndType(operationId, operationName, operationType);
+        AutoexecOperationBaseVo autoexecOperationBaseVo = autoexecService.getAutoexecOperationBaseVoByIdAndType(autoexecCombopPhaseOperationVo);
         Map<String, AutoexecParamVo> inputParamMap = new HashMap<>();
         Map<String, String> inputParamNameMap = new HashMap<>();
         List<AutoexecParamVo> inputParamList = autoexecOperationBaseVo.getInputParamList();
