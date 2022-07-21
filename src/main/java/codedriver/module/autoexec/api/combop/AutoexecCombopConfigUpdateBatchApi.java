@@ -91,7 +91,6 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
                     AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
                     AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
                     String oldConfigStr = JSONObject.toJSONString(config);
-                    System.out.println("id=" + id);
                     updateConfig(config);
                     String newConfigStr = JSONObject.toJSONString(config);
                     if (!Objects.equals(CombopOperationType.COMBOP.getValue(), autoexecCombopVo.getOperationType())) {
