@@ -72,15 +72,15 @@ public class AutoexecCombopDeleteApi extends PrivateApiComponentBase {
             if (Objects.equals(autoexecCombopVo.getDeletable(), 0)) {
                 throw new PermissionDeniedException();
             }
-            List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
+//            List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
             autoexecCombopMapper.deleteAutoexecCombopById(id);
             autoexecCombopMapper.deleteAutoexecCombopAuthorityByCombopId(id);
             autoexecCombopMapper.deleteAutoexecCombopParamByCombopId(id);
             DependencyManager.delete(MatrixAutoexecCombopParamDependencyHandler.class, id);
-            if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
-                autoexecCombopMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
-            }
-            autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
+//            if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
+//                autoexecCombopMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
+//            }
+//            autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
             autoexecCombopService.deleteDependency(autoexecCombopVo);
         }
         return null;

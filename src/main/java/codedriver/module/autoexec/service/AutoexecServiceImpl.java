@@ -10,17 +10,18 @@ import codedriver.framework.autoexec.crossover.IAutoexecServiceCrossoverService;
 import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
-import codedriver.framework.autoexec.dto.AutoexecOperationVo;
-import codedriver.framework.autoexec.dto.AutoexecParamVo;
-import codedriver.framework.autoexec.dto.AutoexecRiskVo;
-import codedriver.framework.autoexec.dto.AutoexecToolVo;
+import codedriver.framework.autoexec.dto.*;
 import codedriver.framework.autoexec.dto.combop.*;
+import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import codedriver.framework.autoexec.dto.scenario.AutoexecScenarioVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.exception.AutoexecParamMappingNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecScriptVersionHasNoActivedException;
+import codedriver.framework.autoexec.exception.AutoexecToolNotFoundException;
 import codedriver.framework.autoexec.script.paramtype.IScriptParamType;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import codedriver.framework.exception.type.*;
@@ -56,6 +57,8 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
     AutoexecScenarioMapper autoexecScenarioMapper;
     @Resource
     AutoexecProfileMapper autoexecProfileMapper;
+    @Resource
+    AutoexecProfileService autoexecProfileService;
 
     static Pattern paramKeyPattern = Pattern.compile("^[A-Za-z_\\d]+$");
 
@@ -248,87 +251,156 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
         if (CollectionUtils.isNotEmpty(combopPhaseList)) {
             for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseList) {
                 AutoexecCombopPhaseConfigVo phaseConfigVo = combopPhaseVo.getConfig();
-                if (phaseConfigVo != null) {
-                    List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfigVo.getPhaseOperationList();
-                    if (CollectionUtils.isNotEmpty(phaseOperationList)) {
-                        for (AutoexecCombopPhaseOperationVo phaseOperationVo : phaseOperationList) {
-                            AutoexecParamVo argumentParam = null;
-                            AutoexecOperationVo autoexecToolAndScriptVo = null;
-                            List<? extends AutoexecParamVo> autoexecParamVoList = new ArrayList<>();
-                            if (Objects.equals(phaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
-                                AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(phaseOperationVo.getId());
-                                if (autoexecScriptVo != null) {
-                                    autoexecToolAndScriptVo = new AutoexecOperationVo(autoexecScriptVo);
-                                    autoexecParamVoList = autoexecScriptMapper.getParamListByScriptId(phaseOperationVo.getId());
-                                    AutoexecScriptVersionVo autoexecScriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(phaseOperationVo.getId());
-                                    if (autoexecScriptVersionVo != null) {
-                                        argumentParam = autoexecScriptMapper.getArgumentByVersionId(autoexecScriptVersionVo.getId());
-                                    }
-                                }
-                            } else if (Objects.equals(phaseOperationVo.getOperationType(), CombopOperationType.TOOL.getValue())) {
-                                AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(phaseOperationVo.getId());
-                                if (autoexecToolVo != null) {
-                                    autoexecToolAndScriptVo = new AutoexecOperationVo(autoexecToolVo);
-                                    JSONObject toolConfig = autoexecToolVo.getConfig();
-                                    if (MapUtils.isNotEmpty(toolConfig)) {
-                                        JSONArray paramArray = toolConfig.getJSONArray("paramList");
-                                        if (CollectionUtils.isNotEmpty(paramArray)) {
-                                            autoexecParamVoList = paramArray.toJavaList(AutoexecParamVo.class);
-                                        }
-                                        JSONObject argumentJson = toolConfig.getJSONObject("argument");
-                                        if (MapUtils.isNotEmpty(argumentJson)) {
-                                            argumentParam = JSONObject.toJavaObject(argumentJson, AutoexecParamVo.class);
-                                        }
-                                    }
+                combopPhaseVo.setExecModeName(ExecMode.getText(combopPhaseVo.getExecMode()));
+                if (phaseConfigVo == null) {
+                    continue;
+                }
+                List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfigVo.getPhaseOperationList();
+                if (CollectionUtils.isEmpty(phaseOperationList)) {
+                    continue;
+                }
+                for (AutoexecCombopPhaseOperationVo phaseOperationVo : phaseOperationList) {
+                    if (phaseOperationVo == null) {
+                        continue;
+                    }
+                    getAutoexecOperationBaseVoByIdAndType(phaseOperationVo);
+                    AutoexecCombopPhaseOperationConfigVo operationConfigVo = phaseOperationVo.getConfig();
+                    if (operationConfigVo == null) {
+                        continue;
+                    }
+                    Long profileId = operationConfigVo.getProfileId();
+                    if (profileId != null) {
+                        AutoexecProfileVo autoexecProfileVo = autoexecProfileMapper.getProfileVoById(profileId);
+                        if (autoexecProfileVo != null) {
+                            operationConfigVo.setProfileName(autoexecProfileVo.getName());
+                            List<AutoexecProfileParamVo> profileParamList = autoexecProfileService.getProfileParamListById(profileId);
+                            operationConfigVo.setProfileParamList(profileParamList);
+                        }
+                    }
+                    List<AutoexecCombopPhaseOperationVo> ifList = operationConfigVo.getIfList();
+                    if (CollectionUtils.isNotEmpty(ifList)) {
+                        for (AutoexecCombopPhaseOperationVo operationVo : ifList) {
+                            if (operationVo == null) {
+                                continue;
+                            }
+                            getAutoexecOperationBaseVoByIdAndType(operationVo);
+                            AutoexecCombopPhaseOperationConfigVo operationConfig = operationVo.getConfig();
+                            if (operationConfig == null) {
+                                continue;
+                            }
+                            Long operationConfigProfileId = operationConfig.getProfileId();
+                            if (operationConfigProfileId != null) {
+                                AutoexecProfileVo autoexecProfileVo = autoexecProfileMapper.getProfileVoById(operationConfigProfileId);
+                                if (autoexecProfileVo != null) {
+                                    operationConfig.setProfileName(autoexecProfileVo.getName());
+                                    List<AutoexecProfileParamVo> profileParamList = autoexecProfileService.getProfileParamListById(operationConfigProfileId);
+                                    operationConfig.setProfileParamList(profileParamList);
                                 }
                             }
-                            if (autoexecToolAndScriptVo != null) {
-                                phaseOperationVo.setId(autoexecToolAndScriptVo.getId());
-                                phaseOperationVo.setUk(autoexecToolAndScriptVo.getUk());
-                                phaseOperationVo.setName(autoexecToolAndScriptVo.getName());
-                                phaseOperationVo.setType(CombopOperationType.SCRIPT.getValue());
-                                phaseOperationVo.setExecMode(autoexecToolAndScriptVo.getExecMode());
-                                phaseOperationVo.setTypeId(autoexecToolAndScriptVo.getTypeId());
-                                phaseOperationVo.setTypeName(autoexecToolAndScriptVo.getTypeName());
-                                phaseOperationVo.setRiskId(autoexecToolAndScriptVo.getRiskId());
-                                AutoexecRiskVo riskVo = autoexecRiskMapper.getAutoexecRiskById(autoexecToolAndScriptVo.getRiskId());
-                                phaseOperationVo.setRiskVo(riskVo);
-
-                                List<AutoexecParamVo> inputParamList = new ArrayList<>();
-                                List<AutoexecParamVo> outputParamList = new ArrayList<>();
-                                if (CollectionUtils.isNotEmpty(autoexecParamVoList)) {
-                                    for (AutoexecParamVo paramVo : autoexecParamVoList) {
-                                        mergeConfig(paramVo);
-                                        String mode = paramVo.getMode();
-                                        if (Objects.equals(mode, ParamMode.INPUT.getValue())) {
-                                            inputParamList.add(paramVo);
-                                        } else if (Objects.equals(mode, ParamMode.OUTPUT.getValue())) {
-                                            outputParamList.add(paramVo);
-                                        }
-                                    }
-                                }
-                                phaseOperationVo.setInputParamList(inputParamList);
-                                phaseOperationVo.setOutputParamList(outputParamList);
-                                phaseOperationVo.setArgument(argumentParam);
+                        }
+                    }
+                    List<AutoexecCombopPhaseOperationVo> elseList = operationConfigVo.getElseList();
+                    if (CollectionUtils.isNotEmpty(elseList)) {
+                        for (AutoexecCombopPhaseOperationVo operationVo : elseList) {
+                            if (operationVo == null) {
+                                continue;
                             }
-                            AutoexecCombopPhaseOperationConfigVo operationConfigVo = phaseOperationVo.getConfig();
-                            if (operationConfigVo != null) {
-                                Long profileId = operationConfigVo.getProfileId();
-                                if (profileId != null) {
-                                    AutoexecProfileVo autoexecProfileVo = autoexecProfileMapper.getProfileVoById(profileId);
-                                    if (autoexecProfileVo != null) {
-                                        operationConfigVo.setProfileName(autoexecProfileVo.getName());
-                                    }
+                            getAutoexecOperationBaseVoByIdAndType(operationVo);
+                            AutoexecCombopPhaseOperationConfigVo operationConfig = operationVo.getConfig();
+                            if (operationConfig == null) {
+                                continue;
+                            }
+                            Long operationConfigProfileId = operationConfig.getProfileId();
+                            if (operationConfigProfileId != null) {
+                                AutoexecProfileVo autoexecProfileVo = autoexecProfileMapper.getProfileVoById(operationConfigProfileId);
+                                if (autoexecProfileVo != null) {
+                                    operationConfig.setProfileName(autoexecProfileVo.getName());
+                                    List<AutoexecProfileParamVo> profileParamList = autoexecProfileService.getProfileParamListById(operationConfigProfileId);
+                                    operationConfig.setProfileParamList(profileParamList);
                                 }
                             }
                         }
                     }
                 }
-                combopPhaseVo.setExecModeName(ExecMode.getText(combopPhaseVo.getExecMode()));
             }
         }
     }
 
+    @Override
+    public AutoexecOperationBaseVo getAutoexecOperationBaseVoByIdAndType(AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo) {
+        AutoexecOperationBaseVo autoexecToolAndScriptVo = null;
+        List<? extends AutoexecParamVo> autoexecParamVoList = new ArrayList<>();
+        Long id = autoexecCombopPhaseOperationVo.getOperationId();
+        String name = autoexecCombopPhaseOperationVo.getOperationName();
+        String type = autoexecCombopPhaseOperationVo.getOperationType();
+        if (Objects.equals(type, CombopOperationType.SCRIPT.getValue())) {
+            AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(id);
+            if (autoexecScriptVo == null) {
+                if (StringUtils.isNotBlank(name)) {
+                    throw new AutoexecScriptNotFoundException(name);
+                } else {
+                    throw new AutoexecScriptNotFoundException(id);
+                }
+            }
+            AutoexecScriptVersionVo autoexecScriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(id);
+            if (autoexecScriptVersionVo == null) {
+                throw new AutoexecScriptVersionHasNoActivedException(autoexecScriptVo.getName());
+            }
+            autoexecParamVoList = autoexecScriptMapper.getParamListByScriptId(id);
+            AutoexecParamVo argumentParam = autoexecScriptMapper.getArgumentByVersionId(autoexecScriptVersionVo.getId());
+            autoexecToolAndScriptVo = new AutoexecOperationVo(autoexecScriptVo);
+            autoexecToolAndScriptVo.setArgument(argumentParam);
+        } else if (Objects.equals(type, CombopOperationType.TOOL.getValue())) {
+            AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(id);
+            if (autoexecToolVo == null) {
+                if (StringUtils.isNotBlank(name)) {
+                    autoexecToolVo = autoexecToolMapper.getToolByName(name);
+                }
+                if (autoexecToolVo == null) {
+                    if (StringUtils.isNotBlank(name)) {
+                        throw new AutoexecToolNotFoundException(name);
+                    } else {
+                        throw new AutoexecToolNotFoundException(id);
+                    }
+                }
+            }
+            autoexecToolAndScriptVo = new AutoexecOperationVo(autoexecToolVo);
+            JSONObject toolConfig = autoexecToolVo.getConfig();
+            if (MapUtils.isNotEmpty(toolConfig)) {
+                JSONArray paramArray = toolConfig.getJSONArray("paramList");
+                if (CollectionUtils.isNotEmpty(paramArray)) {
+                    autoexecParamVoList = paramArray.toJavaList(AutoexecParamVo.class);
+                }
+                JSONObject argumentJson = toolConfig.getJSONObject("argument");
+                if (MapUtils.isNotEmpty(argumentJson)) {
+                    AutoexecParamVo argumentParam = JSONObject.toJavaObject(argumentJson, AutoexecParamVo.class);
+                    autoexecToolAndScriptVo.setArgument(argumentParam);
+                }
+            }
+        }
+        if (autoexecToolAndScriptVo != null) {
+            AutoexecRiskVo riskVo = autoexecRiskMapper.getAutoexecRiskById(autoexecToolAndScriptVo.getRiskId());
+
+            List<AutoexecParamVo> inputParamList = new ArrayList<>();
+            List<AutoexecParamVo> outputParamList = new ArrayList<>();
+            if (CollectionUtils.isNotEmpty(autoexecParamVoList)) {
+                for (AutoexecParamVo paramVo : autoexecParamVoList) {
+                    mergeConfig(paramVo);
+                    String mode = paramVo.getMode();
+                    if (Objects.equals(mode, ParamMode.INPUT.getValue())) {
+                        inputParamList.add(paramVo);
+                    } else if (Objects.equals(mode, ParamMode.OUTPUT.getValue())) {
+                        outputParamList.add(paramVo);
+                    }
+                }
+            }
+            autoexecToolAndScriptVo.setInputParamList(inputParamList);
+            autoexecToolAndScriptVo.setOutputParamList(outputParamList);
+            autoexecToolAndScriptVo.setRiskVo(riskVo);
+            autoexecCombopPhaseOperationVo.setOperation(autoexecToolAndScriptVo);
+        }
+        return autoexecToolAndScriptVo;
+    }
     @Override
     public List<AutoexecParamVo> getAutoexecOperationParamVoList(List<AutoexecOperationVo> paramAutoexecOperationVoList) {
         List<Long> toolIdList = paramAutoexecOperationVoList.stream().filter(e -> StringUtils.equals(ToolType.TOOL.getValue(), e.getType())).map(AutoexecOperationVo::getId).collect(Collectors.toList());

@@ -12,7 +12,11 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.autoexec.constvalue.ScriptAndToolOperate;
+import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
+import codedriver.framework.dependency.core.DependencyManager;
+import codedriver.framework.dependency.dto.DependencyInfoVo;
 import codedriver.framework.dto.OperateVo;
 import codedriver.framework.autoexec.exception.AutoexecToolNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -20,7 +24,10 @@ import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
+import codedriver.module.autoexec.dependency.AutoexecTool2CombopPhaseOperationDependencyHandler;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -35,6 +42,9 @@ public class AutoexecToolGetApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecToolMapper autoexecToolMapper;
+
+    @Resource
+    private AutoexecCombopMapper autoexecCombopMapper;
 
     @Override
     public String getToken() {
@@ -65,7 +75,22 @@ public class AutoexecToolGetApi extends PrivateApiComponentBase {
         if (tool == null) {
             throw new AutoexecToolNotFoundException(id);
         }
-        tool.setCombopList(autoexecToolMapper.getReferenceListByToolId(id));
+        List<Long> combopIdList = new ArrayList<>();
+        List<DependencyInfoVo> dependencyInfoList = DependencyManager.getDependencyList(AutoexecTool2CombopPhaseOperationDependencyHandler.class, id);
+        for (DependencyInfoVo dependencyInfoVo : dependencyInfoList) {
+            JSONObject config = dependencyInfoVo.getConfig();
+            if (MapUtils.isNotEmpty(config)) {
+                Long combopId = config.getLong("combopId");
+                if (combopId != null) {
+                    combopIdList.add(combopId);
+                }
+            }
+        }
+        if (CollectionUtils.isNotEmpty(combopIdList)) {
+            List<AutoexecCombopVo> combopList = autoexecCombopMapper.getAutoexecCombopByIdList(combopIdList);
+            tool.setCombopList(combopList);
+        }
+//        tool.setCombopList(autoexecToolMapper.getReferenceListByToolId(id));
         List<OperateVo> operateList = new ArrayList<>();
         tool.setOperateList(operateList);
         OperateVo test = new OperateVo(ScriptAndToolOperate.TEST.getValue(), ScriptAndToolOperate.TEST.getText());

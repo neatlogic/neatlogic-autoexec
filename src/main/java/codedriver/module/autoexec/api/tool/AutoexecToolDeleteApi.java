@@ -7,14 +7,18 @@ package codedriver.module.autoexec.api.tool;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
+import codedriver.framework.autoexec.constvalue.AutoexecFromType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.common.dto.BasePageVo;
+import codedriver.framework.dependency.core.DependencyManager;
+import codedriver.framework.dependency.dto.DependencyInfoVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -59,13 +63,21 @@ public class AutoexecToolDeleteApi extends PrivateApiComponentBase {
         List<AutoexecToolVo> toolList = autoexecToolMapper.getToolByNameList(nameList);
         List<Long> canDeleteToolIdList = new ArrayList<>();
         Map<String, String> canNotDeleteTool = new HashMap<>();
+        BasePageVo basePageVo = new BasePageVo();
+        basePageVo.setPageSize(100);
         for (AutoexecToolVo toolVo : toolList) {
-            List<AutoexecCombopVo> referenceList = autoexecToolMapper.getReferenceListByToolId(toolVo.getId());
-            if (referenceList.size() > 0) {
-                canNotDeleteTool.put(toolVo.getName(), referenceList.stream().map(AutoexecCombopVo::getName).collect(Collectors.joining("、")));
+            List<DependencyInfoVo> dependencyInfoList = DependencyManager.getDependencyList(AutoexecFromType.TOOL, toolVo.getId(), basePageVo);
+            if (CollectionUtils.isNotEmpty(dependencyInfoList)) {
+                canNotDeleteTool.put(toolVo.getName(), dependencyInfoList.stream().map(DependencyInfoVo::getPath).collect(Collectors.joining("、")));
             } else {
                 canDeleteToolIdList.add(toolVo.getId());
             }
+//            List<AutoexecCombopVo> referenceList = autoexecToolMapper.getReferenceListByToolId(toolVo.getId());
+//            if (referenceList.size() > 0) {
+//                canNotDeleteTool.put(toolVo.getName(), referenceList.stream().map(AutoexecCombopVo::getName).collect(Collectors.joining("、")));
+//            } else {
+//                canDeleteToolIdList.add(toolVo.getId());
+//            }
         }
         if (canDeleteToolIdList.size() > 0) {
             autoexecToolMapper.deleteToolByIdList(canDeleteToolIdList);

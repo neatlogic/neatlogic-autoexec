@@ -15,9 +15,7 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
-import codedriver.framework.autoexec.dto.AutoexecJobSourceVo;
-import codedriver.framework.autoexec.dto.AutoexecOperationVo;
-import codedriver.framework.autoexec.dto.AutoexecToolVo;
+import codedriver.framework.autoexec.dto.*;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
@@ -69,6 +67,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     AutoexecToolMapper autoexecToolMapper;
     @Resource
     private AutoexecCombopService autoexecCombopService;
+    @Resource
+    private AutoexecService autoexecService;
     @Resource
     AutoexecCombopMapper autoexecCombopMapper;
     @Resource
@@ -195,7 +195,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         jobPhaseVo.setOperationList(jobPhaseOperationVoList);
         for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : combopPhaseOperationList) {
             String operationType = autoexecCombopPhaseOperationVo.getOperationType();
-            Long id = autoexecCombopPhaseOperationVo.getId();
+            Long id = autoexecCombopPhaseOperationVo.getOperationId();
+            autoexecService.getAutoexecOperationBaseVoByIdAndType(autoexecCombopPhaseOperationVo);
             AutoexecJobPhaseOperationVo jobPhaseOperationVo = null;
             if (CombopOperationType.SCRIPT.getValue().equalsIgnoreCase(operationType)) {
                 AutoexecScriptVo scriptVo;
@@ -347,7 +348,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             throw new AutoexecJobPhaseOperationMustBeCombopException();
         }
         //补充运行参数真实的值
-        List<AutoexecCombopParamVo> paramList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(jobVo.getOperationId());
+        List<AutoexecParamVo> paramList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(jobVo.getOperationId());
         JSONArray combopParamsResult = new JSONArray();
         if (MapUtils.isNotEmpty(paramJson)) {
             JSONArray combopParams = JSONArray.parseArray(JSONArray.toJSONString(paramList));

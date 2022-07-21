@@ -7,6 +7,7 @@ package codedriver.module.autoexec.dependency;
 
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.autoexec.constvalue.AutoexecFromType;
+import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.dependency.core.FixedTableDependencyHandlerBase;
@@ -22,11 +23,9 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-/**
- * 组合工具阶段操作引用预置参数集处理器
- */
+
 @Component
-public class AutoexecProfile2CombopPhaseOperationDependencyHandler extends FixedTableDependencyHandlerBase {
+public class AutoexecTool2CombopPhaseOperationDependencyHandler extends FixedTableDependencyHandlerBase {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
@@ -74,11 +73,10 @@ public class AutoexecProfile2CombopPhaseOperationDependencyHandler extends Fixed
                 if (!Objects.equals(phaseOperationVo.getId(), id)) {
                     continue;
                 }
-                AutoexecCombopPhaseOperationConfigVo operationConfigVo = phaseOperationVo.getConfig();
-                if (operationConfigVo == null) {
+                if (!Objects.equals(phaseOperationVo.getOperationType(), CombopOperationType.TOOL.getValue())) {
                     return null;
                 }
-                if (!Objects.equals(operationConfigVo.getProfileId().toString(), dependencyVo.getFrom())) {
+                if (!Objects.equals(phaseOperationVo.getOperationId().toString(), dependencyVo.getFrom())) {
                     return null;
                 }
                 String operationName = phaseOperationVo.getOperationName();
@@ -99,6 +97,6 @@ public class AutoexecProfile2CombopPhaseOperationDependencyHandler extends Fixed
 
     @Override
     public IFromType getFromType() {
-        return AutoexecFromType.PROFILE;
+        return AutoexecFromType.TOOL;
     }
 }

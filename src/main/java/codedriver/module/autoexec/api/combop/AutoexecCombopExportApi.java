@@ -8,6 +8,7 @@ package codedriver.module.autoexec.api.combop;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
+import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecTypeVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
@@ -103,7 +104,7 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
         List<AutoexecCombopVo> autoexecCombopVoList = new ArrayList<>();
         for (Long id : existIdList) {
             AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
-            List<AutoexecCombopParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
+            List<AutoexecParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
             autoexecCombopVo.setRuntimeParamList(runtimeParamList);
             typeIdSet.add(autoexecCombopVo.getTypeId());
             Long notifyPolicyId = autoexecCombopVo.getNotifyPolicyId();

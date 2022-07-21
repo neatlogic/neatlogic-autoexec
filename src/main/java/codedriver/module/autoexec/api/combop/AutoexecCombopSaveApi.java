@@ -13,6 +13,7 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
+import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -32,7 +33,6 @@ import codedriver.framework.util.RegexUtils;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -83,7 +83,6 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "id", type = ApiParamType.LONG, desc = "主键id"),
-//            @Param(name = "uk", type = ApiParamType.STRING, isRequired = true, minLength = 1, maxLength = 70, desc = "唯一名"),
             @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, isRequired = true, minLength = 1, maxLength = 70, desc = "显示名"),
             @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
             @Param(name = "typeId", type = ApiParamType.LONG, isRequired = true, desc = "类型id"),
@@ -102,9 +101,6 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
         if (autoexecCombopMapper.checkAutoexecCombopNameIsRepeat(autoexecCombopVo) != null) {
             throw new AutoexecCombopNameRepeatException(autoexecCombopVo.getName());
         }
-//        if (autoexecCombopMapper.checkAutoexecCombopUkIsRepeat(autoexecCombopVo) != null) {
-//            throw new AutoexecCombopUkRepeatException(autoexecCombopVo.getUk());
-//        }
         if (autoexecTypeMapper.checkTypeIsExistsById(autoexecCombopVo.getTypeId()) == 0) {
             throw new AutoexecTypeNotFoundException(autoexecCombopVo.getTypeId());
         }
@@ -154,18 +150,14 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             AutoexecCombopConfigVo oldConfigVo = oldAutoexecCombopVo.getConfig();
             /** 更新组合工具阶段列表数据时，需要保留执行目标的配置信息 **/
             config.setExecuteConfig(oldConfigVo.getExecuteConfig());
+            List<AutoexecParamVo> autoexecParamVoList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(autoexecCombopVo.getId());
+            config.setRuntimeParamList(autoexecParamVoList);
             /** 保存前，校验组合工具是否配置正确，不正确不可以保存 **/
-            autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo, false);
+            autoexecCombopService.verifyAutoexecCombopConfig(config, false);
 
-            List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
-
-            if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
-                autoexecCombopMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
-            }
-            autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
-            autoexecCombopMapper.deleteAutoexecCombopGroupByCombopId(id);
             autoexecCombopService.deleteDependency(oldAutoexecCombopVo);
             autoexecCombopService.saveAutoexecCombopConfig(autoexecCombopVo, false);
+            autoexecCombopVo.setConfigStr(null);
             autoexecCombopMapper.updateAutoexecCombopById(autoexecCombopVo);
             autoexecCombopService.saveDependency(autoexecCombopVo);
         }
@@ -183,13 +175,4 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
         };
     }
 
-//    public IValid uk() {
-//        return jsonObj -> {
-//            AutoexecCombopVo autoexecCombopVo = JSON.toJavaObject(jsonObj, AutoexecCombopVo.class);
-//            if (autoexecCombopMapper.checkAutoexecCombopUkIsRepeat(autoexecCombopVo) != null) {
-//                return new FieldValidResultVo(new AutoexecCombopUkRepeatException(autoexecCombopVo.getUk()));
-//            }
-//            return new FieldValidResultVo();
-//        };
-//    }
 }
