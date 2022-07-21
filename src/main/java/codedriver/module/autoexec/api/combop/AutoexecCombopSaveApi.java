@@ -32,7 +32,6 @@ import codedriver.framework.util.RegexUtils;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -153,15 +152,9 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             /** 保存前，校验组合工具是否配置正确，不正确不可以保存 **/
             autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo, false);
 
-//            List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
-
-//            if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
-//                autoexecCombopMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
-//            }
-//            autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
-//            autoexecCombopMapper.deleteAutoexecCombopGroupByCombopId(id);
             autoexecCombopService.deleteDependency(oldAutoexecCombopVo);
             autoexecCombopService.saveAutoexecCombopConfig(autoexecCombopVo, false);
+            autoexecCombopVo.setConfigStr(null);
             autoexecCombopMapper.updateAutoexecCombopById(autoexecCombopVo);
             autoexecCombopService.saveDependency(autoexecCombopVo);
         }

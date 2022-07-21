@@ -104,6 +104,7 @@ public class AutoexecCombopCopyApi extends PrivateApiComponentBase {
         autoexecCombopVo.setDescription(jsonObj.getString("description"));
         autoexecCombopService.saveAutoexecCombopConfig(autoexecCombopVo, true);
         Long combopId = autoexecCombopVo.getId();
+        autoexecCombopVo.setConfigStr(null);
         autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
         autoexecCombopService.saveDependency(autoexecCombopVo);
 

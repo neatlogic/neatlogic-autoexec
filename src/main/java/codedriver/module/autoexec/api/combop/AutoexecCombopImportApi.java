@@ -189,27 +189,17 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         }
         String userUuid = UserContext.get().getUserUuid(true);
         autoexecCombopVo.setFcu(userUuid);
-//        List<AutoexecCombopPhaseVo> combopPhaseList2 = new ArrayList<>();
-//        List<AutoexecCombopPhaseOperationVo> phaseOperationList2 = new ArrayList<>();
         AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
-//        int iSort = 0;
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
         if (CollectionUtils.isNotEmpty(combopPhaseList)) {
             for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
                 if (autoexecCombopPhaseVo != null) {
                     autoexecCombopPhaseVo.setId(null);
-//                    autoexecCombopPhaseVo.setCombopId(id);
-//                    autoexecCombopPhaseVo.setSort(iSort++);
                     AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
                     List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
                     if (CollectionUtils.isNotEmpty(phaseOperationList)) {
-                        Long combopPhaseId = autoexecCombopPhaseVo.getId();
-                        int jSort = 0;
                         for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
                             if (autoexecCombopPhaseOperationVo != null) {
-//                                autoexecCombopPhaseOperationVo.setSort(jSort++);
-//                                autoexecCombopPhaseOperationVo.setCombopPhaseId(combopPhaseId);
-//                                phaseOperationList2.add(autoexecCombopPhaseOperationVo);
                                 if (Objects.equals(autoexecCombopPhaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
                                     AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoByName(autoexecCombopPhaseOperationVo.getOperationName());
                                     if (autoexecScriptVo == null) {
@@ -234,19 +224,14 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                             }
                         }
                     }
-//                    combopPhaseList2.add(autoexecCombopPhaseVo);
                 }
             }
         }
         if (CollectionUtils.isEmpty(failureReasonSet)) {
+            autoexecCombopVo.setConfigStr(null);
             if (oldAutoexecCombopVo == null) {
                 autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
             } else {
-//                List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
-//                if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
-//                    autoexecCombopMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
-//                }
-//                autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
                 autoexecCombopMapper.deleteAutoexecCombopParamByCombopId(id);
                 autoexecCombopMapper.updateAutoexecCombopById(autoexecCombopVo);
             }
@@ -260,12 +245,6 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                 }
                 autoexecCombopMapper.insertAutoexecCombopParamVoList(autoexecCombopParamList);
             }
-//            for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList2) {
-//                autoexecCombopMapper.insertAutoexecCombopPhase(autoexecCombopPhaseVo);
-//            }
-//            for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList2) {
-//                autoexecCombopMapper.insertAutoexecCombopPhaseOperation(autoexecCombopPhaseOperationVo);
-//            }
             return null;
         } else {
             JSONObject resultObj = new JSONObject();
