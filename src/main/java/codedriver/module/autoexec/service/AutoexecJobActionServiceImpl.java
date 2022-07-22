@@ -158,6 +158,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                         for (AutoexecJobPhaseVo jobPhase : groupJobPhaseList) {
                             add(new JSONObject() {{
                                 put("phaseName", jobPhase.getName());
+                                put("phaseType", jobPhase.getExecMode());
                                 put("execRound", jobPhase.getExecutePolicy());
                                 put("operations", getOperationFireParam(jobPhase.getOperationList()));
                             }});
