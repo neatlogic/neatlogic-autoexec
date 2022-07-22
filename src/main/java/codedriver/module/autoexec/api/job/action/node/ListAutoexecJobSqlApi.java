@@ -61,6 +61,7 @@ public class ListAutoexecJobSqlApi extends PrivateApiComponentBase {
             @Param(name = "moduleId", type = ApiParamType.LONG, desc = "模块id"),
             @Param(name = "envId", type = ApiParamType.LONG, desc = "环境id"),
             @Param(name = "version", type = ApiParamType.STRING, desc = "版本"),
+            @Param(name = "sqlFiles", type = ApiParamType.JSONARRAY, desc = "sql文件列表"),
             @Param(name = "operType", type = ApiParamType.ENUM, rule = "auto,deploy", isRequired = true, desc = "来源类型")
     })
     @Output({
@@ -73,7 +74,7 @@ public class ListAutoexecJobSqlApi extends PrivateApiComponentBase {
             String phaseName = paramObj.getString("phaseName");
 
             if (Objects.nonNull(jobId) && StringUtils.isNotEmpty(phaseName)) {
-                List<AutoexecSqlDetailVo> returnSqlList = autoexecJobMapper.getJobSqlDetailListByJobIdAndPhaseName(jobId, phaseName);
+                List<AutoexecSqlDetailVo> returnSqlList = autoexecJobMapper.getJobSqlDetailListByJobIdAndPhaseName(jobId, phaseName, paramObj.getJSONArray("sqlFiles"));
                 //补充访问地址信息
                 if (CollectionUtils.isNotEmpty(returnSqlList)) {
                     ICiEntityCrossoverMapper ciEntityCrossoverMapper = CrossoverServiceFactory.getApi(ICiEntityCrossoverMapper.class);
@@ -114,6 +115,7 @@ public class ListAutoexecJobSqlApi extends PrivateApiComponentBase {
 
     /**
      * 查询服务地址
+     *
      * @param ciEntityVo 配置项
      * @return 服务地址值
      */
