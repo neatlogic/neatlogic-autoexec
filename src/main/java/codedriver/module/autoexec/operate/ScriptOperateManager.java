@@ -8,8 +8,10 @@ package codedriver.module.autoexec.operate;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.*;
+import codedriver.framework.autoexec.constvalue.AutoexecFromType;
 import codedriver.framework.autoexec.constvalue.ScriptAndToolOperate;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
+import codedriver.framework.dependency.core.DependencyManager;
 import codedriver.framework.dto.OperateVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
@@ -46,7 +48,8 @@ public class ScriptOperateManager {
             if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())) {
                 vo.setDisabled(1);
                 vo.setDisabledReason("无权限，请联系管理员");
-            } else if (autoexecScriptMapper.getReferenceCountByScriptId(id) > 0) {
+//            } else if (autoexecScriptMapper.getReferenceCountByScriptId(id) > 0) {
+            } else if (DependencyManager.getDependencyCount(AutoexecFromType.SCRIPT, id) > 0) {
                 vo.setDisabled(1);
                 vo.setDisabledReason("当前自定义工具已被组合工具引用，无法删除");
             }
@@ -236,20 +239,20 @@ public class ScriptOperateManager {
         Boolean hasSearchAuth = AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_SEARCH.class.getSimpleName());
         Boolean hasCombopAddAuth = AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_COMBOP_ADD.class.getSimpleName());
         // 查询脚本是否被组合工具引用
-        List<AutoexecScriptVo> referenceCountList = autoexecScriptMapper.getReferenceCountListByScriptIdList(idList);
+//        List<AutoexecScriptVo> referenceCountList = autoexecScriptMapper.getReferenceCountListByScriptIdList(idList);
         // 查询脚本是否已经被发布为组合工具
-        List<AutoexecScriptVo> hasBeenGeneratedToCombopList = autoexecScriptMapper.checkScriptListHasBeenGeneratedToCombop(idList);
+        List<Long> hasBeenGeneratedToCombopList = autoexecScriptMapper.checkScriptListHasBeenGeneratedToCombop(idList);
         // 查询脚本当前激活版本号
         List<AutoexecScriptVo> activeVersionNumberList = autoexecScriptMapper.getActiveVersionNumberListByScriptIdList(idList);
-        Map<Long, Boolean> referenceCountMap = new HashMap<>();
-        Map<Long, Boolean> hasBeenGeneratedToCombopMap = new HashMap<>();
+//        Map<Long, Boolean> referenceCountMap = new HashMap<>();
+//        Map<Long, Boolean> hasBeenGeneratedToCombopMap = new HashMap<>();
         Map<Long, Boolean> hasActiveVersionMap = new HashMap<>();
-        if (CollectionUtils.isNotEmpty(referenceCountList)) {
-            referenceCountList.stream().forEach(o -> referenceCountMap.put(o.getId(), o.getReferenceCount() > 0 ? true : false));
-        }
-        if (CollectionUtils.isNotEmpty(hasBeenGeneratedToCombopList)) {
-            hasBeenGeneratedToCombopList.stream().forEach(o -> hasBeenGeneratedToCombopMap.put(o.getId(), o.getHasBeenGeneratedToCombop() > 0 ? true : false));
-        }
+//        if (CollectionUtils.isNotEmpty(referenceCountList)) {
+//            referenceCountList.stream().forEach(o -> referenceCountMap.put(o.getId(), o.getReferenceCount() > 0 ? true : false));
+//        }
+//        if (CollectionUtils.isNotEmpty(hasBeenGeneratedToCombopList)) {
+//            hasBeenGeneratedToCombopList.stream().forEach(o -> hasBeenGeneratedToCombopMap.put(o.getId(), o.getHasBeenGeneratedToCombop() > 0 ? true : false));
+//        }
         if (CollectionUtils.isNotEmpty(activeVersionNumberList)) {
             activeVersionNumberList.stream().forEach(o -> hasActiveVersionMap.put(o.getId(), o.getCurrentVersion() != null ? true : false));
         }
@@ -264,7 +267,8 @@ public class ScriptOperateManager {
             operateList.add(export);
             operateList.add(delete);
             if (hasCombopAddAuth) {
-                if (MapUtils.isNotEmpty(hasBeenGeneratedToCombopMap) && Objects.equals(hasBeenGeneratedToCombopMap.get(id), true)) {
+//                if (MapUtils.isNotEmpty(hasBeenGeneratedToCombopMap) && Objects.equals(hasBeenGeneratedToCombopMap.get(id), true)) {
+                if (hasBeenGeneratedToCombopList.contains(id)) {
                     generateToCombop.setDisabled(1);
                     generateToCombop.setDisabledReason("已发布为组合工具");
                 } else if (MapUtils.isNotEmpty(hasActiveVersionMap) && !Objects.equals(hasActiveVersionMap.get(id), true)) {
@@ -284,7 +288,8 @@ public class ScriptOperateManager {
                 export.setDisabledReason("无权限，请联系管理员");
             }
             if (hasManageAuth) {
-                if (MapUtils.isNotEmpty(referenceCountMap) && Objects.equals(referenceCountMap.get(id), true)) {
+//                if (MapUtils.isNotEmpty(referenceCountMap) && Objects.equals(referenceCountMap.get(id), true)) {
+                if (DependencyManager.getDependencyCount(AutoexecFromType.SCRIPT, id) > 0) {
                     delete.setDisabled(1);
                     delete.setDisabledReason("当前自定义工具已被组合工具引用，无法删除");
                 }

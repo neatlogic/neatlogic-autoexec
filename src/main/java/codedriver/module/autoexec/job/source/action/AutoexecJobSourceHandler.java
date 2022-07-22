@@ -1,6 +1,7 @@
 package codedriver.module.autoexec.job.source.action;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
+import codedriver.framework.autoexec.constvalue.JobNodeStatus;
 import codedriver.framework.autoexec.constvalue.JobSourceType;
 import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
@@ -184,7 +185,7 @@ public class AutoexecJobSourceHandler extends AutoexecJobSourceActionHandlerBase
     public List<RunnerMapVo> getRunnerMapList(AutoexecJobVo jobVo) {
         AutoexecJobPhaseVo jobPhaseVo = jobVo.getCurrentPhase();
         List<RunnerMapVo> runnerMapVos = null;
-        if(Arrays.asList(ExecMode.TARGET.getValue(), ExecMode.RUNNER_TARGET.getValue()).contains(jobPhaseVo.getExecMode())){
+        if (Arrays.asList(ExecMode.TARGET.getValue(), ExecMode.RUNNER_TARGET.getValue()).contains(jobPhaseVo.getExecMode())) {
             List<GroupNetworkVo> networkVoList = runnerMapper.getAllNetworkMask();
             for (GroupNetworkVo networkVo : networkVoList) {
                 if (IpUtil.isBelongSegment(jobPhaseVo.getCurrentNode().getHost(), networkVo.getNetworkIp(), networkVo.getMask())) {
@@ -195,7 +196,7 @@ public class AutoexecJobSourceHandler extends AutoexecJobSourceActionHandlerBase
                     runnerMapVos = groupVo.getRunnerMapList();
                 }
             }
-        }else{
+        } else {
             runnerMapVos = runnerMapper.getAllRunnerMap();
         }
         return runnerMapVos;
@@ -209,6 +210,17 @@ public class AutoexecJobSourceHandler extends AutoexecJobSourceActionHandlerBase
     @Override
     public List<AutoexecJobPhaseNodeVo> getJobNodeListBySqlIdList(List<Long> sqlIdList) {
         return autoexecJobMapper.getJobPhaseNodeListBySqlIdList(sqlIdList);
+    }
+
+    @Override
+    public boolean getIsCanUpdatePhaseRunner(AutoexecJobPhaseVo jobPhaseVo, Long runnerMapId) {
+        if (Objects.equals(jobPhaseVo.getExecMode(), ExecMode.SQL.getValue())) {
+            List<AutoexecSqlDetailVo> sqlDetail = autoexecJobMapper.getJobSqlDetailListByJobIdAndPhaseNameAndExceptStatusAndRunnerMapId(jobPhaseVo.getJobId(), jobPhaseVo.getName(), Arrays.asList(JobNodeStatus.SUCCEED.getValue(), JobNodeStatus.IGNORED.getValue()), runnerMapId);
+            return sqlDetail.size() == 0;
+        } else {
+            List<AutoexecJobPhaseNodeVo> phaseNodes = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseIdAndExceptStatusAndRunnerMapId(jobPhaseVo.getJobId(), jobPhaseVo.getId(), Arrays.asList(JobNodeStatus.SUCCEED.getValue(), JobNodeStatus.IGNORED.getValue()), runnerMapId);
+            return phaseNodes.size() == 0;
+        }
     }
 
 }

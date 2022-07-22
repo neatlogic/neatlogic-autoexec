@@ -14,6 +14,7 @@ import codedriver.framework.autoexec.crossover.IAutoexecJobActionCrossoverServic
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.AutoexecJobSourceVo;
+import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
@@ -360,9 +361,11 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             }
             executeConfigVo.setExecuteNodeConfig(paramExecuteConfigVo.getExecuteNodeConfig());
             combopVo.getConfig().setExecuteConfig(executeConfigVo);
-
+            List<AutoexecParamVo> autoexecCombopParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopVo.getId());
+            combopVo.getConfig().setRuntimeParamList(autoexecCombopParamList);
+            autoexecCombopService.verifyAutoexecCombopConfig(combopVo.getConfig(), true);
         }
-        autoexecCombopService.verifyAutoexecCombopConfig(combopVo, true);
+
         //根据场景名获取场景id
         if(jsonObj.containsKey("scenarioName")){
             AutoexecScenarioVo scenarioVo = autoexecScenarioMapper.getScenarioByName(jsonObj.getString("scenarioName"));

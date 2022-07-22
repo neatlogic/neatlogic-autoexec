@@ -137,6 +137,7 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
         AutoexecCombopConfigVo autoexecCombopConfigVo = autoexecCombopVo.getConfig();
         autoexecCombopConfigVo.setExecuteConfig(executeConfig);
         autoexecCombopVo.setFcu(UserContext.get().getUserUuid(true));
+        autoexecCombopVo.setConfigStr(null);
         autoexecCombopMapper.updateAutoexecCombopConfigById(autoexecCombopVo);
         return null;
     }

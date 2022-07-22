@@ -78,11 +78,11 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
         result.put("tbodyList", toolVoList);
         if (CollectionUtils.isNotEmpty(toolVoList)) {
             List<Long> idList = toolVoList.stream().map(AutoexecToolVo::getId).collect(Collectors.toList());
-            List<AutoexecToolVo> hasBeenGeneratedToCombopList = autoexecToolMapper.checkToolListHasBeenGeneratedToCombop(idList);
+            List<Long> hasBeenGeneratedToCombopList = autoexecToolMapper.checkToolListHasBeenGeneratedToCombop(idList);
             Map<Long, Boolean> hasBeenGeneratedToCombopMap = new HashMap<>();
-            if (CollectionUtils.isNotEmpty(hasBeenGeneratedToCombopList)) {
-                hasBeenGeneratedToCombopList.stream().forEach(o -> hasBeenGeneratedToCombopMap.put(o.getId(), o.getHasBeenGeneratedToCombop() > 0 ? true : false));
-            }
+//            if (CollectionUtils.isNotEmpty(hasBeenGeneratedToCombopList)) {
+//                hasBeenGeneratedToCombopList.stream().forEach(o -> hasBeenGeneratedToCombopMap.put(o.getId(), o.getHasBeenGeneratedToCombop() > 0 ? true : false));
+//            }
             // 获取操作按钮
             Boolean hasScriptModifyAuth = AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName());
             Boolean hasScriptManageAuth = AuthActionChecker.check(AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName());
@@ -104,7 +104,8 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
                     test.setDisabledReason("无权限，请联系管理员");
                 }
                 if (hasCombopAddAuth) {
-                    if (MapUtils.isNotEmpty(hasBeenGeneratedToCombopMap) && Objects.equals(hasBeenGeneratedToCombopMap.get(o.getId()), true)) {
+//                    if (MapUtils.isNotEmpty(hasBeenGeneratedToCombopMap) && Objects.equals(hasBeenGeneratedToCombopMap.get(o.getId()), true)) {
+                    if (hasBeenGeneratedToCombopList.contains(o.getId())) {
                         generateToCombop.setDisabled(1);
                         generateToCombop.setDisabledReason("已发布为组合工具");
                     } else if (!Objects.equals(o.getIsActive(), 1)) {

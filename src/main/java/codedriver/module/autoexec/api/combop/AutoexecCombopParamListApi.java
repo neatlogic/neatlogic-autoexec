@@ -7,6 +7,7 @@ package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -65,10 +66,10 @@ public class AutoexecCombopParamListApi extends PrivateApiComponentBase {
         if (autoexecCombopMapper.checkAutoexecCombopIsExists(combopId) == 0) {
             throw new AutoexecCombopNotFoundException(combopId);
         }
-        List<AutoexecCombopParamVo> autoexecCombopParamVoList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopId);
-        for (AutoexecCombopParamVo autoexecCombopParamVo : autoexecCombopParamVoList) {
-            autoexecService.mergeConfig(autoexecCombopParamVo);
+        List<AutoexecParamVo> autoexecParamVoList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopId);
+        for (AutoexecParamVo autoexecParamVo : autoexecParamVoList) {
+            autoexecService.mergeConfig(autoexecParamVo);
         }
-        return autoexecCombopParamVoList;
+        return autoexecParamVoList;
     }
 }
