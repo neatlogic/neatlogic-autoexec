@@ -5,7 +5,10 @@
 
 package codedriver.module.autoexec.job.action.handler;
 
-import codedriver.framework.autoexec.constvalue.*;
+import codedriver.framework.autoexec.constvalue.JobAction;
+import codedriver.framework.autoexec.constvalue.JobNodeStatus;
+import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
+import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
@@ -23,7 +26,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
@@ -57,7 +59,7 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
 
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
-        List<String> needSqlFileResetStatusPhaseNameList = new ArrayList<>();
+        //List<String> needSqlFileResetStatusPhaseNameList = new ArrayList<>();
         if (Objects.equals(jobVo.getAction(), JobAction.RESET_REFIRE.getValue())) {
             new AutoexecJobAuthActionManager.Builder().addReFireJob().build().setAutoexecJobAction(jobVo);
             jobVo.setStatus(JobStatus.PENDING.getValue());
@@ -72,7 +74,7 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             //更新没有删除的节点为"未开始"状态
             autoexecJobMapper.updateJobPhaseNodeStatusByJobIdAndIsDelete(jobVo.getId(), JobNodeStatus.PENDING.getValue(), 0);
             jobVo.setIsFirstFire(1);
-            needSqlFileResetStatusPhaseNameList = autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId()).stream().filter(o -> Objects.equals(o.getExecMode(), ExecMode.SQL.getValue())).map(AutoexecJobPhaseVo::getName).collect(Collectors.toList());
+            //needSqlFileResetStatusPhaseNameList = autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId()).stream().filter(o -> Objects.equals(o.getExecMode(), ExecMode.SQL.getValue())).map(AutoexecJobPhaseVo::getName).collect(Collectors.toList());
         } else if (Objects.equals(jobVo.getAction(), JobAction.REFIRE.getValue())) {
             /*寻找中止|暂停|失败的phase
              * 1、优先寻找pending|aborted|paused|failed phaseList
@@ -98,9 +100,9 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             }
             jobVo.setIsNoFireNext(0);
         }
-        if (CollectionUtils.isNotEmpty(needSqlFileResetStatusPhaseNameList)) {
+        /*if (CollectionUtils.isNotEmpty(needSqlFileResetStatusPhaseNameList)) {
             autoexecJobService.resetAutoexecJobSqlStatusByJobIdAndJobPhaseNameList(jobVo.getId(), needSqlFileResetStatusPhaseNameList);
-        }
+        }*/
         executeGroup(jobVo);
         return null;
     }
