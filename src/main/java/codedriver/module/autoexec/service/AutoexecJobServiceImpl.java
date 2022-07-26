@@ -26,7 +26,7 @@ import codedriver.framework.autoexec.job.source.action.AutoexecJobSourceActionHa
 import codedriver.framework.autoexec.job.source.action.IAutoexecJobSourceActionHandler;
 import codedriver.framework.autoexec.source.AutoexecJobSourceFactory;
 import codedriver.framework.cmdb.crossover.IResourceCenterResourceCrossoverService;
-import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
+import codedriver.framework.cmdb.crossover.IResourceCrossoverMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import codedriver.framework.cmdb.dto.resourcecenter.ResourceVo;
 import codedriver.framework.common.util.PageUtil;
@@ -73,8 +73,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     AutoexecCombopMapper autoexecCombopMapper;
     @Resource
     RunnerMapper runnerMapper;
-    @Resource
-    ResourceCenterMapper resourceCenterMapper;
     @Resource
     ConfigMapper configMapper;
 
@@ -563,7 +561,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     }
                 });
                 if (CollectionUtils.isNotEmpty(resourceIdSet)) {
-                    List<ResourceVo> resourceVoList = resourceCenterMapper.getResourceFromSoftwareServiceByIdList(new ArrayList<>(resourceIdSet), TenantContext.get().getDataDbName());
+                    IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
+                    List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceFromSoftwareServiceByIdList(new ArrayList<>(resourceIdSet), TenantContext.get().getDataDbName());
                     if (CollectionUtils.isNotEmpty(resourceVoList)) {
                         updateJobPhaseNode(jobVo, resourceVoList, userName, protocolId);
                         return true;
@@ -597,7 +596,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             nodeVoList.forEach(o -> {
                 ipPortNameList.add(new ResourceVo(o.getIp(), o.getPort(), o.getName()));
             });
-            List<ResourceVo> resourceVoList = resourceCenterMapper.getResourceListByResourceVoList(ipPortNameList, TenantContext.get().getDataDbName());
+            IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
+            List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceListByResourceVoList(ipPortNameList, TenantContext.get().getDataDbName());
             if (CollectionUtils.isNotEmpty(resourceVoList)) {
                 //根据ip:port去重
                 resourceVoList = resourceVoList.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(r -> r.getIp() + ":" + r.getPort()))), ArrayList::new));
@@ -635,15 +635,16 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             IResourceCenterResourceCrossoverService resourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
             filterJson.put("pageSize", 100);
             ResourceSearchVo searchVo = resourceCrossoverService.assembleResourceSearchVo(filterJson);
-            int count = resourceCenterMapper.getResourceCount(searchVo);
+            IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
+            int count = resourceCrossoverMapper.getResourceCount(searchVo);
             if (count > 0) {
                 int pageCount = PageUtil.getPageCount(count, searchVo.getPageSize());
                 for (int i = 1; i <= pageCount; i++) {
-                    List<Long> idList = resourceCenterMapper.getResourceIdList(searchVo);
+                    List<Long> idList = resourceCrossoverMapper.getResourceIdList(searchVo);
                     if (CollectionUtils.isEmpty(idList)) {
                         continue;
                     }
-                    List<ResourceVo> resourceVoList = resourceCenterMapper.getResourceListByIdList(idList, TenantContext.get().getDataDbName());
+                    List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceListByIdList(idList, TenantContext.get().getDataDbName());
                     if (CollectionUtils.isNotEmpty(resourceVoList)) {
                         updateJobPhaseNode(jobVo, resourceVoList, userName, protocolId);
                     }
