@@ -16,8 +16,8 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobGroupNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
+import codedriver.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import codedriver.framework.cmdb.crossover.IResourceCenterAccountCrossoverService;
-import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
 import codedriver.framework.cmdb.enums.resourcecenter.Protocol;
@@ -38,7 +38,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -54,9 +53,6 @@ import java.util.stream.Collectors;
 public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComponentBase {
     @Autowired
     private AutoexecJobMapper autoexecJobMapper;
-
-    @Resource
-    ResourceCenterMapper resourceCenterMapper;
 
     @Override
     public String getToken() {
@@ -136,7 +132,8 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
             int count = autoexecJobMapper.searchJobPhaseNodeByDistinctResourceIdCount(nodeParamVo);
             int pageCount = PageUtil.getPageCount(count, nodeParamVo.getPageSize());
             nodeParamVo.setPageCount(pageCount);
-            List<AccountProtocolVo> protocolVoList = resourceCenterMapper.searchAccountProtocolListByProtocolName(new AccountProtocolVo());
+            IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
+            List<AccountProtocolVo> protocolVoList = resourceAccountCrossoverMapper.searchAccountProtocolListByProtocolName(new AccountProtocolVo());
             IResourceCenterAccountCrossoverService accountService = CrossoverServiceFactory.getApi(IResourceCenterAccountCrossoverService.class);
             //补充第一行数据 {"totalCount":14, "localRunnerId":1, "jobRunnerIds":[1]}
             if(count != 0) {
@@ -165,8 +162,8 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                         if (protocolVoList.stream().anyMatch(o -> Objects.equals(o.getId(), protocolId) && Objects.equals(o.getName(), Protocol.TAGENT.getValue()))) {
                             userName = null;
                         }
-                        List<AccountVo> accountVoList = resourceCenterMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIdList, protocolId, userName);
-                        List<AccountVo> allAccountVoList = resourceCenterMapper.getAccountListByIpList(autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getHost).collect(Collectors.toList()));
+                        List<AccountVo> accountVoList = resourceAccountCrossoverMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIdList, protocolId, userName);
+                        List<AccountVo> allAccountVoList = resourceAccountCrossoverMapper.getAccountListByIpList(autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getHost).collect(Collectors.toList()));
                         String finalUserName = autoexecJobPhaseNodeVoList.get(0).getUserName();
                         for (int j = 0; j < autoexecJobPhaseNodeVoList.size(); j++) {
                             AutoexecJobPhaseNodeVo nodeVo = autoexecJobPhaseNodeVoList.get(j);

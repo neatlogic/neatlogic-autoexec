@@ -7,8 +7,9 @@ package codedriver.module.autoexec.script.paramtype;
 
 import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeBase;
-import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
+import codedriver.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
+import codedriver.framework.crossover.CrossoverServiceFactory;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -21,8 +22,6 @@ import javax.annotation.Resource;
  **/
 @Service
 public class ScriptParamTypeAccount extends ScriptParamTypeBase {
-    @Resource
-    ResourceCenterMapper resourceCenterMapper;
 
     /**
      * 获取参数类型
@@ -82,7 +81,8 @@ public class ScriptParamTypeAccount extends ScriptParamTypeBase {
     @Override
     public Object getMyAutoexecParamByValue(Object value) {
         if (value != null && StringUtils.isNotBlank(value.toString())) {
-            AccountVo accountVo = resourceCenterMapper.getAccountById(Long.valueOf(value.toString()));
+            IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
+            AccountVo accountVo = resourceAccountCrossoverMapper.getAccountById(Long.valueOf(value.toString()));
             if (accountVo != null) {
                 value = accountVo.getAccount() + "/" + accountVo.getId() + "/" + accountVo.getProtocol();
             }
@@ -94,7 +94,8 @@ public class ScriptParamTypeAccount extends ScriptParamTypeBase {
     protected Object getMyTextByValue(Object value) {
         String valueStr = value.toString();
         if (StringUtils.isNotBlank(valueStr)) {
-            AccountVo accountVo = resourceCenterMapper.getAccountById(Long.valueOf(valueStr));
+            IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
+            AccountVo accountVo = resourceAccountCrossoverMapper.getAccountById(Long.valueOf(valueStr));
             if (accountVo != null) {
                 valueStr = accountVo.getName() + "(" + accountVo.getAccount() + "/" + accountVo.getProtocol() + ")";
             }
