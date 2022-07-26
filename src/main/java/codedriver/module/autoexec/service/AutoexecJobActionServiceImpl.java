@@ -382,12 +382,11 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         }
 
         AutoexecJobVo jobVo = JSONObject.toJavaObject(jsonObj, AutoexecJobVo.class);
-        jobVo.setConfigStr(combopVo.getConfigStr());
+        jobVo.setConfigStr(JSONObject.toJSONString(combopVo.getConfig()));
         jobVo.setRunTimeParamList(autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopVo.getId()));
         autoexecJobSourceActionHandler.updateInvokeJob(jsonObj,jobVo);
         autoexecJobService.saveAutoexecCombopJob(combopVo, jobVo);
         jobVo.setAction(JobAction.FIRE.getValue());
-        //jobVo.setCurrentGroupSort(0);
         return jobVo;
     }
 
