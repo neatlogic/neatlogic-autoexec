@@ -5,6 +5,8 @@
 
 package codedriver.module.autoexec.api.script;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dto.catalog.AutoexecCatalogVo;
@@ -29,6 +31,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
+@AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecScriptExportForAutoexecApi extends PrivateBinaryStreamApiComponentBase {
 

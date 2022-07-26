@@ -1,6 +1,8 @@
 package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
@@ -34,6 +36,7 @@ import java.util.*;
 @SuppressWarnings("deprecation")
 @Service
 @Transactional
+@AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.OPERATE)
 public class AutoexecScriptImportPublicApi extends PrivateJsonStreamApiComponentBase {
 

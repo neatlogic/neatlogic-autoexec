@@ -1,5 +1,7 @@
 package codedriver.module.autoexec.api.job.action.node;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.job.source.action.AutoexecJobSourceActionHandlerFactory;
@@ -22,6 +24,7 @@ import javax.annotation.Resource;
  */
 @Service
 @Transactional
+@AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class UpdateAutoexecJobSqlApi extends PrivateApiComponentBase {
 

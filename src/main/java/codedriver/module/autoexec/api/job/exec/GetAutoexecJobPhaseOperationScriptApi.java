@@ -5,6 +5,8 @@
 
 package codedriver.module.autoexec.api.job.exec;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseOperationVo;
@@ -29,6 +31,7 @@ import java.math.BigDecimal;
 import java.util.Objects;
 
 @Service
+@AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class GetAutoexecJobPhaseOperationScriptApi extends PrivateApiComponentBase {
 

@@ -5,6 +5,8 @@
 
 package codedriver.module.autoexec.api.combop;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
@@ -13,10 +15,8 @@ import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.common.constvalue.ApiParamType;
-import codedriver.framework.restful.annotation.Description;
-import codedriver.framework.restful.annotation.Input;
-import codedriver.framework.restful.annotation.Output;
-import codedriver.framework.restful.annotation.Param;
+import codedriver.framework.restful.annotation.*;
+import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONArray;
@@ -33,6 +33,8 @@ import java.util.*;
  * @since 2022/3/23 15:47
  **/
 @Service
+@AuthAction(action = AUTOEXEC_MODIFY.class)
+@OperationType(type = OperationTypeEnum.UPDATE)
 @Transactional
 public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase {
 

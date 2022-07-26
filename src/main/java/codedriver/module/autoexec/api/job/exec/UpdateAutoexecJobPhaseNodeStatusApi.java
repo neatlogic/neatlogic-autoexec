@@ -5,6 +5,8 @@
 
 package codedriver.module.autoexec.api.job.exec;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
@@ -33,6 +35,7 @@ import java.util.Objects;
  **/
 @Service
 @Transactional
+@AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class UpdateAutoexecJobPhaseNodeStatusApi extends PrivateApiComponentBase {
     static Logger logger = LoggerFactory.getLogger(UpdateAutoexecJobPhaseNodeStatusApi.class);

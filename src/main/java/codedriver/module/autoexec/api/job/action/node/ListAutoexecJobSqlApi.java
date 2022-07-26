@@ -1,5 +1,7 @@
 package codedriver.module.autoexec.api.job.action.node;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecSqlDetailVo;
 import codedriver.framework.cmdb.crossover.IAttrCrossoverMapper;
@@ -33,7 +35,8 @@ import java.util.stream.Collectors;
  * @date 2022/4/25 6:33 下午
  */
 @Service
-@OperationType(type = OperationTypeEnum.UPDATE)
+@AuthAction(action = AUTOEXEC_BASE.class)
+@OperationType(type = OperationTypeEnum.SEARCH)
 public class ListAutoexecJobSqlApi extends PrivateApiComponentBase {
 
     @Resource

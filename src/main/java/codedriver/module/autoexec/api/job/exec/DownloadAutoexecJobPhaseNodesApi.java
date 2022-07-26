@@ -5,6 +5,8 @@
 
 package codedriver.module.autoexec.api.job.exec;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.AutoexecJobPhaseNodeFrom;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
@@ -47,6 +49,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComponentBase {
     @Autowired

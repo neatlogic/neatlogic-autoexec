@@ -5,6 +5,8 @@
 
 package codedriver.module.autoexec.api.job.exec;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
@@ -26,6 +28,7 @@ import java.util.List;
  * @since 2021/5/19 14:15
  **/
 @Service
+@AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class GetAutoexecJobCreateParamApi extends PrivateApiComponentBase {
     @Resource

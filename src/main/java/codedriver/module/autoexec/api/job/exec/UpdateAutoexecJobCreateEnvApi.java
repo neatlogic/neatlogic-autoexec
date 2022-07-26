@@ -5,6 +5,8 @@
 
 package codedriver.module.autoexec.api.job.exec;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobEnvVo;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -21,6 +23,7 @@ import javax.annotation.Resource;
  * @since 2021/9/16 14:15
  **/
 @Service
+@AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class UpdateAutoexecJobCreateEnvApi extends PrivateApiComponentBase {
     @Resource

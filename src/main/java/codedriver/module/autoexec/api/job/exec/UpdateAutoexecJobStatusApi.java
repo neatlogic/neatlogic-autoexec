@@ -5,6 +5,8 @@
 
 package codedriver.module.autoexec.api.job.exec;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
@@ -28,6 +30,7 @@ import java.util.Objects;
  **/
 @Service
 @Transactional
+@AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class UpdateAutoexecJobStatusApi extends PrivateApiComponentBase {
     @Resource

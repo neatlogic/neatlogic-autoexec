@@ -5,6 +5,8 @@
 
 package codedriver.module.autoexec.api.tool;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
@@ -38,6 +40,7 @@ import java.util.regex.Pattern;
 
 @Service
 @Transactional
+@AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.OPERATE)
 public class RegisterAutoexecToolApi extends PrivateApiComponentBase {
 

@@ -1,5 +1,7 @@
 package codedriver.module.autoexec.api.job.action.node;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
@@ -9,8 +11,10 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.deploy.constvalue.JobSourceType;
 import codedriver.framework.deploy.constvalue.JobSource;
 import codedriver.framework.restful.annotation.Input;
+import codedriver.framework.restful.annotation.OperationType;
 import codedriver.framework.restful.annotation.Output;
 import codedriver.framework.restful.annotation.Param;
+import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.nacos.api.utils.StringUtils;
@@ -22,6 +26,8 @@ import javax.annotation.Resource;
  * @author longrf
  * @date 2022/5/18 2:25 下午
  */
+@AuthAction(action = AUTOEXEC_MODIFY.class)
+@OperationType(type = OperationTypeEnum.UPDATE)
 @Service
 public class AutoexecJobPhaseSqlStatusResetApi extends PrivateApiComponentBase {
 

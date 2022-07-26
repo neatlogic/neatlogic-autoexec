@@ -1,5 +1,7 @@
 package codedriver.module.autoexec.api.job.action.node;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import codedriver.framework.autoexec.job.source.action.AutoexecJobSourceActionHandlerFactory;
 import codedriver.framework.autoexec.job.source.action.IAutoexecJobSourceActionHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -19,7 +21,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Transactional
-@OperationType(type = OperationTypeEnum.SEARCH)
+@AuthAction(action = AUTOEXEC_MODIFY.class)
+@OperationType(type = OperationTypeEnum.UPDATE)
 public class CheckinAutoexecJobSqlApi extends PrivateApiComponentBase {
 
     @Override
