@@ -87,7 +87,7 @@ public class GetAutoexecScriptActiveVersionApi extends PrivateApiComponentBase {
             }
         }
         JSONObject result = new JSONObject();
-        result.put("script",autoexecCombopService.getOperationActiveVersionScriptByOperation(scriptVersionVo));
+        result.put("script",autoexecCombopService.getScriptVersionContent(scriptVersionVo));
         result.put("config",new JSONObject(){{
             put("scriptName",scriptVo.getName());
             put("parser",scriptVersionVo.getParser());

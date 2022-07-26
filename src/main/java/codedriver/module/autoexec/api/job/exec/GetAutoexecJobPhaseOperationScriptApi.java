@@ -94,7 +94,7 @@ public class GetAutoexecJobPhaseOperationScriptApi extends PrivateApiComponentBa
                 resp.getWriter().print(StringUtils.EMPTY);
             }
         }else{
-            String script = autoexecCombopService.getOperationActiveVersionScriptByOperation(scriptVersionVo);
+            String script = autoexecCombopService.getScriptVersionContent(scriptVersionVo);
             result.put("script", script);
             //update job 对应operation version_id
             autoexecJobMapper.updateJobPhaseOperationVersionIdByJobIdAndOperationId(scriptVersionVo.getId(), jobId, scriptVersionVo.getScriptId());

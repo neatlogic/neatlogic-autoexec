@@ -18,10 +18,7 @@ import codedriver.framework.autoexec.dto.scenario.AutoexecScenarioVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
-import codedriver.framework.autoexec.exception.AutoexecParamMappingNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecScriptVersionHasNoActivedException;
-import codedriver.framework.autoexec.exception.AutoexecToolNotFoundException;
+import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.autoexec.script.paramtype.IScriptParamType;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import codedriver.framework.exception.type.*;
@@ -334,18 +331,30 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
         String name = autoexecCombopPhaseOperationVo.getOperationName();
         String type = autoexecCombopPhaseOperationVo.getOperationType();
         if (Objects.equals(type, CombopOperationType.SCRIPT.getValue())) {
-            AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(id);
-            if (autoexecScriptVo == null) {
-                if (StringUtils.isNotBlank(name)) {
-                    throw new AutoexecScriptNotFoundException(name);
-                } else {
-                    throw new AutoexecScriptNotFoundException(id);
+            AutoexecScriptVo autoexecScriptVo;
+            AutoexecScriptVersionVo autoexecScriptVersionVo ;
+            //指定脚本版本
+            if(autoexecCombopPhaseOperationVo.getScriptVersionId() != null){
+                autoexecScriptVersionVo = autoexecScriptMapper.getVersionByVersionId(autoexecCombopPhaseOperationVo.getScriptVersionId());
+                if(autoexecScriptVersionVo == null) {
+                    throw new AutoexecScriptVersionNotFoundException(autoexecCombopPhaseOperationVo.getScriptVersionId());
+                }
+                autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(autoexecScriptVersionVo.getScriptId());
+            }else {
+                autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(id);
+                if (autoexecScriptVo == null) {
+                    if (StringUtils.isNotBlank(name)) {
+                        throw new AutoexecScriptNotFoundException(name);
+                    } else {
+                        throw new AutoexecScriptNotFoundException(id);
+                    }
+                }
+                autoexecScriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(id);
+                if (autoexecScriptVersionVo == null) {
+                    throw new AutoexecScriptVersionHasNoActivedException(autoexecScriptVo.getName());
                 }
             }
-            AutoexecScriptVersionVo autoexecScriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(id);
-            if (autoexecScriptVersionVo == null) {
-                throw new AutoexecScriptVersionHasNoActivedException(autoexecScriptVo.getName());
-            }
+
             autoexecParamVoList = autoexecScriptMapper.getParamListByScriptId(id);
             AutoexecParamVo argumentParam = autoexecScriptMapper.getArgumentByVersionId(autoexecScriptVersionVo.getId());
             autoexecToolAndScriptVo = new AutoexecOperationVo(autoexecScriptVo);

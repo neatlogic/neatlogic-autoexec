@@ -60,7 +60,7 @@ public interface AutoexecCombopService {
      * @param operation 操作Id
      * @return 脚本内容
      */
-    String getOperationActiveVersionScriptByOperation(AutoexecScriptVersionVo operation);
+    String getScriptVersionContent(AutoexecScriptVersionVo operation);
 
     String getOperationActiveVersionScriptByOperationId(Long operationId);
 

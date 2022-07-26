@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 2021 TechSure Co., Ltd. All Rights Reserved.
+ * Copyright(c) 2022 TechSure Co., Ltd. All Rights Reserved.
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  */
 
@@ -367,26 +367,25 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         }
 
         //根据场景名获取场景id
-        if(jsonObj.containsKey("scenarioName")){
+        if (jsonObj.containsKey("scenarioName")) {
             AutoexecScenarioVo scenarioVo = autoexecScenarioMapper.getScenarioByName(jsonObj.getString("scenarioName"));
-            if(scenarioVo == null){
+            if (scenarioVo == null) {
                 throw new AutoexecScenarioIsNotFoundException(jsonObj.getString("scenarioName"));
             }
-            jsonObj.put("scenarioId",scenarioVo.getId());
+            jsonObj.put("scenarioId", scenarioVo.getId());
         }
 
         Integer roundCount = jsonObj.getInteger("roundCount");
-        if(roundCount == null || roundCount < 1){
-            throw  new ParamIrregularException("roundCount");
+        if (roundCount == null || roundCount < 1) {
+            throw new ParamIrregularException("roundCount");
         }
 
         AutoexecJobVo jobVo = JSONObject.toJavaObject(jsonObj, AutoexecJobVo.class);
-        jobVo.setConfigStr(combopVo.getConfigStr());
+        jobVo.setConfigStr(JSONObject.toJSONString(combopVo.getConfig()));
         jobVo.setRunTimeParamList(autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopVo.getId()));
-        autoexecJobSourceActionHandler.updateInvokeJob(jsonObj,jobVo);
+        autoexecJobSourceActionHandler.updateInvokeJob(jsonObj, jobVo);
         autoexecJobService.saveAutoexecCombopJob(combopVo, jobVo);
         jobVo.setAction(JobAction.FIRE.getValue());
-        //jobVo.setCurrentGroupSort(0);
         return jobVo;
     }
 
