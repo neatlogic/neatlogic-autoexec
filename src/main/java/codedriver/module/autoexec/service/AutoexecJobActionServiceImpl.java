@@ -31,8 +31,9 @@ import codedriver.framework.autoexec.job.source.action.IAutoexecJobSourceActionH
 import codedriver.framework.autoexec.script.paramtype.IScriptParamType;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import codedriver.framework.autoexec.source.AutoexecJobSourceFactory;
-import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
+import codedriver.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
+import codedriver.framework.crossover.CrossoverServiceFactory;
 import codedriver.framework.dao.mapper.UserMapper;
 import codedriver.framework.dto.UserVo;
 import codedriver.framework.exception.type.ParamIrregularException;
@@ -71,9 +72,6 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
 
     @Resource
     AutoexecCombopMapper autoexecCombopMapper;
-
-    @Resource
-    ResourceCenterMapper resourceCenterMapper;
 
     @Resource
     AutoexecJobMapper autoexecJobMapper;
@@ -119,7 +117,8 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             String userName = nodeVoList.get(0).getUserName();
             paramJson.put("runNode", new JSONArray() {{
                 Map<Long, AccountVo> resourceAccountMap = new HashMap<>();
-                List<AccountVo> accountVoList = resourceCenterMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(nodeVoList.stream().map(AutoexecJobPhaseNodeVo::getResourceId).collect(Collectors.toList()), protocolId, userName);
+                IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
+                List<AccountVo> accountVoList = resourceAccountCrossoverMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(nodeVoList.stream().map(AutoexecJobPhaseNodeVo::getResourceId).collect(Collectors.toList()), protocolId, userName);
                 accountVoList.forEach(o -> {
                     resourceAccountMap.put(o.getResourceId(), o);
                 });
