@@ -76,7 +76,7 @@ public class AutoexecJobSearchApi extends PrivateApiComponentBase {
         jsonObj.put("operationId", jsonObj.getLong("combopId"));
         jsonObj.put("invokeId", jsonObj.getLong("scheduleId"));
         AutoexecJobVo jobVo = JSONObject.toJavaObject(jsonObj, AutoexecJobVo.class);
-        return TableResultUtil.getResult(autoexecJobService.getJobList(jobVo), jobVo);
+        return TableResultUtil.getResult(autoexecJobService.searchJob(jobVo), jobVo);
     }
 
     @Override

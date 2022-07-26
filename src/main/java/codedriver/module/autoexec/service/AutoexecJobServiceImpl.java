@@ -745,7 +745,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     }
 
     @Override
-    public List<AutoexecJobVo> getJobList(AutoexecJobVo jobVo) {
+    public List<AutoexecJobVo> searchJob(AutoexecJobVo jobVo) {
         List<AutoexecJobVo> jobVoList = new ArrayList<>();
         int rowNum = autoexecJobMapper.searchJobCount(jobVo);
         if (rowNum > 0) {
