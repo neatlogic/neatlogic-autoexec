@@ -15,7 +15,6 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.framework.autoexec.dto.AutoexecOperationBaseVo;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
-import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
 import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
@@ -468,7 +467,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         if (scriptVersionVo == null) {
             throw new AutoexecScriptVersionHasNoActivedException(operationId.toString());
         }
-        return getOperationActiveVersionScriptByOperation(scriptVersionVo);
+        return getScriptVersionContent(scriptVersionVo);
     }
 
     @Override
@@ -784,7 +783,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
     }
 
     @Override
-    public String getOperationActiveVersionScriptByOperation(AutoexecScriptVersionVo scriptVersionVo) {
+    public String getScriptVersionContent(AutoexecScriptVersionVo scriptVersionVo) {
         List<AutoexecScriptLineVo> scriptLineVoList = autoexecScriptMapper.getLineListByVersionId(scriptVersionVo.getId());
         StringBuilder scriptSb = new StringBuilder();
         for (AutoexecScriptLineVo lineVo : scriptLineVoList) {

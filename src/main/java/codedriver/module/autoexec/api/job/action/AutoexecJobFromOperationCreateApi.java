@@ -143,7 +143,7 @@ public class AutoexecJobFromOperationCreateApi extends PrivateApiComponentBase {
         AutoexecCombopGroupVo combopGroupVo = new AutoexecCombopGroupVo();
         combopGroupVo.setPolicy(AutoexecJobGroupPolicy.ONESHOT.getName());
         combopGroupVo.setSort(0);
-        initPhaseArray(combopPhaseArray,phaseParam,combopGroupVo);
+        initPhaseArray(combopPhaseArray,phaseParam,combopGroupVo,type);
         combopVo.setName("TEST_"+phaseParam.getName());
         combopVo.setId(phaseParam.getOperationId());
         combopVo.setOperationType(phaseParam.getOperationType());
@@ -189,8 +189,9 @@ public class AutoexecJobFromOperationCreateApi extends PrivateApiComponentBase {
      * @param combopPhaseArray 虚拟组合工具phaseArray
      * @param phaseOperationParamVo scriptVersion|tool
      * @param combopGroupVo 对应的groupVo
+     * @param type 工具库｜自定义工具库
      */
-    private void initPhaseArray(JSONArray combopPhaseArray, AutoexecPhaseOperationParamVo phaseOperationParamVo, AutoexecCombopGroupVo combopGroupVo){
+    private void initPhaseArray(JSONArray combopPhaseArray, AutoexecPhaseOperationParamVo phaseOperationParamVo, AutoexecCombopGroupVo combopGroupVo,String type){
         combopPhaseArray.add(new JSONObject() {{
             put("sort", 0);
             put("groupSort", combopGroupVo.getSort());
@@ -202,8 +203,12 @@ public class AutoexecJobFromOperationCreateApi extends PrivateApiComponentBase {
                 put("executeConfig", null);
                 put("phaseOperationList" ,new JSONArray(){{
                     add(new JSONObject(){{
-                        put("name", phaseOperationParamVo.getName().replaceAll("//","_"));
-                        put("id", phaseOperationParamVo.getOperationId());
+                        put("operationName", phaseOperationParamVo.getName().replaceAll("//","_"));
+                        if (Objects.equals(type, CombopOperationType.SCRIPT.getValue())) {
+                            put("scriptVersionId", phaseOperationParamVo.getOperationId());
+                        }else{
+                            put("operationId", phaseOperationParamVo.getOperationId());
+                        }
                         put("operationType",phaseOperationParamVo.getOperationType());
                         put("execMode",phaseOperationParamVo.getExecMode());
                         put("failPolicy", FailPolicy.STOP.getValue());

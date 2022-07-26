@@ -196,6 +196,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : combopPhaseOperationList) {
             String operationType = autoexecCombopPhaseOperationVo.getOperationType();
             Long id = autoexecCombopPhaseOperationVo.getOperationId();
+            //测试 指定脚本id
             autoexecService.getAutoexecOperationBaseVoByIdAndType(autoexecCombopPhaseOperationVo);
             AutoexecJobPhaseOperationVo jobPhaseOperationVo = null;
             if (CombopOperationType.SCRIPT.getValue().equalsIgnoreCase(operationType)) {
@@ -203,12 +204,12 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 AutoexecScriptVersionVo scriptVersionVo;
                 String script;
                 if (Objects.equals(jobVo.getSource(), JobSource.TEST.getValue())) {
-                    scriptVersionVo = autoexecScriptMapper.getVersionByVersionId(id);
+                    scriptVersionVo = autoexecScriptMapper.getVersionByVersionId(autoexecCombopPhaseOperationVo.getScriptVersionId());
                     if (scriptVersionVo == null) {
                         throw new AutoexecScriptVersionNotFoundException(id);
                     }
                     scriptVo = autoexecScriptMapper.getScriptBaseInfoById(scriptVersionVo.getScriptId());
-                    script = autoexecCombopService.getOperationActiveVersionScriptByOperation(scriptVersionVo);
+                    script = autoexecCombopService.getScriptVersionContent(scriptVersionVo);
                 } else {
                     scriptVo = autoexecScriptMapper.getScriptBaseInfoById(id);
                     scriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(id);
