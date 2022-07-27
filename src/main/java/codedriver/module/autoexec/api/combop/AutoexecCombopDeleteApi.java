@@ -7,6 +7,7 @@ package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.dependency.core.DependencyManager;
@@ -82,6 +83,10 @@ public class AutoexecCombopDeleteApi extends PrivateApiComponentBase {
 //            }
 //            autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
             autoexecCombopService.deleteDependency(autoexecCombopVo);
+            if (Objects.equals(autoexecCombopVo.getOperationType(), CombopOperationType.SCRIPT.getValue())
+                    || Objects.equals(autoexecCombopVo.getOperationType(), CombopOperationType.TOOL.getValue())) {
+                autoexecCombopMapper.deleteAutoexecOperationGenerateCombop(id);
+            }
         }
         return null;
     }
