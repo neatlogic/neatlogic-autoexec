@@ -8,8 +8,8 @@ package codedriver.module.autoexec.job.action.handler.node;
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
-import codedriver.framework.autoexec.job.source.action.AutoexecJobSourceActionHandlerFactory;
-import codedriver.framework.autoexec.job.source.action.IAutoexecJobSourceActionHandler;
+import codedriver.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
+import codedriver.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
 import codedriver.framework.deploy.constvalue.JobSourceType;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
@@ -42,10 +42,10 @@ public class AutoexecJobNodeSqlContentGetHandler extends AutoexecJobActionHandle
         AutoexecJobVo jonInfo = autoexecJobMapper.getJobInfo(jobVo.getCurrentNode().getJobId());
         if (jonInfo != null) {
             if (StringUtils.equals(jonInfo.getSource(), JobSourceType.DEPLOY.getValue())) {
-                IAutoexecJobSourceActionHandler jobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(JobSourceType.DEPLOY.getValue());
+                IAutoexecJobSourceTypeHandler jobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(JobSourceType.DEPLOY.getValue());
                 return jobSourceActionHandler.getJobSqlContent(jobVo);
             } else {
-                IAutoexecJobSourceActionHandler jobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(codedriver.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
+                IAutoexecJobSourceTypeHandler jobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(codedriver.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
                 return jobSourceActionHandler.getJobSqlContent(jobVo);
             }
         }

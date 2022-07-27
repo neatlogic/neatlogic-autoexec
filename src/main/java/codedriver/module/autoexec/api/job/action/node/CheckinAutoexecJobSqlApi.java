@@ -2,8 +2,8 @@ package codedriver.module.autoexec.api.job.action.node;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
-import codedriver.framework.autoexec.job.source.action.AutoexecJobSourceActionHandlerFactory;
-import codedriver.framework.autoexec.job.source.action.IAutoexecJobSourceActionHandler;
+import codedriver.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
+import codedriver.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.deploy.constvalue.JobSourceType;
 import codedriver.framework.restful.annotation.*;
@@ -56,12 +56,12 @@ public class CheckinAutoexecJobSqlApi extends PrivateApiComponentBase {
     @Description(desc = "检查作业执行sql文件状态")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        IAutoexecJobSourceActionHandler handler;
+        IAutoexecJobSourceTypeHandler handler;
         if (StringUtils.equals(paramObj.getString("operType"), codedriver.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue())) {
-            handler = AutoexecJobSourceActionHandlerFactory.getAction(codedriver.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
+            handler = AutoexecJobSourceTypeHandlerFactory.getAction(codedriver.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
             handler.checkinSqlList(paramObj);
         } else if (StringUtils.equals(paramObj.getString("operType"), JobSourceType.DEPLOY.getValue())) {
-            handler = AutoexecJobSourceActionHandlerFactory.getAction(JobSourceType.DEPLOY.getValue());
+            handler = AutoexecJobSourceTypeHandlerFactory.getAction(JobSourceType.DEPLOY.getValue());
             handler.checkinSqlList(paramObj);
         }
         return null;

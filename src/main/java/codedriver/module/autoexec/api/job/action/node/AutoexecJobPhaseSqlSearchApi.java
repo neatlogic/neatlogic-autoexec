@@ -13,8 +13,8 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
-import codedriver.framework.autoexec.job.source.action.AutoexecJobSourceActionHandlerFactory;
-import codedriver.framework.autoexec.job.source.action.IAutoexecJobSourceActionHandler;
+import codedriver.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
+import codedriver.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.deploy.constvalue.JobSourceType;
 import codedriver.framework.deploy.constvalue.JobSource;
@@ -85,12 +85,12 @@ public class AutoexecJobPhaseSqlSearchApi extends PrivateApiComponentBase {
             throw new AutoexecJobNotFoundException(phaseVo.getJobId().toString());
         }
         AutoexecJobPhaseNodeVo jobPhaseNodeVo = JSONObject.toJavaObject(paramObj, AutoexecJobPhaseNodeVo.class);
-        IAutoexecJobSourceActionHandler handler;
+        IAutoexecJobSourceTypeHandler handler;
         if (StringUtils.equals(jobVo.getSource(), JobSource.DEPLOY.getValue())) {
-            handler = AutoexecJobSourceActionHandlerFactory.getAction(JobSourceType.DEPLOY.getValue());
+            handler = AutoexecJobSourceTypeHandlerFactory.getAction(JobSourceType.DEPLOY.getValue());
             return handler.searchJobPhaseSql(jobPhaseNodeVo);
         } else {
-            handler = AutoexecJobSourceActionHandlerFactory.getAction(codedriver.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
+            handler = AutoexecJobSourceTypeHandlerFactory.getAction(codedriver.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
             return handler.searchJobPhaseSql(jobPhaseNodeVo);
         }
     }

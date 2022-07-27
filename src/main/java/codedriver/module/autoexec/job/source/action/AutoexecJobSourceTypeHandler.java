@@ -16,7 +16,7 @@ import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerGroupRunnerNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
-import codedriver.framework.autoexec.job.source.action.AutoexecJobSourceActionHandlerBase;
+import codedriver.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerBase;
 import codedriver.framework.autoexec.util.AutoexecUtil;
 import codedriver.framework.common.util.IpUtil;
 import codedriver.framework.dao.mapper.runner.RunnerMapper;
@@ -41,7 +41,7 @@ import java.util.stream.Collectors;
  * @date 2022/5/31 2:34 下午
  */
 @Service
-public class AutoexecJobSourceHandler extends AutoexecJobSourceActionHandlerBase {
+public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBase {
 
     @Resource
     AutoexecJobMapper autoexecJobMapper;

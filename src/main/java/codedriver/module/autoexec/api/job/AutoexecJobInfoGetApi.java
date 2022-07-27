@@ -19,6 +19,8 @@ import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
+import codedriver.framework.autoexec.job.source.AutoexecJobSourceHandlerFactory;
+import codedriver.framework.autoexec.job.source.IAutoexecJobSourceHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -88,6 +90,9 @@ public class AutoexecJobInfoGetApi extends PrivateApiComponentBase {
                 jobVo.setIsCanTakeOver(1);
             }
         }
+        //补充作业额外信息，如发布
+        IAutoexecJobSourceHandler jobSourceHandler = AutoexecJobSourceHandlerFactory.getJobSource(jobVo.getSource());
+        jobVo.setExtraInfo(jobSourceHandler.getExtraJobInfo(jobVo));
         return jobVo;
     }
 

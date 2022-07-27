@@ -26,8 +26,8 @@ import codedriver.framework.autoexec.exception.AutoexecJobSourceInvalidException
 import codedriver.framework.autoexec.exception.AutoexecScenarioIsNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
-import codedriver.framework.autoexec.job.source.action.AutoexecJobSourceActionHandlerFactory;
-import codedriver.framework.autoexec.job.source.action.IAutoexecJobSourceActionHandler;
+import codedriver.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
+import codedriver.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
 import codedriver.framework.autoexec.script.paramtype.IScriptParamType;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import codedriver.framework.autoexec.source.AutoexecJobSourceFactory;
@@ -171,7 +171,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         if (jobSourceVo == null) {
             throw new AutoexecJobSourceInvalidException(jobVo.getSource());
         }
-        IAutoexecJobSourceActionHandler autoexecJobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(jobSourceVo.getType());
+        IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
         autoexecJobSourceActionHandler.getFireParamJson(paramJson, jobVo);
     }
 
@@ -332,7 +332,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         if (jobSourceVo == null) {
             throw new AutoexecJobSourceInvalidException(jsonObj.getString("source"));
         }
-        IAutoexecJobSourceActionHandler autoexecJobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(jobSourceVo.getType());
+        IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
         AutoexecCombopVo combopVo = autoexecJobSourceActionHandler.getAutoexecCombop(jsonObj);
         if (combopVo == null) {
             throw new AutoexecCombopNotFoundException(jsonObj.getLong("combopId"));

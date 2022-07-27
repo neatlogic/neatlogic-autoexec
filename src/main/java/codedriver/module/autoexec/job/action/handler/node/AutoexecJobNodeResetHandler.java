@@ -13,8 +13,8 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
-import codedriver.framework.autoexec.job.source.action.AutoexecJobSourceActionHandlerFactory;
-import codedriver.framework.autoexec.job.source.action.IAutoexecJobSourceActionHandler;
+import codedriver.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
+import codedriver.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
 import codedriver.framework.deploy.constvalue.JobSourceType;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
@@ -61,11 +61,11 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
         AutoexecJobPhaseVo currentPhaseVo = jobVo.getCurrentPhase();
         if (Objects.equals(currentPhaseVo.getExecMode(), ExecMode.SQL.getValue())) {
             jobVo.getActionParam().put("phaseName", currentPhaseVo.getName());
-            IAutoexecJobSourceActionHandler handler;
+            IAutoexecJobSourceTypeHandler handler;
             if (StringUtils.equals(jobVo.getSource(), JobSourceType.DEPLOY.getValue())) {
-                handler = AutoexecJobSourceActionHandlerFactory.getAction(JobSourceType.DEPLOY.getValue());
+                handler = AutoexecJobSourceTypeHandlerFactory.getAction(JobSourceType.DEPLOY.getValue());
             } else {
-                handler = AutoexecJobSourceActionHandlerFactory.getAction(codedriver.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
+                handler = AutoexecJobSourceTypeHandlerFactory.getAction(codedriver.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
             }
             handler.resetSqlStatus(jobVo.getActionParam(), jobVo);
             nodeVoList = jobVo.getExecuteJobNodeVoList();

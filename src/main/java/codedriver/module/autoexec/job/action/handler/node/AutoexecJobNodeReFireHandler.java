@@ -15,7 +15,7 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobSourceInvalidException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
-import codedriver.framework.autoexec.job.source.action.AutoexecJobSourceActionHandlerFactory;
+import codedriver.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
 import codedriver.framework.autoexec.source.AutoexecJobSourceFactory;
 import codedriver.framework.exception.type.ParamIrregularException;
 import codedriver.module.autoexec.service.AutoexecJobService;
@@ -64,7 +64,7 @@ public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
             if (jobSourceVo == null) {
                 throw new AutoexecJobSourceInvalidException(jobVo.getSource());
             }
-            nodeVoList = AutoexecJobSourceActionHandlerFactory.getAction(jobSourceVo.getType()).getJobNodeListBySqlIdList(sqlIdArray.toJavaList(Long.class));
+            nodeVoList = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType()).getJobNodeListBySqlIdList(sqlIdArray.toJavaList(Long.class));
         }else {
             nodeVoList = autoexecJobMapper.getJobPhaseNodeListByJobPhaseIdAndResourceIdList(jobVo.getCurrentPhaseId(), resourceIdList);
             //重置节点开始和结束时间,以防 失败节点直接"重跑"导致耗时异常
