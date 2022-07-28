@@ -22,7 +22,6 @@ import codedriver.framework.scheduler.exception.ScheduleHandlerNotFoundException
 import codedriver.module.autoexec.schedule.plugin.AutoexecJobAutoFireJob;
 import codedriver.module.autoexec.service.AutoexecJobActionService;
 import com.alibaba.fastjson.JSONObject;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
@@ -32,8 +31,8 @@ import javax.annotation.Resource;
  * @since 2022/3/23 11:20
  **/
 
+@Deprecated
 @Transactional
-@Service
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.CREATE)
 public class AutoexecJobFromCombopSaveApi extends PrivateApiComponentBase {
@@ -56,6 +55,8 @@ public class AutoexecJobFromCombopSaveApi extends PrivateApiComponentBase {
             @Param(name = "param", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "执行参数"),
             @Param(name = "source", type = ApiParamType.STRING, isRequired = true, desc = "来源 itsm|human   ITSM|人工发起的等，不传默认是人工发起的"),
             @Param(name = "invokeId", type = ApiParamType.LONG, desc = "来源id"),
+            @Param(name = "scenarioId", type = ApiParamType.LONG, desc = "场景id"),
+            @Param(name = "scenarioName", type = ApiParamType.STRING, desc = "场景名, 如果入参也有scenarioId，则会以scenarioName为准"),
             @Param(name = "roundCount", type = ApiParamType.LONG, isRequired = true, desc = "并发线程,正整数 "),
             @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, desc = "执行目标"),
             @Param(name = "planStartTime", type = ApiParamType.LONG, isRequired = true, desc = "计划时间"),
