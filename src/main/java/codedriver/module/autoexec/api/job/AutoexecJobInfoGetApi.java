@@ -92,7 +92,9 @@ public class AutoexecJobInfoGetApi extends PrivateApiComponentBase {
         }
         //补充作业额外信息，如发布
         IAutoexecJobSourceHandler jobSourceHandler = AutoexecJobSourceHandlerFactory.getJobSource(jobVo.getSource());
-        jobVo.setExtraInfo(jobSourceHandler.getExtraJobInfo(jobVo));
+        if(jobSourceHandler != null) {
+            jobVo.setExtraInfo(jobSourceHandler.getExtraJobInfo(jobVo));
+        }
         return jobVo;
     }
 
