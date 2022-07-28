@@ -268,7 +268,7 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
             autoexecCombopMapper.insertAutoexecCombopParamVoList(autoexecCombopParamVoList);
         }
         autoexecCombopMapper.updateAutoexecCombopIsActiveById(autoexecCombopVo);
-        autoexecCombopMapper.insertAutoexecOperationGenerateCombop(combopId, autoexecToolAndScriptVo.getOperationType(), autoexecToolAndScriptVo.getId());
+        autoexecCombopMapper.insertAutoexecOperationGenerateCombop(combopId, autoexecToolAndScriptVo.getType(), autoexecToolAndScriptVo.getId());
         return combopId;
     }
 }
