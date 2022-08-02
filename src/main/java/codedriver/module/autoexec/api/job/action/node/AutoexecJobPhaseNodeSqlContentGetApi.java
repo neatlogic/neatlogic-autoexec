@@ -42,7 +42,8 @@ public class AutoexecJobPhaseNodeSqlContentGetApi extends PrivateApiComponentBas
     @Input({
             @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本Id"),
             @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id"),
-            @Param(name = "sqlName", type = ApiParamType.STRING, desc = "sql名")
+            @Param(name = "sqlName", type = ApiParamType.STRING, desc = "sql名"),
+            @Param(name = "encoding", type = ApiParamType.STRING, desc = "字符编码", defaultValue = "UTF-8")
     })
     @Output({
     })
