@@ -641,6 +641,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             if (count > 0) {
                 int pageCount = PageUtil.getPageCount(count, searchVo.getPageSize());
                 for (int i = 1; i <= pageCount; i++) {
+                    searchVo.setCurrentPage(i);
                     List<Long> idList = resourceCrossoverMapper.getResourceIdList(searchVo);
                     if (CollectionUtils.isEmpty(idList)) {
                         continue;
