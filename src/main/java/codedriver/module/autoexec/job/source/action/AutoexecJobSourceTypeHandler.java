@@ -1,9 +1,8 @@
 package codedriver.module.autoexec.job.source.action;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
-import codedriver.framework.autoexec.constvalue.JobNodeStatus;
-import codedriver.framework.autoexec.constvalue.JobSourceType;
-import codedriver.framework.autoexec.constvalue.ExecMode;
+import codedriver.framework.autoexec.auth.AUTOEXEC_JOB_MODIFY;
+import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
@@ -12,18 +11,17 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.dto.job.AutoexecSqlDetailVo;
-import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerGroupRunnerNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
+import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerBase;
 import codedriver.framework.autoexec.util.AutoexecUtil;
 import codedriver.framework.common.util.IpUtil;
 import codedriver.framework.dao.mapper.runner.RunnerMapper;
+import codedriver.framework.dto.AuthenticationInfoVo;
 import codedriver.framework.dto.runner.GroupNetworkVo;
 import codedriver.framework.dto.runner.RunnerGroupVo;
 import codedriver.framework.dto.runner.RunnerMapVo;
 import codedriver.framework.integration.authentication.enums.AuthenticateType;
+import codedriver.framework.service.AuthenticationInfoService;
 import codedriver.framework.util.HttpRequestUtil;
 import codedriver.framework.util.TableResultUtil;
 import com.alibaba.fastjson.JSONArray;
@@ -51,6 +49,9 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
 
     @Resource
     RunnerMapper runnerMapper;
+
+    @Resource
+    private AuthenticationInfoService authenticationInfoService;
 
     @Override
     public String getName() {
@@ -221,6 +222,26 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
             List<AutoexecJobPhaseNodeVo> phaseNodes = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseIdAndExceptStatusAndRunnerMapId(jobPhaseVo.getJobId(), jobPhaseVo.getId(), Arrays.asList(JobNodeStatus.SUCCEED.getValue(), JobNodeStatus.IGNORED.getValue()), runnerMapId);
             return phaseNodes.size() == 0;
         }
+    }
+
+    @Override
+    public void myExecuteAuthCheck(AutoexecJobVo originJob, String execUser) {
+        AuthenticationInfoVo authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(execUser);
+        if (Objects.equals(originJob.getOperationType(), CombopOperationType.COMBOP.getValue())) {
+            AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(originJob.getOperationId());
+            if (combopVo != null) {
+                List<String> actionList = autoexecCombopMapper.getAutoexecCombopAuthorityListByCombopIdAndUserUuidAndTeamUuidListAndRoleUuidList(originJob.getOperationId(), execUser, authenticationInfoVo.getTeamUuidList(), authenticationInfoVo.getRoleUuidList());
+                //组合工具维护人或拥有执行权限的人 才能创建或者接管作业
+                if (!Objects.equals(combopVo.getOwner(), execUser) && !actionList.contains(CombopAuthorityAction.EXECUTE.getValue())) {
+                    throw new AutoexecJobCanNotCreateException(combopVo.getName());
+                }
+            }
+        }
+    }
+
+    @Override
+    public List<String> getModifyAuthList() {
+        return Collections.singletonList(AUTOEXEC_JOB_MODIFY.class.getSimpleName());
     }
 
 }
