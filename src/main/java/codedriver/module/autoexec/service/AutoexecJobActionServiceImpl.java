@@ -36,7 +36,6 @@ import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
 import codedriver.framework.crossover.CrossoverServiceFactory;
 import codedriver.framework.dao.mapper.UserMapper;
 import codedriver.framework.dto.UserVo;
-import codedriver.framework.exception.type.ParamIrregularException;
 import codedriver.framework.exception.user.UserNotFoundException;
 import codedriver.framework.filter.core.LoginAuthHandlerBase;
 import codedriver.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
@@ -377,7 +376,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
 
         Integer roundCount = jsonObj.getInteger("roundCount");
         if (roundCount == null || roundCount < 1) {
-            throw new ParamIrregularException("roundCount");
+            jsonObj.put("roundCount", 3);//默认3组
         }
 
         AutoexecJobVo jobVo = JSONObject.toJavaObject(jsonObj, AutoexecJobVo.class);
