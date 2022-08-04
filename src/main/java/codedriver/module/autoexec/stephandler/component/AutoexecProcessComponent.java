@@ -18,7 +18,7 @@ import codedriver.framework.process.stephandler.core.IProcessStepHandler;
 import codedriver.framework.process.stephandler.core.ProcessStepHandlerBase;
 import codedriver.framework.process.stephandler.core.ProcessStepHandlerFactory;
 import codedriver.framework.process.stephandler.core.ProcessStepThread;
-import codedriver.module.autoexec.constvalue.AutoexecProcessStepHandlerType;
+import codedriver.framework.process.constvalue.AutoexecProcessStepHandlerType;
 import codedriver.module.autoexec.constvalue.FailPolicy;
 import codedriver.module.autoexec.service.AutoexecJobActionService;
 import codedriver.module.autoexec.service.AutoexecJobService;

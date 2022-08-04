@@ -16,7 +16,7 @@ import codedriver.framework.process.dto.processconfig.ActionConfigVo;
 import codedriver.framework.process.dto.processconfig.NotifyPolicyConfigVo;
 import codedriver.framework.process.stephandler.core.ProcessStepInternalHandlerBase;
 import codedriver.framework.process.util.ProcessConfigUtil;
-import codedriver.module.autoexec.constvalue.AutoexecProcessStepHandlerType;
+import codedriver.framework.process.constvalue.AutoexecProcessStepHandlerType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.module.autoexec.notify.handler.AutoexecCombopNotifyPolicyHandler;
 import com.alibaba.fastjson.JSONArray;
