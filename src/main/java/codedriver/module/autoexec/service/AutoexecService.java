@@ -44,7 +44,7 @@ public interface AutoexecService {
      * @param autoexecCombopPhaseOperationVo
      * @return
      */
-    AutoexecOperationBaseVo getAutoexecOperationBaseVoByIdAndType(AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo);
+    AutoexecOperationBaseVo getAutoexecOperationBaseVoByIdAndType(AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo, boolean throwException);
 
     /**
      * 根据关operationVoList获取工具参数并做去重处理

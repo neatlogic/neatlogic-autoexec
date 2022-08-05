@@ -195,7 +195,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             String operationType = autoexecCombopPhaseOperationVo.getOperationType();
             Long id = autoexecCombopPhaseOperationVo.getOperationId();
             //测试 指定脚本id
-            autoexecService.getAutoexecOperationBaseVoByIdAndType(autoexecCombopPhaseOperationVo);
+            autoexecService.getAutoexecOperationBaseVoByIdAndType(autoexecCombopPhaseOperationVo, true);
             AutoexecJobPhaseOperationVo jobPhaseOperationVo = null;
             if (CombopOperationType.SCRIPT.getValue().equalsIgnoreCase(operationType)) {
                 AutoexecScriptVo scriptVo;
