@@ -12,6 +12,7 @@ import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.exception.AutoexecJobActionInvalidException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
@@ -99,6 +100,8 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
                 new AutoexecJobAuthActionManager.Builder().addReFireJob().build().setAutoexecJobAction(jobVo);
             }
             jobVo.setIsNoFireNext(0);
+        }else{
+            throw new AutoexecJobActionInvalidException();
         }
         /*if (CollectionUtils.isNotEmpty(needSqlFileResetStatusPhaseNameList)) {
             autoexecJobService.resetAutoexecJobSqlStatusByJobIdAndJobPhaseNameList(jobVo.getId(), needSqlFileResetStatusPhaseNameList);
