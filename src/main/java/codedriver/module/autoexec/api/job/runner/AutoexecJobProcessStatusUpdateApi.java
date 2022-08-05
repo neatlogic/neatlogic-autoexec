@@ -87,6 +87,7 @@ public class AutoexecJobProcessStatusUpdateApi extends PrivateApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobPhaseNotFoundException(jobId.toString());
         }
+        jobVo.setPassThroughEnv(passThroughEnv);
         List<AutoexecJobPhaseVo> jobPhaseVoList = null;
         if (statusParam != null && statusParam == 1) {
             if (JobAction.ABORT.getValue().equalsIgnoreCase(jobAction)) {

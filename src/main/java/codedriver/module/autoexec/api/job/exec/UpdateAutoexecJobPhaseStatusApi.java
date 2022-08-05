@@ -114,6 +114,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
             autoexecJobMapper.updateJobPhaseRunnerStatus(Collections.singletonList(jobPhaseVo.getId()), runnerId, phaseRunnerStatus, phaseRunnerWarnCount);
         }
 
+        jobVo.setPassThroughEnv(passThroughEnv);
         //更新job 和 phase 状态
         updateJobPhaseStatus(jobVo, jobPhaseVo);
         return null;
