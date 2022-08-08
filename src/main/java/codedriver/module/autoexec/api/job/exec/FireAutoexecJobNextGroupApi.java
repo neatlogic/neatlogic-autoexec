@@ -75,7 +75,7 @@ public class FireAutoexecJobNextGroupApi extends PrivateApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
-
+        jobVo.setPassThroughEnv(jsonObj.getJSONObject("passThroughEnv"));
         autoexecJobActionService.initExecuteUserContext(jobVo);
 
         //更新group对应runner的"是否fireNext"标识为1

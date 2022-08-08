@@ -81,6 +81,7 @@ public class UpdateAutoexecJobStatusApi extends PrivateApiComponentBase {
                 throw new ParamIrregularException("runnerId");
             }
             Long runnerId = passThroughEnv.getLong("runnerId");
+            jobVo.setPassThroughEnv(passThroughEnv);
             //update job phase runner
             autoexecJobMapper.updateJobPhaseRunnerStatusByJobIdAndRunnerIdAndStatus(jobId, runnerId, status);
             //如果该job runner 没有一个aborting|pausing phase 则更新为 aborted|paused
