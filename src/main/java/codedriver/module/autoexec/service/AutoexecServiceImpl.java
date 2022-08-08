@@ -260,7 +260,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                     if (phaseOperationVo == null) {
                         continue;
                     }
-                    getAutoexecOperationBaseVoByIdAndType(phaseOperationVo, false);
+                    getAutoexecOperationBaseVoByIdAndType(combopPhaseVo.getName(), phaseOperationVo, false);
                     AutoexecCombopPhaseOperationConfigVo operationConfigVo = phaseOperationVo.getConfig();
                     if (operationConfigVo == null) {
                         continue;
@@ -280,7 +280,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                             if (operationVo == null) {
                                 continue;
                             }
-                            getAutoexecOperationBaseVoByIdAndType(operationVo, false);
+                            getAutoexecOperationBaseVoByIdAndType(combopPhaseVo.getName(), operationVo, false);
                             AutoexecCombopPhaseOperationConfigVo operationConfig = operationVo.getConfig();
                             if (operationConfig == null) {
                                 continue;
@@ -302,7 +302,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                             if (operationVo == null) {
                                 continue;
                             }
-                            getAutoexecOperationBaseVoByIdAndType(operationVo, false);
+                            getAutoexecOperationBaseVoByIdAndType(combopPhaseVo.getName(), operationVo, false);
                             AutoexecCombopPhaseOperationConfigVo operationConfig = operationVo.getConfig();
                             if (operationConfig == null) {
                                 continue;
@@ -324,7 +324,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
     }
 
     @Override
-    public AutoexecOperationBaseVo getAutoexecOperationBaseVoByIdAndType(AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo, boolean throwException) {
+    public AutoexecOperationBaseVo getAutoexecOperationBaseVoByIdAndType(String phaseName, AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo, boolean throwException) {
         AutoexecOperationBaseVo autoexecToolAndScriptVo = null;
         List<? extends AutoexecParamVo> autoexecParamVoList = new ArrayList<>();
         Long id = autoexecCombopPhaseOperationVo.getOperationId();
@@ -338,7 +338,8 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 autoexecScriptVersionVo = autoexecScriptMapper.getVersionByVersionId(autoexecCombopPhaseOperationVo.getScriptVersionId());
                 if(autoexecScriptVersionVo == null) {
                     if (throwException) {
-                        throw new AutoexecScriptVersionNotFoundException(autoexecCombopPhaseOperationVo.getScriptVersionId());
+//                        throw new AutoexecScriptVersionNotFoundException(autoexecCombopPhaseOperationVo.getScriptVersionId());
+                        throw new AutoexecCombopOperationNotFoundException(phaseName, autoexecCombopPhaseOperationVo.getOperationName());
                     } else {
                         return null;
                     }
@@ -349,13 +350,15 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 if (autoexecScriptVo == null) {
                     if (StringUtils.isNotBlank(name)) {
                         if (throwException) {
-                            throw new AutoexecScriptNotFoundException(name);
+//                            throw new AutoexecScriptNotFoundException(name);
+                            throw new AutoexecCombopOperationNotFoundException(phaseName, autoexecCombopPhaseOperationVo.getOperationName());
                         } else {
                             return null;
                         }
                     } else {
                         if (throwException) {
-                            throw new AutoexecScriptNotFoundException(id);
+//                            throw new AutoexecScriptNotFoundException(id);
+                            throw new AutoexecCombopOperationNotFoundException(phaseName, autoexecCombopPhaseOperationVo.getOperationName());
                         } else {
                             return null;
                         }
@@ -364,7 +367,8 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 autoexecScriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(id);
                 if (autoexecScriptVersionVo == null) {
                     if (throwException) {
-                        throw new AutoexecScriptVersionHasNoActivedException(autoexecScriptVo.getName());
+//                        throw new AutoexecScriptVersionHasNoActivedException(autoexecScriptVo.getName());
+                        throw new AutoexecCombopOperationNotFoundException(phaseName, autoexecCombopPhaseOperationVo.getOperationName());
                     } else {
                         return null;
                     }
@@ -384,13 +388,15 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 if (autoexecToolVo == null) {
                     if (StringUtils.isNotBlank(name)) {
                         if (throwException) {
-                            throw new AutoexecToolNotFoundException(name);
+//                            throw new AutoexecToolNotFoundException(name);
+                            throw new AutoexecCombopOperationNotFoundException(phaseName, autoexecCombopPhaseOperationVo.getOperationName());
                         } else {
                             return null;
                         }
                     } else {
                         if (throwException) {
-                            throw new AutoexecToolNotFoundException(id);
+//                            throw new AutoexecToolNotFoundException(id);
+                            throw new AutoexecCombopOperationNotFoundException(phaseName, autoexecCombopPhaseOperationVo.getOperationName());
                         } else {
                             return null;
                         }
