@@ -9,7 +9,6 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
 import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
-import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.AutoexecJobSourceVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseRunnerVo;
@@ -107,7 +106,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
                 throw new AutoexecJobSourceInvalidException(jobVo.getSource());
             }
             IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
-            isCanUpdatePhaseStatus = autoexecJobSourceActionHandler.getIsCanUpdatePhaseRunner(jobPhaseVo,runnerId);
+            isCanUpdatePhaseStatus = autoexecJobSourceActionHandler.getIsCanUpdatePhaseRunner(jobPhaseVo, runnerId);
         }
 
         if (isCanUpdatePhaseStatus) {
@@ -156,8 +155,8 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         }
         autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), finalJobPhaseStatus, warnCount));
         //autoexec是不会回调failed的作业状态，故如果存在失败的phase 则更新作业状态为failed
-        if (Objects.equals(finalJobPhaseStatus, JobPhaseStatus.FAILED.getValue())) {
-            jobVo.setStatus(JobStatus.FAILED.getValue());
+        if (Arrays.asList(JobPhaseStatus.FAILED.getValue(), JobPhaseStatus.WAIT_INPUT.getValue(), JobPhaseStatus.RUNNING.getValue()).contains(finalJobPhaseStatus)) {
+            jobVo.setStatus(finalJobPhaseStatus);
             autoexecJobMapper.updateJobStatus(jobVo);
         } else if (Objects.equals(finalJobPhaseStatus, JobPhaseStatus.COMPLETED.getValue())) {
             //判断所有phase 是否都已跑完（completed），如果是则需要更新job状态
