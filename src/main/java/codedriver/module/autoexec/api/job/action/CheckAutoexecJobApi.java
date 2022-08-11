@@ -1,5 +1,5 @@
 /*
- * Copyright (c)  2022 TechSure Co.,Ltd.  All Rights Reserved.
+ * Copyright(c) 2022 TechSure Co., Ltd. All Rights Reserved.
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  */
 
@@ -45,15 +45,11 @@ public class CheckAutoexecJobApi extends PrivateApiComponentBase {
         return null;
     }
 
-    @Input({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
-    })
-    @Output({
-    })
+    @Input({@Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),})
     @Description(desc = "验证作业接口")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        Long jobId = jsonObj.getLong("id");
+        Long jobId = jsonObj.getLong("jobId");
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         if (Objects.equals(jobVo.getStatus(), JobStatus.COMPLETED.getValue())) {
             jobVo.setStatus(JobStatus.CHECKED.getValue());
