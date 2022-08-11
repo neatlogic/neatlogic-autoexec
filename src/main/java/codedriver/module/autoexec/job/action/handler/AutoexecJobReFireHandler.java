@@ -16,6 +16,8 @@ import codedriver.framework.autoexec.exception.AutoexecJobActionInvalidException
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
+import codedriver.framework.crossover.CrossoverServiceFactory;
+import codedriver.framework.deploy.crossover.IDeployBatchJobCrossoverService;
 import codedriver.framework.dto.runner.RunnerMapVo;
 import codedriver.framework.integration.authentication.enums.AuthenticateType;
 import codedriver.framework.util.HttpRequestUtil;
@@ -87,6 +89,9 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             }
             //如果都成功了则无须重跑
             if (CollectionUtils.isEmpty(autoexecJobPhaseVos)) {
+
+                IDeployBatchJobCrossoverService iDeployBatchJobCrossoverService = CrossoverServiceFactory.getApi(IDeployBatchJobCrossoverService.class);
+                iDeployBatchJobCrossoverService.checkAndFireLaneNextGroupByJobId(jobVo.getId(), jobVo.getPassThroughEnv());
                 return null;
             }
             jobVo.setStatus(JobStatus.PENDING.getValue());

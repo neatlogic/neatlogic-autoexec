@@ -92,6 +92,7 @@ public class AutoexecJobInfoGetApi extends PrivateApiComponentBase {
                     jobVo.setIsCanTakeOver(1);
                 }
             }
+            //TODO 操作按钮--创建作业、接管、验证、删除作业、编辑作业；需要校验 【环境权限】&【场景权限】
         }
         //补充作业额外信息，如发布
         IAutoexecJobSourceHandler jobSourceHandler = AutoexecJobSourceHandlerFactory.getJobSource(jobVo.getSource());

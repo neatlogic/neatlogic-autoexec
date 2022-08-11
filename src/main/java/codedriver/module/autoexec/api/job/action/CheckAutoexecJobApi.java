@@ -60,8 +60,8 @@ public class CheckAutoexecJobApi extends PrivateApiComponentBase {
             throw new AutoexecJobNotFoundException(jobId);
         }
         jobVo.setAction(JobAction.CHECK.getValue());
-        IAutoexecJobActionHandler abortAction = AutoexecJobActionHandlerFactory.getAction(JobAction.CHECK.getValue());
-        return abortAction.doService(jobVo);
+        IAutoexecJobActionHandler action = AutoexecJobActionHandlerFactory.getAction(JobAction.CHECK.getValue());
+        return action.doService(jobVo);
     }
 
     @Override
