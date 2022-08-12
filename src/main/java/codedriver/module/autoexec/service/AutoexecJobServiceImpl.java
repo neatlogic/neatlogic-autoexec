@@ -15,7 +15,10 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
-import codedriver.framework.autoexec.dto.*;
+import codedriver.framework.autoexec.dto.AutoexecJobSourceVo;
+import codedriver.framework.autoexec.dto.AutoexecOperationVo;
+import codedriver.framework.autoexec.dto.AutoexecParamVo;
+import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
@@ -182,10 +185,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
 
     /**
      * 将组合工具的工具转为作业工具
-     * @param jobPhaseVo 当前作业阶段
-     * @param jobPhaseVoList 作业所有阶段
+     *
+     * @param jobPhaseVo               当前作业阶段
+     * @param jobPhaseVoList           作业所有阶段
      * @param combopPhaseOperationList 组合工具阶段工具列表
-     * @param jobVo 作业
+     * @param jobVo                    作业
      * @return 作业工具列表
      */
     private List<AutoexecJobPhaseOperationVo> convertCombOperation2JobOperation(AutoexecJobPhaseVo jobPhaseVo, List<AutoexecJobPhaseVo> jobPhaseVoList, List<AutoexecCombopPhaseOperationVo> combopPhaseOperationList, AutoexecJobVo jobVo) {
@@ -228,12 +232,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     }
 
     /**
-     *
-     * @param autoexecCombopPhaseOperationVo  组合工具阶段工具列表
-     * @param jobPhaseOperationVo 作业工具
-     * @param jobPhaseVo 当前作业阶段
-     * @param jobPhaseVoList 作业所有阶段列表
-     * @param jobVo 作业
+     * @param autoexecCombopPhaseOperationVo 组合工具阶段工具列表
+     * @param jobPhaseOperationVo            作业工具
+     * @param jobPhaseVo                     当前作业阶段
+     * @param jobPhaseVoList                 作业所有阶段列表
+     * @param jobVo                          作业
      */
     private void initIfBlockOperation(AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo, AutoexecJobPhaseOperationVo jobPhaseOperationVo, AutoexecJobPhaseVo jobPhaseVo, List<AutoexecJobPhaseVo> jobPhaseVoList, AutoexecJobVo jobVo) {
         AutoexecCombopPhaseOperationConfigVo combopPhaseOperationConfigVo = autoexecCombopPhaseOperationVo.getConfig();
@@ -244,7 +247,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 paramObj.put("condition", combopPhaseOperationConfigVo.getCondition());
                 if (CollectionUtils.isNotEmpty(combopPhaseOperationConfigVo.getIfList())) {
                     List<AutoexecCombopPhaseOperationVo> ifOperationList = combopPhaseOperationConfigVo.getIfList();
-                    ifOperationList.forEach(o->{
+                    ifOperationList.forEach(o -> {
                         o.setParentOperationId(jobPhaseOperationVo.getId());
                         o.setParentOperationType("if");
                     });
@@ -254,7 +257,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 }
                 if (CollectionUtils.isNotEmpty(combopPhaseOperationConfigVo.getElseList())) {
                     List<AutoexecCombopPhaseOperationVo> elseOperationList = combopPhaseOperationConfigVo.getElseList();
-                    elseOperationList.forEach(o->{
+                    elseOperationList.forEach(o -> {
                         o.setParentOperationId(jobPhaseOperationVo.getId());
                         o.setParentOperationType("else");
                     });
@@ -750,50 +753,54 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     @Override
     public List<AutoexecJobVo> searchJob(AutoexecJobVo jobVo) {
         List<AutoexecJobVo> jobVoList = new ArrayList<>();
-        int rowNum = autoexecJobMapper.searchJobCount(jobVo);
-        if (rowNum > 0) {
-            jobVo.setRowNum(rowNum);
-            List<Long> jobIdList = CollectionUtils.isEmpty(jobVo.getIdList()) ? autoexecJobMapper.searchJobId(jobVo) : jobVo.getIdList();
-            if (CollectionUtils.isNotEmpty(jobIdList)) {
-                Map<String, ArrayList<Long>> operationIdMap = new HashMap<>();
-                jobVoList = autoexecJobMapper.searchJob(jobIdList);
-                //补充来源operation信息
-                //TODO  invoke id 比如 工单id，而不是operationId
-                Map<Long, String> operationIdNameMap = new HashMap<>();
-                List<AutoexecCombopVo> combopVoList = null;
-                List<AutoexecScriptVersionVo> scriptVoList;
-                List<AutoexecOperationVo> toolVoList;
-                jobVoList.forEach(o -> {
-                    operationIdMap.computeIfAbsent(o.getOperationType(), k -> new ArrayList<>());
-                    operationIdMap.get(o.getOperationType()).add(o.getOperationId());
-                });
-                if (CollectionUtils.isNotEmpty(operationIdMap.get(CombopOperationType.COMBOP.getValue()))) {
-                    combopVoList = autoexecCombopMapper.getAutoexecCombopByIdList(operationIdMap.get(CombopOperationType.COMBOP.getValue()));
-                    combopVoList.forEach(o -> operationIdNameMap.put(o.getId(), o.getName()));
+        List<Long> jobIdList = jobVo.getIdList();
+        if (CollectionUtils.isEmpty(jobIdList)) {
+            int rowNum = autoexecJobMapper.searchJobCount(jobVo);
+            if (rowNum > 0) {
+                jobVo.setRowNum(rowNum);
+                jobIdList = autoexecJobMapper.searchJobId(jobVo);
+            }
+        }
+        if (CollectionUtils.isNotEmpty(jobIdList)) {
+            Map<String, ArrayList<Long>> operationIdMap = new HashMap<>();
+            jobVoList = autoexecJobMapper.searchJob(jobIdList);
+            //补充来源operation信息
+            //TODO  invoke id 比如 工单id，而不是operationId
+            Map<Long, String> operationIdNameMap = new HashMap<>();
+            List<AutoexecCombopVo> combopVoList = null;
+            List<AutoexecScriptVersionVo> scriptVoList;
+            List<AutoexecOperationVo> toolVoList;
+            jobVoList.forEach(o -> {
+                operationIdMap.computeIfAbsent(o.getOperationType(), k -> new ArrayList<>());
+                operationIdMap.get(o.getOperationType()).add(o.getOperationId());
+            });
+            if (CollectionUtils.isNotEmpty(operationIdMap.get(CombopOperationType.COMBOP.getValue()))) {
+                combopVoList = autoexecCombopMapper.getAutoexecCombopByIdList(operationIdMap.get(CombopOperationType.COMBOP.getValue()));
+                combopVoList.forEach(o -> operationIdNameMap.put(o.getId(), o.getName()));
+            }
+            if (CollectionUtils.isNotEmpty(operationIdMap.get(CombopOperationType.SCRIPT.getValue()))) {
+                scriptVoList = autoexecScriptMapper.getVersionByVersionIdList(operationIdMap.get(CombopOperationType.SCRIPT.getValue()));
+                scriptVoList.forEach(o -> operationIdNameMap.put(o.getId(), o.getTitle()));
+            }
+            if (CollectionUtils.isNotEmpty(operationIdMap.get(CombopOperationType.TOOL.getValue()))) {
+                toolVoList = autoexecToolMapper.getToolListByIdList(operationIdMap.get(CombopOperationType.TOOL.getValue()));
+                toolVoList.forEach(o -> operationIdNameMap.put(o.getId(), o.getName()));
+            }
+            Map<Long, AutoexecCombopVo> combopVoMap = null;
+            if (CollectionUtils.isNotEmpty(combopVoList)) {
+                combopVoMap = combopVoList.stream().collect(Collectors.toMap(AutoexecCombopVo::getId, o -> o));
+            }
+            boolean hasAutoexecScriptModifyAuth = AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class);
+            for (AutoexecJobVo vo : jobVoList) {
+                vo.setOperationName(operationIdNameMap.get(vo.getOperationId()));
+                // 有组合工具执行权限，只能接管作业，执行用户才能执行或撤销作业
+                if (UserContext.get().getUserUuid().equals(vo.getExecUser())) {
+                    vo.setIsCanExecute(1);
+                } else if ((Objects.equals(jobVo.getSource(), JobSource.TEST.getValue()) && hasAutoexecScriptModifyAuth)
+                        || (MapUtils.isNotEmpty(combopVoMap) && autoexecCombopService.checkOperableButton(combopVoMap.get(vo.getOperationId()), CombopAuthorityAction.EXECUTE))) {
+                    vo.setIsCanTakeOver(1);
                 }
-                if (CollectionUtils.isNotEmpty(operationIdMap.get(CombopOperationType.SCRIPT.getValue()))) {
-                    scriptVoList = autoexecScriptMapper.getVersionByVersionIdList(operationIdMap.get(CombopOperationType.SCRIPT.getValue()));
-                    scriptVoList.forEach(o -> operationIdNameMap.put(o.getId(), o.getTitle()));
-                }
-                if (CollectionUtils.isNotEmpty(operationIdMap.get(CombopOperationType.TOOL.getValue()))) {
-                    toolVoList = autoexecToolMapper.getToolListByIdList(operationIdMap.get(CombopOperationType.TOOL.getValue()));
-                    toolVoList.forEach(o -> operationIdNameMap.put(o.getId(), o.getName()));
-                }
-                Map<Long, AutoexecCombopVo> combopVoMap = null;
-                if (CollectionUtils.isNotEmpty(combopVoList)) {
-                    combopVoMap = combopVoList.stream().collect(Collectors.toMap(AutoexecCombopVo::getId, o -> o));
-                }
-                boolean hasAutoexecScriptModifyAuth = AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class);
-                for (AutoexecJobVo vo : jobVoList) {
-                    vo.setOperationName(operationIdNameMap.get(vo.getOperationId()));
-                    // 有组合工具执行权限，只能接管作业，执行用户才能执行或撤销作业
-                    if (UserContext.get().getUserUuid().equals(vo.getExecUser())) {
-                        vo.setIsCanExecute(1);
-                    } else if ((Objects.equals(jobVo.getSource(), JobSource.TEST.getValue()) && hasAutoexecScriptModifyAuth)
-                            || (MapUtils.isNotEmpty(combopVoMap) && autoexecCombopService.checkOperableButton(combopVoMap.get(vo.getOperationId()), CombopAuthorityAction.EXECUTE))) {
-                        vo.setIsCanTakeOver(1);
-                    }
-                }
+            }
                 /*  jobVoList.forEach(j -> {
             //判断是否有编辑权限
             if(Objects.equals(j.getOperationType(), CombopOperationType.COMBOP.getValue())) {
@@ -807,7 +814,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 }
             }
         });*/
-            }
         }
         return jobVoList;
     }
