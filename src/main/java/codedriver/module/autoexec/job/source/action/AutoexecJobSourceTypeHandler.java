@@ -1,7 +1,9 @@
 package codedriver.module.autoexec.job.source.action;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
+import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.AUTOEXEC_JOB_MODIFY;
+import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
@@ -16,7 +18,6 @@ import codedriver.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandle
 import codedriver.framework.autoexec.util.AutoexecUtil;
 import codedriver.framework.common.util.IpUtil;
 import codedriver.framework.dao.mapper.runner.RunnerMapper;
-import codedriver.framework.dto.AuthenticationInfoVo;
 import codedriver.framework.dto.runner.GroupNetworkVo;
 import codedriver.framework.dto.runner.RunnerGroupVo;
 import codedriver.framework.dto.runner.RunnerMapVo;
@@ -24,6 +25,7 @@ import codedriver.framework.integration.authentication.enums.AuthenticateType;
 import codedriver.framework.service.AuthenticationInfoService;
 import codedriver.framework.util.HttpRequestUtil;
 import codedriver.framework.util.TableResultUtil;
+import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.nacos.common.utils.CollectionUtils;
@@ -49,6 +51,9 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
 
     @Resource
     RunnerMapper runnerMapper;
+
+    @Resource
+    AutoexecCombopService autoexecCombopService;
 
     @Resource
     private AuthenticationInfoService authenticationInfoService;
@@ -225,16 +230,19 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
     }
 
     @Override
-    public void myExecuteAuthCheck(AutoexecJobVo originJob, String execUser) {
-        AuthenticationInfoVo authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(execUser);
-        if (Objects.equals(originJob.getOperationType(), CombopOperationType.COMBOP.getValue())) {
-            AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(originJob.getOperationId());
-            if (combopVo != null) {
-                List<String> actionList = autoexecCombopMapper.getAutoexecCombopAuthorityListByCombopIdAndUserUuidAndTeamUuidListAndRoleUuidList(originJob.getOperationId(), execUser, authenticationInfoVo.getTeamUuidList(), authenticationInfoVo.getRoleUuidList());
-                //组合工具维护人或拥有执行权限的人 才能创建或者接管作业
-                if (!Objects.equals(combopVo.getOwner(), execUser) && !actionList.contains(CombopAuthorityAction.EXECUTE.getValue())) {
-                    throw new AutoexecJobCanNotCreateException(combopVo.getName());
-                }
+    public void myExecuteAuthCheck(AutoexecJobVo jobVo) {
+        //先校验有没有组合工具权限
+        if (Objects.equals(jobVo.getOperationType(), CombopOperationType.COMBOP.getValue())) {
+            AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(jobVo.getOperationId());
+            if (combopVo == null && jobVo.getIsTakeOver() == 0) {
+                throw new AutoexecCombopNotFoundException(jobVo.getOperationId());
+            }
+            if (combopVo != null && !Objects.equals(combopVo.getOwner(), jobVo.getExecUser()) && !autoexecCombopService.checkOperableButton(combopVo, CombopAuthorityAction.EXECUTE, jobVo.getExecUser())) {
+                throw new AutoexecJobCanNotCreateException(combopVo.getName());
+            }
+        } else if (Arrays.asList(CombopOperationType.SCRIPT.getValue(), CombopOperationType.TOOL.getValue()).contains(jobVo.getOperationType())) {
+            if (!AuthActionChecker.checkByUserUuid(jobVo.getExecUser(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
+                throw new AutoexecScriptJobCanNotExecuteException(jobVo.getId());
             }
         }
     }
@@ -244,4 +252,30 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
         return Collections.singletonList(AUTOEXEC_JOB_MODIFY.class.getSimpleName());
     }
 
+    @Override
+    public void getJobActionAuth(AutoexecJobVo jobVo) {
+        if ((Objects.equals(jobVo.getSource(), JobSource.TEST.getValue()))) {
+            if (AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class)) {
+                if (UserContext.get().getUserUuid().equals(jobVo.getExecUser())) {
+                    jobVo.setIsCanExecute(1);
+                } else {
+                    jobVo.setIsCanTakeOver(1);
+                }
+            }
+        } else if (Objects.equals(jobVo.getOperationType(), CombopOperationType.COMBOP.getValue())) {
+            AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(jobVo.getOperationId());
+            //如果组合工具已经被删除，则只需要校验执行用户即可
+            if (combopVo == null && UserContext.get().getUserUuid().equals(jobVo.getExecUser())) {
+                jobVo.setIsCanExecute(1);
+            }
+            if (combopVo != null && autoexecCombopService.checkOperableButton(combopVo, CombopAuthorityAction.EXECUTE)) {
+                if (UserContext.get().getUserUuid().equals(jobVo.getExecUser())) {
+                    jobVo.setIsCanExecute(1);
+                } else {
+                    jobVo.setIsCanTakeOver(1);
+                }
+            }
+        }
+
+    }
 }

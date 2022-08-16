@@ -57,7 +57,7 @@ public class UpdateAutoexecJobSqlApi extends PrivateApiComponentBase {
     @Description(desc = "更新作业执行sql文件状态")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        if (autoexecJobMapper.getJobInfo(paramObj.getLong("jobId")) == null) {
+        if (autoexecJobMapper.getJobLockByJobId(paramObj.getLong("jobId")) == null) {
             throw new AutoexecJobNotFoundException(paramObj.getLong("jobId"));
         }
         IAutoexecJobSourceTypeHandler handler;

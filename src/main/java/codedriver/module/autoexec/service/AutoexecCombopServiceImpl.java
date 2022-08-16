@@ -122,9 +122,8 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
     }
 
     @Override
-    public boolean checkOperableButton(AutoexecCombopVo autoexecCombopVo, CombopAuthorityAction action) {
+    public boolean checkOperableButton(AutoexecCombopVo autoexecCombopVo, CombopAuthorityAction action, String userUuid) {
         if (autoexecCombopVo != null) {
-            String userUuid = UserContext.get().getUserUuid();
             AuthenticationInfoVo authenticationInfoVo = UserContext.get().getAuthenticationInfoVo();
             if (Objects.equals(autoexecCombopVo.getOwner(), userUuid)) {
                 return true;
@@ -250,11 +249,12 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
 
     /**
      * 验证输入参数映射和自由参数映射
-     * @param phaseUuid 阶段uuid
+     *
+     * @param phaseUuid                      阶段uuid
      * @param autoexecCombopPhaseOperationVo 操作信息
-     * @param preNodeOutputParamMap 前置步骤输出参数
-     * @param runtimeParamMap 作业参数
-     * @param preNodeNameMap 前置步骤名称
+     * @param preNodeOutputParamMap          前置步骤输出参数
+     * @param runtimeParamMap                作业参数
+     * @param preNodeNameMap                 前置步骤名称
      */
     private void verifyAutoexecCombopPhaseOperationConfig(
             String phaseUuid,
@@ -591,6 +591,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
 
     /**
      * 保存阶段中操作工具对预置参数集和全局参数的引用关系
+     *
      * @param autoexecCombopVo
      */
     @Override
@@ -645,6 +646,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
 
     /**
      * 保存阶段中操作工具对预置参数集和全局参数的引用关系
+     *
      * @param combopPhaseVo
      * @param phaseOperationVo
      */
@@ -710,6 +712,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
 
     /**
      * 删除阶段中操作工具对预置参数集和全局参数的引用关系
+     *
      * @param autoexecCombopVo
      */
     @Override

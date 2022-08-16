@@ -72,7 +72,7 @@ public class SubmitAutoexecJobPhaseNodeWaitInputApi extends PrivateApiComponentB
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long jobId = paramObj.getLong("jobId");
-        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId);
         }

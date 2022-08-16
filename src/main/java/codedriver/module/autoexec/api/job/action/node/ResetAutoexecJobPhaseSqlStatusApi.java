@@ -59,7 +59,7 @@ public class ResetAutoexecJobPhaseSqlStatusApi extends PrivateApiComponentBase {
     })
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(paramObj.getLong("jobId"));
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(paramObj.getLong("jobId"));
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(paramObj.getLong("jobId"));
         }

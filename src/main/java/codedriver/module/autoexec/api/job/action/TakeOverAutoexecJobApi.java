@@ -85,7 +85,7 @@ public class TakeOverAutoexecJobApi extends PrivateApiComponentBase {
             }
         }
         jobVo.setExecUser(UserContext.get().getUserUuid());
-        autoexecJobMapper.updateJobExecUser(jobVo);
+        autoexecJobMapper.updateJobExecUser(jobVo.getId(), jobVo.getExecUser());
         return null;
     }
 
