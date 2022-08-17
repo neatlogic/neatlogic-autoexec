@@ -44,11 +44,6 @@ public class AutoexecJobPhaseRoundInformHandler extends AutoexecJobActionHandler
     }
 
     @Override
-    public boolean isNeedExecuteAuthCheck() {
-        return false;
-    }
-
-    @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         JSONObject jsonObj = jobVo.getActionParam();
         Integer groupSort = jsonObj.getInteger("groupNo");

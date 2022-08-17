@@ -50,11 +50,6 @@ public class AutoexecJobConsoleLogAuditListHandler extends AutoexecJobActionHand
     }
 
     @Override
-    public boolean isNeedExecuteAuthCheck() {
-        return true;
-    }
-
-    @Override
     public boolean myValidate(AutoexecJobVo jobVo) {
         Long runnerId = jobVo.getActionParam().getLong("runnerId");
         RunnerVo runnerVo = runnerMapper.getRunnerById(runnerId);
