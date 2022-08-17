@@ -17,6 +17,7 @@ import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.exception.file.FileExtNotAllowedException;
 import codedriver.framework.exception.file.FileNotUploadException;
+import codedriver.framework.exception.type.ParamNotExistsException;
 import codedriver.framework.notify.dao.mapper.NotifyMapper;
 import codedriver.framework.notify.dto.NotifyPolicyVo;
 import codedriver.framework.restful.annotation.*;
@@ -43,6 +44,7 @@ import java.io.ByteArrayOutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 /**
@@ -86,6 +88,9 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         return null;
     }
 
+    @Input({
+            @Param(name = "nameList", type = ApiParamType.JSONARRAY, isRequired = true, minSize = 1, desc = "名称列表"),
+    })
     @Output({
             @Param(name = "Return", type = ApiParamType.JSONARRAY, desc = "导入结果")
     })
@@ -99,6 +104,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         if (multipartFileMap.isEmpty()) {
             throw new FileNotUploadException();
         }
+        List<String> nameList = paramObj.getJSONArray("nameList").toJavaList(String.class);
         int successCount = 0;
         int failureCount = 0;
         JSONArray failureReasonList = new JSONArray();
@@ -109,7 +115,18 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
             //反序列化获取对象
             try (ZipInputStream zipis = new ZipInputStream(multipartFile.getInputStream());
                  ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-                while (zipis.getNextEntry() != null) {
+                ZipEntry zipEntry = null;
+                while ((zipEntry = zipis.getNextEntry()) != null) {
+                    String name = zipEntry.getName();
+                    if (StringUtils.isBlank(name)) {
+                        continue;
+                    }
+                    if (name.endsWith(".json")) {
+                        name = name.substring(0, name.length() - 5);
+                    }
+                    if (!nameList.contains(name)) {
+                        continue;
+                    }
                     int len;
                     while ((len = zipis.read(buf)) != -1) {
                         out.write(buf, 0, len);
