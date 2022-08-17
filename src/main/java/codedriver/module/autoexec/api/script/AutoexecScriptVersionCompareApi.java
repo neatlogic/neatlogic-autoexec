@@ -8,7 +8,8 @@ package codedriver.module.autoexec.api.script;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
-import codedriver.framework.autoexec.constvalue.ChangeType;
+import codedriver.framework.lcs.BaseLineVo;
+import codedriver.framework.lcs.constvalue.ChangeType;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptArgumentVo;
@@ -23,7 +24,7 @@ import codedriver.framework.dto.UserVo;
 import codedriver.framework.dto.WorkAssignmentUnitVo;
 import codedriver.framework.lcs.LCSUtil;
 import codedriver.framework.lcs.SegmentPair;
-import codedriver.framework.lcs.SegmentRange;
+import codedriver.framework.lcs.constvalue.LineHandler;
 import codedriver.framework.matrix.dao.mapper.MatrixAttributeMapper;
 import codedriver.framework.matrix.dao.mapper.MatrixMapper;
 import codedriver.framework.matrix.dto.MatrixAttributeVo;
@@ -43,7 +44,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @AuthAction(action = AUTOEXEC_SCRIPT_SEARCH.class)
@@ -257,84 +257,121 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
     private void compareLineList(AutoexecScriptVersionVo source, AutoexecScriptVersionVo target) {
         List<AutoexecScriptLineVo> sourceLineList = source.getLineList();
         List<AutoexecScriptLineVo> targetLineList = target.getLineList();
-        List<AutoexecScriptLineVo> sourceResultList = new ArrayList<>();
-        List<AutoexecScriptLineVo> targetResultList = new ArrayList<>();
-        List<SegmentPair> segmentPairList = LCSUtil.LCSCompare(sourceLineList, targetLineList);
+        List<BaseLineVo> sourceResultList = new ArrayList<>();
+        List<BaseLineVo> targetResultList = new ArrayList<>();
+
+        List<BaseLineVo> sourceBaseLineList = autoexecScriptLineVoListConvertBaseLineVoList(sourceLineList);
+        List<BaseLineVo> targetBaseLineList = autoexecScriptLineVoListConvertBaseLineVoList(targetLineList);
+        List<SegmentPair> segmentPairList = LCSUtil.LCSCompare(sourceBaseLineList, targetBaseLineList);
         for (SegmentPair segmentPair : segmentPairList) {
-            regroupLineList(sourceLineList, targetLineList, sourceResultList, targetResultList, segmentPair);
+            LCSUtil.regroupLineList(
+                    sourceBaseLineList,
+                    targetBaseLineList,
+                    sourceResultList,
+                    targetResultList,
+                    segmentPair);
         }
-        source.setLineList(sourceResultList);
-        target.setLineList(targetResultList);
+        source.setLineList(baseLineVoListConvertAutoexecScriptLineVoList(sourceResultList));
+        target.setLineList(baseLineVoListConvertAutoexecScriptLineVoList(targetResultList));
     }
 
-    private void regroupLineList(List<AutoexecScriptLineVo> oldDataList, List<AutoexecScriptLineVo> newDataList
-            , List<AutoexecScriptLineVo> oldResultList, List<AutoexecScriptLineVo> newResultList, SegmentPair segmentPair) {
-        List<AutoexecScriptLineVo> oldSubList = oldDataList.subList(segmentPair.getOldBeginIndex(), segmentPair.getOldEndIndex());
-        List<AutoexecScriptLineVo> newSubList = newDataList.subList(segmentPair.getNewBeginIndex(), segmentPair.getNewEndIndex());
-        if (segmentPair.isMatch()) {
-            /** 分段对匹配时，行数据不能做标记，直接添加到重组后的数据列表中 **/
-            oldResultList.addAll(oldSubList);
-            newResultList.addAll(newSubList);
-        } else {
-            /** 分段对不匹配时，分成下列四种情况 **/
-            if (CollectionUtils.isEmpty(newSubList)) {
-                /** 删除行 **/
-                for (AutoexecScriptLineVo lineVo : oldSubList) {
-                    lineVo.setChangeType(ChangeType.DELETE.getValue());
-                    oldResultList.add(lineVo);
-                    newResultList.add(createFillBlankLine(lineVo));
-                }
-            } else if (CollectionUtils.isEmpty(oldSubList)) {
-                /** 插入行 **/
-                for (AutoexecScriptLineVo lineVo : newSubList) {
-                    oldResultList.add(createFillBlankLine(lineVo));
-                    lineVo.setChangeType(ChangeType.INSERT.getValue());
-                    newResultList.add(lineVo);
-                }
-            } else if (oldSubList.size() == 1 && newSubList.size() == 1) {
-                /** 修改一行 **/
-                AutoexecScriptLineVo oldLine = oldSubList.get(0);
-                AutoexecScriptLineVo newLine = newSubList.get(0);
-                if (!Objects.equals(oldLine.getContent(), newLine.getContent())) {
-                    oldLine.setChangeType(ChangeType.UPDATE.getValue());
-                    newLine.setChangeType(ChangeType.UPDATE.getValue());
-                    if (StringUtils.length(oldLine.getContent()) == 0) {
-                        newLine.setContent("<span class='insert'>" + newLine.getContent() + "</span>");
-                    } else if (StringUtils.length(newLine.getContent()) == 0) {
-                        oldLine.setContent("<span class='delete'>" + oldLine.getContent() + "</span>");
-                    } else {
-                        List<SegmentRange> oldSegmentRangeList = new ArrayList<>();
-                        List<SegmentRange> newSegmentRangeList = new ArrayList<>();
-                        List<SegmentPair> segmentPairList = LCSUtil.LCSCompare(oldLine.getContent(), newLine.getContent());
-                        for (SegmentPair segmentpair : segmentPairList) {
-                            oldSegmentRangeList.add(new SegmentRange(segmentpair.getOldBeginIndex(), segmentpair.getOldEndIndex(), segmentpair.isMatch()));
-                            newSegmentRangeList.add(new SegmentRange(segmentpair.getNewBeginIndex(), segmentpair.getNewEndIndex(), segmentpair.isMatch()));
-                        }
-                        oldLine.setContent(LCSUtil.wrapChangePlace(oldLine.getContent(), oldSegmentRangeList, "<span class='delete'>", "</span>"));
-                        newLine.setContent(LCSUtil.wrapChangePlace(newLine.getContent(), newSegmentRangeList, "<span class='insert'>", "</span>"));
-                    }
-                }
-                oldResultList.add(oldLine);
-                newResultList.add(newLine);
-            } else {
-                /** 修改多行，多行间需要做最优匹配 **/
-                List<String> oldSubContentList = oldSubList.stream().map(AutoexecScriptLineVo::getContent).collect(Collectors.toList());
-                List<String> newSubContentList = newSubList.stream().map(AutoexecScriptLineVo::getContent).collect(Collectors.toList());
-                List<SegmentPair> segmentPairList = LCSUtil.differenceBestMatch(oldSubContentList, newSubContentList);
-                for (SegmentPair segmentpair : segmentPairList) {
-                    /** 递归 **/
-                    regroupLineList(oldSubList, newSubList, oldResultList, newResultList, segmentpair);
-                }
+    /**
+     * 将AutoexecScriptLineVo列表转换成BaseLineVo列表
+     * @param lineList
+     * @return
+     */
+    private List<BaseLineVo> autoexecScriptLineVoListConvertBaseLineVoList(List<AutoexecScriptLineVo> lineList) {
+        List<BaseLineVo> resultList = new ArrayList<>();
+        for (AutoexecScriptLineVo lineVo : lineList) {
+            lineVo.setHandler(LineHandler.TEXT.getValue());
+            resultList.add(lineVo);
+        }
+        return resultList;
+    }
+
+    /**
+     * 将BaseLineVo列表转换成AutoexecScriptLineVo列表
+     * @param lineList
+     * @return
+     */
+    private List<AutoexecScriptLineVo> baseLineVoListConvertAutoexecScriptLineVoList(List<BaseLineVo> lineList) {
+        List<AutoexecScriptLineVo> resultList = new ArrayList<>();
+        for (BaseLineVo lineVo : lineList) {
+            if (lineVo instanceof AutoexecScriptLineVo) {
+                resultList.add((AutoexecScriptLineVo)lineVo);
             }
         }
+        return resultList;
     }
 
-    private AutoexecScriptLineVo createFillBlankLine(AutoexecScriptLineVo line) {
-        AutoexecScriptLineVo fillBlankLine = new AutoexecScriptLineVo();
-        fillBlankLine.setChangeType(ChangeType.FILLBLANK.getValue());
-        fillBlankLine.setContent(line.getContent());
-        return fillBlankLine;
-    }
+//    private void regroupLineList(List<AutoexecScriptLineVo> oldDataList, List<AutoexecScriptLineVo> newDataList
+//            , List<AutoexecScriptLineVo> oldResultList, List<AutoexecScriptLineVo> newResultList, SegmentPair segmentPair) {
+//        List<AutoexecScriptLineVo> oldSubList = oldDataList.subList(segmentPair.getOldBeginIndex(), segmentPair.getOldEndIndex());
+//        List<AutoexecScriptLineVo> newSubList = newDataList.subList(segmentPair.getNewBeginIndex(), segmentPair.getNewEndIndex());
+//        if (segmentPair.isMatch()) {
+//            /** 分段对匹配时，行数据不能做标记，直接添加到重组后的数据列表中 **/
+//            oldResultList.addAll(oldSubList);
+//            newResultList.addAll(newSubList);
+//        } else {
+//            /** 分段对不匹配时，分成下列四种情况 **/
+//            if (CollectionUtils.isEmpty(newSubList)) {
+//                /** 删除行 **/
+//                for (AutoexecScriptLineVo lineVo : oldSubList) {
+//                    lineVo.setChangeType(ChangeType.DELETE.getValue());
+//                    oldResultList.add(lineVo);
+//                    newResultList.add(createFillBlankLine(lineVo));
+//                }
+//            } else if (CollectionUtils.isEmpty(oldSubList)) {
+//                /** 插入行 **/
+//                for (AutoexecScriptLineVo lineVo : newSubList) {
+//                    oldResultList.add(createFillBlankLine(lineVo));
+//                    lineVo.setChangeType(ChangeType.INSERT.getValue());
+//                    newResultList.add(lineVo);
+//                }
+//            } else if (oldSubList.size() == 1 && newSubList.size() == 1) {
+//                /** 修改一行 **/
+//                AutoexecScriptLineVo oldLine = oldSubList.get(0);
+//                AutoexecScriptLineVo newLine = newSubList.get(0);
+//                if (!Objects.equals(oldLine.getContent(), newLine.getContent())) {
+//                    oldLine.setChangeType(ChangeType.UPDATE.getValue());
+//                    newLine.setChangeType(ChangeType.UPDATE.getValue());
+//                    if (StringUtils.length(oldLine.getContent()) == 0) {
+//                        newLine.setContent("<span class='insert'>" + newLine.getContent() + "</span>");
+//                    } else if (StringUtils.length(newLine.getContent()) == 0) {
+//                        oldLine.setContent("<span class='delete'>" + oldLine.getContent() + "</span>");
+//                    } else {
+//                        List<SegmentRange> oldSegmentRangeList = new ArrayList<>();
+//                        List<SegmentRange> newSegmentRangeList = new ArrayList<>();
+//                        List<SegmentPair> segmentPairList = LCSUtil.LCSCompare(oldLine.getContent(), newLine.getContent());
+//                        for (SegmentPair segmentpair : segmentPairList) {
+//                            oldSegmentRangeList.add(new SegmentRange(segmentpair.getOldBeginIndex(), segmentpair.getOldEndIndex(), segmentpair.isMatch()));
+//                            newSegmentRangeList.add(new SegmentRange(segmentpair.getNewBeginIndex(), segmentpair.getNewEndIndex(), segmentpair.isMatch()));
+//                        }
+//                        oldLine.setContent(LCSUtil.wrapChangePlace(oldLine.getContent(), oldSegmentRangeList, "<span class='delete'>", "</span>"));
+//                        newLine.setContent(LCSUtil.wrapChangePlace(newLine.getContent(), newSegmentRangeList, "<span class='insert'>", "</span>"));
+//                    }
+//                }
+//                oldResultList.add(oldLine);
+//                newResultList.add(newLine);
+//            } else {
+//                /** 修改多行，多行间需要做最优匹配 **/
+//                List<String> oldSubContentList = oldSubList.stream().map(AutoexecScriptLineVo::getContent).collect(Collectors.toList());
+//                List<String> newSubContentList = newSubList.stream().map(AutoexecScriptLineVo::getContent).collect(Collectors.toList());
+//                List<SegmentPair> segmentPairList = LCSUtil.differenceBestMatch(oldSubContentList, newSubContentList);
+//                for (SegmentPair segmentpair : segmentPairList) {
+//                    /** 递归 **/
+//                    regroupLineList(oldSubList, newSubList, oldResultList, newResultList, segmentpair);
+//                }
+//            }
+//        }
+//    }
+
+//    private AutoexecScriptLineVo createFillBlankLine(AutoexecScriptLineVo line) {
+//        AutoexecScriptLineVo fillBlankLine = new AutoexecScriptLineVo();
+//        fillBlankLine.setChangeType(ChangeType.FILLBLANK.getValue());
+//        fillBlankLine.setContent(line.getContent());
+//        return fillBlankLine;
+//    }
 
     /**
      * 将参数中的矩阵配置，转化成“矩阵名称.矩阵列名称”的格式，赋值到defaultValue中
