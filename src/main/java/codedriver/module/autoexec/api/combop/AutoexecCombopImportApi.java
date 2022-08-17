@@ -17,7 +17,6 @@ import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.exception.file.FileExtNotAllowedException;
 import codedriver.framework.exception.file.FileNotUploadException;
-import codedriver.framework.exception.type.ParamNotExistsException;
 import codedriver.framework.notify.dao.mapper.NotifyMapper;
 import codedriver.framework.notify.dto.NotifyPolicyVo;
 import codedriver.framework.restful.annotation.*;
