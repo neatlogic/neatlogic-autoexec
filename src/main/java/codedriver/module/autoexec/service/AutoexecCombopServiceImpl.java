@@ -23,6 +23,7 @@ import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.common.constvalue.GroupSearch;
+import codedriver.framework.common.constvalue.SystemUser;
 import codedriver.framework.dependency.core.DependencyManager;
 import codedriver.framework.dto.AuthenticationInfoVo;
 import codedriver.framework.service.AuthenticationInfoService;
@@ -123,9 +124,15 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
 
     @Override
     public boolean checkOperableButton(AutoexecCombopVo autoexecCombopVo, CombopAuthorityAction action, String userUuid) {
+        AuthenticationInfoVo authenticationInfoVo;
         if (autoexecCombopVo != null) {
-            AuthenticationInfoVo authenticationInfoVo = UserContext.get().getAuthenticationInfoVo();
-            if (Objects.equals(autoexecCombopVo.getOwner(), userUuid)) {
+            if (StringUtils.isBlank(userUuid)) {
+                userUuid = UserContext.get().getUserUuid();
+                authenticationInfoVo = UserContext.get().getAuthenticationInfoVo();
+            } else {
+                authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(userUuid);
+            }
+            if (Objects.equals(autoexecCombopVo.getOwner(), userUuid) || Objects.equals(userUuid, SystemUser.SYSTEM.getUserUuid())) {
                 return true;
             } else {
                 List<String> authorityList = autoexecCombopMapper.getAutoexecCombopAuthorityListByCombopIdAndUserUuidAndTeamUuidListAndRoleUuidList(autoexecCombopVo.getId(), userUuid, authenticationInfoVo.getTeamUuidList(), authenticationInfoVo.getRoleUuidList());

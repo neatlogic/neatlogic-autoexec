@@ -33,6 +33,7 @@ import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import codedriver.framework.autoexec.source.AutoexecJobSourceFactory;
 import codedriver.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
+import codedriver.framework.common.constvalue.SystemUser;
 import codedriver.framework.crossover.CrossoverServiceFactory;
 import codedriver.framework.dao.mapper.UserMapper;
 import codedriver.framework.dto.UserVo;
@@ -412,11 +413,17 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
 
     @Override
     public void initExecuteUserContext(AutoexecJobVo jobVo) throws Exception {
+        UserVo execUser;
         //初始化执行用户上下文
-        UserVo execUser = userMapper.getUserBaseInfoByUuid(jobVo.getExecUser());
+        if (Objects.equals(jobVo.getExecUser(), SystemUser.SYSTEM.getUserUuid())) {
+            execUser = SystemUser.SYSTEM.getUserVo();
+        } else {
+            execUser = userMapper.getUserBaseInfoByUuid(jobVo.getExecUser());
+        }
         if (execUser == null) {
             throw new UserNotFoundException(jobVo.getExecUser());
         }
+
         UserContext.init(execUser, "+8:00");
         UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(execUser).getCc());
     }
