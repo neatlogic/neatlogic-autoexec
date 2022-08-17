@@ -126,15 +126,15 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
     public boolean checkOperableButton(AutoexecCombopVo autoexecCombopVo, CombopAuthorityAction action, String userUuid) {
         AuthenticationInfoVo authenticationInfoVo;
         if (autoexecCombopVo != null) {
-            if (StringUtils.isBlank(userUuid)) {
-                userUuid = UserContext.get().getUserUuid();
-                authenticationInfoVo = UserContext.get().getAuthenticationInfoVo();
-            } else {
-                authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(userUuid);
-            }
             if (Objects.equals(autoexecCombopVo.getOwner(), userUuid) || Objects.equals(userUuid, SystemUser.SYSTEM.getUserUuid())) {
                 return true;
             } else {
+                if (StringUtils.isBlank(userUuid)) {
+                    userUuid = UserContext.get().getUserUuid();
+                    authenticationInfoVo = UserContext.get().getAuthenticationInfoVo();
+                } else {
+                    authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(userUuid);
+                }
                 List<String> authorityList = autoexecCombopMapper.getAutoexecCombopAuthorityListByCombopIdAndUserUuidAndTeamUuidListAndRoleUuidList(autoexecCombopVo.getId(), userUuid, authenticationInfoVo.getTeamUuidList(), authenticationInfoVo.getRoleUuidList());
                 return authorityList.contains(action.getValue());
             }
