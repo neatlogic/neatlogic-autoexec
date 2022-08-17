@@ -5,21 +5,15 @@
 
 package codedriver.module.autoexec.api.job.action;
 
-import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
-import codedriver.framework.autoexec.constvalue.CombopAuthorityAction;
-import codedriver.framework.autoexec.constvalue.CombopOperationType;
-import codedriver.framework.autoexec.constvalue.JobSource;
+import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecJobTakeOverPermissionDeniedException;
+import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
+import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -29,7 +23,6 @@ import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Objects;
 
 /**
  * @author laiwt
@@ -73,20 +66,10 @@ public class TakeOverAutoexecJobApi extends PrivateApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId);
         }
-        if (Objects.equals(jobVo.getSource(), JobSource.TEST.getValue()) && !AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class)) {
-            throw new AutoexecJobTakeOverPermissionDeniedException(jobId);
-        } else if (Objects.equals(jobVo.getOperationType(), CombopOperationType.COMBOP.getValue())) {
-            AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(jobVo.getOperationId());
-            if (combopVo == null) {
-                throw new AutoexecCombopNotFoundException(jobVo.getOperationId());
-            }
-            if (!autoexecCombopService.checkOperableButton(combopVo, CombopAuthorityAction.EXECUTE)) {
-                throw new AutoexecJobTakeOverPermissionDeniedException(jobId);
-            }
-        }
-        jobVo.setExecUser(UserContext.get().getUserUuid());
-        autoexecJobMapper.updateJobExecUser(jobVo.getId(), jobVo.getExecUser());
-        return null;
+        jobVo.setAction(JobAction.TAKE_OVER.getValue());
+        jobVo.setIsTakeOver(1);
+        IAutoexecJobActionHandler refireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.TAKE_OVER.getValue());
+        return refireAction.doService(jobVo);
     }
 
     @Override
