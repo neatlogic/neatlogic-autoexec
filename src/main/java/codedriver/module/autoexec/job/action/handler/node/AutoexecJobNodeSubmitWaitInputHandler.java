@@ -42,6 +42,11 @@ public class AutoexecJobNodeSubmitWaitInputHandler extends AutoexecJobActionHand
     }
 
     @Override
+    public boolean isNeedExecuteAuthCheck() {
+        return true;
+    }
+
+    @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         AutoexecJobPhaseNodeVo nodeVo = jobVo.getCurrentNode();
         AutoexecJobPhaseVo phaseVo = jobVo.getCurrentPhase();

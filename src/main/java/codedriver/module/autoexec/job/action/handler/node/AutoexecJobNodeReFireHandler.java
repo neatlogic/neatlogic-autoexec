@@ -18,7 +18,6 @@ import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBas
 import codedriver.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
 import codedriver.framework.autoexec.source.AutoexecJobSourceFactory;
 import codedriver.framework.exception.type.ParamIrregularException;
-import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -38,8 +37,6 @@ import java.util.stream.Collectors;
 public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
-    @Resource
-    AutoexecJobService autoexecJobService;
 
     @Override
     public String getName() {
