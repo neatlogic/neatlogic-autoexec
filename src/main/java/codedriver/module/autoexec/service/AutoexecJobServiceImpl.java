@@ -80,7 +80,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         AutoexecCombopConfigVo config = combopVo.getConfig();
         if (Objects.equals(JobTriggerType.MANUAL.getValue(), jobVo.getTriggerType())) {
             jobVo.setStatus(JobStatus.READY.getValue());
-        } else {
+        } else if (Objects.equals(JobTriggerType.AUTO.getValue(), jobVo.getTriggerType())) {
             jobVo.setStatus(JobStatus.PENDING.getValue());
         }
         //更新关联来源关系
