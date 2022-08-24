@@ -36,6 +36,7 @@ import codedriver.framework.dao.mapper.runner.RunnerMapper;
 import codedriver.framework.deploy.crossover.IDeploySqlCrossoverMapper;
 import codedriver.framework.dto.ConfigVo;
 import codedriver.framework.dto.runner.RunnerMapVo;
+import codedriver.framework.exception.runner.RunnerNotMatchException;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -147,7 +148,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
                 List<RunnerMapVo> runnerMapList = autoexecJobSourceActionHandler.getRunnerMapList(jobVo);
                 if (CollectionUtils.isEmpty(runnerMapList)) {
-                    throw new AutoexecJobRunnerNotMatchException();
+                    throw new RunnerNotMatchException();
                 }
                 int runnerMapIndex = (int) (Math.random() * runnerMapList.size());
                 RunnerMapVo runnerMapVo = runnerMapList.get(runnerMapIndex);
@@ -678,7 +679,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             jobPhaseNodeVo.setPort(resourceVo.getPort());
             jobPhaseNodeVo.setRunnerMapId(getRunnerByTargetIp(jobVo));
             if (jobPhaseNodeVo.getRunnerMapId() == null) {
-                throw new AutoexecJobRunnerNotMatchException(jobPhaseNodeVo.getHost());
+                throw new RunnerNotMatchException(jobPhaseNodeVo.getHost());
             }
             //如果大于 update 0,说明存在旧数据
             Integer result = autoexecJobMapper.updateJobPhaseNodeByJobIdAndPhaseIdAndResourceId(jobPhaseNodeVo);

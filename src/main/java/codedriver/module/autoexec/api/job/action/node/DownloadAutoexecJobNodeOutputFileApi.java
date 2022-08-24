@@ -12,7 +12,7 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNodeNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
+import codedriver.framework.exception.runner.RunnerHttpRequestException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.integration.authentication.enums.AuthenticateType;
 import codedriver.framework.restful.annotation.*;
@@ -76,7 +76,7 @@ public class DownloadAutoexecJobNodeOutputFileApi extends PrivateBinaryStreamApi
             HttpRequestUtil httpRequestUtil = HttpRequestUtil.download(url, "POST", response.getOutputStream()).setPayload(jsonObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
             String error = httpRequestUtil.getError();
             if (StringUtils.isNotBlank(error)) {
-                throw new AutoexecJobRunnerHttpRequestException(url + ":" + error);
+                throw new RunnerHttpRequestException(url + ":" + error);
             }
         return null;
     }
