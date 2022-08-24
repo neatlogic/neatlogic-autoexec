@@ -207,8 +207,15 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
     }
 
     @Override
-    public AutoexecCombopVo getAutoexecCombop(JSONObject paramJson) {
-        return autoexecCombopMapper.getAutoexecCombopById(paramJson.getLong("combopId"));
+    public AutoexecCombopVo getAutoexecCombop(AutoexecJobVo autoexecJobParam) {
+        AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(autoexecJobParam.getOperationId());
+        if (combopVo == null) {
+            throw new AutoexecCombopNotFoundException(autoexecJobParam.getOperationId());
+        }
+        if (StringUtils.isBlank(autoexecJobParam.getName())) {
+            autoexecJobParam.setName(combopVo.getName());
+        }
+        return combopVo;
     }
 
     @Override

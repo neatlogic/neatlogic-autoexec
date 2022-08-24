@@ -8,6 +8,7 @@ package codedriver.module.autoexec.stephandler.component;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobEnvVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.common.constvalue.SystemUser;
 import codedriver.framework.process.constvalue.*;
 import codedriver.framework.process.dto.ProcessTaskFormAttributeDataVo;
@@ -176,7 +177,8 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     paramObj.put("isFirstFire", 1);
                     paramObj.put("assignExecUser", SystemUser.SYSTEM.getUserUuid());
                     try {
-                        autoexecJobActionService.validateCreateJob(paramObj, false);
+                        AutoexecJobVo jobVo = JSONObject.toJavaObject(paramObj, AutoexecJobVo.class);
+                        autoexecJobActionService.validateCreateJob(jobVo);
 //                        AutoexecJobVo jobVo = autoexecJobActionService.validateCreateJobFromCombop(paramObj, false);
 //                        autoexecJobActionService.fire(jobVo);
                     } catch (Exception e) {

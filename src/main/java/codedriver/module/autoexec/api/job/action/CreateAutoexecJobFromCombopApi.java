@@ -79,7 +79,9 @@ public class CreateAutoexecJobFromCombopApi extends PrivateApiComponentBase {
         if(!jsonObj.containsKey("invokeId")){
             jsonObj.put("invokeId",jsonObj.getLong("combopId"));
         }
-        AutoexecJobVo jobVo = autoexecJobActionService.validateAndCreateJobFromCombop(jsonObj, true);
+        AutoexecJobVo autoexecJobParam = JSONObject.toJavaObject(jsonObj, AutoexecJobVo.class);
+
+        autoexecJobActionService.validateAndCreateJobFromCombop(autoexecJobParam);
         if(jsonObj.containsKey("triggerType")) {
             // 保存之后，如果设置的人工触发，那只有点执行按钮才能触发；如果是自动触发，则启动一个定时作业；如果没到点就人工触发了，则取消定时作业，立即执行
             if (JobTriggerType.AUTO.getValue().equals(jsonObj.getString("triggerType"))) {
@@ -90,17 +92,17 @@ public class CreateAutoexecJobFromCombopApi extends PrivateApiComponentBase {
                 if (jobHandler == null) {
                     throw new ScheduleHandlerNotFoundException(AutoexecJobAutoFireJob.class.getName());
                 }
-                JobObject.Builder jobObjectBuilder = new JobObject.Builder(jobVo.getId().toString(), jobHandler.getGroupName(), jobHandler.getClassName(), TenantContext.get().getTenantUuid());
+                JobObject.Builder jobObjectBuilder = new JobObject.Builder(autoexecJobParam.getId().toString(), jobHandler.getGroupName(), jobHandler.getClassName(), TenantContext.get().getTenantUuid());
                 jobHandler.reloadJob(jobObjectBuilder.build());
             }
         }else{
             IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
-            jobVo.setAction(JobAction.FIRE.getValue());
-            jobVo.setIsFirstFire(1);
-            fireAction.doService(jobVo);
+            autoexecJobParam.setAction(JobAction.FIRE.getValue());
+            autoexecJobParam.setIsFirstFire(1);
+            fireAction.doService(autoexecJobParam);
         }
         return new JSONObject() {{
-            put("jobId", jobVo.getId());
+            put("jobId", autoexecJobParam.getId());
         }};
     }
 

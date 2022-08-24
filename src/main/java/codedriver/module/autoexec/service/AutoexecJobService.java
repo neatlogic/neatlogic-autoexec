@@ -5,7 +5,6 @@
 
 package codedriver.module.autoexec.service;
 
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import com.alibaba.fastjson.JSONObject;
@@ -19,10 +18,9 @@ public interface AutoexecJobService {
     /**
      * 通过combopVo保存作业配置
      *
-     * @param combopVo 组合工具vo
      * @param jobVo    作业vo
      */
-    void saveAutoexecCombopJob(AutoexecCombopVo combopVo, AutoexecJobVo jobVo) throws Exception;
+    void saveAutoexecCombopJob(AutoexecJobVo jobVo) throws Exception;
 
     /**
      * sort 为null 则补充job全部信息 ，否则返回当前sort的所有剧本

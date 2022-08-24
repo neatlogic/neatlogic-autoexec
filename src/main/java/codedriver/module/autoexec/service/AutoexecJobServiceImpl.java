@@ -77,8 +77,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     ConfigMapper configMapper;
 
     @Override
-    public void saveAutoexecCombopJob(AutoexecCombopVo combopVo, AutoexecJobVo jobVo) {
-        AutoexecCombopConfigVo config = combopVo.getConfig();
+    public void saveAutoexecCombopJob(AutoexecJobVo jobVo) {
+        AutoexecCombopConfigVo config = jobVo.getConfig();
         if (Objects.equals(JobTriggerType.MANUAL.getValue(), jobVo.getTriggerType())) {
             jobVo.setStatus(JobStatus.READY.getValue());
         } else if (Objects.equals(JobTriggerType.AUTO.getValue(), jobVo.getTriggerType())) {
@@ -91,10 +91,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
         AutoexecJobInvokeVo invokeVo = new AutoexecJobInvokeVo(jobVo.getId(), jobVo.getInvokeId(), jobVo.getSource(), jobSourceVo.getType());
         autoexecJobMapper.insertIgnoreIntoJobInvoke(invokeVo);
-        //保存作业基本信息
-        if (StringUtils.isBlank(jobVo.getName())) {
-            jobVo.setName(combopVo.getName());
-        }
         autoexecJobMapper.insertJob(jobVo);
         autoexecJobMapper.insertIgnoreJobContent(new AutoexecJobContentVo(jobVo.getConfigHash(), jobVo.getConfigStr()));
         autoexecJobMapper.insertIgnoreJobContent(new AutoexecJobContentVo(jobVo.getParamHash(), jobVo.getParamArrayStr()));
@@ -382,7 +378,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
         jobVo.setConfigStr(autoexecJobMapper.getJobContent(jobVo.getConfigHash()).getContent());
-        AutoexecCombopConfigVo configVo = JSON.toJavaObject(jobVo.getConfig(), AutoexecCombopConfigVo.class);
+        AutoexecCombopConfigVo configVo = jobVo.getConfig();
         //获取组合工具执行目标 执行用户和协议
         //非空场景，用于重跑替换执行配置（执行目标，用户，协议）
         if (combopExecuteConfigVo == null) {
