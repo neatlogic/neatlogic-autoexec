@@ -13,7 +13,7 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobActionInvalidException;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
+import codedriver.framework.exception.runner.RunnerHttpRequestException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import codedriver.framework.crossover.CrossoverServiceFactory;
@@ -138,11 +138,11 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
 
             HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(5000).setReadTimeout(5000).sendRequest();
             if (StringUtils.isNotBlank(requestUtil.getError())) {
-                throw new AutoexecJobRunnerHttpRequestException(url + ":" + requestUtil.getError());
+                throw new RunnerHttpRequestException(url + ":" + requestUtil.getError());
             }
             JSONObject resultJson = requestUtil.getResultJson();
             if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                throw new AutoexecJobRunnerHttpRequestException(url + ":" + requestUtil.getError());
+                throw new RunnerHttpRequestException(url + ":" + requestUtil.getError());
             }
         }
 

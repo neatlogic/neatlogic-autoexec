@@ -11,7 +11,7 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
+import codedriver.framework.exception.runner.RunnerHttpRequestException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.constvalue.SystemUser;
 import codedriver.framework.dto.runner.RunnerVo;
@@ -73,7 +73,7 @@ public class DownloadAutoexecJobOutputFileBatchApi extends PublicBinaryStreamApi
             HttpRequestUtil httpRequestUtil = HttpRequestUtil.download(url, "POST", response.getOutputStream()).setPayload(jsonObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
             String error = httpRequestUtil.getError();
             if (StringUtils.isNotBlank(error)) {
-                throw new AutoexecJobRunnerHttpRequestException(url + ":" + error);
+                throw new RunnerHttpRequestException(url + ":" + error);
             }
         }
         return null;

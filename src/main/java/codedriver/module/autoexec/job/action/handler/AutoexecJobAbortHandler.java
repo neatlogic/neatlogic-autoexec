@@ -15,8 +15,8 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerConnectRefusedException;
+import codedriver.framework.exception.runner.RunnerHttpRequestException;
+import codedriver.framework.exception.runner.RunnerConnectRefusedException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import codedriver.framework.dto.RestVo;
 import codedriver.framework.dto.runner.RunnerMapVo;
@@ -100,12 +100,12 @@ public class AutoexecJobAbortHandler extends AutoexecJobActionHandlerBase {
                     result = RestUtil.sendPostRequest(restVo);
                     JSONObject resultJson = JSONObject.parseObject(result);
                     if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                        throw new AutoexecJobRunnerHttpRequestException(restVo.getUrl() + ":" + resultJson.getString("Message"));
+                        throw new RunnerHttpRequestException(restVo.getUrl() + ":" + resultJson.getString("Message"));
                     }
                 }
             } catch (Exception ex) {
                 logger.error(ex.getMessage(), ex);
-                throw new AutoexecJobRunnerConnectRefusedException(url + " " + result);
+                throw new RunnerConnectRefusedException(url + " " + result);
             }
         }
         return null;
