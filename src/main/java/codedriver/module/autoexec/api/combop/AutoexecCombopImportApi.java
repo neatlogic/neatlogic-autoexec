@@ -31,6 +31,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -58,6 +60,7 @@ import java.util.zip.ZipInputStream;
 @AuthAction(action = AUTOEXEC_COMBOP_ADD.class)
 public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase {
 
+    private final Logger logger = LoggerFactory.getLogger(AutoexecCombopImportApi.class);
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
     @Resource
@@ -119,7 +122,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
             //反序列化获取对象
             try (ZipInputStream zipis = new ZipInputStream(multipartFile.getInputStream());
                  ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-                ZipEntry zipEntry = null;
+                ZipEntry zipEntry;
                 while ((zipEntry = zipis.getNextEntry()) != null) {
                     String name = zipEntry.getName();
                     if (StringUtils.isBlank(name)) {
@@ -147,6 +150,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                     out.reset();
                 }
             } catch (Exception e) {
+                logger.debug(e.getMessage(), e);
                 throw new FileExtNotAllowedException(multipartFile.getOriginalFilename());
             }
         }
@@ -182,8 +186,12 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         if (oldAutoexecCombopVo != null) {
             if (equals(oldAutoexecCombopVo, autoexecCombopVo)) {
                 List<AutoexecParamVo> autoexecParamVoList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
-                if (Objects.equals(JSONObject.toJSONString(autoexecParamVoList), JSONObject.toJSONString(autoexecCombopVo.getRuntimeParamList()))) {
-                    return null;
+                AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
+                if (Objects.equals(JSONObject.toJSONString(autoexecParamVoList), JSONObject.toJSONString(config.getRuntimeParamList()))) {
+                    JSONObject resultObj = new JSONObject();
+                    resultObj.put("item", oldName);
+                    resultObj.put("isSucceed", 1);
+                    return resultObj;
                 }
             }
         }
@@ -257,7 +265,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                 autoexecCombopMapper.deleteAutoexecCombopParamByCombopId(id);
                 autoexecCombopMapper.updateAutoexecCombopById(autoexecCombopVo);
             }
-            List<AutoexecParamVo> runtimeParamList = autoexecCombopVo.getRuntimeParamList();
+            List<AutoexecParamVo> runtimeParamList = config.getRuntimeParamList();
             if (CollectionUtils.isNotEmpty(runtimeParamList)) {
                 List<AutoexecCombopParamVo> autoexecCombopParamList = new ArrayList<>();
                 for(AutoexecParamVo paramVo : runtimeParamList){
