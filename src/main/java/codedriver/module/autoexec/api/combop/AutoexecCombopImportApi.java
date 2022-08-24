@@ -88,7 +88,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
     }
 
     @Input({
-            @Param(name = "nameList", type = ApiParamType.JSONARRAY, isRequired = true, minSize = 1, desc = "名称列表"),
+            @Param(name = "nameList", type = ApiParamType.STRING, isRequired = true, minSize = 1, desc = "名称列表"),
     })
     @Output({
             @Param(name = "Return", type = ApiParamType.JSONARRAY, desc = "导入结果")
@@ -103,7 +103,12 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         if (multipartFileMap.isEmpty()) {
             throw new FileNotUploadException();
         }
-        List<String> nameList = paramObj.getJSONArray("nameList").toJavaList(String.class);
+        String names = paramObj.getString("nameList");
+        String[] split = names.split(",");
+        List<String> nameList = new ArrayList<>();
+        for (String str : split) {
+            nameList.add(str);
+        }
         int successCount = 0;
         int failureCount = 0;
         JSONArray failureReasonList = new JSONArray();
@@ -132,7 +137,8 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                     }
                     AutoexecCombopVo autoexecCombopVo = JSONObject.parseObject(new String(out.toByteArray(), StandardCharsets.UTF_8), new TypeReference<AutoexecCombopVo>() {});
                     JSONObject resultObj = save(autoexecCombopVo);
-                    if (resultObj != null) {
+                    int isSucceed = resultObj.getIntValue("isSucceed");
+                    if (isSucceed == 0) {
                         failureCount++;
                         failureReasonList.add(resultObj);
                     } else {
@@ -185,14 +191,14 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         Set<String> failureReasonSet = new HashSet<>();
         Long typeId = autoexecTypeMapper.getTypeIdByName(autoexecCombopVo.getTypeName());
         if (typeId == null) {
-            failureReasonSet.add("添加工具类型：'" + autoexecCombopVo.getTypeName() + "'");
+            failureReasonSet.add("缺少引用的工具类型：'" + autoexecCombopVo.getTypeName() + "'");
         } else {
             autoexecCombopVo.setTypeId(typeId);
         }
         if (autoexecCombopVo.getNotifyPolicyName() != null) {
             NotifyPolicyVo notifyPolicyVo = notifyMapper.getNotifyPolicyByName(autoexecCombopVo.getNotifyPolicyName());
             if (notifyPolicyVo == null) {
-                failureReasonSet.add("添加通知策略：'" + autoexecCombopVo.getNotifyPolicyName() + "'");
+                failureReasonSet.add("缺少引用的通知策略：'" + autoexecCombopVo.getNotifyPolicyName() + "'");
             } else {
                 autoexecCombopVo.setNotifyPolicyId(notifyPolicyVo.getId());
             }
@@ -219,20 +225,20 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                                 if (Objects.equals(autoexecCombopPhaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
                                     AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoByName(autoexecCombopPhaseOperationVo.getOperationName());
                                     if (autoexecScriptVo == null) {
-                                        failureReasonSet.add("添加自定义工具：'" + autoexecCombopPhaseOperationVo.getOperationName() + "'");
+                                        failureReasonSet.add("缺少引用的自定义工具：'" + autoexecCombopPhaseOperationVo.getOperationName() + "'");
                                     } else {
                                         AutoexecScriptVersionVo autoexecScriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(autoexecScriptVo.getId());
                                         if (autoexecScriptVersionVo == null) {
-                                            failureReasonSet.add("启用自定义工具：'" + autoexecScriptVo.getName() + "'");
+                                            failureReasonSet.add("自定义工具：'" + autoexecScriptVo.getName() + "'未启用");
                                         }
                                         autoexecCombopPhaseOperationVo.setOperationId(autoexecScriptVo.getId());
                                     }
                                 } else {
                                     AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolByName(autoexecCombopPhaseOperationVo.getOperationName());
                                     if (autoexecToolVo == null) {
-                                        failureReasonSet.add("添加工具：'" + autoexecCombopPhaseOperationVo.getOperationName() + "'");
+                                        failureReasonSet.add("缺少引用的工具：'" + autoexecCombopPhaseOperationVo.getOperationName() + "'");
                                     } else if (Objects.equals(autoexecToolVo.getIsActive(), 0)) {
-                                        failureReasonSet.add("启用工具：'" + autoexecToolVo.getName() + "'");
+                                        failureReasonSet.add("工具：'" + autoexecToolVo.getName() + "'未启用");
                                     } else {
                                         autoexecCombopPhaseOperationVo.setOperationId(autoexecToolVo.getId());
                                     }
@@ -261,10 +267,14 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                 }
                 autoexecCombopMapper.insertAutoexecCombopParamVoList(autoexecCombopParamList);
             }
-            return null;
+            JSONObject resultObj = new JSONObject();
+            resultObj.put("item", oldName);
+            resultObj.put("isSucceed", 1);
+            return resultObj;
         } else {
             JSONObject resultObj = new JSONObject();
-            resultObj.put("item", "导入：'" + oldName + "'，失败；请先在系统中：");
+            resultObj.put("item", oldName);
+            resultObj.put("isSucceed", 0);
             resultObj.put("list", failureReasonSet);
             return resultObj;
         }
