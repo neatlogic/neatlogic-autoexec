@@ -6,9 +6,6 @@
 package codedriver.module.autoexec.service;
 
 import codedriver.framework.asynchronization.threadlocal.TenantContext;
-import codedriver.framework.asynchronization.threadlocal.UserContext;
-import codedriver.framework.auth.core.AuthActionChecker;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.crossover.IAutoexecJobCrossoverService;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
@@ -53,8 +50,7 @@ import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.collectingAndThen;
-import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.*;
 
 /**
  * @since 2021/4/12 18:44
@@ -84,7 +80,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         AutoexecCombopConfigVo config = combopVo.getConfig();
         if (Objects.equals(JobTriggerType.MANUAL.getValue(), jobVo.getTriggerType())) {
             jobVo.setStatus(JobStatus.READY.getValue());
-        } else {
+        } else if (Objects.equals(JobTriggerType.AUTO.getValue(), jobVo.getTriggerType())) {
             jobVo.setStatus(JobStatus.PENDING.getValue());
         }
         //更新关联来源关系
@@ -765,9 +761,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             Map<String, ArrayList<Long>> operationIdMap = new HashMap<>();
             jobVoList = autoexecJobMapper.searchJob(jobIdList);
             //补充来源operation信息
-            //TODO  invoke id 比如 工单id，而不是operationId
             Map<Long, String> operationIdNameMap = new HashMap<>();
-            List<AutoexecCombopVo> combopVoList = null;
+            List<AutoexecCombopVo> combopVoList;
             List<AutoexecScriptVersionVo> scriptVoList;
             List<AutoexecOperationVo> toolVoList;
             jobVoList.forEach(o -> {
@@ -786,34 +781,28 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 toolVoList = autoexecToolMapper.getToolListByIdList(operationIdMap.get(CombopOperationType.TOOL.getValue()));
                 toolVoList.forEach(o -> operationIdNameMap.put(o.getId(), o.getName()));
             }
-            Map<Long, AutoexecCombopVo> combopVoMap = null;
-            if (CollectionUtils.isNotEmpty(combopVoList)) {
-                combopVoMap = combopVoList.stream().collect(Collectors.toMap(AutoexecCombopVo::getId, o -> o));
-            }
-            boolean hasAutoexecScriptModifyAuth = AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class);
+            List<AutoexecJobVo> autoexecJobVos = autoexecJobMapper.getJobWarnCountAndStatus(jobIdList);
+            Map<Long, AutoexecJobVo> autoexecJobVoMap = autoexecJobVos.stream().collect(toMap(AutoexecJobVo::getId, o -> o));
+            //补充权限
             for (AutoexecJobVo vo : jobVoList) {
                 vo.setOperationName(operationIdNameMap.get(vo.getOperationId()));
-                // 有组合工具执行权限，只能接管作业，执行用户才能执行或撤销作业
-                if (UserContext.get().getUserUuid().equals(vo.getExecUser())) {
-                    vo.setIsCanExecute(1);
-                } else if ((Objects.equals(jobVo.getSource(), JobSource.TEST.getValue()) && hasAutoexecScriptModifyAuth)
-                        || (MapUtils.isNotEmpty(combopVoMap) && autoexecCombopService.checkOperableButton(combopVoMap.get(vo.getOperationId()), CombopAuthorityAction.EXECUTE))) {
-                    vo.setIsCanTakeOver(1);
+                AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(vo.getSource());
+                if (jobSourceVo == null) {
+                    throw new AutoexecJobSourceInvalidException(vo.getSource());
+                }
+                IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
+                autoexecJobSourceActionHandler.getJobActionAuth(vo);
+                //补充warnCount和ignore tooltips
+                AutoexecJobVo jobWarnCountStatus = autoexecJobVoMap.get(vo.getId());
+                if (jobWarnCountStatus != null) {
+                    vo.setWarnCount(jobWarnCountStatus.getWarnCount());
+                    if (jobWarnCountStatus.getStatus().contains(JobNodeStatus.IGNORED.getValue())) {
+                        vo.setIsHasIgnored(1);
+                    }
                 }
             }
-                /*  jobVoList.forEach(j -> {
-            //判断是否有编辑权限
-            if(Objects.equals(j.getOperationType(), CombopOperationType.COMBOP.getValue())) {
-                AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(j.getOperationId());
-                if (combopVo == null) {
-                    throw new AutoexecCombopNotFoundException(j.getOperationId());
-                }
-                autoexecCombopService.setOperableButtonList(combopVo);
-                if (combopVo.getEditable() == 1) {
-                    jobVo.setIsCanEdit(1);
-                }
-            }
-        });*/
+
+
         }
         return jobVoList;
     }
