@@ -811,7 +811,6 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         if (autoexecCombopVo == null) {
             return null;
         }
-        autoexecCombopVo.setOwner(GroupSearch.USER.getValuePlugin() + autoexecCombopVo.getOwner());
         List<AutoexecParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
         for (AutoexecParamVo autoexecParamVo : runtimeParamList) {
             autoexecService.mergeConfig(autoexecParamVo);
