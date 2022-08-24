@@ -8,7 +8,7 @@ package codedriver.module.autoexec.job.action.handler;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
+import codedriver.framework.exception.runner.RunnerHttpRequestException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import codedriver.framework.dao.mapper.runner.RunnerMapper;
@@ -66,7 +66,7 @@ public class AutoexecJobConsoleLogAuditDownloadHandler extends AutoexecJobAction
                 .setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN)
                 .sendRequest().getError();
         if (StringUtils.isNotBlank(result)) {
-            throw new AutoexecJobRunnerHttpRequestException(url + ":" + result);
+            throw new RunnerHttpRequestException(url + ":" + result);
         }
         return null;
     }

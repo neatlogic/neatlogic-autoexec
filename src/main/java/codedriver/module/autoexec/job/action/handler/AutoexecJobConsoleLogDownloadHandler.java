@@ -8,7 +8,7 @@ package codedriver.module.autoexec.job.action.handler;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
+import codedriver.framework.exception.runner.RunnerHttpRequestException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import codedriver.framework.dao.mapper.runner.RunnerMapper;
@@ -63,7 +63,7 @@ public class AutoexecJobConsoleLogDownloadHandler extends AutoexecJobActionHandl
         RestVo restVo = new RestVo.Builder(url, AuthenticateType.BUILDIN.getValue()).setPayload(paramObj).build();
         String result = RestUtil.sendPostRequestForStream(restVo);
         if (StringUtils.isNotBlank(result)) {
-            throw new AutoexecJobRunnerHttpRequestException(restVo.getUrl() + ":" + result);
+            throw new RunnerHttpRequestException(restVo.getUrl() + ":" + result);
         }
         return null;
     }
