@@ -11,6 +11,7 @@ import codedriver.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.common.constvalue.GroupSearch;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -72,6 +73,8 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
             throw new AutoexecCombopNotFoundException(id);
         }
         autoexecCombopService.setOperableButtonList(autoexecCombopVo);
+        // owner字段必须在校验权限后，再加上前缀user#
+        autoexecCombopVo.setOwner(GroupSearch.USER.getValuePlugin() + autoexecCombopVo.getOwner());
         AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
         if (CollectionUtils.isNotEmpty(combopPhaseList)) {
