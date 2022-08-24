@@ -49,7 +49,7 @@ import java.util.zip.ZipInputStream;
 @AuthAction(action = AUTOEXEC_COMBOP_ADD.class)
 public class AutoexecCombopImportListApi extends PrivateBinaryStreamApiComponentBase {
 
-    private Logger logger = LoggerFactory.getLogger(AutoexecCombopImportListApi.class);
+    private final Logger logger = LoggerFactory.getLogger(AutoexecCombopImportListApi.class);
     @Override
     public String getToken() {
         return "autoexec/combop/import/list";
