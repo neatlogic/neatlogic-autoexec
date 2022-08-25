@@ -69,12 +69,6 @@ public class ExportAutoexecJobPhaseNodeApi extends PrivateBinaryStreamApiCompone
 
     @Input({
             @Param(name = "jobPhaseId", type = ApiParamType.LONG, desc = "作业剧本id", isRequired = true),
-            @Param(name = "statusList", type = ApiParamType.JSONARRAY, desc = "作业状态"),
-            @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词(节点名称或ip)", xss = true),
-            @Param(name = "isDelete", type = ApiParamType.STRING, desc = "是否删除"),
-            @Param(name = "nodeIdList", type = ApiParamType.JSONARRAY, desc = "作业阶段节点idList,用于刷新节点"),
-            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
-            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
     })
     @Description(desc = "导出作业剧本节点")
     @Override
@@ -126,6 +120,10 @@ public class ExportAutoexecJobPhaseNodeApi extends PrivateBinaryStreamApiCompone
                 workbook.write(os);
             } catch (IOException e) {
                 logger.error(e.getMessage(), e);
+            } finally {
+                if (workbook != null) {
+                    ((SXSSFWorkbook) workbook).dispose();
+                }
             }
         }
 
