@@ -90,7 +90,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             throw new AutoexecJobSourceInvalidException(jobVo.getSource());
         }
         AutoexecJobInvokeVo invokeVo = new AutoexecJobInvokeVo(jobVo.getId(), jobVo.getInvokeId(), jobVo.getSource(), jobSourceVo.getType());
-        autoexecJobMapper.insertIgnoreIntoJobInvoke(invokeVo);
+        autoexecJobMapper.insertJobInvoke(invokeVo);
         autoexecJobMapper.insertJob(jobVo);
         autoexecJobMapper.insertIgnoreJobContent(new AutoexecJobContentVo(jobVo.getConfigHash(), jobVo.getConfigStr()));
         autoexecJobMapper.insertIgnoreJobContent(new AutoexecJobContentVo(jobVo.getParamHash(), jobVo.getParamArrayStr()));
