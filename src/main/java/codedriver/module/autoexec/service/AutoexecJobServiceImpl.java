@@ -491,8 +491,12 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             isHasNode = updateNodeResourceByFilter(executeNodeConfigVo, jobVo, userName, protocolId);
         }
 
-        if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getInputNodeList()) || CollectionUtils.isNotEmpty(executeNodeConfigVo.getSelectNodeList())) {
-            isHasNode = updateNodeResourceByInputAndSelect(executeNodeConfigVo, jobVo, userName, protocolId);
+        if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getInputNodeList())) {
+            isHasNode = updateNodeResourceByInput(executeNodeConfigVo, jobVo, userName, protocolId);
+        }
+
+        if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getSelectNodeList())) {
+            isHasNode = updateNodeResourceBySelect(executeNodeConfigVo, jobVo, userName, protocolId);
         }
 
         if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getParamList())) {
@@ -579,16 +583,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      * @param userName            执行用户
      * @param protocolId          协议id
      */
-    private boolean updateNodeResourceByInputAndSelect(AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
-        List<AutoexecNodeVo> nodeVoList = new ArrayList<>();
+    private boolean updateNodeResourceByInput(AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
+        List<AutoexecNodeVo> nodeVoList = executeNodeConfigVo.getInputNodeList();
         List<ResourceVo> ipPortNameList = new ArrayList<>();
-        List<ResourceVo> lostIpPortList = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getInputNodeList())) {
-            nodeVoList.addAll(executeNodeConfigVo.getInputNodeList());
-        }
-        if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getSelectNodeList())) {
-            nodeVoList.addAll(executeNodeConfigVo.getSelectNodeList());
-        }
         if (CollectionUtils.isNotEmpty(nodeVoList)) {
             nodeVoList.forEach(o -> {
                 ipPortNameList.add(new ResourceVo(o.getIp(), o.getPort(), o.getName()));
@@ -596,22 +593,31 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
             List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceListByResourceVoList(ipPortNameList, TenantContext.get().getDataDbName());
             if (CollectionUtils.isNotEmpty(resourceVoList)) {
-                //根据ip:port去重
-                resourceVoList = resourceVoList.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(r -> r.getIp() + ":" + r.getPort()))), ArrayList::new));
-                //如果根据ip port 找不到对应的资产，直接返回异常提示
-                List<ResourceVo> finalResourceVoList = resourceVoList;
-                lostIpPortList = ipPortNameList.stream().filter(s -> finalResourceVoList.stream().noneMatch(s1 -> Objects.equals(s1.getIp() + s1.getPort(), s.getIp() + s.getPort()))).collect(Collectors.toList());
-                if (CollectionUtils.isEmpty(lostIpPortList)) {
-                    updateJobPhaseNode(jobVo, resourceVoList, userName, protocolId);
-                    return true;
-                }
-            } else {
-                lostIpPortList = ipPortNameList;
+                updateJobPhaseNode(jobVo, resourceVoList, userName, protocolId);
+                return true;
             }
-            //无须校验
-           /* if (CollectionUtils.isNotEmpty(lostIpPortList)) {
-                throw new AutoexecJobPhaseNodeNotFoundException(jobPhaseVo.getName(), lostIpPortList, isPhaseConfig);
-            }*/
+        }
+        return false;
+    }
+
+    /**
+     * selectNodeList
+     * 根据输入和选择节点 更新作业节点
+     *
+     * @param executeNodeConfigVo 执行节点配置
+     * @param jobVo               作业
+     * @param userName            执行用户
+     * @param protocolId          协议id
+     */
+    private boolean updateNodeResourceBySelect(AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
+        List<AutoexecNodeVo> nodeVoList = executeNodeConfigVo.getSelectNodeList();
+        if (CollectionUtils.isNotEmpty(nodeVoList)) {
+            IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
+            List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceByIdList(nodeVoList.stream().map(AutoexecNodeVo::getId).collect(toList()), TenantContext.get().getDataDbName());
+            if (CollectionUtils.isNotEmpty(resourceVoList)) {
+                updateJobPhaseNode(jobVo, resourceVoList, userName, protocolId);
+                return true;
+            }
         }
         return false;
     }
