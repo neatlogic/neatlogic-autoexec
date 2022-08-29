@@ -107,7 +107,7 @@ public class ExportAutoexecJobPhaseNodeApi extends PrivateBinaryStreamApiCompone
                 Map<Long, JSONObject> nodeLogTailParamMap = new HashMap<>();
                 for (AutoexecJobPhaseNodeVo vo : list) {
                     Map<String, Object> dataMap = new HashMap<>();
-                    dataMap.put("host", vo.getHost() + (vo.getPort() != null ? vo.getPort() : ""));
+                    dataMap.put("host", vo.getHost() + (vo.getPort() != null ? ":" + vo.getPort() : ""));
                     dataMap.put("nodeName", vo.getNodeName());
                     dataMap.put("statusName", vo.getStatusName());
                     dataMap.put("costTime", vo.getCostTime());
