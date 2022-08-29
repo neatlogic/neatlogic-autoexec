@@ -30,6 +30,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONReader;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
@@ -83,7 +84,7 @@ public class ExportAutoexecJobPhaseNodeApi extends PrivateBinaryStreamApiCompone
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(phaseVo.getJobId().toString());
         }
-        List<AutoexecJobPhaseNodeVo> list = null;
+        List<AutoexecJobPhaseNodeVo> list;
         int rowNum = autoexecJobMapper.searchJobPhaseNodeCount(searchVo);
         searchVo.setRowNum(rowNum);
         if (rowNum > 0) {
@@ -106,7 +107,7 @@ public class ExportAutoexecJobPhaseNodeApi extends PrivateBinaryStreamApiCompone
                 Map<Long, JSONObject> nodeLogTailParamMap = new HashMap<>();
                 for (AutoexecJobPhaseNodeVo vo : list) {
                     Map<String, Object> dataMap = new HashMap<>();
-                    dataMap.put("host", vo.getHost());
+                    dataMap.put("host", vo.getHost() + (vo.getPort() != null ? vo.getPort() : ""));
                     dataMap.put("nodeName", vo.getNodeName());
                     dataMap.put("statusName", vo.getStatusName());
                     dataMap.put("costTime", vo.getCostTime());
@@ -127,17 +128,25 @@ public class ExportAutoexecJobPhaseNodeApi extends PrivateBinaryStreamApiCompone
                     });
                 }
                 for (Map.Entry<String, List<Long>> entry : runnerNodeMap.entrySet()) {
-                    String url = entry.getKey() + "api/binary/job/phase/node/log/tail/withlimit";
+                    String url = entry.getKey() + "api/binary/job/phase/batchnode/log/tail";
                     List<Long> value = entry.getValue();
                     if (CollectionUtils.isNotEmpty(value)) {
-                        ByteArrayOutputStream bos = new ByteArrayOutputStream();
                         JSONArray nodeList = new JSONArray();
                         value.forEach(o -> nodeList.add(nodeLogTailParamMap.get(o)));
                         JSONObject paramJson = new JSONObject();
                         paramJson.put("nodeList", nodeList);
-                        paramJson.put("charLimit", 2048);
+                        paramJson.put("wordCountLimit", 2048);
+                        ByteArrayOutputStream bos = new ByteArrayOutputStream();
                         HttpRequestUtil requestUtil = HttpRequestUtil.download(url, "POST", bos)
-                                .setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
+                                .setPayload(paramJson.toJSONString())
+                                .setAuthType(AuthenticateType.BUILDIN)
+                                .setConnectTimeout(5000)
+                                .setReadTimeout(5000)
+                                .sendRequest();
+                        String error = requestUtil.getError();
+                        if (StringUtils.isNotBlank(error)) {
+                            continue;
+                        }
                         ByteArrayInputStream bis = new ByteArrayInputStream(bos.toByteArray());
                         InputStreamReader isr = new InputStreamReader(bis);
                         JSONReader jsonReader = new JSONReader(isr);
