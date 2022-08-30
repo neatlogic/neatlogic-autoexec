@@ -91,7 +91,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
         AutoexecJobInvokeVo invokeVo = new AutoexecJobInvokeVo(jobVo.getId(), jobVo.getInvokeId(), jobVo.getSource(), jobSourceVo.getType());
         autoexecJobMapper.insertJobInvoke(invokeVo);
-        System.out.println(JSONObject.toJSONString(invokeVo));
         autoexecJobMapper.insertJob(jobVo);
         autoexecJobMapper.insertIgnoreJobContent(new AutoexecJobContentVo(jobVo.getConfigHash(), jobVo.getConfigStr()));
         autoexecJobMapper.insertIgnoreJobContent(new AutoexecJobContentVo(jobVo.getParamHash(), jobVo.getParamArrayStr()));
