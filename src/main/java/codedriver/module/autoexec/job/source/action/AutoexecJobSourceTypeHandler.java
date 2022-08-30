@@ -7,7 +7,6 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
-import codedriver.framework.autoexec.dto.INodeDetail;
 import codedriver.framework.autoexec.dto.ISqlNodeDetail;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
@@ -120,21 +119,6 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
         if (CollectionUtils.isNotEmpty(resetSqlIdList)) {
             autoexecJobMapper.resetJobSqlStatusBySqlIdList(resetSqlIdList);
         }
-    }
-
-    @Override
-    public int searchJobPhaseNodeCount(AutoexecJobPhaseNodeVo jobPhaseNodeVo) {
-        return autoexecJobMapper.searchJobPhaseNodeCount(jobPhaseNodeVo);
-    }
-
-    @Override
-    public List<? extends INodeDetail> searchJobPhaseNodeForExport(AutoexecJobPhaseNodeVo jobPhaseNodeVo) {
-        List<INodeDetail> result = new ArrayList<>();
-        List<AutoexecJobPhaseNodeVo> list = autoexecJobMapper.searchJobPhaseNodeWithResource(jobPhaseNodeVo);
-        if (list.size() > 0) {
-            list.forEach(o -> result.add(o));
-        }
-        return result;
     }
 
     @Override
