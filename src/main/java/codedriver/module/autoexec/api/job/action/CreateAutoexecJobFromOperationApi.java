@@ -11,7 +11,6 @@ import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
-import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecPhaseOperationParamVo;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
@@ -31,14 +30,15 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @author lvzk
@@ -78,13 +78,13 @@ public class CreateAutoexecJobFromOperationApi extends PrivateApiComponentBase {
             @Param(name = "source", type = ApiParamType.STRING, isRequired = true, desc = "来源 itsm|human   ITSM|人工发起的等，不传默认是人工发起的"),
             @Param(name = "type", type = ApiParamType.ENUM, rule = "script,tool", isRequired = true, desc = "类型 script|tool   自定义工具库|工具库"),
             @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, desc = "执行目标", isRequired = true),
+            @Param(name = "argumentMappingList", type = ApiParamType.JSONARRAY, desc = "自由参数"),
     })
     @Output({
     })
     @Description(desc = "作业创建（来自 工具库|自定义工具库）")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        JSONObject paramJson = jsonObj.getJSONObject("param");
         AutoexecCombopVo combopVo = buildCombopVo(jsonObj);
         //设置作业执行节点
         if(combopVo.getConfig() != null && jsonObj.containsKey("executeConfig")){
@@ -114,14 +114,11 @@ public class CreateAutoexecJobFromOperationApi extends PrivateApiComponentBase {
      */
     private AutoexecCombopVo buildCombopVo(JSONObject jsonObj) {
         Long operationId = jsonObj.getLong("operationId");
-        String type = jsonObj.getString("type");
-        AutoexecScriptVersionVo scriptVersionVo;
-        AutoexecToolVo toolVo;
         AutoexecCombopVo combopVo = new AutoexecCombopVo();
-        JSONArray combopPhaseArray = new JSONArray();
+        AutoexecCombopPhaseVo autoexecCombopPhaseVo = new AutoexecCombopPhaseVo();
         AutoexecPhaseOperationParamVo phaseParam;
-        if (Objects.equals(type, CombopOperationType.SCRIPT.getValue())) {
-            scriptVersionVo = scriptMapper.getVersionByVersionId(operationId);
+        if (Objects.equals(jsonObj.getString("type"), CombopOperationType.SCRIPT.getValue())) {
+            AutoexecScriptVersionVo scriptVersionVo = scriptMapper.getVersionByVersionId(operationId);
             if (scriptVersionVo == null) {
                 throw new AutoexecScriptVersionNotFoundException(operationId);
             }
@@ -133,24 +130,35 @@ public class CreateAutoexecJobFromOperationApi extends PrivateApiComponentBase {
             scriptVersionVo.setParamList(paramVoList);
             phaseParam = new AutoexecPhaseOperationParamVo(scriptVo,scriptVersionVo);
         } else {
-            toolVo = toolMapper.getToolById(operationId);
+            AutoexecToolVo toolVo = toolMapper.getToolById(operationId);
             if (toolVo == null) {
                 throw new AutoexecToolNotFoundException(operationId);
             }
             phaseParam = new AutoexecPhaseOperationParamVo(toolVo);
         }
+        if(jsonObj.containsKey("argumentMappingList")) {
+            phaseParam.setArgumentMappingList(JSONObject.parseArray(jsonObj.getString("argumentMappingList"), ParamMappingVo.class));
+        }
         checkJobExist(phaseParam);
         AutoexecCombopGroupVo combopGroupVo = new AutoexecCombopGroupVo();
         combopGroupVo.setPolicy(AutoexecJobGroupPolicy.ONESHOT.getName());
         combopGroupVo.setSort(0);
-        initPhaseArray(combopPhaseArray,phaseParam,combopGroupVo,type);
+        autoexecCombopPhaseVo.setGroupId(combopGroupVo.getId());
+        autoexecCombopPhaseVo.setGroupSort(combopGroupVo.getSort());
+        autoexecCombopPhaseVo.setSort(0);
+        autoexecCombopPhaseVo.setName("test_phase");
+        autoexecCombopPhaseVo.setExecMode(phaseParam.getExecMode());
+        autoexecCombopPhaseVo.setExecModeName(ExecMode.getText(phaseParam.getExecMode()));
+        AutoexecCombopPhaseConfigVo combopPhaseConfigVo = new AutoexecCombopPhaseConfigVo();
+        AutoexecCombopPhaseOperationVo phaseOperation = new AutoexecCombopPhaseOperationVo(phaseParam);
+        combopPhaseConfigVo.setPhaseOperationList(Collections.singletonList(phaseOperation));
+        autoexecCombopPhaseVo.setConfig(combopPhaseConfigVo);
         combopVo.setName("TEST_"+phaseParam.getName());
         combopVo.setId(phaseParam.getOperationId());
         combopVo.setOperationType(phaseParam.getOperationType());
         combopVo.setRuntimeParamList(phaseParam.getInputParamList());
-//        initRuntimeParamList(combopVo,phaseParam);
         combopVo.setConfig(new AutoexecCombopConfigVo());
-        combopVo.getConfig().setCombopPhaseList(combopPhaseArray.toJavaList(AutoexecCombopPhaseVo.class));
+        combopVo.getConfig().setCombopPhaseList(Collections.singletonList(autoexecCombopPhaseVo));
         combopVo.getConfig().setCombopGroupList(Collections.singletonList(combopGroupVo));
         return combopVo;
     }
@@ -167,72 +175,6 @@ public class CreateAutoexecJobFromOperationApi extends PrivateApiComponentBase {
            }
            autoexecJobService.deleteJob(jobVo.getId());
        }
-    }
-
-    /**
-     * 初始化运行参是
-     * @param combopVo 组合工具
-     * @param phaseOperationParamVo scriptVersion|tool
-     */
-//    private void initRuntimeParamList(AutoexecCombopVo combopVo, AutoexecPhaseOperationParamVo phaseOperationParamVo) {
-//        List<AutoexecCombopParamVo> runtimeParamList = new ArrayList<>();
-//        if(CollectionUtils.isNotEmpty(phaseOperationParamVo.getInputParamList())) {
-//            phaseOperationParamVo.getInputParamList().forEach(o -> {
-//                runtimeParamList.add(new AutoexecCombopParamVo(o));
-//            });
-//            combopVo.setRuntimeParamList(runtimeParamList);
-//        }
-//    }
-
-    /**
-     * 构建combopPhaseList
-     * @param combopPhaseArray 虚拟组合工具phaseArray
-     * @param phaseOperationParamVo scriptVersion|tool
-     * @param combopGroupVo 对应的groupVo
-     * @param type 工具库｜自定义工具库
-     */
-    private void initPhaseArray(JSONArray combopPhaseArray, AutoexecPhaseOperationParamVo phaseOperationParamVo, AutoexecCombopGroupVo combopGroupVo,String type){
-        combopPhaseArray.add(new JSONObject() {{
-            put("sort", 0);
-            put("groupSort", combopGroupVo.getSort());
-            put("groupId", combopGroupVo.getId());
-            put("name", "test_phase");
-            put("execMode", phaseOperationParamVo.getExecMode());
-            put("execModeName", ExecMode.getText(phaseOperationParamVo.getExecMode()));
-            put("config", new JSONObject() {{
-                put("executeConfig", null);
-                put("phaseOperationList" ,new JSONArray(){{
-                    add(new JSONObject(){{
-                        put("operationName", phaseOperationParamVo.getName().replaceAll("//","_"));
-                        if (Objects.equals(type, CombopOperationType.SCRIPT.getValue())) {
-                            put("scriptVersionId", phaseOperationParamVo.getOperationId());
-                        }else{
-                            put("operationId", phaseOperationParamVo.getOperationId());
-                        }
-                        put("operationType",phaseOperationParamVo.getOperationType());
-                        put("execMode",phaseOperationParamVo.getExecMode());
-                        put("failPolicy", FailPolicy.STOP.getValue());
-                        put("parser", phaseOperationParamVo.getParser());
-                        put("sort", 0);
-                        put("config",new JSONObject(){{
-                            put("paramMappingList",new JSONArray(){{
-                                if(CollectionUtils.isNotEmpty(phaseOperationParamVo.getInputParamList())) {
-                                    for(AutoexecParamVo paramVo : phaseOperationParamVo.getInputParamList()) {
-                                        add(new JSONObject() {{
-                                            put("key",paramVo.getKey());
-                                            put("mappingMode", ParamMappingMode.RUNTIME_PARAM.getValue());
-                                            put("value",paramVo.getKey());
-                                        }});
-                                    }
-                                }
-                            }});
-                        }});
-                        put("inputParamList", phaseOperationParamVo.getInputParamList());
-                        put("outputParamList", phaseOperationParamVo.getOutputParamList());
-                    }});
-                }});
-            }});
-        }});
     }
 
     @Override
