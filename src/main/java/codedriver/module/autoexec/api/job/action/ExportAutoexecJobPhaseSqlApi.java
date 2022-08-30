@@ -7,17 +7,17 @@ package codedriver.module.autoexec.api.job.action;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.constvalue.NodeType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
-import codedriver.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
-import codedriver.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
+import codedriver.framework.autoexec.job.AutoexecJobPhaseNodeExportHandlerFactory;
+import codedriver.framework.autoexec.job.IAutoexecJobPhaseNodeExportHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.deploy.constvalue.JobSource;
-import codedriver.framework.deploy.constvalue.JobSourceType;
 import codedriver.framework.restful.annotation.Description;
 import codedriver.framework.restful.annotation.Input;
 import codedriver.framework.restful.annotation.OperationType;
@@ -53,7 +53,7 @@ public class ExportAutoexecJobPhaseSqlApi extends PrivateBinaryStreamApiComponen
 
     @Override
     public String getToken() {
-        return "autoexec/job/phase/sql/export";
+        return "autoexec/job/phase/sqlnode/export";
     }
 
     @Override
@@ -82,13 +82,13 @@ public class ExportAutoexecJobPhaseSqlApi extends PrivateBinaryStreamApiComponen
             throw new AutoexecJobNotFoundException(phaseVo.getJobId().toString());
         }
         AutoexecJobPhaseNodeVo jobPhaseNodeVo = JSONObject.toJavaObject(paramObj, AutoexecJobPhaseNodeVo.class);
-        IAutoexecJobSourceTypeHandler handler;
+        IAutoexecJobPhaseNodeExportHandler handler;
         if (StringUtils.equals(jobVo.getSource(), JobSource.DEPLOY.getValue())) {
-            handler = AutoexecJobSourceTypeHandlerFactory.getAction(JobSourceType.DEPLOY.getValue());
+            handler = AutoexecJobPhaseNodeExportHandlerFactory.getHandler(codedriver.framework.deploy.constvalue.NodeType.DEPLOY_SQL_NODE.getValue());
         } else {
-            handler = AutoexecJobSourceTypeHandlerFactory.getAction(codedriver.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
+            handler = AutoexecJobPhaseNodeExportHandlerFactory.getHandler(NodeType.AUTOEXEC_SQL_NODE.getValue());
         }
-        Workbook workbook = handler.exportJobPhaseSql(jobPhaseNodeVo, jobVo, phaseVo, headList, columnList);
+        Workbook workbook = handler.exportJobPhaseNode(jobPhaseNodeVo, jobVo, phaseVo, headList, columnList);
         if (workbook != null) {
             String fileName = FileUtil.getEncodedFileName(request.getHeader("User-Agent"), jobVo.getName() + "-" + phaseVo.getName() + ".xlsx");
             response.setContentType("application/vnd.ms-excel;charset=utf-8");

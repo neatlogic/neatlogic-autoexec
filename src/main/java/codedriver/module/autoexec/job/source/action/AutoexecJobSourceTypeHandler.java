@@ -7,13 +7,12 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
-import codedriver.framework.autoexec.dto.ISqlDetail;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.dto.job.AutoexecSqlDetailVo;
+import codedriver.framework.autoexec.dto.job.AutoexecSqlNodeDetailVo;
 import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerBase;
 import codedriver.framework.autoexec.util.AutoexecUtil;
@@ -94,16 +93,16 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
 
     @Override
     public void resetSqlStatus(JSONObject paramObj, AutoexecJobVo jobVo) {
-        List<AutoexecSqlDetailVo> resetSqlList = null;
+        List<AutoexecSqlNodeDetailVo> resetSqlList = null;
         List<Long> resetSqlIdList = null;
         JSONArray sqlIdArray = paramObj.getJSONArray("sqlIdList");
         if (!Objects.isNull(paramObj.getInteger("isAll")) && paramObj.getInteger("isAll") == 1) {
             //重置phase的所有sql文件状态
             resetSqlList = autoexecJobMapper.getJobSqlListByJobIdAndJobPhaseName(paramObj.getLong("jobId"), paramObj.getString("phaseName"));
-            resetSqlIdList = resetSqlList.stream().map(AutoexecSqlDetailVo::getId).collect(Collectors.toList());
+            resetSqlIdList = resetSqlList.stream().map(AutoexecSqlNodeDetailVo::getId).collect(Collectors.toList());
             List<AutoexecJobPhaseNodeVo> jobPhaseNodeVos = new ArrayList<>();
-            List<RunnerMapVo> runnerMapVos = runnerMapper.getRunnerByRunnerMapIdList(resetSqlList.stream().map(AutoexecSqlDetailVo::getRunnerId).collect(Collectors.toList()));
-            for (AutoexecSqlDetailVo resetSql : resetSqlList) {
+            List<RunnerMapVo> runnerMapVos = runnerMapper.getRunnerByRunnerMapIdList(resetSqlList.stream().map(AutoexecSqlNodeDetailVo::getRunnerId).collect(Collectors.toList()));
+            for (AutoexecSqlNodeDetailVo resetSql : resetSqlList) {
                 Optional<RunnerMapVo> runnerMapVoOptional = runnerMapVos.stream().filter(o -> Objects.equals(o.getRunnerMapId(), resetSql.getRunnerId())).findFirst();
                 if (!runnerMapVoOptional.isPresent()) {
                     throw new AutoexecJobRunnerNotFoundException(resetSql.getRunnerId().toString());
@@ -123,7 +122,7 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
 
     @Override
     public JSONObject searchJobPhaseSql(AutoexecJobPhaseNodeVo jobPhaseNodeVo) {
-        List<AutoexecSqlDetailVo> returnList = new ArrayList<>();
+        List<AutoexecSqlNodeDetailVo> returnList = new ArrayList<>();
         int sqlCount = autoexecJobMapper.searchJobPhaseSqlCount(jobPhaseNodeVo);
         if (sqlCount > 0) {
             jobPhaseNodeVo.setRowNum(sqlCount);
@@ -141,7 +140,7 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
         JSONArray paramSqlVoArray = paramObj.getJSONArray("sqlInfoList");
         Date nowLcd = new Date();
         if (CollectionUtils.isNotEmpty(paramSqlVoArray)) {
-            List<AutoexecSqlDetailVo> insertSqlList = paramSqlVoArray.toJavaList(AutoexecSqlDetailVo.class);
+            List<AutoexecSqlNodeDetailVo> insertSqlList = paramSqlVoArray.toJavaList(AutoexecSqlNodeDetailVo.class);
             if (insertSqlList.size() > 100) {
                 int cyclicNumber = insertSqlList.size() / 100;
                 if (insertSqlList.size() % 100 != 0) {
@@ -162,10 +161,10 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
 
     @Override
     public void updateSqlStatus(JSONObject paramObj) {
-        AutoexecSqlDetailVo paramSqlVo = paramObj.getJSONObject("sqlStatus").toJavaObject(AutoexecSqlDetailVo.class);
+        AutoexecSqlNodeDetailVo paramSqlVo = paramObj.getJSONObject("sqlStatus").toJavaObject(AutoexecSqlNodeDetailVo.class);
         paramSqlVo.setPhaseName(paramObj.getString("phaseName"));
         paramSqlVo.setJobId(paramObj.getLong("jobId"));
-        AutoexecSqlDetailVo oldSqlDetailVo = autoexecJobMapper.getJobSqlByResourceIdAndJobIdAndJobPhaseNameAndSqlFile(paramSqlVo.getResourceId(), paramObj.getLong("jobId"), paramObj.getString("phaseName"), paramSqlVo.getSqlFile());
+        AutoexecSqlNodeDetailVo oldSqlDetailVo = autoexecJobMapper.getJobSqlByResourceIdAndJobIdAndJobPhaseNameAndSqlFile(paramSqlVo.getResourceId(), paramObj.getLong("jobId"), paramObj.getString("phaseName"), paramSqlVo.getSqlFile());
         if (oldSqlDetailVo == null) {
             AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(paramObj.getLong("jobId"), paramObj.getString("phaseName"));
             if (phaseVo == null) {
@@ -182,7 +181,7 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
     }
 
     @Override
-    public AutoexecSqlDetailVo getSqlDetail(AutoexecJobVo jobVo) {
+    public AutoexecSqlNodeDetailVo getSqlDetail(AutoexecJobVo jobVo) {
         return autoexecJobMapper.getJobSqlByJobPhaseIdAndResourceIdAndSqlName(jobVo.getActionParam().getLong("jobPhaseId"), jobVo.getActionParam().getLong("resourceId"), jobVo.getActionParam().getString("sqlName"));
     }
 
@@ -227,7 +226,7 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
     @Override
     public boolean getIsCanUpdatePhaseRunner(AutoexecJobPhaseVo jobPhaseVo, Long runnerMapId) {
         if (Objects.equals(jobPhaseVo.getExecMode(), ExecMode.SQL.getValue())) {
-            List<AutoexecSqlDetailVo> sqlDetail = autoexecJobMapper.getJobSqlDetailListByJobIdAndPhaseNameAndExceptStatusAndRunnerMapId(jobPhaseVo.getJobId(), jobPhaseVo.getName(), Arrays.asList(JobNodeStatus.SUCCEED.getValue(), JobNodeStatus.IGNORED.getValue()), runnerMapId);
+            List<AutoexecSqlNodeDetailVo> sqlDetail = autoexecJobMapper.getJobSqlDetailListByJobIdAndPhaseNameAndExceptStatusAndRunnerMapId(jobPhaseVo.getJobId(), jobPhaseVo.getName(), Arrays.asList(JobNodeStatus.SUCCEED.getValue(), JobNodeStatus.IGNORED.getValue()), runnerMapId);
             return sqlDetail.size() == 0;
         } else {
             List<AutoexecJobPhaseNodeVo> phaseNodes = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseIdAndExceptStatusAndRunnerMapId(jobPhaseVo.getJobId(), jobPhaseVo.getId(), Arrays.asList(JobNodeStatus.SUCCEED.getValue(), JobNodeStatus.IGNORED.getValue()), runnerMapId);
@@ -283,21 +282,6 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
             }
         }
 
-    }
-
-    @Override
-    protected int getJobPhaseSqlCount(AutoexecJobPhaseNodeVo jobPhaseNodeVo) {
-        return autoexecJobMapper.searchJobPhaseSqlCount(jobPhaseNodeVo);
-    }
-
-    @Override
-    protected List<ISqlDetail> searchJobPhaseSqlForExpport(AutoexecJobPhaseNodeVo jobPhaseNodeVo) {
-        List<ISqlDetail> result = new ArrayList<>();
-        List<AutoexecSqlDetailVo> list = autoexecJobMapper.searchJobPhaseSql(jobPhaseNodeVo);
-        if (list.size() > 0) {
-            list.forEach(o -> result.add(o));
-        }
-        return result;
     }
 
 }

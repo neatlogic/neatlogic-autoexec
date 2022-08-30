@@ -3,7 +3,7 @@ package codedriver.module.autoexec.api.job.action.node;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
-import codedriver.framework.autoexec.dto.job.AutoexecSqlDetailVo;
+import codedriver.framework.autoexec.dto.job.AutoexecSqlNodeDetailVo;
 import codedriver.framework.cmdb.crossover.IAttrCrossoverMapper;
 import codedriver.framework.cmdb.crossover.ICiEntityCrossoverMapper;
 import codedriver.framework.cmdb.crossover.ICiEntityCrossoverService;
@@ -13,7 +13,7 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.crossover.CrossoverServiceFactory;
 import codedriver.framework.deploy.constvalue.JobSourceType;
 import codedriver.framework.deploy.crossover.IDeploySqlCrossoverMapper;
-import codedriver.framework.deploy.dto.sql.DeploySqlDetailVo;
+import codedriver.framework.deploy.dto.sql.DeploySqlNodeDetailVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -77,15 +77,15 @@ public class ListAutoexecJobSqlApi extends PrivateApiComponentBase {
             String phaseName = paramObj.getString("phaseName");
 
             if (Objects.nonNull(jobId) && StringUtils.isNotEmpty(phaseName)) {
-                List<AutoexecSqlDetailVo> returnSqlList = autoexecJobMapper.getJobSqlDetailListByJobIdAndPhaseName(jobId, phaseName, paramObj.getJSONArray("sqlFiles"));
+                List<AutoexecSqlNodeDetailVo> returnSqlList = autoexecJobMapper.getJobSqlDetailListByJobIdAndPhaseName(jobId, phaseName, paramObj.getJSONArray("sqlFiles"));
                 //补充访问地址信息
                 if (CollectionUtils.isNotEmpty(returnSqlList)) {
                     ICiEntityCrossoverMapper ciEntityCrossoverMapper = CrossoverServiceFactory.getApi(ICiEntityCrossoverMapper.class);
-                    List<CiEntityVo> entityVoList = ciEntityCrossoverMapper.getCiEntityBaseInfoByIdList(returnSqlList.stream().map(AutoexecSqlDetailVo::getResourceId).collect(Collectors.toList()));
+                    List<CiEntityVo> entityVoList = ciEntityCrossoverMapper.getCiEntityBaseInfoByIdList(returnSqlList.stream().map(AutoexecSqlNodeDetailVo::getResourceId).collect(Collectors.toList()));
                     if (CollectionUtils.isNotEmpty(entityVoList)) {
                         Map<Long, CiEntityVo> ciEntityVoMap = entityVoList.stream().collect(Collectors.toMap(CiEntityVo::getId, e -> e));
                         //循环sql列表，根据sqlVo里面resourceId获取访问地址
-                        for (AutoexecSqlDetailVo sqlDetailVo : returnSqlList) {
+                        for (AutoexecSqlNodeDetailVo sqlDetailVo : returnSqlList) {
                             CiEntityVo ciEntity = ciEntityVoMap.get(sqlDetailVo.getResourceId());
                             sqlDetailVo.setServiceAddr(getServeAddr(ciEntity));
                         }
@@ -96,16 +96,16 @@ public class ListAutoexecJobSqlApi extends PrivateApiComponentBase {
 
         } else if (StringUtils.equals(paramObj.getString("operType"), JobSourceType.DEPLOY.getValue())) {
             IDeploySqlCrossoverMapper iDeploySqlCrossoverMapper = CrossoverServiceFactory.getApi(IDeploySqlCrossoverMapper.class);
-            List<DeploySqlDetailVo> sqlDetailVoList = new ArrayList<>();
-            sqlDetailVoList.add(paramObj.toJavaObject(DeploySqlDetailVo.class));
-            List<DeploySqlDetailVo> returnSqlList = iDeploySqlCrossoverMapper.getDeploySqlDetailList(sqlDetailVoList);
+            List<DeploySqlNodeDetailVo> sqlDetailVoList = new ArrayList<>();
+            sqlDetailVoList.add(paramObj.toJavaObject(DeploySqlNodeDetailVo.class));
+            List<DeploySqlNodeDetailVo> returnSqlList = iDeploySqlCrossoverMapper.getDeploySqlDetailList(sqlDetailVoList);
             if (CollectionUtils.isNotEmpty(returnSqlList)) {
                 ICiEntityCrossoverMapper ciEntityCrossoverMapper = CrossoverServiceFactory.getApi(ICiEntityCrossoverMapper.class);
-                List<CiEntityVo> entityVoList = ciEntityCrossoverMapper.getCiEntityBaseInfoByIdList(returnSqlList.stream().map(DeploySqlDetailVo::getResourceId).collect(Collectors.toList()));
+                List<CiEntityVo> entityVoList = ciEntityCrossoverMapper.getCiEntityBaseInfoByIdList(returnSqlList.stream().map(DeploySqlNodeDetailVo::getResourceId).collect(Collectors.toList()));
                 if (CollectionUtils.isNotEmpty(entityVoList)) {
                     Map<Long, CiEntityVo> ciEntityVoMap = entityVoList.stream().collect(Collectors.toMap(CiEntityVo::getId, e -> e));
                     //循环sql列表，根据sqlVo里面resourceId获取访问地址
-                    for (DeploySqlDetailVo sqlDetailVo : returnSqlList) {
+                    for (DeploySqlNodeDetailVo sqlDetailVo : returnSqlList) {
                         CiEntityVo ciEntity = ciEntityVoMap.get(sqlDetailVo.getResourceId());
                         sqlDetailVo.setServiceAddr(getServeAddr(ciEntity));
                     }
