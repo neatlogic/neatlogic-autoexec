@@ -46,8 +46,8 @@ public class AutoexecJobPhaseSqlNodeExportHandler extends AutoexecJobPhaseNodeEx
     }
 
     @Override
-    protected void assembleData(AutoexecJobVo jobVo, AutoexecJobPhaseVo phaseVo, List<? extends INodeDetail> list, Map<Long, Map<String, Object>> nodeDataMap, Map<String, List<Long>> runnerNodeMap, Map<Long, JSONObject> nodeLogTailParamMap) {
-        for (INodeDetail vo : list) {
+    protected void assembleData(AutoexecJobVo jobVo, AutoexecJobPhaseVo phaseVo, List<? extends INodeDetail> nodeList, Map<Long, Map<String, Object>> nodeDataMap, Map<String, List<Long>> runnerNodeMap, Map<Long, JSONObject> nodeLogTailParamMap) {
+        for (INodeDetail vo : nodeList) {
             ISqlNodeDetail detail = (ISqlNodeDetail) vo;
             Map<String, Object> dataMap = new HashMap<>();
             dataMap.put("name", detail.getSqlFile());
@@ -73,5 +73,4 @@ public class AutoexecJobPhaseSqlNodeExportHandler extends AutoexecJobPhaseNodeEx
             });
         }
     }
-
 }

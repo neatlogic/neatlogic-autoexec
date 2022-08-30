@@ -44,8 +44,8 @@ public class AutoexecJobPhaseNodeExportHandler extends AutoexecJobPhaseNodeExpor
     }
 
     @Override
-    protected void assembleData(AutoexecJobVo jobVo, AutoexecJobPhaseVo phaseVo, List<? extends INodeDetail> list, Map<Long, Map<String, Object>> nodeDataMap, Map<String, List<Long>> runnerNodeMap, Map<Long, JSONObject> nodeLogTailParamMap) {
-        for (INodeDetail vo : list) {
+    protected void assembleData(AutoexecJobVo jobVo, AutoexecJobPhaseVo phaseVo, List<? extends INodeDetail> nodeList, Map<Long, Map<String, Object>> nodeDataMap, Map<String, List<Long>> runnerNodeMap, Map<Long, JSONObject> nodeLogTailParamMap) {
+        for (INodeDetail vo : nodeList) {
             Map<String, Object> dataMap = new HashMap<>();
             dataMap.put("host", vo.getHost() + (vo.getPort() != null ? ":" + vo.getPort() : ""));
             dataMap.put("nodeName", vo.getNodeName());
