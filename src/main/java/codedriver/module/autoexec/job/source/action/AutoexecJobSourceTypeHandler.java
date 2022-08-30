@@ -7,6 +7,8 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.framework.autoexec.dto.INodeDetail;
+import codedriver.framework.autoexec.dto.ISqlNodeDetail;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
@@ -121,6 +123,26 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
     }
 
     @Override
+    public int searchJobPhaseNodeCount(AutoexecJobPhaseNodeVo jobPhaseNodeVo) {
+        return autoexecJobMapper.searchJobPhaseNodeCount(jobPhaseNodeVo);
+    }
+
+    @Override
+    public List<? extends INodeDetail> searchJobPhaseNodeForExport(AutoexecJobPhaseNodeVo jobPhaseNodeVo) {
+        List<INodeDetail> result = new ArrayList<>();
+        List<AutoexecJobPhaseNodeVo> list = autoexecJobMapper.searchJobPhaseNodeWithResource(jobPhaseNodeVo);
+        if (list.size() > 0) {
+            list.forEach(o -> result.add(o));
+        }
+        return result;
+    }
+
+    @Override
+    public int searchJobPhaseSqlCount(AutoexecJobPhaseNodeVo jobPhaseNodeVo) {
+        return autoexecJobMapper.searchJobPhaseSqlCount(jobPhaseNodeVo);
+    }
+
+    @Override
     public JSONObject searchJobPhaseSql(AutoexecJobPhaseNodeVo jobPhaseNodeVo) {
         List<AutoexecSqlNodeDetailVo> returnList = new ArrayList<>();
         int sqlCount = autoexecJobMapper.searchJobPhaseSqlCount(jobPhaseNodeVo);
@@ -129,6 +151,16 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
             returnList = autoexecJobMapper.searchJobPhaseSql(jobPhaseNodeVo);
         }
         return TableResultUtil.getResult(returnList, jobPhaseNodeVo);
+    }
+
+    @Override
+    public List<ISqlNodeDetail> searchJobPhaseSqlForExport(AutoexecJobPhaseNodeVo jobPhaseNodeVo) {
+        List<ISqlNodeDetail> result = new ArrayList<>();
+        List<AutoexecSqlNodeDetailVo> list = autoexecJobMapper.searchJobPhaseSql(jobPhaseNodeVo);
+        if (list.size() > 0) {
+            list.forEach(o -> result.add(o));
+        }
+        return result;
     }
 
     @Override

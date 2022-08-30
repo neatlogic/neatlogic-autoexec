@@ -1,46 +1,46 @@
 package codedriver.module.autoexec.job;
 
-import codedriver.framework.autoexec.constvalue.NodeType;
-import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.dto.INodeDetail;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.job.AutoexecJobPhaseNodeExportHandlerBase;
+import codedriver.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
+import codedriver.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
 import codedriver.framework.util.TimeUtil;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
-public class AutoexecJobPhaseNodeExportHandler extends AutoexecJobPhaseNodeExportHandlerBase {
-
-    @Resource
-    AutoexecJobMapper autoexecJobMapper;
+public class AutoexecJobTagertPhaseNodeExportHandler extends AutoexecJobPhaseNodeExportHandlerBase {
 
     @Override
     public String getName() {
-        return NodeType.NODE.getValue();
+        return ExecMode.TARGET.getValue();
     }
 
     @Override
-    protected int getJobPhaseNodeCount(AutoexecJobPhaseNodeVo jobPhaseNodeVo) {
-        return autoexecJobMapper.searchJobPhaseNodeCount(jobPhaseNodeVo);
-    }
-
-    @Override
-    protected List<INodeDetail> searchJobPhaseNode(AutoexecJobPhaseNodeVo jobPhaseNodeVo) {
-        List<INodeDetail> result = new ArrayList<>();
-        List<AutoexecJobPhaseNodeVo> list = autoexecJobMapper.searchJobPhaseNodeWithResource(jobPhaseNodeVo);
-        if (list.size() > 0) {
-            list.forEach(o -> result.add(o));
+    protected int getJobPhaseNodeCount(AutoexecJobPhaseNodeVo jobPhaseNodeVo, String source) {
+        IAutoexecJobSourceTypeHandler action = AutoexecJobSourceTypeHandlerFactory.getAction(source);
+        if (action != null) {
+            return action.searchJobPhaseNodeCount(jobPhaseNodeVo);
         }
-        return result;
+        return 0;
+    }
+
+    @Override
+    protected List<? extends INodeDetail> searchJobPhaseNode(AutoexecJobPhaseNodeVo jobPhaseNodeVo, String source) {
+        IAutoexecJobSourceTypeHandler action = AutoexecJobSourceTypeHandlerFactory.getAction(source);
+        if (action != null) {
+            return action.searchJobPhaseNodeForExport(jobPhaseNodeVo);
+        }
+        return null;
     }
 
     @Override

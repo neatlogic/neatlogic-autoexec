@@ -7,7 +7,7 @@ package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
-import codedriver.framework.autoexec.constvalue.NodeType;
+import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
@@ -79,9 +79,10 @@ public class ExportAutoexecJobPhaseNodeApi extends PrivateBinaryStreamApiCompone
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(phaseVo.getJobId().toString());
         }
-        IAutoexecJobPhaseNodeExportHandler handler = AutoexecJobPhaseNodeExportHandlerFactory.getHandler(NodeType.NODE.getValue());
+        searchVo.setJobId(jobVo.getId());
+        IAutoexecJobPhaseNodeExportHandler handler = AutoexecJobPhaseNodeExportHandlerFactory.getHandler(phaseVo.getExecMode());
         if (handler != null) {
-            Workbook workbook = handler.exportJobPhaseNode(searchVo, jobVo, phaseVo, headList, columnList);
+            Workbook workbook = handler.exportJobPhaseNode(searchVo, jobVo, phaseVo, getHeadList(phaseVo.getExecMode()), getColumnList(phaseVo.getExecMode()));
             if (workbook != null) {
                 String fileName = FileUtil.getEncodedFileName(request.getHeader("User-Agent"), jobVo.getName() + "-" + phaseVo.getName() + ".xlsx");
                 response.setContentType("application/vnd.ms-excel;charset=utf-8");
@@ -101,11 +102,11 @@ public class ExportAutoexecJobPhaseNodeApi extends PrivateBinaryStreamApiCompone
         return null;
     }
 
-    static List<String> headList = new ArrayList<>();
-
-    static List<String> columnList = new ArrayList<>();
-
-    static {
+    private List<String> getHeadList(String execMode) {
+        List<String> headList = new ArrayList<>();
+        if (ExecMode.SQL.getValue().equals(execMode)) {
+            headList.add("文件名");
+        }
         headList.add("IP");
         headList.add("节点名称");
         headList.add("状态");
@@ -113,7 +114,14 @@ public class ExportAutoexecJobPhaseNodeApi extends PrivateBinaryStreamApiCompone
         headList.add("开始时间");
         headList.add("结束时间");
         headList.add("日志");
+        return headList;
+    }
 
+    private List<String> getColumnList(String execMode) {
+        List<String> columnList = new ArrayList<>();
+        if (ExecMode.SQL.getValue().equals(execMode)) {
+            columnList.add("name");
+        }
         columnList.add("host");
         columnList.add("nodeName");
         columnList.add("statusName");
@@ -121,6 +129,7 @@ public class ExportAutoexecJobPhaseNodeApi extends PrivateBinaryStreamApiCompone
         columnList.add("startTime");
         columnList.add("endTime");
         columnList.add("log");
+        return columnList;
     }
 
 }

@@ -1,48 +1,47 @@
 package codedriver.module.autoexec.job;
 
-import codedriver.framework.autoexec.constvalue.NodeType;
-import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.dto.INodeDetail;
 import codedriver.framework.autoexec.dto.ISqlNodeDetail;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.dto.job.AutoexecSqlNodeDetailVo;
 import codedriver.framework.autoexec.job.AutoexecJobPhaseNodeExportHandlerBase;
+import codedriver.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
+import codedriver.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
 import codedriver.framework.util.TimeUtil;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 @Service
-public class AutoexecJobPhaseSqlNodeExportHandler extends AutoexecJobPhaseNodeExportHandlerBase {
-
-    @Resource
-    AutoexecJobMapper autoexecJobMapper;
+public class AutoexecJobSqlFilePhaseNodeExportHandler extends AutoexecJobPhaseNodeExportHandlerBase {
 
     @Override
     public String getName() {
-        return NodeType.AUTOEXEC_SQL_NODE.getValue();
+        return ExecMode.SQL.getValue();
     }
 
     @Override
-    protected int getJobPhaseNodeCount(AutoexecJobPhaseNodeVo jobPhaseNodeVo) {
-        return autoexecJobMapper.searchJobPhaseSqlCount(jobPhaseNodeVo);
-    }
-
-    @Override
-    protected List<? extends INodeDetail> searchJobPhaseNode(AutoexecJobPhaseNodeVo jobPhaseNodeVo) {
-        List<ISqlNodeDetail> result = new ArrayList<>();
-        List<AutoexecSqlNodeDetailVo> list = autoexecJobMapper.searchJobPhaseSql(jobPhaseNodeVo);
-        if (list.size() > 0) {
-            list.forEach(o -> result.add(o));
+    protected int getJobPhaseNodeCount(AutoexecJobPhaseNodeVo jobPhaseNodeVo, String source) {
+        IAutoexecJobSourceTypeHandler action = AutoexecJobSourceTypeHandlerFactory.getAction(source);
+        if (action != null) {
+            return action.searchJobPhaseSqlCount(jobPhaseNodeVo);
         }
-        return result;
+        return 0;
+    }
+
+    @Override
+    protected List<? extends INodeDetail> searchJobPhaseNode(AutoexecJobPhaseNodeVo jobPhaseNodeVo, String source) {
+        IAutoexecJobSourceTypeHandler action = AutoexecJobSourceTypeHandlerFactory.getAction(source);
+        if (action != null) {
+            return action.searchJobPhaseSqlForExport(jobPhaseNodeVo);
+        }
+        return null;
     }
 
     @Override
