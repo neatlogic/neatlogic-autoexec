@@ -141,27 +141,9 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                         JSONObject executeParamObj = executeParamList.getJSONObject(i);
                         if (MapUtils.isNotEmpty(executeParamObj)) {
                             String key = executeParamObj.getString("key");
-                            String value = executeParamObj.getString("value");
+                            Object value = executeParamObj.get("value");
                             String mappingMode = executeParamObj.getString("mappingMode");
-                            if ("protocolId".equals(key)) {
-                                if (StringUtils.isNotBlank(value)) {
-                                    executeConfig.put("protocolId", parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
-                                } else {
-                                    executeConfig.put("protocolId", value);
-                                }
-                            } else if ("executeUser".equals(key)) {
-                                if (StringUtils.isNotBlank(value)) {
-                                    executeConfig.put("executeUser", parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
-                                } else {
-                                    executeConfig.put("executeUser", value);
-                                }
-                            } else if ("executeNodeConfig".equals(key)) {
-                                if (StringUtils.isNotBlank(value)) {
-                                    executeConfig.put("executeNodeConfig", parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
-                                } else {
-                                    executeConfig.put("executeNodeConfig", value);
-                                }
-                            }
+                            executeConfig.put(key, parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
                         }
                     }
                     paramObj.put("executeConfig", executeConfig);
