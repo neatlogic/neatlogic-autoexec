@@ -72,9 +72,9 @@ public class AutoexecJobGlobalLockHandler extends GlobalLockHandlerBase {
     }
 
     @Override
-    protected JSONObject myCancelLock(Long lockId, JSONObject paramJson) {
+    protected JSONObject myUnLock(Long lockId, JSONObject paramJson) {
         JSONObject jsonObject = new JSONObject();
-        GlobalLockManager.cancelLock(lockId, paramJson);
+        GlobalLockManager.unLock(lockId, paramJson);
         jsonObject.put("lockId",lockId);
         return jsonObject;
     }
