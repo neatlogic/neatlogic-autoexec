@@ -143,10 +143,10 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                     int isSucceed = resultObj.getIntValue("isSucceed");
                     if (isSucceed == 0) {
                         failureCount++;
-                        failureReasonList.add(resultObj);
                     } else {
                         successCount++;
                     }
+                    failureReasonList.add(resultObj);
                     out.reset();
                 }
             } catch (Exception e) {
