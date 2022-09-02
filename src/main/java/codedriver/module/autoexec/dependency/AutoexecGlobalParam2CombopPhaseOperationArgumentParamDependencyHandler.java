@@ -67,12 +67,12 @@ public class AutoexecGlobalParam2CombopPhaseOperationArgumentParamDependencyHand
             if (CollectionUtils.isEmpty(phaseOperationList)) {
                 return null;
             }
-            Long operationId = Long.valueOf(dependencyVo.getTo());
+            Long id = Long.valueOf(dependencyVo.getTo());
             for (AutoexecCombopPhaseOperationVo phaseOperationVo : phaseOperationList) {
                 if (phaseOperationVo == null) {
                     continue;
                 }
-                if (!Objects.equals(phaseOperationVo.getOperationId(), operationId)) {
+                if (!Objects.equals(phaseOperationVo.getId(), id)) {
                     continue;
                 }
                 AutoexecCombopPhaseOperationConfigVo operationConfigVo = phaseOperationVo.getConfig();
@@ -91,7 +91,7 @@ public class AutoexecGlobalParam2CombopPhaseOperationArgumentParamDependencyHand
                         continue;
                     }
                     if (Objects.equals(paramMappingVo.getValue(), dependencyVo.getFrom())) {
-                        String operationName = phaseOperationVo.getName();
+                        String operationName = phaseOperationVo.getOperationName();
                         String phaseName = combopPhaseVo.getName();
                         String combopName = autoexecCombopVo.getName();
                         JSONObject dependencyInfoConfig = new JSONObject();
@@ -102,7 +102,7 @@ public class AutoexecGlobalParam2CombopPhaseOperationArgumentParamDependencyHand
                         pathList.add(phaseName);
                         pathList.add(operationName);
                         String urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/action-detail?id=${DATA.combopId}";
-                        String value = operationId + "_" + System.currentTimeMillis();
+                        String value = id + "_" + System.currentTimeMillis();
                         return new DependencyInfoVo(value, dependencyInfoConfig, "自由参数", pathList, urlFormat, this.getGroupName());
                     }
                 }

@@ -67,12 +67,12 @@ public class AutoexecGlobalParam2CombopPhaseOperationInputParamDependencyHandler
             if (CollectionUtils.isEmpty(phaseOperationList)) {
                 return null;
             }
-            Long operationId = Long.valueOf(dependencyVo.getTo());
+            Long id = Long.valueOf(dependencyVo.getTo());
             for (AutoexecCombopPhaseOperationVo phaseOperationVo : phaseOperationList) {
                 if (phaseOperationVo == null) {
                     continue;
                 }
-                if (!Objects.equals(phaseOperationVo.getOperationId(), operationId)) {
+                if (!Objects.equals(phaseOperationVo.getId(), id)) {
                     continue;
                 }
                 AutoexecCombopPhaseOperationConfigVo operationConfigVo = phaseOperationVo.getConfig();
@@ -91,7 +91,7 @@ public class AutoexecGlobalParam2CombopPhaseOperationInputParamDependencyHandler
                         continue;
                     }
                     if (Objects.equals(paramMappingVo.getValue(), dependencyVo.getFrom())) {
-                        String operationName = phaseOperationVo.getName();
+                        String operationName = phaseOperationVo.getOperationName();
                         String phaseName = combopPhaseVo.getName();
                         String combopName = autoexecCombopVo.getName();
                         String key = config.getString("key");
@@ -111,7 +111,7 @@ public class AutoexecGlobalParam2CombopPhaseOperationInputParamDependencyHandler
                         pathList.add(operationName);
                         pathList.add("输入参数映射");
                         String urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/action-detail?id=${DATA.combopId}";
-                        String value = operationId + "_" + key;
+                        String value = id + "_" + key;
                         return new DependencyInfoVo(value, dependencyInfoConfig, name, pathList, urlFormat, this.getGroupName());
                     }
                 }

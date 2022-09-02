@@ -13,7 +13,6 @@ import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import codedriver.framework.autoexec.exception.AutoexecProfileHasBeenReferredException;
 import codedriver.framework.autoexec.exception.AutoexecProfileIsNotFoundException;
-import codedriver.framework.common.constvalue.CiphertextPrefix;
 import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.dependency.core.DependencyManager;
 import codedriver.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
@@ -177,8 +176,11 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService, IAuto
             if (StringUtils.equals(paramVo.getMappingMode(), AutoexecProfileParamInvokeType.GLOBAL_PARAM.getValue())) {
                 //获取引用的全局参数值
                 AutoexecGlobalParamVo globalParamVo = autoexecGlobalParamMapper.getGlobalParamByKey(paramVo.getDefaultValueStr());
-                if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), globalParamVo.getType()) && !Objects.isNull(globalParamVo.getDefaultValue()) && globalParamVo.getDefaultValueStr().startsWith(CiphertextPrefix.RC4.getValue())) {
-                    paramVo.setDefaultValue(RC4Util.decrypt(globalParamVo.getDefaultValueStr().substring(4)));
+                if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), globalParamVo.getType()) && !Objects.isNull(globalParamVo.getDefaultValue())) {
+                    String pwd = RC4Util.encrypt(globalParamVo.getDefaultValueStr());
+                    paramVo.setDefaultValue(pwd);
+                }else{
+                    paramVo.setDefaultValue(globalParamVo.getDefaultValue());
                 }
             }
             returnMap.put(paramVo.getKey(), paramVo.getDefaultValue());
@@ -248,8 +250,8 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService, IAuto
                     newParamVo.setMappingMode(AutoexecProfileParamInvokeType.GLOBAL_PARAM.getValue());
                     newParamVo.setDefaultValue(oldParamVo.getDefaultValue());
                 } else if (StringUtils.equals(AutoexecProfileParamInvokeType.CONSTANT.getValue(), oldParamVo.getMappingMode())) {
-                    if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), oldParamVo.getType()) && StringUtils.isNotBlank(oldParamVo.getDefaultValueStr()) && oldParamVo.getDefaultValueStr().startsWith(CiphertextPrefix.RC4.getValue())) {
-                        newParamVo.setDefaultValue(RC4Util.decrypt(oldParamVo.getDefaultValueStr().substring(4)));
+                    if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), oldParamVo.getType()) && StringUtils.isNotBlank(oldParamVo.getDefaultValueStr())) {
+                        newParamVo.setDefaultValue(RC4Util.decrypt(oldParamVo.getDefaultValueStr()));
                     } else {
                         newParamVo.setDefaultValue(oldParamVo.getDefaultValue());
                     }

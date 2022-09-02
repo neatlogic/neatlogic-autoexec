@@ -18,10 +18,11 @@ import codedriver.framework.autoexec.dto.node.AutoexecNodeVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopExecuteNodeCannotBeEmptyException;
 import codedriver.framework.autoexec.exception.AutoexecCombopExecuteParamCannotBeEmptyException;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
-import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
+import codedriver.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
 import codedriver.framework.cmdb.exception.resourcecenter.ResourceCenterAccountProtocolNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.crossover.CrossoverServiceFactory;
 import codedriver.framework.exception.type.PermissionDeniedException;
 import codedriver.framework.restful.annotation.Description;
 import codedriver.framework.restful.annotation.Input;
@@ -54,8 +55,6 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
     private AutoexecCombopMapper autoexecCombopMapper;
     @Resource
     private AutoexecCombopService autoexecCombopService;
-    @Resource
-    private ResourceCenterMapper resourceCenterMapper;
 
     @Override
     public String getToken() {
@@ -85,7 +84,8 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
         Long combopId = jsonObj.getLong("combopId");
         Long protocolId = jsonObj.getLong("protocolId");
         String executeUser = jsonObj.getString("executeUser");
-        AccountProtocolVo protocolVo = resourceCenterMapper.getAccountProtocolVoByProtocolId(protocolId);
+        IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
+        AccountProtocolVo protocolVo = resourceAccountCrossoverMapper.getAccountProtocolVoByProtocolId(protocolId);
         if (protocolVo == null && protocolId != null) {
             throw new ResourceCenterAccountProtocolNotFoundException(protocolId);
         }
@@ -137,6 +137,7 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
         AutoexecCombopConfigVo autoexecCombopConfigVo = autoexecCombopVo.getConfig();
         autoexecCombopConfigVo.setExecuteConfig(executeConfig);
         autoexecCombopVo.setFcu(UserContext.get().getUserUuid(true));
+        autoexecCombopVo.setConfigStr(null);
         autoexecCombopMapper.updateAutoexecCombopConfigById(autoexecCombopVo);
         return null;
     }

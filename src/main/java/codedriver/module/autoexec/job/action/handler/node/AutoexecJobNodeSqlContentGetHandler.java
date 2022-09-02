@@ -5,15 +5,15 @@
 
 package codedriver.module.autoexec.job.action.handler.node;
 
-import codedriver.framework.autoexec.constvalue.AutoexecOperType;
 import codedriver.framework.autoexec.constvalue.JobAction;
+import codedriver.framework.autoexec.dto.AutoexecJobSourceVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.exception.AutoexecJobSourceInvalidException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
-import codedriver.framework.autoexec.job.source.action.AutoexecJobSourceActionHandlerFactory;
-import codedriver.framework.autoexec.job.source.action.IAutoexecJobSourceActionHandler;
-import codedriver.framework.deploy.constvalue.DeployOperType;
+import codedriver.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
+import codedriver.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
+import codedriver.framework.autoexec.source.AutoexecJobSourceFactory;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -42,13 +42,12 @@ public class AutoexecJobNodeSqlContentGetHandler extends AutoexecJobActionHandle
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         AutoexecJobVo jonInfo = autoexecJobMapper.getJobInfo(jobVo.getCurrentNode().getJobId());
         if (jonInfo != null) {
-            if (StringUtils.equals(jonInfo.getSource(), DeployOperType.DEPLOY.getValue())) {
-                IAutoexecJobSourceActionHandler jobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(DeployOperType.DEPLOY.getValue());
-                return jobSourceActionHandler.getJobSqlContent(jobVo);
-            } else {
-                IAutoexecJobSourceActionHandler jobSourceActionHandler = AutoexecJobSourceActionHandlerFactory.getAction(AutoexecOperType.AUTOEXEC.getValue());
-                return jobSourceActionHandler.getJobSqlContent(jobVo);
+            AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(jobVo.getSource());
+            if (jobSourceVo == null) {
+                throw new AutoexecJobSourceInvalidException(jobVo.getSource());
             }
+            IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
+            autoexecJobSourceActionHandler.getJobSqlContent(jobVo);
         }
         return null;
     }

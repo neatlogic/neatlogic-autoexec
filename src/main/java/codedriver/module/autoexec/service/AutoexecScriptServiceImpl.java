@@ -22,7 +22,6 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.framework.autoexec.dto.catalog.AutoexecCatalogVo;
 import codedriver.framework.autoexec.dto.script.*;
 import codedriver.framework.autoexec.exception.*;
-import codedriver.framework.common.constvalue.CiphertextPrefix;
 import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.dependency.dto.DependencyInfoVo;
 import codedriver.framework.dto.OperateVo;
@@ -294,9 +293,8 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
                     AutoexecScriptVersionParamVo paramVo = inputParamList.get(i);
                     paramVo.setScriptVersionId(versionId);
                     // 如果默认值不以"RC4:"开头，说明修改了密码，则重新加密
-                    if (ParamType.PASSWORD.getValue().equals(paramVo.getType()) && StringUtils.isNotBlank(paramVo.getDefaultValueStr())
-                            && !paramVo.getDefaultValueStr().startsWith(CiphertextPrefix.RC4.getValue())) {
-                        paramVo.setDefaultValue(CiphertextPrefix.RC4.getValue() + RC4Util.encrypt((String) paramVo.getDefaultValue()));
+                    if (ParamType.PASSWORD.getValue().equals(paramVo.getType()) && StringUtils.isNotBlank(paramVo.getDefaultValueStr())) {
+                        paramVo.setDefaultValue(RC4Util.encrypt((String) paramVo.getDefaultValue()));
                     }
                     paramVo.setSort(i);
                     if (paramVo.getConfig() == null) {

@@ -5,6 +5,8 @@
 
 package codedriver.module.autoexec.api.operation;
 
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.framework.autoexec.dto.AutoexecOperationBaseVo;
@@ -28,7 +30,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-//@AuthAction(action = AUTOEXEC_COMBOP_MODIFY.class)
+@AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
 
@@ -66,6 +68,7 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
             @Param(name = "catalogId", type = ApiParamType.LONG, desc = "工具目录ID"),
             @Param(name = "riskIdList", type = ApiParamType.JSONARRAY, desc = "操作级别ID列表"),
             @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "用于回显的工具或脚本ID列表"),
+            @Param(name = "excludeList", type = ApiParamType.JSONARRAY, desc = "用于排除搜索的工具或脚本ID列表"),
             @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
             @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
             @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),

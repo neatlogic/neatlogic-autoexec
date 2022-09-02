@@ -1,9 +1,16 @@
+/*
+ * Copyright(c) 2022 TechSure Co., Ltd. All Rights Reserved.
+ * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
+ */
+
 package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
+import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecTypeVo;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
@@ -98,8 +105,9 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
         List<AutoexecCombopVo> autoexecCombopVoList = new ArrayList<>();
         for (Long id : existIdList) {
             AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
-            List<AutoexecCombopParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
-            autoexecCombopVo.setRuntimeParamList(runtimeParamList);
+            AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
+            List<AutoexecParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
+            config.setRuntimeParamList(runtimeParamList);
             typeIdSet.add(autoexecCombopVo.getTypeId());
             Long notifyPolicyId = autoexecCombopVo.getNotifyPolicyId();
             if (notifyPolicyId != null) {
@@ -116,7 +124,7 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
         }
         //设置导出文件名
         String fileName = FileUtil.getEncodedFileName(request.getHeader("User-Agent"), "组合工具." + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak");
-        response.setContentType("aplication/zip");
+        response.setContentType("application/octet-stream");
         response.setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
 
         try (ZipOutputStream zipos = new ZipOutputStream(response.getOutputStream())) {

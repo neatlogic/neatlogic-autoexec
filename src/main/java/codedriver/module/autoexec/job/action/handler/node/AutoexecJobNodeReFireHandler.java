@@ -5,15 +5,20 @@
 
 package codedriver.module.autoexec.job.action.handler.node;
 
+import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.framework.autoexec.dto.AutoexecJobSourceVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.exception.AutoexecJobSourceInvalidException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
+import codedriver.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
+import codedriver.framework.autoexec.source.AutoexecJobSourceFactory;
 import codedriver.framework.exception.type.ParamIrregularException;
-import codedriver.module.autoexec.service.AutoexecJobService;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -32,8 +37,6 @@ import java.util.stream.Collectors;
 public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
-    @Resource
-    AutoexecJobService autoexecJobService;
 
     @Override
     public String getName() {
@@ -45,18 +48,32 @@ public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
         currentPhaseIdValid(jobVo);
         JSONObject jsonObj = jobVo.getActionParam();
         List<Long> resourceIdList = JSONObject.parseArray(jsonObj.getJSONArray("resourceIdList").toJSONString(), Long.class);
-        //如果是重跑节点，则nodeId 必填
         if(CollectionUtils.isEmpty(resourceIdList)){
             throw new ParamIrregularException("resourceIdList");
         }
-        List<AutoexecJobPhaseNodeVo> nodeVoList = autoexecJobMapper.getJobPhaseNodeListByJobPhaseIdAndResourceIdList(jobVo.getCurrentPhaseId(),resourceIdList);
-        List<Long> nodeResourceIdList = nodeVoList.stream().map(AutoexecJobPhaseNodeVo::getResourceId).collect(Collectors.toList());
-        List<Long> notExistResourceIdList = resourceIdList.stream().filter(s -> !nodeResourceIdList.contains(s)).collect(Collectors.toList());
-        //无须校验
-        /*if(CollectionUtils.isNotEmpty(notExistResourceIdList)){
-            throw new AutoexecJobPhaseNodeNotFoundException(StringUtils.EMPTY,notExistResourceIdList.toString());
-        }*/
+        List<AutoexecJobPhaseNodeVo> nodeVoList;
+        if (Objects.equals(jobVo.getCurrentPhase().getExecMode(), ExecMode.SQL.getValue())) {
+            JSONArray sqlIdArray = jobVo.getActionParam().getJSONArray("sqlIdList");
+            if(CollectionUtils.isEmpty(sqlIdArray)){
+                throw new ParamIrregularException("sqlIdList");
+            }
+            AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(jobVo.getSource());
+            if (jobSourceVo == null) {
+                throw new AutoexecJobSourceInvalidException(jobVo.getSource());
+            }
+            nodeVoList = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType()).getJobNodeListBySqlIdList(sqlIdArray.toJavaList(Long.class));
+        }else {
+            nodeVoList = autoexecJobMapper.getJobPhaseNodeListByJobPhaseIdAndResourceIdList(jobVo.getCurrentPhaseId(), resourceIdList);
+            //重置节点开始和结束时间,以防 失败节点直接"重跑"导致耗时异常
+            autoexecJobMapper.updateJobPhaseNodeResetStartTimeAndEndTimeByNodeIdList(nodeVoList.stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()));
+        }
         jobVo.setExecuteJobNodeVoList(nodeVoList);
+        //校验是否和当前phaseId一致
+       /* for (AutoexecJobPhaseNodeVo jobPhaseNodeVo : nodeVoList) {
+            if (!Objects.equals(jobPhaseNodeVo.getJobPhaseId(), jobVo.getCurrentPhaseId())) {
+                throw new ParamIrregularException("resourceIdList");
+            }
+        }*/
         return true;
     }
 
@@ -69,22 +86,12 @@ public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         //重跑单个节点无需激活下个phase
         jobVo.setIsNoFireNext(1);
-        List<AutoexecJobPhaseNodeVo> nodeVoList = jobVo.getExecuteJobNodeVoList();
-        //重置节点开始和结束时间,以防 失败节点直接"重跑"导致耗时异常
-        autoexecJobMapper.updateJobPhaseNodeResetStartTimeAndEndTimeByNodeIdList(nodeVoList.stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()));
-        AutoexecJobPhaseNodeVo nodeVo = nodeVoList.get(0);
-        for (AutoexecJobPhaseNodeVo jobPhaseNodeVo : nodeVoList) {
-            if (!Objects.equals(jobPhaseNodeVo.getJobPhaseId(), nodeVo.getJobPhaseId())) {
-                throw new ParamIrregularException("resourceIdList");
-            }
-        }
-        AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(nodeVo.getJobId(), nodeVo.getJobPhaseId());
+        //跟新phase状态为running
+        AutoexecJobPhaseVo phaseVo = jobVo.getCurrentPhase();
         phaseVo.setStatus(JobPhaseStatus.RUNNING.getValue());
         autoexecJobMapper.updateJobPhaseStatus(phaseVo);
         jobVo.setExecuteJobPhaseList(Collections.singletonList(phaseVo));
-        //if (CollectionUtils.isNotEmpty(jobVo.getPhaseList())) {
-            executeNode(jobVo);
-       // }
+        executeNode(jobVo);
         return null;
     }
 }

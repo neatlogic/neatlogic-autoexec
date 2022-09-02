@@ -9,7 +9,7 @@ import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
+import codedriver.framework.exception.runner.RunnerHttpRequestException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import codedriver.framework.dto.runner.RunnerMapVo;
 import codedriver.framework.integration.authentication.enums.AuthenticateType;
@@ -44,11 +44,6 @@ public class AutoexecJobPhaseRoundInformHandler extends AutoexecJobActionHandler
     }
 
     @Override
-    public boolean isNeedExecuteAuthCheck() {
-        return false;
-    }
-
-    @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         JSONObject jsonObj = jobVo.getActionParam();
         Integer groupSort = jsonObj.getInteger("groupNo");
@@ -71,7 +66,7 @@ public class AutoexecJobPhaseRoundInformHandler extends AutoexecJobActionHandler
                     .setPayload(jsonObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(5000).setReadTimeout(5000)
                     .sendRequest().getError();
             if (StringUtils.isNotBlank(result)) {
-                throw new AutoexecJobRunnerHttpRequestException(url + ":" + result);
+                throw new RunnerHttpRequestException(url + ":" + result);
             }
         }
         //}

@@ -8,8 +8,8 @@ package codedriver.module.autoexec.job.action.handler;
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dto.job.AutoexecJobConsoleLogAuditVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerConnectRefusedException;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
+import codedriver.framework.exception.runner.RunnerConnectRefusedException;
+import codedriver.framework.exception.runner.RunnerHttpRequestException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import codedriver.framework.dao.mapper.UserMapper;
@@ -50,11 +50,6 @@ public class AutoexecJobConsoleLogAuditListHandler extends AutoexecJobActionHand
     }
 
     @Override
-    public boolean isNeedExecuteAuthCheck() {
-        return true;
-    }
-
-    @Override
     public boolean myValidate(AutoexecJobVo jobVo) {
         Long runnerId = jobVo.getActionParam().getLong("runnerId");
         RunnerVo runnerVo = runnerMapper.getRunnerById(runnerId);
@@ -72,12 +67,12 @@ public class AutoexecJobConsoleLogAuditListHandler extends AutoexecJobActionHand
         String url = paramObj.getString("runnerUrl") + "/api/rest/job/console/log/audit/list";
         HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setConnectTimeout(5000).setReadTimeout(5000).setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
         if(StringUtils.isNotBlank(requestUtil.getError())){
-            throw new AutoexecJobRunnerConnectRefusedException(url);
+            throw new RunnerConnectRefusedException(url);
         }
         List<AutoexecJobConsoleLogAuditVo> auditList = new ArrayList<>();
         JSONObject resultJson = requestUtil.getResultJson();
         if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-            throw new AutoexecJobRunnerHttpRequestException(resultJson.getString("Message"));
+            throw new RunnerHttpRequestException(resultJson.getString("Message"));
         }
         JSONArray auditArray = resultJson.getJSONArray("Return");
         for (int i = 0; i < auditArray.size(); i++) {

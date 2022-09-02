@@ -1,5 +1,5 @@
 /*
- * Copyright(c) 2021 TechSure Co., Ltd. All Rights Reserved.
+ * Copyright(c) 2022 TechSure Co., Ltd. All Rights Reserved.
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  */
 
@@ -13,22 +13,32 @@ import codedriver.framework.autoexec.constvalue.ToolType;
 import codedriver.framework.autoexec.crossover.IAutoexecJobActionCrossoverService;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.framework.autoexec.dto.AutoexecJobSourceVo;
+import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
+import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
 import codedriver.framework.autoexec.dto.job.*;
-import codedriver.framework.autoexec.exception.AutoexecCombopCannotExecuteException;
-import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
+import codedriver.framework.autoexec.dto.scenario.AutoexecScenarioVo;
+import codedriver.framework.autoexec.exception.AutoexecJobSourceInvalidException;
+import codedriver.framework.autoexec.exception.AutoexecScenarioIsNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
+import codedriver.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
+import codedriver.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
 import codedriver.framework.autoexec.script.paramtype.IScriptParamType;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
-import codedriver.framework.cmdb.dao.mapper.resourcecenter.ResourceCenterMapper;
+import codedriver.framework.autoexec.source.AutoexecJobSourceFactory;
+import codedriver.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
+import codedriver.framework.common.constvalue.SystemUser;
+import codedriver.framework.crossover.CrossoverServiceFactory;
 import codedriver.framework.dao.mapper.UserMapper;
 import codedriver.framework.dto.UserVo;
 import codedriver.framework.exception.user.UserNotFoundException;
 import codedriver.framework.filter.core.LoginAuthHandlerBase;
-import com.alibaba.fastjson.JSON;
+import codedriver.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecScenarioMapper;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -61,13 +71,19 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
     AutoexecCombopMapper autoexecCombopMapper;
 
     @Resource
-    ResourceCenterMapper resourceCenterMapper;
-
-    @Resource
     AutoexecJobMapper autoexecJobMapper;
 
     @Resource
     UserMapper userMapper;
+
+    @Resource
+    AutoexecProfileServiceImpl autoexecProfileService;
+
+    @Resource
+    AutoexecGlobalParamMapper globalParamMapper;
+
+    @Resource
+    AutoexecScenarioMapper autoexecScenarioMapper;
 
     /**
      * 拼装给proxy的param
@@ -80,7 +96,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         paramJson.put("jobId", jobVo.getId());
         paramJson.put("tenant", TenantContext.get().getTenantUuid());
         paramJson.put("preJobId", null); //给后续ITSM对接使用
-        paramJson.put("roundCount", jobVo.getThreadCount());
+        paramJson.put("roundCount", jobVo.getRoundCount());
         paramJson.put("execUser", UserContext.get().getUserUuid(true));
         paramJson.put("passThroughEnv", null); //回调需要的返回的参数
         JSONArray paramArray = jobVo.getParamArray();
@@ -98,7 +114,8 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             String userName = nodeVoList.get(0).getUserName();
             paramJson.put("runNode", new JSONArray() {{
                 Map<Long, AccountVo> resourceAccountMap = new HashMap<>();
-                List<AccountVo> accountVoList = resourceCenterMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(nodeVoList.stream().map(AutoexecJobPhaseNodeVo::getResourceId).collect(Collectors.toList()), protocolId, userName);
+                IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
+                List<AccountVo> accountVoList = resourceAccountCrossoverMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(nodeVoList.stream().map(AutoexecJobPhaseNodeVo::getResourceId).collect(Collectors.toList()), protocolId, userName);
                 accountVoList.forEach(o -> {
                     resourceAccountMap.put(o.getResourceId(), o);
                 });
@@ -137,64 +154,155 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                         for (AutoexecJobPhaseVo jobPhase : groupJobPhaseList) {
                             add(new JSONObject() {{
                                 put("phaseName", jobPhase.getName());
+                                put("phaseType", jobPhase.getExecMode());
                                 put("execRound", jobPhase.getExecutePolicy());
-                                put("operations", new JSONArray() {{
-                                    for (AutoexecJobPhaseOperationVo operationVo : jobPhase.getOperationList()) {
-                                        add(new JSONObject() {{
-                                            put("opId", operationVo.getName() + "_" + operationVo.getId());
-                                            put("opName", operationVo.getName());
-                                            put("opType", operationVo.getExecMode());
-                                            put("failIgnore", operationVo.getFailIgnore());
-                                            put("isScript", Objects.equals(operationVo.getType(), ToolType.SCRIPT.getValue()) ? 1 : 0);
-                                            put("scriptId", operationVo.getScriptId());
-                                            put("interpreter", operationVo.getParser());
-                                            //put("script", operationVo.getScript());
-                                            JSONObject param = operationVo.getParam();
-                                            put("arg", param.getJSONObject("argument"));
-                                            put("opt", new JSONObject() {{
-                                                for (Object arg : param.getJSONArray("inputParamList")) {
-                                                    JSONObject argJson = JSONObject.parseObject(arg.toString());
-                                                    String value = argJson.getString("value");
-                                                    if (Objects.equals(ParamMappingMode.CONSTANT.getValue(), argJson.getString("mappingMode"))) {
-                                                        put(argJson.getString("key"), getValueByParamType(argJson));
-                                                    } else if (Objects.equals(ParamMappingMode.RUNTIME_PARAM.getValue(), argJson.getString("mappingMode"))) {
-                                                        put(argJson.getString("key"), String.format("${%s}", value));
-                                                    } else if (Objects.equals(ParamMappingMode.PRE_NODE_OUTPUT_PARAM.getValue(), argJson.getString("mappingMode"))) {
-                                                        put(argJson.getString("key"), value);
-                                                    } else {
-                                                        put(argJson.getString("key"), StringUtils.EMPTY);
-                                                    }
-                                                }
-                                            }});
-                                            put("desc", new JSONObject() {{
-                                                if (CollectionUtils.isNotEmpty(param.getJSONArray("inputParamList"))) {
-                                                    for (Object arg : param.getJSONArray("inputParamList")) {
-                                                        JSONObject argJson = JSONObject.parseObject(arg.toString());
-                                                        put(argJson.getString("key"), argJson.getString("type"));
-                                                    }
-                                                }
-                                            }});
-                                            put("output", new JSONObject() {{
-                                                if (CollectionUtils.isNotEmpty(param.getJSONArray("outputParamList"))) {
-                                                    for (Object arg : param.getJSONArray("outputParamList")) {
-                                                        JSONObject argJson = JSONObject.parseObject(arg.toString());
-                                                        JSONObject outputParamJson = new JSONObject();
-                                                        put(argJson.getString("key"),outputParamJson);
-                                                        outputParamJson.put("opt",argJson.getString("key"));
-                                                        outputParamJson.put("type", argJson.getString("type"));
-                                                        outputParamJson.put("defaultValue",argJson.getString("defaultValue"));
-                                                    }
-                                                }
-                                            }});
-                                        }});
-                                    }
-                                }});
+                                put("operations", getOperationFireParam(jobPhase.getOperationList()));
                             }});
                         }
                     }});
                 }});
             }
         }});
+        //补充各个作业来源类型的特殊参数，如：发布的environment
+        AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(jobVo.getSource());
+        if (jobSourceVo == null) {
+            throw new AutoexecJobSourceInvalidException(jobVo.getSource());
+        }
+        IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
+        autoexecJobSourceActionHandler.getFireParamJson(paramJson, jobVo);
+    }
+
+    /**
+     * 获取作业工具param
+     *
+     * @param jobOperationVoList 作业工具列表
+     * @return 作业工具param
+     */
+    private JSONArray getOperationFireParam(List<AutoexecJobPhaseOperationVo> jobOperationVoList) {
+        return new JSONArray() {{
+            for (AutoexecJobPhaseOperationVo operationVo : jobOperationVoList) {
+                JSONObject param = operationVo.getParam();
+                JSONArray inputParamArray = param.getJSONArray("inputParamList");
+                JSONArray argumentList = param.getJSONArray("argumentList");
+                Map<String, Object> profileKeyValueMap = new HashMap<>();
+                Map<String, Object> globalParamKeyValueMap = new HashMap<>();
+                List<String> globalParamKeyList = new ArrayList<>();
+                //批量查询 inputParam profile 和 全局参数的值
+                if (CollectionUtils.isNotEmpty(inputParamArray)) {
+                    List<String> profileKeyList = new ArrayList<>();
+                    for (int i = 0; i < inputParamArray.size(); i++) {
+                        JSONObject inputParam = inputParamArray.getJSONObject(i);
+                        if (Objects.equals(ParamMappingMode.PROFILE.getValue(), inputParam.getString("mappingMode"))) {
+                            profileKeyList.add(inputParam.getString("key"));
+                        }
+                        if (Objects.equals(ParamMappingMode.GLOBAL_PARAM.getValue(), inputParam.getString("mappingMode"))) {
+                            globalParamKeyList.add(inputParam.getString("value"));
+                        }
+                    }
+                    if (operationVo.getProfileId() != null) {
+                        profileKeyValueMap = autoexecProfileService.getAutoexecProfileParamListByKeyListAndProfileId(profileKeyList, operationVo.getProfileId());
+                    }
+                }
+                //批量查询 自由参数的全局参数
+                if (CollectionUtils.isNotEmpty(argumentList)) {
+                    for (int i = 0; i < argumentList.size(); i++) {
+                        JSONObject argumentJson = argumentList.getJSONObject(i);
+                        if (Objects.equals(ParamMappingMode.GLOBAL_PARAM.getValue(), argumentJson.getString("mappingMode"))) {
+                            globalParamKeyList.add(argumentJson.getString("value"));
+                        }
+                    }
+                }
+
+                if (CollectionUtils.isNotEmpty(globalParamKeyList)) {
+                    List<AutoexecGlobalParamVo> globalParamVos = globalParamMapper.getGlobalParamByKeyList(globalParamKeyList);
+                    if (CollectionUtils.isNotEmpty(globalParamVos)) {
+                        globalParamKeyValueMap = globalParamVos.stream().filter(o -> o.getDefaultValue() != null).collect(Collectors.toMap(AutoexecGlobalParamVo::getKey, AutoexecGlobalParamVo::getDefaultValue));
+                    }
+
+                }
+                Map<String, Object> finalProfileKeyValueMap = profileKeyValueMap;
+                Map<String, Object> finalGlobalParamKeyValueMap = globalParamKeyValueMap;
+                add(new JSONObject() {{
+                    put("opId", operationVo.getName() + "_" + operationVo.getId());
+                    put("opName", operationVo.getName());
+                    put("opType", operationVo.getExecMode());
+                    put("failIgnore", operationVo.getFailIgnore());
+                    put("isScript", Objects.equals(operationVo.getType(), ToolType.SCRIPT.getValue()) ? 1 : 0);
+                    put("scriptId", operationVo.getScriptId());
+                    put("interpreter", operationVo.getParser());
+                    //put("script", operationVo.getScript());
+                    if (CollectionUtils.isNotEmpty(argumentList)) {
+                        for (int i = 0; i < argumentList.size(); i++) {
+                            JSONObject argumentJson = argumentList.getJSONObject(i);
+                            argumentJson.remove("name");
+                            argumentJson.remove("description");
+                            if (Objects.equals(ParamMappingMode.RUNTIME_PARAM.getValue(), argumentJson.getString("mappingMode"))) {
+                                argumentJson.put("value", String.format("${%s}", argumentJson.getString("value")));
+                            }
+                            if (Objects.equals(ParamMappingMode.GLOBAL_PARAM.getValue(), argumentJson.getString("mappingMode"))) {
+                                argumentJson.put("value", finalGlobalParamKeyValueMap.get(argumentJson.getString("value")));
+                            }
+                            argumentJson.remove("mappingMode");
+                        }
+                    }
+                    put("arg", argumentList);
+                    put("opt", new JSONObject() {{
+                        if (CollectionUtils.isNotEmpty(inputParamArray)) {
+                            for (Object arg : inputParamArray) {
+                                JSONObject argJson = JSONObject.parseObject(arg.toString());
+                                String value = argJson.getString("value");
+                                if (Objects.equals(ParamMappingMode.CONSTANT.getValue(), argJson.getString("mappingMode"))) {
+                                    put(argJson.getString("key"), getValueByParamType(argJson));
+                                } else if (Objects.equals(ParamMappingMode.RUNTIME_PARAM.getValue(), argJson.getString("mappingMode"))) {
+                                    put(argJson.getString("key"), String.format("${%s}", value));
+                                } else if (Objects.equals(ParamMappingMode.PRE_NODE_OUTPUT_PARAM.getValue(), argJson.getString("mappingMode"))) {
+                                    put(argJson.getString("key"), value);
+                                } else if (Objects.equals(ParamMappingMode.PROFILE.getValue(), argJson.getString("mappingMode"))) {
+                                    put(argJson.getString("key"), finalProfileKeyValueMap.get(argJson.getString("key")));
+                                } else if (Objects.equals(ParamMappingMode.GLOBAL_PARAM.getValue(), argJson.getString("mappingMode"))) {
+                                    put(argJson.getString("key"), finalGlobalParamKeyValueMap.get(argJson.getString("value")));
+                                } else {
+                                    put(argJson.getString("key"), StringUtils.EMPTY);
+                                }
+                            }
+                        }
+                    }});
+                    put("desc", new JSONObject() {{
+                        if (CollectionUtils.isNotEmpty(param.getJSONArray("inputParamList"))) {
+                            for (Object arg : param.getJSONArray("inputParamList")) {
+                                JSONObject argJson = JSONObject.parseObject(arg.toString());
+                                put(argJson.getString("key"), argJson.getString("type"));
+                            }
+                        }
+                    }});
+                    put("output", new JSONObject() {{
+                        if (CollectionUtils.isNotEmpty(param.getJSONArray("outputParamList"))) {
+                            for (Object arg : param.getJSONArray("outputParamList")) {
+                                JSONObject argJson = JSONObject.parseObject(arg.toString());
+                                JSONObject outputParamJson = new JSONObject();
+                                put(argJson.getString("key"), outputParamJson);
+                                outputParamJson.put("opt", argJson.getString("key"));
+                                outputParamJson.put("type", argJson.getString("type"));
+                                outputParamJson.put("defaultValue", argJson.getString("defaultValue"));
+                            }
+                        }
+                    }});
+                    if (StringUtils.isNotBlank(param.getString("condition"))) {
+                        put("condition", param.getString("condition"));
+                        JSONArray ifArray = param.getJSONArray("ifList");
+                        if (CollectionUtils.isNotEmpty(ifArray)) {
+                            List<AutoexecJobPhaseOperationVo> ifJobOperationList = JSONObject.parseArray(ifArray.toJSONString(), AutoexecJobPhaseOperationVo.class);
+                            put("if", getOperationFireParam(ifJobOperationList));
+                        }
+                        JSONArray elseArray = param.getJSONArray("elseList");
+                        if (CollectionUtils.isNotEmpty(elseArray)) {
+                            List<AutoexecJobPhaseOperationVo> elseJobOperationList = JSONObject.parseArray(elseArray.toJSONString(), AutoexecJobPhaseOperationVo.class);
+                            put("else", getOperationFireParam(elseJobOperationList));
+                        }
+                    }
+                }});
+            }
+        }};
     }
 
     /**
@@ -216,56 +324,61 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
     }
 
     @Override
-    public AutoexecJobVo validateCreateJobFromCombop(JSONObject jsonObj, boolean isNeedAuth) {
-        AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(jsonObj.getLong("combopId"));
-        if (combopVo == null) {
-            throw new AutoexecCombopNotFoundException(jsonObj.getLong("combopId"));
+    public void validateAndCreateJobFromCombop(AutoexecJobVo autoexecJobParam) {
+        AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(autoexecJobParam.getSource());
+        if (jobSourceVo == null) {
+            throw new AutoexecJobSourceInvalidException(autoexecJobParam.getSource());
         }
-
+        IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
+        AutoexecCombopVo combopVo = autoexecJobSourceActionHandler.getAutoexecCombop(autoexecJobParam);
         //作业执行权限校验
-        if (isNeedAuth) {
-            autoexecCombopService.setOperableButtonList(combopVo);
-            if (combopVo.getExecutable() != 1) {
-                throw new AutoexecCombopCannotExecuteException(combopVo.getName());
-            }
-        }
+        autoexecJobSourceActionHandler.executeAuthCheck(autoexecJobParam,false);
         //设置作业执行节点
-        if (combopVo.getConfig() != null && jsonObj.containsKey("executeConfig")) {
+        if (combopVo.getConfig() != null && autoexecJobParam.getExecuteConfig() != null) {
             //如果执行传进来的"执行用户"、"协议"为空则使用默认设定的值
-            AutoexecCombopExecuteConfigVo executeConfigVo = combopVo.getConfig().getExecuteConfig();
-            if (executeConfigVo == null) {
-                executeConfigVo = new AutoexecCombopExecuteConfigVo();
+            AutoexecCombopExecuteConfigVo combopExecuteConfigVo = combopVo.getConfig().getExecuteConfig();
+            if (combopExecuteConfigVo == null) {
+                combopExecuteConfigVo = new AutoexecCombopExecuteConfigVo();
             }
 
-            AutoexecCombopExecuteConfigVo paramExecuteConfigVo = JSON.toJavaObject(jsonObj.getJSONObject("executeConfig"), AutoexecCombopExecuteConfigVo.class);
-            if (paramExecuteConfigVo.getProtocolId() != null) {
-                executeConfigVo.setProtocolId(paramExecuteConfigVo.getProtocolId());
+            if (autoexecJobParam.getExecuteConfig().getProtocolId() != null) {
+                combopExecuteConfigVo.setProtocolId(autoexecJobParam.getExecuteConfig().getProtocolId());
             }
-            if (StringUtils.isNotBlank(paramExecuteConfigVo.getExecuteUser())) {
-                executeConfigVo.setExecuteUser(paramExecuteConfigVo.getExecuteUser());
+            if (StringUtils.isNotBlank(autoexecJobParam.getExecuteConfig().getExecuteUser())) {
+                combopExecuteConfigVo.setExecuteUser(autoexecJobParam.getExecuteConfig().getExecuteUser());
             }
-            executeConfigVo.setExecuteNodeConfig(paramExecuteConfigVo.getExecuteNodeConfig());
-            combopVo.getConfig().setExecuteConfig(executeConfigVo);
-
+            combopExecuteConfigVo.setExecuteNodeConfig(autoexecJobParam.getExecuteConfig().getExecuteNodeConfig());
+            combopVo.getConfig().setExecuteConfig(combopExecuteConfigVo);
+            List<AutoexecParamVo> autoexecCombopParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopVo.getId());
+            combopVo.getConfig().setRuntimeParamList(autoexecCombopParamList);
+            autoexecCombopService.verifyAutoexecCombopConfig(combopVo.getConfig(), true);
         }
-        autoexecCombopService.verifyAutoexecCombopConfig(combopVo, true);
 
+        //根据场景名获取场景id
+        if (StringUtils.isNotBlank(autoexecJobParam.getScenarioName())) {
+            AutoexecScenarioVo scenarioVo = autoexecScenarioMapper.getScenarioByName(autoexecJobParam.getScenarioName());
+            if (scenarioVo == null) {
+                throw new AutoexecScenarioIsNotFoundException(autoexecJobParam.getScenarioName());
+            }
+            autoexecJobParam.setScenarioId(scenarioVo.getId());
+        }
 
-        AutoexecJobVo jobVo = JSONObject.toJavaObject(jsonObj, AutoexecJobVo.class);
-        jobVo.setConfigStr(combopVo.getConfigStr());
-        jobVo.setRunTimeParamList(autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopVo.getId()));
-        autoexecJobService.saveAutoexecCombopJob(combopVo,jobVo);
-        jobVo.setAction(JobAction.FIRE.getValue());
-        //jobVo.setCurrentGroupSort(0);
-        return jobVo;
+        //校验execUser 是否拥有执行权限
+        autoexecJobParam.setConfigStr(JSONObject.toJSONString(combopVo.getConfig()));
+        autoexecJobParam.setRunTimeParamList(autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopVo.getId()));
+        autoexecJobSourceActionHandler.updateInvokeJob(autoexecJobParam);
+        autoexecJobSourceActionHandler.executeAuthCheck(autoexecJobParam, false);
+        autoexecJobService.saveAutoexecCombopJob(autoexecJobParam);
+        autoexecJobParam.setAction(JobAction.FIRE.getValue());
     }
 
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void validateCreateJob(JSONObject param, boolean isNeedAuth) throws Exception {
-        AutoexecJobVo jobVo = validateCreateJobFromCombop(param, isNeedAuth);
+    public void validateCreateJob(AutoexecJobVo jobParam) throws Exception {
+        validateAndCreateJobFromCombop(jobParam);
+        jobParam.setAction(JobAction.FIRE.getValue());
         IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
-        fireAction.doService(jobVo);
+        fireAction.doService(jobParam);
     }
 
     @Override
@@ -282,11 +395,17 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
 
     @Override
     public void initExecuteUserContext(AutoexecJobVo jobVo) throws Exception {
+        UserVo execUser;
         //初始化执行用户上下文
-        UserVo execUser = userMapper.getUserBaseInfoByUuid(jobVo.getExecUser());
+        if (Objects.equals(jobVo.getExecUser(), SystemUser.SYSTEM.getUserUuid())) {
+            execUser = SystemUser.SYSTEM.getUserVo();
+        } else {
+            execUser = userMapper.getUserBaseInfoByUuid(jobVo.getExecUser());
+        }
         if (execUser == null) {
             throw new UserNotFoundException(jobVo.getExecUser());
         }
+
         UserContext.init(execUser, "+8:00");
         UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(execUser).getCc());
     }

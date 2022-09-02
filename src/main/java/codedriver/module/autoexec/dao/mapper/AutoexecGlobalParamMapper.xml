@@ -11,15 +11,21 @@
         INSERT INTO `autoexec_global_param` (`id`, `key`, `name`, `type`, `default_value`, `description`, `fcu`,
                                              `fcd`, `lcu`, `lcd`)
         VALUES (#{id}, #{key}, #{name}, #{type}, #{defaultValueStr}, #{description}, #{fcu}, now(3), #{lcu},
-                now(3)) ON DUPLICATE KEY
-        UPDATE `key` = #{key},
-            `name` = #{name},
-            `type`= #{type},
-            `default_value` = #{defaultValueStr},
-            `description` = #{description},
-            `lcu` = #{lcu},
-            `lcd` = now(3)
+                now(3))
+        ON DUPLICATE KEY
+            UPDATE `key`           = #{key},
+                   `name`          = #{name},
+                   `type`= #{type},
+                   `default_value` = #{defaultValueStr},
+                   `description`   = #{description},
+                   `lcu`           = #{lcu},
+                   `lcd`           = now(3)
     </insert>
+    <update id="updateGlobalParamPasswordById">
+        update autoexec_global_param
+        set default_value = #{password}
+        where id = #{id}
+    </update>
 
     <delete id="deleteGlobalParamById">
         DELETE
@@ -64,6 +70,25 @@
         limit 1
     </select>
 
+    <select id="getGlobalParamByKeyList"
+            resultType="codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo">
+        select `id`,
+        `key`,
+        `name`,
+        `type`,
+        `default_value` as defaultValue,
+        `description`,
+        `fcu`,
+        `fcd`,
+        `lcu`,
+        `lcd`
+        from `autoexec_global_param`
+        where `key` in
+        <foreach collection="list" item="key" separator="," close=")" open="(">
+            #{key}
+        </foreach>
+    </select>
+
     <sql id="searchGlobalParam">
         from autoexec_global_param
         <where>
@@ -97,7 +122,8 @@
         <include refid="searchGlobalParam"></include>
     </select>
 
-    <select id="searchGlobalParam" resultType="codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo" parameterType="codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo">
+    <select id="searchGlobalParam" resultType="codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo"
+            parameterType="codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo">
         select `id`,
         `key`,
         `name`,
@@ -151,7 +177,22 @@
         select count(`id`)
         from autoexec_global_param
         where `id` != #{id}
-          and `name` =#{name}
+          and `name` = #{name}
+    </select>
+    <select id="getAllPasswordGlobalParam"
+            resultType="codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo">
+        select `id`,
+               `key`,
+               `name`,
+               `type`,
+               `default_value` as defaultValue,
+               `description`,
+               `fcu`,
+               `fcd`,
+               `lcu`,
+               `lcd`
+        from `autoexec_global_param`
+        where `type` = 'password'
     </select>
 
 </mapper>

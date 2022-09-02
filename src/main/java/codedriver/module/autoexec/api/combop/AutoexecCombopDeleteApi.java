@@ -7,6 +7,7 @@ package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.dependency.core.DependencyManager;
@@ -72,16 +73,20 @@ public class AutoexecCombopDeleteApi extends PrivateApiComponentBase {
             if (Objects.equals(autoexecCombopVo.getDeletable(), 0)) {
                 throw new PermissionDeniedException();
             }
-            List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
+//            List<Long> combopPhaseIdList = autoexecCombopMapper.getCombopPhaseIdListByCombopId(id);
             autoexecCombopMapper.deleteAutoexecCombopById(id);
             autoexecCombopMapper.deleteAutoexecCombopAuthorityByCombopId(id);
             autoexecCombopMapper.deleteAutoexecCombopParamByCombopId(id);
             DependencyManager.delete(MatrixAutoexecCombopParamDependencyHandler.class, id);
-            if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
-                autoexecCombopMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
-            }
-            autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
+//            if (CollectionUtils.isNotEmpty(combopPhaseIdList)) {
+//                autoexecCombopMapper.deleteAutoexecCombopPhaseOperationByCombopPhaseIdList(combopPhaseIdList);
+//            }
+//            autoexecCombopMapper.deleteAutoexecCombopPhaseByCombopId(id);
             autoexecCombopService.deleteDependency(autoexecCombopVo);
+            if (Objects.equals(autoexecCombopVo.getOperationType(), CombopOperationType.SCRIPT.getValue())
+                    || Objects.equals(autoexecCombopVo.getOperationType(), CombopOperationType.TOOL.getValue())) {
+                autoexecCombopMapper.deleteAutoexecOperationGenerateCombop(id);
+            }
         }
         return null;
     }

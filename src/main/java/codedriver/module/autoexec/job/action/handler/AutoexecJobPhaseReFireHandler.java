@@ -5,13 +5,16 @@
 
 package codedriver.module.autoexec.job.action.handler;
 
-import codedriver.framework.autoexec.constvalue.*;
+import codedriver.framework.autoexec.constvalue.JobAction;
+import codedriver.framework.autoexec.constvalue.JobNodeStatus;
+import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
+import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerConnectRefusedException;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerHttpRequestException;
+import codedriver.framework.exception.runner.RunnerConnectRefusedException;
+import codedriver.framework.exception.runner.RunnerHttpRequestException;
 import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import codedriver.framework.dto.runner.RunnerMapVo;
@@ -25,7 +28,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -64,18 +66,20 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
         jobPhaseVo.setStatus(JobPhaseStatus.RUNNING.getValue());
         autoexecJobMapper.updateJobPhaseStatus(jobPhaseVo);
         //如果是sqlfile类型的phase 需额外清除状态
-        if(Objects.equals(ExecMode.SQL.getValue(),jobPhaseVo.getExecMode())){
-            autoexecJobService.resetAutoexecJobSqlStatusByJobIdAndJobPhaseNameList(jobVo.getId(), Collections.singletonList(jobPhaseVo.getName()));
-        }
+//        if (Objects.equals(ExecMode.SQL.getValue(), jobPhaseVo.getExecMode()) && Objects.equals(jobVo.getActionParam().getInteger("isAll"), 1)) {
+//            autoexecJobService.resetAutoexecJobSqlStatusByJobIdAndJobPhaseNameList(jobVo.getId(), Collections.singletonList(jobPhaseVo.getName()));
+//        }
         if (Objects.equals(jobVo.getAction(), JobAction.RESET_REFIRE.getValue())) {
             resetPhase(jobVo);
             autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(jobVo.getExecuteJobPhaseList().stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()), JobPhaseStatus.PENDING.getValue());
             autoexecJobService.refreshJobPhaseNodeList(jobVo.getId(), jobVo.getExecuteJobPhaseList());
         }
-        if(Objects.equals(jobVo.getAction(), JobAction.REFIRE.getValue())) {
-            List<AutoexecJobPhaseNodeVo> needResetNodeList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseIdAndExceptStatus(jobVo.getId(),jobPhaseVo.getId(), Arrays.asList(JobNodeStatus.IGNORED.getValue(),JobNodeStatus.SUCCEED.getValue()));
-            autoexecJobMapper.updateJobPhaseNodeListStatus(needResetNodeList.stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()), JobNodeStatus.PENDING.getValue());
-            resetJobNodeStatus(jobVo,needResetNodeList);
+        if (Objects.equals(jobVo.getAction(), JobAction.REFIRE.getValue())) {
+            List<AutoexecJobPhaseNodeVo> needResetNodeList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseIdAndExceptStatus(jobVo.getId(), jobPhaseVo.getId(), Arrays.asList(JobNodeStatus.IGNORED.getValue(), JobNodeStatus.SUCCEED.getValue()));
+            if (CollectionUtils.isNotEmpty(needResetNodeList)) {
+                autoexecJobMapper.updateJobPhaseNodeListStatus(needResetNodeList.stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()), JobNodeStatus.PENDING.getValue());
+                resetJobNodeStatus(jobVo, needResetNodeList);
+            }
         }
         jobPhaseVo.setJobGroupVo(autoexecJobMapper.getJobGroupById(jobPhaseVo.getGroupId()));
         executeGroup(jobVo);
@@ -104,11 +108,11 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
 
             HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setConnectTimeout(5000).setReadTimeout(5000).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
             if (StringUtils.isNotBlank(requestUtil.getError())) {
-                throw new AutoexecJobRunnerConnectRefusedException(url);
+                throw new RunnerConnectRefusedException(url);
             }
             JSONObject resultJson = requestUtil.getResultJson();
             if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                throw new AutoexecJobRunnerHttpRequestException(url + ":" + requestUtil.getError());
+                throw new RunnerHttpRequestException(url + ":" + requestUtil.getError());
             }
         }
 

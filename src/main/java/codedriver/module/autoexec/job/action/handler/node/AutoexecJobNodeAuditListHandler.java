@@ -46,11 +46,6 @@ public class AutoexecJobNodeAuditListHandler extends AutoexecJobActionHandlerBas
     }
 
     @Override
-    public boolean isNeedExecuteAuthCheck() {
-        return true;
-    }
-
-    @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) throws Exception {
         JSONObject result = new JSONObject();
         AutoexecJobPhaseNodeVo nodeVo = jobVo.getCurrentNode();

@@ -8,6 +8,8 @@ package codedriver.module.autoexec.api.combop;
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.dto.AutoexecParamVo;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.exception.type.PermissionDeniedException;
@@ -17,11 +19,13 @@ import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.module.autoexec.service.AutoexecCombopService;
+import codedriver.module.autoexec.service.AutoexecService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -41,6 +45,9 @@ public class AutoexecCombopIsActiveUpdateApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopService autoexecCombopService;
+
+    @Resource
+    private AutoexecService autoexecService;
 
     @Override
     public String getToken() {
@@ -78,7 +85,13 @@ public class AutoexecCombopIsActiveUpdateApi extends PrivateApiComponentBase {
         }
         /** 如果是激活组合工具，则需要校验该组合工具配置正确 **/
         if (isActive == 0) {
-            autoexecCombopService.verifyAutoexecCombopConfig(autoexecCombopVo, false);
+            List<AutoexecParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
+            for (AutoexecParamVo autoexecParamVo : runtimeParamList) {
+                autoexecService.mergeConfig(autoexecParamVo);
+            }
+            AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
+            config.setRuntimeParamList(runtimeParamList);
+            autoexecCombopService.verifyAutoexecCombopConfig(config, false);
         }
         autoexecCombopVo.setLcu(UserContext.get().getUserUuid(true));
         autoexecCombopMapper.updateAutoexecCombopIsActiveById(autoexecCombopVo);

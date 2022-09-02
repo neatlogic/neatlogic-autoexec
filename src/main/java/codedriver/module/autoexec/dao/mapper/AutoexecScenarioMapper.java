@@ -1,5 +1,6 @@
 package codedriver.module.autoexec.dao.mapper;
 
+import codedriver.framework.autoexec.crossover.IAutoexecScenarioCrossoverMapper;
 import codedriver.framework.autoexec.dto.scenario.AutoexecScenarioVo;
 import org.apache.ibatis.annotations.Param;
 
@@ -9,13 +10,15 @@ import java.util.List;
  * @author longrf
  * @date 2022/4/15 12:13 下午
  */
-public interface AutoexecScenarioMapper {
+public interface AutoexecScenarioMapper extends IAutoexecScenarioCrossoverMapper {
 
     int checkScenarioIsExistsById(Long paramId);
 
     int getScenarioCount(AutoexecScenarioVo paramScenarioVo);
 
     AutoexecScenarioVo getScenarioById(Long paramId);
+
+    AutoexecScenarioVo getScenarioByName(String scenarioName);
 
     List<Long> getScenarioIdList(AutoexecScenarioVo paramScenarioVo);
 
@@ -28,4 +31,5 @@ public interface AutoexecScenarioMapper {
     void deleteScenarioById(Long paramId);
 
     List<AutoexecScenarioVo> searchScenario(AutoexecScenarioVo paramScenarioVo);
+
 }

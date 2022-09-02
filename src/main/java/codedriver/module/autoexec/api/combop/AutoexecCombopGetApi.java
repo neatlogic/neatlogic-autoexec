@@ -8,7 +8,6 @@ package codedriver.module.autoexec.api.combop;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -16,10 +15,8 @@ import codedriver.framework.common.constvalue.GroupSearch;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.module.autoexec.service.AutoexecCombopService;
-import codedriver.module.autoexec.service.AutoexecService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -39,13 +36,7 @@ import java.util.List;
 public class AutoexecCombopGetApi extends PrivateApiComponentBase {
 
     @Resource
-    private AutoexecCombopMapper autoexecCombopMapper;
-
-    @Resource
     private AutoexecCombopService autoexecCombopService;
-
-    @Resource
-    private AutoexecService autoexecService;
 
     @Override
     public String getToken() {
@@ -62,6 +53,11 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
         return null;
     }
 
+    @Override
+    public boolean disableReturnCircularReferenceDetect() {
+        return true;
+    }
+
     @Input({
             @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "主键id")
     })
@@ -72,86 +68,14 @@ public class AutoexecCombopGetApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");
-        AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
+        AutoexecCombopVo autoexecCombopVo = autoexecCombopService.getAutoexecCombopById(id);
         if (autoexecCombopVo == null) {
             throw new AutoexecCombopNotFoundException(id);
         }
         autoexecCombopService.setOperableButtonList(autoexecCombopVo);
-//        if (Objects.equals(autoexecCombopVo.getViewable(), 0)) {
-//            throw new PermissionDeniedException();
-//        }
+        // owner字段必须在校验权限后，再加上前缀user#
         autoexecCombopVo.setOwner(GroupSearch.USER.getValuePlugin() + autoexecCombopVo.getOwner());
-        List<AutoexecCombopParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
-        for (AutoexecCombopParamVo autoexecCombopParamVo : runtimeParamList) {
-            autoexecService.mergeConfig(autoexecCombopParamVo);
-        }
-        autoexecCombopVo.setRuntimeParamList(runtimeParamList);
         AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
-        autoexecService.updateAutoexecCombopConfig(config);
-//        List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
-//        if (CollectionUtils.isNotEmpty(combopPhaseList)) {
-//            for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseList) {
-//                AutoexecCombopPhaseConfigVo phaseConfigVo = combopPhaseVo.getConfig();
-//                if (phaseConfigVo != null) {
-//                    List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfigVo.getPhaseOperationList();
-//                    if (CollectionUtils.isNotEmpty(phaseOperationList)) {
-//                        for (AutoexecCombopPhaseOperationVo phaseOperationVo : phaseOperationList) {
-//                            AutoexecToolAndScriptVo autoexecToolAndScriptVo = null;
-//                            List<? extends AutoexecParamVo> autoexecParamVoList = new ArrayList<>();
-//                            if (Objects.equals(phaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
-//                                AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(phaseOperationVo.getOperationId());
-//                                if (autoexecScriptVo != null) {
-//                                    autoexecToolAndScriptVo = new AutoexecToolAndScriptVo(autoexecScriptVo);
-//                                    autoexecParamVoList = autoexecScriptMapper.getParamListByScriptId(phaseOperationVo.getOperationId());
-//                                }
-//                            } else if (Objects.equals(phaseOperationVo.getOperationType(), CombopOperationType.TOOL.getValue())) {
-//                                AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(phaseOperationVo.getOperationId());
-//                                if (autoexecToolVo != null) {
-//                                    autoexecToolAndScriptVo = new AutoexecToolAndScriptVo(autoexecToolVo);
-//                                    JSONObject toolConfig = autoexecToolVo.getConfig();
-//                                    if(MapUtils.isNotEmpty(toolConfig)) {
-//                                        JSONArray paramArray = toolConfig.getJSONArray("paramList");
-//                                        if (CollectionUtils.isNotEmpty(paramArray)) {
-//                                            autoexecParamVoList = paramArray.toJavaList(AutoexecParamVo.class);
-//                                        }
-//                                    }
-//                                }
-//                            }
-//                            if(autoexecToolAndScriptVo != null){
-//                                phaseOperationVo.setId(autoexecToolAndScriptVo.getId());
-//                                phaseOperationVo.setUk(autoexecToolAndScriptVo.getUk());
-//                                phaseOperationVo.setName(autoexecToolAndScriptVo.getName());
-//                                phaseOperationVo.setType(CombopOperationType.SCRIPT.getValue());
-//                                phaseOperationVo.setExecMode(autoexecToolAndScriptVo.getExecMode());
-//                                phaseOperationVo.setTypeId(autoexecToolAndScriptVo.getTypeId());
-//                                phaseOperationVo.setTypeName(autoexecToolAndScriptVo.getTypeName());
-//                                phaseOperationVo.setRiskId(autoexecToolAndScriptVo.getRiskId());
-//                                AutoexecRiskVo riskVo = autoexecRiskMapper.getAutoexecRiskById(autoexecToolAndScriptVo.getRiskId());
-//                                phaseOperationVo.setRiskVo(riskVo);
-//
-//                                List<AutoexecParamVo> inputParamList = new ArrayList<>();
-//                                List<AutoexecParamVo> outputParamList = new ArrayList<>();
-//                                if (CollectionUtils.isNotEmpty(autoexecParamVoList)) {
-//                                    for (AutoexecParamVo paramVo : autoexecParamVoList) {
-//                                        autoexecService.mergeConfig(paramVo);
-//                                        String mode = paramVo.getMode();
-//                                        if (Objects.equals(mode, ParamMode.INPUT.getValue())) {
-//                                            inputParamList.add(paramVo);
-//                                        } else if (Objects.equals(mode, ParamMode.OUTPUT.getValue())) {
-//                                            outputParamList.add(paramVo);
-//                                        }
-//                                    }
-//                                }
-//                                phaseOperationVo.setInputParamList(inputParamList);
-//                                phaseOperationVo.setOutputParamList(outputParamList);
-//                            }
-//                        }
-//                    }
-//                }
-//                combopPhaseVo.setExecModeName(ExecMode.getText(combopPhaseVo.getExecMode()));
-//                autoexecCombopService.needExecuteConfig(autoexecCombopVo, combopPhaseVo);
-//            }
-//        }
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
         if (CollectionUtils.isNotEmpty(combopPhaseList)) {
             for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseList) {

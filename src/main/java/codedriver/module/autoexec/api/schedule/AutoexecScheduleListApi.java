@@ -92,8 +92,8 @@ public class AutoexecScheduleListApi extends PrivateApiComponentBase {
                     AutoexecCombopVo autoexecCombopVo = autoexecCombopMap.get(autoexecScheduleVo.getAutoexecCombopId());
                     if (autoexecCombopVo == null) {
                         autoexecScheduleVo.setAutoexecCombopName("-");
-                        autoexecScheduleVo.setDeletable(0);
-                        autoexecScheduleVo.setEditable(0);
+                        autoexecScheduleVo.setDeletable(1);
+                        autoexecScheduleVo.setEditable(1);
                     } else {
                         autoexecScheduleVo.setAutoexecCombopName(autoexecCombopVo.getName());
                         autoexecCombopService.setOperableButtonList(autoexecCombopVo);

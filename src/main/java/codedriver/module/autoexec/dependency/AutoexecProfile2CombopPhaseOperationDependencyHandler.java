@@ -66,12 +66,12 @@ public class AutoexecProfile2CombopPhaseOperationDependencyHandler extends Fixed
             if (CollectionUtils.isEmpty(phaseOperationList)) {
                 return null;
             }
-            Long operationId = Long.valueOf(dependencyVo.getTo());
+            Long id = Long.valueOf(dependencyVo.getTo());
             for (AutoexecCombopPhaseOperationVo phaseOperationVo : phaseOperationList) {
                 if (phaseOperationVo == null) {
                     continue;
                 }
-                if (!Objects.equals(phaseOperationVo.getOperationId(), operationId)) {
+                if (!Objects.equals(phaseOperationVo.getId(), id)) {
                     continue;
                 }
                 AutoexecCombopPhaseOperationConfigVo operationConfigVo = phaseOperationVo.getConfig();
@@ -81,7 +81,7 @@ public class AutoexecProfile2CombopPhaseOperationDependencyHandler extends Fixed
                 if (!Objects.equals(operationConfigVo.getProfileId().toString(), dependencyVo.getFrom())) {
                     return null;
                 }
-                String operationName = phaseOperationVo.getName();
+                String operationName = phaseOperationVo.getOperationName();
                 String phaseName = combopPhaseVo.getName();
                 String combopName = autoexecCombopVo.getName();
                 JSONObject dependencyInfoConfig = new JSONObject();
@@ -91,7 +91,7 @@ public class AutoexecProfile2CombopPhaseOperationDependencyHandler extends Fixed
                 pathList.add(combopName);
                 pathList.add(phaseName);
                 String urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/action-detail?id=${DATA.combopId}";
-                return new DependencyInfoVo(operationId, dependencyInfoConfig, operationName, pathList, urlFormat, this.getGroupName());
+                return new DependencyInfoVo(id, dependencyInfoConfig, operationName, pathList, urlFormat, this.getGroupName());
             }
         }
         return null;

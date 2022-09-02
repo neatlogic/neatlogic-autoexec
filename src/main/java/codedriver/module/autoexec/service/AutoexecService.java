@@ -5,9 +5,11 @@
 
 package codedriver.module.autoexec.service;
 
+import codedriver.framework.autoexec.dto.AutoexecOperationBaseVo;
 import codedriver.framework.autoexec.dto.AutoexecOperationVo;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseOperationVo;
 
 import java.util.List;
 
@@ -36,6 +38,13 @@ public interface AutoexecService {
     void mergeConfig(AutoexecParamVo autoexecParamVo);
 
     void updateAutoexecCombopConfig(AutoexecCombopConfigVo config);
+
+    /**
+     * 补充阶段操作中的自定义工具或工具信息
+     * @param autoexecCombopPhaseOperationVo
+     * @return
+     */
+    AutoexecOperationBaseVo getAutoexecOperationBaseVoByIdAndType(String phaseName, AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo, boolean throwException);
 
     /**
      * 根据关operationVoList获取工具参数并做去重处理

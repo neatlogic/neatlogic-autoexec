@@ -29,16 +29,18 @@
                 NOW(3),
                 #{fcu},
                 NOW(3),
-                #{fcu}) ON DUPLICATE KEY
-        UPDATE `name` = #{name},
-            `description` = #{description},
-            `system_id` = #{fromSystemId},
-            `lcu` = #{lcu},
-            `lcd` = now(3)
+                #{fcu})
+        ON DUPLICATE KEY
+            UPDATE `name`        = #{name},
+                   `description` = #{description},
+                   `system_id`   = #{fromSystemId},
+                   `lcu`         = #{lcu},
+                   `lcd`         = now(3)
     </insert>
 
     <insert id="insertAutoexecProfileParamList">
-        INSERT INTO autoexec_profile_param ( `id`, `key`,`type`, `mapping_mode`, `profile_id`, `default_value`, `operation_id`,
+        INSERT INTO autoexec_profile_param ( `id`, `key`,`type`, `mapping_mode`, `profile_id`, `default_value`,
+        `operation_id`,
         `operation_type`, `lcd` )
         VALUES
         <foreach collection="paramList" item="param" separator=",">
@@ -60,6 +62,12 @@
         `operation_id` =VALUES(operation_id),
         `operation_type` =VALUES(operation_type)
     </insert>
+    <update id="updateProfileParamPassword">
+        update autoexec_profile_param
+        set default_value = #{password}
+        where profile_id = #{param.profileId}
+          and `key` = #{param.key}
+    </update>
 
     <select id="searchAutoexecProfileCount" parameterType="codedriver.framework.autoexec.dto.profile.AutoexecProfileVo"
             resultType="int">
@@ -164,7 +172,7 @@
         SELECT count(1)
         FROM autoexec_profile
         WHERE id != #{id}
-          AND name =#{name}
+          AND name = #{name}
     </select>
 
     <resultMap id="autoexecOperationMap" type="codedriver.framework.autoexec.dto.AutoexecOperationVo">
@@ -257,16 +265,14 @@
     </resultMap>
 
     <select id="getProfileParamListByProfileId" resultMap="profileParamMap">
-        SELECT
-            app.id,
-            app.key,
-            app.type,
-            app.default_value AS defaultValue,
-            app.operation_id AS operationId,
-            app.operation_type AS operationType,
-            app.mapping_mode AS mappingMode
-        FROM
-            autoexec_profile_param app
+        SELECT app.id,
+               app.key,
+               app.type,
+               app.default_value  AS defaultValue,
+               app.operation_id   AS operationId,
+               app.operation_type AS operationType,
+               app.mapping_mode   AS mappingMode
+        FROM autoexec_profile_param app
         WHERE app.profile_id = #{value}
     </select>
 
@@ -293,24 +299,35 @@
     </select>
 
     <select id="getProfileVoByName" resultType="codedriver.framework.autoexec.dto.profile.AutoexecProfileVo">
-        SELECT
-        `id`,
-        `name`,
-        `description`,
-        `system_id` AS fromSystemId,
-        `fcd`,
-        `fcu`,
-        `lcd`,
-        `lcu`
+        SELECT `id`,
+               `name`,
+               `description`,
+               `system_id` AS fromSystemId,
+               `fcd`,
+               `fcu`,
+               `lcd`,
+               `lcu`
         FROM `autoexec_profile`
         WHERE `name` = #{name}
     </select>
 
     <select id="getProfileIdByProfileIdAndOperationId" resultType="java.lang.Long">
-        SELECT
-        `profile_id`
+        SELECT `profile_id`
         FROM `autoexec_profile_operation`
-        WHERE `profile_id` = #{profileId} AND `operation_id` = #{operationId}
+        WHERE `profile_id` = #{profileId}
+          AND `operation_id` = #{operationId}
+    </select>
+    <select id="getAllProfileParamList"
+            resultType="codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo">
+        SELECT app.id,
+               app.key,
+               app.type,
+               app.profile_id     as profileId,
+               app.default_value  AS defaultValue,
+               app.operation_id   AS operationId,
+               app.operation_type AS operationType,
+               app.mapping_mode   AS mappingMode
+        FROM autoexec_profile_param app
     </select>
 
     <delete id="deleteProfileById">
