@@ -19,6 +19,8 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author longrf
@@ -64,10 +66,11 @@ public class AutoexecGlobalParamSearchApi extends PrivateApiComponentBase {
         if (paramCount > 0) {
             globalParamVo.setRowNum(paramCount);
             globalParamList = autoexecGlobalParamMapper.searchGlobalParam(globalParamVo);
+            Map<Object, Integer> dependencyCountMap = DependencyManager.getBatchDependencyCount(AutoexecFromType.GLOBAL_PARAM, globalParamList.stream().map(AutoexecGlobalParamVo::getKey).collect(Collectors.toList()));
             for (AutoexecGlobalParamVo paramVo : globalParamList) {
-                // 补充profile、组合工具引用的全局参数个数
-//                Map<Object, Integer> referredCountMap = (Map<Object, Integer>) dependencyCount;
-                paramVo.setReferredCount(DependencyManager.getDependencyCount(AutoexecFromType.GLOBAL_PARAM, paramVo.getKey()));
+                if (dependencyCountMap.containsKey(paramVo.getKey())) {
+                    paramVo.setReferredCount(dependencyCountMap.get(paramVo.getKey()));
+                }
             }
         }
         JSONObject returnObj = new JSONObject();
