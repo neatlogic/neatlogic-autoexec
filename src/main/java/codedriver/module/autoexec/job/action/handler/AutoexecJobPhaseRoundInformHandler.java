@@ -51,6 +51,7 @@ public class AutoexecJobPhaseRoundInformHandler extends AutoexecJobActionHandler
         informParam.put("action", "informRoundContinue");
         informParam.put("groupNo", groupSort);
         jsonObj.put("informParam", informParam);
+        jsonObj.put("socketFileName", "job" + jsonObj.getString("pid"));
         AutoexecJobPhaseVo phaseVo = jobVo.getCurrentPhase();
         //寻找下一个phase执行当前round,如果不存在下一个phase 则啥都不做
         //AutoexecJobPhaseVo nextJobPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndGroupSortAndSort(phaseVo.getJobId(), groupSort, phaseVo.getSort() + 1);
@@ -61,7 +62,7 @@ public class AutoexecJobPhaseRoundInformHandler extends AutoexecJobActionHandler
         runnerVos = runnerVos.stream().filter(o -> StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
         checkRunnerHealth(runnerVos);
         for (RunnerMapVo runnerVo : runnerVos) {
-            String url = String.format("%s/api/rest/job/phase/round/inform", runnerVo.getUrl());
+            String url = String.format("%s/api/rest/job/phase/socket/write", runnerVo.getUrl());
             String result = HttpRequestUtil.post(url)
                     .setPayload(jsonObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(5000).setReadTimeout(5000)
                     .sendRequest().getError();
