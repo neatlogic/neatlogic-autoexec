@@ -154,7 +154,7 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
             throw new AutoexecJobPhaseNotFoundException(paramObj.getString("targetPhaseName"));
         }
         JSONArray paramSqlVoArray = paramObj.getJSONArray("sqlInfoList");
-        Date nowLcd = new Date();
+        Long updateTag = System.currentTimeMillis();
         if (CollectionUtils.isNotEmpty(paramSqlVoArray)) {
             List<AutoexecSqlNodeDetailVo> insertSqlList = paramSqlVoArray.toJavaList(AutoexecSqlNodeDetailVo.class);
             if (insertSqlList.size() > 100) {
@@ -163,12 +163,12 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
                     cyclicNumber++;
                 }
                 for (int i = 0; i < cyclicNumber; i++) {
-                    autoexecJobMapper.insertSqlDetailList(insertSqlList.subList(i * 100, (Math.min((i + 1) * 100, insertSqlList.size()))), targetPhaseVo.getName(), targetPhaseVo.getId(), paramObj.getLong("runnerId"), nowLcd);
+                    autoexecJobMapper.insertSqlDetailList(insertSqlList.subList(i * 100, (Math.min((i + 1) * 100, insertSqlList.size()))), targetPhaseVo.getName(), targetPhaseVo.getId(), paramObj.getLong("runnerId"), updateTag);
                 }
             } else {
-                autoexecJobMapper.insertSqlDetailList(insertSqlList, targetPhaseVo.getName(), targetPhaseVo.getId(), paramObj.getLong("runnerId"), nowLcd);
+                autoexecJobMapper.insertSqlDetailList(insertSqlList, targetPhaseVo.getName(), targetPhaseVo.getId(), paramObj.getLong("runnerId"), updateTag);
             }
-            List<Long> needDeleteSqlIdList = autoexecJobMapper.getSqlDetailIdListByJobIdAndPhaseNameAndResourceIdAndLcd(paramObj.getLong("jobId"), insertSqlList.get(0).getResourceId(), paramObj.getString("targetPhaseName"), nowLcd);
+            List<Long> needDeleteSqlIdList = autoexecJobMapper.getSqlDetailIdListByJobIdAndPhaseNameAndResourceIdAndLcd(paramObj.getLong("jobId"), insertSqlList.get(0).getResourceId(), paramObj.getString("targetPhaseName"), updateTag);
             if (CollectionUtils.isNotEmpty(needDeleteSqlIdList)) {
                 autoexecJobMapper.updateSqlIsDeleteByIdList(needDeleteSqlIdList);
             }

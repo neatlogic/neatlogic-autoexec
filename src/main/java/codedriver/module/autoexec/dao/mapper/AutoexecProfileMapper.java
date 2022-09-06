@@ -7,7 +7,6 @@ import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import org.apache.ibatis.annotations.Param;
 
-import java.util.Date;
 import java.util.List;
 
 /**
@@ -32,7 +31,7 @@ public interface AutoexecProfileMapper extends IAutoexecProfileCrossoverMapper {
 
     List<AutoexecProfileVo> getProfileInfoListByIdList(@Param("idList") List<Long> idList);
 
-    List<Long> getNeedDeleteProfileParamIdListByProfileIdAndLcd(@Param("profileId") Long profileId, @Param("lcd") Date lcd);
+    List<Long> getNeedDeleteProfileParamIdListByProfileIdAndLcd(@Param("profileId") Long profileId, @Param("updateTag") Long updateTag);
 
     AutoexecProfileVo getProfileVoById(Long id);
 
@@ -42,11 +41,11 @@ public interface AutoexecProfileMapper extends IAutoexecProfileCrossoverMapper {
 
     Long getProfileIdByProfileIdAndOperationId(@Param("profileId") Long profileId, @Param("operationId") Long operationId);
 
-    void insertAutoexecProfileOperation(@Param("profileId") Long profileId, @Param("operationIdList") List<Long> operationIdList, @Param("type") String type, @Param("lcd") Date lcd);
+    void insertAutoexecProfileOperation(@Param("profileId") Long profileId, @Param("operationIdList") List<Long> operationIdList, @Param("type") String type, @Param("updateTag") Long updateTag);
 
     void insertProfile(AutoexecProfileVo profileVo);
 
-    void insertAutoexecProfileParamList(@Param("paramList") List<AutoexecProfileParamVo> paramList, @Param("profileId") Long profileId, @Param("lcd") Date lcd);
+    void insertAutoexecProfileParamList(@Param("paramList") List<AutoexecProfileParamVo> paramList, @Param("profileId") Long profileId, @Param("updateTag") Long updateTag);
 
     void deleteProfileById(Long id);
 
@@ -58,5 +57,5 @@ public interface AutoexecProfileMapper extends IAutoexecProfileCrossoverMapper {
 
     void deleteProfileParamByIdList(@Param("idList") List<Long> idList);
 
-    void deleteProfileOperationByProfileIdAndLcd(@Param("profileId") Long profileId, @Param("lcd") Date lcd);
+    void deleteProfileOperationByProfileIdAndLcd(@Param("profileId") Long profileId, @Param("updateTag") Long updateTag);
 }
