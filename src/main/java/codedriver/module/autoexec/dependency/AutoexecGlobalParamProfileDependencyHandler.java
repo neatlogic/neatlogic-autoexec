@@ -19,9 +19,10 @@ import java.util.List;
 /**
  * @author longrf
  * @date 2022/6/10 11:11 上午
+ * 预制参数集引用全局参数处理器
  */
 @Service
-public class AutoexecProfileGlobalParamDependencyHandler extends FixedTableDependencyHandlerBase {
+public class AutoexecGlobalParamProfileDependencyHandler extends FixedTableDependencyHandlerBase {
 
     @Resource
     AutoexecProfileMapper autoexecProfileMapper;

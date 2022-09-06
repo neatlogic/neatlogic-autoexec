@@ -88,10 +88,9 @@ public class SearchAutoexecJobPhaseSqlApi extends PrivateApiComponentBase {
         IAutoexecJobSourceTypeHandler handler;
         if (StringUtils.equals(jobVo.getSource(), JobSource.DEPLOY.getValue())) {
             handler = AutoexecJobSourceTypeHandlerFactory.getAction(JobSourceType.DEPLOY.getValue());
-            return handler.searchJobPhaseSql(jobPhaseNodeVo);
         } else {
             handler = AutoexecJobSourceTypeHandlerFactory.getAction(codedriver.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
-            return handler.searchJobPhaseSql(jobPhaseNodeVo);
         }
+        return handler.searchJobPhaseSql(jobPhaseNodeVo);
     }
 }

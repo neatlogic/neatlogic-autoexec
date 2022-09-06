@@ -2,8 +2,10 @@ package codedriver.module.autoexec.api.global.param;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.constvalue.AutoexecFromType;
 import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.dependency.core.DependencyManager;
 import codedriver.framework.restful.annotation.Description;
 import codedriver.framework.restful.annotation.Input;
 import codedriver.framework.restful.annotation.OperationType;
@@ -17,6 +19,8 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * @author longrf
@@ -62,12 +66,12 @@ public class AutoexecGlobalParamSearchApi extends PrivateApiComponentBase {
         if (paramCount > 0) {
             globalParamVo.setRowNum(paramCount);
             globalParamList = autoexecGlobalParamMapper.searchGlobalParam(globalParamVo);
-//            for (AutoexecGlobalParamVo paramVo : globalParamList) {
-//                //TODO 补充profile依赖的全局参数个数
-//                Map<Object, Integer> profileGlobalParamDependencyCountMap = DependencyManager.getBatchDependencyCount(AutoexecFromType.AUTOEXEC_PROFILE_GLOBAL_PARAM, globalParamList.stream().map(AutoexecGlobalParamVo::getKey).collect(Collectors.toList()));
-//                paramVo.setProfileReferredCount(profileGlobalParamDependencyCountMap.get(paramVo.getKey()));
-//                //TODO 补充组合工具依赖的全局参数个数
-//            }
+            Map<Object, Integer> dependencyCountMap = DependencyManager.getBatchDependencyCount(AutoexecFromType.GLOBAL_PARAM, globalParamList.stream().map(AutoexecGlobalParamVo::getKey).collect(Collectors.toList()));
+            for (AutoexecGlobalParamVo paramVo : globalParamList) {
+                if (dependencyCountMap.containsKey(paramVo.getKey())) {
+                    paramVo.setReferredCount(dependencyCountMap.get(paramVo.getKey()));
+                }
+            }
         }
         JSONObject returnObj = new JSONObject();
         returnObj.put("pageSize", globalParamVo.getPageSize());

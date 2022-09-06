@@ -3,7 +3,6 @@ package codedriver.module.autoexec.api.profile;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.AutoexecFromType;
-import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
@@ -15,7 +14,7 @@ import codedriver.framework.util.TableResultUtil;
 import codedriver.module.autoexec.dao.mapper.AutoexecProfileMapper;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.collections4.CollectionUtils;
+import com.alibaba.nacos.common.utils.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -76,6 +75,13 @@ public class AutoexecProfileSearchApi extends PrivateApiComponentBase {
         if (profileCount > 0) {
             paramProfileVo.setRowNum(profileCount);
             returnList = autoexecProfileMapper.searchAutoexecProfile(paramProfileVo);
+            // 补充关联对象个数
+            Map<Object, Integer> dependencyCountMap = DependencyManager.getBatchDependencyCount(AutoexecFromType.PROFILE, returnList.stream().map(AutoexecProfileVo::getId).collect(Collectors.toList()));
+            for (AutoexecProfileVo profileVo : returnList) {
+                if (dependencyCountMap.containsKey(profileVo.getId().toString())) {
+                    profileVo.setReferredCount(dependencyCountMap.get(profileVo.getId().toString()));
+                }
+            }
             if (CollectionUtils.isEmpty(returnList)) {
                 returnList = new ArrayList<>();
             }
