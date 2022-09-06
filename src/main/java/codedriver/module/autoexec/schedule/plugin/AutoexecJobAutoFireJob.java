@@ -92,7 +92,7 @@ public class AutoexecJobAutoFireJob extends JobBase {
 
     @Override
     public void initJob(String tenantUuid) {
-        List<Long> list = autoexecJobMapper.getJobIdListByStatusAndTriggerType(JobStatus.READY.getValue(), JobTriggerType.AUTO.getValue());
+        List<Long> list = autoexecJobMapper.getJobIdListByStatusAndTriggerTypeWithoutBatch(JobStatus.READY.getValue(), JobTriggerType.AUTO.getValue());
         for (Long id : list) {
             JobObject.Builder jobObjectBuilder = new JobObject.Builder(id.toString(), this.getGroupName(), this.getClassName(), TenantContext.get().getTenantUuid());
             JobObject jobObject = jobObjectBuilder.build();
