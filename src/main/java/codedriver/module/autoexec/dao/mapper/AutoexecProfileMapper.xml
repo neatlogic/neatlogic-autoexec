@@ -56,7 +56,7 @@
         </foreach>
         ON DUPLICATE KEY
         UPDATE `type` =VALUES(type),
-        `update_tag` = VALUES(update_tag),
+        `update_tag` =#{updateTag},
         `mapping_mode` =VALUES(mapping_mode),
         `default_value` =VALUES(default_value),
         `operation_id` =VALUES(operation_id),
