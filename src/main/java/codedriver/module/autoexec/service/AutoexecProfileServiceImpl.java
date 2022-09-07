@@ -60,18 +60,18 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService, IAuto
      */
     @Override
     public void saveProfileOperation(Long profileId, List<AutoexecOperationVo> autoexecOperationVoList) {
-        Date nowLcd = new Date();
+        Long updateTag = System.currentTimeMillis();
         List<Long> toolIdList = autoexecOperationVoList.stream().filter(e -> StringUtils.equals(ToolType.TOOL.getValue(), e.getType())).map(AutoexecOperationVo::getId).collect(Collectors.toList());
         List<Long> scriptIdList = autoexecOperationVoList.stream().filter(e -> StringUtils.equals(ToolType.SCRIPT.getValue(), e.getType())).map(AutoexecOperationVo::getId).collect(Collectors.toList());
         //tool
         if (CollectionUtils.isNotEmpty(toolIdList)) {
-            autoexecProfileMapper.insertAutoexecProfileOperation(profileId, toolIdList, ToolType.TOOL.getValue(), nowLcd);
+            autoexecProfileMapper.insertAutoexecProfileOperation(profileId, toolIdList, ToolType.TOOL.getValue(), updateTag);
         }
         //script
         if (CollectionUtils.isNotEmpty(scriptIdList)) {
-            autoexecProfileMapper.insertAutoexecProfileOperation(profileId, scriptIdList, ToolType.SCRIPT.getValue(), nowLcd);
+            autoexecProfileMapper.insertAutoexecProfileOperation(profileId, scriptIdList, ToolType.SCRIPT.getValue(), updateTag);
         }
-        autoexecProfileMapper.deleteProfileOperationByProfileIdAndLcd(profileId, nowLcd);
+        autoexecProfileMapper.deleteProfileOperationByProfileIdAndLcd(profileId, updateTag);
     }
 
     /**
@@ -88,7 +88,7 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService, IAuto
         List<AutoexecProfileParamVo> profileParamVoList = profileVo.getProfileParamVoList();
         List<Long> needDeleteParamIdList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(profileParamVoList)) {
-            Date nowLcd = new Date();
+            Long updateTag = System.currentTimeMillis();
             for (AutoexecProfileParamVo paramVo : profileParamVoList) {
                 //删除当前profile参数与全局参数的关系
                 DependencyManager.delete(AutoexecGlobalParamProfileDependencyHandler.class, paramVo.getId());
@@ -105,8 +105,8 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService, IAuto
             }
 
             //保存profile参数
-            autoexecProfileMapper.insertAutoexecProfileParamList(profileParamVoList, profileVo.getId(), nowLcd);
-            needDeleteParamIdList.addAll(autoexecProfileMapper.getNeedDeleteProfileParamIdListByProfileIdAndLcd(profileVo.getId(), nowLcd));
+            autoexecProfileMapper.insertAutoexecProfileParamList(profileParamVoList, profileVo.getId(), updateTag);
+            needDeleteParamIdList.addAll(autoexecProfileMapper.getNeedDeleteProfileParamIdListByProfileIdAndLcd(profileVo.getId(), updateTag));
         }
 
         //删除多余的profile参数

@@ -504,7 +504,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 profile = new AutoexecProfileVo(profileName, -1L);
                 autoexecProfileMapper.insertProfile(profile);
             }
-            autoexecProfileMapper.insertAutoexecProfileOperation(profile.getId(), Collections.singletonList(operatioinId), operationType, new Date());
+            autoexecProfileMapper.insertAutoexecProfileOperation(profile.getId(), Collections.singletonList(operatioinId), operationType, System.currentTimeMillis());
             return profile.getId();
         }
         return null;

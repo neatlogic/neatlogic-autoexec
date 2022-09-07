@@ -3,13 +3,13 @@
 <mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecProfileMapper">
 
     <insert id="insertAutoexecProfileOperation">
-        INSERT INTO autoexec_profile_operation ( profile_id, operation_id ,type,lcd)
+        INSERT INTO autoexec_profile_operation ( profile_id, operation_id ,type,update_tag)
         VALUES
         <foreach collection="operationIdList" item="operationId" separator=",">
-            (#{profileId},#{operationId},#{type},#{lcd})
+            (#{profileId},#{operationId},#{type},#{updateTag})
         </foreach>
         ON DUPLICATE KEY UPDATE
-        lcd = #{lcd}
+        update_tag = #{updateTag}
     </insert>
 
     <insert id="insertProfile" parameterType="codedriver.framework.autoexec.dto.profile.AutoexecProfileVo">
@@ -41,7 +41,7 @@
     <insert id="insertAutoexecProfileParamList">
         INSERT INTO autoexec_profile_param ( `id`, `key`,`type`, `mapping_mode`, `profile_id`, `default_value`,
         `operation_id`,
-        `operation_type`, `lcd` )
+        `operation_type`, `update_tag` )
         VALUES
         <foreach collection="paramList" item="param" separator=",">
             (#{param.id},
@@ -52,11 +52,11 @@
             #{param.defaultValueStr},
             #{param.operationId},
             #{param.operationType},
-            #{lcd})
+            #{updateTag})
         </foreach>
         ON DUPLICATE KEY
         UPDATE `type` =VALUES(type),
-        `lcd`=#{lcd},
+        `update_tag` =#{updateTag},
         `mapping_mode` =VALUES(mapping_mode),
         `default_value` =VALUES(default_value),
         `operation_id` =VALUES(operation_id),
@@ -280,7 +280,7 @@
         SELECT id
         FROM autoexec_profile_param
         WHERE profile_id = #{profileId}
-          AND lcd != #{lcd}
+          AND update_tag != #{updateTag}
     </select>
 
     <select id="getProfileInfoListByIdList" resultMap="profileMap">
@@ -367,7 +367,7 @@
         DELETE
         FROM autoexec_profile_operation
         WHERE profile_id = #{profileId}
-          AND lcd != #{lcd}
+          AND update_tag != #{updateTag}
     </delete>
 
 </mapper>
