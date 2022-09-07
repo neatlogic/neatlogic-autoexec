@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright(c) 2022 TechSure Co., Ltd. All Rights Reserved.
+  ~ 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecCustomTemplateMapper">
+    <sql id="searchCustomTemplateCondition">
+        <where>
+            <if test="keyword != null and keyword != ''">
+                a.name LIKE concat('%',#{keyword}, '%')
+            </if>
+            <if test="isActive != null">
+                AND a.is_active = #{isActive}
+            </if>
+        </where>
+    </sql>
+
+    <select id="searchCustomTemplate" parameterType="codedriver.framework.autoexec.dto.customtemplate.CustomTemplateVo"
+            resultType="codedriver.framework.autoexec.dto.customtemplate.CustomTemplateVo">
+        SELECT
+        a.id,
+        a.name,
+        a.is_active as isActive,
+        a.fcd,
+        a.fcu,
+        a.lcd,
+        a.lcu
+        FROM autoexec_customtemplate a
+        <include refid="searchCustomTemplateCondition"></include>
+        LIMIT #{startNum}, #{pageSize}
+    </select>
+
+    <select id="searchCustomTemplateCount"
+            parameterType="codedriver.framework.autoexec.dto.customtemplate.CustomTemplateVo"
+            resultType="int">
+        SELECT COUNT(1)
+        FROM autoexec_customtemplate a
+        <include refid="searchCustomTemplateCondition"></include>
+    </select>
+
+    <select id="getCustomTemplateById" parameterType="java.lang.Long"
+            resultType="codedriver.framework.autoexec.dto.customtemplate.CustomTemplateVo">
+        SELECT a.id,
+               a.name,
+               a.is_active as isActive,
+               a.config,
+               a.template,
+               a.fcd,
+               a.fcu,
+               a.lcd,
+               a.lcu
+        FROM autoexec_customtemplate a
+        WHERE id = #{value}
+    </select>
+
+    <update id="updateCustomTemplate" parameterType="codedriver.framework.autoexec.dto.customtemplate.CustomTemplateVo">
+        UPDATE autoexec_customtemplate
+        SET name      = #{name},
+            is_active = #{isActive},
+            config    = #{config,typeHandler=CompressHandler},
+            template  =#{template,typeHandler=CompressHandler},
+            lcd= NOW(3),
+            lcu       = #{lcu}
+        WHERE id = #{id}
+    </update>
+
+    <insert id="insertCustomTemplate" parameterType="codedriver.framework.autoexec.dto.customtemplate.CustomTemplateVo">
+        INSERT INTO autoexec_customtemplate
+        (id,
+         name,
+         is_active,
+         config,
+         template,
+         fcd,
+         fcu)
+        VALUES (#{id},
+                #{name},
+                #{isActive},
+                #{config,typeHandler=CompressHandler},
+                #{template,typeHandler=CompressHandler},
+                NOW(3),
+                #{fcu})
+    </insert>
+
+    <delete id="deleteCustomTemplateById" parameterType="java.lang.Long">
+        DELETE
+        FROM autoexec_customtemplate
+        WHERE id = #{value}
+    </delete>
+
+</mapper>
