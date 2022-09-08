@@ -18,6 +18,7 @@ import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecRiskVo;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
+import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
@@ -31,6 +32,7 @@ import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.util.RegexUtils;
 import codedriver.framework.util.UuidUtil;
 import codedriver.module.autoexec.service.AutoexecCombopService;
+import codedriver.module.autoexec.service.AutoexecProfileService;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -39,9 +41,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 脚本/工具发布生成组合工具接口
@@ -64,6 +65,8 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
     private AutoexecToolMapper autoexecToolMapper;
     @Resource
     private AutoexecRiskMapper autoexecRiskMapper;
+    @Resource
+    private AutoexecProfileService autoexecProfileService;
 
     @Override
     public String getToken() {
@@ -177,9 +180,29 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
         autoexecToolAndScriptVo.setOutputParamList(outputParamList);
         List<AutoexecCombopParamVo> autoexecCombopParamVoList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(inputParamList)) {
-            for (AutoexecParamVo inputParamVo : inputParamList) {
-                autoexecCombopParamVoList.add(new AutoexecCombopParamVo(inputParamVo));
-                paramMappingList.add(new ParamMappingVo(inputParamVo.getKey(), ParamMappingMode.RUNTIME_PARAM.getValue(), inputParamVo.getKey()));
+            Long defaultProfileId = autoexecToolAndScriptVo.getDefaultProfileId();
+            if (defaultProfileId != null) {
+                operationConfigVo.setProfileId(defaultProfileId);
+                operationConfigVo.setProfileName(autoexecToolAndScriptVo.getDefaultProfileName());
+                Map<String, AutoexecProfileParamVo> profileParamMap = new HashMap<>();
+                List<AutoexecProfileParamVo> profileParamList = autoexecProfileService.getProfileParamListById(defaultProfileId);
+                if (CollectionUtils.isNotEmpty(profileParamList)) {
+                    profileParamMap = profileParamList.stream().collect(Collectors.toMap(e -> e.getKey(), e -> e));
+                }
+                for (AutoexecParamVo inputParamVo : inputParamList) {
+                    AutoexecProfileParamVo autoexecProfileParamVo = profileParamMap.get(inputParamVo.getKey());
+                    if (autoexecProfileParamVo != null) {
+                        paramMappingList.add(new ParamMappingVo(inputParamVo.getKey(), ParamMappingMode.PROFILE.getValue(), autoexecProfileParamVo.getDefaultValueStr()));
+                    } else {
+                        autoexecCombopParamVoList.add(new AutoexecCombopParamVo(inputParamVo));
+                        paramMappingList.add(new ParamMappingVo(inputParamVo.getKey(), ParamMappingMode.RUNTIME_PARAM.getValue(), inputParamVo.getKey()));
+                    }
+                }
+            } else {
+                for (AutoexecParamVo inputParamVo : inputParamList) {
+                    autoexecCombopParamVoList.add(new AutoexecCombopParamVo(inputParamVo));
+                    paramMappingList.add(new ParamMappingVo(inputParamVo.getKey(), ParamMappingMode.RUNTIME_PARAM.getValue(), inputParamVo.getKey()));
+                }
             }
         }
         //argumentMappingList
