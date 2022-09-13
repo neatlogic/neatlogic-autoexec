@@ -255,7 +255,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                                     put(argJson.getString("key"), getValueByParamType(argJson));
                                 } else if (Objects.equals(ParamMappingMode.RUNTIME_PARAM.getValue(), argJson.getString("mappingMode"))) {
                                     put(argJson.getString("key"), String.format("${%s}", value));
-                                } else if (Objects.equals(ParamMappingMode.PRE_NODE_OUTPUT_PARAM.getValue(), argJson.getString("mappingMode"))) {
+                                } else if (Arrays.asList(ParamMappingMode.PRE_NODE_OUTPUT_PARAM.getValue(),ParamMappingMode.PRE_NODE_OUTPUT_PARAM_KEY.getValue()).contains(argJson.getString("mappingMode"))) {
                                     put(argJson.getString("key"), value);
                                 } else if (Objects.equals(ParamMappingMode.PROFILE.getValue(), argJson.getString("mappingMode"))) {
                                     put(argJson.getString("key"), finalProfileKeyValueMap.get(argJson.getString("key")));
