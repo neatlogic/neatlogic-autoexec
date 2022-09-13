@@ -99,7 +99,6 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             //needSqlFileResetStatusPhaseNameList = autoexecJobPhaseVos.stream().filter(o -> Objects.equals(o.getExecMode(), ExecMode.SQL.getValue())).map(AutoexecJobPhaseVo::getName).collect(Collectors.toList());
             autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(autoexecJobPhaseVos.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()), JobPhaseStatus.PENDING.getValue());
             jobVo.setExecuteJobGroupVo(autoexecJobPhaseVos.get(0).getJobGroupVo());
-            //获取group
             autoexecJobService.getAutoexecJobDetail(jobVo);
             if (CollectionUtils.isNotEmpty(jobVo.getPhaseList())) {
                 new AutoexecJobAuthActionManager.Builder().addReFireJob().build().setAutoexecJobAction(jobVo);
