@@ -563,7 +563,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 });
                 if (CollectionUtils.isNotEmpty(resourceIdSet)) {
                     IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
-                    List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceFromSoftwareServiceByIdList(new ArrayList<>(resourceIdSet), TenantContext.get().getDataDbName());
+                    List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceByIdList(new ArrayList<>(resourceIdSet), TenantContext.get().getDataDbName());
                     if (CollectionUtils.isNotEmpty(resourceVoList)) {
                         updateJobPhaseNode(jobVo, resourceVoList, userName, protocolId);
                         return true;
