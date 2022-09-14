@@ -362,10 +362,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             }
             autoexecJobParam.setScenarioId(scenarioVo.getId());
         }
-
-        //校验execUser 是否拥有执行权限
         autoexecJobParam.setConfigStr(JSONObject.toJSONString(combopVo.getConfig()));
         autoexecJobParam.setRunTimeParamList(autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopVo.getId()));
+
         autoexecJobSourceActionHandler.updateInvokeJob(autoexecJobParam);
         autoexecJobService.saveAutoexecCombopJob(autoexecJobParam);
         autoexecJobParam.setAction(JobAction.FIRE.getValue());
