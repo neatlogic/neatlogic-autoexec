@@ -795,7 +795,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             if (StringUtils.isNotBlank(jobVo.getKeyword()) && CollectionUtils.isNotEmpty(jobVoList)) {
                 List<AutoexecJobVo> batchJobList = jobVoList.stream().filter(e -> StringUtils.equals(codedriver.framework.deploy.constvalue.JobSource.BATCHDEPLOY.getValue(), e.getSource())).collect(Collectors.toList());
                 if (CollectionUtils.isNotEmpty(batchJobList)) {
-                    List<AutoexecJobVo> parentDeployJobList = autoexecJobMapper.getParentDeployJobListIdList(batchJobList.stream().map(AutoexecJobVo::getId).collect(Collectors.toList()));
+                    List<AutoexecJobVo> parentDeployJobList = autoexecJobMapper.getParentAutoexecJobListIdList(batchJobList.stream().map(AutoexecJobVo::getId).collect(Collectors.toList()));
                     if (CollectionUtils.isNotEmpty(parentDeployJobList)) {
                         parentJobChildrenListMap  = parentDeployJobList.stream().collect(Collectors.toMap(AutoexecJobVo::getId, AutoexecJobVo::getChildren));
                     }
@@ -819,7 +819,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                         vo.setIsHasIgnored(1);
                     }
                 }
-                if (StringUtils.equals(vo.getSource(), codedriver.framework.deploy.constvalue.JobSource.BATCHDEPLOY.getValue())) {
+                if (vo.getParentId() != null) {
                     vo.setChildren(parentJobChildrenListMap.get(vo.getId()));
                 }
             }
