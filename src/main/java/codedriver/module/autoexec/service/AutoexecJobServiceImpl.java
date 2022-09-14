@@ -51,7 +51,8 @@ import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toMap;
 
 /**
  * @since 2021/4/12 18:44
@@ -789,6 +790,18 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             }
             List<AutoexecJobVo> autoexecJobVos = autoexecJobMapper.getJobWarnCountAndStatus(jobIdList);
             Map<Long, AutoexecJobVo> autoexecJobVoMap = autoexecJobVos.stream().collect(toMap(AutoexecJobVo::getId, o -> o));
+
+            Map<Long, List<AutoexecJobVo>> parentJobChildrenListMap = new HashMap<>();
+            if (StringUtils.isNotBlank(jobVo.getKeyword()) && CollectionUtils.isNotEmpty(jobVoList)) {
+                List<AutoexecJobVo> batchJobList = jobVoList.stream().filter(e -> StringUtils.equals(codedriver.framework.deploy.constvalue.JobSource.BATCHDEPLOY.getValue(), e.getSource())).collect(Collectors.toList());
+                if (CollectionUtils.isNotEmpty(batchJobList)) {
+                    List<AutoexecJobVo> parentDeployJobList = autoexecJobMapper.getParentDeployJobListIdList(batchJobList.stream().map(AutoexecJobVo::getId).collect(Collectors.toList()));
+                    if (CollectionUtils.isNotEmpty(parentDeployJobList)) {
+                        parentJobChildrenListMap  = parentDeployJobList.stream().collect(Collectors.toMap(AutoexecJobVo::getId, AutoexecJobVo::getChildren));
+                    }
+                }
+            }
+
             //补充权限
             for (AutoexecJobVo vo : jobVoList) {
                 vo.setOperationName(operationIdNameMap.get(vo.getOperationId()));
@@ -805,6 +818,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     if (jobWarnCountStatus.getStatus().contains(JobNodeStatus.IGNORED.getValue())) {
                         vo.setIsHasIgnored(1);
                     }
+                }
+                if (StringUtils.equals(vo.getSource(), codedriver.framework.deploy.constvalue.JobSource.BATCHDEPLOY.getValue())) {
+                    vo.setChildren(parentJobChildrenListMap.get(vo.getId()));
                 }
             }
 
