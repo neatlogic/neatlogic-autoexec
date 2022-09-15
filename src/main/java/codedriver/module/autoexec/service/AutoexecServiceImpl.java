@@ -34,7 +34,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.*;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static java.util.Comparator.comparing;
@@ -56,10 +55,6 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
     AutoexecProfileMapper autoexecProfileMapper;
     @Resource
     AutoexecProfileService autoexecProfileService;
-
-    static Pattern paramKeyPattern = Pattern.compile("^[A-Za-z_\\d]+$");
-
-    static Pattern paramNamePattern = Pattern.compile("^[A-Za-z_\\d\\u4e00-\\u9fa5]+$");
 
     /**
      * 校验参数列表
@@ -100,13 +95,13 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 } else {
                     keySet.add(key);
                 }
-                if (!paramKeyPattern.matcher(key).matches()) {
+                if (!RegexUtils.regexPatternMap.get(RegexUtils.ENGLISH_NUMBER_NAME_WHIT_UNDERLINE).matcher(key).matches()) {
                     throw new ParamIrregularException(key);
                 }
                 if (StringUtils.isBlank(name)) {
                     throw new ParamNotExistsException(index, key, "中文名");
                 }
-                if (!paramNamePattern.matcher(name).matches()) {
+                if (!RegexUtils.regexPatternMap.get(RegexUtils.NAME_WITH_SPACE).matcher(name).matches()) {
                     throw new ParamIrregularException(index, key, name);
                 }
                 if (param instanceof AutoexecScriptVersionParamVo && StringUtils.isBlank(mode)) {
@@ -332,11 +327,11 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
         String type = autoexecCombopPhaseOperationVo.getOperationType();
         if (Objects.equals(type, CombopOperationType.SCRIPT.getValue())) {
             AutoexecScriptVo autoexecScriptVo;
-            AutoexecScriptVersionVo autoexecScriptVersionVo ;
+            AutoexecScriptVersionVo autoexecScriptVersionVo;
             //指定脚本版本
-            if(autoexecCombopPhaseOperationVo.getScriptVersionId() != null){
+            if (autoexecCombopPhaseOperationVo.getScriptVersionId() != null) {
                 autoexecScriptVersionVo = autoexecScriptMapper.getVersionByVersionId(autoexecCombopPhaseOperationVo.getScriptVersionId());
-                if(autoexecScriptVersionVo == null) {
+                if (autoexecScriptVersionVo == null) {
                     if (throwException) {
 //                        throw new AutoexecScriptVersionNotFoundException(autoexecCombopPhaseOperationVo.getScriptVersionId());
                         throw new AutoexecCombopOperationNotFoundException(phaseName, autoexecCombopPhaseOperationVo.getOperationName());
@@ -345,7 +340,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                     }
                 }
                 autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(autoexecScriptVersionVo.getScriptId());
-            }else {
+            } else {
                 autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(id);
                 if (autoexecScriptVo == null) {
                     if (StringUtils.isNotBlank(name)) {
@@ -440,6 +435,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
         }
         return autoexecToolAndScriptVo;
     }
+
     @Override
     public List<AutoexecParamVo> getAutoexecOperationParamVoList(List<AutoexecOperationVo> paramAutoexecOperationVoList) {
         List<Long> toolIdList = paramAutoexecOperationVoList.stream().filter(e -> StringUtils.equals(ToolType.TOOL.getValue(), e.getType())).map(AutoexecOperationVo::getId).collect(Collectors.toList());
