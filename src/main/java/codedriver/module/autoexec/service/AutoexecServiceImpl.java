@@ -57,10 +57,6 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
     @Resource
     AutoexecProfileService autoexecProfileService;
 
-    static Pattern paramKeyPattern = Pattern.compile("^[A-Za-z_\\d]+$");
-
-    static Pattern paramNamePattern = Pattern.compile("^[A-Za-z_\\d\\s\\u4e00-\\u9fa5]+$");
-
     /**
      * 校验参数列表
      *
@@ -100,13 +96,13 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 } else {
                     keySet.add(key);
                 }
-                if (!paramKeyPattern.matcher(key).matches()) {
+                if (!RegexUtils.regexPatternMap.get(RegexUtils.ENGLISH_NAME_WHIT_UNDERLINE).matcher(key).matches()) {
                     throw new ParamIrregularException(key);
                 }
                 if (StringUtils.isBlank(name)) {
                     throw new ParamNotExistsException(index, key, "中文名");
                 }
-                if (!paramNamePattern.matcher(name).matches()) {
+                if (!RegexUtils.regexPatternMap.get(RegexUtils.NAME_WITH_SPACE).matcher(name).matches()) {
                     throw new ParamIrregularException(index, key, name);
                 }
                 if (param instanceof AutoexecScriptVersionParamVo && StringUtils.isBlank(mode)) {
