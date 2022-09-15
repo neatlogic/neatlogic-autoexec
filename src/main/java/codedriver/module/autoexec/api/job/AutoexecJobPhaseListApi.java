@@ -13,6 +13,8 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeStatusCountVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
+import codedriver.framework.autoexec.job.source.AutoexecJobSourceHandlerFactory;
+import codedriver.framework.autoexec.job.source.IAutoexecJobSourceHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -89,6 +91,10 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
         result.put("status", jobVo.getStatus());
         result.put("statusName", JobStatus.getText(jobVo.getStatus()));
         result.put("phaseList", jobPhaseVoList);
+        IAutoexecJobSourceHandler jobSourceHandler = AutoexecJobSourceHandlerFactory.getJobSource(jobVo.getSource());
+        if(jobSourceHandler != null) {
+            result.putAll(jobSourceHandler.getExtraRefreshJobInfo(jobVo));
+        }
         return result;
     }
 
