@@ -59,7 +59,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
 
     static Pattern paramKeyPattern = Pattern.compile("^[A-Za-z_\\d]+$");
 
-    static Pattern paramNamePattern = Pattern.compile("^[A-Za-z_\\d\\u4e00-\\u9fa5]+$");
+    static Pattern paramNamePattern = Pattern.compile("^[A-Za-z_\\d\\s\\u4e00-\\u9fa5]+$");
 
     /**
      * 校验参数列表
@@ -332,11 +332,11 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
         String type = autoexecCombopPhaseOperationVo.getOperationType();
         if (Objects.equals(type, CombopOperationType.SCRIPT.getValue())) {
             AutoexecScriptVo autoexecScriptVo;
-            AutoexecScriptVersionVo autoexecScriptVersionVo ;
+            AutoexecScriptVersionVo autoexecScriptVersionVo;
             //指定脚本版本
-            if(autoexecCombopPhaseOperationVo.getScriptVersionId() != null){
+            if (autoexecCombopPhaseOperationVo.getScriptVersionId() != null) {
                 autoexecScriptVersionVo = autoexecScriptMapper.getVersionByVersionId(autoexecCombopPhaseOperationVo.getScriptVersionId());
-                if(autoexecScriptVersionVo == null) {
+                if (autoexecScriptVersionVo == null) {
                     if (throwException) {
 //                        throw new AutoexecScriptVersionNotFoundException(autoexecCombopPhaseOperationVo.getScriptVersionId());
                         throw new AutoexecCombopOperationNotFoundException(phaseName, autoexecCombopPhaseOperationVo.getOperationName());
@@ -345,7 +345,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                     }
                 }
                 autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(autoexecScriptVersionVo.getScriptId());
-            }else {
+            } else {
                 autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(id);
                 if (autoexecScriptVo == null) {
                     if (StringUtils.isNotBlank(name)) {
@@ -440,6 +440,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
         }
         return autoexecToolAndScriptVo;
     }
+
     @Override
     public List<AutoexecParamVo> getAutoexecOperationParamVoList(List<AutoexecOperationVo> paramAutoexecOperationVoList) {
         List<Long> toolIdList = paramAutoexecOperationVoList.stream().filter(e -> StringUtils.equals(ToolType.TOOL.getValue(), e.getType())).map(AutoexecOperationVo::getId).collect(Collectors.toList());
