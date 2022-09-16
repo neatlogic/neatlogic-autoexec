@@ -37,6 +37,10 @@ public interface AutoexecService {
 
     void mergeConfig(AutoexecParamVo autoexecParamVo);
 
+    /**
+     * 补充AutoexecCombopConfigVo对象中的场景名称、预置参数集名称、操作对应的工具信息
+     * @param config config对象
+     */
     void updateAutoexecCombopConfig(AutoexecCombopConfigVo config);
 
     /**
