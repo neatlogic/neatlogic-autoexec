@@ -224,7 +224,10 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
         }
     }
 
-
+    /**
+     * 补充AutoexecCombopConfigVo对象中的场景名称、预置参数集名称、操作对应的工具信息
+     * @param config config对象
+     */
     @Override
     public void updateAutoexecCombopConfig(AutoexecCombopConfigVo config) {
         List<AutoexecCombopScenarioVo> combopScenarioList = config.getScenarioList();
