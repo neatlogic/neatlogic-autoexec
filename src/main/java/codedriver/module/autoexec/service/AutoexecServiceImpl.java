@@ -343,6 +343,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                     }
                 }
                 autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(autoexecScriptVersionVo.getScriptId());
+                autoexecParamVoList = autoexecScriptMapper.getParamListByScriptVersionId(autoexecCombopPhaseOperationVo.getScriptVersionId());
             } else {
                 autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(id);
                 if (autoexecScriptVo == null) {
@@ -371,9 +372,9 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                         return null;
                     }
                 }
+                autoexecParamVoList = autoexecScriptMapper.getParamListByScriptId(id);
             }
 
-            autoexecParamVoList = autoexecScriptMapper.getParamListByScriptId(id);
             AutoexecParamVo argumentParam = autoexecScriptMapper.getArgumentByVersionId(autoexecScriptVersionVo.getId());
             autoexecToolAndScriptVo = new AutoexecOperationVo(autoexecScriptVo);
             autoexecToolAndScriptVo.setArgument(argumentParam);
