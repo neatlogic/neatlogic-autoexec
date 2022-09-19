@@ -113,6 +113,7 @@ public class ExportAutoexecJobPhaseNodeApi extends PrivateBinaryStreamApiCompone
         headList.add("耗时");
         headList.add("开始时间");
         headList.add("结束时间");
+        headList.add("执行代理");
         headList.add("日志");
         return headList;
     }
@@ -128,6 +129,7 @@ public class ExportAutoexecJobPhaseNodeApi extends PrivateBinaryStreamApiCompone
         columnList.add("costTime");
         columnList.add("startTime");
         columnList.add("endTime");
+        columnList.add("runner");
         columnList.add("log");
         return columnList;
     }

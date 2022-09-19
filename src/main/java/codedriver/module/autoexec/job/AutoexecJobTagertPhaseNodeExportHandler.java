@@ -9,6 +9,7 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.job.AutoexecJobPhaseNodeExportHandlerBase;
 import codedriver.framework.util.TimeUtil;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -53,6 +54,13 @@ public class AutoexecJobTagertPhaseNodeExportHandler extends AutoexecJobPhaseNod
             dataMap.put("costTime", vo.getCostTime());
             dataMap.put("startTime", vo.getStartTime() != null ? TimeUtil.convertDateToString(vo.getStartTime(), TimeUtil.YYYY_MM_DD_HH_MM_SS) : "");
             dataMap.put("endTime", vo.getEndTime() != null ? TimeUtil.convertDateToString(vo.getEndTime(), TimeUtil.YYYY_MM_DD_HH_MM_SS) : "");
+            String runnerHost = vo.getRunnerHost();
+            Integer runnerPort = vo.getRunnerPort();
+            String runner = StringUtils.EMPTY;
+            if (StringUtils.isNotBlank(runnerHost) && runnerPort != null) {
+                runner = runnerHost + ":" + runnerPort;
+            }
+            dataMap.put("runner", runner);
             nodeDataMap.put(vo.getId(), dataMap);
             runnerNodeMap.computeIfAbsent(vo.getRunnerUrl(), k -> new ArrayList<>()).add(vo.getId());
             nodeLogTailParamMap.put(vo.getId(), new JSONObject() {
