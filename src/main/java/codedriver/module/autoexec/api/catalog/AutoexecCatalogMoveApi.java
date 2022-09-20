@@ -5,6 +5,7 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dto.catalog.AutoexecCatalogVo;
 import codedriver.framework.autoexec.exception.AutoexecCatalogNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecCatalogRepeatException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.lrcode.LRCodeManager;
 import codedriver.framework.lrcode.constvalue.MoveType;
@@ -70,6 +71,10 @@ public class AutoexecCatalogMoveApi extends PrivateApiComponentBase {
             if (parent == null) {
                 throw new AutoexecCatalogNotFoundException(parentId);
             }
+        }
+        AutoexecCatalogVo vo = new AutoexecCatalogVo(autoexecCatalog.getId(), autoexecCatalog.getName(), parentId);
+        if (autoexecCatalogMapper.checkAutoexecCatalogNameIsRepeat(vo) > 0) {
+            throw new AutoexecCatalogRepeatException(autoexecCatalog.getName());
         }
         Long targetId;
         MoveType moveType;
