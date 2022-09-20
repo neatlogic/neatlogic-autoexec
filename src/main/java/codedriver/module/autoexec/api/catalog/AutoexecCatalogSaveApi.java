@@ -57,6 +57,10 @@ public class AutoexecCatalogSaveApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");
         AutoexecCatalogVo vo = JSON.toJavaObject(jsonObj, AutoexecCatalogVo.class);
+        if (vo.getParentId() == null) {
+            vo.setParentId(AutoexecCatalogVo.ROOT_ID);
+        }
+        // 同级下不重复
         if (autoexecCatalogMapper.checkAutoexecCatalogNameIsRepeat(vo) > 0) {
             throw new AutoexecCatalogRepeatException(vo.getName());
         }
@@ -66,16 +70,11 @@ public class AutoexecCatalogSaveApi extends PrivateApiComponentBase {
             }
             autoexecCatalogMapper.updateAutoexecCatalogNameById(vo);
         } else {
-            Long parentId = vo.getParentId();
-            if (parentId == null) {
-                parentId = AutoexecCatalogVo.ROOT_ID;
-            } else if (!AutoexecCatalogVo.ROOT_ID.equals(parentId)) {
-                if (autoexecCatalogMapper.checkAutoexecCatalogIsExists(parentId) == 0) {
-                    throw new AutoexecCatalogNotFoundException(parentId);
-                }
+            if (!AutoexecCatalogVo.ROOT_ID.equals(vo.getParentId()) && autoexecCatalogMapper.checkAutoexecCatalogIsExists(vo.getParentId()) == 0) {
+                throw new AutoexecCatalogNotFoundException(vo.getParentId());
             }
-            int lft = LRCodeManager.beforeAddTreeNode("autoexec_catalog", "id", "parent_id", parentId);
-            vo.setParentId(parentId);
+            int lft = LRCodeManager.beforeAddTreeNode("autoexec_catalog", "id", "parent_id", vo.getParentId());
+            vo.setParentId(vo.getParentId());
             vo.setLft(lft);
             vo.setRht(lft + 1);
             autoexecCatalogMapper.insertAutoexecCatalog(vo);
