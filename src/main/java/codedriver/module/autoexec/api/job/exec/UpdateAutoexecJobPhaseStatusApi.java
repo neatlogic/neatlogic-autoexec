@@ -154,6 +154,11 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
             finalJobPhaseStatus = JobPhaseStatus.PENDING.getValue();
         }
         autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), finalJobPhaseStatus, warnCount));
+
+        //如果状态一致，则无需更新状态，防止多次触发callback
+        if (Objects.equals(jobVo.getStatus(), finalJobPhaseStatus)) {
+            return;
+        }
         //autoexec是不会回调failed的作业状态，故如果存在失败的phase 则更新作业状态为failed
         if (Arrays.asList(JobPhaseStatus.FAILED.getValue(), JobPhaseStatus.WAIT_INPUT.getValue(), JobPhaseStatus.RUNNING.getValue()).contains(finalJobPhaseStatus)) {
             jobVo.setStatus(finalJobPhaseStatus);
