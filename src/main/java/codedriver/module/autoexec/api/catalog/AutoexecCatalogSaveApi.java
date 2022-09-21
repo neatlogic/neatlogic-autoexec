@@ -85,6 +85,9 @@ public class AutoexecCatalogSaveApi extends PrivateApiComponentBase {
     public IValid name() {
         return value -> {
             AutoexecCatalogVo vo = JSON.toJavaObject(value, AutoexecCatalogVo.class);
+            if (vo.getParentId() == null) {
+                vo.setParentId(AutoexecCatalogVo.ROOT_ID);
+            }
             if (autoexecCatalogMapper.checkAutoexecCatalogNameIsRepeat(vo) > 0) {
                 return new FieldValidResultVo(new AutoexecCatalogRepeatException(vo.getName()));
             }
