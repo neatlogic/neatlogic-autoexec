@@ -5,7 +5,6 @@
 
 package codedriver.module.autoexec.service;
 
-import codedriver.framework.asynchronization.threadlocal.TenantContext;
 import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.crossover.IAutoexecJobCrossoverService;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
@@ -567,7 +566,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 });
                 if (CollectionUtils.isNotEmpty(resourceIdSet)) {
                     IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
-                    List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceByIdList(new ArrayList<>(resourceIdSet), TenantContext.get().getDataDbName());
+                    List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceByIdList(new ArrayList<>(resourceIdSet));
                     if (CollectionUtils.isNotEmpty(resourceVoList)) {
                         updateJobPhaseNode(jobVo, resourceVoList, userName, protocolId);
                         return true;
@@ -595,7 +594,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 ipPortNameList.add(new ResourceVo(o.getIp(), o.getPort(), o.getName()));
             });
             IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
-            List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceListByResourceVoList(ipPortNameList, TenantContext.get().getDataDbName());
+            List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceListByResourceVoList(ipPortNameList);
             if (CollectionUtils.isNotEmpty(resourceVoList)) {
                 updateJobPhaseNode(jobVo, resourceVoList, userName, protocolId);
                 return true;
@@ -617,7 +616,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         List<AutoexecNodeVo> nodeVoList = executeNodeConfigVo.getSelectNodeList();
         if (CollectionUtils.isNotEmpty(nodeVoList)) {
             IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
-            List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceByIdList(nodeVoList.stream().map(AutoexecNodeVo::getId).collect(toList()), TenantContext.get().getDataDbName());
+            List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceByIdList(nodeVoList.stream().map(AutoexecNodeVo::getId).collect(toList()));
             if (CollectionUtils.isNotEmpty(resourceVoList)) {
                 updateJobPhaseNode(jobVo, resourceVoList, userName, protocolId);
                 return true;
@@ -652,7 +651,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     if (CollectionUtils.isEmpty(idList)) {
                         continue;
                     }
-                    List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceListByIdList(idList, TenantContext.get().getDataDbName());
+                    List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceListByIdList(idList);
                     if (CollectionUtils.isNotEmpty(resourceVoList)) {
                         updateJobPhaseNode(jobVo, resourceVoList, userName, protocolId);
                     }
