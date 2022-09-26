@@ -100,7 +100,7 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
         List<AutoexecCombopParamVo> autoexecCombopParamVoList = new ArrayList<>();
         JSONArray paramList = jsonObj.getJSONArray("paramList");
         List<AutoexecCombopParamVo> runtimeParamList = paramList.toJavaList(AutoexecCombopParamVo.class);
-        autoexecService.validateRuntimeParamList(autoexecCombopParamVoList);
+        autoexecService.validateRuntimeParamList(runtimeParamList);
         for (int i = 0; i < runtimeParamList.size(); i++) {
             AutoexecCombopParamVo autoexecCombopParamVo = runtimeParamList.get(i);
             if (autoexecCombopParamVo != null) {

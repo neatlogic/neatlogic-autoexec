@@ -286,6 +286,7 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
             int sort = 0;
             for (AutoexecCombopParamVo autoexecCombopParamVo : autoexecCombopParamVoList) {
                 autoexecCombopParamVo.setCombopId(combopId);
+                autoexecCombopParamVo.setEditable(1);
                 autoexecCombopParamVo.setSort(sort++);
             }
             autoexecCombopMapper.insertAutoexecCombopParamVoList(autoexecCombopParamVoList);
