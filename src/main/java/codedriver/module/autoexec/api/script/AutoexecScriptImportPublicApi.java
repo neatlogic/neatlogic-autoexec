@@ -8,11 +8,11 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
+import codedriver.framework.autoexec.dto.catalog.AutoexecCatalogVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptArgumentVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
-import codedriver.framework.exception.core.ApiRuntimeException;
 import codedriver.framework.fulltextindex.core.FullTextIndexHandlerFactory;
 import codedriver.framework.fulltextindex.core.IFullTextIndexHandler;
 import codedriver.framework.restful.annotation.Description;
@@ -91,10 +91,12 @@ public class AutoexecScriptImportPublicApi extends PrivateJsonStreamApiComponent
         while (jsonReader.hasNext()) {
             List<String> faultMessages = new ArrayList<>();
             AutoexecScriptVo newScriptVo = jsonReader.readObject(AutoexecScriptVo.class);
+            String catalogName = newScriptVo.getCatalogName();
+            Long catalogId = null;
             if (StringUtils.isBlank(newScriptVo.getName())) {
                 faultMessages.add("自定义工具名称为空");
             }
-            if (StringUtils.isBlank(newScriptVo.getCatalogName())) {
+            if (StringUtils.isBlank(catalogName)) {
                 faultMessages.add("工具目录为空");
             }
             if (StringUtils.isBlank(newScriptVo.getRiskName())) {
@@ -115,8 +117,31 @@ public class AutoexecScriptImportPublicApi extends PrivateJsonStreamApiComponent
             if (StringUtils.isNotBlank(newScriptVo.getTypeName()) && autoexecTypeMapper.getTypeIdByName(newScriptVo.getTypeName()) == null) {
                 faultMessages.add("工具分类：'" + newScriptVo.getTypeName() + "'不存在");
             }
-            if (StringUtils.isNotBlank(newScriptVo.getCatalogName()) && autoexecCatalogMapper.getAutoexecCatalogByName(newScriptVo.getCatalogName()) == null) {
-                faultMessages.add("工具目录：'" + newScriptVo.getCatalogName() + "'不存在");
+            // 从外部导入的自定义工具，catalogName可能是路径，也可能只是名称，如果是路径，要根据每一层的名称查询对应的目录
+            if (StringUtils.isNotBlank(catalogName)) {
+                if (catalogName.contains("\\")) {
+                    String[] split = catalogName.split("\\\\");
+                    AutoexecCatalogVo catalogVo = null;
+                    for (int j = 0; j < split.length; j++) {
+                        String name = split[j];
+                        if (j == 0) {
+                            catalogVo = autoexecCatalogMapper.getAutoexecCatalogByNameAndParentId(name, AutoexecCatalogVo.ROOT_ID);
+                        } else if (catalogVo != null) {
+                            catalogVo = autoexecCatalogMapper.getAutoexecCatalogByNameAndParentId(name, catalogVo.getId());
+                        }
+                    }
+                    if (catalogVo != null) {
+                        catalogId = catalogVo.getId();
+                    }
+                } else {
+                    AutoexecCatalogVo catalog = autoexecCatalogMapper.getAutoexecCatalogByName(catalogName);
+                    if (catalog != null) {
+                        catalogId = catalog.getId();
+                    }
+                }
+                if (catalogId == null) {
+                    faultMessages.add("工具目录：'" + catalogName + "'不存在");
+                }
             }
             if (StringUtils.isNotBlank(newScriptVo.getRiskName()) && autoexecRiskMapper.getRiskIdByName(newScriptVo.getRiskName()) == null) {
                 faultMessages.add("操作级别：'" + newScriptVo.getRiskName() + "'不存在");
@@ -137,8 +162,6 @@ public class AutoexecScriptImportPublicApi extends PrivateJsonStreamApiComponent
             if (CollectionUtils.isNotEmpty(newScriptVo.getParamList())) {
                 try {
                     autoexecService.validateParamList(newScriptVo.getParamList());
-                } catch (ApiRuntimeException ex) {
-                    faultMessages.add(ex.getMessage());
                 } catch (Exception ex) {
                     faultMessages.add(ex.getMessage());
                 }
@@ -146,7 +169,7 @@ public class AutoexecScriptImportPublicApi extends PrivateJsonStreamApiComponent
             if (faultMessages.isEmpty()) {
                 newScriptVo.setTypeId(autoexecTypeMapper.getTypeIdByName(newScriptVo.getTypeName()));
                 newScriptVo.setRiskId(autoexecRiskMapper.getRiskIdByName(newScriptVo.getRiskName()));
-                newScriptVo.setCatalogId(autoexecCatalogMapper.getAutoexecCatalogByName(newScriptVo.getCatalogName()).getId());
+                newScriptVo.setCatalogId(catalogId);
 
                 AutoexecScriptVo oldScriptVo = autoexecScriptMapper.getScriptBaseInfoByName(newScriptVo.getName());
                 Long scriptId = oldScriptVo != null ? oldScriptVo.getId() : newScriptVo.getId();
