@@ -34,6 +34,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -166,6 +168,32 @@ public class RegisterAutoexecToolApi extends PrivateApiComponentBase {
                     param.put("isRequired", 0);
                 }
                 param.put("description", value.getString("help"));
+                JSONObject config = null;
+                JSONArray validate = value.getJSONArray("validate");
+                if (CollectionUtils.isNotEmpty(validate)) {
+                    config = new JSONObject();
+                    List<Object> validateList = new ArrayList<>();
+                    for (int j = 0; j < validate.size(); j++) {
+                        Object o = validate.get(j);
+                        if (!(o instanceof String)) {
+                            JSONObject regex;
+                            try {
+                                regex = JSONObject.parseObject(o.toString());
+                            } catch (Exception ex) {
+                                throw new AutoexecToolParamValidateFieldFormatIllegalException(key, o.toString());
+                            }
+                            if (StringUtils.isBlank(regex.getString("name"))) {
+                                throw new AutoexecToolParamValidateFieldLostException(key, j + 1, "name");
+                            }
+                            if (StringUtils.isBlank(regex.getString("pattern"))) {
+                                throw new AutoexecToolParamValidateFieldLostException(key, "name", "pattern");
+                            }
+                        }
+                        validateList.add(o);
+                    }
+                    config.put("validateList", validateList);
+                    param.put("config", config);
+                }
                 String type = value.getString("type");
                 Object defaultValue = value.get("defaultValue");
                 JSONObject dataSource = value.getJSONObject("dataSource");
@@ -209,7 +237,9 @@ public class RegisterAutoexecToolApi extends PrivateApiComponentBase {
                                 throw new AutoexecToolParamDatasourceIllegalException(key);
                             }
                         }
-                        JSONObject config = new JSONObject();
+                        if (config == null) {
+                            config = new JSONObject();
+                        }
                         config.put("dataSource", ParamDataSource.STATIC.getValue());
                         config.put("dataList", dataList);
                         param.put("config", config);
