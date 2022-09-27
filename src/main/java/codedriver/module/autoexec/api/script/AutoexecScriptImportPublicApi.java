@@ -119,8 +119,8 @@ public class AutoexecScriptImportPublicApi extends PrivateJsonStreamApiComponent
             }
             // 从外部导入的自定义工具，catalogName可能是路径，也可能只是名称，如果是路径，要根据每一层的名称查询对应的目录
             if (StringUtils.isNotBlank(catalogName)) {
-                if (catalogName.contains("\\")) {
-                    String[] split = catalogName.split("\\\\");
+                if (catalogName.contains("/")) {
+                    String[] split = catalogName.split("/");
                     AutoexecCatalogVo catalogVo = null;
                     for (int j = 0; j < split.length; j++) {
                         String name = split[j];
