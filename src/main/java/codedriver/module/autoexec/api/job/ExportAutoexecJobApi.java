@@ -13,7 +13,6 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import codedriver.framework.autoexec.job.AutoexecJobPhaseNodeExportHandlerFactory;
 import codedriver.framework.autoexec.job.IAutoexecJobPhaseNodeExportHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -44,21 +43,21 @@ import java.util.List;
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
-public class ExportAutoexecJobPhaseNodeApi extends PrivateBinaryStreamApiComponentBase {
+public class ExportAutoexecJobApi extends PrivateBinaryStreamApiComponentBase {
 
-    static Logger logger = LoggerFactory.getLogger(ExportAutoexecJobPhaseNodeApi.class);
+    static Logger logger = LoggerFactory.getLogger(ExportAutoexecJobApi.class);
 
     @Resource
     AutoexecJobMapper autoexecJobMapper;
 
     @Override
     public String getToken() {
-        return "autoexec/job/phase/node/export";
+        return "autoexec/job/export";
     }
 
     @Override
     public String getName() {
-        return "导出作业剧本节点";
+        return "导出作业";
     }
 
     @Override
@@ -67,32 +66,34 @@ public class ExportAutoexecJobPhaseNodeApi extends PrivateBinaryStreamApiCompone
     }
 
     @Input({
-            @Param(name = "jobPhaseId", type = ApiParamType.LONG, desc = "作业剧本id", isRequired = true),
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
     })
-    @Description(desc = "导出作业剧本节点")
+    @Description(desc = "导出作业")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
-        AutoexecJobPhaseNodeVo searchVo = JSONObject.toJavaObject(paramObj, AutoexecJobPhaseNodeVo.class);
-        AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByPhaseId(searchVo.getJobPhaseId());
-        if (phaseVo == null) {
-            throw new AutoexecJobPhaseNotFoundException(searchVo.getJobPhaseId().toString());
-        }
-        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(phaseVo.getJobId());
+        Long jobId = paramObj.getLong("jobId");
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
         if (jobVo == null) {
-            throw new AutoexecJobNotFoundException(phaseVo.getJobId().toString());
+            throw new AutoexecJobNotFoundException(jobId);
         }
-        searchVo.setJobId(jobVo.getId());
-        IAutoexecJobPhaseNodeExportHandler handler = AutoexecJobPhaseNodeExportHandlerFactory.getHandler(phaseVo.getExecMode());
-        if (handler != null) {
+        List<AutoexecJobPhaseVo> phaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobId);
+        if (phaseVoList.size() > 0) {
             ExcelBuilder builder = new ExcelBuilder(SXSSFWorkbook.class);
             builder.withBorderColor(HSSFColor.HSSFColorPredefined.GREY_40_PERCENT)
                     .withHeadFontColor(HSSFColor.HSSFColorPredefined.WHITE)
                     .withHeadBgColor(HSSFColor.HSSFColorPredefined.DARK_BLUE)
                     .withColumnWidth(30);
-            handler.exportJobPhaseNode(builder, searchVo, jobVo, phaseVo, getHeadList(phaseVo.getExecMode()), getColumnList(phaseVo.getExecMode()));
+            for (AutoexecJobPhaseVo phaseVo : phaseVoList) {
+                IAutoexecJobPhaseNodeExportHandler handler = AutoexecJobPhaseNodeExportHandlerFactory.getHandler(phaseVo.getExecMode());
+                if (handler != null) {
+                    AutoexecJobPhaseNodeVo searchVo = new AutoexecJobPhaseNodeVo();
+                    searchVo.setJobPhaseId(phaseVo.getId());
+                    handler.exportJobPhaseNode(builder, searchVo, jobVo, phaseVo, getHeadList(phaseVo.getExecMode()), getColumnList(phaseVo.getExecMode()));
+                }
+            }
             Workbook workbook = builder.build();
             if (workbook != null) {
-                String fileName = FileUtil.getEncodedFileName(request.getHeader("User-Agent"), jobVo.getName() + "-" + phaseVo.getName() + ".xlsx");
+                String fileName = FileUtil.getEncodedFileName(request.getHeader("User-Agent"), jobVo.getName() + ".xlsx");
                 response.setContentType("application/vnd.ms-excel;charset=utf-8");
                 response.setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
 
