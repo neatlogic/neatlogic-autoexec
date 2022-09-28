@@ -59,14 +59,14 @@ public class GetAutoexecScriptActiveVersionApi extends PrivateApiComponentBase {
             @Param(name = "lastModified", type = ApiParamType.DOUBLE, desc = "最后修改时间（秒，支持小数位）")
     })
     @Output({
-            @Param(name = "scriptVersionVo", explode = AutoexecScriptVersionVo.class , desc = "脚本内容")
+            @Param(name = "scriptVersionVo", explode = AutoexecScriptVersionVo.class, desc = "脚本内容")
     })
     @Description(desc = "获取操作当前激活版本脚本内容")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long operationId = jsonObj.getLong("operationId");
         BigDecimal lastModified = null;
-        if(jsonObj.getDouble("lastModified") != null) {
+        if (jsonObj.getDouble("lastModified") != null) {
             lastModified = new BigDecimal(Double.toString(jsonObj.getDouble("lastModified")));
         }
         if (autoexecScriptMapper.checkScriptIsExistsById(operationId) == 0) {
@@ -77,7 +77,7 @@ public class GetAutoexecScriptActiveVersionApi extends PrivateApiComponentBase {
             throw new AutoexecScriptVersionHasNoActivedException(operationId.toString());
         }
         AutoexecScriptVo scriptVo = autoexecScriptMapper.getScriptBaseInfoById(scriptVersionVo.getScriptId());
-        if(scriptVo == null){
+        if (scriptVo == null) {
             throw new AutoexecScriptNotFoundException(scriptVersionVo.getScriptId());
         }
         if (lastModified != null) {
@@ -90,10 +90,10 @@ public class GetAutoexecScriptActiveVersionApi extends PrivateApiComponentBase {
             }
         }
         JSONObject result = new JSONObject();
-        result.put("script",autoexecCombopService.getScriptVersionContent(scriptVersionVo));
-        result.put("config",new JSONObject(){{
-            put("scriptName",scriptVo.getName());
-            put("parser",scriptVersionVo.getParser());
+        result.put("script", autoexecCombopService.getScriptVersionContent(scriptVersionVo));
+        result.put("config", new JSONObject() {{
+            put("scriptName", scriptVo.getName());
+            put("parser", scriptVersionVo.getParser());
         }});
         return result;
     }
