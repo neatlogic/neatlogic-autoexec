@@ -11,7 +11,6 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecTypeVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -123,7 +122,7 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
             notifyPolicyMap = notifyPolicyList.stream().collect(Collectors.toMap(e -> e.getId(), e -> e));
         }
         //设置导出文件名
-        String fileName = FileUtil.getEncodedFileName(request.getHeader("User-Agent"), "组合工具." + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak");
+        String fileName = FileUtil.getEncodedFileName("组合工具." + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak");
         response.setContentType("application/octet-stream");
         response.setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
 

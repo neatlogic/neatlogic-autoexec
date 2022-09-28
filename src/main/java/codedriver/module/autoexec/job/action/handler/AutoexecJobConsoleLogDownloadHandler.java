@@ -56,7 +56,7 @@ public class AutoexecJobConsoleLogDownloadHandler extends AutoexecJobActionHandl
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) throws Exception {
         JSONObject paramObj = jobVo.getActionParam();
-        String fileName = FileUtil.getEncodedFileName(UserContext.get().getRequest().getHeader("User-Agent"), paramObj.getString("jobId") + "-" + paramObj.getString("runnerIp") + "-" + paramObj.getString("runnerPort") + ".log");
+        String fileName = FileUtil.getEncodedFileName(paramObj.getString("jobId") + "-" + paramObj.getString("runnerIp") + "-" + paramObj.getString("runnerPort") + ".log");
         UserContext.get().getResponse().setContentType("text/plain");
         UserContext.get().getResponse().setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
         String url = String.format("%s/api/binary/job/console/log/download", paramObj.getString("runnerUrl"));
