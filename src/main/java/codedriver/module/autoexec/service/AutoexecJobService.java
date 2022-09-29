@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.service;
 
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import com.alibaba.fastjson.JSONObject;
@@ -122,5 +123,14 @@ public interface AutoexecJobService {
      * @param encoding 字符编码
      */
     void validateAutoexecJobLogEncoding(String encoding);
+
+    /**
+     * 获取节点状态
+     *
+     * @param paramJson           入参
+     * @param isNeedOperationList 是否需要操作列表信息
+     * @return 节点状态
+     */
+    AutoexecJobPhaseNodeVo getNodeOperationStatus(JSONObject paramJson, boolean isNeedOperationList);
 
 }

@@ -235,6 +235,13 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
     }
 
     @Override
+    public AutoexecCombopVo getSnapshotAutoexecCombop(AutoexecJobVo autoexecJobParam) {
+        AutoexecCombopVo combopVo = new AutoexecCombopVo();
+        combopVo.setConfig(autoexecJobParam.getConfig());
+        return combopVo;
+    }
+
+    @Override
     public List<AutoexecJobPhaseNodeVo> getJobNodeListBySqlIdList(List<Long> sqlIdList) {
         return autoexecJobMapper.getJobPhaseNodeListBySqlIdList(sqlIdList);
     }
