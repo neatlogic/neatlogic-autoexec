@@ -89,7 +89,7 @@ public class ExportAutoexecJobPhaseNodeApi extends PrivateBinaryStreamApiCompone
                     .withHeadFontColor(HSSFColor.HSSFColorPredefined.WHITE)
                     .withHeadBgColor(HSSFColor.HSSFColorPredefined.DARK_BLUE)
                     .withColumnWidth(30);
-            handler.exportJobPhaseNode(builder, searchVo, jobVo, phaseVo, getHeadList(phaseVo.getExecMode()), getColumnList(phaseVo.getExecMode()));
+            handler.exportJobPhaseNodeWithNodeOutputParam(builder, searchVo, jobVo, phaseVo, null, getHeadList(phaseVo.getExecMode()), getColumnList(phaseVo.getExecMode()));
             Workbook workbook = builder.build();
             if (workbook != null) {
                 String fileName = FileUtil.getEncodedFileName(jobVo.getName() + "-" + phaseVo.getName() + ".xlsx");

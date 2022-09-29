@@ -24,12 +24,18 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
 import codedriver.framework.util.FileUtil;
 import codedriver.framework.util.excel.ExcelBuilder;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.Workbook;
 import org.apache.poi.xssf.streaming.SXSSFWorkbook;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.mongodb.core.MongoTemplate;
+import org.springframework.data.mongodb.core.query.Criteria;
+import org.springframework.data.mongodb.core.query.Query;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -38,7 +44,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
@@ -49,6 +57,9 @@ public class ExportAutoexecJobApi extends PrivateBinaryStreamApiComponentBase {
 
     @Resource
     AutoexecJobMapper autoexecJobMapper;
+
+    @Resource
+    MongoTemplate mongoTemplate;
 
     @Override
     public String getToken() {
@@ -76,6 +87,19 @@ public class ExportAutoexecJobApi extends PrivateBinaryStreamApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId);
         }
+//        List<JSONObject> outputDescList = mongoTemplate.find(new Query(Criteria.where("jobId").is("725123329744896")), JSONObject.class, "_job_output_desc");
+        List<JSONObject> outputDescList = mongoTemplate.find(new Query(Criteria.where("jobId").is(jobId)), JSONObject.class, "_job_output_desc");
+        Map<String, Map<String, List<String>>> phaseOutputParamMap = new HashMap<>();
+        if (CollectionUtils.isNotEmpty(outputDescList)) {
+            for (JSONObject object : outputDescList) {
+                String phase = object.getString("phase");
+                String pluginId = object.getString("pluginId");
+                JSONArray field = object.getJSONArray("field");
+                if (StringUtils.isNotBlank(phase) && StringUtils.isNotBlank(pluginId) && CollectionUtils.isNotEmpty(field)) {
+                    phaseOutputParamMap.computeIfAbsent(phase, k -> new HashMap<>()).computeIfAbsent(pluginId, k -> new ArrayList<>()).addAll(field.toJavaList(String.class));
+                }
+            }
+        }
         List<AutoexecJobPhaseVo> phaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobId);
         if (phaseVoList.size() > 0) {
             ExcelBuilder builder = new ExcelBuilder(SXSSFWorkbook.class);
@@ -88,12 +112,12 @@ public class ExportAutoexecJobApi extends PrivateBinaryStreamApiComponentBase {
                 if (handler != null) {
                     AutoexecJobPhaseNodeVo searchVo = new AutoexecJobPhaseNodeVo();
                     searchVo.setJobPhaseId(phaseVo.getId());
-                    handler.exportJobPhaseNode(builder, searchVo, jobVo, phaseVo, getHeadList(phaseVo.getExecMode()), getColumnList(phaseVo.getExecMode()));
+                    handler.exportJobPhaseNodeWithNodeOutputParam(builder, searchVo, jobVo, phaseVo, phaseOutputParamMap.get("test2"), getHeadList(phaseVo.getExecMode()), getColumnList(phaseVo.getExecMode()));
                 }
             }
             Workbook workbook = builder.build();
             if (workbook != null) {
-                String fileName = FileUtil.getEncodedFileName(request.getHeader("User-Agent"), jobVo.getName() + ".xlsx");
+                String fileName = FileUtil.getEncodedFileName(jobVo.getName() + ".xlsx");
                 response.setContentType("application/vnd.ms-excel;charset=utf-8");
                 response.setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
 
@@ -123,7 +147,7 @@ public class ExportAutoexecJobApi extends PrivateBinaryStreamApiComponentBase {
         headList.add("开始时间");
         headList.add("结束时间");
         headList.add("执行代理");
-        headList.add("日志");
+        headList.add("输出参数");
         return headList;
     }
 
@@ -139,7 +163,7 @@ public class ExportAutoexecJobApi extends PrivateBinaryStreamApiComponentBase {
         columnList.add("startTime");
         columnList.add("endTime");
         columnList.add("runner");
-        columnList.add("log");
+        columnList.add("outputParam");
         return columnList;
     }
 
