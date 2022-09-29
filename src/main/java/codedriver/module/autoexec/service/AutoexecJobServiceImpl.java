@@ -51,6 +51,7 @@ import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static codedriver.framework.common.util.CommonUtil.distinctByKey;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toMap;
 
@@ -903,7 +904,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     AutoexecCombopPhaseConfigVo phaseConfigVo = combopPhaseOptional.get().getConfig();
                     if (phaseConfigVo != null) {
                         List<AutoexecCombopPhaseOperationVo> operationVoList = phaseConfigVo.getPhaseOperationList();
-                        descriptionMap = operationVoList.stream().collect(Collectors.toMap(AutoexecCombopPhaseOperationVo::getOperationName, o -> o.getDescription() == null ? StringUtils.EMPTY : o.getDescription()));
+                        descriptionMap = operationVoList.stream().filter(distinctByKey(AutoexecCombopPhaseOperationVo::getOperationName)).collect(Collectors.toMap(AutoexecCombopPhaseOperationVo::getOperationName, o -> o.getDescription() == null ? StringUtils.EMPTY : o.getDescription()));
                     }
                 }
                 for (AutoexecJobPhaseOperationVo jobPhaseOperationVo : jobOperationVoList) {
