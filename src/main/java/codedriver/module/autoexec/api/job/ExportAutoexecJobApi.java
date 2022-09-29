@@ -87,8 +87,8 @@ public class ExportAutoexecJobApi extends PrivateBinaryStreamApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId);
         }
-//        List<JSONObject> outputDescList = mongoTemplate.find(new Query(Criteria.where("jobId").is("725123329744896")), JSONObject.class, "_job_output_desc");
-        List<JSONObject> outputDescList = mongoTemplate.find(new Query(Criteria.where("jobId").is(String.valueOf(jobId))), JSONObject.class, "_job_output_desc");
+        // 查询是否存在作业报告导出字段，如果存在则按<阶段名 -> <工具名 -> 字段列表>>分类
+        List<JSONObject> outputDescList = mongoTemplate.find(new Query(Criteria.where("jobId").is(jobId.toString())), JSONObject.class, "_job_output_desc");
         Map<String, Map<String, List<String>>> phaseOutputParamMap = new HashMap<>();
         if (CollectionUtils.isNotEmpty(outputDescList)) {
             for (JSONObject object : outputDescList) {
