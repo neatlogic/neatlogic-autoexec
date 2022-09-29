@@ -37,12 +37,7 @@ public class AutoexecJobTagertPhaseNodeExportHandler extends AutoexecJobPhaseNod
 
     @Override
     protected List<? extends INodeDetail> searchJobPhaseNode(AutoexecJobPhaseNodeVo jobPhaseNodeVo, String source) {
-        List<INodeDetail> result = new ArrayList<>();
-        List<AutoexecJobPhaseNodeVo> list = autoexecJobMapper.searchJobPhaseNodeWithResource(jobPhaseNodeVo);
-        if (list.size() > 0) {
-            list.forEach(o -> result.add(o));
-        }
-        return result;
+        return autoexecJobMapper.searchJobPhaseNodeWithResource(jobPhaseNodeVo);
     }
 
     @Override
