@@ -88,7 +88,7 @@ public class ExportAutoexecJobApi extends PrivateBinaryStreamApiComponentBase {
             throw new AutoexecJobNotFoundException(jobId);
         }
 //        List<JSONObject> outputDescList = mongoTemplate.find(new Query(Criteria.where("jobId").is("725123329744896")), JSONObject.class, "_job_output_desc");
-        List<JSONObject> outputDescList = mongoTemplate.find(new Query(Criteria.where("jobId").is(jobId)), JSONObject.class, "_job_output_desc");
+        List<JSONObject> outputDescList = mongoTemplate.find(new Query(Criteria.where("jobId").is(String.valueOf(jobId))), JSONObject.class, "_job_output_desc");
         Map<String, Map<String, List<String>>> phaseOutputParamMap = new HashMap<>();
         if (CollectionUtils.isNotEmpty(outputDescList)) {
             for (JSONObject object : outputDescList) {
@@ -112,7 +112,7 @@ public class ExportAutoexecJobApi extends PrivateBinaryStreamApiComponentBase {
                 if (handler != null) {
                     AutoexecJobPhaseNodeVo searchVo = new AutoexecJobPhaseNodeVo();
                     searchVo.setJobPhaseId(phaseVo.getId());
-                    handler.exportJobPhaseNodeWithNodeOutputParam(builder, searchVo, jobVo, phaseVo, phaseOutputParamMap.get("test2"), getHeadList(phaseVo.getExecMode()), getColumnList(phaseVo.getExecMode()));
+                    handler.exportJobPhaseNodeWithNodeOutputParam(builder, searchVo, jobVo, phaseVo, phaseOutputParamMap.get(phaseVo.getName()), getHeadList(phaseVo.getExecMode()), getColumnList(phaseVo.getExecMode()));
                 }
             }
             Workbook workbook = builder.build();
