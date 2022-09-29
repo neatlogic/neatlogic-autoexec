@@ -9,7 +9,6 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
-import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
@@ -72,16 +71,15 @@ public class ExportAutoexecJobPhaseNodeApi extends PrivateBinaryStreamApiCompone
     @Description(desc = "导出作业剧本节点")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
-        AutoexecJobPhaseNodeVo searchVo = JSONObject.toJavaObject(paramObj, AutoexecJobPhaseNodeVo.class);
-        AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByPhaseId(searchVo.getJobPhaseId());
+        Long jobPhaseId = paramObj.getLong("jobPhaseId");
+        AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByPhaseId(jobPhaseId);
         if (phaseVo == null) {
-            throw new AutoexecJobPhaseNotFoundException(searchVo.getJobPhaseId().toString());
+            throw new AutoexecJobPhaseNotFoundException(jobPhaseId.toString());
         }
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(phaseVo.getJobId());
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(phaseVo.getJobId().toString());
         }
-        searchVo.setJobId(jobVo.getId());
         IAutoexecJobPhaseNodeExportHandler handler = AutoexecJobPhaseNodeExportHandlerFactory.getHandler(phaseVo.getExecMode());
         if (handler != null) {
             ExcelBuilder builder = new ExcelBuilder(SXSSFWorkbook.class);
@@ -89,7 +87,7 @@ public class ExportAutoexecJobPhaseNodeApi extends PrivateBinaryStreamApiCompone
                     .withHeadFontColor(HSSFColor.HSSFColorPredefined.WHITE)
                     .withHeadBgColor(HSSFColor.HSSFColorPredefined.DARK_BLUE)
                     .withColumnWidth(30);
-            handler.exportJobPhaseNodeWithNodeLog(builder, searchVo, jobVo, phaseVo, getHeadList(phaseVo.getExecMode()), getColumnList(phaseVo.getExecMode()));
+            handler.exportJobPhaseNodeWithNodeLog(jobVo, phaseVo, builder, getHeadList(phaseVo.getExecMode()), getColumnList(phaseVo.getExecMode()));
             Workbook workbook = builder.build();
             if (workbook != null) {
                 String fileName = FileUtil.getEncodedFileName(jobVo.getName() + "-" + phaseVo.getName() + ".xlsx");

@@ -9,7 +9,6 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
-import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
@@ -110,9 +109,7 @@ public class ExportAutoexecJobApi extends PrivateBinaryStreamApiComponentBase {
             for (AutoexecJobPhaseVo phaseVo : phaseVoList) {
                 IAutoexecJobPhaseNodeExportHandler handler = AutoexecJobPhaseNodeExportHandlerFactory.getHandler(phaseVo.getExecMode());
                 if (handler != null) {
-                    AutoexecJobPhaseNodeVo searchVo = new AutoexecJobPhaseNodeVo();
-                    searchVo.setJobPhaseId(phaseVo.getId());
-                    handler.exportJobPhaseNodeWithNodeOutputParam(builder, searchVo, jobVo, phaseVo, phaseOutputParamMap.get(phaseVo.getName()), getHeadList(phaseVo.getExecMode()), getColumnList(phaseVo.getExecMode()));
+                    handler.exportJobPhaseNodeWithNodeOutputParam(jobVo, phaseVo, phaseOutputParamMap.get(phaseVo.getName()), builder, getHeadList(phaseVo.getExecMode()), getColumnList(phaseVo.getExecMode()));
                 }
             }
             Workbook workbook = builder.build();
