@@ -903,7 +903,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     AutoexecCombopPhaseConfigVo phaseConfigVo = combopPhaseOptional.get().getConfig();
                     if (phaseConfigVo != null) {
                         List<AutoexecCombopPhaseOperationVo> operationVoList = phaseConfigVo.getPhaseOperationList();
-                        descriptionMap = operationVoList.stream().collect(Collectors.toMap(AutoexecCombopPhaseOperationVo::getOperationName, AutoexecCombopPhaseOperationVo::getDescription));
+                        descriptionMap = operationVoList.stream().collect(Collectors.toMap(AutoexecCombopPhaseOperationVo::getOperationName, o -> o.getDescription() == null ? StringUtils.EMPTY : o.getDescription()));
                     }
                 }
                 for (AutoexecJobPhaseOperationVo jobPhaseOperationVo : jobOperationVoList) {
