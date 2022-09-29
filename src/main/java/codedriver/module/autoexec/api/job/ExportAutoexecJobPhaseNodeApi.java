@@ -92,7 +92,7 @@ public class ExportAutoexecJobPhaseNodeApi extends PrivateBinaryStreamApiCompone
             handler.exportJobPhaseNode(builder, searchVo, jobVo, phaseVo, getHeadList(phaseVo.getExecMode()), getColumnList(phaseVo.getExecMode()));
             Workbook workbook = builder.build();
             if (workbook != null) {
-                String fileName = FileUtil.getEncodedFileName(request.getHeader("User-Agent"), jobVo.getName() + "-" + phaseVo.getName() + ".xlsx");
+                String fileName = FileUtil.getEncodedFileName(jobVo.getName() + "-" + phaseVo.getName() + ".xlsx");
                 response.setContentType("application/vnd.ms-excel;charset=utf-8");
                 response.setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
 

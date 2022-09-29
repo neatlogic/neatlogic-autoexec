@@ -55,8 +55,7 @@ public class AutoexecJobNodeAuditDownloadHandler extends AutoexecJobActionHandle
         paramObj.put("port", nodeVo.getPort());
         paramObj.put("runnerUrl", nodeVo.getRunnerUrl());
         paramObj.put("execMode", phaseVo.getExecMode());
-        String fileName = FileUtil.getEncodedFileName(UserContext.get().getRequest().getHeader("User-Agent"),
-                nodeVo.getJobPhaseName() + "-" + nodeVo.getHost() + (nodeVo.getResourceId() == null ? StringUtils.EMPTY : ("-" + nodeVo.getResourceId())) + "-" + TimeUtil.convertDateToString(new Date(paramObj.getLong("startTime")), TimeUtil.YYYYMMDD_HHMMSS) + "-" + paramObj.getString("execUser") + ".txt");
+        String fileName = FileUtil.getEncodedFileName(nodeVo.getJobPhaseName() + "-" + nodeVo.getHost() + (nodeVo.getResourceId() == null ? StringUtils.EMPTY : ("-" + nodeVo.getResourceId())) + "-" + TimeUtil.convertDateToString(new Date(paramObj.getLong("startTime")), TimeUtil.YYYYMMDD_HHMMSS) + "-" + paramObj.getString("execUser") + ".txt");
         UserContext.get().getResponse().setContentType("text/plain");
         UserContext.get().getResponse().setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
         String url = paramObj.getString("runnerUrl") + "/api/binary/job/phase/node/execute/audit/download";
