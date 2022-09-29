@@ -11,7 +11,6 @@ import codedriver.framework.dto.runner.RunnerVo;
 import codedriver.framework.util.TimeUtil;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -56,9 +55,6 @@ public class AutoexecJobRunnerPhaseNodeExportHandler extends AutoexecJobPhaseNod
                 dataMap.put("startTime", node.getStartTime() != null ? TimeUtil.convertDateToString(node.getStartTime(), TimeUtil.YYYY_MM_DD_HH_MM_SS) : "");
                 dataMap.put("endTime", node.getEndTime() != null ? TimeUtil.convertDateToString(node.getEndTime(), TimeUtil.YYYY_MM_DD_HH_MM_SS) : "");
                 dataMap.put("runner", runner.getHost() + ":" + runner.getPort());
-                if (MapUtils.isNotEmpty(nodeOutputParamMap)) {
-                    dataMap.put("outputParam", nodeOutputParamMap.get(node.getResourceId()));
-                }
                 nodeDataMap.put(node.getId(), dataMap);
             }
         }
