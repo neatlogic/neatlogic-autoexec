@@ -401,8 +401,31 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                         throw new AutoexecParamMappingTargetNotFoundException(operationName, key, value);
                     }
                     if (!Objects.equals(runtimeParamVo.getType(), inputParamVo.getType())) {
-                        throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, value);
+                        if (inputParamVo.getType().equals(ParamType.TEXT.getValue())) {
+                            if (runtimeParamVo.getType().equals(ParamType.DATE.getValue())) {
+
+                            } else if (runtimeParamVo.getType().equals(ParamType.TIME.getValue())) {
+
+                            } else if (runtimeParamVo.getType().equals(ParamType.DATETIME.getValue())) {
+
+                            } else if (runtimeParamVo.getType().equals(ParamType.SELECT.getValue())) {
+
+                            } else if (runtimeParamVo.getType().equals(ParamType.RADIO.getValue())) {
+
+                            } else if (runtimeParamVo.getType().equals(ParamType.TEXTAREA.getValue())) {
+
+                            } else if (runtimeParamVo.getType().equals(ParamType.PHASE.getValue())) {
+
+                            } else if (runtimeParamVo.getType().equals(ParamType.PASSWORD.getValue())) {
+
+                            } else {
+                                throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, value);
+                            }
+                        } else {
+                            throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, value);
+                        }
                     }
+
                 } else if (Objects.equals(mappingMode, ParamMappingMode.PRE_NODE_OUTPUT_PARAM.getValue())) {
                     AutoexecParamVo preNodeOutputParamVo = preNodeOutputParamMap.get(value);
                     if (preNodeOutputParamVo == null) {
@@ -430,7 +453,29 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                         throw new AutoexecParamMappingTargetNotFoundException(operationName, key, value);
                     }
                     if (!Objects.equals(globalParamVo.getType(), inputParamVo.getType())) {
-                        throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, value);
+                        if (inputParamVo.getType().equals(ParamType.TEXT.getValue())) {
+                            if (globalParamVo.getType().equals(ParamType.DATE.getValue())) {
+
+                            } else if (globalParamVo.getType().equals(ParamType.TIME.getValue())) {
+
+                            } else if (globalParamVo.getType().equals(ParamType.DATETIME.getValue())) {
+
+                            } else if (globalParamVo.getType().equals(ParamType.SELECT.getValue())) {
+
+                            } else if (globalParamVo.getType().equals(ParamType.RADIO.getValue())) {
+
+                            } else if (globalParamVo.getType().equals(ParamType.TEXTAREA.getValue())) {
+
+                            } else if (globalParamVo.getType().equals(ParamType.PHASE.getValue())) {
+
+                            } else if (globalParamVo.getType().equals(ParamType.PASSWORD.getValue())) {
+
+                            } else {
+                                throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, value);
+                            }
+                        } else {
+                            throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, value);
+                        }
                     }
                 } else {
                     throw new AutoexecParamMappingIncorrectException(operationName, key);
