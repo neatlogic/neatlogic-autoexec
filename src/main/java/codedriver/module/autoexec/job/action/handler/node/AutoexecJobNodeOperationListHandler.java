@@ -12,11 +12,13 @@ import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
+import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.List;
 import java.util.Objects;
 
@@ -27,6 +29,8 @@ import java.util.Objects;
 @Service
 public class AutoexecJobNodeOperationListHandler extends AutoexecJobActionHandlerBase {
     private final static Logger logger = LoggerFactory.getLogger(AutoexecJobNodeOperationListHandler.class);
+    @Resource
+    AutoexecJobService autoexecJobService;
 
     @Override
     public String getName() {
@@ -55,7 +59,7 @@ public class AutoexecJobNodeOperationListHandler extends AutoexecJobActionHandle
         paramJson.put("execMode", phaseVo.getExecMode());
         JSONObject result = new JSONObject();
         result.put("isRefresh", 0);
-        AutoexecJobPhaseNodeVo phaseNodeVo = getNodeOperationStatus(paramJson,true);
+        AutoexecJobPhaseNodeVo phaseNodeVo = autoexecJobService.getNodeOperationStatus(paramJson, true);
         List<AutoexecJobPhaseNodeOperationStatusVo> operationStatusVos = phaseNodeVo.getOperationStatusVoList();
         result.put("operationStatusList", operationStatusVos);
         String nodeStatusOld = paramJson.getString("status");

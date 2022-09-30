@@ -14,12 +14,15 @@ import codedriver.framework.exception.runner.RunnerHttpRequestException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import codedriver.framework.integration.authentication.enums.AuthenticateType;
 import codedriver.framework.util.HttpRequestUtil;
+import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+
+import javax.annotation.Resource;
 
 /**
  * @author lvzk
@@ -28,6 +31,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class AutoexecJobNodeSubmitWaitInputHandler extends AutoexecJobActionHandlerBase {
     private final static Logger logger = LoggerFactory.getLogger(AutoexecJobNodeSubmitWaitInputHandler.class);
+    @Resource
+    AutoexecJobService autoexecJobService;
 
     @Override
     public String getName() {
@@ -61,15 +66,15 @@ public class AutoexecJobNodeSubmitWaitInputHandler extends AutoexecJobActionHand
         paramObj.put("runnerUrl", nodeVo.getRunnerUrl());
         paramObj.put("execMode", phaseVo.getExecMode());
         //获取pipeFile 路径
-        AutoexecJobPhaseNodeVo phaseNodeVo = getNodeOperationStatus(paramObj,false);
+        AutoexecJobPhaseNodeVo phaseNodeVo = autoexecJobService.getNodeOperationStatus(paramObj, false);
         JSONObject interactJson = phaseNodeVo.getInteract();
-        if(MapUtils.isEmpty(interactJson)){
+        if (MapUtils.isEmpty(interactJson)) {
             throw new AutoexecJobInteractException();
         }
-        if(StringUtils.isBlank(interactJson.getString("pipeFile"))){
+        if (StringUtils.isBlank(interactJson.getString("pipeFile"))) {
             throw new AutoexecJobInteractException("pipeFile is blank");
         }
-        paramObj.put("pipeFile",interactJson.getString("pipeFile"));
+        paramObj.put("pipeFile", interactJson.getString("pipeFile"));
         String url = String.format("%s/api/rest/job/phase/node/submit/waitInput", nodeVo.getRunnerUrl());
         String result = HttpRequestUtil.post(url)
                 .setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(5000).setReadTimeout(5000)
