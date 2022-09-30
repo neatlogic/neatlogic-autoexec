@@ -9,6 +9,7 @@ import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import codedriver.framework.autoexec.util.AutoexecUtil;
+import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.MapUtils;
@@ -16,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -26,6 +28,8 @@ import java.util.stream.Collectors;
 @Service
 public class AutoexecJobNodeOutputParamGetHandler extends AutoexecJobActionHandlerBase {
     private final static Logger logger = LoggerFactory.getLogger(AutoexecJobNodeOutputParamGetHandler.class);
+    @Resource
+    AutoexecJobService autoexecJobService;
 
     @Override
     public String getName() {
@@ -62,7 +66,7 @@ public class AutoexecJobNodeOutputParamGetHandler extends AutoexecJobActionHandl
             Long jobPhaseId = paramJson.getLong("phaseId");
             List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseId(jobId, jobPhaseId);
             List<AutoexecJobContentVo> paramContentVoList = autoexecJobMapper.getJobContentList(operationVoList.stream().map(AutoexecJobPhaseOperationVo::getParamHash).collect(Collectors.toList()));
-            AutoexecJobPhaseNodeVo phaseNodeVo = getNodeOperationStatus(paramJson,true);
+            AutoexecJobPhaseNodeVo phaseNodeVo = autoexecJobService.getNodeOperationStatus(paramJson, true);
             List<AutoexecJobPhaseNodeOperationStatusVo> operationStatusVos = phaseNodeVo.getOperationStatusVoList();
             operationOutputParamArray = new JSONArray() {{
                 for (AutoexecJobPhaseOperationVo operationVo : operationVoList) {
@@ -86,7 +90,7 @@ public class AutoexecJobNodeOutputParamGetHandler extends AutoexecJobActionHandl
                         });
                         outputParamList = outputParamList.stream().sorted(Comparator.comparing(AutoexecJobParamVo::getSort)).collect(Collectors.toList());
                         put("paramList", outputParamList);
-                        Optional<AutoexecJobPhaseNodeOperationStatusVo> operationStatusVoOptional = operationStatusVos.stream().filter(o->Objects.equals(o.getName(),operationVo.getName())).findFirst();
+                        Optional<AutoexecJobPhaseNodeOperationStatusVo> operationStatusVoOptional = operationStatusVos.stream().filter(o -> Objects.equals(o.getName(), operationVo.getName())).findFirst();
                         operationStatusVoOptional.ifPresent(autoexecJobPhaseNodeOperationStatusVo -> put("status", autoexecJobPhaseNodeOperationStatusVo.getStatus()));
                     }});
                 }

@@ -349,6 +349,15 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             }
         }
         if (CollectionUtils.isNotEmpty(mappingList)) {
+            List<String> paramList = new ArrayList<>();
+            paramList.add(ParamType.DATE.getValue());
+            paramList.add(ParamType.TIME.getValue());
+            paramList.add(ParamType.DATETIME.getValue());
+            paramList.add(ParamType.SELECT.getValue());
+            paramList.add(ParamType.RADIO.getValue());
+            paramList.add(ParamType.TEXTAREA.getValue());
+            paramList.add(ParamType.PHASE.getValue());
+            paramList.add(ParamType.PASSWORD.getValue());
             AutoexecParamVo inputParamVo;
             String key;
             for (ParamMappingVo paramMappingVo : mappingList) {
@@ -401,8 +410,15 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                         throw new AutoexecParamMappingTargetNotFoundException(operationName, key, value);
                     }
                     if (!Objects.equals(runtimeParamVo.getType(), inputParamVo.getType())) {
-                        throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, value);
+                        if (inputParamVo.getType().equals(ParamType.TEXT.getValue())) {
+                            if (!paramList.contains(runtimeParamVo.getType())) {
+                                throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, value);
+                            }
+                        } else {
+                            throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, value);
+                        }
                     }
+
                 } else if (Objects.equals(mappingMode, ParamMappingMode.PRE_NODE_OUTPUT_PARAM.getValue())) {
                     AutoexecParamVo preNodeOutputParamVo = preNodeOutputParamMap.get(value);
                     if (preNodeOutputParamVo == null) {
@@ -430,7 +446,13 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                         throw new AutoexecParamMappingTargetNotFoundException(operationName, key, value);
                     }
                     if (!Objects.equals(globalParamVo.getType(), inputParamVo.getType())) {
-                        throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, value);
+                        if (inputParamVo.getType().equals(ParamType.TEXT.getValue())) {
+                            if (!paramList.contains(globalParamVo.getType())) {
+                                throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, value);
+                            }
+                        } else {
+                            throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, value);
+                        }
                     }
                 } else {
                     throw new AutoexecParamMappingIncorrectException(operationName, key);
@@ -795,9 +817,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         List<AutoexecScriptLineVo> scriptLineVoList = autoexecScriptMapper.getLineListByVersionId(scriptVersionVo.getId());
         StringBuilder scriptSb = new StringBuilder();
         for (AutoexecScriptLineVo lineVo : scriptLineVoList) {
-            if (StringUtils.isNotBlank(lineVo.getContent())) {
-                scriptSb.append(lineVo.getContent()).append("\n");
-            }
+            scriptSb.append(lineVo.getContent() != null ? lineVo.getContent() : StringUtils.EMPTY).append("\n");
         }
         return scriptSb.toString();
     }

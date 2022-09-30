@@ -11,6 +11,7 @@ import codedriver.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandle
 import codedriver.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
 import codedriver.framework.util.TimeUtil;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -46,7 +47,7 @@ public class AutoexecJobSqlFilePhaseNodeExportHandler extends AutoexecJobPhaseNo
     }
 
     @Override
-    protected void assembleData(AutoexecJobVo jobVo, AutoexecJobPhaseVo phaseVo, List<? extends INodeDetail> nodeList, Map<Long, Map<String, Object>> nodeDataMap, Map<String, List<Long>> runnerNodeMap, Map<Long, JSONObject> nodeLogTailParamMap) {
+    protected void assembleData(AutoexecJobVo jobVo, AutoexecJobPhaseVo phaseVo, List<? extends INodeDetail> nodeList, Map<Long, Map<String, Object>> nodeDataMap, Map<String, List<Long>> runnerNodeMap, Map<Long, JSONObject> nodeLogTailParamMap, Map<Long, String> nodeOutputParamMap) {
         for (INodeDetail vo : nodeList) {
             ISqlNodeDetail detail = (ISqlNodeDetail) vo;
             Map<String, Object> dataMap = new HashMap<>();
@@ -64,6 +65,9 @@ public class AutoexecJobSqlFilePhaseNodeExportHandler extends AutoexecJobPhaseNo
                 runner = runnerHost + ":" + runnerPort;
             }
             dataMap.put("runner", runner);
+            if (MapUtils.isNotEmpty(nodeOutputParamMap)) {
+                dataMap.put("outputParam", nodeOutputParamMap.get(vo.getResourceId()));
+            }
             nodeDataMap.put(detail.getId(), dataMap);
             runnerNodeMap.computeIfAbsent(detail.getRunnerUrl(), k -> new ArrayList<>()).add(detail.getId());
             nodeLogTailParamMap.put(detail.getId(), new JSONObject() {

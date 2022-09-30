@@ -72,8 +72,7 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
         if (CollectionUtils.isNotEmpty(idList)) {
             throw new AutoexecScriptNotFoundException(StringUtils.join(idList, ","));
         }
-        String fileName = FileUtil.getEncodedFileName(request.getHeader("User-Agent"),
-                "自定义工具." + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak");
+        String fileName = FileUtil.getEncodedFileName("自定义工具." + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak");
         response.setContentType("application/zip");
         response.setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
         try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {

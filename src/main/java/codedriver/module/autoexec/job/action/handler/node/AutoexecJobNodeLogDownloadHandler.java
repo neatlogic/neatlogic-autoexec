@@ -59,8 +59,7 @@ public class AutoexecJobNodeLogDownloadHandler extends AutoexecJobActionHandlerB
         paramObj.put("port", nodeVo.getPort());
         paramObj.put("runnerUrl", nodeVo.getRunnerUrl());
         paramObj.put("execMode", phaseVo.getExecMode());
-        String fileName = FileUtil.getEncodedFileName(UserContext.get().getRequest().getHeader("User-Agent"),
-                nodeVo.getJobPhaseName() + "-" + nodeVo.getHost() + "-" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".log");
+        String fileName = FileUtil.getEncodedFileName(nodeVo.getJobPhaseName() + "-" + nodeVo.getHost() + "-" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".log");
         UserContext.get().getResponse().setContentType("text/plain");
         UserContext.get().getResponse().setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
         String url = String.format("%s/api/binary/job/phase/node/log/download", nodeVo.getRunnerUrl());

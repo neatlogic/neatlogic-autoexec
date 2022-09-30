@@ -55,8 +55,7 @@ public class AutoexecJobNodeOutPutDownloadHandler extends AutoexecJobActionHandl
         paramObj.put("port", nodeVo.getPort());
         paramObj.put("runnerUrl", nodeVo.getRunnerUrl());
         paramObj.put("execMode", phaseVo.getExecMode());
-        String fileName = FileUtil.getEncodedFileName(UserContext.get().getRequest().getHeader("User-Agent"),
-                nodeVo.getHost() + "-" + (nodeVo.getPort() == null ? StringUtils.EMPTY : nodeVo.getPort()) + "-" + nodeVo.getResourceId() + ".log");
+        String fileName = FileUtil.getEncodedFileName(nodeVo.getHost() + "-" + (nodeVo.getPort() == null ? StringUtils.EMPTY : nodeVo.getPort()) + "-" + nodeVo.getResourceId() + ".log");
         UserContext.get().getResponse().setContentType("text/plain");
         UserContext.get().getResponse().setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
         String url = String.format("%s/api/binary/job/phase/node/output/download", nodeVo.getRunnerUrl());
