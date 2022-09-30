@@ -30,7 +30,9 @@ import codedriver.framework.restful.annotation.OperationType;
 import codedriver.framework.restful.annotation.Param;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
-import codedriver.framework.util.ExportUtil;
+import codedriver.framework.util.word.WordBuilder;
+import codedriver.framework.util.word.enums.FontFamily;
+import codedriver.framework.util.word.enums.TitleType;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
@@ -42,14 +44,9 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayOutputStream;
 import java.io.OutputStream;
-import java.io.StringWriter;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -60,9 +57,9 @@ import java.util.stream.Collectors;
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
-public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentBase {
+public class ExportAutoexecToolParamApi2 extends PrivateBinaryStreamApiComponentBase {
 
-    private static final Log logger = LogFactory.getLog(ExportAutoexecToolParamApi.class);
+    private static final Log logger = LogFactory.getLog(ExportAutoexecToolParamApi2.class);
 
     @Resource
     private AutoexecToolMapper autoexecToolMapper;
@@ -72,7 +69,7 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
 
     @Override
     public String getName() {
-        return "导出工具库工具参数";
+        return "导出工具库工具参数2";
     }
 
     @Override
@@ -82,7 +79,7 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
 
     @Override
     public String getToken() {
-        return "autoexec/tool/param/export";
+        return "autoexec/tool/param/export2";
     }
 
     @Input({
@@ -124,7 +121,52 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
             response.setContentType("application/x-download");
             response.setHeader("Content-Disposition",
                     " attachment; filename=\"[" + URLEncoder.encode(fileName + "]参数说明", "utf-8") + ".docx\"");
-            ExportUtil.getWordFileByHtml(getHtmlContent(toolVoList), os, false, false);
+            WordBuilder wordBuilder = new WordBuilder();
+            Map<Integer, String> tableHeaderMap = new HashMap<>();
+            tableHeaderMap.put(1, "参数名");
+            tableHeaderMap.put(2, "控件类型");
+            tableHeaderMap.put(3, "必填/选填");
+            tableHeaderMap.put(4, "默认值");
+            tableHeaderMap.put(5, "描述");
+
+            //工具类型分类
+            Map<String, List<AutoexecToolVo>> allTypeAutoexecToolListMap = toolVoList.stream().collect(Collectors.groupingBy(e -> e.getTypeName() + "[" + e.getTypeDescription() + "]"));
+            int typeNum = 1;
+            for (String type : allTypeAutoexecToolListMap.keySet()) {
+                wordBuilder.addTitle(TitleType.H2, "1." + typeNum + "  " + type);
+                List<AutoexecToolVo> toolVos = allTypeAutoexecToolListMap.get(type);
+                for (int toolNum = 1; toolNum <= toolVos.size(); toolNum++) {
+                    AutoexecToolVo toolVo = toolVos.get(toolNum - 1);
+                    //TODO cmdbcollect/fcswitchcollector这个工具的dataList还有问题，等波哥改为才可以支持这个工具的导出
+                    if (Objects.equals(toolVo.getName(), "cmdbcollect/fcswitchcollector")) {
+                        continue;
+                    }
+
+                    wordBuilder.addTitle(TitleType.H3, "1." + typeNum + "." + toolNum + "  " + toolVo.getName());
+                    wordBuilder.addParagraph("描述：" + toolVo.getDescription()).setFontSize(12).setFontFamily(FontFamily.REGULAR_SCRIPT.getValue());
+                    wordBuilder.addParagraph("执行方式：" + toolVo.getExecModeText()).setFontSize(12).setFontFamily(FontFamily.REGULAR_SCRIPT.getValue());
+                    if (CollectionUtils.isEmpty(toolVo.getInputParamList())) {
+                        wordBuilder.addParagraph("无参数").setFontSize(12).setFontFamily(FontFamily.REGULAR_SCRIPT.getValue());
+                        continue;
+                    }
+                    wordBuilder.addParagraph("参数：").setFontSize(12).setFontFamily(FontFamily.REGULAR_SCRIPT.getValue());
+                    List<Map<String, String>> list = new ArrayList<>();
+                    //表格数据（参数数据）
+                    for (AutoexecParamVo paramVo : toolVo.getInputParamList()) {
+                        Map<String, String> map = new HashMap<>();
+                        map.put("参数名", paramVo.getName() + "（" + paramVo.getKey() + "）");
+                        map.put("控件类型", paramVo.getTypeText());
+                        map.put("必填/选填", ((paramVo.getIsRequired() != null && paramVo.getIsRequired() == 1) ? "必填" : "选填"));
+                        map.put("默认值", new String(getDefaultValue(paramVo)));
+                        map.put("描述", paramVo.getDescription());
+                        list.add(map);
+                    }
+                    wordBuilder.addTable(tableHeaderMap).addRows(list);
+                    wordBuilder.addBlankRow();
+                }
+                typeNum++;
+            }
+            wordBuilder.builder().write(os);
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
         } finally {
@@ -134,62 +176,6 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
             }
         }
         return null;
-    }
-
-    /**
-     * 获取content
-     *
-     * @param toolVoList 需要导出的toolVoList
-     * @return content
-     * @throws Exception
-     */
-    private String getHtmlContent(List<AutoexecToolVo> toolVoList) throws Exception {
-
-        ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        StringWriter out = new StringWriter();
-
-        //工具类型分类
-        Map<String, List<AutoexecToolVo>> allTypeAutoexecToolListMap = toolVoList.stream().collect(Collectors.groupingBy(e -> e.getTypeName() + "[" + e.getTypeDescription() + "]"));
-        int typeNum = 1;
-        for (String type : allTypeAutoexecToolListMap.keySet()) {
-            out.write("<html xmlns:v=\"urn:schemas-microsoft-com:vml\" xmlns:o=\"urn:schemas-microsoft-com:office:office\" xmlns:x=\"urn:schemas-microsoft-com:office:excel\" xmlns=\"http://www.w3.org/TR/REC-html40\">\n");
-            out.write("<head>\n<meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"></meta>\n</head>\n");
-            out.write("<body>\n");
-            out.write("<h2><span style=\"font-family:'楷体'; font-weight:normal\">1." + typeNum + "</span>&#xa0;&#xa0;&#xa0;\n" + type + "</h2>");
-
-            List<AutoexecToolVo> toolVos = allTypeAutoexecToolListMap.get(type);
-            for (int toolNum = 1; toolNum <= toolVos.size(); toolNum++) {
-                AutoexecToolVo toolVo = toolVos.get(toolNum - 1);
-                //TODO cmdbcollect/fcswitchcollector这个工具的dataList还有问题，等波哥改为才可以支持这个工具的导出
-                if (Objects.equals(toolVo.getName(), "cmdbcollect/fcswitchcollector")) {
-                    continue;
-                }
-
-                out.write("<h3><span style=\"font-family:'楷体'; font-weight:normal\">1." + typeNum + "." + toolNum + "</span>&#xa0;&#xa0;\n" + toolVo.getName() + "</h3>");
-                out.write("<div><span>描述：" + toolVo.getDescription() + "</span></div>\n");
-                out.write("<div><span>执行方式：" + toolVo.getExecModeText() + "</span></div>\n");
-                if (CollectionUtils.isEmpty(toolVo.getInputParamList())) {
-                    out.write("<div><span>无参数</span></div>");
-                    continue;
-                }
-                out.write("<div><span>参数：</span></div>");
-
-                /*表格*/
-                out.write("<table style=\"border-collapse:collapse ; table-layout:fixed;width: 66.45%; text-align: center;\">\n");
-                //表头
-                out.write(getTrTag("参数名", "控件类型", "必填/选填", "默认值", "描述"));
-                //表格数据（参数数据）
-                for (AutoexecParamVo paramVo : toolVo.getInputParamList()) {
-                    out.write(getTrTag(paramVo.getName() + "（" + paramVo.getKey() + "）", paramVo.getTypeText(), ((paramVo.getIsRequired() != null && paramVo.getIsRequired() == 1) ? "必填" : "选填"), new String(getDefaultValue(paramVo)), paramVo.getDescription()));
-                }
-                out.write("</table>\n</body>\n</html>");
-            }
-            typeNum++;
-        }
-        bos.close();
-        out.flush();
-        out.close();
-        return out.toString();
     }
 
 
