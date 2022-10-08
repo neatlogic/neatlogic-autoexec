@@ -47,7 +47,7 @@ public class AutoexecJobNodeSqlContentGetHandler extends AutoexecJobActionHandle
                 throw new AutoexecJobSourceInvalidException(jobVo.getSource());
             }
             IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
-            autoexecJobSourceActionHandler.getJobSqlContent(jobVo);
+            return autoexecJobSourceActionHandler.getJobSqlContent(jobVo);
         }
         return null;
     }
