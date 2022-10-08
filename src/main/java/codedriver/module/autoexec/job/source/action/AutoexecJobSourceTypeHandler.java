@@ -10,10 +10,7 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.ISqlNodeDetail;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
-import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
-import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
-import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.dto.job.AutoexecSqlNodeDetailVo;
+import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerBase;
 import codedriver.framework.autoexec.util.AutoexecUtil;
@@ -31,6 +28,7 @@ import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.nacos.common.utils.CollectionUtils;
+import com.alibaba.nacos.common.utils.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -316,5 +314,35 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
     @Override
     public void updateSqlStatus(List<Long> sqlIdList, String status) {
         autoexecJobMapper.updateSqlStatusByIdList(sqlIdList, status);
+    }
+
+    @Override
+    public void getCreatePayload(AutoexecJobVo jobVo, JSONObject result) {
+        //executeConfig
+        AutoexecJobContentVo configContentVo = autoexecJobMapper.getJobContent(jobVo.getConfigHash());
+        JSONObject jobConfig = JSONObject.parseObject(configContentVo.getContent());
+        result.put("executeConfig", jobConfig.getJSONObject("executeConfig"));
+        if (Objects.equals(CombopOperationType.COMBOP.getValue(), jobVo.getOperationType())) {
+            result.put("combopId", jobVo.getOperationId());
+        } else {
+            result.put("operationId", jobVo.getOperationId());
+            result.put("type", jobVo.getOperationType());
+            //argumentMappingList
+            JSONArray combopPhaseList = jobConfig.getJSONArray("combopPhaseList");
+            if(CollectionUtils.isNotEmpty(combopPhaseList)){
+                JSONObject phaseConfig = combopPhaseList.getJSONObject(0).getJSONObject("config");
+                if(MapUtils.isNotEmpty(phaseConfig)){
+                    JSONArray phaseOperationList = phaseConfig.getJSONArray("phaseOperationList");
+                    if(CollectionUtils.isNotEmpty(phaseOperationList)){
+                        JSONObject operationConfig = phaseOperationList.getJSONObject(0).getJSONObject("config");
+                        if(MapUtils.isNotEmpty(operationConfig)){
+                            result.put("argumentMappingList",operationConfig.getJSONArray("argumentMappingList"));
+                        }
+                    }
+                }
+            }
+        }
+        result.put("source", jobVo.getSource());
+        result.put("name", jobVo.getName());
     }
 }

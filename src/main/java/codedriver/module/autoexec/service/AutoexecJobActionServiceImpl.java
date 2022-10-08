@@ -14,7 +14,6 @@ import codedriver.framework.autoexec.crossover.IAutoexecJobActionCrossoverServic
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.AutoexecJobSourceVo;
-import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
@@ -349,8 +348,6 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             }
             combopExecuteConfigVo.setExecuteNodeConfig(autoexecJobParam.getExecuteConfig().getExecuteNodeConfig());
             combopVo.getConfig().setExecuteConfig(combopExecuteConfigVo);
-            List<AutoexecParamVo> autoexecCombopParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopVo.getId());
-            combopVo.getConfig().setRuntimeParamList(autoexecCombopParamList);
             autoexecCombopService.verifyAutoexecCombopConfig(combopVo.getConfig(), true);
         }
 
@@ -363,7 +360,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             autoexecJobParam.setScenarioId(scenarioVo.getId());
         }
         autoexecJobParam.setConfigStr(JSONObject.toJSONString(combopVo.getConfig()));
-        autoexecJobParam.setRunTimeParamList(autoexecCombopMapper.getAutoexecCombopParamListByCombopId(combopVo.getId()));
+        autoexecJobParam.setRunTimeParamList(combopVo.getConfig().getRuntimeParamList());
 
         autoexecJobSourceActionHandler.updateInvokeJob(autoexecJobParam);
         autoexecJobService.saveAutoexecCombopJob(autoexecJobParam);
