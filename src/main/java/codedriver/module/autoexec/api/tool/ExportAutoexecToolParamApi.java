@@ -138,9 +138,9 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
                 for (int toolNum = 1; toolNum <= toolVos.size(); toolNum++) {
                     AutoexecToolVo toolVo = toolVos.get(toolNum - 1);
                     //TODO cmdbcollect/fcswitchcollector这个工具的dataList还有问题，等波哥改为才可以支持这个工具的导出
-//                    if (Objects.equals(toolVo.getName(), "cmdbcollect/fcswitchcollector")) {
-//                        continue;
-//                    }
+                    if (Objects.equals(toolVo.getName(), "cmdbcollect/fcswitchcollector")) {
+                        continue;
+                    }
 
                     wordBuilder.addTitle(TitleType.H3, "1." + typeNum + "." + toolNum + "  " + toolVo.getName());
                     wordBuilder.addParagraph("描述：" + toolVo.getDescription()).setFontSize(12).setFontFamily(FontFamily.REGULAR_SCRIPT.getValue());
