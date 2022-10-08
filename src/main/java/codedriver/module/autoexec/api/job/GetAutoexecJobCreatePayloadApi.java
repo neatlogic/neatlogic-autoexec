@@ -22,6 +22,7 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -76,10 +77,12 @@ public class GetAutoexecJobCreatePayloadApi extends PrivateApiComponentBase {
         JSONObject param = new JSONObject();
         result.put("param", param);
         AutoexecJobContentVo paramContentVo = autoexecJobMapper.getJobContent(jobVo.getParamHash());
-        JSONArray paramContentArray = JSONObject.parseArray(paramContentVo.getContent());
-        for (int i = 0; i < paramContentArray.size(); i++) {
-            JSONObject paramContent = paramContentArray.getJSONObject(i);
-            param.put(paramContent.getString("key"), paramContent.get("value"));
+        if(paramContentVo != null && StringUtils.isNotBlank(paramContentVo.getContent())) {
+            JSONArray paramContentArray = JSONObject.parseArray(paramContentVo.getContent());
+            for (int i = 0; i < paramContentArray.size(); i++) {
+                JSONObject paramContent = paramContentArray.getJSONObject(i);
+                param.put(paramContent.getString("key"), paramContent.get("value"));
+            }
         }
         return result;
     }
