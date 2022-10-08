@@ -59,7 +59,7 @@ public class test extends PrivateBinaryStreamApiComponentBase {
             tableHeaderMap.put(2, "port");
             tableHeaderMap.put(3, "port2");
             tableHeaderMap.put(4, "port44");
-            tableHeaderMap.put(5, "测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试");
+            tableHeaderMap.put(5, "222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222");
             //222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222
             Map<String, String> tableValueMap = new HashMap<>();
 //            tableValueMap.put("port", "22");
@@ -67,7 +67,11 @@ public class test extends PrivateBinaryStreamApiComponentBase {
             tableValueMap.put("ip", "234.234.234.234");
 //            tableValueMap.put("ip", "192");
 
-            wordBuilder.addTitle(TitleType.TILE, "测试").addTitle(TitleType.H1, "测试").addTitle(TitleType.H2, "测试").addTitle(TitleType.H3, "测试");
+            wordBuilder.addTitle(TitleType.TILE, "测试");
+            wordBuilder.addTitle(TitleType.H1, "测试").setFontSize(24).setAlignmentType(ParagraphAlignmentType.RIGHT);
+            wordBuilder.addTitle(TitleType.H2, "测试").setFontFamily(FontFamily.FANG_SONG.getValue());
+            wordBuilder.addTitle(TitleType.H3, "测试").setBold(false).setColor(FontColor.RED.getValue());
+
             wordBuilder.addBlankRow().addParagraph().setText("测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试测试")
                     .setCustom(false, FontColor.RED.getValue(), FontFamily.BLACK.getValue(), 12, 2, true, ParagraphAlignmentType.CENTER);
 
