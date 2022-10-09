@@ -84,16 +84,22 @@ public class AutoexecScriptExportForAutoexecApi extends PrivateBinaryStreamApiCo
         } else if (CollectionUtils.isNotEmpty(catalogList)) {
             for (int i = 0; i < catalogList.size(); i++) {
                 String catalogPath = catalogList.getString(i);
+                if ("/".equals(catalogPath)) {
+                    catalogIdSet.clear();
+                    break;
+                }
                 Long catalogId = autoexecScriptService.getCatalogIdByCatalogPath(catalogPath);
                 if (catalogId != null) {
                     catalogIdSet.add(catalogId);
                 }
             }
-            List<AutoexecCatalogVo> catalogVoList = autoexecCatalogMapper.getCatalogListByIdList(new ArrayList<>(catalogIdSet));
-            catalogIdSet.clear();
-            if (catalogVoList.size() > 0) {
-                for (AutoexecCatalogVo catalogVo : catalogVoList) {
-                    catalogIdSet.addAll(autoexecCatalogMapper.getChildrenByLftRht(catalogVo).stream().map(AutoexecCatalogVo::getId).collect(Collectors.toList()));
+            if (catalogIdSet.size() > 0) {
+                List<AutoexecCatalogVo> catalogVoList = autoexecCatalogMapper.getCatalogListByIdList(new ArrayList<>(catalogIdSet));
+                catalogIdSet.clear();
+                if (catalogVoList.size() > 0) {
+                    for (AutoexecCatalogVo catalogVo : catalogVoList) {
+                        catalogIdSet.addAll(autoexecCatalogMapper.getChildrenByLftRht(catalogVo).stream().map(AutoexecCatalogVo::getId).collect(Collectors.toList()));
+                    }
                 }
             }
         }
