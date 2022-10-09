@@ -103,7 +103,7 @@ public class GetAutoexecJobPhaseOperationScriptApi extends PrivateApiComponentBa
                 throw new AutoexecScriptVersionHasNoActivedException(jobPhaseOperationVo.getName());
             }
 
-            //脚本目录
+            //获取脚本目录
             String scriptCatalog = "";
             AutoexecCatalogVo scriptCatalogVo = autoexecCatalogMapper.getAutoexecCatalogByScriptId(scriptVersionVoOld.getScriptId());
             if (scriptCatalogVo != null) {
