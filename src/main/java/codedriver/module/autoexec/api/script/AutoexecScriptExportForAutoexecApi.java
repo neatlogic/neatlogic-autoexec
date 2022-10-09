@@ -73,7 +73,7 @@ public class AutoexecScriptExportForAutoexecApi extends PrivateBinaryStreamApiCo
         Set<Long> catalogIdSet = new HashSet<>();
         String catalogName = paramObj.getString("catalogName");
         JSONArray catalogList = paramObj.getJSONArray("catalogList");
-        if (StringUtils.isNotBlank(catalogName)) {
+        if (StringUtils.isNotBlank(catalogName) && !"/".equals(catalogName)) {
             Long catalogId = autoexecScriptService.getCatalogIdByCatalogPath(catalogName);
             if (catalogId != null) {
                 AutoexecCatalogVo catalogVo = autoexecCatalogMapper.getAutoexecCatalogById(catalogId);
