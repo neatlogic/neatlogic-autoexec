@@ -108,7 +108,7 @@ public class GetAutoexecJobPhaseOperationScriptApi extends PrivateApiComponentBa
             String scriptCatalog = "";
             AutoexecCatalogVo scriptCatalogVo = autoexecCatalogMapper.getAutoexecCatalogByScriptId(scriptVersionVoOld.getScriptId());
             if (scriptCatalogVo != null) {
-                List<AutoexecCatalogVo> catalogVoList = autoexecCatalogMapper.getAutoexecParentCatalogListByCatalogId(scriptCatalogVo.getLft(), scriptCatalogVo.getRht());
+                List<AutoexecCatalogVo> catalogVoList = autoexecCatalogMapper.getParentListByLftRht(scriptCatalogVo.getLft(), scriptCatalogVo.getRht());
                 if (CollectionUtils.isNotEmpty(catalogVoList)) {
                     scriptCatalog = catalogVoList.stream().sorted(Comparator.comparing(AutoexecCatalogVo::getId)).collect(Collectors.toList()).stream().map(AutoexecCatalogVo::getName).collect(Collectors.joining(File.separator));
                 }
