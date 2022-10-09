@@ -257,7 +257,7 @@ public class AutoexecScriptImportPublicApi extends PrivateJsonStreamApiComponent
      * @return
      */
     private boolean checkBaseInfoHasBeenChanged(AutoexecScriptVo newScriptVo, AutoexecScriptVo oldScriptVo) {
-        if (!Objects.equals(newScriptVo.getCatalogName(), oldScriptVo.getCatalogName())) {
+        if (!Objects.equals(newScriptVo.getCatalogId(), oldScriptVo.getCatalogId())) {
             return true;
         }
         if (!Objects.equals(newScriptVo.getTypeName(), oldScriptVo.getTypeName())) {
@@ -272,10 +272,7 @@ public class AutoexecScriptImportPublicApi extends PrivateJsonStreamApiComponent
         if (!Objects.equals(newScriptVo.getDescription(), oldScriptVo.getDescription())) {
             return true;
         }
-        if (!Objects.equals(newScriptVo.getDefaultProfileName(), oldScriptVo.getDefaultProfileName())) {
-            return true;
-        }
-        return false;
+        return !Objects.equals(newScriptVo.getDefaultProfileName(), oldScriptVo.getDefaultProfileName());
     }
 
     /**
