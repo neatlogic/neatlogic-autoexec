@@ -8,6 +8,7 @@ package codedriver.module.autoexec.job.action.handler.node;
 import codedriver.framework.autoexec.constvalue.ExecMode;
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
+import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
@@ -23,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -74,13 +76,14 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
             if (!Objects.equals(isAll, 1)) {
                 currentResourceIdListValid(jobVo);
             } else {
+                autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(currentPhaseVo.getId()), JobPhaseStatus.PENDING.getValue());
                 jobVo.setExecuteJobNodeVoList(autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseId(jobVo.getId(), jobVo.getCurrentPhaseId()));
             }
             //重置节点 (status、startTime、endTime)
             autoexecJobMapper.updateJobPhaseNodeListStatus(jobVo.getExecuteJobNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()), JobNodeStatus.PENDING.getValue());
             nodeVoList = autoexecJobMapper.getJobPhaseNodeRunnerListByNodeIdList(jobVo.getExecuteJobNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()));
         }
-        resetJobNodeStatus(jobVo,nodeVoList);
+        resetJobNodeStatus(jobVo, nodeVoList);
         return null;
     }
 }

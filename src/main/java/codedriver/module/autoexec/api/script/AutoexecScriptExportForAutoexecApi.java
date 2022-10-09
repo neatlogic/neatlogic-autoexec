@@ -112,7 +112,7 @@ public class AutoexecScriptExportForAutoexecApi extends PrivateBinaryStreamApiCo
                     AutoexecScriptVo script = autoexecScriptMapper.getScriptBaseInfoById(id);
                     AutoexecCatalogVo _catalog = autoexecCatalogMapper.getAutoexecCatalogById(script.getCatalogId());
                     if (_catalog != null) {
-                        List<AutoexecCatalogVo> upwardList = autoexecCatalogMapper.getAncestorsAndSelfByLR(_catalog.getLft(), _catalog.getRht());
+                        List<AutoexecCatalogVo> upwardList = autoexecCatalogMapper.getParentListAndSelfByLR(_catalog.getLft(), _catalog.getRht());
                         script.setCatalogPath(upwardList.stream().map(AutoexecCatalogVo::getName).collect(Collectors.joining("/")));
                     }
                     AutoexecScriptVersionVo version = autoexecScriptMapper.getActiveVersionByScriptId(id);
