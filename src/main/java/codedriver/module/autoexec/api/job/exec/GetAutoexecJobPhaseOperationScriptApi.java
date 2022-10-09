@@ -32,7 +32,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
 import java.math.BigDecimal;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -108,9 +107,9 @@ public class GetAutoexecJobPhaseOperationScriptApi extends PrivateApiComponentBa
             String scriptCatalog = "";
             AutoexecCatalogVo scriptCatalogVo = autoexecCatalogMapper.getAutoexecCatalogByScriptId(scriptVersionVoOld.getScriptId());
             if (scriptCatalogVo != null) {
-                List<AutoexecCatalogVo> catalogVoList = autoexecCatalogMapper.getParentListByLftRht(scriptCatalogVo.getLft(), scriptCatalogVo.getRht());
+                List<AutoexecCatalogVo> catalogVoList = autoexecCatalogMapper.getParentListAndSelfByLftRht(scriptCatalogVo.getLft(), scriptCatalogVo.getRht());
                 if (CollectionUtils.isNotEmpty(catalogVoList)) {
-                    scriptCatalog = catalogVoList.stream().sorted(Comparator.comparing(AutoexecCatalogVo::getId)).collect(Collectors.toList()).stream().map(AutoexecCatalogVo::getName).collect(Collectors.joining(File.separator));
+                    scriptCatalog = catalogVoList.stream().map(AutoexecCatalogVo::getName).collect(Collectors.joining(File.separator));
                 }
             }
 
