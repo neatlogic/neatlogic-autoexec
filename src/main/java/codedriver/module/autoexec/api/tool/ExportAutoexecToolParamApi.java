@@ -301,7 +301,7 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
 
             //账号
         } else if (StringUtils.equals(ParamType.ACCOUNT.getValue(), paramVo.getType())) {
-            if (paramDefaultValue != null && paramDefaultValue != "") {
+            if (paramDefaultValue != null && !Objects.equals(paramDefaultValue.toString(), "")) {
                 IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
                 AccountVo accountVo = resourceAccountCrossoverMapper.getAccountById(Long.valueOf(paramDefaultValue.toString()));
                 if (accountVo != null) {
