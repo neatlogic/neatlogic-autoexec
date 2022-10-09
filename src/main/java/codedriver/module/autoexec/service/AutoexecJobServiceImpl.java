@@ -479,20 +479,20 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     }
 
     /**
-     * @param nodeConfigVo node配置config
+     * @param combopExecuteConfigVo node配置config
      * @param jobVo        作业Vo
      * @param userName     连接node 用户
      * @param protocolId   连接node 协议Id
      */
-    private boolean getJobNodeList(AutoexecCombopExecuteConfigVo nodeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
-        if (nodeConfigVo == null) {
+    private boolean getJobNodeList(AutoexecCombopExecuteConfigVo combopExecuteConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
+        if (combopExecuteConfigVo == null) {
             return false;
         }
         boolean isHasNode = false;
         Date nowTime = new Date(System.currentTimeMillis());
         jobVo.getCurrentPhase().setLcd(nowTime);
 
-        AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = nodeConfigVo.getExecuteNodeConfig();
+        AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = combopExecuteConfigVo.getExecuteNodeConfig();
         if (executeNodeConfigVo == null) {
             return false;
         }
@@ -510,6 +510,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
 
         if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getParamList())) {
             isHasNode = updateNodeResourceByParam(jobVo, executeNodeConfigVo, userName, protocolId);
+        }
+
+        if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getPreOutputList())) {
+            isHasNode = updateNodeResourceByPrePhaseOutput(jobVo, executeNodeConfigVo, userName, protocolId);
         }
 
         AutoexecJobPhaseVo jobPhaseVo = jobVo.getCurrentPhase();
@@ -580,6 +584,22 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 }
             }
         }
+        return false;
+    }
+
+    /**
+     * param
+     * 根据上游阶段出参 更新作业节点
+     *
+     * @param executeNodeConfigVo 执行节点配置
+     * @param jobVo               作业
+     * @param userName            执行用户
+     * @param protocolId          协议id
+     */
+    private boolean updateNodeResourceByPrePhaseOutput(AutoexecJobVo jobVo, AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, String userName, Long protocolId) {
+        AutoexecJobPhaseVo currentPhase = jobVo.getCurrentPhase();
+        List<String> preOutputList = executeNodeConfigVo.getPreOutputList();
+
         return false;
     }
 
