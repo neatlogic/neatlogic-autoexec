@@ -176,9 +176,6 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         if (StringUtils.isBlank(autoexecCombopVo.getOperationType())){
             throw new ClassCastException();
         }
-        if (StringUtils.isBlank(autoexecCombopVo.getOwner())){
-            throw new ClassCastException();
-        }
         if (autoexecCombopVo.getConfig() == null){
             throw new ClassCastException();
         }
@@ -218,6 +215,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
             autoexecCombopVo.setName(oldName + "_" + index);
         }
         String userUuid = UserContext.get().getUserUuid(true);
+        autoexecCombopVo.setOwner(userUuid);
         autoexecCombopVo.setFcu(userUuid);
         AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
