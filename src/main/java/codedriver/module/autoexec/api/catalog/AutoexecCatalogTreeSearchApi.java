@@ -65,7 +65,7 @@ public class AutoexecCatalogTreeSearchApi extends PrivateApiComponentBase {
             if (vo == null) {
                 throw new AutoexecCatalogNotFoundException(id);
             }
-            catalogVoList = autoexecCatalogMapper.getParentListAndSelfByLftRht(vo.getLft(), vo.getRht());
+            catalogVoList = autoexecCatalogMapper.getParentListAndSelfByLR(vo.getLft(), vo.getRht());
             catalogVoList.forEach(o -> {
                 catalogVoMap.put(o.getId(), o);
                 catalogIdList.add(o.getId());
@@ -75,7 +75,7 @@ public class AutoexecCatalogTreeSearchApi extends PrivateApiComponentBase {
             vo.setKeyword(keyword);
             List<AutoexecCatalogVo> targetCatalogList = autoexecCatalogMapper.searchAutoexecCatalog(vo);
             for (AutoexecCatalogVo catalogVo : targetCatalogList) {
-                List<AutoexecCatalogVo> ancestorsAndSelf = autoexecCatalogMapper.getParentListAndSelfByLftRht(catalogVo.getLft(), catalogVo.getRht());
+                List<AutoexecCatalogVo> ancestorsAndSelf = autoexecCatalogMapper.getParentListAndSelfByLR(catalogVo.getLft(), catalogVo.getRht());
                 for (AutoexecCatalogVo _catalogVo : ancestorsAndSelf) {
                     if (!catalogIdList.contains(_catalogVo.getId())) {
                         catalogVoMap.put(_catalogVo.getId(), _catalogVo);
