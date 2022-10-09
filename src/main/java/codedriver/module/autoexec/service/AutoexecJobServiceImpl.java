@@ -125,6 +125,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             }
         }
         List<Long> combopGroupIdList = new ArrayList<>();//记录真正使用的group
+        Map<String, String> preOperationNameMap = new HashMap<>();//记录上游阶段工具uuid对应的名称
         for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
             //如果不是场景定义的phase则无需保存
             if (CollectionUtils.isNotEmpty(scenarioPhaseNameList) && !scenarioPhaseNameList.contains(autoexecCombopPhaseVo.getName())) {
@@ -162,7 +163,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             }
             //jobPhaseOperation
             List<AutoexecCombopPhaseOperationVo> combopPhaseOperationList = combopPhaseExecuteConfigVo.getPhaseOperationList();
-            convertCombOperation2JobOperation(jobPhaseVo, jobPhaseVoList, combopPhaseOperationList, jobVo);
+            convertCombOperation2JobOperation(jobPhaseVo, jobPhaseVoList, combopPhaseOperationList, jobVo, preOperationNameMap);
         }
         //保存group
         int i = 0;
@@ -185,12 +186,14 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      * @param jobPhaseVoList           作业所有阶段
      * @param combopPhaseOperationList 组合工具阶段工具列表
      * @param jobVo                    作业
+     * @param preOperationNameMap      记录上游阶段工具uuid对应的名称
      * @return 作业工具列表
      */
-    private List<AutoexecJobPhaseOperationVo> convertCombOperation2JobOperation(AutoexecJobPhaseVo jobPhaseVo, List<AutoexecJobPhaseVo> jobPhaseVoList, List<AutoexecCombopPhaseOperationVo> combopPhaseOperationList, AutoexecJobVo jobVo) {
+    private List<AutoexecJobPhaseOperationVo> convertCombOperation2JobOperation(AutoexecJobPhaseVo jobPhaseVo, List<AutoexecJobPhaseVo> jobPhaseVoList, List<AutoexecCombopPhaseOperationVo> combopPhaseOperationList, AutoexecJobVo jobVo, Map<String, String> preOperationNameMap) {
         List<AutoexecJobPhaseOperationVo> jobPhaseOperationVoList = new ArrayList<>();
         jobPhaseVo.setOperationList(jobPhaseOperationVoList);
         for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : combopPhaseOperationList) {
+            preOperationNameMap.put(autoexecCombopPhaseOperationVo.getUuid(), autoexecCombopPhaseOperationVo.getOperationName());
             String operationType = autoexecCombopPhaseOperationVo.getOperationType();
             Long id = autoexecCombopPhaseOperationVo.getOperationId();
             //测试 指定脚本id
@@ -212,12 +215,12 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     scriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(id);
                     script = autoexecCombopService.getOperationActiveVersionScriptByOperationId(id);
                 }
-                jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, scriptVo, scriptVersionVo, script, jobPhaseVoList);
-                initIfBlockOperation(autoexecCombopPhaseOperationVo, jobPhaseOperationVo, jobPhaseVo, jobPhaseVoList, jobVo);
+                jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, scriptVo, scriptVersionVo, script, jobPhaseVoList, preOperationNameMap);
+                initIfBlockOperation(autoexecCombopPhaseOperationVo, jobPhaseOperationVo, jobPhaseVo, jobPhaseVoList, jobVo, preOperationNameMap);
             } else {
                 AutoexecToolVo toolVo = autoexecToolMapper.getToolById(id);
-                jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, toolVo, jobPhaseVoList);
-                initIfBlockOperation(autoexecCombopPhaseOperationVo, jobPhaseOperationVo, jobPhaseVo, jobPhaseVoList, jobVo);
+                jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, toolVo, jobPhaseVoList, preOperationNameMap);
+                initIfBlockOperation(autoexecCombopPhaseOperationVo, jobPhaseOperationVo, jobPhaseVo, jobPhaseVoList, jobVo, preOperationNameMap);
             }
             jobPhaseOperationVoList.add(jobPhaseOperationVo);
             autoexecJobMapper.insertJobPhaseOperation(jobPhaseOperationVo);
@@ -232,8 +235,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      * @param jobPhaseVo                     当前作业阶段
      * @param jobPhaseVoList                 作业所有阶段列表
      * @param jobVo                          作业
+     * @param preOperationNameMap            记录上游阶段工具uuid对应的名称
      */
-    private void initIfBlockOperation(AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo, AutoexecJobPhaseOperationVo jobPhaseOperationVo, AutoexecJobPhaseVo jobPhaseVo, List<AutoexecJobPhaseVo> jobPhaseVoList, AutoexecJobVo jobVo) {
+    private void initIfBlockOperation(AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo, AutoexecJobPhaseOperationVo jobPhaseOperationVo, AutoexecJobPhaseVo jobPhaseVo, List<AutoexecJobPhaseVo> jobPhaseVoList, AutoexecJobVo jobVo, Map<String, String> preOperationNameMap) {
         AutoexecCombopPhaseOperationConfigVo combopPhaseOperationConfigVo = autoexecCombopPhaseOperationVo.getConfig();
         if (combopPhaseOperationConfigVo != null) {
             String ifBlockCondition = combopPhaseOperationConfigVo.getCondition();
@@ -246,7 +250,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                         o.setParentOperationId(jobPhaseOperationVo.getId());
                         o.setParentOperationType("if");
                     });
-                    List<AutoexecJobPhaseOperationVo> ifJobOperation = convertCombOperation2JobOperation(jobPhaseVo, jobPhaseVoList, ifOperationList, jobVo);
+                    List<AutoexecJobPhaseOperationVo> ifJobOperation = convertCombOperation2JobOperation(jobPhaseVo, jobPhaseVoList, ifOperationList, jobVo, preOperationNameMap);
 
                     paramObj.put("ifList", ifJobOperation);
                 }
@@ -256,7 +260,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                         o.setParentOperationId(jobPhaseOperationVo.getId());
                         o.setParentOperationType("else");
                     });
-                    List<AutoexecJobPhaseOperationVo> elseJobOperation = convertCombOperation2JobOperation(jobPhaseVo, jobPhaseVoList, elseOperationList, jobVo);
+                    List<AutoexecJobPhaseOperationVo> elseJobOperation = convertCombOperation2JobOperation(jobPhaseVo, jobPhaseVoList, elseOperationList, jobVo, preOperationNameMap);
                     paramObj.put("elseList", elseJobOperation);
                 }
                 jobPhaseOperationVo.setParamStr(paramObj.toString());
