@@ -81,7 +81,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     @Override
     public void saveAutoexecCombopJob(AutoexecJobVo jobVo) {
         AutoexecCombopConfigVo config = jobVo.getConfig();
-        if (Objects.equals(JobTriggerType.MANUAL.getValue(), jobVo.getTriggerType())) {
+        if (jobVo.getPlanStartTime().getTime() > System.currentTimeMillis() || Objects.equals(JobTriggerType.MANUAL.getValue(), jobVo.getTriggerType())) {
             jobVo.setStatus(JobStatus.READY.getValue());
         } else if (Objects.equals(JobTriggerType.AUTO.getValue(), jobVo.getTriggerType())) {
             jobVo.setStatus(JobStatus.PENDING.getValue());

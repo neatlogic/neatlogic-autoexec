@@ -30,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Objects;
 
 /**
  * @author lvzk
@@ -76,13 +77,23 @@ public class CreateAutoexecJobFromCombopApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         jsonObj.put("operationType", CombopOperationType.COMBOP.getValue());
         jsonObj.put("operationId", jsonObj.getLong("combopId"));
-        if(!jsonObj.containsKey("invokeId")){
-            jsonObj.put("invokeId",jsonObj.getLong("combopId"));
+        if (!jsonObj.containsKey("invokeId")) {
+            jsonObj.put("invokeId", jsonObj.getLong("combopId"));
         }
         AutoexecJobVo autoexecJobParam = JSONObject.toJavaObject(jsonObj, AutoexecJobVo.class);
 
         autoexecJobActionService.validateAndCreateJobFromCombop(autoexecJobParam);
-        if(jsonObj.containsKey("triggerType")) {
+
+        //如果是自动开始且计划开始时间小于等于当前时间则直接激活作业
+        if (Objects.equals(JobTriggerType.AUTO.getValue(), jsonObj.getString("triggerType")) && (jsonObj.containsKey("planStartTime") && jsonObj.getLong("planStartTime") <= System.currentTimeMillis())) {
+            fireJob(autoexecJobParam);
+            return new JSONObject() {{
+                put("jobId", autoexecJobParam.getId());
+            }};
+        }
+
+
+        if (jsonObj.containsKey("triggerType")) {
             // 保存之后，如果设置的人工触发，那只有点执行按钮才能触发；如果是自动触发，则启动一个定时作业；如果没到点就人工触发了，则取消定时作业，立即执行
             if (JobTriggerType.AUTO.getValue().equals(jsonObj.getString("triggerType"))) {
                 if (!jsonObj.containsKey("planStartTime")) {
@@ -95,11 +106,8 @@ public class CreateAutoexecJobFromCombopApi extends PrivateApiComponentBase {
                 JobObject.Builder jobObjectBuilder = new JobObject.Builder(autoexecJobParam.getId().toString(), jobHandler.getGroupName(), jobHandler.getClassName(), TenantContext.get().getTenantUuid());
                 jobHandler.reloadJob(jobObjectBuilder.build());
             }
-        }else{
-            IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
-            autoexecJobParam.setAction(JobAction.FIRE.getValue());
-            autoexecJobParam.setIsFirstFire(1);
-            fireAction.doService(autoexecJobParam);
+        } else {
+            fireJob(autoexecJobParam);
         }
         return new JSONObject() {{
             put("jobId", autoexecJobParam.getId());
@@ -109,5 +117,13 @@ public class CreateAutoexecJobFromCombopApi extends PrivateApiComponentBase {
     @Override
     public String getToken() {
         return "/autoexec/job/from/combop/create";
+    }
+
+
+    private void fireJob(AutoexecJobVo autoexecJobParam) throws Exception {
+        IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
+        autoexecJobParam.setAction(JobAction.FIRE.getValue());
+        autoexecJobParam.setIsFirstFire(1);
+        fireAction.doService(autoexecJobParam);
     }
 }
