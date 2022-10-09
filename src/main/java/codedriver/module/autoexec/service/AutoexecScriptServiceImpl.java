@@ -441,4 +441,29 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
         return null;
     }
 
+    @Override
+    public Long getCatalogIdByCatalogPath(String catalogPath) {
+        Long catalogId = null;
+        if (catalogPath.contains("/")) {
+            String[] split = catalogPath.split("/");
+            AutoexecCatalogVo catalogVo = null;
+            for (int j = 0; j < split.length; j++) {
+                String name = split[j];
+                if (j == 0) {
+                    catalogVo = autoexecCatalogMapper.getAutoexecCatalogByNameAndParentId(name, AutoexecCatalogVo.ROOT_ID);
+                } else if (catalogVo != null) {
+                    catalogVo = autoexecCatalogMapper.getAutoexecCatalogByNameAndParentId(name, catalogVo.getId());
+                }
+            }
+            if (catalogVo != null) {
+                catalogId = catalogVo.getId();
+            }
+        } else {
+            AutoexecCatalogVo catalog = autoexecCatalogMapper.getAutoexecCatalogByName(catalogPath);
+            if (catalog != null) {
+                catalogId = catalog.getId();
+            }
+        }
+        return catalogId;
+    }
 }

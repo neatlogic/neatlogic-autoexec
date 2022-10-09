@@ -8,7 +8,6 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
-import codedriver.framework.autoexec.dto.catalog.AutoexecCatalogVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptArgumentVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
@@ -119,26 +118,7 @@ public class AutoexecScriptImportPublicApi extends PrivateJsonStreamApiComponent
             }
             // 从外部导入的自定义工具，catalogName可能是路径，也可能只是名称，如果是路径，要根据每一层的名称查询对应的目录
             if (StringUtils.isNotBlank(catalogName)) {
-                if (catalogName.contains("/")) {
-                    String[] split = catalogName.split("/");
-                    AutoexecCatalogVo catalogVo = null;
-                    for (int j = 0; j < split.length; j++) {
-                        String name = split[j];
-                        if (j == 0) {
-                            catalogVo = autoexecCatalogMapper.getAutoexecCatalogByNameAndParentId(name, AutoexecCatalogVo.ROOT_ID);
-                        } else if (catalogVo != null) {
-                            catalogVo = autoexecCatalogMapper.getAutoexecCatalogByNameAndParentId(name, catalogVo.getId());
-                        }
-                    }
-                    if (catalogVo != null) {
-                        catalogId = catalogVo.getId();
-                    }
-                } else {
-                    AutoexecCatalogVo catalog = autoexecCatalogMapper.getAutoexecCatalogByName(catalogName);
-                    if (catalog != null) {
-                        catalogId = catalog.getId();
-                    }
-                }
+                catalogId = autoexecScriptService.getCatalogIdByCatalogPath(catalogName);
                 if (catalogId == null) {
                     faultMessages.add("工具目录：'" + catalogName + "'不存在");
                 }
