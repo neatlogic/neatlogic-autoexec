@@ -107,8 +107,21 @@ public class GetAutoexecJobPhaseOperationScriptApi extends PrivateApiComponentBa
             if (jsonObj.getDouble("lastModified") != null) {
                 lastModified = new BigDecimal(Double.toString(jsonObj.getDouble("lastModified")));
             }
+            //获取脚本目录
+            String scriptCatalog = "";
+            AutoexecCatalogVo scriptCatalogVo = autoexecCatalogMapper.getAutoexecCatalogByScriptId(scriptVersionVoOld.getScriptId());
+            if (scriptCatalogVo != null) {
+                List<AutoexecCatalogVo> catalogVoList = autoexecCatalogMapper.getParentListAndSelfByLR(scriptCatalogVo.getLft(), scriptCatalogVo.getRht());
+                if (CollectionUtils.isNotEmpty(catalogVoList)) {
+                    scriptCatalog = catalogVoList.stream().map(AutoexecCatalogVo::getName).collect(Collectors.joining(File.separator));
+                }
+            }
+            HttpServletResponse resp = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getResponse();
+            if (resp != null) {
+                resp.setHeader("ScriptCatalog", scriptCatalog);
+            }
+
             if (lastModified != null && lastModified.multiply(new BigDecimal("1000")).longValue() >= scriptVersionVo.getLcd().getTime()) {
-                HttpServletResponse resp = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getResponse();
                 if (resp != null) {
                     resp.setStatus(205);
                     resp.getWriter().print(StringUtils.EMPTY);
@@ -118,16 +131,6 @@ public class GetAutoexecJobPhaseOperationScriptApi extends PrivateApiComponentBa
                 //获取脚本内容
                 String script = autoexecCombopService.getScriptVersionContent(scriptVersionVo);
                 result.put("script", script);
-
-                //获取脚本目录
-                String scriptCatalog = "";
-                AutoexecCatalogVo scriptCatalogVo = autoexecCatalogMapper.getAutoexecCatalogByScriptId(scriptVersionVoOld.getScriptId());
-                if (scriptCatalogVo != null) {
-                    List<AutoexecCatalogVo> catalogVoList = autoexecCatalogMapper.getParentListAndSelfByLR(scriptCatalogVo.getLft(), scriptCatalogVo.getRht());
-                    if (CollectionUtils.isNotEmpty(catalogVoList)) {
-                        scriptCatalog = catalogVoList.stream().map(AutoexecCatalogVo::getName).collect(Collectors.joining(File.separator));
-                    }
-                }
                 result.put("scriptCatalog", scriptCatalog);
 
                 //update job 对应operation version_id
