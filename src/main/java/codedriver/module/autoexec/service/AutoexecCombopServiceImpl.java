@@ -420,7 +420,45 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                         }
                     }
                     continue;
+                } else if (Objects.equals(mappingMode, ParamMappingMode.PRE_NODE_OUTPUT_PARAM.getValue())) {
+                    String value = null;
+                    if (valueObj instanceof JSONArray) {
+                        JSONArray valueArray = (JSONArray) valueObj;
+                        if (CollectionUtils.isNotEmpty(valueArray)) {
+                            List<String> valueList = valueArray.toJavaList(String.class);
+                            value = String.join("&&", valueList);
+                        }
+                    }
+                    if (StringUtils.isBlank(value)) {
+                        continue;
+                    }
+                    AutoexecParamVo preNodeOutputParamVo = preNodeOutputParamMap.get(value);
+                    if (preNodeOutputParamVo == null) {
+                        throw new AutoexecParamMappingTargetNotFoundException(operationName, key, conversionPreNodeParamPath(preNodeNameMap, preOperationNameMap, value));
+                    }
+                    if (!Objects.equals(preNodeOutputParamVo.getType(), inputParamVo.getType())) {
+                        throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, conversionPreNodeParamPath(preNodeNameMap, preOperationNameMap, value));
+                    }
+                    continue;
+                } else if (Objects.equals(mappingMode, ParamMappingMode.PRE_NODE_OUTPUT_PARAM_KEY.getValue())) {
+                    String value = null;
+                    if (valueObj instanceof JSONArray) {
+                        JSONArray valueArray = (JSONArray) valueObj;
+                        if (CollectionUtils.isNotEmpty(valueArray)) {
+                            List<String> valueList = valueArray.toJavaList(String.class);
+                            value = String.join("&&", valueList);
+                        }
+                    }
+                    if (StringUtils.isBlank(value)) {
+                        continue;
+                    }
+                    AutoexecParamVo preNodeOutputParamVo = preNodeOutputParamMap.get(value);
+                    if (preNodeOutputParamVo == null) {
+                        throw new AutoexecParamMappingTargetNotFoundException(operationName, key, conversionPreNodeParamPath(preNodeNameMap, preOperationNameMap, value));
+                    }
+                    continue;
                 }
+
                 String value = valueObj.toString();
                 if (StringUtils.isEmpty(value)) {
                     throw new AutoexecParamMappingNotMappedException(operationName, key);
@@ -440,19 +478,6 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                         }
                     }
 
-                } else if (Objects.equals(mappingMode, ParamMappingMode.PRE_NODE_OUTPUT_PARAM.getValue())) {
-                    AutoexecParamVo preNodeOutputParamVo = preNodeOutputParamMap.get(value);
-                    if (preNodeOutputParamVo == null) {
-                        throw new AutoexecParamMappingTargetNotFoundException(operationName, key, conversionPreNodeParamPath(preNodeNameMap, preOperationNameMap, value));
-                    }
-                    if (!Objects.equals(preNodeOutputParamVo.getType(), inputParamVo.getType())) {
-                        throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, conversionPreNodeParamPath(preNodeNameMap, preOperationNameMap, value));
-                    }
-                } else if (Objects.equals(mappingMode, ParamMappingMode.PRE_NODE_OUTPUT_PARAM_KEY.getValue())) {
-                    AutoexecParamVo preNodeOutputParamVo = preNodeOutputParamMap.get(value);
-                    if (preNodeOutputParamVo == null) {
-                        throw new AutoexecParamMappingTargetNotFoundException(operationName, key, conversionPreNodeParamPath(preNodeNameMap, preOperationNameMap, value));
-                    }
                 } else if (Objects.equals(mappingMode, ParamMappingMode.PROFILE.getValue())) {
                     AutoexecProfileParamVo profileParamVo = profileParamMap.get(key);
                     if (profileParamVo == null) {

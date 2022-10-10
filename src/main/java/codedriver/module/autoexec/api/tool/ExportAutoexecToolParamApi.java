@@ -30,6 +30,7 @@ import codedriver.framework.restful.annotation.OperationType;
 import codedriver.framework.restful.annotation.Param;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
+import codedriver.framework.util.FileUtil;
 import codedriver.framework.util.word.WordBuilder;
 import codedriver.framework.util.word.enums.FontFamily;
 import codedriver.framework.util.word.enums.TitleType;
@@ -45,7 +46,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.OutputStream;
-import java.net.URLEncoder;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -120,7 +120,7 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
             os = response.getOutputStream();
             response.setContentType("application/x-download");
             response.setHeader("Content-Disposition",
-                    " attachment; filename=\"[" + URLEncoder.encode(fileName + "]参数说明", "utf-8") + ".docx\"");
+                    " attachment; filename=\"" + FileUtil.getEncodedFileName("[" + fileName + "]参数说明.docx") + "\"");
             WordBuilder wordBuilder = new WordBuilder();
             Map<Integer, String> tableHeaderMap = new HashMap<>();
             tableHeaderMap.put(1, "参数名");
@@ -196,7 +196,7 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
             //静态数据源
             if (StringUtils.equals(ParamDataSource.STATIC.getValue(), paramVo.getConfig().getString("dataSource"))) {
                 returnDefaultValue = new StringBuilder("静态");
-                if (paramDefaultValue != null && paramDefaultValue != "") {
+                if (paramDefaultValue != null && !Objects.equals(paramDefaultValue.toString(), "")) {
                     JSONArray dataArray = paramVo.getConfig().getJSONArray("dataList");
                     if (CollectionUtils.isNotEmpty(dataArray)) {
                         List<ValueTextVo> valueTextVoList = dataArray.toJavaList(ValueTextVo.class);

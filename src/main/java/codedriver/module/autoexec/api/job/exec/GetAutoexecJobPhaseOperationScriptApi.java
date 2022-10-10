@@ -22,8 +22,8 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.nacos.api.utils.StringUtils;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
@@ -103,6 +103,10 @@ public class GetAutoexecJobPhaseOperationScriptApi extends PrivateApiComponentBa
                 throw new AutoexecScriptVersionHasNoActivedException(jobPhaseOperationVo.getName());
             }
 
+            BigDecimal lastModified = null;
+            if (jsonObj.getDouble("lastModified") != null) {
+                lastModified = new BigDecimal(Double.toString(jsonObj.getDouble("lastModified")));
+            }
             //获取脚本目录
             String scriptCatalog = "";
             AutoexecCatalogVo scriptCatalogVo = autoexecCatalogMapper.getAutoexecCatalogByScriptId(scriptVersionVoOld.getScriptId());
@@ -112,23 +116,23 @@ public class GetAutoexecJobPhaseOperationScriptApi extends PrivateApiComponentBa
                     scriptCatalog = catalogVoList.stream().map(AutoexecCatalogVo::getName).collect(Collectors.joining(File.separator));
                 }
             }
-
             HttpServletResponse resp = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getResponse();
             if (resp != null) {
                 resp.setHeader("ScriptCatalog", scriptCatalog);
             }
-            BigDecimal lastModified = null;
-            if (jsonObj.getDouble("lastModified") != null) {
-                lastModified = new BigDecimal(Double.toString(jsonObj.getDouble("lastModified")));
-            }
+
             if (lastModified != null && lastModified.multiply(new BigDecimal("1000")).longValue() >= scriptVersionVo.getLcd().getTime()) {
                 if (resp != null) {
                     resp.setStatus(205);
                     resp.getWriter().print(StringUtils.EMPTY);
                 }
             } else {
+
+                //获取脚本内容
                 String script = autoexecCombopService.getScriptVersionContent(scriptVersionVo);
                 result.put("script", script);
+                result.put("scriptCatalog", scriptCatalog);
+
                 //update job 对应operation version_id
                 autoexecJobMapper.updateJobPhaseOperationVersionIdByJobIdAndOperationId(scriptVersionVo.getId(), jobId, scriptVersionVo.getScriptId());
             }
