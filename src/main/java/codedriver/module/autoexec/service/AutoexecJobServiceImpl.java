@@ -43,12 +43,15 @@ import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.bson.Document;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import static codedriver.framework.common.util.CommonUtil.distinctByKey;
@@ -77,6 +80,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     RunnerMapper runnerMapper;
     @Resource
     ConfigMapper configMapper;
+
+    @Resource
+    private MongoTemplate mongoTemplate;
 
     @Override
     public void saveAutoexecCombopJob(AutoexecJobVo jobVo) {
@@ -480,9 +486,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
 
     /**
      * @param combopExecuteConfigVo node配置config
-     * @param jobVo        作业Vo
-     * @param userName     连接node 用户
-     * @param protocolId   连接node 协议Id
+     * @param jobVo                 作业Vo
+     * @param userName              连接node 用户
+     * @param protocolId            连接node 协议Id
      */
     private boolean getJobNodeList(AutoexecCombopExecuteConfigVo combopExecuteConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
         if (combopExecuteConfigVo == null) {
@@ -597,10 +603,85 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      * @param protocolId          协议id
      */
     private boolean updateNodeResourceByPrePhaseOutput(AutoexecJobVo jobVo, AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, String userName, Long protocolId) {
-        AutoexecJobPhaseVo currentPhase = jobVo.getCurrentPhase();
         List<String> preOutputList = executeNodeConfigVo.getPreOutputList();
+        if (CollectionUtils.isEmpty(preOutputList) && preOutputList.size() != 3) {
+            throw new AutoexecJobUpdateNodeByPreOutPutListException(jobVo);
+        }
+        String phaseName = preOutputList.get(0);
+        String operationUuid = preOutputList.get(1);
+        String paramKey = preOutputList.get(2);
+        AutoexecJobPhaseOperationVo operationVo = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseNameAndUuid(jobVo.getId(), phaseName, operationUuid);
+        if (operationVo == null) {
+            throw new AutoexecJobPhaseOperationNotFoundException(operationUuid);
+        }
+
+        //从mongodb获取output 对应应用的param 值 作为执行节点
+        AtomicReference<JSONArray> nodeArrayAtomic = new AtomicReference<>();
+        Document doc = new Document();
+        Document fieldDocument = new Document();
+        doc.put("jobId", jobVo.getId().toString());
+        fieldDocument.put("data", true);
+        mongoTemplate.getDb().getCollection("_node_output").find(doc).projection(fieldDocument).forEach(o -> {
+            JSONObject dataJson = JSONObject.parseObject(o.toJson());
+            JSONObject outputJson = dataJson.getJSONObject(operationVo.getName() + "_" + operationVo.getId());
+            if (MapUtils.isNotEmpty(outputJson)) {
+                Object nodes = outputJson.get(paramKey);
+                if (nodes instanceof JSONArray) {
+                    nodeArrayAtomic.set((JSONArray) nodes);
+                }else{
+                    throw new AutoexecJobNodePreParamValueNotInvalidException(jobVo.getId(), phaseName);
+                }
+            }
+        });
+        JSONArray nodeArray = nodeArrayAtomic.get();
+        if (CollectionUtils.isEmpty(nodeArray)) {
+            throw new AutoexecJobNodePreParamValueNotInvalidException(jobVo.getId(), phaseName);
+        }
+
+        //更新执行节点
+        List<AutoexecNodeVo> nodeVoList = nodeArray.toJavaList(AutoexecNodeVo.class);
+        List<ResourceVo> ipPortNameList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(nodeVoList)) {
+            nodeVoList.forEach(o -> {
+                ipPortNameList.add(new ResourceVo(o.getIp(), o.getPort(), o.getName()));
+            });
+            IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
+            List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceListByResourceVoList(ipPortNameList);
+            if (CollectionUtils.isNotEmpty(resourceVoList)) {
+                updateJobPhaseNode(jobVo, resourceVoList, userName, protocolId);
+                return true;
+            }
+        }
+
 
         return false;
+    }
+
+    private Map<String, String> getOperationUuidNameMap(AutoexecJobVo jobVo) {
+        Map<String, String> operationUuidNameMap = new HashMap<>();
+        AutoexecJobContentVo jobContentVo = autoexecJobMapper.getJobContent(jobVo.getConfigHash());
+        if (jobContentVo == null || StringUtils.isBlank(jobContentVo.getContent())) {
+            throw new AutoexecJoConfigNotFoundException(jobVo.getId());
+        }
+        jobVo.setConfigStr(jobContentVo.getContent());
+        AutoexecCombopConfigVo combopConfigVo = jobVo.getConfig();
+        if (combopConfigVo != null) {
+            List<AutoexecCombopPhaseVo> combopPhaseVos = combopConfigVo.getCombopPhaseList();
+            if (CollectionUtils.isNotEmpty(combopPhaseVos)) {
+                for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseVos) {
+                    AutoexecCombopPhaseConfigVo phaseConfigVo = combopPhaseVo.getConfig();
+                    if (phaseConfigVo != null) {
+                        List<AutoexecCombopPhaseOperationVo> operationVos = phaseConfigVo.getPhaseOperationList();
+                        if (CollectionUtils.isNotEmpty(operationVos)) {
+                            for (AutoexecCombopPhaseOperationVo operation : operationVos) {
+                                operationUuidNameMap.put(operation.getUuid(), operation.getOperationName());
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return operationUuidNameMap;
     }
 
     /**
