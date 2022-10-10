@@ -95,5 +95,13 @@ public interface AutoexecScriptService {
      * @param groupName
      * @return
      */
-    DependencyInfoVo getScriptDependencyPageUrl(Map<String, Object> map,Long scriptId, String groupName);
+    DependencyInfoVo getScriptDependencyPageUrl(Map<String, Object> map, Long scriptId, String groupName);
+
+    /**
+     * 根据工具目录路径查询目录ID
+     *
+     * @param catalogPath 工具目录路径
+     * @return 目录ID
+     */
+    Long getCatalogIdByCatalogPath(String catalogPath);
 }
