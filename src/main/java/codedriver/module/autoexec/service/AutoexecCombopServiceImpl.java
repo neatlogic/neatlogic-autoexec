@@ -581,9 +581,9 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                     List<String> paramList = executeNodeConfigVo.getParamList();
                     List<AutoexecNodeVo> selectNodeList = executeNodeConfigVo.getSelectNodeList();
                     List<AutoexecNodeVo> inputNodeList = executeNodeConfigVo.getInputNodeList();
-                    List<Long> tagList = executeNodeConfigVo.getTagList();
+                    List<String> preOutputList = executeNodeConfigVo.getPreOutputList();
                     JSONObject filter = executeNodeConfigVo.getFilter();
-                    if (CollectionUtils.isEmpty(paramList) && CollectionUtils.isEmpty(selectNodeList) && CollectionUtils.isEmpty(inputNodeList) && CollectionUtils.isEmpty(tagList) && MapUtils.isEmpty(filter)) {
+                    if (CollectionUtils.isEmpty(paramList) && CollectionUtils.isEmpty(selectNodeList) && CollectionUtils.isEmpty(inputNodeList) && CollectionUtils.isEmpty(preOutputList) && MapUtils.isEmpty(filter)) {
                         needExecuteNode = true;
                     }
                 }
