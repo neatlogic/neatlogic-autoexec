@@ -25,6 +25,7 @@ import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
@@ -45,6 +46,9 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
 
     @Resource
     AutoexecJobMapper autoexecJobMapper;
+
+    @Resource
+    AutoexecJobService autoexecJobService;
 
     @Override
     public String getName() {
@@ -90,7 +94,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
-        AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(jobId, phaseName);
+        AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseNameWithGroup(jobId, phaseName);
         if (jobPhaseVo == null) {
             throw new AutoexecJobPhaseNotFoundException(jobId + ":" + phaseName);
         }
@@ -154,6 +158,11 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
             finalJobPhaseStatus = JobPhaseStatus.PENDING.getValue();
         }
         autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), finalJobPhaseStatus, warnCount));
+
+        //如果阶段需要更新别的阶段的执行目标 且 状态为complete
+        if (jobPhaseVo.getIsPreOutputUpdateNode() == 1 && Objects.equals(JobPhaseStatus.COMPLETED.getValue(), finalJobPhaseStatus)) {
+            autoexecJobService.updateNodeByPreOutput(jobVo, jobPhaseVo);
+        }
 
         //如果状态一致，则无需更新状态，防止多次触发callback
         if (Objects.equals(jobVo.getStatus(), finalJobPhaseStatus)) {

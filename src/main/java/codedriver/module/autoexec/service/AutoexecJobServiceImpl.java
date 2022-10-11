@@ -140,7 +140,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             jobVo.setExecuteJobGroupVo(combopIdJobGroupVoMap.get(autoexecCombopPhaseVo.getGroupId()));
             //根据作业来源执行对应保存阶段的动作
             AutoexecJobPhaseVo jobPhaseVo = new AutoexecJobPhaseVo(autoexecCombopPhaseVo, jobVo.getId(), combopIdJobGroupVoMap);
-            jobPhaseVo.setIsPreOutputUpdateNode(isPhaseNodeNeedReInitByPreOutput(jobVo, jobPhaseVo) ? 1 : 0);
+            jobPhaseVo.setIsPreOutputUpdateNode(isNeedUpdateOtherPhaseNodeByOutput(jobVo, jobPhaseVo) ? 1 : 0);
             autoexecJobMapper.insertJobPhase(jobPhaseVo);
             combopGroupIdList.add(autoexecCombopPhaseVo.getGroupId());
             jobPhaseVoList.add(jobPhaseVo);
@@ -149,7 +149,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             List<AutoexecCombopPhaseOperationVo> combopPhaseOperationList = combopPhaseExecuteConfigVo.getPhaseOperationList();
             convertCombOperation2JobOperation(jobPhaseVo, jobPhaseVoList, combopPhaseOperationList, jobVo, preOperationNameMap);
             //jobPhaseNode
-            if (jobPhaseVo.getIsPreOutputUpdateNode() == 1) {
+            if (isPhaseNodeNeedReInitByPreOutput(jobVo, jobPhaseVo)) {
                 //如果需要上游出参作为执行目标则无需初始化执行当前阶段执行目标
                 continue;
             }
@@ -230,6 +230,50 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     }
 
     /**
+     * 判断当前阶段是否存在根据出参更新其他阶段执行节点
+     *
+     * @param jobVo             作业
+     * @param currentJobPhaseVo 当前阶段
+     * @return true|false
+     */
+    private boolean isNeedUpdateOtherPhaseNodeByOutput(AutoexecJobVo jobVo, AutoexecJobPhaseVo currentJobPhaseVo) {
+        AutoexecJobContentVo jobContentVo = autoexecJobMapper.getJobContent(jobVo.getConfigHash());
+        if (jobContentVo == null || StringUtils.isBlank(jobContentVo.getContent())) {
+            throw new AutoexecJoConfigNotFoundException(jobVo.getId());
+        }
+        jobVo.setConfigStr(jobContentVo.getContent());
+        AutoexecCombopConfigVo combopConfigVo = jobVo.getConfig();
+        if (combopConfigVo != null) {
+            List<AutoexecCombopPhaseVo> combopPhaseVos = combopConfigVo.getCombopPhaseList();
+            if (CollectionUtils.isNotEmpty(combopPhaseVos)) {
+                for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseVos) {
+                    if (Objects.equals(combopPhaseVo.getExecMode(), ExecMode.RUNNER.getValue())
+                            || combopPhaseVo.getGroupSort() <= currentJobPhaseVo.getJobGroupVo().getSort()
+                            || !Objects.equals(currentJobPhaseVo.getJobGroupVo().getPolicy(), AutoexecJobGroupPolicy.ONESHOT.getName())
+                            || Objects.equals(combopPhaseVo.getName(), currentJobPhaseVo.getName())) {
+                        continue;
+                    }
+                    AutoexecCombopPhaseConfigVo phaseConfigVo = combopPhaseVo.getConfig();
+                    if (phaseConfigVo != null) {
+                        AutoexecCombopExecuteConfigVo executeConfigVo = phaseConfigVo.getExecuteConfig();
+                        if (executeConfigVo != null) {
+                            AutoexecCombopExecuteNodeConfigVo nodeConfigVo = executeConfigVo.getExecuteNodeConfig();
+                            if (nodeConfigVo != null) {
+                                if (CollectionUtils.isNotEmpty(nodeConfigVo.getPreOutputList())) {
+                                    if (Objects.equals(currentJobPhaseVo.getUuid(), nodeConfigVo.getPreOutputList().get(0))) {
+                                        return true;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
      * 更新根据上游出参更新阶段执行节点
      *
      * @param jobVo             作业
@@ -237,22 +281,46 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      */
     @Override
     public void updateNodeByPreOutput(AutoexecJobVo jobVo, AutoexecJobPhaseVo currentJobPhaseVo) {
+        List<AutoexecCombopPhaseVo> combopPhaseVoList = new ArrayList<>();
         AutoexecJobContentVo jobContentVo = autoexecJobMapper.getJobContent(jobVo.getConfigHash());
         if (jobContentVo == null || StringUtils.isBlank(jobContentVo.getContent())) {
             throw new AutoexecJoConfigNotFoundException(jobVo.getId());
         }
         jobVo.setConfigStr(jobContentVo.getContent());
         AutoexecCombopConfigVo combopConfigVo = jobVo.getConfig();
-        AutoexecCombopPhaseConfigVo combopPhaseExecuteConfigVo = null;
-        List<AutoexecCombopPhaseVo> combopPhaseVos = combopConfigVo.getCombopPhaseList();
-        if (CollectionUtils.isNotEmpty(combopPhaseVos)) {
-            Optional<AutoexecCombopPhaseVo> currentCombopPhaseOptional = combopPhaseVos.stream().filter(o->Objects.equals(o.getName(),currentJobPhaseVo.getName())).findFirst();
-            if(!currentCombopPhaseOptional.isPresent()){
-                throw new AutoexecJobPhaseNotFoundException(currentJobPhaseVo.getName());
+        if (combopConfigVo != null) {
+            List<AutoexecCombopPhaseVo> combopPhaseVos = combopConfigVo.getCombopPhaseList();
+            if (CollectionUtils.isNotEmpty(combopPhaseVos)) {
+                for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseVos) {
+                    if (Objects.equals(combopPhaseVo.getExecMode(), ExecMode.RUNNER.getValue())
+                            || combopPhaseVo.getGroupSort() <= currentJobPhaseVo.getJobGroupVo().getSort()
+                            || !Objects.equals(currentJobPhaseVo.getJobGroupVo().getPolicy(), AutoexecJobGroupPolicy.ONESHOT.getName())
+                            || Objects.equals(combopPhaseVo.getName(), currentJobPhaseVo.getName())) {
+                        continue;
+                    }
+                    AutoexecCombopPhaseConfigVo phaseConfigVo = combopPhaseVo.getConfig();
+                    if (phaseConfigVo != null) {
+                        AutoexecCombopExecuteConfigVo executeConfigVo = phaseConfigVo.getExecuteConfig();
+                        if (executeConfigVo != null) {
+                            AutoexecCombopExecuteNodeConfigVo nodeConfigVo = executeConfigVo.getExecuteNodeConfig();
+                            if (nodeConfigVo != null) {
+                                if (CollectionUtils.isNotEmpty(nodeConfigVo.getPreOutputList())) {
+                                    if (Objects.equals(currentJobPhaseVo.getUuid(), nodeConfigVo.getPreOutputList().get(0))) {
+                                        combopPhaseVoList.add(combopPhaseVo);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
             }
-            combopPhaseExecuteConfigVo = currentCombopPhaseOptional.get().getConfig();
+            List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseUuidList(jobVo.getId(), combopPhaseVoList.stream().map(AutoexecCombopPhaseVo::getUuid).collect(Collectors.toList()));
+            Map<String, AutoexecJobPhaseVo> jobPhaseUuidMap = jobPhaseVoList.stream().collect(Collectors.toMap(AutoexecJobPhaseVo::getUuid, o -> o));
+            for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseVoList) {
+                jobVo.setCurrentPhase(jobPhaseUuidMap.get(combopPhaseVo.getUuid()));
+                initPhaseExecuteUserAndProtocolAndNode(jobVo, combopConfigVo.getExecuteConfig(), combopPhaseVo.getConfig());
+            }
         }
-        initPhaseExecuteUserAndProtocolAndNode(jobVo, combopConfigVo.getExecuteConfig(), combopPhaseExecuteConfigVo);
     }
 
     /**
