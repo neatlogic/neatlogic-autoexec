@@ -12,7 +12,6 @@ import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.crossover.IAutoexecCombopCrossoverService;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
-import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.framework.autoexec.dto.AutoexecOperationBaseVo;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.combop.*;
@@ -22,7 +21,6 @@ import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.exception.*;
-import codedriver.framework.common.constvalue.GroupSearch;
 import codedriver.framework.common.constvalue.SystemUser;
 import codedriver.framework.dependency.core.DependencyManager;
 import codedriver.framework.dto.AuthenticationInfoVo;
@@ -52,9 +50,6 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
-
-    @Resource
-    private AutoexecToolMapper autoexecToolMapper;
 
     @Resource
     private AuthenticationInfoService authenticationInfoService;
@@ -126,7 +121,8 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
     public boolean checkOperableButton(AutoexecCombopVo autoexecCombopVo, CombopAuthorityAction action, String userUuid) {
         AuthenticationInfoVo authenticationInfoVo;
         if (autoexecCombopVo != null) {
-            if (Objects.equals(autoexecCombopVo.getOwner(), userUuid) || Objects.equals(userUuid, SystemUser.SYSTEM.getUserUuid())) {
+            if (Objects.equals(autoexecCombopVo.getOwner(), userUuid) || Objects.equals(userUuid, SystemUser.SYSTEM.getUserUuid())
+                    || AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_MODIFY.class.getSimpleName())) {
                 return true;
             } else {
                 if (StringUtils.isBlank(userUuid)) {
