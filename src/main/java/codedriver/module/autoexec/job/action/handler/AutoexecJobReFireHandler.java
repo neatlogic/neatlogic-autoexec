@@ -110,7 +110,7 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
         /*if (CollectionUtils.isNotEmpty(needSqlFileResetStatusPhaseNameList)) {
             autoexecJobService.resetAutoexecJobSqlStatusByJobIdAndJobPhaseNameList(jobVo.getId(), needSqlFileResetStatusPhaseNameList);
         }*/
-        executeGroup(jobVo);
+        autoexecJobService.executeGroup(jobVo);
         return null;
     }
 
@@ -126,7 +126,7 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
         if (CollectionUtils.isEmpty(runnerVos)) {
             throw new AutoexecJobRunnerNotFoundException(jobVo.getPhaseNameList());
         }
-        checkRunnerHealth(runnerVos);
+        autoexecJobService.checkRunnerHealth(runnerVos);
 
         for (RunnerMapVo runner : runnerVos) {
             String url = runner.getUrl() + "api/rest/job/all/reset";

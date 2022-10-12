@@ -10,6 +10,7 @@ import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseConfigVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.dto.runner.RunnerMapVo;
 import com.alibaba.fastjson.JSONObject;
 
 import java.util.List;
@@ -152,5 +153,34 @@ public interface AutoexecJobService {
      * @param currentJobPhaseVo 当前作业阶段
      */
     void updateNodeByPreOutput(AutoexecJobVo jobVo, AutoexecJobPhaseVo currentJobPhaseVo);
+
+    /**
+     * 重置autoexec 作业节点状态
+     *
+     * @param jobVo      作业
+     * @param nodeVoList 节点列表
+     */
+    void resetJobNodeStatus(AutoexecJobVo jobVo, List<AutoexecJobPhaseNodeVo> nodeVoList);
+
+    /**
+     * 检查runner联通性
+     */
+    void checkRunnerHealth(List<RunnerMapVo> runnerVos);
+
+    /**
+     * 执行组
+     *
+     * @param jobVo 作业
+     */
+    public void executeNode(AutoexecJobVo jobVo);
+
+    /**
+     * 执行组
+     *
+     * @param jobVo 作业
+     */
+    void executeGroup(AutoexecJobVo jobVo);
+
+    void execute(AutoexecJobVo jobVo, List<RunnerMapVo> runnerVos);
 
 }

@@ -17,6 +17,7 @@ import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBas
 import codedriver.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
 import codedriver.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
 import codedriver.framework.deploy.constvalue.JobSourceType;
+import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -38,6 +39,8 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
     private final static Logger logger = LoggerFactory.getLogger(AutoexecJobNodeResetHandler.class);
     @Resource
     AutoexecJobMapper autoexecJobMapper;
+    @Resource
+    AutoexecJobService autoexecJobService;
 
     @Override
     public String getName() {
@@ -77,13 +80,13 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
                 currentResourceIdListValid(jobVo);
             } else {
                 autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(currentPhaseVo.getId()), JobPhaseStatus.PENDING.getValue());
-                jobVo.setExecuteJobNodeVoList(autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseId(jobVo.getId(), jobVo.getCurrentPhaseId()));
+                jobVo.setExecuteJobNodeVoList(autoexecJobMapper.getJobPhaseNodeListWithoutDeleteByJobIdAndPhaseId(jobVo.getId(), jobVo.getCurrentPhaseId()));
             }
             //重置节点 (status、startTime、endTime)
             autoexecJobMapper.updateJobPhaseNodeListStatus(jobVo.getExecuteJobNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()), JobNodeStatus.PENDING.getValue());
             nodeVoList = autoexecJobMapper.getJobPhaseNodeRunnerListByNodeIdList(jobVo.getExecuteJobNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()));
         }
-        resetJobNodeStatus(jobVo, nodeVoList);
+        autoexecJobService.resetJobNodeStatus(jobVo, nodeVoList);
         return null;
     }
 }
