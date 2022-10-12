@@ -19,6 +19,8 @@ import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
 import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.dto.scenario.AutoexecScenarioVo;
+import codedriver.framework.autoexec.exception.AutoexecJobOperationParamValueInvalidException;
+import codedriver.framework.autoexec.exception.AutoexecJobParamValueInvalidException;
 import codedriver.framework.autoexec.exception.AutoexecJobSourceInvalidException;
 import codedriver.framework.autoexec.exception.AutoexecScenarioIsNotFoundException;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
@@ -155,7 +157,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                                 put("phaseName", jobPhase.getName());
                                 put("phaseType", jobPhase.getExecMode());
                                 put("execRound", jobPhase.getExecutePolicy());
-                                put("operations", getOperationFireParam(jobPhase.getOperationList()));
+                                put("operations", getOperationFireParam(jobPhase, jobPhase.getOperationList()));
                             }});
                         }
                     }});
@@ -177,7 +179,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
      * @param jobOperationVoList 作业工具列表
      * @return 作业工具param
      */
-    private JSONArray getOperationFireParam(List<AutoexecJobPhaseOperationVo> jobOperationVoList) {
+    private JSONArray getOperationFireParam(AutoexecJobPhaseVo jobPhaseVo, List<AutoexecJobPhaseOperationVo> jobOperationVoList) {
         return new JSONArray() {{
             for (AutoexecJobPhaseOperationVo operationVo : jobOperationVoList) {
                 JSONObject param = operationVo.getParam();
@@ -251,10 +253,10 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                                 JSONObject argJson = JSONObject.parseObject(arg.toString());
                                 String value = argJson.getString("value");
                                 if (Objects.equals(ParamMappingMode.CONSTANT.getValue(), argJson.getString("mappingMode"))) {
-                                    put(argJson.getString("key"), getValueByParamType(argJson));
+                                    put(argJson.getString("key"), getValueByParamType(argJson, jobPhaseVo, operationVo));
                                 } else if (Objects.equals(ParamMappingMode.RUNTIME_PARAM.getValue(), argJson.getString("mappingMode"))) {
                                     put(argJson.getString("key"), String.format("${%s}", value));
-                                } else if (Arrays.asList(ParamMappingMode.PRE_NODE_OUTPUT_PARAM.getValue(),ParamMappingMode.PRE_NODE_OUTPUT_PARAM_KEY.getValue()).contains(argJson.getString("mappingMode"))) {
+                                } else if (Arrays.asList(ParamMappingMode.PRE_NODE_OUTPUT_PARAM.getValue(), ParamMappingMode.PRE_NODE_OUTPUT_PARAM_KEY.getValue()).contains(argJson.getString("mappingMode"))) {
                                     put(argJson.getString("key"), value);
                                 } else if (Objects.equals(ParamMappingMode.PROFILE.getValue(), argJson.getString("mappingMode"))) {
                                     put(argJson.getString("key"), finalProfileKeyValueMap.get(argJson.getString("key")));
@@ -291,12 +293,12 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                         JSONArray ifArray = param.getJSONArray("ifList");
                         if (CollectionUtils.isNotEmpty(ifArray)) {
                             List<AutoexecJobPhaseOperationVo> ifJobOperationList = JSONObject.parseArray(ifArray.toJSONString(), AutoexecJobPhaseOperationVo.class);
-                            put("if", getOperationFireParam(ifJobOperationList));
+                            put("if", getOperationFireParam(jobPhaseVo, ifJobOperationList));
                         }
                         JSONArray elseArray = param.getJSONArray("elseList");
                         if (CollectionUtils.isNotEmpty(elseArray)) {
                             List<AutoexecJobPhaseOperationVo> elseJobOperationList = JSONObject.parseArray(elseArray.toJSONString(), AutoexecJobPhaseOperationVo.class);
-                            put("else", getOperationFireParam(elseJobOperationList));
+                            put("else", getOperationFireParam(jobPhaseVo, elseJobOperationList));
                         }
                     }
                 }});
@@ -310,14 +312,42 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
      * @param param 参数json
      * @return 值
      */
+    private Object getValueByParamType(JSONObject param, AutoexecJobPhaseVo jobPhaseVo, AutoexecJobPhaseOperationVo operationVo) {
+        String type = param.getString("type");
+        Object value = param.get("value");
+        try {
+            if (value != null) {
+                IScriptParamType paramType = ScriptParamTypeFactory.getHandler(type);
+                if (paramType != null) {
+                    value = paramType.getAutoexecParamByValue(value);
+                }
+            }
+        } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
+            throw new AutoexecJobOperationParamValueInvalidException(jobPhaseVo, operationVo, param);
+        }
+        return value;
+    }
+
+    /**
+     * 根据参数值类型获取对应参数的值
+     *
+     * @param param 参数json
+     * @return 值
+     */
     private Object getValueByParamType(JSONObject param) {
         String type = param.getString("type");
         Object value = param.get("value");
-        if (value != null) {
-            IScriptParamType paramType = ScriptParamTypeFactory.getHandler(type);
-            if (paramType != null) {
-                value = paramType.getAutoexecParamByValue(value);
+        try {
+            if (value != null) {
+                IScriptParamType paramType = ScriptParamTypeFactory.getHandler(type);
+                if (paramType != null) {
+                    value = paramType.getAutoexecParamByValue(value);
+                }
             }
+        } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
+            throw new AutoexecJobParamValueInvalidException(param);
         }
         return value;
     }
@@ -331,7 +361,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
         AutoexecCombopVo combopVo = autoexecJobSourceActionHandler.getAutoexecCombop(autoexecJobParam);
         //作业执行权限校验
-        autoexecJobSourceActionHandler.executeAuthCheck(autoexecJobParam,false);
+        autoexecJobSourceActionHandler.executeAuthCheck(autoexecJobParam, false);
         //设置作业执行节点
         if (combopVo.getConfig() != null && autoexecJobParam.getExecuteConfig() != null) {
             //如果执行传进来的"执行用户"、"协议"为空则使用默认设定的值
