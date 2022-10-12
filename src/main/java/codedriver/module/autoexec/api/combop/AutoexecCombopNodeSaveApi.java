@@ -75,6 +75,7 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
             @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "组合工具主键id"),
             @Param(name = "protocolId", type = ApiParamType.LONG, desc = "连接协议id"),
             @Param(name = "executeUser", type = ApiParamType.STRING, desc = "执行用户"),
+            @Param(name = "roundCount", type = ApiParamType.STRING, desc = "分批数量"),
             @Param(name = "whenToSpecify", type = ApiParamType.ENUM, rule = "now,runtime,runtimeparam", isRequired = true, desc = "执行目标指定时机，现在指定/运行时再指定或指定运行参数"),
             @Param(name = "executeNodeConfig", type = ApiParamType.JSONOBJECT, desc = "执行目标信息")
     })
@@ -84,6 +85,7 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
         Long combopId = jsonObj.getLong("combopId");
         Long protocolId = jsonObj.getLong("protocolId");
         String executeUser = jsonObj.getString("executeUser");
+        Integer roundCount = jsonObj.getInteger("roundCount");
         IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
         AccountProtocolVo protocolVo = resourceAccountCrossoverMapper.getAccountProtocolVoByProtocolId(protocolId);
         if (protocolVo == null && protocolId != null) {
@@ -101,6 +103,7 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
         executeConfig.setProtocolId(protocolVo != null ? protocolVo.getId() : null);
         executeConfig.setProtocol(protocolVo != null ? protocolVo.getName() : null);
         executeConfig.setExecuteUser(executeUser);
+        executeConfig.setRoundCount(roundCount);
         String whenToSpecify = jsonObj.getString("whenToSpecify");
         executeConfig.setWhenToSpecify(whenToSpecify);
         JSONObject executeNodeConfig = jsonObj.getJSONObject("executeNodeConfig");
