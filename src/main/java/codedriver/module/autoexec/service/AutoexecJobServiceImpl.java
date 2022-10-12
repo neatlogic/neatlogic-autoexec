@@ -315,6 +315,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 }
             }
             List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseUuidList(jobVo.getId(), combopPhaseVoList.stream().map(AutoexecCombopPhaseVo::getUuid).collect(Collectors.toList()));
+            autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(jobPhaseVoList.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()), JobPhaseStatus.PENDING.getValue());
             Map<String, AutoexecJobPhaseVo> jobPhaseUuidMap = jobPhaseVoList.stream().collect(Collectors.toMap(AutoexecJobPhaseVo::getUuid, o -> o));
             for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseVoList) {
                 jobVo.setCurrentPhase(jobPhaseUuidMap.get(combopPhaseVo.getUuid()));
@@ -754,14 +755,24 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         doc.put("jobId", jobVo.getId().toString());
         fieldDocument.put("data", true);
         mongoTemplate.getDb().getCollection("_node_output").find(doc).projection(fieldDocument).forEach(o -> {
-            JSONObject dataJson = JSONObject.parseObject(o.toJson());
-            JSONObject outputJson = dataJson.getJSONObject(operationVo.getName() + "_" + operationVo.getId());
-            if (MapUtils.isNotEmpty(outputJson)) {
-                Object nodes = outputJson.get(paramKey);
-                if (nodes instanceof JSONArray) {
-                    nodeArrayAtomic.set((JSONArray) nodes);
-                } else {
-                    throw new AutoexecJobNodePreParamValueNotInvalidException(jobVo.getId(), jobVo.getCurrentPhase().getName());
+            JSONObject operation = JSONObject.parseObject(o.toJson());
+            if (operation.containsKey("data")) {
+                JSONObject dataJson = operation.getJSONObject("data");
+                JSONObject outputJson = dataJson.getJSONObject(operationVo.getName() + "_" + operationVo.getId());
+                if (MapUtils.isNotEmpty(outputJson)) {
+                    Object nodes = outputJson.get(paramKey);
+                    if (nodes instanceof JSONArray) {
+                        nodeArrayAtomic.set((JSONArray) nodes);
+                    }
+                    if (nodes instanceof String) {
+                        try {
+                            nodeArrayAtomic.set(JSONArray.parseArray(nodes.toString()));
+                        } catch (Exception ex) {
+                            throw new AutoexecJobNodePreParamValueNotInvalidException(jobVo.getId(), jobVo.getCurrentPhase().getName());
+                        }
+                    } else {
+                        throw new AutoexecJobNodePreParamValueNotInvalidException(jobVo.getId(), jobVo.getCurrentPhase().getName());
+                    }
                 }
             }
         });
