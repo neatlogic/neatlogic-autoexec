@@ -63,7 +63,7 @@ public class GetAutoexecJobCreateParamApi extends PrivateApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
-        List<AutoexecJobPhaseVo> phaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobId);
+        List<AutoexecJobPhaseVo> phaseVoList = autoexecJobMapper.getJobPhaseListWithGroupByJobId(jobId);
         jobVo.setPhaseList(phaseVoList);
         autoexecJobService.getAutoexecJobDetail(jobVo);
         JSONObject result = new JSONObject();

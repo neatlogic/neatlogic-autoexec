@@ -85,7 +85,7 @@ public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
         //获取当前phase
         AutoexecJobPhaseVo jobCurrentPhaseVo = autoexecJobMapper.getJobActivePhase(jobId);
         //剧本列表
-        List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobId);
+        List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListWithGroupByJobId(jobId);
         List<AutoexecJobPhaseNodeStatusCountVo> statusCountVoList = autoexecJobMapper.getJobPhaseNodeStatusCount(jobId);
         for (AutoexecJobPhaseNodeStatusCountVo statusCountVo : statusCountVoList) {
             for (AutoexecJobPhaseVo phaseVo : jobPhaseVoList) {

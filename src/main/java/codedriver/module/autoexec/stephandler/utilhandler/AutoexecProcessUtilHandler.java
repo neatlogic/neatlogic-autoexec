@@ -57,7 +57,7 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
         if (autoexecJobId != null) {
             AutoexecJobVo autoexecJobVo = autoexecJobMapper.getJobInfo(autoexecJobId);
             if (autoexecJobVo != null) {
-                List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobId(autoexecJobId);
+                List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListWithGroupByJobId(autoexecJobId);
                 autoexecJobVo.setPhaseList(jobPhaseVoList);
                 return autoexecJobVo;
             }

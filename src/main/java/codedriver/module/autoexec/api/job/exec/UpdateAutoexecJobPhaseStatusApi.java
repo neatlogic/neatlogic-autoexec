@@ -174,7 +174,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
             autoexecJobMapper.updateJobStatus(jobVo);
         } else if (Objects.equals(finalJobPhaseStatus, JobPhaseStatus.COMPLETED.getValue())) {
             //判断所有phase 是否都已跑完（completed），如果是则需要更新job状态
-            List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId());
+            List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListWithGroupByJobId(jobVo.getId());
             if (jobPhaseVoList.stream().allMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.COMPLETED.getValue()))) {
                 jobVo.setStatus(JobPhaseStatus.COMPLETED.getValue());
                 autoexecJobMapper.updateJobStatus(jobVo);

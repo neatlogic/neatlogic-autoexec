@@ -99,7 +99,7 @@ public class ExportAutoexecJobApi extends PrivateBinaryStreamApiComponentBase {
                 }
             }
         }
-        List<AutoexecJobPhaseVo> phaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobId);
+        List<AutoexecJobPhaseVo> phaseVoList = autoexecJobMapper.getJobPhaseListWithGroupByJobId(jobId);
         if (phaseVoList.size() > 0) {
             ExcelBuilder builder = new ExcelBuilder(SXSSFWorkbook.class);
             builder.withBorderColor(HSSFColor.HSSFColorPredefined.GREY_40_PERCENT)

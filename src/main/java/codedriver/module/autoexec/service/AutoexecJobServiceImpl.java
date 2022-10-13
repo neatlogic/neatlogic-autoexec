@@ -571,7 +571,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
 
     @Override
     public void refreshJobNodeList(Long jobId, JSONObject executeConfig) {
-        List<AutoexecJobPhaseVo> phaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobId);
+        List<AutoexecJobPhaseVo> phaseVoList = autoexecJobMapper.getJobPhaseListWithGroupByJobId(jobId);
         refreshJobPhaseNodeList(jobId, phaseVoList, executeConfig);
     }
 

@@ -7,6 +7,7 @@ package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeStatusCountVo;
@@ -26,6 +27,10 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
+
+import static codedriver.framework.common.util.CommonUtil.distinctByKey;
 
 /**
  * @author lvzk
@@ -76,10 +81,20 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
             throw new AutoexecJobNotFoundException(jobId);
         }
         if (CollectionUtils.isEmpty(jobPhaseIdList)) {
-            jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobId(jobId);
+            jobPhaseVoList = autoexecJobMapper.getJobPhaseListWithGroupByJobId(jobId);
         } else {
-            jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseIdList(jobId, jobPhaseIdList);
+            jobPhaseVoList = autoexecJobMapper.getJobPhaseListWithGroupByJobIdAndPhaseIdList(jobId, jobPhaseIdList);
         }
+
+        //过滤出需要根据入参phaseList 更新执行目标的阶段List
+        List<AutoexecJobPhaseVo> jobPrPhaseList = jobPhaseVoList.stream().filter(o -> Objects.equals(o.getIsPreOutputUpdateNode(), 1) && Objects.equals(o.getStatus(), JobPhaseStatus.COMPLETED.getValue())).collect(Collectors.toList());
+        if (CollectionUtils.isNotEmpty(jobPrPhaseList)) {
+            for (AutoexecJobPhaseVo prePhase : jobPrPhaseList) {
+                jobPhaseVoList.addAll(autoexecJobService.getJobPhaseListByPreOutput(jobVo, prePhase));
+            }
+            jobPhaseVoList = jobPhaseVoList.stream().filter(distinctByKey(AutoexecJobPhaseVo::getId)).collect(Collectors.toList());
+        }
+
         List<AutoexecJobPhaseNodeStatusCountVo> statusCountVoList = autoexecJobMapper.getJobPhaseNodeStatusCount(jobId);
         for (AutoexecJobPhaseVo phaseVo : jobPhaseVoList) {
             for (AutoexecJobPhaseNodeStatusCountVo statusCountVo : statusCountVoList) {
@@ -92,7 +107,7 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
         result.put("statusName", JobStatus.getText(jobVo.getStatus()));
         result.put("phaseList", jobPhaseVoList);
         IAutoexecJobSourceHandler jobSourceHandler = AutoexecJobSourceHandlerFactory.getJobSource(jobVo.getSource());
-        if(jobSourceHandler != null) {
+        if (jobSourceHandler != null) {
             result.putAll(jobSourceHandler.getExtraRefreshJobInfo(jobVo));
         }
         return result;
