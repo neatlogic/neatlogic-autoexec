@@ -22,6 +22,7 @@ import codedriver.framework.dto.RestVo;
 import codedriver.framework.dto.runner.RunnerMapVo;
 import codedriver.framework.integration.authentication.enums.AuthenticateType;
 import codedriver.framework.util.RestUtil;
+import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -44,6 +45,8 @@ public class AutoexecJobAbortHandler extends AutoexecJobActionHandlerBase {
     private final static Logger logger = LoggerFactory.getLogger(AutoexecJobAbortHandler.class);
     @Resource
     AutoexecJobMapper autoexecJobMapper;
+    @Resource
+    AutoexecJobService autoexecJobService;
 
     @Override
     public String getName() {
@@ -82,7 +85,7 @@ public class AutoexecJobAbortHandler extends AutoexecJobActionHandlerBase {
             autoexecJobMapper.updateJobStatus(jobVo);
         }else {
             runnerVos = runnerVos.stream().filter(o->StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>( Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
-            checkRunnerHealth(runnerVos);
+            autoexecJobService.checkRunnerHealth(runnerVos);
             JSONObject paramJson = new JSONObject();
             paramJson.put("jobId", jobVo.getId());
             paramJson.put("tenant", TenantContext.get().getTenantUuid());

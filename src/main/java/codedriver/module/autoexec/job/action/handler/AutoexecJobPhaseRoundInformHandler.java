@@ -14,6 +14,7 @@ import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBas
 import codedriver.framework.dto.runner.RunnerMapVo;
 import codedriver.framework.integration.authentication.enums.AuthenticateType;
 import codedriver.framework.util.HttpRequestUtil;
+import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -32,6 +33,8 @@ import static java.util.stream.Collectors.toCollection;
 public class AutoexecJobPhaseRoundInformHandler extends AutoexecJobActionHandlerBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
+    @Resource
+    AutoexecJobService autoexecJobService;
 
     @Override
     public String getName() {
@@ -60,7 +63,7 @@ public class AutoexecJobPhaseRoundInformHandler extends AutoexecJobActionHandler
         informParam.put("roundNo", jsonObj.getInteger("roundNo"));
         List<RunnerMapVo> runnerVos = autoexecJobMapper.getJobRunnerListByJobIdAndGroupId(phaseVo.getJobId(), phaseVo.getGroupId());
         runnerVos = runnerVos.stream().filter(o -> StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
-        checkRunnerHealth(runnerVos);
+        autoexecJobService.checkRunnerHealth(runnerVos);
         for (RunnerMapVo runnerVo : runnerVos) {
             String url = String.format("%s/api/rest/job/phase/socket/write", runnerVo.getUrl());
             String result = HttpRequestUtil.post(url)

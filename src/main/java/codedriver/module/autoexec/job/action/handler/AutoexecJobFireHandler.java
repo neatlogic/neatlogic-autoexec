@@ -9,6 +9,7 @@ import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
+import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +23,8 @@ import javax.annotation.Resource;
 public class AutoexecJobFireHandler extends AutoexecJobActionHandlerBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
+    @Resource
+    AutoexecJobService autoexecJobService;
 
     @Override
     public String getName() {
@@ -43,7 +46,7 @@ public class AutoexecJobFireHandler extends AutoexecJobActionHandlerBase {
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         autoexecJobMapper.getJobLockByJobId(jobVo.getId());
-        executeGroup(jobVo);
+        autoexecJobService.executeGroup(jobVo);
         return new JSONObject(){{
             put("jobId",jobVo.getId());
         }};

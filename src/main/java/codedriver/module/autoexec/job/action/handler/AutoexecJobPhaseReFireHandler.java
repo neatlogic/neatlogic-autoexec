@@ -78,11 +78,11 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
             List<AutoexecJobPhaseNodeVo> needResetNodeList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseIdAndExceptStatus(jobVo.getId(), jobPhaseVo.getId(), Arrays.asList(JobNodeStatus.IGNORED.getValue(), JobNodeStatus.SUCCEED.getValue()));
             if (CollectionUtils.isNotEmpty(needResetNodeList)) {
                 autoexecJobMapper.updateJobPhaseNodeListStatus(needResetNodeList.stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()), JobNodeStatus.PENDING.getValue());
-                resetJobNodeStatus(jobVo, needResetNodeList);
+                autoexecJobService.resetJobNodeStatus(jobVo, needResetNodeList);
             }
         }
         jobPhaseVo.setJobGroupVo(autoexecJobMapper.getJobGroupById(jobPhaseVo.getGroupId()));
-        executeGroup(jobVo);
+        autoexecJobService.executeGroup(jobVo);
         return null;
     }
 
@@ -99,7 +99,7 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
         if (CollectionUtils.isEmpty(runnerVos)) {
             throw new AutoexecJobRunnerNotFoundException(jobVo.getExecuteJobPhaseList().stream().map(AutoexecJobPhaseVo::getName).collect(Collectors.toList()));
         }
-        checkRunnerHealth(runnerVos);
+        autoexecJobService.checkRunnerHealth(runnerVos);
         for (RunnerMapVo runner : runnerVos) {
             String url = runner.getUrl() + "api/rest/job/phase/reset";
             paramJson.put("passThroughEnv", new JSONObject() {{

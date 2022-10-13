@@ -8,6 +8,7 @@ package codedriver.module.autoexec.api.job.exec;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.ExecMode;
+import codedriver.framework.autoexec.constvalue.JobNodeStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
@@ -79,12 +80,12 @@ public class UpdateAutoexecJobPhaseNodeStatusApi extends PrivateApiComponentBase
             throw new AutoexecJobPhaseNotFoundException(phaseName);
         }
         //获取node
-        if(Objects.equals(jobPhaseVo.getExecMode(), ExecMode.RUNNER.getValue())){
-            List<AutoexecJobPhaseNodeVo> nodeList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseId(jobId,jobPhaseVo.getId());
-            if(CollectionUtils.isNotEmpty(nodeList)) {
+        if (Objects.equals(jobPhaseVo.getExecMode(), ExecMode.RUNNER.getValue())) {
+            List<AutoexecJobPhaseNodeVo> nodeList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseId(jobId, jobPhaseVo.getId());
+            if (CollectionUtils.isNotEmpty(nodeList)) {
                 nodeVo = nodeList.get(0);
             }
-        }else {
+        } else {
             nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobIdAndJobPhaseNameAndResourceId(jobId, phaseName, resourceId);
         }
         //不抛异常影响其它节点运行，ignore 就好
@@ -96,6 +97,9 @@ public class UpdateAutoexecJobPhaseNodeStatusApi extends PrivateApiComponentBase
         if (!Objects.equals(nodeVo.getStatus(), jsonObj.getString("status")) || !Objects.equals(nodeVo.getWarnCount(), jsonObj.getInteger("warnCount"))) {
             nodeVo.setStatus(jsonObj.getString("status"));
             nodeVo.setWarnCount(jsonObj.getInteger("warnCount"));
+            if (Objects.equals(nodeVo.getStatus(), JobNodeStatus.RUNNING.getValue())) {
+                nodeVo.setIsExecuted(1);
+            }
             autoexecJobMapper.updateJobPhaseNodeStatus(nodeVo);
         }
         return null;
