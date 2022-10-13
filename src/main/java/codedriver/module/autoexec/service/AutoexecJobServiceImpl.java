@@ -223,7 +223,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     AutoexecCombopPhaseConfigVo phaseConfigVo = combopPhaseVo.getConfig();
                     if (phaseConfigVo != null) {
                         AutoexecCombopExecuteConfigVo executeConfigVo = phaseConfigVo.getExecuteConfig();
-                        if (executeConfigVo != null) {
+                        if (executeConfigVo != null && executeConfigVo.getIsPresetExecuteConfig() == 1) {
                             AutoexecCombopExecuteNodeConfigVo nodeConfigVo = executeConfigVo.getExecuteNodeConfig();
                             if (nodeConfigVo != null) {
                                 if (CollectionUtils.isNotEmpty(nodeConfigVo.getPreOutputList())) {
@@ -265,7 +265,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     AutoexecCombopPhaseConfigVo phaseConfigVo = combopPhaseVo.getConfig();
                     if (phaseConfigVo != null) {
                         AutoexecCombopExecuteConfigVo executeConfigVo = phaseConfigVo.getExecuteConfig();
-                        if (executeConfigVo != null) {
+                        if (executeConfigVo != null && executeConfigVo.getIsPresetExecuteConfig() == 1) {
                             AutoexecCombopExecuteNodeConfigVo nodeConfigVo = executeConfigVo.getExecuteNodeConfig();
                             if (nodeConfigVo != null) {
                                 if (CollectionUtils.isNotEmpty(nodeConfigVo.getPreOutputList())) {
@@ -310,7 +310,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     AutoexecCombopPhaseConfigVo phaseConfigVo = combopPhaseVo.getConfig();
                     if (phaseConfigVo != null) {
                         AutoexecCombopExecuteConfigVo executeConfigVo = phaseConfigVo.getExecuteConfig();
-                        if (executeConfigVo != null) {
+                        if (executeConfigVo != null && executeConfigVo.getIsPresetExecuteConfig() == 1) {
                             AutoexecCombopExecuteNodeConfigVo nodeConfigVo = executeConfigVo.getExecuteNodeConfig();
                             if (nodeConfigVo != null) {
                                 if (CollectionUtils.isNotEmpty(nodeConfigVo.getPreOutputList())) {
@@ -443,13 +443,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 executeConfigVo = groupConfig.getExecuteConfig();
                 //判断组执行节点是否配置
                 if (executeConfigVo != null) {
-                    isGroupConfig = executeConfigVo.getExecuteNodeConfig() != null
-                            && (CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getTagList())
-                            || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getSelectNodeList())
-                            || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getInputNodeList())
-                            || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getParamList())
-                            || MapUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getFilter())
-                    );
+                    isGroupConfig = executeConfigVo.getExecuteNodeConfig() != null && !executeConfigVo.getExecuteNodeConfig().isNull();
                     if (isGroupConfig) {
                         jobVo.setNodeFrom(AutoexecJobPhaseNodeFrom.GROUP.getValue());
                         isHasNode = getJobNodeList(executeConfigVo, jobVo, userName, protocolId);
@@ -458,7 +452,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             }
         } else {
             executeConfigVo = combopPhaseExecuteConfigVo.getExecuteConfig();
-            if (executeConfigVo != null) {
+            if (executeConfigVo != null && executeConfigVo.getIsPresetExecuteConfig() == 1 ) {
                 if (StringUtils.isNotBlank(executeConfigVo.getExecuteUser())) {
                     userName = executeConfigVo.getExecuteUser();
                 }
@@ -467,14 +461,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 }
 
                 //判断阶段执行节点是否配置
-                isPhaseConfig = executeConfigVo.getExecuteNodeConfig() != null
-                        && (CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getTagList())
-                        || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getSelectNodeList())
-                        || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getInputNodeList())
-                        || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getParamList())
-                        || CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getPreOutputList())
-                        || MapUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getFilter())
-                );
+                isPhaseConfig = executeConfigVo.getExecuteNodeConfig() != null && !executeConfigVo.getExecuteNodeConfig().isNull();
                 if (isPhaseConfig) {
                     jobVo.setNodeFrom(AutoexecJobPhaseNodeFrom.PHASE.getValue());
                     isHasNode = getJobNodeList(executeConfigVo, jobVo, userName, protocolId);

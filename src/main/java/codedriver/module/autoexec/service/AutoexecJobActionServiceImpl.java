@@ -376,7 +376,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             if (StringUtils.isNotBlank(autoexecJobParam.getExecuteConfig().getExecuteUser())) {
                 combopExecuteConfigVo.setExecuteUser(autoexecJobParam.getExecuteConfig().getExecuteUser());
             }
-            combopExecuteConfigVo.setExecuteNodeConfig(autoexecJobParam.getExecuteConfig().getExecuteNodeConfig());
+            if(!autoexecJobParam.getExecuteConfig().getExecuteNodeConfig().isNull()) {
+                combopExecuteConfigVo.setExecuteNodeConfig(autoexecJobParam.getExecuteConfig().getExecuteNodeConfig());
+            }
             combopVo.getConfig().setExecuteConfig(combopExecuteConfigVo);
             autoexecCombopService.verifyAutoexecCombopConfig(combopVo.getConfig(), true);
         }
