@@ -231,6 +231,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                     put("isScript", Objects.equals(operationVo.getType(), ToolType.SCRIPT.getValue()) ? 1 : 0);
                     put("scriptId", operationVo.getScriptId());
                     put("interpreter", operationVo.getParser());
+                    put("help", operationVo.getDescription());
                     //put("script", operationVo.getScript());
                     if (CollectionUtils.isNotEmpty(argumentList)) {
                         for (int i = 0; i < argumentList.size(); i++) {
@@ -376,7 +377,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             if (StringUtils.isNotBlank(autoexecJobParam.getExecuteConfig().getExecuteUser())) {
                 combopExecuteConfigVo.setExecuteUser(autoexecJobParam.getExecuteConfig().getExecuteUser());
             }
-            if(!autoexecJobParam.getExecuteConfig().getExecuteNodeConfig().isNull()) {
+            if (!autoexecJobParam.getExecuteConfig().getExecuteNodeConfig().isNull()) {
                 combopExecuteConfigVo.setExecuteNodeConfig(autoexecJobParam.getExecuteConfig().getExecuteNodeConfig());
             }
             combopVo.getConfig().setExecuteConfig(combopExecuteConfigVo);

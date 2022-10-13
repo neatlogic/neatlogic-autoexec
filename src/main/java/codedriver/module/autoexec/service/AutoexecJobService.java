@@ -181,6 +181,19 @@ public interface AutoexecJobService {
      */
     void executeGroup(AutoexecJobVo jobVo);
 
+    /**
+     * 执行
+     * @param jobVo 作业
+     * @param runnerVos 执行器s
+     */
     void execute(AutoexecJobVo jobVo, List<RunnerMapVo> runnerVos);
+
+    /**
+     * 根据当前阶段出参获取需要更新执行目标的其他阶段
+     * @param jobVo 作业
+     * @param currentJobPhaseVo 当前阶段
+     * @return 需要更新执行目标的阶段
+     */
+    List<AutoexecJobPhaseVo> getJobPhaseListByPreOutput(AutoexecJobVo jobVo, AutoexecJobPhaseVo currentJobPhaseVo);
 
 }

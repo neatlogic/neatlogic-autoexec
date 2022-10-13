@@ -83,7 +83,14 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
         }
         jobPhaseVo.setJobGroupVo(autoexecJobMapper.getJobGroupById(jobPhaseVo.getGroupId()));
         autoexecJobService.executeGroup(jobVo);
-        return null;
+        JSONObject result = new JSONObject();
+        if (jobPhaseVo.getIsPreOutputUpdateNode() == 1) {
+            List<AutoexecJobPhaseVo> autoexecJobPhaseVos = autoexecJobService.getJobPhaseListByPreOutput(jobVo, jobPhaseVo);
+            if (CollectionUtils.isNotEmpty(autoexecJobPhaseVos)) {
+                result.put("phaseIdList", autoexecJobPhaseVos.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()));
+            }
+        }
+        return result;
     }
 
     /**

@@ -63,9 +63,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import static codedriver.framework.common.util.CommonUtil.distinctByKey;
 import static java.util.stream.Collectors.*;
-import static java.util.stream.Collectors.toCollection;
 
 /**
  * @since 2021/4/12 18:44
@@ -291,6 +289,31 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     @Override
     public void updateNodeByPreOutput(AutoexecJobVo jobVo, AutoexecJobPhaseVo currentJobPhaseVo) {
         List<AutoexecCombopPhaseVo> combopPhaseVoList = new ArrayList<>();
+        List<AutoexecJobPhaseVo> jobPhaseVoList = getJobPhaseListByPreOutput(jobVo, currentJobPhaseVo, combopPhaseVoList);
+        autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(jobPhaseVoList.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()), JobPhaseStatus.PENDING.getValue());
+        Map<String, AutoexecJobPhaseVo> jobPhaseUuidMap = jobPhaseVoList.stream().collect(Collectors.toMap(AutoexecJobPhaseVo::getUuid, o -> o));
+        for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseVoList) {
+            jobVo.setCurrentPhase(jobPhaseUuidMap.get(combopPhaseVo.getUuid()));
+            initPhaseExecuteUserAndProtocolAndNode(jobVo, jobVo.getConfig().getExecuteConfig(), combopPhaseVo.getConfig());
+        }
+    }
+
+    @Override
+    public List<AutoexecJobPhaseVo> getJobPhaseListByPreOutput(AutoexecJobVo jobVo, AutoexecJobPhaseVo currentJobPhaseVo) {
+        List<AutoexecCombopPhaseVo> combopPhaseVoList = new ArrayList<>();
+        return getJobPhaseListByPreOutput(jobVo, currentJobPhaseVo, combopPhaseVoList);
+    }
+
+    /**
+     * 根据当前阶段出参获取需要更新执行目标的其他阶段
+     *
+     * @param jobVo             作业
+     * @param currentJobPhaseVo 当前阶段
+     * @param combopPhaseVoList 需要更新的阶段配置
+     * @return 需要更新执行目标的阶段
+     */
+    private List<AutoexecJobPhaseVo> getJobPhaseListByPreOutput(AutoexecJobVo jobVo, AutoexecJobPhaseVo currentJobPhaseVo, List<AutoexecCombopPhaseVo> combopPhaseVoList) {
+        List<AutoexecJobPhaseVo> jobPhaseVoList = new ArrayList<>();
         AutoexecJobContentVo jobContentVo = autoexecJobMapper.getJobContent(jobVo.getConfigHash());
         if (jobContentVo == null || StringUtils.isBlank(jobContentVo.getContent())) {
             throw new AutoexecJoConfigNotFoundException(jobVo.getId());
@@ -323,14 +346,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     }
                 }
             }
-            List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseUuidList(jobVo.getId(), combopPhaseVoList.stream().map(AutoexecCombopPhaseVo::getUuid).collect(Collectors.toList()));
-            autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(jobPhaseVoList.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()), JobPhaseStatus.PENDING.getValue());
-            Map<String, AutoexecJobPhaseVo> jobPhaseUuidMap = jobPhaseVoList.stream().collect(Collectors.toMap(AutoexecJobPhaseVo::getUuid, o -> o));
-            for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseVoList) {
-                jobVo.setCurrentPhase(jobPhaseUuidMap.get(combopPhaseVo.getUuid()));
-                initPhaseExecuteUserAndProtocolAndNode(jobVo, combopConfigVo.getExecuteConfig(), combopPhaseVo.getConfig());
-            }
+            jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseUuidList(jobVo.getId(), combopPhaseVoList.stream().map(AutoexecCombopPhaseVo::getUuid).collect(Collectors.toList()));
         }
+        return jobPhaseVoList;
     }
 
     /**
@@ -452,7 +470,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             }
         } else {
             executeConfigVo = combopPhaseExecuteConfigVo.getExecuteConfig();
-            if (executeConfigVo != null && executeConfigVo.getIsPresetExecuteConfig() == 1 ) {
+            if (executeConfigVo != null && executeConfigVo.getIsPresetExecuteConfig() == 1) {
                 if (StringUtils.isNotBlank(executeConfigVo.getExecuteUser())) {
                     userName = executeConfigVo.getExecuteUser();
                 }
@@ -563,6 +581,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         if (paramContentVo != null) {
             jobVo.setParamArrayStr(paramContentVo.getContent());
         }
+        AutoexecJobContentVo jobContent = autoexecJobMapper.getJobContent(jobVo.getConfigHash());
+        jobVo.setConfigStr(jobContent.getContent());
         List<AutoexecJobPhaseVo> jobPhaseVoList = jobVo.getPhaseList();
         AutoexecJobGroupVo executeJobGroupVo = jobVo.getExecuteJobGroupVo();
         if (executeJobGroupVo != null) {
@@ -571,6 +591,20 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         List<AutoexecJobGroupVo> jobGroupVos = autoexecJobMapper.getJobGroupByJobId(jobVo.getId());
         Map<Long, AutoexecJobGroupVo> jobGroupIdMap = jobGroupVos.stream().collect(Collectors.toMap(AutoexecJobGroupVo::getId, e -> e));
         if (CollectionUtils.isNotEmpty(jobPhaseVoList)) {
+            AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(jobVo.getSource());
+            if (jobSourceVo == null) {
+                throw new AutoexecJobSourceInvalidException(jobVo.getSource());
+            }
+            IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
+            AutoexecCombopVo combopVo = autoexecJobSourceActionHandler.getSnapshotAutoexecCombop(jobVo);
+            Map<String, String> descriptionMap = new HashMap<>();
+            for (AutoexecCombopPhaseVo combopPhase : combopVo.getConfig().getCombopPhaseList()) {
+                AutoexecCombopPhaseConfigVo phaseConfigVo = combopPhase.getConfig();
+                if (phaseConfigVo != null) {
+                    List<AutoexecCombopPhaseOperationVo> operationVoList = phaseConfigVo.getPhaseOperationList();
+                    descriptionMap.putAll(operationVoList.stream().collect(Collectors.toMap(AutoexecCombopPhaseOperationVo::getUuid, o -> o.getDescription() == null ? StringUtils.EMPTY : o.getDescription())));
+                }
+            }
             for (AutoexecJobPhaseVo phaseVo : jobPhaseVoList) {
                 phaseVo.setJobGroupVo(jobGroupIdMap.get(phaseVo.getGroupId()));
                 List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseId(jobVo.getId(), phaseVo.getId());
@@ -580,6 +614,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     if (paramContentVo != null) {
                         operationVo.setParamStr(paramContentVo.getContent());
                     }
+                    operationVo.setDescription(descriptionMap.get(operationVo.getUuid()));
                 }
             }
         }
@@ -1117,16 +1152,25 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             if (config != null) {
                 List<AutoexecJobPhaseOperationVo> jobOperationVoList = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseId(paramJson.getLong("jobId"), paramJson.getLong("phaseId"));
                 Optional<AutoexecCombopPhaseVo> combopPhaseOptional = config.getCombopPhaseList().stream().filter(o -> Objects.equals(o.getName(), paramJson.getString("phase"))).findFirst();
-                Map<String, String> descriptionMap = new HashMap<>();
+                Map<String, String> descriptionUuidMap = new HashMap<>();
+                Map<String, String> descriptionNameMap = new HashMap<>();
                 if (combopPhaseOptional.isPresent()) {
                     AutoexecCombopPhaseConfigVo phaseConfigVo = combopPhaseOptional.get().getConfig();
                     if (phaseConfigVo != null) {
                         List<AutoexecCombopPhaseOperationVo> operationVoList = phaseConfigVo.getPhaseOperationList();
-                        descriptionMap = operationVoList.stream().filter(distinctByKey(AutoexecCombopPhaseOperationVo::getOperationName)).collect(Collectors.toMap(AutoexecCombopPhaseOperationVo::getOperationName, o -> o.getDescription() == null ? StringUtils.EMPTY : o.getDescription()));
+                        descriptionUuidMap = operationVoList.stream().collect(Collectors.toMap(AutoexecCombopPhaseOperationVo::getUuid, o -> o.getDescription() == null ? StringUtils.EMPTY : o.getDescription()));
+                        descriptionNameMap = operationVoList.stream().collect(Collectors.toMap(AutoexecCombopPhaseOperationVo::getOperationName, o -> o.getDescription() == null ? StringUtils.EMPTY : o.getDescription()));
                     }
                 }
                 for (AutoexecJobPhaseOperationVo jobPhaseOperationVo : jobOperationVoList) {
-                    statusList.add(new AutoexecJobPhaseNodeOperationStatusVo(jobPhaseOperationVo, statusJson, descriptionMap.get(jobPhaseOperationVo.getName())));
+                    String description;
+                    if (descriptionUuidMap.containsKey(jobPhaseOperationVo.getUuid())) {
+                        description = descriptionUuidMap.get(jobPhaseOperationVo.getUuid());
+                    } else {
+                        //兼容老数据
+                        description = descriptionNameMap.get(jobPhaseOperationVo.getName());
+                    }
+                    statusList.add(new AutoexecJobPhaseNodeOperationStatusVo(jobPhaseOperationVo, statusJson, description));
                 }
 
             }
