@@ -65,7 +65,7 @@ public class GetAutoexecJobPhaseOperationScriptApi extends PrivateApiComponentBa
             throw new AutoexecJobPhaseOperationNotFoundException(opId.toString());
         }
 
-        if ((jsonObj.getInteger("isActive") != null ? jsonObj.getInteger("isActive") : 1) == 1) {
+        if (jsonObj.getInteger("isActive") == null || jsonObj.getInteger("isActive") == 1) {
 
             //获取最新版本的脚本
             AutoexecScriptVersionVo scriptVersionVoOld = autoexecScriptMapper.getVersionByVersionId(jobPhaseOperationVo.getVersionId());
