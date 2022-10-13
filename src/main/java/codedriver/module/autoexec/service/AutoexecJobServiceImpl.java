@@ -222,7 +222,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     AutoexecCombopPhaseConfigVo phaseConfigVo = combopPhaseVo.getConfig();
                     if (phaseConfigVo != null) {
                         AutoexecCombopExecuteConfigVo executeConfigVo = phaseConfigVo.getExecuteConfig();
-                        if (executeConfigVo != null && executeConfigVo.getIsPresetExecuteConfig() == 1) {
+                        if (executeConfigVo != null && Objects.equals(executeConfigVo.getIsPresetExecuteConfig(), 1)) {
                             AutoexecCombopExecuteNodeConfigVo nodeConfigVo = executeConfigVo.getExecuteNodeConfig();
                             if (nodeConfigVo != null) {
                                 if (CollectionUtils.isNotEmpty(nodeConfigVo.getPreOutputList())) {
@@ -264,7 +264,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     AutoexecCombopPhaseConfigVo phaseConfigVo = combopPhaseVo.getConfig();
                     if (phaseConfigVo != null) {
                         AutoexecCombopExecuteConfigVo executeConfigVo = phaseConfigVo.getExecuteConfig();
-                        if (executeConfigVo != null && executeConfigVo.getIsPresetExecuteConfig() == 1) {
+                        if (executeConfigVo != null && Objects.equals(executeConfigVo.getIsPresetExecuteConfig(), 1)) {
                             AutoexecCombopExecuteNodeConfigVo nodeConfigVo = executeConfigVo.getExecuteNodeConfig();
                             if (nodeConfigVo != null) {
                                 if (CollectionUtils.isNotEmpty(nodeConfigVo.getPreOutputList())) {
@@ -334,7 +334,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     AutoexecCombopPhaseConfigVo phaseConfigVo = combopPhaseVo.getConfig();
                     if (phaseConfigVo != null) {
                         AutoexecCombopExecuteConfigVo executeConfigVo = phaseConfigVo.getExecuteConfig();
-                        if (executeConfigVo != null && executeConfigVo.getIsPresetExecuteConfig() == 1) {
+                        if (executeConfigVo != null && Objects.equals(executeConfigVo.getIsPresetExecuteConfig(), 1)) {
                             AutoexecCombopExecuteNodeConfigVo nodeConfigVo = executeConfigVo.getExecuteNodeConfig();
                             if (nodeConfigVo != null) {
                                 if (CollectionUtils.isNotEmpty(nodeConfigVo.getPreOutputList())) {
@@ -471,7 +471,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             }
         } else {
             executeConfigVo = combopPhaseExecuteConfigVo.getExecuteConfig();
-            if (executeConfigVo != null && executeConfigVo.getIsPresetExecuteConfig() == 1) {
+            if (executeConfigVo != null && Objects.equals(executeConfigVo.getIsPresetExecuteConfig(), 1)) {
                 if (StringUtils.isNotBlank(executeConfigVo.getExecuteUser())) {
                     userName = executeConfigVo.getExecuteUser();
                 }
