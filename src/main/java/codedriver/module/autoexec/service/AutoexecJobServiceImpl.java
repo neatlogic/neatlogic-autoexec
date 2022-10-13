@@ -63,6 +63,7 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
+import static codedriver.framework.common.util.CommonUtil.distinctByKey;
 import static java.util.stream.Collectors.*;
 
 /**
@@ -1159,7 +1160,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     if (phaseConfigVo != null) {
                         List<AutoexecCombopPhaseOperationVo> operationVoList = phaseConfigVo.getPhaseOperationList();
                         descriptionUuidMap = operationVoList.stream().collect(Collectors.toMap(AutoexecCombopPhaseOperationVo::getUuid, o -> o.getDescription() == null ? StringUtils.EMPTY : o.getDescription()));
-                        descriptionNameMap = operationVoList.stream().collect(Collectors.toMap(AutoexecCombopPhaseOperationVo::getOperationName, o -> o.getDescription() == null ? StringUtils.EMPTY : o.getDescription()));
+                        descriptionNameMap = operationVoList.stream().filter(distinctByKey(AutoexecCombopPhaseOperationVo::getOperationName)).collect(Collectors.toMap(AutoexecCombopPhaseOperationVo::getOperationName, o -> o.getDescription() == null ? StringUtils.EMPTY : o.getDescription()));
                     }
                 }
                 for (AutoexecJobPhaseOperationVo jobPhaseOperationVo : jobOperationVoList) {
