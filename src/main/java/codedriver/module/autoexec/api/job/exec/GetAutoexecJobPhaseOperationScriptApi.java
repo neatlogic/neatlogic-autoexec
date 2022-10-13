@@ -54,21 +54,18 @@ public class GetAutoexecJobPhaseOperationScriptApi extends PrivateApiComponentBa
             @Param(name = "isActive", type = ApiParamType.INTEGER, desc = "是否获取最新版本的脚本（1：是，0：不是，默认是）"),
     })
     @Output({
-            @Param(name = "script", type = ApiParamType.STRING, desc = "脚本内容")
+            @Param(name = "lineList", type = ApiParamType.JSONARRAY, desc = "脚本内容行列表")
     })
     @Description(desc = "获取作业剧本操作脚本内容")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        String operationId = jsonObj.getString("operationId");
-        int isActive = jsonObj.getInteger("isActive") != null ? jsonObj.getInteger("isActive") : 1;
-
-        Long opId = Long.valueOf(operationId.substring(operationId.lastIndexOf("_") + 1));
+        Long opId = jsonObj.getLong("operationId");
         AutoexecJobPhaseOperationVo jobPhaseOperationVo = autoexecJobMapper.getJobPhaseOperationByOperationId(opId);
         if (jobPhaseOperationVo == null) {
             throw new AutoexecJobPhaseOperationNotFoundException(opId.toString());
         }
 
-        if (isActive == 1) {
+        if ((jsonObj.getInteger("isActive") != null ? jsonObj.getInteger("isActive") : 1) == 1) {
 
             //获取最新版本的脚本
             AutoexecScriptVersionVo scriptVersionVoOld = autoexecScriptMapper.getVersionByVersionId(jobPhaseOperationVo.getVersionId());
