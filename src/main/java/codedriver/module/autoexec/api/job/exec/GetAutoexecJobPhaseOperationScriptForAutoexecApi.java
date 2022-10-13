@@ -7,12 +7,15 @@ package codedriver.module.autoexec.api.job.exec;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.constvalue.JobSource;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dto.catalog.AutoexecCatalogVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseOperationVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
+import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobPhaseOperationNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecScriptVersionHasNoActivedException;
@@ -39,7 +42,7 @@ import java.util.stream.Collectors;
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
-public class GetAutoexecJobPhaseOperationScriptApi extends PrivateApiComponentBase {
+public class GetAutoexecJobPhaseOperationScriptForAutoexecApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
@@ -55,7 +58,7 @@ public class GetAutoexecJobPhaseOperationScriptApi extends PrivateApiComponentBa
 
     @Override
     public String getToken() {
-        return "autoexec/job/phase/operation/script/get";
+        return "autoexec/job/phase/operation/script/get/forautoexec";
     }
 
     @Override
@@ -71,7 +74,6 @@ public class GetAutoexecJobPhaseOperationScriptApi extends PrivateApiComponentBa
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
             @Param(name = "operationId", type = ApiParamType.STRING, desc = "作业操作id（opName_opId）", isRequired = true),
-            @Param(name = "isActive", type = ApiParamType.INTEGER, desc = "是否获取最新版本的脚本（1：是，0：不是，默认是）"),
             @Param(name = "lastModified", type = ApiParamType.DOUBLE, desc = "最后修改时间（秒，支持小数位）")
     })
     @Output({
@@ -83,64 +85,65 @@ public class GetAutoexecJobPhaseOperationScriptApi extends PrivateApiComponentBa
         JSONObject result = new JSONObject();
         String operationId = jsonObj.getString("operationId");
         Long jobId = jsonObj.getLong("jobId");
-        int isActive = jsonObj.getInteger("isActive") != null ? jsonObj.getInteger("isActive") : 1;
 
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        if (jobVo == null) {
+            throw new AutoexecJobNotFoundException(jobId.toString());
+        }
         Long opId = Long.valueOf(operationId.substring(operationId.lastIndexOf("_") + 1));
         AutoexecJobPhaseOperationVo jobPhaseOperationVo = autoexecJobMapper.getJobPhaseOperationByOperationId(opId);
         if (jobPhaseOperationVo == null) {
             throw new AutoexecJobPhaseOperationNotFoundException(opId.toString());
         }
 
-        if (isActive == 1) {
 
-            //获取最新版本的脚本
-            AutoexecScriptVersionVo scriptVersionVoOld = autoexecScriptMapper.getVersionByVersionId(jobPhaseOperationVo.getVersionId());
-            if (scriptVersionVoOld == null) {
-                throw new AutoexecScriptNotFoundException(jobPhaseOperationVo.getName() + ":" + jobPhaseOperationVo.getVersionId());
-            }
-            AutoexecScriptVersionVo scriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(scriptVersionVoOld.getScriptId());
+        AutoexecScriptVersionVo scriptVersionVo = autoexecScriptMapper.getVersionByVersionId(jobPhaseOperationVo.getVersionId());
+        if (scriptVersionVo == null) {
+            throw new AutoexecScriptNotFoundException(jobPhaseOperationVo.getName() + ":" + jobPhaseOperationVo.getVersionId());
+        }
+        //如果不是测试作业 则获取最新版本的脚本
+        if (!Objects.equals(JobSource.TEST.getValue(), jobVo.getSource())) {
+            scriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(scriptVersionVo.getScriptId());
             if (scriptVersionVo == null) {
                 throw new AutoexecScriptVersionHasNoActivedException(jobPhaseOperationVo.getName());
             }
+        }
+        BigDecimal lastModified = null;
+        if (jsonObj.getDouble("lastModified") != null) {
+            lastModified = new BigDecimal(Double.toString(jsonObj.getDouble("lastModified")));
+        }
+        //获取脚本目录
+        String scriptCatalog = "";
+        AutoexecCatalogVo scriptCatalogVo = autoexecCatalogMapper.getAutoexecCatalogByScriptId(scriptVersionVo.getScriptId());
+        if (scriptCatalogVo != null) {
+            List<AutoexecCatalogVo> catalogVoList = autoexecCatalogMapper.getParentListAndSelfByLR(scriptCatalogVo.getLft(), scriptCatalogVo.getRht());
+            if (CollectionUtils.isNotEmpty(catalogVoList)) {
+                scriptCatalog = catalogVoList.stream().map(AutoexecCatalogVo::getName).collect(Collectors.joining(File.separator));
+            }
+        }
+        HttpServletResponse resp = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getResponse();
+        if (resp != null) {
+            resp.setHeader("ScriptCatalog", scriptCatalog);
+        }
 
-            BigDecimal lastModified = null;
-            if (jsonObj.getDouble("lastModified") != null) {
-                lastModified = new BigDecimal(Double.toString(jsonObj.getDouble("lastModified")));
-            }
-            //获取脚本目录
-            String scriptCatalog = "";
-            AutoexecCatalogVo scriptCatalogVo = autoexecCatalogMapper.getAutoexecCatalogByScriptId(scriptVersionVoOld.getScriptId());
-            if (scriptCatalogVo != null) {
-                List<AutoexecCatalogVo> catalogVoList = autoexecCatalogMapper.getParentListAndSelfByLR(scriptCatalogVo.getLft(), scriptCatalogVo.getRht());
-                if (CollectionUtils.isNotEmpty(catalogVoList)) {
-                    scriptCatalog = catalogVoList.stream().map(AutoexecCatalogVo::getName).collect(Collectors.joining(File.separator));
-                }
-            }
-            HttpServletResponse resp = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getResponse();
+        if (lastModified != null && lastModified.multiply(new BigDecimal("1000")).longValue() >= scriptVersionVo.getLcd().getTime()) {
             if (resp != null) {
-                resp.setHeader("ScriptCatalog", scriptCatalog);
+                resp.setStatus(205);
+                resp.getWriter().print(StringUtils.EMPTY);
             }
-
-            if (lastModified != null && lastModified.multiply(new BigDecimal("1000")).longValue() >= scriptVersionVo.getLcd().getTime()) {
-                if (resp != null) {
-                    resp.setStatus(205);
-                    resp.getWriter().print(StringUtils.EMPTY);
-                }
-            } else {
-
-                //获取脚本内容
-                String script = autoexecCombopService.getScriptVersionContent(scriptVersionVo);
-                result.put("script", script);
-                result.put("scriptCatalog", scriptCatalog);
-
-                //update job 对应operation version_id
+        } else {
+            //获取脚本内容
+            String script = autoexecCombopService.getScriptVersionContent(scriptVersionVo);
+            result.put("script", script);
+            result.put("scriptCatalog", scriptCatalog);
+            //update job 对应operation version_id
+            if (Objects.equals(jobPhaseOperationVo.getVersionId(), scriptVersionVo.getScriptId())) {
                 autoexecJobMapper.updateJobPhaseOperationVersionIdByJobIdAndOperationId(scriptVersionVo.getId(), jobId, scriptVersionVo.getScriptId());
             }
-            return result;
-        } else {
-            //获取制定版本的脚本
-            return autoexecScriptMapper.getLineListByVersionId(jobPhaseOperationVo.getVersionId());
         }
+        return result;
+
+
     }
 
 
