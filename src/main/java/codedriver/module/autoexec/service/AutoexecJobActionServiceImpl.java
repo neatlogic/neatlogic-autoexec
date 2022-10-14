@@ -151,12 +151,14 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                     put("groupNo", groupSort);
                     AutoexecJobGroupVo jobGroupVo = autoexecJobMapper.getJobGroupByJobIdAndSort(jobVo.getId(), groupSort);
                     put("execStrategy", jobGroupVo.getPolicy());
+                    put("roundCount", jobGroupVo.getRoundCount());
                     put("phases", new JSONArray() {{
                         for (AutoexecJobPhaseVo jobPhase : groupJobPhaseList) {
                             add(new JSONObject() {{
                                 put("phaseName", jobPhase.getName());
                                 put("phaseType", jobPhase.getExecMode());
                                 put("execRound", jobPhase.getExecutePolicy());
+                                put("roundCount", jobPhase.getRoundCount());
                                 put("operations", getOperationFireParam(jobPhase, jobPhase.getOperationList()));
                             }});
                         }
