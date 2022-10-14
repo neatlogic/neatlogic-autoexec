@@ -37,7 +37,7 @@ public class ListAutoexecScriptApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "查询巡检脚本";
+        return "查询脚本列表";
     }
 
     @Override
@@ -60,10 +60,10 @@ public class ListAutoexecScriptApi extends PrivateApiComponentBase {
             @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true")
     })
     @Output({
-            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecScriptVo[].class, desc = "巡检脚本列表"),
+            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecScriptVo[].class, desc = "查询脚本列表"),
             @Param(explode = BasePageVo.class)
     })
-    @Description(desc = "查询巡检脚本")
+    @Description(desc = "脚本列表")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecScriptVo scriptVo = JSON.toJavaObject(paramObj, AutoexecScriptVo.class);
