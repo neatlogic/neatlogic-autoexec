@@ -165,7 +165,7 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
         boolean needProtocol = autoexecCombopVo.getNeedProtocol();
         // 流程图自动化节点是否需要设置执行目标，只有当有某个非runner类型的阶段，没有设置执行目标时，needExecuteNode=true
         boolean needExecuteNode = autoexecCombopVo.getNeedExecuteNode();
-        // 流程图自动化节点是否需要设置执行目标，只有当有某个非runner类型的阶段，没有设置分批数量时，needRoundCount=true
+        // 流程图自动化节点是否需要设置分批数量，只有当有某个非runner类型的阶段，没有设置分批数量时，needRoundCount=true
         boolean needRoundCount = autoexecCombopVo.getNeedRoundCount();
         if (!needExecuteUser && !needProtocol && !needExecuteNode && !needRoundCount) {
             return resultObj;
