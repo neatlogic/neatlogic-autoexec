@@ -165,7 +165,9 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
         boolean needProtocol = autoexecCombopVo.getNeedProtocol();
         // 流程图自动化节点是否需要设置执行目标，只有当有某个非runner类型的阶段，没有设置执行目标时，needExecuteNode=true
         boolean needExecuteNode = autoexecCombopVo.getNeedExecuteNode();
-        if (!needExecuteUser && !needProtocol && !needExecuteNode) {
+        // 流程图自动化节点是否需要设置执行目标，只有当有某个非runner类型的阶段，没有设置分批数量时，needRoundCount=true
+        boolean needRoundCount = autoexecCombopVo.getNeedRoundCount();
+        if (!needExecuteUser && !needProtocol && !needExecuteNode && !needRoundCount) {
             return resultObj;
         }
 
@@ -231,6 +233,21 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
                 }
                 executeParamList.add(executeUserObj);
             }
+            if (needRoundCount) {
+                JSONObject roundCountObj = new JSONObject();
+                roundCountObj.put("key", "roundCount");
+                roundCountObj.put("name", "分批数量");
+                roundCountObj.put("isRequired", 1);
+                Integer roundCount = executeConfigVo.getRoundCount();
+                if (roundCount != null) {
+                    roundCountObj.put("mappingMode", ParamMappingMode.CONSTANT.getValue());
+                    roundCountObj.put("value", roundCount);
+                } else {
+                    roundCountObj.put("mappingMode", "");
+                    roundCountObj.put("value", "");
+                }
+                executeParamList.add(roundCountObj);
+            }
         } else {
             if (needExecuteNode) {
                 JSONObject executeNode = new JSONObject();
@@ -259,6 +276,15 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
                 executeUserObj.put("mappingMode", "");
                 executeUserObj.put("value", "");
                 executeParamList.add(executeUserObj);
+            }
+            if (needRoundCount) {
+                JSONObject roundCountObj = new JSONObject();
+                roundCountObj.put("key", "roundCount");
+                roundCountObj.put("name", "分批数量");
+                roundCountObj.put("isRequired", 1);
+                roundCountObj.put("mappingMode", "");
+                roundCountObj.put("value", "");
+                executeParamList.add(roundCountObj);
             }
         }
         resultObj.put("executeParamList", executeParamList);
