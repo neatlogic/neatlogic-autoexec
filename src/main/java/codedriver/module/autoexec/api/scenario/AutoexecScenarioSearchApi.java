@@ -5,7 +5,9 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.AutoexecFromType;
 import codedriver.framework.autoexec.dto.scenario.AutoexecScenarioVo;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.common.dto.BasePageVo;
 import codedriver.framework.dependency.core.DependencyManager;
+import codedriver.framework.dependency.dto.DependencyInfoVo;
 import codedriver.framework.restful.annotation.Description;
 import codedriver.framework.restful.annotation.Input;
 import codedriver.framework.restful.annotation.OperationType;
@@ -75,15 +77,15 @@ public class AutoexecScenarioSearchApi extends PrivateApiComponentBase {
                 paramScenarioVo.setRowNum(ScenarioCount);
                 returnScenarioList = autoexecScenarioMapper.searchScenario(paramScenarioVo);
                 // 补充场景被组合工具引用的个数
-
-
-                Map<Object, Integer> dependencyCountMap = DependencyManager.getBatchDependencyCount(AutoexecFromType.SCENARIO, returnScenarioList.stream().map(AutoexecScenarioVo::getId).collect(Collectors.toList()));
-
-
-
-                if (!dependencyCountMap.isEmpty()) {
+//                Map<Object, Integer> dependencyCountMap = DependencyManager.getBatchDependencyCount(AutoexecFromType.SCENARIO, returnScenarioList.stream().map(AutoexecScenarioVo::getId).collect(Collectors.toList()));
+                Map<Object, List<DependencyInfoVo>> batchDependencyList = DependencyManager.getBatchDependencyList(AutoexecFromType.SCENARIO, returnScenarioList.stream().map(AutoexecScenarioVo::getId).collect(Collectors.toList()), new BasePageVo());
+                if (!batchDependencyList.isEmpty()) {
                     for (AutoexecScenarioVo scenarioVo : returnScenarioList) {
-                        scenarioVo.setReferredCount(dependencyCountMap.get(scenarioVo.getId()));
+                        List<DependencyInfoVo> dependencyInfoVos = batchDependencyList.get(scenarioVo.getId());
+                        if (CollectionUtils.isEmpty(dependencyInfoVos)) {
+                            continue;
+                        }
+                        scenarioVo.setReferredCount(dependencyInfoVos.size());
                     }
                 }
             }

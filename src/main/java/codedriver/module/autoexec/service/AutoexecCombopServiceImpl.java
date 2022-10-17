@@ -811,6 +811,12 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         if (config == null) {
             return;
         }
+
+        List<AutoexecCombopScenarioVo> scenarioList = config.getScenarioList();
+        if (CollectionUtils.isNotEmpty(scenarioList)) {
+                DependencyManager.delete(AutoexecScenarioCombopDependencyHandler.class, autoexecCombopVo.getId());
+        }
+
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
         if (CollectionUtils.isEmpty(combopPhaseList)) {
             return;
