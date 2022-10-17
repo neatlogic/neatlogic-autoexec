@@ -4,7 +4,6 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import codedriver.framework.autoexec.constvalue.AutoexecFromType;
 import codedriver.framework.autoexec.dto.scenario.AutoexecScenarioVo;
-import codedriver.framework.autoexec.exception.AutoexecScenarioHasBeenReferredException;
 import codedriver.framework.autoexec.exception.AutoexecScenarioIsNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.dependency.core.DependencyManager;
@@ -57,10 +56,8 @@ public class AutoexecScenarioDeleteApi extends PrivateApiComponentBase {
         if (paramScenarioVo == null) {
             throw new AutoexecScenarioIsNotFoundException(paramId);
         }
-        //TODO 判断是否被组合工具引用
-//        if (DependencyManager.getDependencyCount(AutoexecFromType.AUTOEXEC_SCENARIO_CIENTITY, paramId) > 0) {
-//            throw new AutoexecScenarioHasBeenReferredException(paramScenarioVo.getName());
-//        }
+        //经产品确认，场景的删除不做判断，在前端页面已告知是否正在被引用，二次确认是否删除
+        DependencyManager.deleteByFrom(AutoexecFromType.SCENARIO, paramId);
         autoexecScenarioMapper.deleteScenarioById(paramId);
         return null;
     }
