@@ -329,14 +329,19 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
             result.put("type", jobVo.getOperationType());
             //argumentMappingList
             JSONArray combopPhaseList = jobConfig.getJSONArray("combopPhaseList");
-            if(CollectionUtils.isNotEmpty(combopPhaseList)){
+            if (CollectionUtils.isNotEmpty(combopPhaseList)) {
                 JSONObject phaseConfig = combopPhaseList.getJSONObject(0).getJSONObject("config");
-                if(MapUtils.isNotEmpty(phaseConfig)){
+                if (MapUtils.isNotEmpty(phaseConfig)) {
                     JSONArray phaseOperationList = phaseConfig.getJSONArray("phaseOperationList");
-                    if(CollectionUtils.isNotEmpty(phaseOperationList)){
-                        JSONObject operationConfig = phaseOperationList.getJSONObject(0).getJSONObject("config");
-                        if(MapUtils.isNotEmpty(operationConfig)){
-                            result.put("argumentMappingList",operationConfig.getJSONArray("argumentMappingList"));
+                    if (CollectionUtils.isNotEmpty(phaseOperationList)) {
+                        JSONObject phaseOperation = phaseOperationList.getJSONObject(0);
+                        JSONObject operationConfig = phaseOperation.getJSONObject("config");
+                        if (MapUtils.isNotEmpty(operationConfig)) {
+                            JSONObject operation = phaseOperation.getJSONObject("operation");
+                            if (MapUtils.isNotEmpty(operation)) {
+                                result.put("execMode", operation.getString("execMode"));
+                            }
+                            result.put("argumentMappingList", operationConfig.getJSONArray("argumentMappingList"));
                         }
                     }
                 }
