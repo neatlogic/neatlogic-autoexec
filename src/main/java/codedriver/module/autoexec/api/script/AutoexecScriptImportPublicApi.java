@@ -4,7 +4,6 @@ import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import codedriver.framework.autoexec.constvalue.*;
-import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
@@ -44,9 +43,6 @@ public class AutoexecScriptImportPublicApi extends PrivateJsonStreamApiComponent
 
     @Resource
     private AutoexecTypeMapper autoexecTypeMapper;
-
-    @Resource
-    private AutoexecCatalogMapper autoexecCatalogMapper;
 
     @Resource
     private AutoexecRiskMapper autoexecRiskMapper;

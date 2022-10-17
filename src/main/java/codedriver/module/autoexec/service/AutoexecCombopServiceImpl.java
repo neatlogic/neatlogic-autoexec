@@ -545,17 +545,20 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             boolean needExecuteUser = autoexecCombopVo.getNeedExecuteUser();
             boolean needProtocol = autoexecCombopVo.getNeedProtocol();
             boolean needExecuteNode = autoexecCombopVo.getNeedExecuteNode();
+            boolean needRoundCount = autoexecCombopVo.getNeedRoundCount();
             AutoexecCombopPhaseConfigVo autoexecCombopPhaseConfigVo = autoexecCombopPhaseVo.getConfig();
             if (autoexecCombopPhaseConfigVo == null) {
                 needExecuteUser = true;
                 needProtocol = true;
                 needExecuteNode = true;
+                needRoundCount = true;
             }
             AutoexecCombopExecuteConfigVo executeConfigVo = autoexecCombopPhaseConfigVo.getExecuteConfig();
             if (executeConfigVo == null) {
                 needExecuteUser = true;
                 needProtocol = true;
                 needExecuteNode = true;
+                needRoundCount = true;
             }
             if (!needProtocol) {
                 Long protocolId = executeConfigVo.getProtocolId();
@@ -584,9 +587,15 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                     }
                 }
             }
+            if (!needRoundCount) {
+                if (executeConfigVo.getRoundCount() == null) {
+                    needRoundCount = true;
+                }
+            }
             autoexecCombopVo.setNeedExecuteUser(needExecuteUser);
             autoexecCombopVo.setNeedExecuteNode(needExecuteNode);
             autoexecCombopVo.setNeedProtocol(needProtocol);
+            autoexecCombopVo.setNeedRoundCount(needRoundCount);
         }
     }
 
