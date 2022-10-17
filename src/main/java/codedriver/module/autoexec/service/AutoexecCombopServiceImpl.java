@@ -667,6 +667,20 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         if (config == null) {
             return;
         }
+
+        JSONObject dependencyConfig = new JSONObject();
+        dependencyConfig.put("combopId", autoexecCombopVo.getId());
+        dependencyConfig.put("combopName", autoexecCombopVo.getName());
+
+        List<AutoexecCombopScenarioVo> scenarioList = config.getScenarioList();
+        if (CollectionUtils.isNotEmpty(scenarioList)) {
+            for (AutoexecCombopScenarioVo scenarioVo : scenarioList) {
+                dependencyConfig.put("scenarioId", scenarioVo.getScenarioId());
+                dependencyConfig.put("scenarioName", scenarioVo.getScenarioName());
+                DependencyManager.insert(AutoexecScenarioCombopDependencyHandler.class, scenarioVo.getScenarioId(), autoexecCombopVo.getId(), dependencyConfig);
+            }
+        }
+
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
         if (CollectionUtils.isEmpty(combopPhaseList)) {
             return;

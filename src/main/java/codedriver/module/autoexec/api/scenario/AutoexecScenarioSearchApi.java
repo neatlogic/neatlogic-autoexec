@@ -74,12 +74,18 @@ public class AutoexecScenarioSearchApi extends PrivateApiComponentBase {
             if (ScenarioCount > 0) {
                 paramScenarioVo.setRowNum(ScenarioCount);
                 returnScenarioList = autoexecScenarioMapper.searchScenario(paramScenarioVo);
-                //TODO 补充场景被组合工具引用的个数
-//                if (!ciEntityReferredCountMap.isEmpty()) {
-//                    for (AutoexecScenarioVo scenarioVo : returnScenarioList) {
-//                        scenarioVo.setCiEntityReferredCount(ciEntityReferredCountMap.get(scenarioVo.getId()));
-//                    }
-//                }
+                // 补充场景被组合工具引用的个数
+
+
+                Map<Object, Integer> dependencyCountMap = DependencyManager.getBatchDependencyCount(AutoexecFromType.SCENARIO, returnScenarioList.stream().map(AutoexecScenarioVo::getId).collect(Collectors.toList()));
+
+
+
+                if (!dependencyCountMap.isEmpty()) {
+                    for (AutoexecScenarioVo scenarioVo : returnScenarioList) {
+                        scenarioVo.setReferredCount(dependencyCountMap.get(scenarioVo.getId()));
+                    }
+                }
             }
         }
         return TableResultUtil.getResult(returnScenarioList, paramScenarioVo);
