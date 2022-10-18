@@ -206,11 +206,13 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      * @return true|false
      */
     private boolean isPhaseNodeNeedReInitByPreOutput(AutoexecJobVo jobVo, AutoexecJobPhaseVo currentJobPhaseVo) {
-        AutoexecJobContentVo jobContentVo = autoexecJobMapper.getJobContent(jobVo.getConfigHash());
-        if (jobContentVo == null || StringUtils.isBlank(jobContentVo.getContent())) {
-            throw new AutoexecJoConfigNotFoundException(jobVo.getId());
+        if(StringUtils.isBlank(jobVo.getConfigStr())) {
+            AutoexecJobContentVo jobContentVo = autoexecJobMapper.getJobContent(jobVo.getConfigHash());
+            if (jobContentVo == null || StringUtils.isBlank(jobContentVo.getContent())) {
+                throw new AutoexecJoConfigNotFoundException(jobVo.getId());
+            }
+            jobVo.setConfigStr(jobContentVo.getContent());
         }
-        jobVo.setConfigStr(jobContentVo.getContent());
         AutoexecCombopConfigVo combopConfigVo = jobVo.getConfig();
         if (combopConfigVo != null) {
             List<AutoexecCombopPhaseVo> combopPhaseVos = combopConfigVo.getCombopPhaseList();
@@ -558,6 +560,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             Optional<AutoexecJobPhaseVo> jobPhaseVoOptional = jobPhaseVoList.stream().filter(o -> Objects.equals(o.getName(), autoexecCombopPhaseVo.getName())).findFirst();
             if (jobPhaseVoOptional.isPresent()) {
                 AutoexecJobPhaseVo jobPhaseVo = jobPhaseVoOptional.get();
+                if (isPhaseNodeNeedReInitByPreOutput(jobVo, jobPhaseVo)) {
+                    //如果需要上游出参作为执行目标则无需初始化执行当前阶段执行目标
+                    continue;
+                }
                 jobPhaseVo.setCombopId(jobVo.getOperationId());
                 jobVo.setCurrentPhase(jobPhaseVo);
                 initPhaseExecuteUserAndProtocolAndNode(jobVo, combopExecuteConfigVo, combopPhaseExecuteConfigVo);
