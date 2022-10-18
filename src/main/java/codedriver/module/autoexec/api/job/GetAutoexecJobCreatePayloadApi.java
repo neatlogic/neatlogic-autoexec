@@ -76,6 +76,7 @@ public class GetAutoexecJobCreatePayloadApi extends PrivateApiComponentBase {
         //param
         JSONObject param = new JSONObject();
         result.put("param", param);
+        result.put("scenarioId",jobVo.getScenarioId());
         AutoexecJobContentVo paramContentVo = autoexecJobMapper.getJobContent(jobVo.getParamHash());
         if(paramContentVo != null && StringUtils.isNotBlank(paramContentVo.getContent())) {
             JSONArray paramContentArray = JSONObject.parseArray(paramContentVo.getContent());
