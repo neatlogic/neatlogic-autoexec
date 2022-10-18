@@ -795,8 +795,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     Object nodes = outputJson.get(paramKey);
                     if (nodes instanceof JSONArray) {
                         nodeArrayAtomic.set((JSONArray) nodes);
-                    }
-                    if (nodes instanceof String) {
+                    }else if (nodes instanceof String) {
                         try {
                             nodeArrayAtomic.set(JSONArray.parseArray(nodes.toString()));
                         } catch (Exception ex) {
