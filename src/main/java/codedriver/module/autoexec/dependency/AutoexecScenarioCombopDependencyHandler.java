@@ -36,6 +36,8 @@ public class AutoexecScenarioCombopDependencyHandler extends FixedTableDependenc
     @Override
     protected DependencyInfoVo parse(DependencyVo dependencyVo) {
 
+        /*暂时前端没有需要依赖跳转，此方法暂时不会被调用*/
+
         Long combopId = Long.valueOf(dependencyVo.getTo());
         AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
         if (autoexecCombopVo == null) {

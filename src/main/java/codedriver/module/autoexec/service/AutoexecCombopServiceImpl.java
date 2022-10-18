@@ -735,7 +735,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
     }
 
     /**
-     * 保存阶段中操作工具对预置参数集和全局参数的引用关系
+     * 保存阶段中操作工具对预置参数集和全局参数的引用关系、组合工具对场景的引用
      *
      * @param combopPhaseVo
      * @param phaseOperationVo
@@ -801,7 +801,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
     }
 
     /**
-     * 删除阶段中操作工具对预置参数集和全局参数的引用关系
+     * 删除阶段中操作工具对预置参数集和全局参数的引用关系、组合工具对场景的引用
      *
      * @param autoexecCombopVo
      */
