@@ -40,6 +40,7 @@ public class AutoexecScenarioDeleteApi extends PrivateApiComponentBase {
     public String getToken() {
         return "autoexec/scenario/delete";
     }
+
     @Override
     public String getConfig() {
         return null;
@@ -57,7 +58,7 @@ public class AutoexecScenarioDeleteApi extends PrivateApiComponentBase {
             throw new AutoexecScenarioIsNotFoundException(paramId);
         }
         //经产品确认，场景的删除不做判断，在前端页面已告知是否正在被引用，二次确认是否删除
-        System.out.println(DependencyManager.deleteByFrom(AutoexecFromType.SCENARIO, paramId));;
+        DependencyManager.deleteByFrom(AutoexecFromType.SCENARIO, paramId);
         autoexecScenarioMapper.deleteScenarioById(paramId);
         return null;
     }
