@@ -10,14 +10,15 @@ import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
+import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.framework.autoexec.dto.catalog.AutoexecCatalogVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
 import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.dto.OperateVo;
-import codedriver.framework.dto.TeamVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -44,6 +45,9 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
+
+    @Resource
+    private AutoexecCatalogMapper autoexecCatalogMapper;
 
     @Resource
     private AutoexecScriptService autoexecScriptService;
@@ -91,12 +95,26 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
         scriptVo.setCatalogIdList(autoexecScriptService.getCatalogIdList(scriptVo.getCatalogId()));
 
         List<AutoexecScriptVo> scriptVoList = autoexecScriptMapper.searchScript(scriptVo);
-        if (!scriptVoList.isEmpty() && StringUtils.isNotBlank(scriptVo.getVersionStatus())) {
-            List<AutoexecScriptVersionVo> parserList = autoexecScriptMapper.getVersionParserByScriptIdListAndVersionStatus(scriptVoList.stream().map(AutoexecScriptVo::getId).collect(Collectors.toList()), scriptVo.getVersionStatus());
-            if (!parserList.isEmpty()) {
-                Map<Long, String> collect = parserList.stream().collect(Collectors.toMap(AutoexecScriptVersionVo::getScriptId, AutoexecScriptVersionVo::getParser));
+        if (!scriptVoList.isEmpty()) {
+            List<AutoexecCatalogVo> catalogList = autoexecCatalogMapper.getCatalogListByIdList(scriptVoList.stream().map(AutoexecScriptVo::getCatalogId).collect(Collectors.toList()));
+            Map<Long, AutoexecCatalogVo> catalogMap = catalogList.stream().collect(Collectors.toMap(AutoexecCatalogVo::getId, o -> o));
+            if (MapUtils.isNotEmpty(catalogMap)) {
                 for (AutoexecScriptVo vo : scriptVoList) {
-                    vo.setParser(collect.get(vo.getId()));
+                    AutoexecCatalogVo catalog = catalogMap.get(vo.getCatalogId());
+                    if (catalog != null) {
+                        vo.setCatalogName(catalog.getName());
+                        List<AutoexecCatalogVo> upwardList = autoexecCatalogMapper.getParentListAndSelfByLR(catalog.getLft(), catalog.getRht());
+                        vo.setCatalogPath(upwardList.stream().map(AutoexecCatalogVo::getName).collect(Collectors.joining("/")));
+                    }
+                }
+            }
+            if (StringUtils.isNotBlank(scriptVo.getVersionStatus())) {
+                List<AutoexecScriptVersionVo> parserList = autoexecScriptMapper.getVersionParserByScriptIdListAndVersionStatus(scriptVoList.stream().map(AutoexecScriptVo::getId).collect(Collectors.toList()), scriptVo.getVersionStatus());
+                if (!parserList.isEmpty()) {
+                    Map<Long, String> collect = parserList.stream().collect(Collectors.toMap(AutoexecScriptVersionVo::getScriptId, AutoexecScriptVersionVo::getParser));
+                    for (AutoexecScriptVo vo : scriptVoList) {
+                        vo.setParser(collect.get(vo.getId()));
+                    }
                 }
             }
         }
