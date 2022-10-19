@@ -228,25 +228,24 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                     if (CollectionUtils.isNotEmpty(phaseOperationList)) {
                         for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
                             if (autoexecCombopPhaseOperationVo != null) {
-                                if (Objects.equals(autoexecCombopPhaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
-                                    AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoByName(autoexecCombopPhaseOperationVo.getOperationName());
-                                    if (autoexecScriptVo == null) {
-                                        failureReasonSet.add("缺少引用的自定义工具：'" + autoexecCombopPhaseOperationVo.getOperationName() + "'");
-                                    } else {
-                                        AutoexecScriptVersionVo autoexecScriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(autoexecScriptVo.getId());
-                                        if (autoexecScriptVersionVo == null) {
-                                            failureReasonSet.add("自定义工具：'" + autoexecScriptVo.getName() + "'未启用");
+                                checkOperation(autoexecCombopPhaseOperationVo, failureReasonSet);
+                                AutoexecCombopPhaseOperationConfigVo operationConfig = autoexecCombopPhaseOperationVo.getConfig();
+                                if (operationConfig != null) {
+                                    List<AutoexecCombopPhaseOperationVo> ifList = operationConfig.getIfList();
+                                    if (CollectionUtils.isNotEmpty(ifList)) {
+                                        for (AutoexecCombopPhaseOperationVo operationVo : ifList) {
+                                            if (operationVo != null) {
+                                                checkOperation(operationVo, failureReasonSet);
+                                            }
                                         }
-                                        autoexecCombopPhaseOperationVo.setOperationId(autoexecScriptVo.getId());
                                     }
-                                } else {
-                                    AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolByName(autoexecCombopPhaseOperationVo.getOperationName());
-                                    if (autoexecToolVo == null) {
-                                        failureReasonSet.add("缺少引用的工具：'" + autoexecCombopPhaseOperationVo.getOperationName() + "'");
-                                    } else if (Objects.equals(autoexecToolVo.getIsActive(), 0)) {
-                                        failureReasonSet.add("工具：'" + autoexecToolVo.getName() + "'未启用");
-                                    } else {
-                                        autoexecCombopPhaseOperationVo.setOperationId(autoexecToolVo.getId());
+                                    List<AutoexecCombopPhaseOperationVo> elseList = operationConfig.getElseList();
+                                    if (CollectionUtils.isNotEmpty(elseList)) {
+                                        for (AutoexecCombopPhaseOperationVo operationVo : elseList) {
+                                            if (operationVo != null) {
+                                                checkOperation(operationVo, failureReasonSet);
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -286,6 +285,34 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         }
     }
 
+    /**
+     * 将操作对应的工具是否存在
+     * @param autoexecCombopPhaseOperationVo
+     * @param failureReasonSet
+     */
+    private void checkOperation(AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo, Set<String> failureReasonSet) {
+        if (Objects.equals(autoexecCombopPhaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
+            AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoByName(autoexecCombopPhaseOperationVo.getOperationName());
+            if (autoexecScriptVo == null) {
+                failureReasonSet.add("缺少引用的自定义工具：'" + autoexecCombopPhaseOperationVo.getOperationName() + "'");
+            } else {
+                AutoexecScriptVersionVo autoexecScriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(autoexecScriptVo.getId());
+                if (autoexecScriptVersionVo == null) {
+                    failureReasonSet.add("自定义工具：'" + autoexecScriptVo.getName() + "'未启用");
+                }
+                autoexecCombopPhaseOperationVo.setOperationId(autoexecScriptVo.getId());
+            }
+        } else {
+            AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolByName(autoexecCombopPhaseOperationVo.getOperationName());
+            if (autoexecToolVo == null) {
+                failureReasonSet.add("缺少引用的工具：'" + autoexecCombopPhaseOperationVo.getOperationName() + "'");
+            } else if (Objects.equals(autoexecToolVo.getIsActive(), 0)) {
+                failureReasonSet.add("工具：'" + autoexecToolVo.getName() + "'未启用");
+            } else {
+                autoexecCombopPhaseOperationVo.setOperationId(autoexecToolVo.getId());
+            }
+        }
+    }
     private boolean equals(AutoexecCombopVo obj1, AutoexecCombopVo obj2){
         if (!Objects.equals(obj1.getName(), obj2.getName())) {
             return false;
