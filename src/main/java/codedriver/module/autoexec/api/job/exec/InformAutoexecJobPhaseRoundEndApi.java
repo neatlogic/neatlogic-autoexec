@@ -127,8 +127,12 @@ public class InformAutoexecJobPhaseRoundEndApi extends PrivateApiComponentBase {
         }
         AutoexecJobPhaseNodeVo nodeParamVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), phaseVo.getName(), 0);
         int totalNodeCount = autoexecJobMapper.searchJobPhaseNodeCount(nodeParamVo);
-        if (roundCount == null || roundCount <= 0) {
+        if (roundCount == null || roundCount < 0) {
             roundCount = 2;
+        }
+        //全部串行
+        if(roundCount == 0){
+            roundCount = totalNodeCount;
         }
         int parallelCount = totalNodeCount / roundCount;
         int remainder = totalNodeCount % roundCount;
