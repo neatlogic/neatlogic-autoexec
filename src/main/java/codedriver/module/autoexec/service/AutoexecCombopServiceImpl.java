@@ -676,6 +676,20 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         if (config == null) {
             return;
         }
+
+        JSONObject dependencyConfig = new JSONObject();
+        dependencyConfig.put("combopId", autoexecCombopVo.getId());
+        dependencyConfig.put("combopName", autoexecCombopVo.getName());
+
+        List<AutoexecCombopScenarioVo> scenarioList = config.getScenarioList();
+        if (CollectionUtils.isNotEmpty(scenarioList)) {
+            for (AutoexecCombopScenarioVo scenarioVo : scenarioList) {
+                dependencyConfig.put("scenarioId", scenarioVo.getScenarioId());
+                dependencyConfig.put("scenarioName", scenarioVo.getScenarioName());
+                DependencyManager.insert(AutoexecScenarioCombopDependencyHandler.class, scenarioVo.getScenarioId(), autoexecCombopVo.getId(), dependencyConfig);
+            }
+        }
+
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
         if (CollectionUtils.isEmpty(combopPhaseList)) {
             return;
@@ -721,7 +735,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
     }
 
     /**
-     * 保存阶段中操作工具对预置参数集和全局参数的引用关系
+     * 保存阶段中操作工具对预置参数集和全局参数的引用关系、组合工具对场景的引用
      *
      * @param combopPhaseVo
      * @param phaseOperationVo
@@ -787,7 +801,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
     }
 
     /**
-     * 删除阶段中操作工具对预置参数集和全局参数的引用关系
+     * 删除阶段中操作工具对预置参数集和全局参数的引用关系、组合工具对场景的引用
      *
      * @param autoexecCombopVo
      */
@@ -797,6 +811,12 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         if (config == null) {
             return;
         }
+
+        List<AutoexecCombopScenarioVo> scenarioList = config.getScenarioList();
+        if (CollectionUtils.isNotEmpty(scenarioList)) {
+                DependencyManager.delete(AutoexecScenarioCombopDependencyHandler.class, autoexecCombopVo.getId());
+        }
+
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
         if (CollectionUtils.isEmpty(combopPhaseList)) {
             return;
