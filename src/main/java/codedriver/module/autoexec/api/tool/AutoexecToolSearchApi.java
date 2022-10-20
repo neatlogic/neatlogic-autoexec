@@ -58,6 +58,7 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
             @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sqlfile,native", desc = "执行方式"),
             @Param(name = "typeIdList", type = ApiParamType.JSONARRAY, desc = "分类ID列表"),
             @Param(name = "riskIdList", type = ApiParamType.JSONARRAY, desc = "操作级别ID列表"),
+            @Param(name = "customTemplateIdList", type = ApiParamType.JSONARRAY, desc = "自定义模版ID列表"),
             @Param(name = "isActive", type = ApiParamType.INTEGER, desc = "是否激活"),
             @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
             @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
@@ -74,6 +75,10 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
         AutoexecToolVo toolVo = JSON.toJavaObject(jsonObj, AutoexecToolVo.class);
+        if (CollectionUtils.isNotEmpty(toolVo.getCustomTemplateIdList()) && toolVo.getCustomTemplateIdList().contains(0L)) {
+            toolVo.setCustomTemplateId(0L);
+            toolVo.setCustomTemplateIdList(null);
+        }
         List<AutoexecToolVo> toolVoList = autoexecToolMapper.searchTool(toolVo);
         result.put("tbodyList", toolVoList);
         if (CollectionUtils.isNotEmpty(toolVoList)) {
