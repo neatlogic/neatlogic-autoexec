@@ -55,6 +55,12 @@
         WHERE id = #{value}
     </select>
 
+    <select id="checkCustomTemplateIsExistsById" parameterType="java.lang.Long" resultType="int">
+        select count(1)
+        from `autoexec_customtemplate`
+        where `id` = #{value}
+    </select>
+
     <update id="updateCustomTemplate" parameterType="codedriver.framework.autoexec.dto.customtemplate.CustomTemplateVo">
         UPDATE autoexec_customtemplate
         SET name      = #{name},
