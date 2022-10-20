@@ -16,6 +16,8 @@ public interface AutoexecCustomTemplateMapper {
 
     CustomTemplateVo getCustomTemplateById(Long id);
 
+    int checkCustomTemplateIsExistsById(Long id);
+
     void updateCustomTemplate(CustomTemplateVo customTemplateVo);
 
     void insertCustomTemplate(CustomTemplateVo customTemplateVo);

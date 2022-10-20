@@ -72,6 +72,7 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
             @Param(name = "typeIdList", type = ApiParamType.JSONARRAY, desc = "分类ID列表"),
             @Param(name = "catalogId", type = ApiParamType.LONG, desc = "工具目录ID"),
             @Param(name = "riskIdList", type = ApiParamType.JSONARRAY, desc = "操作级别ID列表"),
+            @Param(name = "customTemplateIdList", type = ApiParamType.JSONARRAY, desc = "自定义模版ID列表"),
             @Param(name = "versionStatus", type = ApiParamType.ENUM, rule = "draft,submitted,passed,rejected", desc = "状态"),
             @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
             @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "用于回显的脚本ID列表"),
@@ -90,7 +91,10 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
         AutoexecScriptVo scriptVo = JSON.toJavaObject(jsonObj, AutoexecScriptVo.class);
-
+        if (CollectionUtils.isNotEmpty(scriptVo.getCustomTemplateIdList()) && scriptVo.getCustomTemplateIdList().contains(0L)) {
+            scriptVo.setCustomTemplateId(0L);
+            scriptVo.setCustomTemplateIdList(null);
+        }
         //查询各级子目录
         scriptVo.setCatalogIdList(autoexecScriptService.getCatalogIdList(scriptVo.getCatalogId()));
 

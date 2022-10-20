@@ -22,9 +22,11 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.framework.autoexec.dto.catalog.AutoexecCatalogVo;
 import codedriver.framework.autoexec.dto.script.*;
 import codedriver.framework.autoexec.exception.*;
+import codedriver.framework.autoexec.exception.customtemplate.CustomTemplateNotFoundException;
 import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.dependency.dto.DependencyInfoVo;
 import codedriver.framework.dto.OperateVo;
+import codedriver.module.autoexec.dao.mapper.AutoexecCustomTemplateMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecProfileMapper;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -51,6 +53,9 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
 
     @Resource
     private AutoexecCatalogMapper autoexecCatalogMapper;
+
+    @Resource
+    private AutoexecCustomTemplateMapper autoexecCustomTemplateMapper;
 
     @Resource
     private AutoexecService autoexecService;
@@ -111,6 +116,9 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
         }
         if (autoexecRiskMapper.checkRiskIsExistsById(scriptVo.getRiskId()) == 0) {
             throw new AutoexecRiskNotFoundException(scriptVo.getRiskId());
+        }
+        if (scriptVo.getCustomTemplateId() != null && autoexecCustomTemplateMapper.checkCustomTemplateIsExistsById(scriptVo.getCustomTemplateId()) == 0) {
+            throw new CustomTemplateNotFoundException(scriptVo.getCustomTemplateId());
         }
         Long defaultProfileId = scriptVo.getDefaultProfileId();
         if (defaultProfileId != null) {
