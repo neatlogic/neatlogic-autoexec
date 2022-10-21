@@ -97,7 +97,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         AutoexecCombopConfigVo config = jobVo.getConfig();
         if (jobVo.getPlanStartTime().getTime() > System.currentTimeMillis() || Objects.equals(JobTriggerType.MANUAL.getValue(), jobVo.getTriggerType())) {
             jobVo.setStatus(JobStatus.READY.getValue());
-        } else if (Objects.equals(JobTriggerType.AUTO.getValue(), jobVo.getTriggerType())) {
+        } else {
             jobVo.setStatus(JobStatus.PENDING.getValue());
         }
         //更新关联来源关系
@@ -589,6 +589,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             jobVo.setParamArrayStr(paramContentVo.getContent());
         }
         AutoexecJobContentVo jobContent = autoexecJobMapper.getJobContent(jobVo.getConfigHash());
+        if(jobContent == null){
+            throw new AutoexecJobConfigNotFoundException(jobVo.getId());
+        }
         jobVo.setConfigStr(jobContent.getContent());
         List<AutoexecJobPhaseVo> jobPhaseVoList = jobVo.getPhaseList();
         AutoexecJobGroupVo executeJobGroupVo = jobVo.getExecuteJobGroupVo();

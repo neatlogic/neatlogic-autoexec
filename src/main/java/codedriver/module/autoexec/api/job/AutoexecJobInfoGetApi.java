@@ -11,11 +11,10 @@ import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.AutoexecJobSourceVo;
+import codedriver.framework.autoexec.dto.job.AutoexecJobInvokeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobSourceInvalidException;
-import codedriver.framework.autoexec.job.source.AutoexecJobSourceHandlerFactory;
-import codedriver.framework.autoexec.job.source.IAutoexecJobSourceHandler;
 import codedriver.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
 import codedriver.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
 import codedriver.framework.autoexec.source.AutoexecJobSourceFactory;
@@ -83,9 +82,12 @@ public class AutoexecJobInfoGetApi extends PrivateApiComponentBase {
             autoexecJobSourceActionHandler.getJobActionAuth(jobVo);
         }
         //补充作业额外信息，如发布
-        IAutoexecJobSourceHandler jobSourceHandler = AutoexecJobSourceHandlerFactory.getJobSource(jobVo.getSource());
-        if(jobSourceHandler != null) {
-            jobVo.setExtraInfo(jobSourceHandler.getExtraJobInfo(jobVo));
+        AutoexecJobInvokeVo invokeVo = autoexecJobMapper.getJobInvokeByJobId(jobId);
+        if(invokeVo != null) {
+            IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(invokeVo.getType());
+            if (autoexecJobSourceActionHandler != null) {
+                jobVo.setExtraInfo(autoexecJobSourceActionHandler.getExtraJobInfo(jobVo));
+            }
         }
         return jobVo;
     }
