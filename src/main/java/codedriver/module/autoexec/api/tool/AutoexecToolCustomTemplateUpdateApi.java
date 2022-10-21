@@ -49,7 +49,7 @@ public class AutoexecToolCustomTemplateUpdateApi extends PrivateApiComponentBase
 
     @Input({
             @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "工具ID"),
-            @Param(name = "customTemplateId", type = ApiParamType.LONG, isRequired = true, desc = "自定义模版ID"),
+            @Param(name = "customTemplateId", type = ApiParamType.LONG, desc = "自定义模版ID"),
     })
     @Output({
     })
