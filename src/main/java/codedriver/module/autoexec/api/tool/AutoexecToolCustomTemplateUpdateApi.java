@@ -61,7 +61,7 @@ public class AutoexecToolCustomTemplateUpdateApi extends PrivateApiComponentBase
         if (autoexecToolMapper.checkToolExistsById(id) == 0) {
             throw new AutoexecToolNotFoundException(id);
         }
-        if (autoexecCustomTemplateMapper.checkCustomTemplateIsExistsById(customTemplateId) == 0) {
+        if (customTemplateId != null && autoexecCustomTemplateMapper.checkCustomTemplateIsExistsById(customTemplateId) == 0) {
             throw new CustomTemplateNotFoundException(customTemplateId);
         }
         AutoexecToolVo vo = new AutoexecToolVo();
