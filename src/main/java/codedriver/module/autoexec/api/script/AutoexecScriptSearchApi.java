@@ -10,14 +10,15 @@ import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
+import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
+import codedriver.framework.autoexec.dto.catalog.AutoexecCatalogVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
 import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.dto.OperateVo;
-import codedriver.framework.dto.TeamVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -46,6 +47,9 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
     private AutoexecScriptMapper autoexecScriptMapper;
 
     @Resource
+    private AutoexecCatalogMapper autoexecCatalogMapper;
+
+    @Resource
     private AutoexecScriptService autoexecScriptService;
 
     @Override
@@ -68,6 +72,7 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
             @Param(name = "typeIdList", type = ApiParamType.JSONARRAY, desc = "分类ID列表"),
             @Param(name = "catalogId", type = ApiParamType.LONG, desc = "工具目录ID"),
             @Param(name = "riskIdList", type = ApiParamType.JSONARRAY, desc = "操作级别ID列表"),
+            @Param(name = "customTemplateIdList", type = ApiParamType.JSONARRAY, desc = "自定义模版ID列表"),
             @Param(name = "versionStatus", type = ApiParamType.ENUM, rule = "draft,submitted,passed,rejected", desc = "状态"),
             @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
             @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "用于回显的脚本ID列表"),
@@ -86,17 +91,34 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
         AutoexecScriptVo scriptVo = JSON.toJavaObject(jsonObj, AutoexecScriptVo.class);
-
+        if (CollectionUtils.isNotEmpty(scriptVo.getCustomTemplateIdList()) && scriptVo.getCustomTemplateIdList().contains(0L)) {
+            scriptVo.setCustomTemplateId(0L);
+            scriptVo.setCustomTemplateIdList(null);
+        }
         //查询各级子目录
         scriptVo.setCatalogIdList(autoexecScriptService.getCatalogIdList(scriptVo.getCatalogId()));
 
         List<AutoexecScriptVo> scriptVoList = autoexecScriptMapper.searchScript(scriptVo);
-        if (!scriptVoList.isEmpty() && StringUtils.isNotBlank(scriptVo.getVersionStatus())) {
-            List<AutoexecScriptVersionVo> parserList = autoexecScriptMapper.getVersionParserByScriptIdListAndVersionStatus(scriptVoList.stream().map(AutoexecScriptVo::getId).collect(Collectors.toList()), scriptVo.getVersionStatus());
-            if (!parserList.isEmpty()) {
-                Map<Long, String> collect = parserList.stream().collect(Collectors.toMap(AutoexecScriptVersionVo::getScriptId, AutoexecScriptVersionVo::getParser));
+        if (!scriptVoList.isEmpty()) {
+            List<AutoexecCatalogVo> catalogList = autoexecCatalogMapper.getCatalogListByIdList(scriptVoList.stream().map(AutoexecScriptVo::getCatalogId).collect(Collectors.toList()));
+            Map<Long, AutoexecCatalogVo> catalogMap = catalogList.stream().collect(Collectors.toMap(AutoexecCatalogVo::getId, o -> o));
+            if (MapUtils.isNotEmpty(catalogMap)) {
                 for (AutoexecScriptVo vo : scriptVoList) {
-                    vo.setParser(collect.get(vo.getId()));
+                    AutoexecCatalogVo catalog = catalogMap.get(vo.getCatalogId());
+                    if (catalog != null) {
+                        vo.setCatalogName(catalog.getName());
+                        List<AutoexecCatalogVo> upwardList = autoexecCatalogMapper.getParentListAndSelfByLR(catalog.getLft(), catalog.getRht());
+                        vo.setCatalogPath(upwardList.stream().map(AutoexecCatalogVo::getName).collect(Collectors.joining("/")));
+                    }
+                }
+            }
+            if (StringUtils.isNotBlank(scriptVo.getVersionStatus())) {
+                List<AutoexecScriptVersionVo> parserList = autoexecScriptMapper.getVersionParserByScriptIdListAndVersionStatus(scriptVoList.stream().map(AutoexecScriptVo::getId).collect(Collectors.toList()), scriptVo.getVersionStatus());
+                if (!parserList.isEmpty()) {
+                    Map<Long, String> collect = parserList.stream().collect(Collectors.toMap(AutoexecScriptVersionVo::getScriptId, AutoexecScriptVersionVo::getParser));
+                    for (AutoexecScriptVo vo : scriptVoList) {
+                        vo.setParser(collect.get(vo.getId()));
+                    }
                 }
             }
         }
