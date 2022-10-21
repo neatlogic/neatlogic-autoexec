@@ -16,10 +16,13 @@ import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.util.TableResultUtil;
 import codedriver.module.autoexec.dao.mapper.AutoexecCustomTemplateMapper;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
@@ -47,6 +50,19 @@ public class SearchCustomTemplateApi extends PrivateApiComponentBase {
         if (rowNum > 0) {
             customTemplateVo.setRowNum(rowNum);
             customTemplateList = autoexecCustomTemplateMapper.searchCustomTemplate((customTemplateVo));
+            if (customTemplateList.size() > 0) {
+                List<Long> idList = customTemplateList.stream().map(CustomTemplateVo::getId).collect(Collectors.toList());
+                Map<Long, Integer> referenceCountForTool = autoexecCustomTemplateMapper.getReferenceCountListForTool(idList).stream().collect(Collectors.toMap(CustomTemplateVo::getId, CustomTemplateVo::getReferenceCountForTool));
+                Map<Long, Integer> referenceCountForScript = autoexecCustomTemplateMapper.getReferenceCountListForScript(idList).stream().collect(Collectors.toMap(CustomTemplateVo::getId, CustomTemplateVo::getReferenceCountForScript));
+                for (CustomTemplateVo vo : customTemplateList) {
+                    if (MapUtils.isNotEmpty(referenceCountForTool)) {
+                        vo.setReferenceCountForTool(referenceCountForTool.get(vo.getId()));
+                    }
+                    if (MapUtils.isNotEmpty(referenceCountForScript)) {
+                        vo.setReferenceCountForScript(referenceCountForScript.get(vo.getId()));
+                    }
+                }
+            }
         }
         return TableResultUtil.getResult(customTemplateList, customTemplateVo);
     }

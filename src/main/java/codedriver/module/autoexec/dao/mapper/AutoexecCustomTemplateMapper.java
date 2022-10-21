@@ -18,6 +18,10 @@ public interface AutoexecCustomTemplateMapper {
 
     int checkCustomTemplateIsExistsById(Long id);
 
+    List<CustomTemplateVo> getReferenceCountListForTool(List<Long> idList);
+
+    List<CustomTemplateVo> getReferenceCountListForScript(List<Long> idList);
+
     void updateCustomTemplate(CustomTemplateVo customTemplateVo);
 
     void insertCustomTemplate(CustomTemplateVo customTemplateVo);

@@ -61,6 +61,32 @@
         where `id` = #{value}
     </select>
 
+    <select id="getReferenceCountListForTool" parameterType="java.util.List"
+            resultType="codedriver.framework.autoexec.dto.customtemplate.CustomTemplateVo">
+        select
+        `customtemplate_id` as id,
+        count(`id`) as referenceCountForTool
+        from `autoexec_tool`
+        where `customtemplate_id` in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        group by `customtemplate_id`
+    </select>
+
+    <select id="getReferenceCountListForScript" parameterType="java.util.List"
+            resultType="codedriver.framework.autoexec.dto.customtemplate.CustomTemplateVo">
+        select
+        `customtemplate_id` as id,
+        count(`id`) as referenceCountForScript
+        from `autoexec_script`
+        where `customtemplate_id` in
+        <foreach collection="list" item="item" open="(" separator="," close=")">
+            #{item}
+        </foreach>
+        group by `customtemplate_id`
+    </select>
+
     <update id="updateCustomTemplate" parameterType="codedriver.framework.autoexec.dto.customtemplate.CustomTemplateVo">
         UPDATE autoexec_customtemplate
         SET name      = #{name},
