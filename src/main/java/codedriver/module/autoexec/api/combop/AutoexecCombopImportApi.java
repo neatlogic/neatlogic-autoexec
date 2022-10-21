@@ -164,7 +164,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                     out.reset();
                 }
             } catch (Exception e) {
-                logger.debug(e.getMessage(), e);
+                logger.error(e.getMessage(), e);
                 throw new FileExtNotAllowedException(multipartFile.getOriginalFilename());
             }
         }
@@ -233,6 +233,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         autoexecCombopVo.setOwner(userUuid);
         autoexecCombopVo.setFcu(userUuid);
         AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
+        // 检查场景列表
         List<AutoexecCombopScenarioVo> scenarioList = config.getScenarioList();
         if (CollectionUtils.isNotEmpty(scenarioList)) {
             List<String> nameList = new ArrayList<>();
@@ -314,7 +315,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
             JSONObject resultObj = new JSONObject();
             resultObj.put("item", oldName);
             resultObj.put("isSucceed", 1);
-            resultObj.put("warn", warnReasonSet);
+            resultObj.put("warnList", warnReasonSet);
             return resultObj;
         } else {
             JSONObject resultObj = new JSONObject();
@@ -377,14 +378,14 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         if (CollectionUtils.isNotEmpty(paramMappingList)) {
             for (ParamMappingVo paramMappingVo : paramMappingList) {
                 if (ParamMappingMode.PROFILE.getValue().equals(paramMappingVo.getMappingMode()) && !profileExist) {
-                    paramMappingVo.setMappingMode(null);
+                    paramMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
                     paramMappingVo.setValue(null);
                 } else if (ParamMappingMode.GLOBAL_PARAM.getValue().equals(paramMappingVo.getMappingMode())) {
                     AutoexecGlobalParamVo autoexecGlobalParamVo = autoexecGlobalParamMapper.getGlobalParamByKey((String)paramMappingVo.getValue());
                     if (autoexecGlobalParamVo == null) {
-                        paramMappingVo.setMappingMode(null);
-                        paramMappingVo.setValue(null);
                         warnReasonSet.add("缺少全局参数：'" + paramMappingVo.getValue() + "'");
+                        paramMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
+                        paramMappingVo.setValue(null);
                     }
                 }
             }
@@ -393,14 +394,14 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         if (CollectionUtils.isNotEmpty(argumentMappingList)) {
             for (ParamMappingVo paramMappingVo : argumentMappingList) {
                 if (ParamMappingMode.PROFILE.getValue().equals(paramMappingVo.getMappingMode()) && !profileExist) {
-                    paramMappingVo.setMappingMode(null);
+                    paramMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
                     paramMappingVo.setValue(null);
                 } else if (ParamMappingMode.GLOBAL_PARAM.getValue().equals(paramMappingVo.getMappingMode())) {
                     AutoexecGlobalParamVo autoexecGlobalParamVo = autoexecGlobalParamMapper.getGlobalParamByKey((String)paramMappingVo.getValue());
                     if (autoexecGlobalParamVo == null) {
-                        paramMappingVo.setMappingMode(null);
-                        paramMappingVo.setValue(null);
                         warnReasonSet.add("缺少全局参数：'" + paramMappingVo.getValue() + "'");
+                        paramMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
+                        paramMappingVo.setValue(null);
                     }
                 }
             }
