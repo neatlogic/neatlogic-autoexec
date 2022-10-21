@@ -9,9 +9,11 @@ import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
+import codedriver.framework.autoexec.constvalue.ParamMappingMode;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.dto.combop.*;
+import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.common.constvalue.ApiParamType;
@@ -26,6 +28,9 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecProfileMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecScenarioMapper;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
@@ -74,6 +79,15 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
 
     @Resource
     private NotifyMapper notifyMapper;
+
+    @Resource
+    private AutoexecProfileMapper autoexecProfileMapper;
+
+    @Resource
+    private AutoexecGlobalParamMapper autoexecGlobalParamMapper;
+
+    @Resource
+    private AutoexecScenarioMapper autoexecScenarioMapper;
 
     @Override
     public String getToken() {
@@ -194,6 +208,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         }
 
         Set<String> failureReasonSet = new HashSet<>();
+        Set<String> warnReasonSet = new HashSet<>();
         Long typeId = autoexecTypeMapper.getTypeIdByName(autoexecCombopVo.getTypeName());
         if (typeId == null) {
             failureReasonSet.add("缺少引用的工具类型：'" + autoexecCombopVo.getTypeName() + "'");
@@ -218,6 +233,22 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         autoexecCombopVo.setOwner(userUuid);
         autoexecCombopVo.setFcu(userUuid);
         AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
+        // 检查场景列表
+        List<AutoexecCombopScenarioVo> scenarioList = config.getScenarioList();
+        if (CollectionUtils.isNotEmpty(scenarioList)) {
+            List<String> nameList = new ArrayList<>();
+            Iterator<AutoexecCombopScenarioVo> iterator = scenarioList.iterator();
+            while (iterator.hasNext()) {
+                AutoexecCombopScenarioVo scenarioVo = iterator.next();
+                if (autoexecScenarioMapper.checkScenarioIsExistsById(scenarioVo.getScenarioId()) == 0) {
+                    nameList.add(scenarioVo.getScenarioName());
+                    iterator.remove();
+                }
+            }
+            if (CollectionUtils.isNotEmpty(nameList)) {
+                warnReasonSet.add("缺少场景'" + String.join("'、'", nameList) + "'场景未导入");
+            }
+        }
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
         if (CollectionUtils.isNotEmpty(combopPhaseList)) {
             for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
@@ -228,25 +259,33 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                     if (CollectionUtils.isNotEmpty(phaseOperationList)) {
                         for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
                             if (autoexecCombopPhaseOperationVo != null) {
-                                if (Objects.equals(autoexecCombopPhaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
-                                    AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoByName(autoexecCombopPhaseOperationVo.getOperationName());
-                                    if (autoexecScriptVo == null) {
-                                        failureReasonSet.add("缺少引用的自定义工具：'" + autoexecCombopPhaseOperationVo.getOperationName() + "'");
-                                    } else {
-                                        AutoexecScriptVersionVo autoexecScriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(autoexecScriptVo.getId());
-                                        if (autoexecScriptVersionVo == null) {
-                                            failureReasonSet.add("自定义工具：'" + autoexecScriptVo.getName() + "'未启用");
+                                checkOperation(autoexecCombopPhaseOperationVo, failureReasonSet);
+                                AutoexecCombopPhaseOperationConfigVo operationConfig = autoexecCombopPhaseOperationVo.getConfig();
+                                if (operationConfig != null) {
+                                    checkOperationConfig(operationConfig, warnReasonSet);
+                                    List<AutoexecCombopPhaseOperationVo> ifList = operationConfig.getIfList();
+                                    if (CollectionUtils.isNotEmpty(ifList)) {
+                                        for (AutoexecCombopPhaseOperationVo operationVo : ifList) {
+                                            if (operationVo != null) {
+                                                checkOperation(operationVo, failureReasonSet);
+                                                AutoexecCombopPhaseOperationConfigVo ifListOperationConfig = operationVo.getConfig();
+                                                if (ifListOperationConfig != null) {
+                                                    checkOperationConfig(ifListOperationConfig, warnReasonSet);
+                                                }
+                                            }
                                         }
-                                        autoexecCombopPhaseOperationVo.setOperationId(autoexecScriptVo.getId());
                                     }
-                                } else {
-                                    AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolByName(autoexecCombopPhaseOperationVo.getOperationName());
-                                    if (autoexecToolVo == null) {
-                                        failureReasonSet.add("缺少引用的工具：'" + autoexecCombopPhaseOperationVo.getOperationName() + "'");
-                                    } else if (Objects.equals(autoexecToolVo.getIsActive(), 0)) {
-                                        failureReasonSet.add("工具：'" + autoexecToolVo.getName() + "'未启用");
-                                    } else {
-                                        autoexecCombopPhaseOperationVo.setOperationId(autoexecToolVo.getId());
+                                    List<AutoexecCombopPhaseOperationVo> elseList = operationConfig.getElseList();
+                                    if (CollectionUtils.isNotEmpty(elseList)) {
+                                        for (AutoexecCombopPhaseOperationVo operationVo : elseList) {
+                                            if (operationVo != null) {
+                                                checkOperation(operationVo, failureReasonSet);
+                                                AutoexecCombopPhaseOperationConfigVo elseListOperationConfig = operationVo.getConfig();
+                                                if (elseListOperationConfig != null) {
+                                                    checkOperationConfig(elseListOperationConfig, warnReasonSet);
+                                                }
+                                            }
+                                        }
                                     }
                                 }
                             }
@@ -276,6 +315,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
             JSONObject resultObj = new JSONObject();
             resultObj.put("item", oldName);
             resultObj.put("isSucceed", 1);
+            resultObj.put("warnList", warnReasonSet);
             return resultObj;
         } else {
             JSONObject resultObj = new JSONObject();
@@ -283,6 +323,93 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
             resultObj.put("isSucceed", 0);
             resultObj.put("list", failureReasonSet);
             return resultObj;
+        }
+    }
+
+    /**
+     * 检查操作对应的工具是否存在
+     * @param autoexecCombopPhaseOperationVo
+     * @param failureReasonSet
+     */
+    private void checkOperation(AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo, Set<String> failureReasonSet) {
+        if (Objects.equals(autoexecCombopPhaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
+            AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(autoexecCombopPhaseOperationVo.getOperationId());
+            if (autoexecScriptVo != null) {
+                return;
+            }
+            autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoByName(autoexecCombopPhaseOperationVo.getOperationName());
+            if (autoexecScriptVo == null) {
+                failureReasonSet.add("缺少引用的自定义工具：'" + autoexecCombopPhaseOperationVo.getOperationName() + "'");
+            } else {
+                AutoexecScriptVersionVo autoexecScriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(autoexecScriptVo.getId());
+                if (autoexecScriptVersionVo == null) {
+                    failureReasonSet.add("自定义工具：'" + autoexecScriptVo.getName() + "'未启用");
+                }
+                autoexecCombopPhaseOperationVo.setOperationId(autoexecScriptVo.getId());
+            }
+        } else {
+            AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(autoexecCombopPhaseOperationVo.getOperationId());
+            if (autoexecToolVo != null) {
+                return;
+            }
+            autoexecToolVo = autoexecToolMapper.getToolByName(autoexecCombopPhaseOperationVo.getOperationName());
+            if (autoexecToolVo == null) {
+                failureReasonSet.add("缺少引用的工具：'" + autoexecCombopPhaseOperationVo.getOperationName() + "'");
+            } else if (Objects.equals(autoexecToolVo.getIsActive(), 0)) {
+                failureReasonSet.add("工具：'" + autoexecToolVo.getName() + "'未启用");
+            } else {
+                autoexecCombopPhaseOperationVo.setOperationId(autoexecToolVo.getId());
+            }
+        }
+    }
+
+    /**
+     * 检查引用的预置参数集是否存在，引用的全局参数是否存在
+     * @param config
+     * @param warnReasonSet
+     */
+    private void checkOperationConfig(AutoexecCombopPhaseOperationConfigVo config, Set<String> warnReasonSet) {
+        boolean profileExist = false;
+        Long profileId = config.getProfileId();
+        if (profileId != null) {
+            profileExist = true;
+            if (autoexecProfileMapper.checkProfileIsExists(profileId) == 0) {
+                config.setProfileId(null);
+                config.setProfileName(null);
+                profileExist = false;
+            }
+        }
+        List<ParamMappingVo> paramMappingList = config.getParamMappingList();
+        if (CollectionUtils.isNotEmpty(paramMappingList)) {
+            for (ParamMappingVo paramMappingVo : paramMappingList) {
+                if (ParamMappingMode.PROFILE.getValue().equals(paramMappingVo.getMappingMode()) && !profileExist) {
+                    paramMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
+                    paramMappingVo.setValue(null);
+                } else if (ParamMappingMode.GLOBAL_PARAM.getValue().equals(paramMappingVo.getMappingMode())) {
+                    AutoexecGlobalParamVo autoexecGlobalParamVo = autoexecGlobalParamMapper.getGlobalParamByKey((String)paramMappingVo.getValue());
+                    if (autoexecGlobalParamVo == null) {
+                        warnReasonSet.add("缺少全局参数：'" + paramMappingVo.getValue() + "'");
+                        paramMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
+                        paramMappingVo.setValue(null);
+                    }
+                }
+            }
+        }
+        List<ParamMappingVo> argumentMappingList = config.getArgumentMappingList();
+        if (CollectionUtils.isNotEmpty(argumentMappingList)) {
+            for (ParamMappingVo paramMappingVo : argumentMappingList) {
+                if (ParamMappingMode.PROFILE.getValue().equals(paramMappingVo.getMappingMode()) && !profileExist) {
+                    paramMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
+                    paramMappingVo.setValue(null);
+                } else if (ParamMappingMode.GLOBAL_PARAM.getValue().equals(paramMappingVo.getMappingMode())) {
+                    AutoexecGlobalParamVo autoexecGlobalParamVo = autoexecGlobalParamMapper.getGlobalParamByKey((String)paramMappingVo.getValue());
+                    if (autoexecGlobalParamVo == null) {
+                        warnReasonSet.add("缺少全局参数：'" + paramMappingVo.getValue() + "'");
+                        paramMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
+                        paramMappingVo.setValue(null);
+                    }
+                }
+            }
         }
     }
 
