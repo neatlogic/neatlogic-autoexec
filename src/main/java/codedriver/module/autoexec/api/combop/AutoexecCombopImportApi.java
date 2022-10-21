@@ -164,7 +164,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                     out.reset();
                 }
             } catch (Exception e) {
-                logger.error(e.getMessage(), e);
+                logger.debug(e.getMessage(), e);
                 throw new FileExtNotAllowedException(multipartFile.getOriginalFilename());
             }
         }
@@ -327,7 +327,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
     }
 
     /**
-     * 将操作对应的工具是否存在
+     * 检查操作对应的工具是否存在
      * @param autoexecCombopPhaseOperationVo
      * @param failureReasonSet
      */
@@ -363,6 +363,11 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         }
     }
 
+    /**
+     * 检查引用的预置参数集是否存在，引用的全局参数是否存在
+     * @param config
+     * @param warnReasonSet
+     */
     private void checkOperationConfig(AutoexecCombopPhaseOperationConfigVo config, Set<String> warnReasonSet) {
         boolean profileExist = false;
         Long profileId = config.getProfileId();
