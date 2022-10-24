@@ -11,10 +11,7 @@ import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
-import codedriver.framework.autoexec.constvalue.ParamMode;
-import codedriver.framework.autoexec.constvalue.ParamType;
-import codedriver.framework.autoexec.constvalue.ScriptAndToolOperate;
-import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
+import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
@@ -24,6 +21,7 @@ import codedriver.framework.autoexec.dto.script.*;
 import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.autoexec.exception.customtemplate.CustomTemplateNotFoundException;
 import codedriver.framework.common.util.RC4Util;
+import codedriver.framework.dependency.core.DependencyManager;
 import codedriver.framework.dependency.dto.DependencyInfoVo;
 import codedriver.framework.dto.OperateVo;
 import codedriver.module.autoexec.dao.mapper.AutoexecCustomTemplateMapper;
@@ -473,5 +471,26 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
             }
         }
         return catalogId;
+    }
+
+    @Override
+    public void deleteScriptById(Long id) {
+        if (id != null) {
+            // 检查脚本是否被组合工具引用
+            if (DependencyManager.getDependencyCount(AutoexecFromType.SCRIPT, id) > 0) {
+                throw new AutoexecScriptHasReferenceException();
+            }
+            List<Long> versionIdList = autoexecScriptMapper.getVersionIdListByScriptId(id);
+            if (CollectionUtils.isNotEmpty(versionIdList)) {
+                autoexecScriptMapper.deleteParamByVersionIdList(versionIdList);
+                autoexecScriptMapper.deleteArgumentByVersionIdList(versionIdList);
+            }
+            //删除脚本和profile的关系
+            autoexecProfileMapper.deleteProfileOperationByOperationId(id);
+            autoexecScriptMapper.deleteScriptLineByScriptId(id);
+            autoexecScriptMapper.deleteScriptAuditByScriptId(id);
+            autoexecScriptMapper.deleteScriptVersionByScriptId(id);
+            autoexecScriptMapper.deleteScriptById(id);
+        }
     }
 }

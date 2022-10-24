@@ -7,28 +7,26 @@ package codedriver.module.autoexec.api.script;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
-import codedriver.framework.autoexec.constvalue.AutoexecFromType;
 import codedriver.framework.autoexec.constvalue.ScriptAction;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptAuditVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
-import codedriver.framework.autoexec.exception.*;
+import codedriver.framework.autoexec.exception.AutoexecScriptNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecScriptVersionCannotDeleteException;
+import codedriver.framework.autoexec.exception.AutoexecScriptVersionHasBeenActivedException;
+import codedriver.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
-import codedriver.framework.dependency.core.DependencyManager;
 import codedriver.framework.dto.FieldValidResultVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.IValid;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.module.autoexec.dao.mapper.AutoexecProfileMapper;
 import codedriver.module.autoexec.service.AutoexecScriptService;
 import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -39,9 +37,6 @@ public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
-
-    @Resource
-    private AutoexecProfileMapper autoexecProfileMapper;
 
     @Resource
     private AutoexecScriptService autoexecScriptService;
@@ -76,28 +71,7 @@ public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
             if (autoexecScriptMapper.getScriptLockById(id) == null) {
                 throw new AutoexecScriptNotFoundException(id);
             }
-            // 检查脚本是否被组合工具引用
-            if (DependencyManager.getDependencyCount(AutoexecFromType.SCRIPT, id) > 0) {
-                throw new AutoexecScriptHasReferenceException();
-            }
-//            List<AutoexecCombopVo> referenceList = autoexecScriptMapper.getReferenceListByScriptId(id);
-//            if (CollectionUtils.isNotEmpty(referenceList)) {
-//                List<String> list = referenceList.stream().map(AutoexecCombopVo::getName).collect(Collectors.toList());
-//                throw new AutoexecScriptHasReferenceException(StringUtils.join(list, ","));
-//            }
-
-            List<Long> versionIdList = autoexecScriptMapper.getVersionIdListByScriptId(id);
-            if (CollectionUtils.isNotEmpty(versionIdList)) {
-                autoexecScriptMapper.deleteParamByVersionIdList(versionIdList);
-                autoexecScriptMapper.deleteArgumentByVersionIdList(versionIdList);
-            }
-            //删除脚本和profile的关系
-            autoexecProfileMapper.deleteProfileOperationByOperationId(id);
-
-            autoexecScriptMapper.deleteScriptLineByScriptId(id);
-            autoexecScriptMapper.deleteScriptAuditByScriptId(id);
-            autoexecScriptMapper.deleteScriptVersionByScriptId(id);
-            autoexecScriptMapper.deleteScriptById(id);
+            autoexecScriptService.deleteScriptById(id);
         } else if (versionId != null) { // 删除版本
             AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionIdForUpdate(versionId);
             if (version == null) {
