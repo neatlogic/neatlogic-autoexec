@@ -104,4 +104,11 @@ public interface AutoexecScriptService {
      * @return 目录ID
      */
     Long getCatalogIdByCatalogPath(String catalogPath);
+
+    /**
+     * 根据脚本ID删除脚本
+     *
+     * @param id 脚本ID
+     */
+    void deleteScriptById(Long id);
 }

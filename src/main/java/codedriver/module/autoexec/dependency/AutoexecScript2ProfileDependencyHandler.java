@@ -11,10 +11,10 @@ import java.util.List;
 /**
  * @author longrf
  * @date 2022/3/29 2:28 下午
- * 预制参数集引用自动化工具（包括自定义工具和工具库工具）处理器
+ * 预制参数集引用自定义工具处理器
  */
 @Service
-public class AutoexecOperationProfileDependencyHandler extends CustomTableDependencyHandlerBase {
+public class AutoexecScript2ProfileDependencyHandler extends CustomTableDependencyHandlerBase {
     @Override
     protected String getTableName() {
         return "autoexec_profile_operation";
@@ -42,6 +42,6 @@ public class AutoexecOperationProfileDependencyHandler extends CustomTableDepend
 
     @Override
     public IFromType getFromType() {
-        return AutoexecFromType.AUTOEXEC_PROFILE_OPERATION;
+        return AutoexecFromType.SCRIPT;
     }
 }
