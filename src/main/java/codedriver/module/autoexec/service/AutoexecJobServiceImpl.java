@@ -986,7 +986,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     }
 
     @Override
-    public void deleteJob(Long jobId) {
+    public void deleteJob(AutoexecJobVo jobVo) {
         //删除jobParamContent
         /*Set<String> hashSet = new HashSet<>();
         hashSet.add(jobVo.getParamHash());
@@ -1005,7 +1005,15 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             }
         }*/
         //else
+        Long jobId = jobVo.getId();
+        AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(jobVo.getSource());
+        if (jobSourceVo != null) {
+            IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
+            if(autoexecJobSourceActionHandler != null)
+            autoexecJobSourceActionHandler.deleteJob(jobVo);
+        }
         autoexecJobMapper.deleteJobEvnByJobId(jobId);
+        autoexecJobMapper.deleteJobGroupByJobId(jobId);
         autoexecJobMapper.deleteJobInvokeByJobId(jobId);
         autoexecJobMapper.deleteJobResourceInspectByJobId(jobId);
         autoexecJobMapper.deleteJobPhaseRunnerByJobId(jobId);

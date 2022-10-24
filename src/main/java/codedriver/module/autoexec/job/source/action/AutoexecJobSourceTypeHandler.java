@@ -350,4 +350,9 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
         result.put("source", jobVo.getSource());
         result.put("name", jobVo.getName());
     }
+
+    @Override
+    public void deleteJob(AutoexecJobVo jobVo) {
+        autoexecJobMapper.deleteJobSqlDetailByJobId(jobVo.getId());
+    }
 }

@@ -106,7 +106,7 @@ public interface AutoexecJobService {
      *
      * @param jobId 作业id
      */
-    void deleteJob(Long jobId);
+    void deleteJob(AutoexecJobVo autoexecJobVo);
 
 
     List<AutoexecJobVo> searchJob(AutoexecJobVo jobVo);

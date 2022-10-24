@@ -1,22 +1,20 @@
 /*
- * Copyright (c)  2021 TechSure Co.,Ltd.  All Rights Reserved.
+ * Copyright (c)  2022 TechSure Co.,Ltd.  All Rights Reserved.
  * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
  */
 
-package codedriver.module.autoexec.api.job.action;
+package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_JOB_MODIFY;
-import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
-import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
-import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,6 +34,9 @@ public class DeleteAutoexecJobApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecJobMapper autoexecJobMapper;
+
+    @Resource
+    private AutoexecJobService autoexecJobService;
 
     @Override
     public String getName() {
@@ -60,9 +61,8 @@ public class DeleteAutoexecJobApi extends PrivateApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId);
         }
-        jobVo.setAction(JobAction.DELETE.getValue());
-        IAutoexecJobActionHandler deleteAction = AutoexecJobActionHandlerFactory.getAction(JobAction.DELETE.getValue());
-        return deleteAction.doService(jobVo);
+        autoexecJobService.deleteJob(jobVo);
+        return null;
     }
 
     @Override

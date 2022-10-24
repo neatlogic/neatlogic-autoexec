@@ -105,7 +105,7 @@ public class PurgeAutoexecJobDataSchedule extends PublicJobBase {
                     }
                     //删除超时的自定化作业
                     for (AutoexecJobVo autoexecJobVo : autoexecJobVos) {
-                        autoexecJobService.deleteJob(autoexecJobVo.getId());
+                        autoexecJobService.deleteJob(autoexecJobVo);
                     }
                 }
             }

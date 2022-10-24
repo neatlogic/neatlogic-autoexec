@@ -173,7 +173,7 @@ public class CreateAutoexecJobFromOperationApi extends PrivateApiComponentBase {
            if(Arrays.asList(JobStatus.RUNNING.getValue(),JobStatus.PAUSING.getValue(), JobStatus.ABORTING.getValue()).contains(jobVo.getStatus())){
                throw new AutoexecJobCanNotTestException(jobVo.getId().toString());
            }
-           autoexecJobService.deleteJob(jobVo.getId());
+           autoexecJobService.deleteJob(jobVo);
        }
     }
 
