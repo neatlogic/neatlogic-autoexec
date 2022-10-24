@@ -62,16 +62,14 @@ public class BatchDeleteAutoexecScriptApi extends PrivateApiComponentBase {
         for (Long id : idList) {
             TransactionStatus tx = TransactionUtil.openTx();
             AutoexecScriptVo scriptVo = autoexecScriptMapper.getScriptLockById(id);
-            if (scriptVo != null) {
-                try {
-                    autoexecScriptService.deleteScriptById(id);
-                    TransactionUtil.commitTx(tx);
-                } catch (Exception ex) {
-                    TransactionUtil.rollbackTx(tx);
+            try {
+                autoexecScriptService.deleteScriptById(id);
+                TransactionUtil.commitTx(tx);
+            } catch (Exception ex) {
+                TransactionUtil.rollbackTx(tx);
+                if (scriptVo != null) {
                     failedList.add(scriptVo.getName());
                 }
-            } else {
-                TransactionUtil.commitTx(tx);
             }
         }
         return failedList;
