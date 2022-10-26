@@ -28,7 +28,7 @@ import javax.annotation.Resource;
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
-public class GetAutoexecJobPhaseOperationLiveDataApi extends PrivateApiComponentBase {
+public class GetAutoexecJobPhaseOperationCustomDataApi extends PrivateApiComponentBase {
 
     @Resource
     AutoexecJobMapper autoexecJobMapper;
@@ -60,8 +60,8 @@ public class GetAutoexecJobPhaseOperationLiveDataApi extends PrivateApiComponent
             paramObj.put("operationName", operation.getName());
             AutoexecJobVo jobVo = new AutoexecJobVo();
             jobVo.setActionParam(paramObj);
-            jobVo.setAction(JobAction.GET_OPERATION_LIVE_DATA.getValue());
-            IAutoexecJobActionHandler action = AutoexecJobActionHandlerFactory.getAction(JobAction.GET_OPERATION_LIVE_DATA.getValue());
+            jobVo.setAction(JobAction.GET_OPERATION_CUSTOM_DATA.getValue());
+            IAutoexecJobActionHandler action = AutoexecJobActionHandlerFactory.getAction(JobAction.GET_OPERATION_CUSTOM_DATA.getValue());
             return action.doService(jobVo);
         }
         return null;
@@ -69,6 +69,6 @@ public class GetAutoexecJobPhaseOperationLiveDataApi extends PrivateApiComponent
 
     @Override
     public String getToken() {
-        return "/autoexec/job/phase/operation/livedata/get";
+        return "/autoexec/job/phase/operation/customdata/get";
     }
 }

@@ -15,11 +15,11 @@ import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
 @Service
-public class AutoexecJobPhaseOperationLiveDataGetHandler extends AutoexecJobActionHandlerBase {
+public class AutoexecJobPhaseOperationCustomDataGetHandler extends AutoexecJobActionHandlerBase {
 
     @Override
     public String getName() {
-        return JobAction.GET_OPERATION_LIVE_DATA.getValue();
+        return JobAction.GET_OPERATION_CUSTOM_DATA.getValue();
     }
 
     @Override
@@ -41,7 +41,7 @@ public class AutoexecJobPhaseOperationLiveDataGetHandler extends AutoexecJobActi
         paramJson.put("port", nodeVo.getPort());
         paramJson.put("runnerUrl", nodeVo.getRunnerUrl());
         paramJson.put("execMode", phaseVo.getExecMode());
-        String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/operation/livedata/get";
+        String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/operation/customdata/get";
         return JSONObject.parseObject(AutoexecUtil.requestRunner(url, paramJson));
     }
 }
