@@ -114,7 +114,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         }
 
         if (isCanUpdatePhaseStatus) {
-            autoexecJobMapper.updateJobPhaseRunnerStatus(Collections.singletonList(jobPhaseVo.getId()), runnerId, phaseRunnerStatus, phaseRunnerWarnCount);
+            autoexecJobMapper.updateJobPhaseRunnerStatusAndWarnCount(Collections.singletonList(jobPhaseVo.getId()), runnerId, phaseRunnerStatus, phaseRunnerWarnCount);
         }
 
         jobVo.setPassThroughEnv(passThroughEnv);
@@ -173,9 +173,9 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
             jobVo.setStatus(finalJobPhaseStatus);
             autoexecJobMapper.updateJobStatus(jobVo);
         } else if (Objects.equals(finalJobPhaseStatus, JobPhaseStatus.COMPLETED.getValue())) {
-            //判断所有phase 是否都已跑完（completed），如果是则需要更新job状态
+            //判断所有phase 是否都已跑完（completed|ignored），如果是则需要更新job状态
             List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListWithGroupByJobId(jobVo.getId());
-            if (jobPhaseVoList.stream().allMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.COMPLETED.getValue()))) {
+            if (jobPhaseVoList.stream().allMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.COMPLETED.getValue()) || Objects.equals(o.getStatus(), JobPhaseStatus.IGNORED.getValue()))) {
                 jobVo.setStatus(JobPhaseStatus.COMPLETED.getValue());
                 autoexecJobMapper.updateJobStatus(jobVo);
             }

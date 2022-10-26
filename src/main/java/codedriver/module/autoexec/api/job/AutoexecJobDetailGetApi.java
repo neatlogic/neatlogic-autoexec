@@ -5,22 +5,20 @@
 
 package codedriver.module.autoexec.api.job;
 
-import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
-import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
-import codedriver.framework.autoexec.constvalue.CombopAuthorityAction;
-import codedriver.framework.autoexec.constvalue.CombopOperationType;
-import codedriver.framework.autoexec.constvalue.JobSource;
+import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
+import codedriver.framework.autoexec.dto.AutoexecJobSourceVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeStatusCountVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecJobSourceInvalidException;
+import codedriver.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
+import codedriver.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
+import codedriver.framework.autoexec.source.AutoexecJobSourceFactory;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -82,8 +80,6 @@ public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
-        //获取当前phase
-        AutoexecJobPhaseVo jobCurrentPhaseVo = autoexecJobMapper.getJobActivePhase(jobId);
         //剧本列表
         List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListWithGroupByJobId(jobId);
         List<AutoexecJobPhaseNodeStatusCountVo> statusCountVoList = autoexecJobMapper.getJobPhaseNodeStatusCount(jobId);
@@ -96,19 +92,15 @@ public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {
         }
         jobVo.setPhaseList(jobPhaseVoList);
         //判断是否有执行与接管权限
-        if (UserContext.get().getUserUuid().equals(jobVo.getExecUser())) {
-            jobVo.setIsCanExecute(1);
-        } else if ((Objects.equals(jobVo.getSource(), JobSource.TEST.getValue()) && AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class))) {
-            jobVo.setIsCanTakeOver(1);
-        } else if (Objects.equals(jobVo.getOperationType(), CombopOperationType.COMBOP.getValue())) {
-            AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(jobVo.getOperationId());
-            if (combopVo == null) {
-                throw new AutoexecCombopNotFoundException(jobVo.getOperationId());
+        if(!Objects.equals(jobVo.getStatus(), JobStatus.CHECKED.getValue())) {
+            AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(jobVo.getSource());
+            if (jobSourceVo == null) {
+                throw new AutoexecJobSourceInvalidException(jobVo.getSource());
             }
-            if (autoexecCombopService.checkOperableButton(combopVo, CombopAuthorityAction.EXECUTE)) {
-                jobVo.setIsCanTakeOver(1);
-            }
+            IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
+            autoexecJobSourceActionHandler.getJobActionAuth(jobVo);
         }
+
         return jobVo;
     }
 

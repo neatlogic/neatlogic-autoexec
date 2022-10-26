@@ -17,6 +17,8 @@ import codedriver.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandle
 import codedriver.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
 import codedriver.framework.autoexec.source.AutoexecJobSourceFactory;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.deploy.exception.DeployJobCannotExecuteException;
+import codedriver.framework.exception.type.PermissionDeniedException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -70,7 +72,11 @@ public class GetAutoexecJobCreatePayloadApi extends PrivateApiComponentBase {
             throw new AutoexecJobSourceInvalidException(jobVo.getSource());
         }
         IAutoexecJobSourceTypeHandler autoexecJobSourceHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
-        autoexecJobSourceHandler.executeAuthCheck(jobVo,false);
+        try {
+            autoexecJobSourceHandler.executeAuthCheck(jobVo, false);
+        }catch (DeployJobCannotExecuteException exception){
+            throw new PermissionDeniedException(exception.getMessage());
+        }
         autoexecJobSourceHandler.getCreatePayload(jobVo, result);
         result.put("roundCount", jobVo.getRoundCount());
         //param

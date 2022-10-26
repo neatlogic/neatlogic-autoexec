@@ -92,6 +92,8 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
 
                 IDeployBatchJobCrossoverService iDeployBatchJobCrossoverService = CrossoverServiceFactory.getApi(IDeployBatchJobCrossoverService.class);
                 iDeployBatchJobCrossoverService.checkAndFireLaneNextGroupByJobId(jobVo.getId(), jobVo.getPassThroughEnv());
+                jobVo.setStatus(JobStatus.COMPLETED.getValue());
+                autoexecJobMapper.updateJobStatus(jobVo);
                 return null;
             }
             jobVo.setStatus(JobStatus.PENDING.getValue());

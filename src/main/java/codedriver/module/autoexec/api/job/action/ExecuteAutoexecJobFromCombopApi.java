@@ -11,7 +11,6 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.constvalue.JobStatus;
-import codedriver.framework.autoexec.constvalue.JobTriggerType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobCanNotExecuteException;
@@ -80,8 +79,7 @@ public class ExecuteAutoexecJobFromCombopApi extends PrivateApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId);
         }
-        if (!JobStatus.READY.getValue().equals(jobVo.getStatus()) || !JobTriggerType.MANUAL.getValue().equals(jobVo.getTriggerType())
-                || !UserContext.get().getUserUuid().equals(jobVo.getExecUser())) {
+        if (!JobStatus.READY.getValue().equals(jobVo.getStatus()) || !UserContext.get().getUserUuid().equals(jobVo.getExecUser())) {
             throw new AutoexecJobCanNotExecuteException(jobId);
         }
         if (new Date().before(jobVo.getPlanStartTime()) && !AutoexecConfig.AUTOEXEC_JOB_IS_ALLOWED_MANUAL_TRIGGER_IN_ADVANCE()) {
