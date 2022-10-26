@@ -35,8 +35,10 @@ public class AutoexecJobPhaseOperationLiveDataGetHandler extends AutoexecJobActi
         AutoexecJobPhaseVo phaseVo = jobVo.getCurrentPhase();
         JSONObject paramJson = jobVo.getActionParam();
         paramJson.put("jobId", phaseVo.getJobId());
+        paramJson.put("resourceId", nodeVo.getResourceId());
         paramJson.put("phase", nodeVo.getJobPhaseName());
         paramJson.put("ip", nodeVo.getHost());
+        paramJson.put("port", nodeVo.getPort());
         paramJson.put("runnerUrl", nodeVo.getRunnerUrl());
         paramJson.put("execMode", phaseVo.getExecMode());
         String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/operation/livedata/get";

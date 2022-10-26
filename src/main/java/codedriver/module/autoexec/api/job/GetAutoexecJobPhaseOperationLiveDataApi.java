@@ -8,6 +8,8 @@ package codedriver.module.autoexec.api.job;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.JobAction;
+import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseOperationVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import codedriver.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
@@ -18,7 +20,6 @@ import codedriver.framework.restful.annotation.Output;
 import codedriver.framework.restful.annotation.Param;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
@@ -30,7 +31,7 @@ import javax.annotation.Resource;
 public class GetAutoexecJobPhaseOperationLiveDataApi extends PrivateApiComponentBase {
 
     @Resource
-    AutoexecJobService autoexecJobService;
+    AutoexecJobMapper autoexecJobMapper;
 
     @Override
     public String getName() {
@@ -44,19 +45,26 @@ public class GetAutoexecJobPhaseOperationLiveDataApi extends PrivateApiComponent
 
     @Input({
             @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本Id"),
-            @Param(name = "operationId", type = ApiParamType.LONG, isRequired = true, desc = "工具id"),
             @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id"),
-            @Param(name = "sqlName", type = ApiParamType.STRING, desc = "sql名"),
+            @Param(name = "operationId", type = ApiParamType.LONG, isRequired = true, desc = "工具id"),
     })
     @Output({
     })
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        AutoexecJobVo jobVo = new AutoexecJobVo();
-        jobVo.setActionParam(paramObj);
-        jobVo.setAction(JobAction.GET_OPERATION_LIVE_DATA.getValue());
-        IAutoexecJobActionHandler action = AutoexecJobActionHandlerFactory.getAction(JobAction.GET_OPERATION_LIVE_DATA.getValue());
-        return action.doService(jobVo);
+        Long jobPhaseId = paramObj.getLong("jobPhaseId");
+        Long operationId = paramObj.getLong("operationId");
+        AutoexecJobPhaseOperationVo operation = autoexecJobMapper.getMaxSortJobPhaseOperationByPhaseIdAndOperationId(jobPhaseId, operationId);
+        if (operation != null) {
+            paramObj.put("jobPhaseOperationId", operation.getId());
+            paramObj.put("operationName", operation.getName());
+            AutoexecJobVo jobVo = new AutoexecJobVo();
+            jobVo.setActionParam(paramObj);
+            jobVo.setAction(JobAction.GET_OPERATION_LIVE_DATA.getValue());
+            IAutoexecJobActionHandler action = AutoexecJobActionHandlerFactory.getAction(JobAction.GET_OPERATION_LIVE_DATA.getValue());
+            return action.doService(jobVo);
+        }
+        return null;
     }
 
     @Override
