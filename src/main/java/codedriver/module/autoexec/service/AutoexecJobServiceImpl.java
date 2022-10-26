@@ -206,7 +206,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      * @return true|false
      */
     private boolean isPhaseNodeNeedReInitByPreOutput(AutoexecJobVo jobVo, AutoexecJobPhaseVo currentJobPhaseVo) {
-        if(StringUtils.isBlank(jobVo.getConfigStr())) {
+        if (StringUtils.isBlank(jobVo.getConfigStr())) {
             AutoexecJobContentVo jobContentVo = autoexecJobMapper.getJobContent(jobVo.getConfigHash());
             if (jobContentVo == null || StringUtils.isBlank(jobContentVo.getContent())) {
                 throw new AutoexecJoConfigNotFoundException(jobVo.getId());
@@ -589,7 +589,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             jobVo.setParamArrayStr(paramContentVo.getContent());
         }
         AutoexecJobContentVo jobContent = autoexecJobMapper.getJobContent(jobVo.getConfigHash());
-        if(jobContent == null){
+        if (jobContent == null) {
             throw new AutoexecJobConfigNotFoundException(jobVo.getId());
         }
         jobVo.setConfigStr(jobContent.getContent());
@@ -617,7 +617,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             }
             for (AutoexecJobPhaseVo phaseVo : jobPhaseVoList) {
                 phaseVo.setJobGroupVo(jobGroupIdMap.get(phaseVo.getGroupId()));
-                List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseId(jobVo.getId(), phaseVo.getId());
+                List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationListWithoutParentByJobIdAndPhaseId(jobVo.getId(), phaseVo.getId());
                 phaseVo.setOperationList(operationVoList);
                 for (AutoexecJobPhaseOperationVo operationVo : operationVoList) {
                     paramContentVo = autoexecJobMapper.getJobContent(operationVo.getParamHash());
@@ -804,7 +804,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     Object nodes = outputJson.get(paramKey);
                     if (nodes instanceof JSONArray) {
                         nodeArrayAtomic.set((JSONArray) nodes);
-                    }else if (nodes instanceof String) {
+                    } else if (nodes instanceof String) {
                         try {
                             nodeArrayAtomic.set(JSONArray.parseArray(nodes.toString()));
                         } catch (Exception ex) {
@@ -1009,8 +1009,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(jobVo.getSource());
         if (jobSourceVo != null) {
             IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
-            if(autoexecJobSourceActionHandler != null)
-            autoexecJobSourceActionHandler.deleteJob(jobVo);
+            if (autoexecJobSourceActionHandler != null)
+                autoexecJobSourceActionHandler.deleteJob(jobVo);
         }
         autoexecJobMapper.deleteJobEvnByJobId(jobId);
         autoexecJobMapper.deleteJobGroupByJobId(jobId);
@@ -1167,31 +1167,33 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             AutoexecCombopVo combopVo = autoexecJobSourceActionHandler.getSnapshotAutoexecCombop(autoexecJobVo);
             AutoexecCombopConfigVo config = combopVo.getConfig();
             if (config != null) {
-                List<AutoexecJobPhaseOperationVo> jobOperationVoList = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseId(paramJson.getLong("jobId"), paramJson.getLong("phaseId"));
+                List<AutoexecJobPhaseOperationVo> jobOperationVoList = autoexecJobMapper.getJobPhaseOperationListWithoutParentByJobIdAndPhaseId(paramJson.getLong("jobId"), paramJson.getLong("phaseId"));
                 Optional<AutoexecCombopPhaseVo> combopPhaseOptional = config.getCombopPhaseList().stream().filter(o -> Objects.equals(o.getName(), paramJson.getString("phase"))).findFirst();
-                Map<String, String> descriptionUuidMap = new HashMap<>();
-                Map<String, String> descriptionNameMap = new HashMap<>();
+                Map<String, AutoexecCombopPhaseOperationVo> combopOperationUuidMap = new HashMap<>();
+                Map<String, AutoexecCombopPhaseOperationVo> combopOperationNameMap = new HashMap<>();
                 if (combopPhaseOptional.isPresent()) {
                     AutoexecCombopPhaseConfigVo phaseConfigVo = combopPhaseOptional.get().getConfig();
                     if (phaseConfigVo != null) {
                         List<AutoexecCombopPhaseOperationVo> operationVoList = phaseConfigVo.getPhaseOperationList();
-                        descriptionUuidMap = operationVoList.stream().collect(Collectors.toMap(AutoexecCombopPhaseOperationVo::getUuid, o -> o.getDescription() == null ? StringUtils.EMPTY : o.getDescription()));
-                        descriptionNameMap = operationVoList.stream().filter(distinctByKey(AutoexecCombopPhaseOperationVo::getOperationName)).collect(Collectors.toMap(AutoexecCombopPhaseOperationVo::getOperationName, o -> o.getDescription() == null ? StringUtils.EMPTY : o.getDescription()));
+                        combopOperationUuidMap = operationVoList.stream().collect(toMap(AutoexecCombopPhaseOperationVo::getUuid, o -> o));
+                        combopOperationNameMap = operationVoList.stream().filter(distinctByKey(AutoexecCombopPhaseOperationVo::getOperationName)).collect(toMap(AutoexecCombopPhaseOperationVo::getOperationName, o -> o));
                     }
                 }
+                //找出所有作业子operationList
+                List<AutoexecJobPhaseOperationVo> jobSonOperationList = autoexecJobMapper.getJobPhaseOperationListWithParentByJobIdAndPhaseId(paramJson.getLong("jobId"), paramJson.getLong("phaseId"));
                 for (AutoexecJobPhaseOperationVo jobPhaseOperationVo : jobOperationVoList) {
                     String description;
-                    if (descriptionUuidMap.containsKey(jobPhaseOperationVo.getUuid())) {
-                        description = descriptionUuidMap.get(jobPhaseOperationVo.getUuid());
+                    if (combopOperationUuidMap.containsKey(jobPhaseOperationVo.getUuid())) {
+                        description = combopOperationUuidMap.get(jobPhaseOperationVo.getUuid()).getDescription();
                     } else {
                         //兼容老数据
-                        description = descriptionNameMap.get(jobPhaseOperationVo.getName());
+                        description = combopOperationNameMap.get(jobPhaseOperationVo.getName()).getDescription();
                     }
-                    statusList.add(new AutoexecJobPhaseNodeOperationStatusVo(jobPhaseOperationVo, statusJson, description));
+                    statusList.add(new AutoexecJobPhaseNodeOperationStatusVo(jobPhaseOperationVo, statusJson, description, jobSonOperationList,combopOperationUuidMap));
                 }
 
             }
-            nodeVo.setOperationStatusVoList(statusList.stream().sorted(Comparator.comparing(AutoexecJobPhaseNodeOperationStatusVo::getSort)).collect(Collectors.toList()));
+            nodeVo.setOperationStatusVoList(statusList.stream().sorted(Comparator.comparing(AutoexecJobPhaseNodeOperationStatusVo::getSort)).collect(toList()));
         }
         return nodeVo;
     }
