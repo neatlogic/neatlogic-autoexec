@@ -56,10 +56,12 @@ public class SearchCustomTemplateApi extends PrivateApiComponentBase {
                 Map<Long, Integer> referenceCountForScript = autoexecCustomTemplateMapper.getReferenceCountListForScript(idList).stream().collect(Collectors.toMap(CustomTemplateVo::getId, CustomTemplateVo::getReferenceCountForScript));
                 for (CustomTemplateVo vo : customTemplateList) {
                     if (MapUtils.isNotEmpty(referenceCountForTool)) {
-                        vo.setReferenceCountForTool(referenceCountForTool.get(vo.getId()));
+                        Integer count = referenceCountForTool.get(vo.getId());
+                        vo.setReferenceCountForTool(count != null ? count : 0);
                     }
                     if (MapUtils.isNotEmpty(referenceCountForScript)) {
-                        vo.setReferenceCountForScript(referenceCountForScript.get(vo.getId()));
+                        Integer count = referenceCountForScript.get(vo.getId());
+                        vo.setReferenceCountForScript(count != null ? count : 0);
                     }
                 }
             }
