@@ -33,7 +33,7 @@ public class ListAutoexecJobPhaseOperationCustomTemplateApi extends PrivateApiCo
 
     @Override
     public String getName() {
-        return "获取自动化作业阶段工具引用的自定义模版列表";
+        return "获取阶段工具引用的自定义模版列表";
     }
 
     @Override
