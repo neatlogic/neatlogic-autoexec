@@ -57,6 +57,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -1360,5 +1362,14 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         } catch (Exception ex) {
             throw new RunnerConnectRefusedException(url + " " + result);
         }
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void updatePhaseJobStatus2Failed(AutoexecJobVo jobVo, AutoexecJobPhaseVo jobPhaseVo) {
+        jobPhaseVo.setStatus(JobStatus.FAILED.getValue());
+        autoexecJobMapper.updateJobPhaseStatus(jobPhaseVo);
+        jobVo.setStatus(JobStatus.FAILED.getValue());
+        autoexecJobMapper.updateJobStatus(jobVo);
     }
 }

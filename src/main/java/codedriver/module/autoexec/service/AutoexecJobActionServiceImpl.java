@@ -63,7 +63,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
     private static final Logger logger = LoggerFactory.getLogger(AutoexecJobActionServiceImpl.class);
 
     @Resource
-    AutoexecJobServiceImpl autoexecJobService;
+    AutoexecJobService autoexecJobService;
 
     @Resource
     AutoexecCombopService autoexecCombopService;

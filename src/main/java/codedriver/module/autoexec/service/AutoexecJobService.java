@@ -24,7 +24,7 @@ public interface AutoexecJobService {
      *
      * @param jobVo 作业vo
      */
-    void saveAutoexecCombopJob(AutoexecJobVo jobVo) throws Exception;
+    void saveAutoexecCombopJob(AutoexecJobVo jobVo);
 
     /**
      * sort 为null 则补充job全部信息 ，否则返回当前sort的所有剧本
@@ -195,5 +195,12 @@ public interface AutoexecJobService {
      * @return 需要更新执行目标的阶段
      */
     List<AutoexecJobPhaseVo> getJobPhaseListByPreOutput(AutoexecJobVo jobVo, AutoexecJobPhaseVo currentJobPhaseVo);
+
+    /**
+     * 将作业和对应的阶段状态改为失败
+     * @param jobVo 作业
+     * @param jobPhaseVo 阶段
+     */
+    void updatePhaseJobStatus2Failed(AutoexecJobVo jobVo, AutoexecJobPhaseVo jobPhaseVo);
 
 }

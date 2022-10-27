@@ -14,10 +14,7 @@ import codedriver.framework.autoexec.dto.AutoexecJobSourceVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseRunnerVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
-import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
-import codedriver.framework.autoexec.exception.AutoexecJobSourceInvalidException;
+import codedriver.framework.autoexec.exception.*;
 import codedriver.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
 import codedriver.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
 import codedriver.framework.autoexec.source.AutoexecJobSourceFactory;
@@ -29,7 +26,6 @@ import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -39,7 +35,6 @@ import java.util.*;
  * @since 2021/4/14 14:15
  **/
 @Service
-@Transactional
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
@@ -128,8 +123,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         return "autoexec/job/phase/status/update";
     }
 
-
-    private void updateJobPhaseStatus(AutoexecJobVo jobVo, AutoexecJobPhaseVo jobPhaseVo) {
+    void updateJobPhaseStatus(AutoexecJobVo jobVo, AutoexecJobPhaseVo jobPhaseVo) {
         int warnCount = 0;
         String finalJobPhaseStatus = JobPhaseStatus.PENDING.getValue();
         Map<String, Integer> statusCountMap = new HashMap<>();
@@ -161,7 +155,13 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
 
         //如果阶段需要更新别的阶段的执行目标 且 状态为complete
         if (jobPhaseVo.getIsPreOutputUpdateNode() == 1 && Objects.equals(JobPhaseStatus.COMPLETED.getValue(), finalJobPhaseStatus)) {
-            autoexecJobService.updateNodeByPreOutput(jobVo, jobPhaseVo);
+            try {
+                autoexecJobService.updateNodeByPreOutput(jobVo, jobPhaseVo);
+            } catch (AutoexecJobNodePreParamValueNotInvalidException ex) {
+                //如果根据上游参数初始化执行目标失败，上游出参的值不存在或不合法，则更新phase和job 状态为已失败
+                autoexecJobService.updatePhaseJobStatus2Failed(jobVo, jobPhaseVo);
+                throw new AutoexecJobNodePreParamValueNotInvalidException(ex.getMessage(), ex);
+            }
         }
 
         //如果状态一致，则无需更新状态，防止多次触发callback

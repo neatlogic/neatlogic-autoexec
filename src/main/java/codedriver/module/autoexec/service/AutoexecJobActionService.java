@@ -26,7 +26,7 @@ public interface AutoexecJobActionService {
      * 校验根据组合工具创建的作业
      *
      */
-    void validateAndCreateJobFromCombop(AutoexecJobVo autoexecJobParam);
+    void validateAndCreateJobFromCombop(AutoexecJobVo autoexecJobParam) throws Exception;
 
     /**
      * 校验创建并激活作业
