@@ -106,6 +106,14 @@ public interface AutoexecScriptService {
     Long getCatalogIdByCatalogPath(String catalogPath);
 
     /**
+     * 根据工具目录路径层层查询目录ID，如果目录不存在则创建
+     *
+     * @param catalogPath 工具目录路径
+     * @return 目录ID
+     */
+    Long createCatalogByCatalogPath(String catalogPath);
+
+    /**
      * 根据脚本ID删除脚本
      *
      * @param id 脚本ID
