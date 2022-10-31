@@ -114,10 +114,7 @@ public class AutoexecScriptImportPublicApi extends PrivateJsonStreamApiComponent
             }
             // 从外部导入的自定义工具，catalogName可能是路径，也可能只是名称，如果是路径，要根据每一层的名称查询对应的目录
             if (StringUtils.isNotBlank(catalogName)) {
-                catalogId = autoexecScriptService.getCatalogIdByCatalogPath(catalogName);
-                if (catalogId == null) {
-                    faultMessages.add("工具目录：'" + catalogName + "'不存在");
-                }
+                catalogId = autoexecScriptService.createCatalogByCatalogPath(catalogName);
             }
             if (StringUtils.isNotBlank(newScriptVo.getRiskName()) && autoexecRiskMapper.getRiskIdByName(newScriptVo.getRiskName()) == null) {
                 faultMessages.add("操作级别：'" + newScriptVo.getRiskName() + "'不存在");

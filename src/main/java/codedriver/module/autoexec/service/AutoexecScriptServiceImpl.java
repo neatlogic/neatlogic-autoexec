@@ -24,6 +24,7 @@ import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.dependency.core.DependencyManager;
 import codedriver.framework.dependency.dto.DependencyInfoVo;
 import codedriver.framework.dto.OperateVo;
+import codedriver.framework.lrcode.LRCodeManager;
 import codedriver.module.autoexec.dao.mapper.AutoexecCustomTemplateMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecProfileMapper;
 import com.alibaba.fastjson.JSONObject;
@@ -468,6 +469,47 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
             AutoexecCatalogVo catalog = autoexecCatalogMapper.getAutoexecCatalogByName(catalogPath);
             if (catalog != null) {
                 catalogId = catalog.getId();
+            }
+        }
+        return catalogId;
+    }
+
+    @Override
+    public Long createCatalogByCatalogPath(String catalogPath) {
+        Long catalogId;
+        if (catalogPath.contains("/")) {
+            String[] split = catalogPath.split("/");
+            AutoexecCatalogVo catalogVo = new AutoexecCatalogVo();
+            catalogVo.setId(AutoexecCatalogVo.ROOT_ID);
+            int index = -1;
+            for (String name : split) {
+                AutoexecCatalogVo vo = autoexecCatalogMapper.getAutoexecCatalogByNameAndParentId(name, catalogVo.getId());
+                if (vo != null) {
+                    catalogVo = vo;
+                    index++;
+                } else {
+                    break;
+                }
+            }
+            if (index != split.length) {
+                for (int i = index + 1; i < split.length; i++) {
+                    String name = split[i];
+                    int lft = LRCodeManager.beforeAddTreeNode("autoexec_catalog", "id", "parent_id", catalogVo.getId());
+                    AutoexecCatalogVo vo = new AutoexecCatalogVo(name, catalogVo.getId(), lft, lft + 1);
+                    autoexecCatalogMapper.insertAutoexecCatalog(vo);
+                    catalogVo = vo;
+                }
+            }
+            catalogId = catalogVo.getId();
+        } else {
+            AutoexecCatalogVo catalog = autoexecCatalogMapper.getAutoexecCatalogByName(catalogPath);
+            if (catalog != null) {
+                catalogId = catalog.getId();
+            } else {
+                int lft = LRCodeManager.beforeAddTreeNode("autoexec_catalog", "id", "parent_id", AutoexecCatalogVo.ROOT_ID);
+                AutoexecCatalogVo vo = new AutoexecCatalogVo(catalogPath, AutoexecCatalogVo.ROOT_ID, lft, lft + 1);
+                autoexecCatalogMapper.insertAutoexecCatalog(vo);
+                catalogId = vo.getId();
             }
         }
         return catalogId;
