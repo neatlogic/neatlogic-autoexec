@@ -78,4 +78,10 @@ public interface AutoexecService {
      */
     Long saveProfileOperation(String profileName, Long operatioinId, String operationType);
 
+    /**
+     * 检验文本类型参数值
+     * @param autoexecParamVo
+     */
+    boolean validateTextTypeParamValue(AutoexecParamVo autoexecParamVo);
+
 }

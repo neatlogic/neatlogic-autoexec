@@ -415,6 +415,13 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                             throw new AutoexecParamCannotBeEmptyException(operationName, key);
                         }
                     }
+                    // 文本类型参数值校验
+                    if (Objects.equals(inputParamVo.getType(), ParamType.TEXT.getValue())) {
+                        inputParamVo.setDefaultValue(valueObj);
+                        if (!autoexecService.validateTextTypeParamValue(inputParamVo)) {
+                            throw new AutoexecParamValueIrregularException(operationName, inputParamVo.getName(), inputParamVo.getKey(), (String) valueObj);
+                        }
+                    }
                     continue;
                 } else if (Objects.equals(mappingMode, ParamMappingMode.PRE_NODE_OUTPUT_PARAM.getValue())) {
                     String value = null;

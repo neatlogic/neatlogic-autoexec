@@ -9,6 +9,7 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.framework.autoexec.dto.AutoexecParamConfigVo;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
@@ -112,9 +113,9 @@ public class AutoexecCombopParamSaveApi extends PrivateApiComponentBase {
                 if (paramType == ParamType.PASSWORD && value != null) {
                     autoexecCombopParamVo.setDefaultValue(RC4Util.encrypt((String) value));
                 } else if (paramType == ParamType.SELECT || paramType == ParamType.MULTISELECT || paramType == ParamType.CHECKBOX || paramType == ParamType.RADIO) {
-                    JSONObject config = autoexecCombopParamVo.getConfig();
-                    if (MapUtils.isNotEmpty(config)) {
-                        String matrixUuid = config.getString("matrixUuid");
+                    AutoexecParamConfigVo config = autoexecCombopParamVo.getConfig();
+                    if (config != null) {
+                        String matrixUuid = config.getMatrixUuid();
                         if (StringUtils.isNotBlank(matrixUuid)) {
                             JSONArray callers = new JSONArray();
                             callers.add(combopId);

@@ -193,6 +193,9 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 if (paramType == null) {
                     throw new ParamIrregularException(index, key, type);
                 }
+                if (Objects.equals(ParamType.TEXT.getValue(), autoexecParamVo.getType()) && !validateTextTypeParamValue(autoexecParamVo)) {
+                    throw new AutoexecParamValueIrregularException("作业参数", autoexecParamVo.getName(), autoexecParamVo.getKey(), (String) autoexecParamVo.getDefaultValue());
+                }
                 index++;
             }
         }
@@ -203,24 +206,17 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
     public void mergeConfig(AutoexecParamVo autoexecParamVo) {
         IScriptParamType paramType = ScriptParamTypeFactory.getHandler(autoexecParamVo.getType());
         if (paramType != null) {
-            JSONObject paramTypeConfig = new JSONObject(paramType.needDataSource());
-            if (Objects.equals(autoexecParamVo.getIsRequired(), 0)) {
-                paramTypeConfig.put("isRequired", false);
-            } else {
-                paramTypeConfig.put("isRequired", true);
-            }
-            paramTypeConfig.put("type", paramType.getType());
-            JSONObject config = autoexecParamVo.getConfig();
+            AutoexecParamConfigVo config = autoexecParamVo.getConfig();
             if (config == null) {
-                autoexecParamVo.setConfig(paramTypeConfig.toJSONString());
-            } else {
-                if (Objects.equals(config.getString("dataSource"), ParamDataSource.STATIC.getValue())) {
-                    paramTypeConfig.remove("url");
-                    paramTypeConfig.remove("dynamicUrl");
-                    paramTypeConfig.remove("rootName");
-                }
-                config.putAll(paramTypeConfig);
+                config = new AutoexecParamConfigVo();
             }
+            if (Objects.equals(autoexecParamVo.getIsRequired(), 0)) {
+                config.setIsRequired(false);
+            } else {
+                config.setIsRequired(true);
+            }
+            config.setType(paramType.getType());
+            autoexecParamVo.setConfig(JSONObject.toJSONString(config));
         }
     }
 
@@ -508,5 +504,54 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
             return profile.getId();
         }
         return null;
+    }
+
+    @Override
+    public boolean validateTextTypeParamValue(AutoexecParamVo autoexecParamVo) {
+        if (!Objects.equals(ParamType.TEXT.getValue(), autoexecParamVo.getType())) {
+            return true;
+        }
+        Object defaultValue = autoexecParamVo.getDefaultValue();
+        if (defaultValue == null) {
+            return true;
+        }
+        String value = (String) defaultValue;
+        if (StringUtils.isBlank(value)) {
+            return true;
+        }
+        AutoexecParamConfigVo config = autoexecParamVo.getConfig();
+        if (config == null) {
+            return true;
+        }
+        JSONArray validateList = config.getValidateList();
+        if (CollectionUtils.isEmpty(validateList)) {
+            return true;
+        }
+        for (int i = 0; i < validateList.size(); i++) {
+            JSONObject validateObj = validateList.getJSONObject(i);
+            if (MapUtils.isEmpty(validateObj)) {
+                continue;
+            }
+            String name = validateObj.getString("name");
+            if (StringUtils.isBlank(name)) {
+                continue;
+            }
+            if ("regex".equals(name)) {
+                String pattern = validateObj.getString("pattern");
+                if (StringUtils.isBlank(pattern)) {
+                    continue;
+                }
+                if (!value.matches(pattern)) {
+                    return false;
+                }
+            } else {
+                if (RegexUtils.getPattern(name) != null) {
+                    if (!RegexUtils.isMatch(value, name)) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
     }
 }

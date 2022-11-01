@@ -7,6 +7,7 @@ import codedriver.framework.autoexec.constvalue.*;
 import codedriver.framework.autoexec.dao.mapper.AutoexecRiskMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
+import codedriver.framework.autoexec.dto.AutoexecParamConfigVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptArgumentVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
@@ -228,12 +229,12 @@ public class AutoexecScriptImportPublicApi extends PrivateJsonStreamApiComponent
     private void adjustParamConfig(List<AutoexecScriptVersionParamVo> oldParamList) {
         if (oldParamList.size() > 0) {
             for (AutoexecScriptVersionParamVo paramVo : oldParamList) {
-                JSONObject config = paramVo.getConfig();
+                AutoexecParamConfigVo config = paramVo.getConfig();
                 if (config != null) {
                     if (needDataSourceTypeList.contains(paramVo.getType()) && ParamMode.INPUT.getValue().equals(paramVo.getMode())) {
-                        config.remove("type");
-                        config.remove("isReuqired");
-                        config.remove("defaulValue");
+                        config.setType(null);
+                        config.setIsRequired(null);
+                        config.setDefaultValue(null);
                     } else {
                         paramVo.setConfig(null);
                     }
