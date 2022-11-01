@@ -188,8 +188,14 @@ public class RegisterAutoexecToolApi extends PrivateApiComponentBase {
                             if (StringUtils.isBlank(regex.getString("pattern"))) {
                                 throw new AutoexecToolParamValidateFieldLostException(key, "name", "pattern");
                             }
+                            validateList.add(o);
+                        } else {
+                            validateList.add(new JSONObject() {
+                                {
+                                    this.put("name", o);
+                                }
+                            });
                         }
-                        validateList.add(o);
                     }
                     config.put("validateList", validateList);
                     param.put("config", config);
