@@ -385,17 +385,17 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
                 AutoexecParamConfigVo config = vo.getConfig();
                 if (config != null) {
                     String matrixUuid = config.getMatrixUuid();
-                    String value = "";
+                    String text = "";
                     JSONObject mapping = config.getMapping();
                     if (MapUtils.isNotEmpty(mapping)) {
-                        value = mapping.getString("text");
+                        text = mapping.getString("text");
                     }
-                    String valueColumnUuid = value;
-                    if (StringUtils.isNotBlank(matrixUuid) && StringUtils.isNotBlank(valueColumnUuid)) {
+                    String textColumnUuid = text;
+                    if (StringUtils.isNotBlank(matrixUuid) && StringUtils.isNotBlank(textColumnUuid)) {
                         MatrixVo matrix = matrixMapper.getMatrixByUuid(matrixUuid);
                         if (matrix != null) {
                             List<MatrixAttributeVo> attributeList = matrixAttributeMapper.getMatrixAttributeByMatrixUuid(matrixUuid);
-                            Optional<MatrixAttributeVo> first = attributeList.stream().filter(o -> Objects.equals(o.getUuid(), valueColumnUuid)).findFirst();
+                            Optional<MatrixAttributeVo> first = attributeList.stream().filter(o -> Objects.equals(o.getUuid(), textColumnUuid)).findFirst();
                             first.ifPresent(matrixAttributeVo -> vo.setDefaultValue(matrix.getName() + "." + matrixAttributeVo.getName()));
                         }
                     }
