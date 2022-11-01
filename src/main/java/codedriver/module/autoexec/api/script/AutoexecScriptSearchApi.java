@@ -100,10 +100,6 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
 
         List<AutoexecScriptVo> scriptVoList = autoexecScriptMapper.searchScript(scriptVo);
         if (!scriptVoList.isEmpty()) {
-            scriptVoList.forEach(o -> {
-                o.setIsNeedFcuVo(false);
-                o.setIsNeedLcuVo(false);
-            });
             List<AutoexecCatalogVo> catalogList = autoexecCatalogMapper.getCatalogListByIdList(scriptVoList.stream().map(AutoexecScriptVo::getCatalogId).collect(Collectors.toList()));
             Map<Long, AutoexecCatalogVo> catalogMap = catalogList.stream().collect(Collectors.toMap(AutoexecCatalogVo::getId, o -> o));
             if (MapUtils.isNotEmpty(catalogMap)) {
