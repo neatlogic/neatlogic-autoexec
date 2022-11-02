@@ -83,5 +83,10 @@ public interface AutoexecService {
      * @param autoexecParamVo
      */
     boolean validateTextTypeParamValue(AutoexecParamVo autoexecParamVo);
+    /**
+     * 检验文本类型参数默认值
+     * @param autoexecParamVo
+     */
+    boolean validateTextTypeParamDefaultValue(AutoexecParamVo autoexecParamVo);
 
 }

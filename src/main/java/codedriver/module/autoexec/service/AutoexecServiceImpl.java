@@ -193,7 +193,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 if (paramType == null) {
                     throw new ParamIrregularException(index, key, type);
                 }
-                if (Objects.equals(ParamType.TEXT.getValue(), autoexecParamVo.getType()) && !validateTextTypeParamValue(autoexecParamVo)) {
+                if (Objects.equals(ParamType.TEXT.getValue(), autoexecParamVo.getType()) && !validateTextTypeParamDefaultValue(autoexecParamVo)) {
                     throw new AutoexecParamValueIrregularException("作业参数", autoexecParamVo.getName(), autoexecParamVo.getKey(), (String) autoexecParamVo.getDefaultValue());
                 }
                 index++;
@@ -508,6 +508,55 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
 
     @Override
     public boolean validateTextTypeParamValue(AutoexecParamVo autoexecParamVo) {
+        if (!Objects.equals(ParamType.TEXT.getValue(), autoexecParamVo.getType())) {
+            return true;
+        }
+        Object value = autoexecParamVo.getValue();
+        if (value == null) {
+            return true;
+        }
+        String valueStr = (String) value;
+        if (StringUtils.isBlank(valueStr)) {
+            return true;
+        }
+        AutoexecParamConfigVo config = autoexecParamVo.getConfig();
+        if (config == null) {
+            return true;
+        }
+        JSONArray validateList = config.getValidateList();
+        if (CollectionUtils.isEmpty(validateList)) {
+            return true;
+        }
+        for (int i = 0; i < validateList.size(); i++) {
+            JSONObject validateObj = validateList.getJSONObject(i);
+            if (MapUtils.isEmpty(validateObj)) {
+                continue;
+            }
+            String name = validateObj.getString("name");
+            if (StringUtils.isBlank(name)) {
+                continue;
+            }
+            if ("regex".equals(name)) {
+                String pattern = validateObj.getString("pattern");
+                if (StringUtils.isBlank(pattern)) {
+                    continue;
+                }
+                if (!valueStr.matches(pattern)) {
+                    return false;
+                }
+            } else {
+                if (RegexUtils.getPattern(name) != null) {
+                    if (!RegexUtils.isMatch(valueStr, name)) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean validateTextTypeParamDefaultValue(AutoexecParamVo autoexecParamVo) {
         if (!Objects.equals(ParamType.TEXT.getValue(), autoexecParamVo.getType())) {
             return true;
         }

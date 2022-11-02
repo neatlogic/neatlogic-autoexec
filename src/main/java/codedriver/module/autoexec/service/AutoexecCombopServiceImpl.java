@@ -417,7 +417,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                     }
                     // 文本类型参数值校验
                     if (Objects.equals(inputParamVo.getType(), ParamType.TEXT.getValue())) {
-                        inputParamVo.setDefaultValue(valueObj);
+                        inputParamVo.setValue(valueObj);
                         if (!autoexecService.validateTextTypeParamValue(inputParamVo)) {
                             throw new AutoexecParamValueIrregularException(operationName, inputParamVo.getName(), inputParamVo.getKey(), (String) valueObj);
                         }
