@@ -9,6 +9,7 @@ import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.ParamDataSource;
 import codedriver.framework.autoexec.constvalue.ParamType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
+import codedriver.framework.autoexec.dto.AutoexecParamConfigVo;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
 import codedriver.framework.autoexec.exception.AutoexecToolExportNotFoundToolException;
@@ -190,14 +191,15 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
         //参数的默认值（可能是string、List类型，可能是映射关系）
         Object paramDefaultValue = paramVo.getDefaultValue();
 
+        AutoexecParamConfigVo config = paramVo.getConfig();
+        String dataSource = config.getDataSource();
         //单选、单选下拉
         if (StringUtils.equals(ParamType.RADIO.getValue(), paramVo.getType()) || StringUtils.equals(ParamType.SELECT.getValue(), paramVo.getType())) {
-
             //静态数据源
-            if (StringUtils.equals(ParamDataSource.STATIC.getValue(), paramVo.getConfig().getString("dataSource"))) {
+            if (StringUtils.equals(ParamDataSource.STATIC.getValue(), dataSource)) {
                 returnDefaultValue = new StringBuilder("静态");
                 if (paramDefaultValue != null && !Objects.equals(paramDefaultValue.toString(), "")) {
-                    JSONArray dataArray = paramVo.getConfig().getJSONArray("dataList");
+                    JSONArray dataArray = config.getDataList();
                     if (CollectionUtils.isNotEmpty(dataArray)) {
                         List<ValueTextVo> valueTextVoList = dataArray.toJavaList(ValueTextVo.class);
                         Map<Object, String> valueTextMap = valueTextVoList.stream().collect(Collectors.toMap(ValueTextVo::getValue, ValueTextVo::getText));
@@ -205,8 +207,8 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
                     }
                 }
                 //矩阵数据源
-            } else if (StringUtils.equals(ParamDataSource.MATRIX.getValue(), paramVo.getConfig().getString("dataSource"))) {
-                String matrixUuid = paramVo.getConfig().getString("matrixUuid");
+            } else if (StringUtils.equals(ParamDataSource.MATRIX.getValue(), dataSource)) {
+                String matrixUuid = config.getMatrixUuid();
                 if (StringUtils.isNotBlank(matrixUuid)) {
                     MatrixVo matrixVo = matrixMapper.getMatrixByUuid(matrixUuid);
                     if (matrixVo == null) {
@@ -225,11 +227,11 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
             //复选、多选下拉
         } else if (StringUtils.equals(ParamType.CHECKBOX.getValue(), paramVo.getType()) || StringUtils.equals(ParamType.MULTISELECT.getValue(), paramVo.getType())) {
             //静态数据源
-            if (StringUtils.equals(ParamDataSource.STATIC.getValue(), paramVo.getConfig().getString("dataSource"))) {
+            if (StringUtils.equals(ParamDataSource.STATIC.getValue(), dataSource)) {
                 returnDefaultValue = new StringBuilder("静态");
                 if (paramDefaultValue != null) {
                     List<Object> valueList = (List<Object>) paramDefaultValue;
-                    JSONArray dataArray = paramVo.getConfig().getJSONArray("dataList");
+                    JSONArray dataArray = config.getDataList();
                     if (CollectionUtils.isNotEmpty(dataArray)) {
                         List<ValueTextVo> valueTextVoList = dataArray.toJavaList(ValueTextVo.class);
                         Map<Object, String> valueTextMap = valueTextVoList.stream().collect(Collectors.toMap(ValueTextVo::getValue, ValueTextVo::getText));
@@ -244,8 +246,8 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
                 }
 
                 //矩阵数据源
-            } else if (StringUtils.equals(ParamDataSource.MATRIX.getValue(), paramVo.getConfig().getString("dataSource"))) {
-                String matrixUuid = paramVo.getConfig().getString("matrixUuid");
+            } else if (StringUtils.equals(ParamDataSource.MATRIX.getValue(), dataSource)) {
+                String matrixUuid = config.getMatrixUuid();
                 if (StringUtils.isNotBlank(matrixUuid)) {
                     MatrixVo matrixVo = matrixMapper.getMatrixByUuid(matrixUuid);
                     if (matrixVo == null) {
