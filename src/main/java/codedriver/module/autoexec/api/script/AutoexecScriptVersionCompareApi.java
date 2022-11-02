@@ -8,6 +8,7 @@ package codedriver.module.autoexec.api.script;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
+import codedriver.framework.autoexec.dto.AutoexecParamConfigVo;
 import codedriver.framework.lcs.BaseLineVo;
 import codedriver.framework.lcs.constvalue.ChangeType;
 import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
@@ -381,15 +382,20 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
     private void convertMatrixText(List<AutoexecScriptVersionParamVo> paramList) {
         if (CollectionUtils.isNotEmpty(paramList)) {
             for (AutoexecScriptVersionParamVo vo : paramList) {
-                JSONObject config = vo.getConfig();
-                if (MapUtils.isNotEmpty(config)) {
-                    String matrixUuid = config.getString("matrixUuid");
-                    String matrixValue = config.getString("matrixValue");
-                    if (StringUtils.isNotBlank(matrixUuid) && StringUtils.isNotBlank(matrixValue)) {
+                AutoexecParamConfigVo config = vo.getConfig();
+                if (config != null) {
+                    String matrixUuid = config.getMatrixUuid();
+                    String text = "";
+                    JSONObject mapping = config.getMapping();
+                    if (MapUtils.isNotEmpty(mapping)) {
+                        text = mapping.getString("text");
+                    }
+                    String textColumnUuid = text;
+                    if (StringUtils.isNotBlank(matrixUuid) && StringUtils.isNotBlank(textColumnUuid)) {
                         MatrixVo matrix = matrixMapper.getMatrixByUuid(matrixUuid);
                         if (matrix != null) {
                             List<MatrixAttributeVo> attributeList = matrixAttributeMapper.getMatrixAttributeByMatrixUuid(matrixUuid);
-                            Optional<MatrixAttributeVo> first = attributeList.stream().filter(o -> Objects.equals(o.getUuid(), matrixValue)).findFirst();
+                            Optional<MatrixAttributeVo> first = attributeList.stream().filter(o -> Objects.equals(o.getUuid(), textColumnUuid)).findFirst();
                             first.ifPresent(matrixAttributeVo -> vo.setDefaultValue(matrix.getName() + "." + matrixAttributeVo.getName()));
                         }
                     }
