@@ -14,6 +14,7 @@ import codedriver.framework.autoexec.util.AutoexecUtil;
 import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,18 +68,23 @@ public class AutoexecJobNodeOutputParamGetHandler extends AutoexecJobActionHandl
             Long jobId = paramJson.getLong("jobId");
             Long jobPhaseId = paramJson.getLong("phaseId");
             List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationListWithoutParentByJobIdAndPhaseId(jobId, jobPhaseId);
-            List<AutoexecJobContentVo> toolParamContentVoList = autoexecJobMapper.getJobContentList(operationVoList.stream().filter(o -> Objects.equals(o.getType(), CombopOperationType.TOOL.getValue())).map(AutoexecJobPhaseOperationVo::getParamHash).collect(Collectors.toList()));
-            Map<String, String> toolHashContentMap = toolParamContentVoList.stream().collect(Collectors.toMap(AutoexecJobContentVo::getHash, AutoexecJobContentVo::getContent));
+            List<String> toolContentList = operationVoList.stream().filter(o -> Objects.equals(o.getType(), CombopOperationType.TOOL.getValue())).map(AutoexecJobPhaseOperationVo::getParamHash).collect(Collectors.toList());
+            Map<String, String> toolHashContentMap = new HashMap<>();
+            if(CollectionUtils.isNotEmpty(toolContentList)) {
+                List<AutoexecJobContentVo> toolParamContentVoList = autoexecJobMapper.getJobContentList(toolContentList);
+                toolHashContentMap = toolParamContentVoList.stream().collect(Collectors.toMap(AutoexecJobContentVo::getHash, AutoexecJobContentVo::getContent));
+            }
             AutoexecJobPhaseNodeVo phaseNodeVo = autoexecJobService.getNodeOperationStatus(paramJson, true);
             List<AutoexecJobPhaseNodeOperationStatusVo> operationStatusVos = phaseNodeVo.getOperationStatusVoList();
+            Map<String, String> finalToolHashContentMap = toolHashContentMap;
             operationOutputParamArray = new JSONArray() {{
                 for (AutoexecJobPhaseOperationVo operationVo : operationVoList) {
                     add(new JSONObject() {{
                         put("name", operationVo.getName());
                         JSONObject valueJson = statusJson.getJSONObject(operationVo.getName() + "_" + operationVo.getId());
                         List<AutoexecJobParamVo> outputParamList = new ArrayList<>();
-                        if (Objects.equals(operationVo.getType(), CombopOperationType.TOOL.getValue()) && toolHashContentMap.containsKey(operationVo.getParamHash())) {
-                            JSONObject json = JSONObject.parseObject(toolHashContentMap.get(operationVo.getParamHash()));
+                        if (Objects.equals(operationVo.getType(), CombopOperationType.TOOL.getValue()) && finalToolHashContentMap.containsKey(operationVo.getParamHash())) {
+                            JSONObject json = JSONObject.parseObject(finalToolHashContentMap.get(operationVo.getParamHash()));
                             JSONArray outputArray = json.getJSONArray("outputParamList");
                             for (Object output : outputArray) {
                                 AutoexecJobParamVo outputVo = JSONObject.parseObject(output.toString()).toJavaObject(AutoexecJobParamVo.class);
