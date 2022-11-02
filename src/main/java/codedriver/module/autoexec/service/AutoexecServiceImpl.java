@@ -193,7 +193,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 if (paramType == null) {
                     throw new ParamIrregularException(index, key, type);
                 }
-                if (Objects.equals(ParamType.TEXT.getValue(), autoexecParamVo.getType()) && !validateTextTypeParamValue(autoexecParamVo)) {
+                if (Objects.equals(ParamType.TEXT.getValue(), autoexecParamVo.getType()) && !validateTextTypeParamValue(autoexecParamVo, autoexecParamVo.getDefaultValue())) {
                     throw new AutoexecParamValueIrregularException("作业参数", autoexecParamVo.getName(), autoexecParamVo.getKey(), (String) autoexecParamVo.getDefaultValue());
                 }
                 index++;
@@ -507,16 +507,15 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
     }
 
     @Override
-    public boolean validateTextTypeParamValue(AutoexecParamVo autoexecParamVo) {
+    public boolean validateTextTypeParamValue(AutoexecParamVo autoexecParamVo, Object value) {
         if (!Objects.equals(ParamType.TEXT.getValue(), autoexecParamVo.getType())) {
             return true;
         }
-        Object defaultValue = autoexecParamVo.getDefaultValue();
-        if (defaultValue == null) {
+        if (value == null) {
             return true;
         }
-        String value = (String) defaultValue;
-        if (StringUtils.isBlank(value)) {
+        String valueStr = (String) value;
+        if (StringUtils.isBlank(valueStr)) {
             return true;
         }
         AutoexecParamConfigVo config = autoexecParamVo.getConfig();
@@ -541,12 +540,12 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 if (StringUtils.isBlank(pattern)) {
                     continue;
                 }
-                if (!value.matches(pattern)) {
+                if (!valueStr.matches(pattern)) {
                     return false;
                 }
             } else {
                 if (RegexUtils.getPattern(name) != null) {
-                    if (!RegexUtils.isMatch(value, name)) {
+                    if (!RegexUtils.isMatch(valueStr, name)) {
                         return false;
                     }
                 }

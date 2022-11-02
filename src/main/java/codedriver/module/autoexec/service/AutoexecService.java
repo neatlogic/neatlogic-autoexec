@@ -18,20 +18,20 @@ public interface AutoexecService {
     /**
      * 校验参数
      *
-     * @param paramList
+     * @param paramList 参数列表
      */
     void validateParamList(List<? extends AutoexecParamVo> paramList);
 
     /**
      * 校验自由参数
      *
-     * @param argument
+     * @param argument 自由参数
      */
     void validateArgument(AutoexecParamVo argument);
 
     /**
      * 检验运行参数列表
-     * @param runtimeParamList
+     * @param runtimeParamList 作业参数列表
      */
     void validateRuntimeParamList(List<? extends AutoexecParamVo> runtimeParamList);
 
@@ -45,7 +45,9 @@ public interface AutoexecService {
 
     /**
      * 补充阶段操作中的自定义工具或工具信息
-     * @param autoexecCombopPhaseOperationVo
+     * @param phaseName 阶段名称
+     * @param autoexecCombopPhaseOperationVo 阶段操作信息
+     * @param throwException 是否抛异常
      * @return
      */
     AutoexecOperationBaseVo getAutoexecOperationBaseVoByIdAndType(String phaseName, AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo, boolean throwException);
@@ -71,8 +73,8 @@ public interface AutoexecService {
      * 保存profile与工具或自定义工具的关联
      * 若不存在名为{profileName}的profile，则先创建
      *
-     * @param profileName
-     * @param operatioinId
+     * @param profileName 预置参数名称
+     * @param operatioinId 预置参数ID
      * @param operationType 类型（工具或自定义工具）
      * @Return profileId
      */
@@ -80,8 +82,9 @@ public interface AutoexecService {
 
     /**
      * 检验文本类型参数值
-     * @param autoexecParamVo
+     * @param autoexecParamVo 参数信息
+     * @param value 参数值
      */
-    boolean validateTextTypeParamValue(AutoexecParamVo autoexecParamVo);
+    boolean validateTextTypeParamValue(AutoexecParamVo autoexecParamVo, Object value);
 
 }
