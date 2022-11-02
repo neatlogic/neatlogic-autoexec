@@ -5,8 +5,10 @@
 
 package codedriver.module.autoexec.job.action.handler.node;
 
+import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.dto.job.*;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import codedriver.framework.autoexec.util.AutoexecUtil;
 import codedriver.module.autoexec.service.AutoexecJobService;
@@ -65,29 +67,36 @@ public class AutoexecJobNodeOutputParamGetHandler extends AutoexecJobActionHandl
             Long jobId = paramJson.getLong("jobId");
             Long jobPhaseId = paramJson.getLong("phaseId");
             List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationListWithoutParentByJobIdAndPhaseId(jobId, jobPhaseId);
-            List<AutoexecJobContentVo> paramContentVoList = autoexecJobMapper.getJobContentList(operationVoList.stream().map(AutoexecJobPhaseOperationVo::getParamHash).collect(Collectors.toList()));
+            List<AutoexecJobContentVo> toolParamContentVoList = autoexecJobMapper.getJobContentList(operationVoList.stream().filter(o -> Objects.equals(o.getType(), CombopOperationType.TOOL.getValue())).map(AutoexecJobPhaseOperationVo::getParamHash).collect(Collectors.toList()));
+            Map<String, String> toolHashContentMap = toolParamContentVoList.stream().collect(Collectors.toMap(AutoexecJobContentVo::getHash, AutoexecJobContentVo::getContent));
             AutoexecJobPhaseNodeVo phaseNodeVo = autoexecJobService.getNodeOperationStatus(paramJson, true);
             List<AutoexecJobPhaseNodeOperationStatusVo> operationStatusVos = phaseNodeVo.getOperationStatusVoList();
             operationOutputParamArray = new JSONArray() {{
                 for (AutoexecJobPhaseOperationVo operationVo : operationVoList) {
                     add(new JSONObject() {{
                         put("name", operationVo.getName());
+                        JSONObject valueJson = statusJson.getJSONObject(operationVo.getName() + "_" + operationVo.getId());
                         List<AutoexecJobParamVo> outputParamList = new ArrayList<>();
-                        List<AutoexecJobParamVo> finalOutputParamList = outputParamList;
-                        paramContentVoList.forEach(o -> {
-                            if (Objects.equals(operationVo.getParamHash(), o.getHash())) {
-                                JSONObject json = JSONObject.parseObject(o.getContent());
-                                JSONArray outputArray = json.getJSONArray("outputParamList");
-                                for (Object output : outputArray) {
-                                    AutoexecJobParamVo outputVo = new AutoexecJobParamVo(JSONObject.parseObject(output.toString()));
-                                    JSONObject valueJson = statusJson.getJSONObject(operationVo.getName() + "_" + operationVo.getId());
-                                    if (valueJson != null) {
-                                        outputVo.setValue(valueJson.getString(outputVo.getKey()));
-                                    }
-                                    finalOutputParamList.add(outputVo);
+                        if (Objects.equals(operationVo.getType(), CombopOperationType.TOOL.getValue()) && toolHashContentMap.containsKey(operationVo.getParamHash())) {
+                            JSONObject json = JSONObject.parseObject(toolHashContentMap.get(operationVo.getParamHash()));
+                            JSONArray outputArray = json.getJSONArray("outputParamList");
+                            for (Object output : outputArray) {
+                                AutoexecJobParamVo outputVo = JSONObject.parseObject(output.toString()).toJavaObject(AutoexecJobParamVo.class);
+                                if (valueJson != null) {
+                                    outputVo.setValue(valueJson.getString(outputVo.getKey()));
                                 }
+                                outputParamList.add(outputVo);
                             }
-                        });
+                        }else if(Objects.equals(operationVo.getType(), CombopOperationType.SCRIPT.getValue())){
+                            List<AutoexecScriptVersionParamVo> scriptVersionParamVos = autoexecScriptMapper.getOutputParamListByVersionId(operationVo.getVersionId());
+                            for(AutoexecScriptVersionParamVo scriptVersionParamVo : scriptVersionParamVos) {
+                                AutoexecJobParamVo outputVo = new AutoexecJobParamVo(scriptVersionParamVo);
+                                if (valueJson != null) {
+                                    outputVo.setValue(valueJson.getString(outputVo.getKey()));
+                                }
+                                outputParamList.add(outputVo);
+                            }
+                        }
                         outputParamList = outputParamList.stream().sorted(Comparator.comparing(AutoexecJobParamVo::getSort)).collect(Collectors.toList());
                         put("paramList", outputParamList);
                         Optional<AutoexecJobPhaseNodeOperationStatusVo> operationStatusVoOptional = operationStatusVos.stream().filter(o -> Objects.equals(o.getName(), operationVo.getName())).findFirst();
