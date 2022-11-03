@@ -11,9 +11,9 @@ import codedriver.framework.autoexec.constvalue.JobAction;
 import codedriver.framework.autoexec.constvalue.ParamMappingMode;
 import codedriver.framework.autoexec.constvalue.ToolType;
 import codedriver.framework.autoexec.crossover.IAutoexecJobActionCrossoverService;
-import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.AutoexecJobSourceVo;
+import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
@@ -69,9 +69,6 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
     AutoexecCombopService autoexecCombopService;
 
     @Resource
-    AutoexecCombopMapper autoexecCombopMapper;
-
-    @Resource
     AutoexecJobMapper autoexecJobMapper;
 
     @Resource
@@ -100,13 +97,11 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         paramJson.put("roundCount", jobVo.getRoundCount());
         paramJson.put("execUser", UserContext.get().getUserUuid(true));
         paramJson.put("passThroughEnv", null); //回调需要的返回的参数
-        JSONArray paramArray = jobVo.getParamArray();
-        JSONObject argJson = new JSONObject() {{
-            for (Object paramObj : paramArray) {
-                JSONObject paramTmp = JSONObject.parseObject(paramObj.toString());
-                put(paramTmp.getString("key"), getValueByParamType(paramTmp));
-            }
-        }};
+        List<AutoexecParamVo> runTimeParamList = jobVo.getRunTimeParamList();
+        JSONObject argJson = new JSONObject();
+        for (AutoexecParamVo runtimeParam : runTimeParamList) {
+            argJson.put(runtimeParam.getKey(), getValueByParamType(runtimeParam));
+        }
         //工具库测试|重跑节点
         if (CollectionUtils.isNotEmpty(jobVo.getExecuteJobNodeVoList())) {
             paramJson.put("noFireNext", 1);
@@ -335,12 +330,12 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
     /**
      * 根据参数值类型获取对应参数的值
      *
-     * @param param 参数json
+     * @param runtimeParam 参数json
      * @return 值
      */
-    private Object getValueByParamType(JSONObject param) {
-        String type = param.getString("type");
-        Object value = param.get("value");
+    private Object getValueByParamType(AutoexecParamVo runtimeParam) {
+        String type = runtimeParam.getType();
+        Object value = runtimeParam.getValue();
         try {
             if (value != null) {
                 IScriptParamType paramType = ScriptParamTypeFactory.getHandler(type);
@@ -350,7 +345,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             }
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
-            throw new AutoexecJobParamValueInvalidException(param);
+            throw new AutoexecJobParamValueInvalidException(runtimeParam);
         }
         return value;
     }
@@ -385,6 +380,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             combopVo.getConfig().setExecuteConfig(combopExecuteConfigVo);
             autoexecCombopService.verifyAutoexecCombopConfig(combopVo.getConfig(), true);
         }
+
 
         //根据场景名获取场景id
         if (StringUtils.isNotBlank(autoexecJobParam.getScenarioName())) {

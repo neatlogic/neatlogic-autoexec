@@ -7,6 +7,7 @@ package codedriver.module.autoexec.job.action.handler.node;
 
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.constvalue.JobAction;
+import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.job.*;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
@@ -82,12 +83,12 @@ public class AutoexecJobNodeOutputParamGetHandler extends AutoexecJobActionHandl
                     add(new JSONObject() {{
                         put("name", operationVo.getName());
                         JSONObject valueJson = statusJson.getJSONObject(operationVo.getName() + "_" + operationVo.getId());
-                        List<AutoexecJobParamVo> outputParamList = new ArrayList<>();
+                        List<AutoexecParamVo> outputParamList = new ArrayList<>();
                         if (Objects.equals(operationVo.getType(), CombopOperationType.TOOL.getValue()) && finalToolHashContentMap.containsKey(operationVo.getParamHash())) {
                             JSONObject json = JSONObject.parseObject(finalToolHashContentMap.get(operationVo.getParamHash()));
                             JSONArray outputArray = json.getJSONArray("outputParamList");
                             for (Object output : outputArray) {
-                                AutoexecJobParamVo outputVo = JSONObject.parseObject(output.toString()).toJavaObject(AutoexecJobParamVo.class);
+                                AutoexecParamVo outputVo = JSONObject.parseObject(output.toString()).toJavaObject(AutoexecParamVo.class);
                                 if (valueJson != null) {
                                     outputVo.setValue(valueJson.getString(outputVo.getKey()));
                                 }
@@ -96,14 +97,14 @@ public class AutoexecJobNodeOutputParamGetHandler extends AutoexecJobActionHandl
                         }else if(Objects.equals(operationVo.getType(), CombopOperationType.SCRIPT.getValue())){
                             List<AutoexecScriptVersionParamVo> scriptVersionParamVos = autoexecScriptMapper.getOutputParamListByVersionId(operationVo.getVersionId());
                             for(AutoexecScriptVersionParamVo scriptVersionParamVo : scriptVersionParamVos) {
-                                AutoexecJobParamVo outputVo = new AutoexecJobParamVo(scriptVersionParamVo);
+                                AutoexecParamVo outputVo = new AutoexecParamVo(scriptVersionParamVo);
                                 if (valueJson != null) {
                                     outputVo.setValue(valueJson.getString(outputVo.getKey()));
                                 }
                                 outputParamList.add(outputVo);
                             }
                         }
-                        outputParamList = outputParamList.stream().sorted(Comparator.comparing(AutoexecJobParamVo::getSort)).collect(Collectors.toList());
+                        outputParamList = outputParamList.stream().sorted(Comparator.comparing(AutoexecParamVo::getSort)).collect(Collectors.toList());
                         put("paramList", outputParamList);
                         Optional<AutoexecJobPhaseNodeOperationStatusVo> operationStatusVoOptional = operationStatusVos.stream().filter(o -> Objects.equals(o.getName(), operationVo.getName())).findFirst();
                         operationStatusVoOptional.ifPresent(autoexecJobPhaseNodeOperationStatusVo -> put("status", autoexecJobPhaseNodeOperationStatusVo.getStatus()));
