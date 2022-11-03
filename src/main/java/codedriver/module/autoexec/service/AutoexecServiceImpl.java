@@ -18,7 +18,9 @@ import codedriver.framework.autoexec.dto.scenario.AutoexecScenarioVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
-import codedriver.framework.autoexec.exception.*;
+import codedriver.framework.autoexec.exception.AutoexecCombopOperationNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecParamMappingNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecParamValueIrregularException;
 import codedriver.framework.autoexec.script.paramtype.IScriptParamType;
 import codedriver.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import codedriver.framework.exception.type.*;
@@ -84,6 +86,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 String key = param.getKey();
                 String name = param.getName();
                 String type = param.getType();
+                Object defaultValue = param.getDefaultValue();
                 Integer isRequired = param.getIsRequired();
                 String mappingMode = param.getMappingMode();
                 int index = i + 1;
@@ -123,6 +126,9 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                     }
                     if (mappingMode != null && AutoexecProfileParamInvokeType.getParamType(mappingMode) == null) {
                         throw new AutoexecParamMappingNotFoundException(key, mappingMode);
+                    }
+                    if (!validateTextTypeParamValue(param, defaultValue)) {
+                        throw new AutoexecParamValueIrregularException(name, key, (String) defaultValue);
                     }
                 } else {
                     OutputParamType paramType = OutputParamType.getParamType(type);
@@ -222,6 +228,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
 
     /**
      * 补充AutoexecCombopConfigVo对象中的场景名称、预置参数集名称、操作对应的工具信息
+     *
      * @param config config对象
      */
     @Override
