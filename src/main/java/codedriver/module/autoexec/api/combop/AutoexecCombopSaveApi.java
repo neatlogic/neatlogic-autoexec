@@ -152,6 +152,7 @@ public class AutoexecCombopSaveApi extends PrivateApiComponentBase {
             config.setExecuteConfig(oldConfigVo.getExecuteConfig());
             List<AutoexecParamVo> autoexecParamVoList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(autoexecCombopVo.getId());
             config.setRuntimeParamList(autoexecParamVoList);
+            autoexecCombopService.updateAutoexecCombopExecuteConfigProtocolAndProtocolPort(config);
             String configStr = JSONObject.toJSONString(config);
             /** 保存前，校验组合工具是否配置正确，不正确不可以保存 **/
             autoexecCombopService.verifyAutoexecCombopConfig(config, false);

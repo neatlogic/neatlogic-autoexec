@@ -87,9 +87,12 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
         String executeUser = jsonObj.getString("executeUser");
         Integer roundCount = jsonObj.getInteger("roundCount");
         IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
-        AccountProtocolVo protocolVo = resourceAccountCrossoverMapper.getAccountProtocolVoByProtocolId(protocolId);
-        if (protocolVo == null && protocolId != null) {
-            throw new ResourceCenterAccountProtocolNotFoundException(protocolId);
+        AccountProtocolVo protocolVo = null;
+        if (protocolId != null) {
+            protocolVo = resourceAccountCrossoverMapper.getAccountProtocolVoByProtocolId(protocolId);
+            if (protocolVo == null) {
+                throw new ResourceCenterAccountProtocolNotFoundException(protocolId);
+            }
         }
         AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
         if (autoexecCombopVo == null) {
@@ -100,8 +103,11 @@ public class AutoexecCombopNodeSaveApi extends PrivateApiComponentBase {
             throw new PermissionDeniedException();
         }
         AutoexecCombopExecuteConfigVo executeConfig = new AutoexecCombopExecuteConfigVo();
-        executeConfig.setProtocolId(protocolVo != null ? protocolVo.getId() : null);
-        executeConfig.setProtocol(protocolVo != null ? protocolVo.getName() : null);
+        if (protocolVo != null) {
+            executeConfig.setProtocolId(protocolVo.getId());
+            executeConfig.setProtocol(protocolVo.getName());
+            executeConfig.setProtocolPort(protocolVo.getPort());
+        }
         executeConfig.setExecuteUser(executeUser);
         executeConfig.setRoundCount(roundCount);
         String whenToSpecify = jsonObj.getString("whenToSpecify");

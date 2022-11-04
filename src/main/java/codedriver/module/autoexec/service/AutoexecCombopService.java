@@ -114,4 +114,10 @@ public interface AutoexecCombopService {
      * @return
      */
     AutoexecCombopVo getAutoexecCombopById(Long id);
+
+    /**
+     * 根据protocolId补充protocol字段和protocolPort字段值
+     * @param autoexecCombopConfigVo 组合工具config
+     */
+    void updateAutoexecCombopExecuteConfigProtocolAndProtocolPort(AutoexecCombopConfigVo autoexecCombopConfigVo);
 }
