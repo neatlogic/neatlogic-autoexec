@@ -21,7 +21,10 @@ import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.exception.*;
+import codedriver.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
+import codedriver.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
 import codedriver.framework.common.constvalue.SystemUser;
+import codedriver.framework.crossover.CrossoverServiceFactory;
 import codedriver.framework.dependency.core.DependencyManager;
 import codedriver.framework.dto.AuthenticationInfoVo;
 import codedriver.framework.service.AuthenticationInfoService;
@@ -913,5 +916,70 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         config.setRuntimeParamList(runtimeParamList);
         autoexecService.updateAutoexecCombopConfig(config);
         return autoexecCombopVo;
+    }
+
+    @Override
+    public void updateAutoexecCombopExecuteConfigProtocolAndProtocolPort(AutoexecCombopConfigVo config) {
+        if (config == null) {
+            return;
+        }
+        List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
+        if (CollectionUtils.isNotEmpty(combopPhaseList)) {
+            for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseList) {
+                if (combopPhaseVo == null) {
+                    continue;
+                }
+                AutoexecCombopPhaseConfigVo phaseConfig = combopPhaseVo.getConfig();
+                if (phaseConfig == null) {
+                    continue;
+                }
+                AutoexecCombopExecuteConfigVo executeConfig = phaseConfig.getExecuteConfig();
+                if (executeConfig != null) {
+                    updateAutoexecCombopExecuteConfigProtocolAndProtocolPort(executeConfig);
+                }
+            }
+        }
+        List<AutoexecCombopGroupVo> combopGroupList = config.getCombopGroupList();
+        if (CollectionUtils.isNotEmpty(combopGroupList)) {
+            for (AutoexecCombopGroupVo combopGroupVo : combopGroupList) {
+                if (combopGroupVo == null) {
+                    continue;
+                }
+                AutoexecCombopGroupConfigVo groupConfig = combopGroupVo.getConfig();
+                if (groupConfig == null) {
+                    continue;
+                }
+                AutoexecCombopExecuteConfigVo executeConfig = groupConfig.getExecuteConfig();
+                if (executeConfig != null) {
+                    updateAutoexecCombopExecuteConfigProtocolAndProtocolPort(executeConfig);
+                }
+            }
+        }
+        AutoexecCombopExecuteConfigVo executeConfigVo = config.getExecuteConfig();
+        if (executeConfigVo != null) {
+            updateAutoexecCombopExecuteConfigProtocolAndProtocolPort(executeConfigVo);
+        }
+    }
+
+    /**
+     * 根据protocolId补充protocol字段和protocolPort字段值
+     * @param config 执行目标config
+     */
+    private void updateAutoexecCombopExecuteConfigProtocolAndProtocolPort(AutoexecCombopExecuteConfigVo config) {
+        Long protocolId = config.getProtocolId();
+        if (protocolId != null) {
+            IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
+            AccountProtocolVo protocolVo = resourceAccountCrossoverMapper.getAccountProtocolVoByProtocolId(protocolId);
+            if (protocolVo != null) {
+                config.setProtocol(protocolVo.getName());
+                config.setProtocolPort(protocolVo.getPort());
+            } else {
+                config.setProtocol(null);
+                config.setProtocolPort(null);
+            }
+        } else {
+            config.setProtocol(null);
+            config.setProtocolPort(null);
+        }
     }
 }

@@ -16,7 +16,10 @@ import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
+import codedriver.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
+import codedriver.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.crossover.CrossoverServiceFactory;
 import codedriver.framework.exception.file.FileExtNotAllowedException;
 import codedriver.framework.exception.file.FileNotUploadException;
 import codedriver.framework.notify.dao.mapper.NotifyMapper;
@@ -295,6 +298,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
             }
         }
         if (CollectionUtils.isEmpty(failureReasonSet)) {
+            updateAutoexecCombopExecuteConfigProtocolId(config);
             autoexecCombopVo.setConfigStr(null);
             if (oldAutoexecCombopVo == null) {
                 autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
@@ -411,6 +415,72 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                 }
             }
         }
+    }
+
+    /**
+     * 根据protocol字段和protocolPort字段值更新protocolId字段值
+     * @param config 组合工具config
+     */
+    private void updateAutoexecCombopExecuteConfigProtocolId(AutoexecCombopConfigVo config){
+        if (config == null) {
+            return;
+        }
+        List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
+        if (CollectionUtils.isNotEmpty(combopPhaseList)) {
+            for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseList) {
+                if (combopPhaseVo == null) {
+                    continue;
+                }
+                AutoexecCombopPhaseConfigVo phaseConfig = combopPhaseVo.getConfig();
+                if (phaseConfig == null) {
+                    continue;
+                }
+                AutoexecCombopExecuteConfigVo executeConfig = phaseConfig.getExecuteConfig();
+                if (executeConfig != null) {
+                    updateAutoexecCombopExecuteConfigProtocolId(executeConfig);
+                }
+            }
+        }
+        List<AutoexecCombopGroupVo> combopGroupList = config.getCombopGroupList();
+        if (CollectionUtils.isNotEmpty(combopGroupList)) {
+            for (AutoexecCombopGroupVo combopGroupVo : combopGroupList) {
+                if (combopGroupVo == null) {
+                    continue;
+                }
+                AutoexecCombopGroupConfigVo groupConfig = combopGroupVo.getConfig();
+                if (groupConfig == null) {
+                    continue;
+                }
+                AutoexecCombopExecuteConfigVo executeConfig = groupConfig.getExecuteConfig();
+                if (executeConfig != null) {
+                    updateAutoexecCombopExecuteConfigProtocolId(executeConfig);
+                }
+            }
+        }
+        AutoexecCombopExecuteConfigVo executeConfigVo = config.getExecuteConfig();
+        if (executeConfigVo != null) {
+            updateAutoexecCombopExecuteConfigProtocolId(executeConfigVo);
+        }
+    }
+
+    /**
+     * 根据protocol字段和protocolPort字段值更新protocolId字段值
+     * @param config 执行目标config
+     */
+    private void updateAutoexecCombopExecuteConfigProtocolId(AutoexecCombopExecuteConfigVo config) {
+        String name = config.getProtocol();
+        Integer port = config.getProtocolPort();
+        if (StringUtils.isBlank(name) || port != null) {
+            config.setProtocolId(null);
+            return;
+        }
+        IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
+        AccountProtocolVo protocolVo = resourceAccountCrossoverMapper.getAccountProtocolVoByNameAndPort(name, port);
+        if (protocolVo == null) {
+            config.setProtocolId(null);
+            return;
+        }
+        config.setProtocolId(protocolVo.getId());
     }
 
     private boolean equals(AutoexecCombopVo obj1, AutoexecCombopVo obj2){
