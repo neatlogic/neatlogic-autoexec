@@ -470,7 +470,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
     private void updateAutoexecCombopExecuteConfigProtocolId(AutoexecCombopExecuteConfigVo config) {
         String name = config.getProtocol();
         Integer port = config.getProtocolPort();
-        if (StringUtils.isBlank(name) || port != null) {
+        if (StringUtils.isBlank(name) || port == null) {
             config.setProtocolId(null);
             return;
         }
