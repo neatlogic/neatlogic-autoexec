@@ -194,6 +194,9 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
         //单选、单选下拉
         if (StringUtils.equals(ParamType.RADIO.getValue(), paramVo.getType()) || StringUtils.equals(ParamType.SELECT.getValue(), paramVo.getType())) {
             AutoexecParamConfigVo config = paramVo.getConfig();
+            if (config == null) {
+                return returnDefaultValue;
+            }
             String dataSource = config.getDataSource();
             //静态数据源
             if (StringUtils.equals(ParamDataSource.STATIC.getValue(), dataSource)) {
@@ -227,6 +230,9 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
             //复选、多选下拉
         } else if (StringUtils.equals(ParamType.CHECKBOX.getValue(), paramVo.getType()) || StringUtils.equals(ParamType.MULTISELECT.getValue(), paramVo.getType())) {
             AutoexecParamConfigVo config = paramVo.getConfig();
+            if (config == null) {
+                return returnDefaultValue;
+            }
             String dataSource = config.getDataSource();
             //静态数据源
             if (StringUtils.equals(ParamDataSource.STATIC.getValue(), dataSource)) {
