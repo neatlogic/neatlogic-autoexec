@@ -26,7 +26,6 @@ import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
-import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -37,7 +36,7 @@ import java.util.Objects;
  * @since 2021/4/13 11:20
  **/
 
-@Service
+@Deprecated
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecJobDetailGetApi extends PrivateApiComponentBase {

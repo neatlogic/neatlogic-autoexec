@@ -110,9 +110,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         AutoexecJobInvokeVo invokeVo = new AutoexecJobInvokeVo(jobVo.getId(), jobVo.getInvokeId(), jobVo.getSource(), jobSourceVo.getType());
         autoexecJobMapper.insertJobInvoke(invokeVo);
         autoexecJobMapper.insertIgnoreJobContent(new AutoexecJobContentVo(jobVo.getConfigHash(), jobVo.getConfigStr()));
-        getFinalRuntimeParamList(jobVo.getRunTimeParamList(),jobVo.getParam());
-        for (AutoexecParamVo runtimeParam : jobVo.getRunTimeParamList()){
-            autoexecService.validateTextTypeParamValue(runtimeParam,runtimeParam.getValue());
+        getFinalRuntimeParamList(jobVo.getRunTimeParamList(), jobVo.getParam());
+        for (AutoexecParamVo runtimeParam : jobVo.getRunTimeParamList()) {
+            autoexecService.validateTextTypeParamValue(runtimeParam, runtimeParam.getValue());
         }
         autoexecJobMapper.insertIgnoreJobContent(new AutoexecJobContentVo(jobVo.getParamHash(), jobVo.getRunTimeParamListStr()));
         autoexecJobMapper.insertJob(jobVo);
@@ -518,10 +518,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
         //补充运行参数真实的值
         List<AutoexecParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(jobVo.getOperationId());
-        getFinalRuntimeParamList(runtimeParamList,paramJson);
+        getFinalRuntimeParamList(runtimeParamList, paramJson);
         jobVo.setRunTimeParamList(runtimeParamList);
-        for (AutoexecParamVo runtimeParam : runtimeParamList){
-            autoexecService.validateTextTypeParamValue(runtimeParam,runtimeParam.getValue());
+        for (AutoexecParamVo runtimeParam : runtimeParamList) {
+            autoexecService.validateTextTypeParamValue(runtimeParam, runtimeParam.getValue());
         }
         autoexecJobMapper.insertIgnoreJobContent(new AutoexecJobContentVo(jobVo.getParamHash(), jobVo.getRunTimeParamListStr()));
         autoexecJobMapper.updateJobParamHashById(jobVo.getId(), jobVo.getParamHash());
@@ -592,7 +592,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     public void getAutoexecJobDetail(AutoexecJobVo jobVo) {
         AutoexecJobContentVo paramContentVo = autoexecJobMapper.getJobContent(jobVo.getParamHash());
         if (paramContentVo != null && StringUtils.isNotBlank(paramContentVo.getContent())) {
-            jobVo.setRunTimeParamList(JSONArray.parseArray(paramContentVo.getContent(),AutoexecParamVo.class));
+            jobVo.setRunTimeParamList(JSONArray.parseArray(paramContentVo.getContent(), AutoexecParamVo.class));
         }
         AutoexecJobContentVo jobContent = autoexecJobMapper.getJobContent(jobVo.getConfigHash());
         if (jobContent == null) {
@@ -755,7 +755,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             if (CollectionUtils.isNotEmpty(runTimeParamList)) {
                 List<AutoexecParamVo> paramObjList = runTimeParamList.stream().filter(p -> paramList.contains(p.getKey())).collect(Collectors.toList());
                 paramObjList.forEach(p -> {
-                    if(p.getValue() instanceof JSONArray){
+                    if (p.getValue() instanceof JSONArray) {
                         JSONArray valueArray = (JSONArray) p.getValue();
                         for (int i = 0; i < valueArray.size(); i++) {
                             resourceIdSet.add(valueArray.getJSONObject(i).getLong("id"));
@@ -1054,6 +1054,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             jobVoList.forEach(o -> {
                 operationIdMap.computeIfAbsent(o.getOperationType(), k -> new ArrayList<>());
                 operationIdMap.get(o.getOperationType()).add(o.getOperationId());
+                //计算完成率
+                if (CollectionUtils.isNotEmpty(o.getPhaseList())) {
+                    List<AutoexecJobPhaseVo> completedPhaseList = o.getPhaseList().stream().filter(p -> Objects.equals(JobPhaseStatus.COMPLETED.getValue(), p.getStatus())).collect(Collectors.toList());
+                    o.setCompletionRate((int) (Double.parseDouble(Integer.toString(completedPhaseList.size())) / Double.parseDouble(Integer.toString(o.getPhaseList().size())) * 100));
+                }
             });
             if (CollectionUtils.isNotEmpty(operationIdMap.get(CombopOperationType.COMBOP.getValue()))) {
                 combopVoList = autoexecCombopMapper.getAutoexecCombopByIdList(operationIdMap.get(CombopOperationType.COMBOP.getValue()));

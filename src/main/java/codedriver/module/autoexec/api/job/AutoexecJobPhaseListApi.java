@@ -7,6 +7,7 @@ package codedriver.module.autoexec.api.job;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.constvalue.JobNodeStatus;
 import codedriver.framework.autoexec.constvalue.JobPhaseStatus;
 import codedriver.framework.autoexec.constvalue.JobStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
@@ -28,6 +29,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Objects;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 import static codedriver.framework.common.util.CommonUtil.distinctByKey;
@@ -102,6 +104,17 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
                     phaseVo.addStatusCountVo(statusCountVo);
                 }
             }
+            List<AutoexecJobPhaseNodeStatusCountVo> jobPhaseNodeStatusCountVoList = phaseVo.getStatusCountVoList();
+            AtomicInteger succeedCount = new AtomicInteger(0);
+            AtomicInteger totalCount = new AtomicInteger();
+            jobPhaseNodeStatusCountVoList.forEach(o -> {
+                if (Objects.equals(o.getStatus(), JobNodeStatus.SUCCEED.getValue())) {
+                    succeedCount.set(o.getCount());
+
+                }
+                totalCount.addAndGet(o.getCount());
+            });
+            phaseVo.setCompletionRate((int) (Double.parseDouble(Integer.toString(succeedCount.get())) / Double.parseDouble(Integer.toString(totalCount.get())) * 100));
         }
         result.put("status", jobVo.getStatus());
         result.put("statusName", JobStatus.getText(jobVo.getStatus()));
