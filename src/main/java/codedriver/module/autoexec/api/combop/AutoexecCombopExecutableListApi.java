@@ -82,7 +82,6 @@ public class AutoexecCombopExecutableListApi extends PrivateApiComponentBase {
     @Description(desc = "查询当前用户可执行的组合工具列表")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        JSONObject returnObj = new JSONObject();
         List<AutoexecCombopVo> autoexecCombopList = new ArrayList<>();
         AutoexecCombopVo searchVo = JSONObject.toJavaObject(jsonObj, AutoexecCombopVo.class);
         JSONArray defaultValue = searchVo.getDefaultValue();
@@ -118,15 +117,11 @@ public class AutoexecCombopExecutableListApi extends PrivateApiComponentBase {
                 }
             }
         }
+        JSONObject result = TableResultUtil.getResult(autoexecCombopList, searchVo);
         if (CollectionUtils.isNotEmpty(autoexecCombopList)) {
             Set<Long> typeIdSet = autoexecCombopList.stream().map(AutoexecCombopVo::getTypeId).collect(Collectors.toSet());
-            returnObj.put("typeList", autoexecTypeMapper.getTypeListByIdList(new ArrayList<>(typeIdSet)));
+            result.put("typeList", autoexecTypeMapper.getTypeListByIdList(new ArrayList<>(typeIdSet)));
         }
-        returnObj.put("pageSize", searchVo.getPageSize());
-        returnObj.put("pageCount", searchVo.getPageCount());
-        returnObj.put("rowNum", searchVo.getRowNum());
-        returnObj.put("currentPage", searchVo.getCurrentPage());
-        returnObj.put("tbodyList", autoexecCombopList);
-        return returnObj;
+        return result;
     }
 }
