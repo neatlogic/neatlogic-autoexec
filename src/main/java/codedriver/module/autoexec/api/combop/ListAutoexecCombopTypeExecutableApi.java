@@ -61,10 +61,10 @@ public class ListAutoexecCombopTypeExecutableApi extends PrivateApiComponentBase
     public Object myDoService(JSONObject jsonObj) throws Exception {
         List<AutoexecTypeVo> list;
         if (AuthActionChecker.check(AUTOEXEC_MODIFY.class)) {
-            list = autoexecCombopMapper.getAutoexecTypeListByCombopIdList(null);
+            list = autoexecCombopMapper.getAllAutoexecTypeListUsedByCombop();
         } else {
             AuthenticationInfoVo authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(UserContext.get().getUserUuid(true));
-            Set<Long> idSet = autoexecCombopMapper.getExecutableAutoexecCombopIdListByKeywordAndAuthenticationInfo(null, null, authenticationInfoVo);
+            Set<Long> idSet = autoexecCombopMapper.getExecutableAutoexecCombopIdListByAndAuthenticationInfo(authenticationInfoVo);
             list = autoexecCombopMapper.getAutoexecTypeListByCombopIdList(new ArrayList<>(idSet));
         }
         return list;
