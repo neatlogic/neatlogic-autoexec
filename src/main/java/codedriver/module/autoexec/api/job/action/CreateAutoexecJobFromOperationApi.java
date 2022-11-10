@@ -35,10 +35,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author lvzk
@@ -87,13 +84,13 @@ public class CreateAutoexecJobFromOperationApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecCombopVo combopVo = buildCombopVo(jsonObj);
         //设置作业执行节点
-        if(combopVo.getConfig() != null && jsonObj.containsKey("executeConfig")){
+        if (combopVo.getConfig() != null && jsonObj.containsKey("executeConfig")) {
             AutoexecCombopExecuteConfigVo executeConfigVo = JSON.toJavaObject(jsonObj.getJSONObject("executeConfig"), AutoexecCombopExecuteConfigVo.class);
             combopVo.getConfig().setExecuteConfig(executeConfigVo);
         }
-        jsonObj.put("source",JobSource.TEST.getValue());
+        jsonObj.put("source", JobSource.TEST.getValue());
         AutoexecJobVo jobVo = JSONObject.toJavaObject(jsonObj, AutoexecJobVo.class);
-        jobVo.setRunTimeParamList(combopVo.getRuntimeParamList());
+        jobVo.setRunTimeParamList(combopVo.getRuntimeParamList() == null ? new ArrayList<>() : combopVo.getRuntimeParamList());
         jobVo.setOperationType(jsonObj.getString("type"));
         jobVo.setIsFirstFire(1);
         jobVo.setAction(JobAction.FIRE.getValue());
@@ -102,8 +99,8 @@ public class CreateAutoexecJobFromOperationApi extends PrivateApiComponentBase {
         autoexecJobService.saveAutoexecCombopJob(jobVo);
         IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
         fireAction.doService(jobVo);
-        return new JSONObject(){{
-            put("jobId",jobVo.getId());
+        return new JSONObject() {{
+            put("jobId", jobVo.getId());
         }};
     }
 
@@ -128,7 +125,7 @@ public class CreateAutoexecJobFromOperationApi extends PrivateApiComponentBase {
             }
             List<AutoexecScriptVersionParamVo> paramVoList = scriptMapper.getParamListByVersionId(scriptVersionVo.getId());
             scriptVersionVo.setParamList(paramVoList);
-            phaseParam = new AutoexecPhaseOperationParamVo(scriptVo,scriptVersionVo);
+            phaseParam = new AutoexecPhaseOperationParamVo(scriptVo, scriptVersionVo);
         } else {
             AutoexecToolVo toolVo = toolMapper.getToolById(operationId);
             if (toolVo == null) {
@@ -136,7 +133,7 @@ public class CreateAutoexecJobFromOperationApi extends PrivateApiComponentBase {
             }
             phaseParam = new AutoexecPhaseOperationParamVo(toolVo);
         }
-        if(jsonObj.containsKey("argumentMappingList")) {
+        if (jsonObj.containsKey("argumentMappingList")) {
             phaseParam.setArgumentMappingList(JSONObject.parseArray(jsonObj.getString("argumentMappingList"), ParamMappingVo.class));
         }
         checkJobExist(phaseParam);
@@ -153,7 +150,7 @@ public class CreateAutoexecJobFromOperationApi extends PrivateApiComponentBase {
         AutoexecCombopPhaseOperationVo phaseOperation = new AutoexecCombopPhaseOperationVo(phaseParam);
         combopPhaseConfigVo.setPhaseOperationList(Collections.singletonList(phaseOperation));
         autoexecCombopPhaseVo.setConfig(combopPhaseConfigVo);
-        combopVo.setName("TEST_"+phaseParam.getName());
+        combopVo.setName("TEST_" + phaseParam.getName());
         combopVo.setId(phaseParam.getOperationId());
         combopVo.setOperationType(phaseParam.getOperationType());
         combopVo.setRuntimeParamList(phaseParam.getInputParamList());
@@ -165,16 +162,15 @@ public class CreateAutoexecJobFromOperationApi extends PrivateApiComponentBase {
 
     /**
      * 检查自定义工具库 是否已经有作业在跑（running、pausing、aborting），如果存在，则无法创建新的测试作业。否则删除历史测试作业，新建测试作业
-     *
      */
-    private void checkJobExist(AutoexecPhaseOperationParamVo phaseParam){
-       AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByOperationId(phaseParam.getOperationId());
-       if(jobVo != null){
-           if(Arrays.asList(JobStatus.RUNNING.getValue(),JobStatus.PAUSING.getValue(), JobStatus.ABORTING.getValue()).contains(jobVo.getStatus())){
-               throw new AutoexecJobCanNotTestException(jobVo.getId().toString());
-           }
-           autoexecJobService.deleteJob(jobVo);
-       }
+    private void checkJobExist(AutoexecPhaseOperationParamVo phaseParam) {
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByOperationId(phaseParam.getOperationId());
+        if (jobVo != null) {
+            if (Arrays.asList(JobStatus.RUNNING.getValue(), JobStatus.PAUSING.getValue(), JobStatus.ABORTING.getValue()).contains(jobVo.getStatus())) {
+                throw new AutoexecJobCanNotTestException(jobVo.getId().toString());
+            }
+            autoexecJobService.deleteJob(jobVo);
+        }
     }
 
     @Override
