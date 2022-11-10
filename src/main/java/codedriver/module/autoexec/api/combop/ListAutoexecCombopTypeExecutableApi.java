@@ -64,7 +64,7 @@ public class ListAutoexecCombopTypeExecutableApi extends PrivateApiComponentBase
             list = autoexecCombopMapper.getAllAutoexecTypeListUsedByCombop();
         } else {
             AuthenticationInfoVo authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(UserContext.get().getUserUuid(true));
-            Set<Long> idSet = autoexecCombopMapper.getExecutableAutoexecCombopIdListByAndAuthenticationInfo(authenticationInfoVo);
+            Set<Long> idSet = autoexecCombopMapper.getExecutableAutoexecCombopIdListByAuthenticationInfo(authenticationInfoVo);
             list = autoexecCombopMapper.getAutoexecTypeListByCombopIdList(new ArrayList<>(idSet));
         }
         return list;
