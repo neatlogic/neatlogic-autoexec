@@ -105,14 +105,13 @@ public class AutoexecCombopExecutableListApi extends PrivateApiComponentBase {
             if (searchVo.getCurrentPage() <= searchVo.getPageCount()) {
                 int fromIndex = searchVo.getStartNum();
                 int toIndex = fromIndex + searchVo.getPageSize();
-                toIndex = toIndex >  rowNum ? rowNum : toIndex;
-                List<Long> currentPageIdList =  idList.subList(fromIndex, toIndex);
+                toIndex = toIndex > rowNum ? rowNum : toIndex;
+                List<Long> currentPageIdList = idList.subList(fromIndex, toIndex);
                 if (CollectionUtils.isNotEmpty(currentPageIdList)) {
                     autoexecCombopList = autoexecCombopMapper.getAutoexecCombopListByIdList(currentPageIdList);
                 }
             }
         }
-
         return TableResultUtil.getResult(autoexecCombopList, searchVo);
     }
 }
