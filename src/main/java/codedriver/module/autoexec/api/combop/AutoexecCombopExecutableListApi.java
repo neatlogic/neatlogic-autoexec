@@ -11,7 +11,6 @@ import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
-import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
@@ -31,7 +30,6 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * 查询当前用户可执行的组合工具列表接口
@@ -46,9 +44,6 @@ public class AutoexecCombopExecutableListApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
-
-    @Resource
-    private AutoexecTypeMapper autoexecTypeMapper;
 
     @Resource
     private AuthenticationInfoService authenticationInfoService;
@@ -117,11 +112,6 @@ public class AutoexecCombopExecutableListApi extends PrivateApiComponentBase {
                 }
             }
         }
-        JSONObject result = TableResultUtil.getResult(autoexecCombopList, searchVo);
-        if (CollectionUtils.isNotEmpty(autoexecCombopList)) {
-            Set<Long> typeIdSet = autoexecCombopList.stream().map(AutoexecCombopVo::getTypeId).collect(Collectors.toSet());
-            result.put("typeList", autoexecTypeMapper.getTypeListByIdList(new ArrayList<>(typeIdSet)));
-        }
-        return result;
+        return TableResultUtil.getResult(autoexecCombopList, searchVo);
     }
 }
