@@ -83,6 +83,8 @@ public class AutoexecJobSearchApi extends PrivateApiComponentBase {
             JSONObject timeJson = TimeUtil.getStartTimeAndEndTimeByDateJson(startTimeJson);
             jsonObj.put("startTime", timeJson.getDate("startTime"));
             jsonObj.put("endTime", timeJson.getDate("endTime"));
+        } else {
+            jsonObj.remove("startTime");
         }
         jsonObj.put("operationId", jsonObj.getLong("combopId"));
         jsonObj.put("invokeId", jsonObj.getLong("scheduleId"));
