@@ -15,7 +15,6 @@ import codedriver.framework.autoexec.job.callback.core.AutoexecJobCallbackBase;
 import codedriver.framework.notify.dao.mapper.NotifyMapper;
 import codedriver.framework.notify.dto.NotifyPolicyConfigVo;
 import codedriver.framework.notify.dto.NotifyPolicyVo;
-import codedriver.framework.notify.dto.ParamMappingVo;
 import codedriver.framework.transaction.util.TransactionUtil;
 import codedriver.framework.util.NotifyPolicyUtil;
 import codedriver.module.autoexec.message.handler.AutoexecJobMessageHandler;
@@ -26,8 +25,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.TransactionStatus;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 /**
@@ -91,13 +88,9 @@ public class AutoexecJobNotifyCallbackHandler extends AutoexecJobCallbackBase {
                             NotifyPolicyConfigVo policyConfig = notifyPolicyVo.getConfig();
                             if (policyConfig != null) {
                                 try {
-                                    // todo 如何找到阶段
-                                    // todo 参数映射
-                                    List<ParamMappingVo> paramMappingList = new ArrayList<>();
-                                    String notifyPolicyHandler = notifyPolicyVo.getHandler();
                                     String notifyAuditMessage = jobInfo.getId() + "-" + jobInfo.getName();
-                                    NotifyPolicyUtil.execute(notifyPolicyHandler, trigger, AutoexecJobMessageHandler.class
-                                            , notifyPolicyVo, paramMappingList, null, null
+                                    NotifyPolicyUtil.execute(notifyPolicyVo.getHandler(), trigger, AutoexecJobMessageHandler.class
+                                            , notifyPolicyVo, null, null, null
                                             , jobInfo, null, notifyAuditMessage);
                                 } catch (Exception ex) {
                                     logger.error("自动化作业：" + jobInfo.getId() + "-" + jobInfo.getName() + "通知失败");
