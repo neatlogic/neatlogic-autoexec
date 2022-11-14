@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.notify.handler;
 
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
+import codedriver.framework.autoexec.constvalue.AutoexecJobNotifyTriggerType;
 import codedriver.framework.dto.ConditionParamVo;
 import codedriver.framework.notify.core.INotifyPolicyHandlerGroup;
 import codedriver.framework.notify.core.NotifyHandlerType;
@@ -44,7 +45,11 @@ public class AutoexecCombopNotifyPolicyHandler extends NotifyPolicyHandlerBase {
 
     @Override
     protected List<NotifyTriggerVo> myNotifyTriggerList() {
-        return new ArrayList<>();
+        List<NotifyTriggerVo> returnList = new ArrayList<>();
+        for (AutoexecJobNotifyTriggerType triggerType : AutoexecJobNotifyTriggerType.values()) {
+            returnList.add(new NotifyTriggerVo(triggerType.getTrigger(), triggerType.getText(), triggerType.getDescription()));
+        }
+        return returnList;
     }
 
     @Override
