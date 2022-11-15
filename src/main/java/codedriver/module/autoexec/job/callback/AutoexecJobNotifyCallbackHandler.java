@@ -79,22 +79,24 @@ public class AutoexecJobNotifyCallbackHandler extends AutoexecJobCallbackBase {
             AutoexecJobVo jobInfo = autoexecJobMapper.getJobInfo(jobVo.getId());
             if (jobInfo != null && Objects.equals(jobInfo.getOperationType(), CombopOperationType.COMBOP.getValue())) {
                 Long operationId = jobInfo.getOperationId();
-                AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(operationId);
-                if (combopVo != null) {
-                    Long notifyPolicyId = combopVo.getNotifyPolicyId();
-                    if (notifyPolicyId != null) {
-                        NotifyPolicyVo notifyPolicyVo = notifyMapper.getNotifyPolicyById(notifyPolicyId);
-                        if (notifyPolicyVo != null) {
-                            NotifyPolicyConfigVo policyConfig = notifyPolicyVo.getConfig();
-                            if (policyConfig != null) {
-                                try {
-                                    String notifyAuditMessage = jobInfo.getId() + "-" + jobInfo.getName();
-                                    NotifyPolicyUtil.execute(notifyPolicyVo.getHandler(), trigger, AutoexecJobMessageHandler.class
-                                            , notifyPolicyVo, null, null, null
-                                            , jobInfo, null, notifyAuditMessage);
-                                } catch (Exception ex) {
-                                    logger.error("自动化作业：" + jobInfo.getId() + "-" + jobInfo.getName() + "通知失败");
-                                    logger.error(ex.getMessage(), ex);
+                if (operationId != null) {
+                    AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(operationId);
+                    if (combopVo != null) {
+                        Long notifyPolicyId = combopVo.getNotifyPolicyId();
+                        if (notifyPolicyId != null) {
+                            NotifyPolicyVo notifyPolicyVo = notifyMapper.getNotifyPolicyById(notifyPolicyId);
+                            if (notifyPolicyVo != null) {
+                                NotifyPolicyConfigVo policyConfig = notifyPolicyVo.getConfig();
+                                if (policyConfig != null) {
+                                    try {
+                                        String notifyAuditMessage = jobInfo.getId() + "-" + jobInfo.getName();
+                                        NotifyPolicyUtil.execute(notifyPolicyVo.getHandler(), trigger, AutoexecJobMessageHandler.class
+                                                , notifyPolicyVo, null, null, null
+                                                , jobInfo, null, notifyAuditMessage);
+                                    } catch (Exception ex) {
+                                        logger.error("自动化作业：" + jobInfo.getId() + "-" + jobInfo.getName() + "通知失败");
+                                        logger.error(ex.getMessage(), ex);
+                                    }
                                 }
                             }
                         }
