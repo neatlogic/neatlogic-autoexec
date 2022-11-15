@@ -172,8 +172,11 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         }
         //autoexec是不会回调failed的作业状态，故如果存在失败的phase 则更新作业状态为failed
         if (Arrays.asList(JobPhaseStatus.FAILED.getValue(), JobPhaseStatus.WAIT_INPUT.getValue(), JobPhaseStatus.RUNNING.getValue()).contains(finalJobPhaseStatus)) {
+            String oldStatus = jobVo.getStatus();
             jobVo.setStatus(finalJobPhaseStatus);
-            autoexecJobMapper.updateJobStatus(jobVo);
+            if (!JobPhaseStatus.FAILED.getValue().equals(oldStatus)) {
+                autoexecJobMapper.updateJobStatus(jobVo);
+            }
         } else if (Objects.equals(finalJobPhaseStatus, JobPhaseStatus.COMPLETED.getValue())) {
             //判断所有phase 是否都已跑完（completed|ignored），如果是则需要更新job状态
             List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListWithGroupByJobId(jobVo.getId());
