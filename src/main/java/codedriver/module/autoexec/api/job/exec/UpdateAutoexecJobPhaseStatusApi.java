@@ -167,7 +167,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         }
 
         //如果状态一致或者状态已经是失败，则无需更新状态，防止多次触发callback；
-        if (Objects.equals(jobVo.getStatus(), finalJobPhaseStatus) && !JobPhaseStatus.FAILED.getValue().equals(jobVo.getStatus())) {
+        if (Objects.equals(jobVo.getStatus(), finalJobPhaseStatus) || JobPhaseStatus.FAILED.getValue().equals(jobVo.getStatus())) {
             return;
         }
         //autoexec是不会回调failed的作业状态，故如果存在失败的phase 则更新作业状态为failed
