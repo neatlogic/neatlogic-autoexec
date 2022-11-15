@@ -322,7 +322,22 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      * @return 需要更新执行目标的阶段
      */
     private List<AutoexecJobPhaseVo> getJobPhaseListByPreOutput(AutoexecJobVo jobVo, AutoexecJobPhaseVo currentJobPhaseVo, List<AutoexecCombopPhaseVo> combopPhaseVoList) {
+        getCombopPhaseListByPreOutput(jobVo, currentJobPhaseVo, combopPhaseVoList);
         List<AutoexecJobPhaseVo> jobPhaseVoList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(combopPhaseVoList)) {
+            jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseUuidList(jobVo.getId(), combopPhaseVoList.stream().map(AutoexecCombopPhaseVo::getUuid).collect(Collectors.toList()));
+        }
+        return jobPhaseVoList;
+    }
+
+    /**
+     * 根据当前阶段出参获取需要更新执行目标的其他阶段
+     *
+     * @param jobVo             作业
+     * @param currentJobPhaseVo 当前阶段
+     * @param combopPhaseVoList 需要更新的阶段配置
+     */
+    private void getCombopPhaseListByPreOutput(AutoexecJobVo jobVo, AutoexecJobPhaseVo currentJobPhaseVo, List<AutoexecCombopPhaseVo> combopPhaseVoList) {
         AutoexecJobContentVo jobContentVo = autoexecJobMapper.getJobContent(jobVo.getConfigHash());
         if (jobContentVo == null || StringUtils.isBlank(jobContentVo.getContent())) {
             throw new AutoexecJoConfigNotFoundException(jobVo.getId());
@@ -333,8 +348,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             List<AutoexecCombopPhaseVo> combopPhaseVos = combopConfigVo.getCombopPhaseList();
             if (CollectionUtils.isNotEmpty(combopPhaseVos)) {
                 for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseVos) {
-                    if (Objects.equals(combopPhaseVo.getExecMode(), ExecMode.RUNNER.getValue())
-                            || combopPhaseVo.getGroupSort() <= currentJobPhaseVo.getJobGroupVo().getSort()
+                    if (combopPhaseVo.getGroupSort() <= currentJobPhaseVo.getJobGroupVo().getSort()
                             || !Objects.equals(currentJobPhaseVo.getJobGroupVo().getPolicy(), AutoexecJobGroupPolicy.ONESHOT.getName())
                             || Objects.equals(combopPhaseVo.getName(), currentJobPhaseVo.getName())) {
                         continue;
@@ -355,9 +369,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     }
                 }
             }
-            jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseUuidList(jobVo.getId(), combopPhaseVoList.stream().map(AutoexecCombopPhaseVo::getUuid).collect(Collectors.toList()));
         }
-        return jobPhaseVoList;
     }
 
     /**
@@ -703,6 +715,15 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
 
         AutoexecJobPhaseVo jobPhaseVo = jobVo.getCurrentPhase();
+        //检查当前阶段是否需要更新别的阶段执行目标，如果是则该阶段只能存在一个节点
+        if (jobPhaseVo.getIsPreOutputUpdateNode() == 1) {
+            int nodeCount = autoexecJobMapper.searchJobPhaseNodeCount(new AutoexecJobPhaseNodeVo(jobPhaseVo.getId(), 0));
+            List<AutoexecCombopPhaseVo> combopPhaseVoList = new ArrayList<>();
+            getCombopPhaseListByPreOutput(jobVo, jobPhaseVo, combopPhaseVoList);
+            if (nodeCount != 1) {
+                throw new AutoexecJobUpdateNodeByPreOutPutListException(jobPhaseVo, combopPhaseVoList);
+            }
+        }
         boolean isNeedLncd;//用于判断是否需要更新lncd（用于判断是否需要重新下载节点）
         //删除没有跑过的历史节点 runnerMap
         autoexecJobMapper.deleteJobPhaseNodeRunnerByJobPhaseIdAndLcdAndStatus(jobPhaseVo.getId(), nowTime, JobNodeStatus.PENDING.getValue());
