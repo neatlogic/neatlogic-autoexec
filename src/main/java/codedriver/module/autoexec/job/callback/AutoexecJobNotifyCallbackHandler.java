@@ -53,20 +53,18 @@ public class AutoexecJobNotifyCallbackHandler extends AutoexecJobCallbackBase {
     public Boolean getIsNeedCallback(AutoexecJobVo jobVo) {
         AutoexecJobNotifyTriggerType trigger = AutoexecJobNotifyTriggerType.getTrigger(jobVo.getStatus());
         if (trigger != null) {
-            synchronized (AutoexecJobNotifyCallbackHandler.class) {
-                AutoexecJobVo jobInfo;
-                // 开启一个新事务来查询父事务提交前的作业状态，如果新事务查出来的状态与当前jobVo的状态不同，则表示该状态未通知过
-                TransactionStatus tx = TransactionUtil.openNewTx();
-                try {
-                    jobInfo = autoexecJobMapper.getJobInfo(jobVo.getId());
-                } finally {
-                    if (tx != null) {
-                        TransactionUtil.commitTx(tx);
-                    }
+            AutoexecJobVo jobInfo;
+            // 开启一个新事务来查询父事务提交前的作业状态，如果新事务查出来的状态与当前jobVo的状态不同，则表示该状态未通知过
+            TransactionStatus tx = TransactionUtil.openNewTx();
+            try {
+                jobInfo = autoexecJobMapper.getJobInfo(jobVo.getId());
+            } finally {
+                if (tx != null) {
+                    TransactionUtil.commitTx(tx);
                 }
-                if (jobInfo != null && Objects.equals(jobInfo.getOperationType(), CombopOperationType.COMBOP.getValue()) && !Objects.equals(jobVo.getStatus(), jobInfo.getStatus())) {
-                    return true;
-                }
+            }
+            if (jobInfo != null && Objects.equals(jobInfo.getOperationType(), CombopOperationType.COMBOP.getValue()) && !Objects.equals(jobVo.getStatus(), jobInfo.getStatus())) {
+                return true;
             }
         }
         return false;
