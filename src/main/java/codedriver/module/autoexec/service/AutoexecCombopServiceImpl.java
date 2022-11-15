@@ -320,10 +320,10 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             }
             //验证输入参数
             List<ParamMappingVo> paramMappingList = operationConfig.getParamMappingList();
-            validateParam(paramMappingList, inputParamMap, null, runtimeParamMap, preNodeOutputParamMap, operationName, profileParamMap, preNodeNameMap, preOperationNameMap);
+            validateInputParam(paramMappingList, inputParamMap, runtimeParamMap, preNodeOutputParamMap, operationName, profileParamMap, preNodeNameMap, preOperationNameMap);
             //验证自由参数
             List<ParamMappingVo> argumentMappingList = operationConfig.getArgumentMappingList();
-            validateParam(argumentMappingList, inputParamMap, argumentParam, runtimeParamMap, preNodeOutputParamMap, operationName, profileParamMap, preNodeNameMap, preOperationNameMap);
+            validateArgumentParam(argumentMappingList, argumentParam, runtimeParamMap, preNodeOutputParamMap, operationName, preNodeNameMap, preOperationNameMap);
         }
         if (MapUtils.isNotEmpty(inputParamMap)) {
             Set<String> inputParamSet = new HashSet<>();
@@ -339,19 +339,17 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
     }
 
     /**
-     * 校验填写的入参值
+     * 校验填写的入参映射列表
      *
-     * @param mappingList           入参|自由参
+     * @param mappingList           入参映射列表
      * @param inputParamMap         输入参数
-     * @param argumentParam         自由参数
      * @param runtimeParamMap       运行参数
      * @param preNodeOutputParamMap 上游节点出参
      * @param operationName         操作工具名
      */
-    private void validateParam(
+    private void validateInputParam(
             List<ParamMappingVo> mappingList,
             Map<String, AutoexecParamVo> inputParamMap,
-            AutoexecParamVo argumentParam,
             Map<String, AutoexecParamVo> runtimeParamMap,
             Map<String, AutoexecParamVo> preNodeOutputParamMap,
             String operationName,
@@ -359,15 +357,6 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             Map<String, String> preNodeNameMap,
             Map<String, String> preOperationNameMap
     ) {
-        if (argumentParam != null) {
-            Integer argumentCount = argumentParam.getArgumentCount();
-            if (argumentCount == null) {
-                argumentCount = 0;
-            }
-            if (argumentCount != 0 && !Objects.equals(mappingList.size(), argumentCount)) {
-                throw new AutoexecParamMappingArgumentCountMismatchException(operationName, argumentParam.getName(), argumentCount);
-            }
-        }
         if (CollectionUtils.isNotEmpty(mappingList)) {
             List<String> paramList = new ArrayList<>();
             paramList.add(ParamType.DATE.getValue());
@@ -378,21 +367,14 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             paramList.add(ParamType.TEXTAREA.getValue());
             paramList.add(ParamType.PHASE.getValue());
             paramList.add(ParamType.PASSWORD.getValue());
-            AutoexecParamVo inputParamVo;
-            String key;
             for (ParamMappingVo paramMappingVo : mappingList) {
                 if (paramMappingVo == null) {
                     continue;
                 }
-                if (argumentParam == null) {
-                    key = paramMappingVo.getKey();
-                    inputParamVo = inputParamMap.remove(key);
-                    if (inputParamVo == null) {
-                        throw new AutoexecParamNotFoundException(operationName, key);
-                    }
-                } else {
-                    inputParamVo = argumentParam;
-                    key = "argument";
+                String key = paramMappingVo.getKey();
+                AutoexecParamVo inputParamVo = inputParamMap.remove(key);
+                if (inputParamVo == null) {
+                    throw new AutoexecParamNotFoundException(operationName, key);
                 }
                 String mappingMode = paramMappingVo.getMappingMode();
                 if (Objects.equals(mappingMode, ParamMappingMode.IS_EMPTY.getValue())) {
@@ -441,10 +423,16 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                     if (preNodeOutputParamVo == null) {
                         throw new AutoexecParamMappingTargetNotFoundException(operationName, key, conversionPreNodeParamPath(preNodeNameMap, preOperationNameMap, value));
                     }
-                    if (!Objects.equals(preNodeOutputParamVo.getType(), inputParamVo.getType())) {
-                        throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, conversionPreNodeParamPath(preNodeNameMap, preOperationNameMap, value));
+                    if (Objects.equals(preNodeOutputParamVo.getType(), inputParamVo.getType())) {
+                        continue;
                     }
-                    continue;
+                    // 文本域类型 上游节点输出参数值 文本类型
+                    if (Objects.equals(inputParamVo.getType(), ParamType.TEXTAREA.getValue())) {
+                        if (Objects.equals(preNodeOutputParamVo.getType(), ParamType.TEXT.getValue())) {
+                            continue;
+                        }
+                    }
+                    throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, conversionPreNodeParamPath(preNodeNameMap, preOperationNameMap, value));
                 } else if (Objects.equals(mappingMode, ParamMappingMode.PRE_NODE_OUTPUT_PARAM_KEY.getValue())) {
                     String value = null;
                     if (valueObj instanceof JSONArray) {
@@ -473,14 +461,20 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                     if (runtimeParamVo == null) {
                         throw new AutoexecParamMappingTargetNotFoundException(operationName, key, value);
                     }
-                    if (!Objects.equals(runtimeParamVo.getType(), inputParamVo.getType())) {
-                        if (inputParamVo.getType().equals(ParamType.TEXT.getValue())) {
-                            if (!paramList.contains(runtimeParamVo.getType())) {
-                                throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, value);
-                            }
-                        } else {
+                    if (Objects.equals(runtimeParamVo.getType(), inputParamVo.getType())) {
+                        continue;
+                    }
+                    if (inputParamVo.getType().equals(ParamType.TEXT.getValue())) {
+                        if (!paramList.contains(runtimeParamVo.getType())) {
                             throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, value);
                         }
+                    } else if (Objects.equals(inputParamVo.getType(), ParamType.TEXTAREA.getValue())) {
+                        // 文本域类型 上游节点输出参数值 文本类型
+                        if (Objects.equals(runtimeParamVo.getType(), ParamType.TEXT.getValue())) {
+                            continue;
+                        }
+                    } else {
+                        throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, value);
                     }
 
                 } else if (Objects.equals(mappingMode, ParamMappingMode.PROFILE.getValue())) {
@@ -496,14 +490,115 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                     if (globalParamVo == null) {
                         throw new AutoexecParamMappingTargetNotFoundException(operationName, key, value);
                     }
-                    if (!Objects.equals(globalParamVo.getType(), inputParamVo.getType())) {
-                        if (inputParamVo.getType().equals(ParamType.TEXT.getValue())) {
-                            if (!paramList.contains(globalParamVo.getType())) {
-                                throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, value);
-                            }
-                        } else {
+                    if (Objects.equals(globalParamVo.getType(), inputParamVo.getType())) {
+                        continue;
+                    }
+                    if (inputParamVo.getType().equals(ParamType.TEXT.getValue())) {
+                        if (!paramList.contains(globalParamVo.getType())) {
                             throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, value);
                         }
+                    } else if (Objects.equals(inputParamVo.getType(), ParamType.TEXTAREA.getValue())) {
+                        // 文本域类型 上游节点输出参数值 文本类型
+                        if (Objects.equals(globalParamVo.getType(), ParamType.TEXT.getValue())) {
+                            continue;
+                        }
+                    } else {
+                        throw new AutoexecParamMappingTargetTypeMismatchException(operationName, key, value);
+                    }
+                } else {
+                    throw new AutoexecParamMappingIncorrectException(operationName, key);
+                }
+            }
+        }
+    }
+
+    /**
+     * 校验填写的自由参数映射列表
+     *
+     * @param mappingList           自由参数映射列表
+     * @param argumentParam         自由参数
+     * @param runtimeParamMap       运行参数
+     * @param preNodeOutputParamMap 上游节点出参
+     * @param operationName         操作工具名
+     */
+    private void validateArgumentParam(
+            List<ParamMappingVo> mappingList,
+            AutoexecParamVo argumentParam,
+            Map<String, AutoexecParamVo> runtimeParamMap,
+            Map<String, AutoexecParamVo> preNodeOutputParamMap,
+            String operationName,
+            Map<String, String> preNodeNameMap,
+            Map<String, String> preOperationNameMap
+    ) {
+        Integer argumentCount = argumentParam.getArgumentCount();
+        if (argumentCount == null) {
+            argumentCount = 0;
+        }
+        if (argumentCount != 0 && !Objects.equals(mappingList.size(), argumentCount)) {
+            throw new AutoexecParamMappingArgumentCountMismatchException(operationName, argumentParam.getName(), argumentCount);
+        }
+        if (CollectionUtils.isNotEmpty(mappingList)) {
+            for (ParamMappingVo paramMappingVo : mappingList) {
+                if (paramMappingVo == null) {
+                    continue;
+                }
+                String key = "argument";
+                String mappingMode = paramMappingVo.getMappingMode();
+                Object valueObj = paramMappingVo.getValue();
+                if (Objects.equals(mappingMode, ParamMappingMode.CONSTANT.getValue())) {
+                    if (valueObj == null) {
+                        throw new AutoexecParamCannotBeEmptyException(operationName, key);
+                    }
+                    continue;
+                } else if (Objects.equals(mappingMode, ParamMappingMode.PRE_NODE_OUTPUT_PARAM.getValue())) {
+                    String value = null;
+                    if (valueObj instanceof JSONArray) {
+                        JSONArray valueArray = (JSONArray) valueObj;
+                        if (CollectionUtils.isNotEmpty(valueArray)) {
+                            List<String> valueList = valueArray.toJavaList(String.class);
+                            value = String.join("&&", valueList);
+                        }
+                    }
+                    if (StringUtils.isBlank(value)) {
+                        continue;
+                    }
+                    AutoexecParamVo preNodeOutputParamVo = preNodeOutputParamMap.get(value);
+                    if (preNodeOutputParamVo == null) {
+                        throw new AutoexecParamMappingTargetNotFoundException(operationName, key, conversionPreNodeParamPath(preNodeNameMap, preOperationNameMap, value));
+                    }
+                } else if (Objects.equals(mappingMode, ParamMappingMode.PRE_NODE_OUTPUT_PARAM_KEY.getValue())) {
+                    String value = null;
+                    if (valueObj instanceof JSONArray) {
+                        JSONArray valueArray = (JSONArray) valueObj;
+                        if (CollectionUtils.isNotEmpty(valueArray)) {
+                            List<String> valueList = valueArray.toJavaList(String.class);
+                            value = String.join("&&", valueList);
+                        }
+                    }
+                    if (StringUtils.isBlank(value)) {
+                        continue;
+                    }
+                    AutoexecParamVo preNodeOutputParamVo = preNodeOutputParamMap.get(value);
+                    if (preNodeOutputParamVo == null) {
+                        throw new AutoexecParamMappingTargetNotFoundException(operationName, key, conversionPreNodeParamPath(preNodeNameMap, preOperationNameMap, value));
+                    }
+                    continue;
+                }
+
+                String value = valueObj.toString();
+                if (StringUtils.isEmpty(value)) {
+                    throw new AutoexecParamMappingNotMappedException(operationName, key);
+                }
+                if (Objects.equals(mappingMode, ParamMappingMode.RUNTIME_PARAM.getValue())) {
+                    AutoexecParamVo runtimeParamVo = runtimeParamMap.get(value);
+                    if (runtimeParamVo == null) {
+                        throw new AutoexecParamMappingTargetNotFoundException(operationName, key, value);
+                    }
+                }
+                else if (Objects.equals(mappingMode, ParamMappingMode.GLOBAL_PARAM.getValue())) {
+                    AutoexecGlobalParamVo globalParamVo = autoexecGlobalParamMapper.getGlobalParamByKey(value);
+                    if (globalParamVo == null) {
+                        throw new AutoexecParamMappingTargetNotFoundException(operationName, key, value);
                     }
                 } else {
                     throw new AutoexecParamMappingIncorrectException(operationName, key);
