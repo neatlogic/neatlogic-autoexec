@@ -307,7 +307,6 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 preNodeOutputParamMap.put(phaseUuid + "&&" + operationUuid + "&&" + paramVo.getKey(), paramVo);
             }
         }
-        AutoexecParamVo argumentParam = autoexecOperationBaseVo.getArgument();
         AutoexecCombopPhaseOperationConfigVo operationConfig = autoexecCombopPhaseOperationVo.getConfig();
         if (operationConfig != null) {
             Map<String, AutoexecProfileParamVo> profileParamMap = new HashMap<>();
@@ -322,8 +321,11 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             List<ParamMappingVo> paramMappingList = operationConfig.getParamMappingList();
             validateInputParam(paramMappingList, inputParamMap, runtimeParamMap, preNodeOutputParamMap, operationName, profileParamMap, preNodeNameMap, preOperationNameMap);
             //验证自由参数
-            List<ParamMappingVo> argumentMappingList = operationConfig.getArgumentMappingList();
-            validateArgumentParam(argumentMappingList, argumentParam, runtimeParamMap, preNodeOutputParamMap, operationName, preNodeNameMap, preOperationNameMap);
+            AutoexecParamVo argumentParam = autoexecOperationBaseVo.getArgument();
+            if (argumentParam != null) {
+                List<ParamMappingVo> argumentMappingList = operationConfig.getArgumentMappingList();
+                validateArgumentParam(argumentMappingList, argumentParam, runtimeParamMap, preNodeOutputParamMap, operationName, preNodeNameMap, preOperationNameMap);
+            }
         }
         if (MapUtils.isNotEmpty(inputParamMap)) {
             Set<String> inputParamSet = new HashSet<>();
