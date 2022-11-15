@@ -6,6 +6,8 @@
 package codedriver.module.autoexec.notify.handler;
 
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
+import codedriver.framework.autoexec.constvalue.AutoexecJobNotifyParam;
+import codedriver.framework.autoexec.constvalue.AutoexecJobNotifyTriggerType;
 import codedriver.framework.dto.ConditionParamVo;
 import codedriver.framework.notify.core.INotifyPolicyHandlerGroup;
 import codedriver.framework.notify.core.NotifyHandlerType;
@@ -44,7 +46,11 @@ public class AutoexecCombopNotifyPolicyHandler extends NotifyPolicyHandlerBase {
 
     @Override
     protected List<NotifyTriggerVo> myNotifyTriggerList() {
-        return new ArrayList<>();
+        List<NotifyTriggerVo> returnList = new ArrayList<>();
+        for (AutoexecJobNotifyTriggerType triggerType : AutoexecJobNotifyTriggerType.values()) {
+            returnList.add(new NotifyTriggerVo(triggerType.getTrigger(), triggerType.getText(), triggerType.getDescription()));
+        }
+        return returnList;
     }
 
     @Override
@@ -54,7 +60,18 @@ public class AutoexecCombopNotifyPolicyHandler extends NotifyPolicyHandlerBase {
 
     @Override
     protected List<ConditionParamVo> mySystemParamList() {
-        return new ArrayList<>();
+        List<ConditionParamVo> notifyPolicyParamList = new ArrayList<>();
+        for (AutoexecJobNotifyParam param : AutoexecJobNotifyParam.values()) {
+            ConditionParamVo paramVo = new ConditionParamVo();
+            paramVo.setName(param.getValue());
+            paramVo.setLabel(param.getText());
+            paramVo.setParamType(param.getParamType().getName());
+            paramVo.setParamTypeName(param.getParamType().getText());
+            paramVo.setFreemarkerTemplate(param.getFreemarkerTemplate());
+            paramVo.setIsEditable(0);
+            notifyPolicyParamList.add(paramVo);
+        }
+        return notifyPolicyParamList;
     }
 
     @Override
