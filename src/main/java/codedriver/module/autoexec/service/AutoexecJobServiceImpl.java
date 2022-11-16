@@ -838,16 +838,18 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 JSONObject outputJson = dataJson.getJSONObject(operationVo.getName() + "_" + operationVo.getId());
                 if (MapUtils.isNotEmpty(outputJson)) {
                     Object nodes = outputJson.get(paramKey);
-                    if (nodes instanceof JSONArray) {
-                        nodeArrayAtomic.set((JSONArray) nodes);
-                    } else if (nodes instanceof String) {
-                        try {
-                            nodeArrayAtomic.set(JSONArray.parseArray(nodes.toString()));
-                        } catch (Exception ex) {
+                    if (nodes != null) {
+                        if (nodes instanceof JSONArray) {
+                            nodeArrayAtomic.set((JSONArray) nodes);
+                        } else if (nodes instanceof String) {
+                            try {
+                                nodeArrayAtomic.set(JSONArray.parseArray(nodes.toString()));
+                            } catch (Exception ex) {
+                                throw new AutoexecJobNodePreParamValueNotInvalidException(jobVo.getId(), jobVo.getCurrentPhase().getName());
+                            }
+                        } else {
                             throw new AutoexecJobNodePreParamValueNotInvalidException(jobVo.getId(), jobVo.getCurrentPhase().getName());
                         }
-                    } else {
-                        throw new AutoexecJobNodePreParamValueNotInvalidException(jobVo.getId(), jobVo.getCurrentPhase().getName());
                     }
                 }
             }
