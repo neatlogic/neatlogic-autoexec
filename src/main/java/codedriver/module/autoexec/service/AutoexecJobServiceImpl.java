@@ -297,6 +297,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      */
     @Override
     public void updateNodeByPreOutput(AutoexecJobVo jobVo, AutoexecJobPhaseVo currentJobPhaseVo) {
+        jobVo.setPreOutputPhase(currentJobPhaseVo);
         List<AutoexecCombopPhaseVo> combopPhaseVoList = new ArrayList<>();
         List<AutoexecJobPhaseVo> jobPhaseVoList = getJobPhaseListByPreOutput(jobVo, currentJobPhaseVo, combopPhaseVoList);
         autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(jobPhaseVoList.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()), JobPhaseStatus.PENDING.getValue());
@@ -822,7 +823,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         AtomicReference<JSONArray> nodeArrayAtomic = new AtomicReference<>();
         Document doc = new Document();
         Document fieldDocument = new Document();
+        List<AutoexecJobPhaseNodeVo> nodeList =  autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseId(jobVo.getId(),jobVo.getPreOutputPhase().getId());
         doc.put("jobId", jobVo.getId().toString());
+        doc.put("resourceId",nodeList.get(0).getResourceId());
         fieldDocument.put("data", true);
         mongoTemplate.getDb().getCollection("_node_output").find(doc).projection(fieldDocument).forEach(o -> {
             JSONObject operation = JSONObject.parseObject(o.toJson());
