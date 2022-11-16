@@ -823,9 +823,13 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         AtomicReference<JSONArray> nodeArrayAtomic = new AtomicReference<>();
         Document doc = new Document();
         Document fieldDocument = new Document();
-        List<AutoexecJobPhaseNodeVo> nodeList =  autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseId(jobVo.getId(),jobVo.getPreOutputPhase().getId());
+        if (Arrays.asList(ExecMode.TARGET.getValue(), ExecMode.RUNNER_TARGET.getValue()).contains(jobVo.getPreOutputPhase().getExecMode())) {
+            List<AutoexecJobPhaseNodeVo> nodeList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseId(jobVo.getId(), jobVo.getPreOutputPhase().getId());
+            doc.put("resourceId", nodeList.get(0).getResourceId());
+        } else {
+            doc.put("resourceId", 0L);
+        }
         doc.put("jobId", jobVo.getId().toString());
-        doc.put("resourceId",nodeList.get(0).getResourceId());
         fieldDocument.put("data", true);
         mongoTemplate.getDb().getCollection("_node_output").find(doc).projection(fieldDocument).forEach(o -> {
             JSONObject operation = JSONObject.parseObject(o.toJson());
