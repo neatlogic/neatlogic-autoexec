@@ -26,7 +26,6 @@ import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -36,7 +35,6 @@ import java.util.*;
  * @since 2021/4/14 14:15
  **/
 @Service
-@Transactional
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
