@@ -5,6 +5,8 @@
 
 package codedriver.module.autoexec.api.job.exec;
 
+import codedriver.framework.asynchronization.thread.CodeDriverThread;
+import codedriver.framework.asynchronization.threadpool.TransactionSynchronizationPool;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
@@ -26,6 +28,7 @@ import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -35,6 +38,7 @@ import java.util.*;
  * @since 2021/4/14 14:15
  **/
 @Service
+@Transactional
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
@@ -159,7 +163,12 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
                 autoexecJobService.updateNodeByPreOutput(jobVo, jobPhaseVo);
             } catch (AutoexecJobNodePreParamValueNotInvalidException ex) {
                 //如果根据上游参数初始化执行目标失败，上游出参的值不存在或不合法，则更新phase和job 状态为已失败
-                autoexecJobService.updatePhaseJobStatus2Failed(jobVo, jobPhaseVo);
+                TransactionSynchronizationPool.executeAfterRollback(new CodeDriverThread("AUTOEXEC-JOB-PHASE-ERROR-UPDATE") {
+                    @Override
+                    protected void execute() {
+                        autoexecJobService.updatePhaseJobStatus2Failed(jobVo, jobPhaseVo);
+                    }
+                });
                 throw new AutoexecJobNodePreParamValueNotInvalidException(ex.getMessage(), ex);
             }
         }
