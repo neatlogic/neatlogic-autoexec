@@ -49,6 +49,7 @@ public class AutoexecJobConsoleLogTailHandler extends AutoexecJobActionHandlerBa
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         JSONObject paramObj = jobVo.getActionParam();
         String url = paramObj.getString("runnerUrl") + "/api/rest/job/console/log/tail";
+        paramObj.put("status", jobVo.getStatus());
         return JSONObject.parseObject(AutoexecUtil.requestRunner(url, paramObj));
     }
 }

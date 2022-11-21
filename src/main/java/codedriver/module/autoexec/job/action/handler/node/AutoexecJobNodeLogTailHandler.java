@@ -60,7 +60,6 @@ public class AutoexecJobNodeLogTailHandler extends AutoexecJobActionHandlerBase 
         paramJson.put("runnerUrl", nodeVo.getRunnerUrl());
         paramJson.put("execMode", phaseVo.getExecMode());
         paramJson.put("direction", StringUtils.isBlank(paramJson.getString("direction")) ? "down" : paramJson.getString("direction"));
-        String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/log/tail";
         JSONObject result = new JSONObject();
         String nodeStatus = null;
         if (StringUtils.isBlank(paramJson.getString("sqlName"))) {//获取node节点的状态（包括operation status）
@@ -68,14 +67,15 @@ public class AutoexecJobNodeLogTailHandler extends AutoexecJobActionHandlerBase 
             result.put("interact", phaseNodeVo.getInteract());
             nodeStatus = phaseNodeVo.getStatus();
         } else {//获取sql 状态
-            url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/status/get";
+            String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/status/get";
             JSONObject statusJson = JSONObject.parseObject(AutoexecUtil.requestRunner(url, paramJson));
             if (MapUtils.isNotEmpty(statusJson)) {
                 result.put("interact", statusJson.get("interact"));
                 nodeStatus = statusJson.getString("status");
             }
         }
-        result.putAll(JSONObject.parseObject(AutoexecUtil.requestRunner(url, paramJson)));
+        paramJson.put("status",nodeStatus);
+        result.putAll(JSONObject.parseObject(AutoexecUtil.requestRunner(paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/log/tail", paramJson)));
         result.put("isRefresh", 0);
         if (Arrays.asList(JobNodeStatus.RUNNING.getValue(), JobNodeStatus.ABORTING.getValue()).contains(nodeStatus)) {
             result.put("isRefresh", 1);
