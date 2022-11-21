@@ -581,6 +581,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 AutoexecJobPhaseVo jobPhaseVo = jobPhaseVoOptional.get();
                 if (isPhaseNodeNeedReInitByPreOutput(jobVo, jobPhaseVo)) {
                     //如果需要上游出参作为执行目标则无需初始化执行当前阶段执行目标
+                    autoexecJobMapper.updateJobPhaseNodeStatusByJobPhaseIdAndIsDelete(jobPhaseVo.getId(), JobNodeStatus.PENDING.getValue(), 0);
                     continue;
                 }
                 jobPhaseVo.setCombopId(jobVo.getOperationId());
@@ -967,10 +968,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
 
     /**
      * 跟新作业阶段阶段
-     * @param jobVo 作业
+     *
+     * @param jobVo          作业
      * @param resourceVoList 最新阶段资产列表
-     * @param userName 账号
-     * @param protocolId 协议id
+     * @param userName       账号
+     * @param protocolId     协议id
      */
     private void updateJobPhaseNode(AutoexecJobVo jobVo, List<ResourceVo> resourceVoList, String userName, Long protocolId) {
         updateJobPhaseNode(jobVo, resourceVoList, userName, protocolId, true);
@@ -978,11 +980,12 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
 
     /**
      * 跟新作业阶段阶段
-     * @param jobVo 作业
+     *
+     * @param jobVo          作业
      * @param resourceVoList 最新阶段资产列表
-     * @param userName 账号
-     * @param protocolId 协议id
-     * @param isResetNode 是否需要重置节点状态
+     * @param userName       账号
+     * @param protocolId     协议id
+     * @param isResetNode    是否需要重置节点状态
      */
     private void updateJobPhaseNode(AutoexecJobVo jobVo, List<ResourceVo> resourceVoList, String userName, Long protocolId, Boolean isResetNode) {
         AutoexecJobPhaseVo jobPhaseVo = jobVo.getCurrentPhase();
