@@ -1104,7 +1104,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
         if (CollectionUtils.isNotEmpty(jobIdList)) {
             Map<String, ArrayList<Long>> operationIdMap = new HashMap<>();
-            jobVoList = autoexecJobMapper.searchJob(jobIdList);
+            jobVoList = autoexecJobMapper.searchJob(jobIdList, jobVo);
             //补充来源operation信息
             Map<Long, String> operationIdNameMap = new HashMap<>();
             List<AutoexecCombopVo> combopVoList;
