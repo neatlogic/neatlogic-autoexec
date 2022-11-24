@@ -19,6 +19,7 @@ import codedriver.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
@@ -56,11 +57,11 @@ public class AutoexecJobNodeOperationInputParamGetHandler extends AutoexecJobAct
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         JSONObject result = new JSONObject();
         JSONArray operationInputParamList = new JSONArray();
-        result.put("operationInputParamList", operationInputParamList);
+        result.put("operationInputParamArray", operationInputParamList);
 
         AutoexecJobPhaseNodeVo nodeVo = jobVo.getCurrentNode();
         JSONObject paramJson = jobVo.getActionParam();
-        String operationName = paramJson.getString("operationName");
+        paramJson.put("phase", nodeVo.getJobPhaseName());
         List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseId(jobVo.getId(), jobVo.getCurrentPhase().getId());
         paramJson.put("execMode", jobVo.getCurrentPhase().getExecMode());
         paramJson.put("ip", nodeVo.getHost());
@@ -85,25 +86,28 @@ public class AutoexecJobNodeOperationInputParamGetHandler extends AutoexecJobAct
         if (CollectionUtils.isNotEmpty(toolIdList)) {
             operationVos.addAll(autoexecToolMapper.getAutoexecOperationListByIdList(toolIdList));
         }
-        Map<Long,AutoexecOperationVo> operationVoMap = operationVos.stream().collect(Collectors.toMap(AutoexecOperationBaseVo::getId, o->o));
+        Map<Long, AutoexecOperationVo> operationVoMap = operationVos.stream().collect(Collectors.toMap(AutoexecOperationBaseVo::getId, o -> o));
         for (AutoexecJobPhaseOperationVo operationVo : operationVoList) {
             JSONObject inputParams = paramsJson.getJSONObject(operationVo.getName() + "_" + operationVo.getId());
-            JSONArray tbodyList = new JSONArray();
+            JSONArray paramList = new JSONArray();
             JSONObject operationParam = new JSONObject();
-            operationInputParamList.add(operationParam);
             operationParam.put("name", operationVo.getName());
-            operationParam.put("tbodyList", tbodyList);
+            operationParam.put("paramList", paramList);
             if (operationVoMap.containsKey(operationVo.getOperationId())) {
                 List<AutoexecParamVo> inputParamList = operationVoMap.get(operationVo.getOperationId()).getInputParamList();
                 for (AutoexecParamVo paramVo : inputParamList) {
-                    JSONObject tbody = new JSONObject();
-                    tbody.put("name", paramVo.getName());
-                    tbody.put("key", paramVo.getKey());
-                    tbody.put("value", inputParams.get(paramVo.getKey()));
-                    tbody.put("description", paramVo.getDescription());
-                    tbodyList.add(tbody);
+                    JSONObject param = new JSONObject();
+                    param.put("name", paramVo.getName());
+                    param.put("key", paramVo.getKey());
+                    if (MapUtils.isNotEmpty(inputParams)) {
+                        param.put("value", inputParams.get(paramVo.getKey()));
+                    }
+                    param.put("description", paramVo.getDescription());
+                    paramList.add(param);
                 }
-
+            }
+            if (CollectionUtils.isNotEmpty(paramList)) {
+                operationInputParamList.add(operationParam);
             }
         }
         return result;

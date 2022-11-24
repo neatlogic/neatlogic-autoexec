@@ -1253,7 +1253,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 }
 
                 //批量查找入参
-                List<AutoexecOperationVo> operationVos = new ArrayList<>();
+                /*List<AutoexecOperationVo> operationVos = new ArrayList<>();
                 List<AutoexecJobPhaseOperationVo> scriptList = new ArrayList<>();
                 List<Long> toolIdList = new ArrayList<>();
                 for (AutoexecJobPhaseOperationVo jobPhaseOperationVo : jobOperationVoList) {
@@ -1269,7 +1269,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 if (CollectionUtils.isNotEmpty(toolIdList)) {
                     operationVos.addAll(autoexecToolMapper.getAutoexecOperationListByIdList(toolIdList));
                 }
-                List<Long> hasInputParamOperation = operationVos.stream().filter(o -> CollectionUtils.isNotEmpty(o.getInputParamList())).map(AutoexecOperationVo::getId).collect(Collectors.toList());
+                List<Long> hasInputParamOperation = operationVos.stream().filter(o -> CollectionUtils.isNotEmpty(o.getInputParamList())).map(AutoexecOperationVo::getId).collect(Collectors.toList());*/
                 //找出所有作业子operationList
                 List<AutoexecJobPhaseOperationVo> jobSonOperationList = autoexecJobMapper.getJobPhaseOperationListWithParentByJobIdAndPhaseId(paramJson.getLong("jobId"), paramJson.getLong("phaseId"));
                 for (AutoexecJobPhaseOperationVo jobPhaseOperationVo : jobOperationVoList) {
@@ -1280,7 +1280,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                         //兼容老数据
                         description = combopOperationNameMap.get(jobPhaseOperationVo.getName()).getDescription();
                     }
-                    statusList.add(new AutoexecJobPhaseNodeOperationStatusVo(jobPhaseOperationVo, statusJson, description, jobSonOperationList, combopOperationUuidMap, hasInputParamOperation.contains(jobPhaseOperationVo.getOperationId())));
+                    statusList.add(new AutoexecJobPhaseNodeOperationStatusVo(jobPhaseOperationVo, statusJson, description, jobSonOperationList, combopOperationUuidMap));
                 }
 
             }
