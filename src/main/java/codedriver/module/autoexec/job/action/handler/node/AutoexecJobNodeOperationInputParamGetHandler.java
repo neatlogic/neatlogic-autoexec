@@ -58,7 +58,6 @@ public class AutoexecJobNodeOperationInputParamGetHandler extends AutoexecJobAct
         JSONObject result = new JSONObject();
         JSONArray operationInputParamList = new JSONArray();
         result.put("operationInputParamArray", operationInputParamList);
-
         AutoexecJobPhaseNodeVo nodeVo = jobVo.getCurrentNode();
         JSONObject paramJson = jobVo.getActionParam();
         paramJson.put("phase", nodeVo.getJobPhaseName());
@@ -88,10 +87,13 @@ public class AutoexecJobNodeOperationInputParamGetHandler extends AutoexecJobAct
         }
         Map<Long, AutoexecOperationVo> operationVoMap = operationVos.stream().collect(Collectors.toMap(AutoexecOperationBaseVo::getId, o -> o));
         for (AutoexecJobPhaseOperationVo operationVo : operationVoList) {
-            JSONObject inputParams = paramsJson.getJSONObject(operationVo.getName() + "_" + operationVo.getId());
+            JSONObject paramOperation = paramsJson.getJSONObject(operationVo.getName() + "_" + operationVo.getId());
+            JSONObject inputParams = paramOperation.getJSONObject("options");
+            JSONArray arguments = paramOperation.getJSONArray("arguments");
             JSONArray paramList = new JSONArray();
             JSONObject operationParam = new JSONObject();
             operationParam.put("name", operationVo.getName());
+            operationParam.put("argumentList", arguments);
             operationParam.put("paramList", paramList);
             if (operationVoMap.containsKey(operationVo.getOperationId())) {
                 List<AutoexecParamVo> inputParamList = operationVoMap.get(operationVo.getOperationId()).getInputParamList();
