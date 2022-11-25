@@ -88,8 +88,12 @@ public class AutoexecJobNodeOperationInputParamGetHandler extends AutoexecJobAct
         Map<Long, AutoexecOperationVo> operationVoMap = operationVos.stream().collect(Collectors.toMap(AutoexecOperationBaseVo::getId, o -> o));
         for (AutoexecJobPhaseOperationVo operationVo : operationVoList) {
             JSONObject paramOperation = paramsJson.getJSONObject(operationVo.getName() + "_" + operationVo.getId());
-            JSONObject inputParams = paramOperation.getJSONObject("options");
-            JSONArray arguments = paramOperation.getJSONArray("arguments");
+            JSONObject inputParams = null;
+            JSONArray arguments = null;
+            if (MapUtils.isNotEmpty(paramOperation)) {
+                inputParams = paramOperation.getJSONObject("options");
+                arguments = paramOperation.getJSONArray("arguments");
+            }
             JSONArray paramList = new JSONArray();
             JSONObject operationParam = new JSONObject();
             operationParam.put("name", operationVo.getName());
