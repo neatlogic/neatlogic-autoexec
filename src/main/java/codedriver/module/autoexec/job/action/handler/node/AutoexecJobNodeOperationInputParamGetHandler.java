@@ -70,6 +70,7 @@ public class AutoexecJobNodeOperationInputParamGetHandler extends AutoexecJobAct
 
         //批量查找入参
         List<AutoexecOperationVo> operationVos = new ArrayList<>();
+        List<AutoexecOperationVo> argumentsOperationVos = new ArrayList<>();
         List<AutoexecJobPhaseOperationVo> scriptList = new ArrayList<>();
         List<Long> toolIdList = new ArrayList<>();
         for (AutoexecJobPhaseOperationVo jobPhaseOperationVo : operationVoList) {
@@ -81,11 +82,14 @@ public class AutoexecJobNodeOperationInputParamGetHandler extends AutoexecJobAct
         }
         if (CollectionUtils.isNotEmpty(scriptList)) {
             operationVos.addAll(autoexecScriptMapper.getAutoexecOperationInputParamList(scriptList));
+            argumentsOperationVos.addAll(autoexecScriptMapper.getArgumentListByScriptIdList(scriptList.stream().map(AutoexecJobPhaseOperationVo::getOperationId).collect(Collectors.toList())));
         }
         if (CollectionUtils.isNotEmpty(toolIdList)) {
             operationVos.addAll(autoexecToolMapper.getAutoexecOperationListByIdList(toolIdList));
+            argumentsOperationVos.addAll(autoexecToolMapper.getAutoexecOperationListByIdList(toolIdList));
         }
         Map<Long, AutoexecOperationVo> operationVoMap = operationVos.stream().collect(Collectors.toMap(AutoexecOperationBaseVo::getId, o -> o));
+        Map<Long, AutoexecOperationVo> argumentsOperationVoMap = argumentsOperationVos.stream().collect(Collectors.toMap(AutoexecOperationBaseVo::getId, o -> o));
         for (AutoexecJobPhaseOperationVo operationVo : operationVoList) {
             JSONObject paramOperation = paramsJson.getJSONObject(operationVo.getName() + "_" + operationVo.getId());
             JSONObject inputParams = null;
@@ -96,9 +100,22 @@ public class AutoexecJobNodeOperationInputParamGetHandler extends AutoexecJobAct
             }
             JSONArray paramList = new JSONArray();
             JSONObject operationParam = new JSONObject();
+            JSONObject argument = null;
             operationParam.put("name", operationVo.getName());
-            operationParam.put("argumentList", arguments);
             operationParam.put("paramList", paramList);
+            //arguments
+            if (argumentsOperationVoMap.containsKey(operationVo.getOperationId())) {
+                AutoexecParamVo argumentParam = argumentsOperationVoMap.get(operationVo.getOperationId()).getArgument();
+                argument = new JSONObject();
+                argument.put("name", argumentParam.getName());
+                argument.put("key", "arguments");
+                if (MapUtils.isNotEmpty(inputParams)) {
+                    argument.put("valueList", arguments.stream().map(o->JSONObject.parseObject(o.toString()).getString("value")).collect(Collectors.toList()));
+                }
+                argument.put("description", argumentParam.getDescription());
+                operationParam.put("argument", argument);
+            }
+            //input
             if (operationVoMap.containsKey(operationVo.getOperationId())) {
                 List<AutoexecParamVo> inputParamList = operationVoMap.get(operationVo.getOperationId()).getInputParamList();
                 for (AutoexecParamVo paramVo : inputParamList) {
@@ -112,6 +129,7 @@ public class AutoexecJobNodeOperationInputParamGetHandler extends AutoexecJobAct
                     paramList.add(param);
                 }
             }
+
             if (CollectionUtils.isNotEmpty(paramList)) {
                 operationInputParamList.add(operationParam);
             }
