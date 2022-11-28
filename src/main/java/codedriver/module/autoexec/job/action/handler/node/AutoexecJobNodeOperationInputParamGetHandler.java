@@ -109,8 +109,8 @@ public class AutoexecJobNodeOperationInputParamGetHandler extends AutoexecJobAct
                 argument = new JSONObject();
                 argument.put("name", argumentParam.getName());
                 argument.put("key", "arguments");
-                if (MapUtils.isNotEmpty(inputParams)) {
-                    argument.put("valueList", arguments.stream().map(o->JSONObject.parseObject(o.toString()).getString("value")).collect(Collectors.toList()));
+                if (CollectionUtils.isNotEmpty(arguments)) {
+                    argument.put("valueList", arguments.stream().map(o -> o instanceof JSONObject ? JSONObject.parseObject(o.toString()).getString("value") : o.toString()).collect(Collectors.toList()));
                 }
                 argument.put("description", argumentParam.getDescription());
                 operationParam.put("argument", argument);
