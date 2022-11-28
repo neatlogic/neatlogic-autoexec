@@ -1293,16 +1293,21 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      * 重置autoexec 作业节点状态
      *
      * @param jobVo      作业
-     * @param nodeVoList 节点列表
      */
     @Override
-    public void resetJobNodeStatus(AutoexecJobVo jobVo, List<AutoexecJobPhaseNodeVo> nodeVoList) {
+    public void resetJobNodeStatus(AutoexecJobVo jobVo) {
         //重置mongodb node 状态
         List<RunnerMapVo> runnerVos = new ArrayList<>();
-        for (AutoexecJobPhaseNodeVo nodeVo : nodeVoList) {
-            runnerVos.add(new RunnerMapVo(nodeVo.getRunnerUrl(), nodeVo.getRunnerMapId()));
+        if(CollectionUtils.isNotEmpty(jobVo.getExecuteJobNodeVoList())) {
+            for (AutoexecJobPhaseNodeVo nodeVo : jobVo.getExecuteJobNodeVoList()) {
+                runnerVos.add(new RunnerMapVo(nodeVo.getRunnerUrl(), nodeVo.getRunnerMapId()));
+            }
+            runnerVos = runnerVos.stream().filter(o -> StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
+        }else{
+            //重置所有节点状态
+            runnerVos = autoexecJobMapper.getJobPhaseRunnerMapByJobIdAndPhaseIdList(jobVo.getId(),Collections.singletonList(jobVo.getCurrentPhase().getId()));
         }
-        runnerVos = runnerVos.stream().filter(o -> StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
+
         checkRunnerHealth(runnerVos);
         RestVo restVo = null;
         String result = StringUtils.EMPTY;

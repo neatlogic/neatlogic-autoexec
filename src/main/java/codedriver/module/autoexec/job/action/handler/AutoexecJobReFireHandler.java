@@ -83,13 +83,12 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
              * 1、优先寻找pending|aborted|paused|failed phaseList
              * 2、没有满足1条件的，再寻找pending|aborted|paused|failed node 最小sort phaseList
              */
-            List<AutoexecJobPhaseVo> autoexecJobPhaseVos = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobVo.getId(), Arrays.asList(JobPhaseStatus.PENDING.getValue(), JobPhaseStatus.ABORTED.getValue(), JobPhaseStatus.PAUSED.getValue(), JobPhaseStatus.FAILED.getValue()));
-            if (CollectionUtils.isEmpty(autoexecJobPhaseVos)) {
-                autoexecJobPhaseVos = autoexecJobMapper.getJobPhaseListByJobIdAndNodeStatusList(jobVo.getId(), Arrays.asList(JobPhaseStatus.PENDING.getValue(), JobPhaseStatus.ABORTED.getValue(), JobPhaseStatus.PAUSED.getValue(), JobPhaseStatus.FAILED.getValue()));
-            }
+            //List<AutoexecJobPhaseVo> autoexecJobPhaseVos = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobVo.getId(), Arrays.asList(JobPhaseStatus.PENDING.getValue(), JobPhaseStatus.ABORTED.getValue(), JobPhaseStatus.PAUSED.getValue(), JobPhaseStatus.FAILED.getValue()));
+            //if (CollectionUtils.isEmpty(autoexecJobPhaseVos)) {
+            List<AutoexecJobPhaseVo> autoexecJobPhaseVos = autoexecJobMapper.getJobPhaseListByJobIdAndNodeStatusList(jobVo.getId(), Arrays.asList(JobPhaseStatus.PENDING.getValue(), JobPhaseStatus.ABORTED.getValue(), JobPhaseStatus.PAUSED.getValue(), JobPhaseStatus.FAILED.getValue()));
+            //}
             //如果都成功了则无须重跑
             if (CollectionUtils.isEmpty(autoexecJobPhaseVos)) {
-
                 IDeployBatchJobCrossoverService iDeployBatchJobCrossoverService = CrossoverServiceFactory.getApi(IDeployBatchJobCrossoverService.class);
                 iDeployBatchJobCrossoverService.checkAndFireLaneNextGroupByJobId(jobVo.getId(), jobVo.getPassThroughEnv());
                 jobVo.setStatus(JobStatus.COMPLETED.getValue());

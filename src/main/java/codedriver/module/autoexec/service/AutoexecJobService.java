@@ -158,9 +158,8 @@ public interface AutoexecJobService {
      * 重置autoexec 作业节点状态
      *
      * @param jobVo      作业
-     * @param nodeVoList 节点列表
      */
-    void resetJobNodeStatus(AutoexecJobVo jobVo, List<AutoexecJobPhaseNodeVo> nodeVoList);
+    void resetJobNodeStatus(AutoexecJobVo jobVo);
 
     /**
      * 检查runner联通性

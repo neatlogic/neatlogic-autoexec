@@ -78,7 +78,7 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
             List<AutoexecJobPhaseNodeVo> needResetNodeList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseIdAndExceptStatus(jobVo.getId(), jobPhaseVo.getId(), Arrays.asList(JobNodeStatus.IGNORED.getValue(), JobNodeStatus.SUCCEED.getValue()));
             if (CollectionUtils.isNotEmpty(needResetNodeList)) {
                 autoexecJobMapper.updateJobPhaseNodeListStatus(needResetNodeList.stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()), JobNodeStatus.PENDING.getValue());
-                autoexecJobService.resetJobNodeStatus(jobVo, needResetNodeList);
+                autoexecJobService.resetJobNodeStatus(jobVo);
             }
         }
         jobPhaseVo.setJobGroupVo(autoexecJobMapper.getJobGroupById(jobPhaseVo.getGroupId()));
