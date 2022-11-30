@@ -41,7 +41,7 @@ class InspectAutoexecTypeInit extends StartupBase {
             typeVo.setName(autoexecType.getString("value"));
             typeVo.setLcu(SystemUser.SYSTEM.getUserUuid());
             typeVo.setType(AutoexecTypeType.FACTORY.getValue());
-            autoexecTypeMapper.replaceType(typeVo);
+            autoexecTypeMapper.insertType(typeVo);
         }
     }
 

@@ -6,6 +6,7 @@
 package codedriver.module.autoexec.api.operation;
 
 import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
@@ -30,7 +31,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@AuthAction(action = AUTOEXEC_MODIFY.class)
+@AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
 
@@ -72,8 +73,9 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
             @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
             @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
             @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
-            @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true")
-    })
+            @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true"),
+            @Param(name = "isNeedCheckDataAuth", type = ApiParamType.INTEGER, desc = "是否校验数据权限（1：校验，0：不校验）")
+            })
     @Output({
             @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, desc = "工具/脚本列表"),
             @Param(explode = AutoexecOperationVo.class),
