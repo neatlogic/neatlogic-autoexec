@@ -17,10 +17,12 @@ import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 
 @Service
+@Transactional
 @AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.DELETE)
 public class AutoexecTypeDeleteApi extends PrivateApiComponentBase {
@@ -58,6 +60,7 @@ public class AutoexecTypeDeleteApi extends PrivateApiComponentBase {
             throw new AutoexecTypeHasBeenReferredException(type.getName());
         }
         autoexecTypeMapper.deleteTypeById(id);
+        autoexecTypeMapper.deleteTypeAuthByTypeId(id);
         return null;
     }
 
