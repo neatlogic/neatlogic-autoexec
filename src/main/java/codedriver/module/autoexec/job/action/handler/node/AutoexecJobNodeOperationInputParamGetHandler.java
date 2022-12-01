@@ -130,7 +130,7 @@ public class AutoexecJobNodeOperationInputParamGetHandler extends AutoexecJobAct
                 }
             }
 
-            if (CollectionUtils.isNotEmpty(paramList)) {
+            if (CollectionUtils.isNotEmpty(paramList) || MapUtils.isNotEmpty(argument)) {
                 operationInputParamList.add(operationParam);
             }
         }
