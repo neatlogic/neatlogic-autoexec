@@ -202,4 +202,10 @@ public interface AutoexecJobService {
      */
     void updatePhaseJobStatus2Failed(AutoexecJobVo jobVo, AutoexecJobPhaseVo jobPhaseVo);
 
+    /**
+     * 刷新作业阶段runner
+     * @param jobPhaseVo 作业阶段
+     */
+    void refreshPhaseRunnerList(AutoexecJobPhaseVo jobPhaseVo);
+
 }

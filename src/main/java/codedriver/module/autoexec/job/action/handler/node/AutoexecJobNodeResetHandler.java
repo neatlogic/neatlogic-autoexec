@@ -77,10 +77,6 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
             Integer isAll = jobVo.getActionParam().getInteger("isAll");
             if (!Objects.equals(isAll, 1)) {
                 currentResourceIdListValid(jobVo);
-                //如果勾选的节点已经是所有的节点，则也需要重置phase的状态为pending
-                if (jobVo.getExecuteJobNodeVoList().size() == autoexecJobMapper.getJobPhaseNodeCountWithoutDeleteByJobIdAndPhaseId(jobVo.getId(), jobVo.getCurrentPhaseId())) {
-                    autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(jobVo.getCurrentPhaseId()), JobPhaseStatus.PENDING.getValue());
-                }
                 //重置节点 (status、startTime、endTime)
                 autoexecJobMapper.updateJobPhaseNodeListStatus(jobVo.getExecuteJobNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()), JobNodeStatus.PENDING.getValue());
                 jobVo.setExecuteJobNodeVoList(autoexecJobMapper.getJobPhaseNodeRunnerListByNodeIdList(jobVo.getExecuteJobNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList())));

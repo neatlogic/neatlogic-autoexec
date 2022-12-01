@@ -582,11 +582,13 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 if (isPhaseNodeNeedReInitByPreOutput(jobVo, jobPhaseVo)) {
                     //如果需要上游出参作为执行目标则无需初始化执行当前阶段执行目标
                     autoexecJobMapper.updateJobPhaseNodeStatusByJobPhaseIdAndIsDelete(jobPhaseVo.getId(), JobNodeStatus.PENDING.getValue(), 0);
+                    refreshPhaseRunnerStatus(jobPhaseVo);
                     continue;
                 }
                 jobPhaseVo.setCombopId(jobVo.getOperationId());
                 jobVo.setCurrentPhase(jobPhaseVo);
                 initPhaseExecuteUserAndProtocolAndNode(jobVo, combopExecuteConfigVo, combopPhaseExecuteConfigVo);
+                refreshPhaseRunnerStatus(jobPhaseVo);
             }
         }
     }
@@ -748,17 +750,30 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         //更新最近一次修改时间lcd
         autoexecJobMapper.updateJobPhaseLcdById(jobPhaseVo.getId(), jobPhaseVo.getLcd());
         //更新phase runner
+        refreshPhaseRunnerList(jobPhaseVo);
+        return isHasNode;
+    }
+
+    /**
+     * 刷新作业阶段runner
+     *
+     * @param jobPhaseVo 作业阶段
+     */
+    @Override
+    public void refreshPhaseRunnerList(AutoexecJobPhaseVo jobPhaseVo) {
+        if (jobPhaseVo.getJobId() == null) {
+            throw new AutoexecJobNotFoundException(jobPhaseVo.getJobId());
+        }
         List<RunnerMapVo> jobPhaseNodeRunnerList = autoexecJobMapper.getJobPhaseNodeRunnerListByJobPhaseId(jobPhaseVo.getId());
-        List<RunnerMapVo> originPhaseRunnerVoList = autoexecJobMapper.getJobPhaseRunnerMapByJobIdAndPhaseIdList(jobVo.getId(), Collections.singletonList(jobPhaseVo.getId()));
+        List<RunnerMapVo> originPhaseRunnerVoList = autoexecJobMapper.getJobPhaseRunnerMapByJobIdAndPhaseIdList(jobPhaseVo.getJobId(), Collections.singletonList(jobPhaseVo.getId()));
         List<RunnerMapVo> deleteRunnerList = originPhaseRunnerVoList.stream().filter(o -> jobPhaseNodeRunnerList.stream().noneMatch(j -> Objects.equals(o.getRunnerMapId(), j.getRunnerMapId()))).collect(Collectors.toList());
         for (RunnerMapVo deleteRunnerVo : deleteRunnerList) {
             autoexecJobMapper.deleteJobPhaseRunnerByJobPhaseIdAndRunnerMapId(jobPhaseVo.getId(), deleteRunnerVo.getRunnerMapId());
         }
         List<RunnerMapVo> insertRunnerList = jobPhaseNodeRunnerList.stream().filter(j -> originPhaseRunnerVoList.stream().noneMatch(o -> Objects.equals(o.getRunnerMapId(), j.getRunnerMapId()))).collect(Collectors.toList());
         for (RunnerMapVo insertRunnerVo : insertRunnerList) {
-            autoexecJobMapper.insertJobPhaseRunner(jobVo.getId(), jobPhaseVo.getGroupId(), jobPhaseVo.getId(), insertRunnerVo.getRunnerMapId(), jobPhaseVo.getLcd());
+            autoexecJobMapper.insertJobPhaseRunner(jobPhaseVo.getJobId(), jobPhaseVo.getGroupId(), jobPhaseVo.getId(), insertRunnerVo.getRunnerMapId(), jobPhaseVo.getLcd());
         }
-        return isHasNode;
     }
 
     /**
@@ -1290,22 +1305,58 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     }
 
     /**
+     * 更新阶段runner状态
+     *
+     * @param currentPhase 作业阶段
+     */
+    public void refreshPhaseRunnerStatus(AutoexecJobPhaseVo currentPhase) {
+        List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVoList = autoexecJobMapper.getJobPhaseRunnerStatusByJobIdAndPhaseId(currentPhase.getJobId(), currentPhase.getId());
+        for (AutoexecJobPhaseRunnerVo jobPhaseRunnerVo : jobPhaseRunnerVoList) {
+            List<String> statusList = Arrays.stream(jobPhaseRunnerVo.getStatus().split(",")).collect(toList());
+            String finalStatus;
+            if (statusList.contains(JobNodeStatus.SUCCEED.getValue())) {
+                finalStatus = JobPhaseStatus.COMPLETED.getValue();
+            } else if (statusList.contains(JobNodeStatus.WAIT_INPUT.getValue())) {
+                finalStatus = JobNodeStatus.WAIT_INPUT.getValue();
+            } else if (statusList.contains(JobNodeStatus.RUNNING.getValue())) {
+                finalStatus = JobNodeStatus.RUNNING.getValue();
+            } else if (statusList.contains(JobNodeStatus.FAILED.getValue())) {
+                finalStatus = JobNodeStatus.FAILED.getValue();
+            } else if (statusList.contains(JobNodeStatus.ABORTED.getValue())) {
+                finalStatus = JobNodeStatus.ABORTED.getValue();
+            } else if (statusList.contains(JobNodeStatus.PAUSED.getValue())) {
+                finalStatus = JobNodeStatus.PAUSED.getValue();
+            } else {
+                finalStatus = JobNodeStatus.PENDING.getValue();
+            }
+            autoexecJobMapper.updateJobPhaseRunnerStatus(Collections.singletonList(currentPhase.getId()), jobPhaseRunnerVo.getRunnerMapId(), finalStatus);
+        }
+    }
+
+    /**
      * 重置autoexec 作业节点状态
      *
-     * @param jobVo      作业
+     * @param jobVo 作业
      */
     @Override
     public void resetJobNodeStatus(AutoexecJobVo jobVo) {
+        AutoexecJobPhaseVo currentPhase = jobVo.getCurrentPhase();
+        //如果所有非删除的节点都是pending，则phase 也要更新成pending
+        if (autoexecJobMapper.getJobPhaseNodeCountWithoutDeleteByJobIdAndPhaseIdAndExceptStatusList(jobVo.getId(), currentPhase.getId(), Collections.singletonList(JobNodeStatus.PENDING.getValue())) == 0) {
+            autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(jobVo.getCurrentPhase().getId()), JobPhaseStatus.PENDING.getValue());
+        }
+        //刷新阶段runner status
+        refreshPhaseRunnerStatus(currentPhase);
         //重置mongodb node 状态
         List<RunnerMapVo> runnerVos = new ArrayList<>();
-        if(CollectionUtils.isNotEmpty(jobVo.getExecuteJobNodeVoList())) {
+        if (CollectionUtils.isNotEmpty(jobVo.getExecuteJobNodeVoList())) {
             for (AutoexecJobPhaseNodeVo nodeVo : jobVo.getExecuteJobNodeVoList()) {
                 runnerVos.add(new RunnerMapVo(nodeVo.getRunnerUrl(), nodeVo.getRunnerMapId()));
             }
             runnerVos = runnerVos.stream().filter(o -> StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
-        }else{
+        } else {
             //重置所有节点状态
-            runnerVos = autoexecJobMapper.getJobPhaseRunnerMapByJobIdAndPhaseIdList(jobVo.getId(),Collections.singletonList(jobVo.getCurrentPhase().getId()));
+            runnerVos = autoexecJobMapper.getJobPhaseRunnerMapByJobIdAndPhaseIdList(jobVo.getId(), Collections.singletonList(jobVo.getCurrentPhase().getId()));
         }
 
         checkRunnerHealth(runnerVos);
