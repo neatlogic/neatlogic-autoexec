@@ -21,6 +21,7 @@ import codedriver.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandle
 import codedriver.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
 import codedriver.framework.autoexec.source.AutoexecJobSourceFactory;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.exception.core.ApiRuntimeException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -161,7 +162,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         if (jobPhaseVo.getIsPreOutputUpdateNode() == 1 && Objects.equals(JobPhaseStatus.COMPLETED.getValue(), finalJobPhaseStatus)) {
             try {
                 autoexecJobService.updateNodeByPreOutput(jobVo, jobPhaseVo);
-            } catch (AutoexecJobNodePreParamValueNotInvalidException ex) {
+            } catch (ApiRuntimeException ex) {
                 //如果根据上游参数初始化执行目标失败，上游出参的值不存在或不合法，则更新phase和job 状态为已失败
                 TransactionSynchronizationPool.executeAfterRollback(new CodeDriverThread("AUTOEXEC-JOB-PHASE-ERROR-UPDATE") {
                     @Override
@@ -169,7 +170,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
                         autoexecJobService.updatePhaseJobStatus2Failed(jobVo, jobPhaseVo);
                     }
                 });
-                throw new AutoexecJobNodePreParamValueNotInvalidException(ex.getMessage(), ex);
+                throw new ApiRuntimeException(ex.getMessage(), ex);
             }
         }
 

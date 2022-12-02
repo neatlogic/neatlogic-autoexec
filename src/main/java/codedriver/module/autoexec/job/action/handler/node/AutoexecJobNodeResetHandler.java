@@ -73,20 +73,21 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
                 handler = AutoexecJobSourceTypeHandlerFactory.getAction(codedriver.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
             }
             handler.resetSqlStatus(jobVo.getActionParam(), jobVo);
-            nodeVoList = jobVo.getExecuteJobNodeVoList();
         } else {
             Integer isAll = jobVo.getActionParam().getInteger("isAll");
             if (!Objects.equals(isAll, 1)) {
                 currentResourceIdListValid(jobVo);
+                //重置节点 (status、startTime、endTime)
+                autoexecJobMapper.updateJobPhaseNodeListStatus(jobVo.getExecuteJobNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()), JobNodeStatus.PENDING.getValue());
+                jobVo.setExecuteJobNodeVoList(autoexecJobMapper.getJobPhaseNodeRunnerListByNodeIdList(jobVo.getExecuteJobNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList())));
             } else {
                 autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(currentPhaseVo.getId()), JobPhaseStatus.PENDING.getValue());
-                jobVo.setExecuteJobNodeVoList(autoexecJobMapper.getJobPhaseNodeListWithoutDeleteByJobIdAndPhaseId(jobVo.getId(), jobVo.getCurrentPhaseId()));
+                autoexecJobMapper.updateJobPhaseNodeStatusByJobPhaseIdAndIsDelete(currentPhaseVo.getId(), JobNodeStatus.PENDING.getValue(), 0);
+                //jobVo.setExecuteJobNodeVoList(autoexecJobMapper.getJobPhaseNodeListWithoutDeleteByJobIdAndPhaseId(jobVo.getId(), jobVo.getCurrentPhaseId()));
             }
-            //重置节点 (status、startTime、endTime)
-            autoexecJobMapper.updateJobPhaseNodeListStatus(jobVo.getExecuteJobNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()), JobNodeStatus.PENDING.getValue());
-            nodeVoList = autoexecJobMapper.getJobPhaseNodeRunnerListByNodeIdList(jobVo.getExecuteJobNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()));
+
         }
-        autoexecJobService.resetJobNodeStatus(jobVo, nodeVoList);
+        autoexecJobService.resetJobNodeStatus(jobVo);
         return null;
     }
 }
