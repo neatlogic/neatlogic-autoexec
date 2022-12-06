@@ -30,7 +30,7 @@ import javax.annotation.Resource;
 @Transactional
 @AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.OPERATE)
-public class AutoexecTypeSaveApi extends PrivateApiComponentBase {
+public class SaveAutoexecTypeApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecTypeMapper autoexecTypeMapper;
