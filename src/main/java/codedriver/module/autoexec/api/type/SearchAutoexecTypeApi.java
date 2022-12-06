@@ -29,7 +29,7 @@ import java.util.stream.Collectors;
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
-public class AutoexecTypeSearchApi extends PrivateApiComponentBase {
+public class SearchAutoexecTypeApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecTypeMapper autoexecTypeMapper;
@@ -41,7 +41,7 @@ public class AutoexecTypeSearchApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "查询插件类型";
+        return "查询自动化工具分类列表";
     }
 
     @Override
@@ -57,10 +57,10 @@ public class AutoexecTypeSearchApi extends PrivateApiComponentBase {
             @Param(name = "isNeedCheckDataAuth", type = ApiParamType.INTEGER, desc = "是否校验数据权限（1：校验，0：不校验）")
     })
     @Output({
-            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecTypeVo[].class, desc = "类型列表"),
+            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecTypeVo[].class, desc = "分类列表"),
             @Param(explode = BasePageVo.class)
     })
-    @Description(desc = "查询插件类型")
+    @Description(desc = "查询自动化工具分类列表")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
