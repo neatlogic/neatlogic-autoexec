@@ -31,23 +31,18 @@
         <dependency>
             <groupId>com.techsure</groupId>
             <artifactId>codedriver-framework</artifactId>
-            <version>[1.0.0,)</version>
-            <optional>true</optional>
         </dependency>
         <dependency>
             <groupId>com.techsure</groupId>
             <artifactId>codedriver-autoexec-base</artifactId>
-            <version>[1.0.0,)</version>
         </dependency>
         <dependency>
             <groupId>com.techsure</groupId>
             <artifactId>codedriver-process-base</artifactId>
-            <version>[1.0.0,)</version>
         </dependency>
         <dependency>
             <groupId>com.techsure</groupId>
             <artifactId>codedriver-deploy-base</artifactId>
-            <version>[1.0.0,)</version>
         </dependency>
     </dependencies>
 </project>
