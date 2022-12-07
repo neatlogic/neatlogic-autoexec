@@ -64,23 +64,25 @@ public class AutoexecJobRunTimeParamGetApi extends PrivateApiComponentBase {
         }
         //运行变量
         AutoexecJobContentVo paramContentVo = autoexecJobMapper.getJobContent(jobVo.getParamHash());
-        JSONArray runTimeParam = JSONObject.parseArray(paramContentVo.getContent());
-        //集成数据特殊处理，截取text
-        for (int i = 0; i < runTimeParam.size(); i++) {
-            String value = runTimeParam.getJSONObject(i).getString("value");
-            String defaultValue = runTimeParam.getJSONObject(i).getString("defaultValue");
-            String type = runTimeParam.getJSONObject(i).getString("type");
-            if (StringUtils.isNotBlank(type) && StringUtils.isNotBlank(value)) {
-                IScriptParamType paramType = ScriptParamTypeFactory.getHandler(type);
-                if(paramType != null){
-                    runTimeParam.getJSONObject(i).put("value", paramType.getTextByValue(value));
-                    if(StringUtils.isNotBlank(defaultValue)) {
-                        runTimeParam.getJSONObject(i).put("defaultValue", paramType.getTextByValue(defaultValue));
+        if(paramContentVo != null) {
+            JSONArray runTimeParam = JSONObject.parseArray(paramContentVo.getContent());
+            //集成数据特殊处理，截取text
+            for (int i = 0; i < runTimeParam.size(); i++) {
+                String value = runTimeParam.getJSONObject(i).getString("value");
+                String defaultValue = runTimeParam.getJSONObject(i).getString("defaultValue");
+                String type = runTimeParam.getJSONObject(i).getString("type");
+                if (StringUtils.isNotBlank(type) && StringUtils.isNotBlank(value)) {
+                    IScriptParamType paramType = ScriptParamTypeFactory.getHandler(type);
+                    if (paramType != null) {
+                        runTimeParam.getJSONObject(i).put("value", paramType.getTextByValue(value));
+                        if (StringUtils.isNotBlank(defaultValue)) {
+                            runTimeParam.getJSONObject(i).put("defaultValue", paramType.getTextByValue(defaultValue));
+                        }
                     }
                 }
             }
+            result.put("runTimeParamList", runTimeParam);
         }
-        result.put("runTimeParamList", runTimeParam);
         //TODO 环境变量
         result.put("environmentList", CollectionUtils.EMPTY_COLLECTION);
         return result;
