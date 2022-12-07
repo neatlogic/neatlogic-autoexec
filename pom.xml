@@ -9,7 +9,7 @@
     <parent>
         <groupId>com.techsure</groupId>
         <artifactId>codedriver-parent</artifactId>
-        <version>[1.0.0, 2.0.0)</version>
+        <version>[1.0.0, 2.0.0]</version>
     </parent>
     <artifactId>codedriver-autoexec</artifactId>
     <version>0.1.2.0-SNAPSHOT</version>
@@ -24,8 +24,11 @@
             </resource>
         </resources>
     </build>
-
     <dependencies>
+        <dependency>
+            <groupId>com.techsure</groupId>
+            <artifactId>codedriver-framework</artifactId>
+        </dependency>
         <dependency>
             <groupId>com.techsure</groupId>
             <artifactId>codedriver-autoexec-base</artifactId>
