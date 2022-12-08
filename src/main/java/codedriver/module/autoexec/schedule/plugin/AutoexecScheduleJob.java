@@ -31,6 +31,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * @author linbq
@@ -58,7 +59,12 @@ public class AutoexecScheduleJob extends JobBase {
 
     @Override
     public Boolean isMyHealthy(JobObject jobObject) {
-        return true;
+        String uuid = jobObject.getJobName();
+        AutoexecScheduleVo autoexecScheduleVo = autoexecScheduleMapper.getAutoexecScheduleByUuid(uuid);
+        if (autoexecScheduleVo == null) {
+            return false;
+        }
+        return Objects.equals(autoexecScheduleVo.getIsActive(), 1) && Objects.equals(autoexecScheduleVo.getCron(), jobObject.getCron());
     }
 
     @Override
