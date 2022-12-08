@@ -7,9 +7,12 @@ package codedriver.module.autoexec.startup;
 
 import codedriver.framework.autoexec.constvalue.AutoexecTypeType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
+import codedriver.framework.autoexec.dto.AutoexecTypeAuthVo;
 import codedriver.framework.autoexec.dto.AutoexecTypeVo;
 import codedriver.framework.autoexec.type.AutoexecTypeFactory;
+import codedriver.framework.common.constvalue.GroupSearch;
 import codedriver.framework.common.constvalue.SystemUser;
+import codedriver.framework.common.constvalue.UserType;
 import codedriver.framework.startup.StartupBase;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -42,6 +45,7 @@ class InspectAutoexecTypeInit extends StartupBase {
             typeVo.setLcu(SystemUser.SYSTEM.getUserUuid());
             typeVo.setType(AutoexecTypeType.FACTORY.getValue());
             autoexecTypeMapper.insertType(typeVo);
+            autoexecTypeMapper.insertTypeAuth(new AutoexecTypeAuthVo(typeVo.getId(), GroupSearch.COMMON.getValue(), UserType.ALL.getValue()));
         }
     }
 
