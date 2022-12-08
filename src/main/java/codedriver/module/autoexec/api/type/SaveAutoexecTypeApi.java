@@ -74,7 +74,7 @@ public class SaveAutoexecTypeApi extends PrivateApiComponentBase {
             }
             autoexecTypeMapper.updateType(typeVo);
         }
-        autoexecTypeMapper.insertTypeAuth(typeVo.getAutoexecTypeAuthList());
+        autoexecTypeMapper.insertTypeAuthList(typeVo.getAutoexecTypeAuthList());
         return null;
     }
 
