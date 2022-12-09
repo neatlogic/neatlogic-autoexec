@@ -7,7 +7,6 @@ package codedriver.module.autoexec.startup;
 
 import codedriver.framework.autoexec.constvalue.AutoexecTypeType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
-import codedriver.framework.autoexec.dto.AutoexecTypeAuthVo;
 import codedriver.framework.autoexec.dto.AutoexecTypeVo;
 import codedriver.framework.autoexec.type.AutoexecTypeFactory;
 import codedriver.framework.common.constvalue.GroupSearch;
@@ -16,9 +15,14 @@ import codedriver.framework.common.constvalue.UserType;
 import codedriver.framework.startup.StartupBase;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 class InspectAutoexecTypeInit extends StartupBase {
@@ -35,6 +39,7 @@ class InspectAutoexecTypeInit extends StartupBase {
     @Override
     public void executeForCurrentTenant() {
         JSONArray autoexecTypeList = AutoexecTypeFactory.getAutoexecTypeList();
+        List<AutoexecTypeVo> insertTypeList = new ArrayList<>();
         for (int i = 0; i < autoexecTypeList.size(); i++) {
             JSONObject autoexecType = autoexecTypeList.getJSONObject(i);
             autoexecType.getString("value");
@@ -44,8 +49,16 @@ class InspectAutoexecTypeInit extends StartupBase {
             typeVo.setName(autoexecType.getString("value"));
             typeVo.setLcu(SystemUser.SYSTEM.getUserUuid());
             typeVo.setType(AutoexecTypeType.FACTORY.getValue());
-            autoexecTypeMapper.insertType(typeVo);
-            autoexecTypeMapper.insertTypeAuth(new AutoexecTypeAuthVo(typeVo.getId(), GroupSearch.COMMON.getValue(), UserType.ALL.getValue()));
+            insertTypeList.add(typeVo);
+        }
+        if (CollectionUtils.isNotEmpty(insertTypeList)) {
+            autoexecTypeMapper.insertTypeList(insertTypeList);
+            List<Long> typeIdList = insertTypeList.stream().map(AutoexecTypeVo::getId).collect(toList());
+            List<Long> hasAuthTypeIdList = autoexecTypeMapper.getHasAuthTypeIdListByTypeIdList(typeIdList);
+            List<Long> needInsertAuthList = CollectionUtils.isNotEmpty(hasAuthTypeIdList) ? typeIdList.stream().filter(item -> !hasAuthTypeIdList.contains(item)).collect(toList()) : typeIdList;
+            if (CollectionUtils.isNotEmpty(needInsertAuthList)) {
+                autoexecTypeMapper.insertBatchTypeAuth(needInsertAuthList, GroupSearch.COMMON.getValue(), UserType.ALL.getValue());
+            }
         }
     }
 
