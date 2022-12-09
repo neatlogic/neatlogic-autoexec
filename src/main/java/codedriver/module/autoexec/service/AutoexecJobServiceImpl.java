@@ -27,8 +27,10 @@ import codedriver.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandle
 import codedriver.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
 import codedriver.framework.autoexec.source.AutoexecJobSourceFactory;
 import codedriver.framework.autoexec.util.AutoexecUtil;
+import codedriver.framework.cmdb.crossover.ICiCrossoverMapper;
 import codedriver.framework.cmdb.crossover.IResourceCenterResourceCrossoverService;
 import codedriver.framework.cmdb.crossover.IResourceCrossoverMapper;
+import codedriver.framework.cmdb.dto.ci.CiVo;
 import codedriver.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import codedriver.framework.cmdb.dto.resourcecenter.ResourceVo;
 import codedriver.framework.common.util.PageUtil;
@@ -111,8 +113,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         autoexecJobMapper.insertJobInvoke(invokeVo);
         autoexecJobMapper.insertIgnoreJobContent(new AutoexecJobContentVo(jobVo.getConfigHash(), jobVo.getConfigStr()));
         getFinalRuntimeParamList(jobVo.getRunTimeParamList(), jobVo.getParam());
-        for (AutoexecParamVo runtimeParam : jobVo.getRunTimeParamList()) {
-            autoexecService.validateTextTypeParamValue(runtimeParam, runtimeParam.getValue());
+        if(CollectionUtils.isNotEmpty(jobVo.getRunTimeParamList())) {
+            for (AutoexecParamVo runtimeParam : jobVo.getRunTimeParamList()) {
+                autoexecService.validateTextTypeParamValue(runtimeParam, runtimeParam.getValue());
+            }
         }
         autoexecJobMapper.insertIgnoreJobContent(new AutoexecJobContentVo(jobVo.getParamHash(), jobVo.getRunTimeParamListStr()));
         autoexecJobMapper.insertJob(jobVo);
@@ -954,6 +958,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      */
     private boolean updateNodeResourceByFilter(AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
         JSONObject filterJson = executeNodeConfigVo.getFilter();
+        boolean isHasNode = false;
         if (MapUtils.isNotEmpty(filterJson)) {
             JSONObject resourceJson;
             IResourceCenterResourceCrossoverService resourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
@@ -969,16 +974,41 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     if (CollectionUtils.isEmpty(idList)) {
                         continue;
                     }
-                    List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceListByIdList(idList);
-                    if (CollectionUtils.isNotEmpty(resourceVoList)) {
-                        updateJobPhaseNode(jobVo, resourceVoList, userName, protocolId);
+                    List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIdList(idList);
+                    if (CollectionUtils.isNotEmpty(resourceList)) {
+                        updateJobPhaseNode(jobVo, resourceList, userName, protocolId);
                     }
                 }
-                return true;
+                isHasNode = true;
             }
-
+            //针对巡检补充os 资产
+            if(Objects.equals(jobVo.getSource(),codedriver.framework.inspect.constvalue.JobSource.INSPECT.getValue())) {
+                ICiCrossoverMapper ciCrossoverMapper = CrossoverServiceFactory.getApi(ICiCrossoverMapper.class);
+                CiVo civo = ciCrossoverMapper.getCiById(jobVo.getInvokeId());
+                if (civo.getParentCiName() != null && civo.getParentCiName().toUpperCase(Locale.ROOT).contains("OS")) {
+                    //从scence_os_softwareservice_env_appmodule_appsystem 获取os
+                    searchVo.setTypeId(jobVo.getInvokeId());
+                    searchVo.setAppSystemId(searchVo.getAppSystemIdList().get(0));
+                    searchVo.setEnvId(searchVo.getEnvIdList().get(0));
+                    int rowNum = resourceCrossoverMapper.getOsResourceCountByAppSystemIdAndAppModuleIdListAndEnvIdAndTypeId(searchVo);
+                    if (rowNum > 0) {
+                        searchVo.setRowNum(rowNum);
+                        for (int currentPage = 1; currentPage <= searchVo.getPageCount(); currentPage++) {
+                            searchVo.setCurrentPage(currentPage);
+                            List<Long> idList = resourceCrossoverMapper.getOsResourceIdListByAppSystemIdAndAppModuleIdAndEnvIdAndTypeId(searchVo);
+                            if (CollectionUtils.isNotEmpty(idList)) {
+                                List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceByIdList(idList);
+                                if (CollectionUtils.isNotEmpty(resourceList)) {
+                                    updateJobPhaseNode(jobVo, resourceList, userName, protocolId);
+                                    isHasNode = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
-        return false;
+        return isHasNode;
     }
 
     /**
