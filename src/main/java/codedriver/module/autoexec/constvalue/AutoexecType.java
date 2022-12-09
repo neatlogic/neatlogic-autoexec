@@ -5,7 +5,19 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 
 public enum AutoexecType implements IAutoexecType {
-    TEST(3L, "TEST", "测试用工具");
+    TEST(3L, "TEST", "测试用工具"),
+    INSTALL(4L, "INSTALL", "软件安装配置"),
+    START_STOP(5L, "START_STOP", "启停操作"),
+    NATIVE(6L, "NATIVE", "调度器内置工具"),
+    BASIC(7L, "BASIC", "基础工具"),
+    TEMP(8L, "TEMP", "临时使用"),
+    BUILD(9L, "BUILD", "编译打包"),
+    BIZ_JOBS(10L, "BIZ_JOBS", "作业调度"),
+    DEPLOY(11L, "DEPLOY", "自动发布"),
+    BACKUP(12L, "BACKUP", "备份"),
+    SQL_FILE(13L, "SQL_FILE", "SQL处理"),
+    DR_SWITCH(14L, "TEST", "灾备切换"),
+    ;
 
     private final Long id;
     private final String value;

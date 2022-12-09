@@ -12,6 +12,8 @@ import codedriver.framework.autoexec.dto.AutoexecTypeVo;
 import codedriver.framework.autoexec.exception.AutoexecTypeHasBeenReferredException;
 import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.crossover.CrossoverServiceFactory;
+import codedriver.framework.deploy.crossover.IDeployTypeCrossoverMapper;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -61,6 +63,8 @@ public class DeleteAutoexecTypeApi extends PrivateApiComponentBase {
         }
         autoexecTypeMapper.deleteTypeById(id);
         autoexecTypeMapper.deleteTypeAuthByTypeId(id);
+        IDeployTypeCrossoverMapper iDeployTypeCrossoverMapper = CrossoverServiceFactory.getApi(IDeployTypeCrossoverMapper.class);
+        iDeployTypeCrossoverMapper.deleteTypeByTypeId(id);
         return null;
     }
 

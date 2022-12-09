@@ -20,7 +20,10 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toList;
 
@@ -40,16 +43,41 @@ class InspectAutoexecTypeInit extends StartupBase {
     public void executeForCurrentTenant() {
         JSONArray autoexecTypeList = AutoexecTypeFactory.getAutoexecTypeList();
         List<AutoexecTypeVo> insertTypeList = new ArrayList<>();
+        List<String> insertTypeNameList = new ArrayList<>();
         for (int i = 0; i < autoexecTypeList.size(); i++) {
             JSONObject autoexecType = autoexecTypeList.getJSONObject(i);
-            autoexecType.getString("value");
-            AutoexecTypeVo typeVo = new AutoexecTypeVo();
-            typeVo.setId(autoexecType.getLong("id"));
-            typeVo.setDescription(autoexecType.getString("text"));
-            typeVo.setName(autoexecType.getString("value"));
-            typeVo.setLcu(SystemUser.SYSTEM.getUserUuid());
-            typeVo.setType(AutoexecTypeType.FACTORY.getValue());
-            insertTypeList.add(typeVo);
+            insertTypeNameList.add(autoexecType.getString("value"));
+        }
+        List<AutoexecTypeVo> hasInitTypeList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(insertTypeNameList)) {
+            hasInitTypeList = autoexecTypeMapper.getTypeListByNameList(insertTypeNameList);
+        }
+
+        Map<String, AutoexecTypeVo> hasInitTypeNameMap = new HashMap<>();
+        if (CollectionUtils.isNotEmpty(hasInitTypeList)) {
+            hasInitTypeNameMap = hasInitTypeList.stream().collect(Collectors.toMap(AutoexecTypeVo::getName, e -> e));
+        }
+
+        for (int i = 0; i < autoexecTypeList.size(); i++) {
+            JSONObject autoexecType = autoexecTypeList.getJSONObject(i);
+            String typeName = autoexecType.getString("value");
+            if (hasInitTypeNameMap.containsKey(typeName)) {
+                AutoexecTypeVo hasExistTypeVo = hasInitTypeNameMap.get(typeName);
+                if (CollectionUtils.isNotEmpty(hasExistTypeVo.getAutoexecTypeAuthList())) {
+                    continue;
+                } else {
+
+                }
+                continue;
+            } else {
+                AutoexecTypeVo typeVo = new AutoexecTypeVo();
+                typeVo.setId(autoexecType.getLong("id"));
+                typeVo.setDescription(autoexecType.getString("text"));
+                typeVo.setName(typeName);
+                typeVo.setLcu(SystemUser.SYSTEM.getUserUuid());
+                typeVo.setType(AutoexecTypeType.FACTORY.getValue());
+                insertTypeList.add(typeVo);
+            }
         }
         if (CollectionUtils.isNotEmpty(insertTypeList)) {
             autoexecTypeMapper.insertTypeList(insertTypeList);
