@@ -165,6 +165,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             AutoexecCombopPhaseConfigVo combopPhaseExecuteConfigVo = autoexecCombopPhaseVo.getConfig();
             //jobPhaseOperation
             List<AutoexecCombopPhaseOperationVo> combopPhaseOperationList = combopPhaseExecuteConfigVo.getPhaseOperationList();
+            List<AutoexecJobPhaseOperationVo> jobPhaseOperationVoList = new ArrayList<>();
+            jobPhaseVo.setOperationList(jobPhaseOperationVoList);
             convertCombOperation2JobOperation(jobPhaseVo, jobPhaseVoList, combopPhaseOperationList, jobVo, preOperationNameMap);
             //jobPhaseNode
             if (isPhaseNodeNeedReInitByPreOutput(jobVo, jobPhaseVo)) {
@@ -388,8 +390,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      * @return 作业工具列表
      */
     private List<AutoexecJobPhaseOperationVo> convertCombOperation2JobOperation(AutoexecJobPhaseVo jobPhaseVo, List<AutoexecJobPhaseVo> jobPhaseVoList, List<AutoexecCombopPhaseOperationVo> combopPhaseOperationList, AutoexecJobVo jobVo, Map<String, String> preOperationNameMap) {
-        List<AutoexecJobPhaseOperationVo> jobPhaseOperationVoList = new ArrayList<>();
-        jobPhaseVo.setOperationList(jobPhaseOperationVoList);
+        List<AutoexecJobPhaseOperationVo> jobPhaseOperationVoList = jobPhaseVo.getOperationList();
         for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : combopPhaseOperationList) {
             preOperationNameMap.put(autoexecCombopPhaseOperationVo.getUuid(), autoexecCombopPhaseOperationVo.getOperationName());
             String operationType = autoexecCombopPhaseOperationVo.getOperationType();
