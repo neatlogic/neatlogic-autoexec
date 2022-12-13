@@ -113,7 +113,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         autoexecJobMapper.insertJobInvoke(invokeVo);
         autoexecJobMapper.insertIgnoreJobContent(new AutoexecJobContentVo(jobVo.getConfigHash(), jobVo.getConfigStr()));
         getFinalRuntimeParamList(jobVo.getRunTimeParamList(), jobVo.getParam());
-        if(CollectionUtils.isNotEmpty(jobVo.getRunTimeParamList())) {
+        if (CollectionUtils.isNotEmpty(jobVo.getRunTimeParamList())) {
             for (AutoexecParamVo runtimeParam : jobVo.getRunTimeParamList()) {
                 autoexecService.validateTextTypeParamValue(runtimeParam, runtimeParam.getValue());
             }
@@ -165,6 +165,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             AutoexecCombopPhaseConfigVo combopPhaseExecuteConfigVo = autoexecCombopPhaseVo.getConfig();
             //jobPhaseOperation
             List<AutoexecCombopPhaseOperationVo> combopPhaseOperationList = combopPhaseExecuteConfigVo.getPhaseOperationList();
+            List<AutoexecJobPhaseOperationVo> jobPhaseOperationVoList = new ArrayList<>();
+            jobPhaseVo.setOperationList(jobPhaseOperationVoList);
             convertCombOperation2JobOperation(jobPhaseVo, jobPhaseVoList, combopPhaseOperationList, jobVo, preOperationNameMap);
             //jobPhaseNode
             if (isPhaseNodeNeedReInitByPreOutput(jobVo, jobPhaseVo)) {
@@ -389,7 +391,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      */
     private List<AutoexecJobPhaseOperationVo> convertCombOperation2JobOperation(AutoexecJobPhaseVo jobPhaseVo, List<AutoexecJobPhaseVo> jobPhaseVoList, List<AutoexecCombopPhaseOperationVo> combopPhaseOperationList, AutoexecJobVo jobVo, Map<String, String> preOperationNameMap) {
         List<AutoexecJobPhaseOperationVo> jobPhaseOperationVoList = new ArrayList<>();
-        jobPhaseVo.setOperationList(jobPhaseOperationVoList);
         for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : combopPhaseOperationList) {
             preOperationNameMap.put(autoexecCombopPhaseOperationVo.getUuid(), autoexecCombopPhaseOperationVo.getOperationName());
             String operationType = autoexecCombopPhaseOperationVo.getOperationType();
@@ -420,6 +421,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, toolVo, jobPhaseVoList, preOperationNameMap);
                 initIfBlockOperation(autoexecCombopPhaseOperationVo, jobPhaseOperationVo, jobPhaseVo, jobPhaseVoList, jobVo, preOperationNameMap);
             }
+            //用于
+            if (jobPhaseOperationVo.getParentOperationId() == null) {
+                jobPhaseVo.getOperationList().add(jobPhaseOperationVo);
+            }
             jobPhaseOperationVoList.add(jobPhaseOperationVo);
             autoexecJobMapper.insertJobPhaseOperation(jobPhaseOperationVo);
             autoexecJobMapper.insertIgnoreJobContent(new AutoexecJobContentVo(jobPhaseOperationVo.getParamHash(), jobPhaseOperationVo.getParamStr()));
@@ -449,7 +454,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                         o.setParentOperationType("if");
                     });
                     List<AutoexecJobPhaseOperationVo> ifJobOperation = convertCombOperation2JobOperation(jobPhaseVo, jobPhaseVoList, ifOperationList, jobVo, preOperationNameMap);
-
                     paramObj.put("ifList", ifJobOperation);
                 }
                 if (CollectionUtils.isNotEmpty(combopPhaseOperationConfigVo.getElseList())) {
@@ -982,7 +986,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 isHasNode = true;
             }
             //针对巡检补充os 资产
-            if(Objects.equals(jobVo.getSource(),codedriver.framework.inspect.constvalue.JobSource.INSPECT.getValue())) {
+            if (Objects.equals(jobVo.getSource(), codedriver.framework.inspect.constvalue.JobSource.INSPECT.getValue())) {
                 ICiCrossoverMapper ciCrossoverMapper = CrossoverServiceFactory.getApi(ICiCrossoverMapper.class);
                 CiVo civo = ciCrossoverMapper.getCiById(jobVo.getInvokeId());
                 if (civo.getParentCiName() != null && civo.getParentCiName().toUpperCase(Locale.ROOT).contains("OS")) {
