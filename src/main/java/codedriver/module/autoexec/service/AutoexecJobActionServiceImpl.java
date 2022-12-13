@@ -227,7 +227,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                     put("opLetter", operationVo.getLetter());
                     put("failIgnore", operationVo.getFailIgnore());
                     put("isScript", Objects.equals(operationVo.getType(), ToolType.SCRIPT.getValue()) ? 1 : 0);
-                    put("scriptId", operationVo.getScriptId());
+                    put("scriptId", operationVo.getScriptId() == null ? operationVo.getOperationId() : operationVo.getScriptId());
                     put("interpreter", operationVo.getParser());
                     put("help", operationVo.getDescription());
                     //put("script", operationVo.getScript());
