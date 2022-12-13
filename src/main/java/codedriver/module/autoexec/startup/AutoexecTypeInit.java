@@ -7,6 +7,7 @@ package codedriver.module.autoexec.startup;
 
 import codedriver.framework.autoexec.constvalue.AutoexecTypeType;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
+import codedriver.framework.autoexec.dto.AutoexecTypeAuthVo;
 import codedriver.framework.autoexec.dto.AutoexecTypeVo;
 import codedriver.framework.autoexec.type.AutoexecTypeFactory;
 import codedriver.framework.common.constvalue.GroupSearch;
@@ -28,47 +29,46 @@ import java.util.stream.Collectors;
 import static java.util.stream.Collectors.toList;
 
 @Service
-class InspectAutoexecTypeInit extends StartupBase {
+class AutoexecTypeInit extends StartupBase {
 
     @Resource
-
     private AutoexecTypeMapper autoexecTypeMapper;
 
     @Override
     public String getName() {
-        return "添加巡检的工具分类";
+        return "初始化自动化工具分类";
     }
 
     @Override
     public void executeForCurrentTenant() {
-        JSONArray autoexecTypeList = AutoexecTypeFactory.getAutoexecTypeList();
+        JSONArray needInitTypeList = AutoexecTypeFactory.getAutoexecTypeList();
+        if (CollectionUtils.isEmpty(needInitTypeList)) {
+            return;
+        }
         List<AutoexecTypeVo> insertTypeList = new ArrayList<>();
+        List<AutoexecTypeAuthVo> insertTypeAuthList = new ArrayList<>();
         List<String> insertTypeNameList = new ArrayList<>();
-        for (int i = 0; i < autoexecTypeList.size(); i++) {
-            JSONObject autoexecType = autoexecTypeList.getJSONObject(i);
+        for (int i = 0; i < needInitTypeList.size(); i++) {
+            JSONObject autoexecType = needInitTypeList.getJSONObject(i);
             insertTypeNameList.add(autoexecType.getString("value"));
         }
-        List<AutoexecTypeVo> hasInitTypeList = new ArrayList<>();
+        //查出已经存在且需要初始化的工具分类
+        List<AutoexecTypeVo> hadInitTypeList = new ArrayList<>();
+        Map<String, AutoexecTypeVo> hadInitTypeNameMap = new HashMap<>();
         if (CollectionUtils.isNotEmpty(insertTypeNameList)) {
-            hasInitTypeList = autoexecTypeMapper.getTypeListByNameList(insertTypeNameList);
+            hadInitTypeList = autoexecTypeMapper.getTypeListByNameList(insertTypeNameList);
+            hadInitTypeNameMap = hadInitTypeList.stream().collect(Collectors.toMap(AutoexecTypeVo::getName, e -> e));
         }
 
-        Map<String, AutoexecTypeVo> hasInitTypeNameMap = new HashMap<>();
-        if (CollectionUtils.isNotEmpty(hasInitTypeList)) {
-            hasInitTypeNameMap = hasInitTypeList.stream().collect(Collectors.toMap(AutoexecTypeVo::getName, e -> e));
-        }
-
-        for (int i = 0; i < autoexecTypeList.size(); i++) {
-            JSONObject autoexecType = autoexecTypeList.getJSONObject(i);
+        for (int i = 0; i < needInitTypeList.size(); i++) {
+            JSONObject autoexecType = needInitTypeList.getJSONObject(i);
             String typeName = autoexecType.getString("value");
-            if (hasInitTypeNameMap.containsKey(typeName)) {
-                AutoexecTypeVo hasExistTypeVo = hasInitTypeNameMap.get(typeName);
-                if (CollectionUtils.isNotEmpty(hasExistTypeVo.getAutoexecTypeAuthList())) {
-                    continue;
-                } else {
-
+            if (hadInitTypeNameMap.containsKey(typeName)) {
+                //已存在的分类若没有数据权限，则需要初始化数据权限
+                AutoexecTypeVo hadExistTypeVo = hadInitTypeNameMap.get(typeName);
+                if (CollectionUtils.isEmpty(hadExistTypeVo.getAutoexecTypeAuthList())) {
+                    insertTypeAuthList.add(new AutoexecTypeAuthVo(hadExistTypeVo.getId(), GroupSearch.COMMON.getValue(), UserType.ALL.getValue()));
                 }
-                continue;
             } else {
                 AutoexecTypeVo typeVo = new AutoexecTypeVo();
                 typeVo.setId(autoexecType.getLong("id"));
@@ -87,6 +87,9 @@ class InspectAutoexecTypeInit extends StartupBase {
             if (CollectionUtils.isNotEmpty(needInsertAuthList)) {
                 autoexecTypeMapper.insertBatchTypeAuth(needInsertAuthList, GroupSearch.COMMON.getValue(), UserType.ALL.getValue());
             }
+        }
+        if (CollectionUtils.isNotEmpty(insertTypeAuthList)) {
+            autoexecTypeMapper.insertTypeAuthList(insertTypeAuthList);
         }
     }
 

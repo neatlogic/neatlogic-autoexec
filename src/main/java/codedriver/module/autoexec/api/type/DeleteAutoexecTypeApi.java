@@ -64,9 +64,7 @@ public class DeleteAutoexecTypeApi extends PrivateApiComponentBase {
         autoexecTypeMapper.deleteTypeById(id);
         autoexecTypeMapper.deleteTypeAuthByTypeId(id);
         IDeployTypeCrossoverMapper iDeployTypeCrossoverMapper = CrossoverServiceFactory.getApi(IDeployTypeCrossoverMapper.class);
-        iDeployTypeCrossoverMapper.deleteTypeByTypeId(id);
+        iDeployTypeCrossoverMapper.deleteTypeActiveByTypeId(id);
         return null;
     }
-
-
 }

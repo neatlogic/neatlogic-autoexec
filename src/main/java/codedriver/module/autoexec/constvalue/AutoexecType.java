@@ -16,7 +16,7 @@ public enum AutoexecType implements IAutoexecType {
     DEPLOY(11L, "DEPLOY", "自动发布"),
     BACKUP(12L, "BACKUP", "备份"),
     SQL_FILE(13L, "SQL_FILE", "SQL处理"),
-    DR_SWITCH(14L, "TEST", "灾备切换"),
+    DR_SWITCH(14L, "DR_SWITCH", "灾备切换"),
     ;
 
     private final Long id;
