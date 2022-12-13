@@ -124,6 +124,8 @@ public class GetAutoexecJobPhaseOperationScriptForAutoexecApi extends PrivateApi
         HttpServletResponse resp = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getResponse();
         if (resp != null) {
             resp.setHeader("ScriptCatalog", scriptCatalog);
+            resp.setHeader("ScriptId", scriptVersionVo.getScriptId().toString());
+            resp.setHeader("ScriptVersionId", scriptVersionVo.getId().toString());
         }
 
         if (lastModified != null && lastModified.multiply(new BigDecimal("1000")).longValue() >= scriptVersionVo.getLcd().getTime()) {
