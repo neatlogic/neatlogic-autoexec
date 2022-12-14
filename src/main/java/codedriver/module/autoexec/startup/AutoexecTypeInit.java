@@ -100,6 +100,6 @@ class AutoexecTypeInit extends StartupBase {
 
     @Override
     public int sort() {
-        return 0;
+        return 2;
     }
 }
