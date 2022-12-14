@@ -13,6 +13,7 @@ import codedriver.framework.autoexec.type.AutoexecTypeFactory;
 import codedriver.framework.common.constvalue.GroupSearch;
 import codedriver.framework.common.constvalue.SystemUser;
 import codedriver.framework.common.constvalue.UserType;
+import codedriver.framework.deploy.constvalue.DeployWhiteType;
 import codedriver.framework.startup.StartupBase;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -53,21 +54,27 @@ class AutoexecTypeInit extends StartupBase {
             insertTypeNameList.add(autoexecType.getString("value"));
         }
         //查出已经存在且需要初始化的工具分类
-        List<AutoexecTypeVo> hadInitTypeList = new ArrayList<>();
-        Map<String, AutoexecTypeVo> hadInitTypeNameMap = new HashMap<>();
+        List<AutoexecTypeVo> hasInitTypeList = new ArrayList<>();
+        Map<String, AutoexecTypeVo> hasInitTypeNameMap = new HashMap<>();
         if (CollectionUtils.isNotEmpty(insertTypeNameList)) {
-            hadInitTypeList = autoexecTypeMapper.getTypeListByNameList(insertTypeNameList);
-            hadInitTypeNameMap = hadInitTypeList.stream().collect(Collectors.toMap(AutoexecTypeVo::getName, e -> e));
+            hasInitTypeList = autoexecTypeMapper.getTypeListByNameList(insertTypeNameList);
+            hasInitTypeNameMap = hasInitTypeList.stream().collect(Collectors.toMap(AutoexecTypeVo::getName, e -> e));
         }
 
+        List<Long> insertDeployActiveTypeId = new ArrayList<>();
         for (int i = 0; i < needInitTypeList.size(); i++) {
             JSONObject autoexecType = needInitTypeList.getJSONObject(i);
             String typeName = autoexecType.getString("value");
-            if (hadInitTypeNameMap.containsKey(typeName)) {
+            if (hasInitTypeNameMap.containsKey(typeName)) {
                 //已存在的分类若没有数据权限，则需要初始化数据权限
-                AutoexecTypeVo hadExistTypeVo = hadInitTypeNameMap.get(typeName);
-                if (CollectionUtils.isEmpty(hadExistTypeVo.getAutoexecTypeAuthList())) {
-                    insertTypeAuthList.add(new AutoexecTypeAuthVo(hadExistTypeVo.getId(), GroupSearch.COMMON.getValue(), UserType.ALL.getValue()));
+                AutoexecTypeVo hasExistTypeVo = hasInitTypeNameMap.get(typeName);
+                if (CollectionUtils.isEmpty(hasExistTypeVo.getAutoexecTypeAuthList())) {
+                    insertTypeAuthList.add(new AutoexecTypeAuthVo(hasExistTypeVo.getId(), GroupSearch.COMMON.getValue(), UserType.ALL.getValue()));
+                }
+
+                //发布模块工具分类白名单
+                if (DeployWhiteType.getValueList().contains(typeName)) {
+                    insertDeployActiveTypeId.add(hasExistTypeVo.getId());
                 }
             } else {
                 AutoexecTypeVo typeVo = new AutoexecTypeVo();
@@ -77,6 +84,11 @@ class AutoexecTypeInit extends StartupBase {
                 typeVo.setLcu(SystemUser.SYSTEM.getUserUuid());
                 typeVo.setType(AutoexecTypeType.FACTORY.getValue());
                 insertTypeList.add(typeVo);
+
+                //发布模块工具分类白名单
+                if (DeployWhiteType.getValueList().contains(typeName)) {
+                    insertDeployActiveTypeId.add(typeVo.getId());
+                }
             }
         }
         if (CollectionUtils.isNotEmpty(insertTypeList)) {
@@ -91,6 +103,9 @@ class AutoexecTypeInit extends StartupBase {
         if (CollectionUtils.isNotEmpty(insertTypeAuthList)) {
             autoexecTypeMapper.insertTypeAuthList(insertTypeAuthList);
         }
+        if (CollectionUtils.isNotEmpty(insertDeployActiveTypeId)) {
+            autoexecTypeMapper.insertDeployActiveList(insertDeployActiveTypeId, 1);
+        }
     }
 
     @Override
@@ -100,6 +115,6 @@ class AutoexecTypeInit extends StartupBase {
 
     @Override
     public int sort() {
-        return 2;
+        return 0;
     }
 }
