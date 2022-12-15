@@ -329,14 +329,22 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         }
         if (MapUtils.isNotEmpty(inputParamMap)) {
             Set<String> inputParamSet = new HashSet<>();
-            for (String key : inputParamMap.keySet()) {
-                if (inputParamMap.containsKey(key)) {
-                    inputParamSet.add(inputParamNameMap.get(key) + "(" + key + ")");
+            for (Map.Entry<String, AutoexecParamVo> entry : inputParamMap.entrySet()) {
+                AutoexecParamVo autoexecParamVo = entry.getValue();
+                if (Objects.equals(autoexecParamVo.getIsRequired(), 0)) {
+                    continue;
+                }
+                String key = entry.getKey();
+                String name = inputParamNameMap.get(key);
+                if (StringUtils.isNotBlank(name)) {
+                    inputParamSet.add(name + "(" + key + ")");
                 } else {
                     inputParamSet.add(key);
                 }
             }
-            throw new AutoexecParamMappingNotMappedException(phaseName, operationName, String.join("、", inputParamSet));
+            if (CollectionUtils.isNotEmpty(inputParamSet)) {
+                throw new AutoexecParamMappingNotMappedException(phaseName, operationName, String.join("、", inputParamSet));
+            }
         }
     }
 
