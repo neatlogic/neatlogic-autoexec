@@ -80,7 +80,7 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
             @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
             @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true"),
             @Param(name = "isNeedCheckDataAuth", type = ApiParamType.INTEGER, desc = "是否校验数据权限（1：校验，0：不校验）")
-            })
+    })
     @Output({
             @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, desc = "工具/脚本列表"),
             @Param(explode = AutoexecOperationVo.class),
@@ -129,16 +129,20 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
         // execMode为native的工具可以被任意阶段引用，不受阶段的execMode限制
         tbodyList.addAll(autoexecScriptMapper.searchScriptAndTool(searchVo));
         //补充完整目录
-        if(CollectionUtils.isNotEmpty(tbodyList)) {
+        if (CollectionUtils.isNotEmpty(tbodyList)) {
             List<Long> tbodyScriptCatalogIdList = tbodyList.stream().filter(o -> Objects.equals(o.getType(), ToolType.SCRIPT.getValue())).map(AutoexecOperationVo::getCatalogId).collect(Collectors.toList());
-            if(CollectionUtils.isNotEmpty(tbodyScriptCatalogIdList)) {
+            if (CollectionUtils.isNotEmpty(tbodyScriptCatalogIdList)) {
                 List<AutoexecCatalogVo> catalogList = autoexecCatalogMapper.getAutoexecFullCatalogByIdList(tbodyScriptCatalogIdList);
-                if(CollectionUtils.isNotEmpty(catalogList)) {
-                    Map<Long,AutoexecCatalogVo> catalogMap = catalogList.stream().collect(Collectors.toMap(AutoexecCatalogVo::getId, o->o));
+                if (CollectionUtils.isNotEmpty(catalogList)) {
+                    Map<Long, AutoexecCatalogVo> catalogMap = catalogList.stream().collect(Collectors.toMap(AutoexecCatalogVo::getId, o -> o));
                     for (AutoexecOperationVo operationVo : tbodyList) {
-                        if(Objects.equals(operationVo.getType(), ToolType.SCRIPT.getValue())) {
+                        if (Objects.equals(operationVo.getType(), ToolType.SCRIPT.getValue())) {
+                            if (Objects.equals(operationVo.getCatalogId(), 0L)) {
+                                operationVo.setFullCatalogName("-");
+                                continue;
+                            }
                             AutoexecCatalogVo tmp = catalogMap.get(operationVo.getCatalogId());
-                            if(tmp != null) {
+                            if (tmp != null) {
                                 operationVo.setFullCatalogName(tmp.getFullCatalogName());
                             }
                         }
