@@ -334,6 +334,9 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 if (Objects.equals(autoexecParamVo.getIsRequired(), 0)) {
                     continue;
                 }
+                if (autoexecParamVo.getDefaultValue() != null) {
+                    continue;
+                }
                 String key = entry.getKey();
                 String name = inputParamNameMap.get(key);
                 if (StringUtils.isNotBlank(name)) {
