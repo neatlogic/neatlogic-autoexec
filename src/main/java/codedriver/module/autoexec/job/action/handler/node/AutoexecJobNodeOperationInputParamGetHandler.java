@@ -77,7 +77,7 @@ public class AutoexecJobNodeOperationInputParamGetHandler extends AutoexecJobAct
             if (Objects.equals(CombopOperationType.SCRIPT.getValue(), jobPhaseOperationVo.getType())) {
                 scriptList.add(jobPhaseOperationVo);
             } else {
-                toolIdList.add(jobPhaseOperationVo.getId());
+                toolIdList.add(jobPhaseOperationVo.getOperationId());
             }
         }
         if (CollectionUtils.isNotEmpty(scriptList)) {
@@ -102,31 +102,36 @@ public class AutoexecJobNodeOperationInputParamGetHandler extends AutoexecJobAct
             JSONObject operationParam = new JSONObject();
             JSONObject argument = null;
             operationParam.put("name", operationVo.getName());
+            operationParam.put("letter", operationVo.getLetter());
             operationParam.put("paramList", paramList);
             //arguments
             if (argumentsOperationVoMap.containsKey(operationVo.getOperationId())) {
                 AutoexecParamVo argumentParam = argumentsOperationVoMap.get(operationVo.getOperationId()).getArgument();
                 argument = new JSONObject();
-                argument.put("name", argumentParam.getName());
+                if (argumentParam != null) {
+                    argument.put("name", argumentParam.getName());
+                    argument.put("description", argumentParam.getDescription());
+                }
                 argument.put("key", "arguments");
                 if (CollectionUtils.isNotEmpty(arguments)) {
                     argument.put("valueList", arguments.stream().map(o -> o instanceof JSONObject ? JSONObject.parseObject(o.toString()).getString("value") : o.toString()).collect(Collectors.toList()));
                 }
-                argument.put("description", argumentParam.getDescription());
                 operationParam.put("argument", argument);
             }
             //input
             if (operationVoMap.containsKey(operationVo.getOperationId())) {
                 List<AutoexecParamVo> inputParamList = operationVoMap.get(operationVo.getOperationId()).getInputParamList();
-                for (AutoexecParamVo paramVo : inputParamList) {
-                    JSONObject param = new JSONObject();
-                    param.put("name", paramVo.getName());
-                    param.put("key", paramVo.getKey());
-                    if (MapUtils.isNotEmpty(inputParams)) {
-                        param.put("value", inputParams.get(paramVo.getKey()));
+                if (CollectionUtils.isNotEmpty(inputParamList)) {
+                    for (AutoexecParamVo paramVo : inputParamList) {
+                        JSONObject param = new JSONObject();
+                        param.put("name", paramVo.getName());
+                        param.put("key", paramVo.getKey());
+                        if (MapUtils.isNotEmpty(inputParams)) {
+                            param.put("value", inputParams.get(paramVo.getKey()));
+                        }
+                        param.put("description", paramVo.getDescription());
+                        paramList.add(param);
                     }
-                    param.put("description", paramVo.getDescription());
-                    paramList.add(param);
                 }
             }
 

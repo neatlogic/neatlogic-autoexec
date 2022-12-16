@@ -124,6 +124,8 @@ public class GetAutoexecJobPhaseOperationScriptForAutoexecApi extends PrivateApi
         HttpServletResponse resp = ((ServletRequestAttributes) Objects.requireNonNull(RequestContextHolder.getRequestAttributes())).getResponse();
         if (resp != null) {
             resp.setHeader("ScriptCatalog", scriptCatalog);
+            resp.setHeader("ScriptId", scriptVersionVo.getScriptId().toString());
+            resp.setHeader("ScriptVersionId", scriptVersionVo.getId().toString());
         }
 
         if (lastModified != null && lastModified.multiply(new BigDecimal("1000")).longValue() >= scriptVersionVo.getLcd().getTime()) {
@@ -136,6 +138,8 @@ public class GetAutoexecJobPhaseOperationScriptForAutoexecApi extends PrivateApi
             String script = autoexecCombopService.getScriptVersionContent(scriptVersionVo);
             result.put("script", script);
             result.put("scriptCatalog", scriptCatalog);
+            result.put("scriptId", scriptVersionVo.getScriptId());
+            result.put("scriptVersionId", scriptVersionVo.getId());
             //update job 对应operation version_id
             if (!Objects.equals(jobPhaseOperationVo.getVersionId(), scriptVersionVo.getId())) {
                 autoexecJobMapper.updateJobPhaseOperationVersionIdByJobIdAndOperationId(scriptVersionVo.getId(), jobId, scriptVersionVo.getScriptId());

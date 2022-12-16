@@ -24,7 +24,6 @@
             </resource>
         </resources>
     </build>
-
     <dependencies>
         <dependency>
             <groupId>com.techsure</groupId>

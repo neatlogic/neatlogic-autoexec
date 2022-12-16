@@ -22,13 +22,15 @@ import codedriver.framework.util.RegexUtils;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 
 @Service
+@Transactional
 @AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.OPERATE)
-public class AutoexecTypeSaveApi extends PrivateApiComponentBase {
+public class SaveAutoexecTypeApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecTypeMapper autoexecTypeMapper;
@@ -40,7 +42,7 @@ public class AutoexecTypeSaveApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "保存插件类型";
+        return "保存自动化工具分类";
     }
 
     @Override
@@ -51,10 +53,11 @@ public class AutoexecTypeSaveApi extends PrivateApiComponentBase {
     @Input({
             @Param(name = "id", type = ApiParamType.LONG, desc = "类型ID"),
             @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, maxLength = 50, isRequired = true, desc = "名称"),
-            @Param(name = "description", type = ApiParamType.STRING, maxLength = 500, desc = "描述")
+            @Param(name = "description", type = ApiParamType.STRING, maxLength = 500, desc = "描述"),
+            @Param(name = "authList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "授权列表")
     })
     @Output({})
-    @Description(desc = "保存插件类型")
+    @Description(desc = "保存自动化工具分类")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecTypeVo typeVo = JSON.toJavaObject(jsonObj, AutoexecTypeVo.class);
@@ -63,13 +66,15 @@ public class AutoexecTypeSaveApi extends PrivateApiComponentBase {
         }
         typeVo.setLcu(UserContext.get().getUserUuid());
         if (jsonObj.getLong("id") == null) {
-            autoexecTypeMapper.replaceType(typeVo);
+            autoexecTypeMapper.insertType(typeVo);
         } else {
+            autoexecTypeMapper.deleteTypeAuthByTypeId(typeVo.getId());
             if (autoexecTypeMapper.checkTypeIsExistsById(typeVo.getId()) == 0) {
                 throw new AutoexecTypeNotFoundException(typeVo.getId());
             }
             autoexecTypeMapper.updateType(typeVo);
         }
+        autoexecTypeMapper.insertTypeAuthList(typeVo.getAutoexecTypeAuthList());
         return null;
     }
 
@@ -82,6 +87,4 @@ public class AutoexecTypeSaveApi extends PrivateApiComponentBase {
             return new FieldValidResultVo();
         };
     }
-
-
 }
