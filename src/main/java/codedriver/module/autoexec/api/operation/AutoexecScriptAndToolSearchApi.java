@@ -137,7 +137,10 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
                     Map<Long,AutoexecCatalogVo> catalogMap = catalogList.stream().collect(Collectors.toMap(AutoexecCatalogVo::getId, o->o));
                     for (AutoexecOperationVo operationVo : tbodyList) {
                         if(Objects.equals(operationVo.getType(), ToolType.SCRIPT.getValue())) {
-                            operationVo.setFullCatalogName(catalogMap.get(operationVo.getCatalogId()).getFullCatalogName());
+                            AutoexecCatalogVo tmp = catalogMap.get(operationVo.getCatalogId());
+                            if(tmp != null) {
+                                operationVo.setFullCatalogName(tmp.getFullCatalogName());
+                            }
                         }
                     }
                 }
