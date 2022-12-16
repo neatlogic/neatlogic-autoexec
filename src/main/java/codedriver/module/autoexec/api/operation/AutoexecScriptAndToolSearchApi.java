@@ -6,12 +6,15 @@
 package codedriver.module.autoexec.api.operation;
 
 import codedriver.framework.auth.core.AuthAction;
-import codedriver.framework.autoexec.auth.AUTOEXEC_MODIFY;
+import codedriver.framework.autoexec.auth.AUTOEXEC;
+import codedriver.framework.autoexec.constvalue.ToolType;
+import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.framework.autoexec.dto.AutoexecOperationBaseVo;
 import codedriver.framework.autoexec.dto.AutoexecOperationVo;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
+import codedriver.framework.autoexec.dto.catalog.AutoexecCatalogVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.restful.annotation.*;
@@ -30,7 +33,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
-@AuthAction(action = AUTOEXEC_MODIFY.class)
+@AuthAction(action = AUTOEXEC.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
 
@@ -45,6 +48,9 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptService autoexecScriptService;
+
+    @Resource
+    private AutoexecCatalogMapper autoexecCatalogMapper;
 
     @Override
     public String getToken() {
@@ -72,7 +78,8 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
             @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
             @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
             @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
-            @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true")
+            @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true"),
+            @Param(name = "isNeedCheckDataAuth", type = ApiParamType.INTEGER, desc = "是否校验数据权限（1：校验，0：不校验）")
     })
     @Output({
             @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, desc = "工具/脚本列表"),
@@ -121,6 +128,28 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
         searchVo.setCatalogIdList(autoexecScriptService.getCatalogIdList(searchVo.getCatalogId()));
         // execMode为native的工具可以被任意阶段引用，不受阶段的execMode限制
         tbodyList.addAll(autoexecScriptMapper.searchScriptAndTool(searchVo));
+        //补充完整目录
+        if (CollectionUtils.isNotEmpty(tbodyList)) {
+            List<Long> tbodyScriptCatalogIdList = tbodyList.stream().filter(o -> Objects.equals(o.getType(), ToolType.SCRIPT.getValue())).map(AutoexecOperationVo::getCatalogId).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(tbodyScriptCatalogIdList)) {
+                List<AutoexecCatalogVo> catalogList = autoexecCatalogMapper.getAutoexecFullCatalogByIdList(tbodyScriptCatalogIdList);
+                if (CollectionUtils.isNotEmpty(catalogList)) {
+                    Map<Long, AutoexecCatalogVo> catalogMap = catalogList.stream().collect(Collectors.toMap(AutoexecCatalogVo::getId, o -> o));
+                    for (AutoexecOperationVo operationVo : tbodyList) {
+                        if (Objects.equals(operationVo.getType(), ToolType.SCRIPT.getValue())) {
+                            if (Objects.equals(operationVo.getCatalogId(), 0L)) {
+                                operationVo.setFullCatalogName("-");
+                                continue;
+                            }
+                            AutoexecCatalogVo tmp = catalogMap.get(operationVo.getCatalogId());
+                            if (tmp != null) {
+                                operationVo.setFullCatalogName(tmp.getFullCatalogName());
+                            }
+                        }
+                    }
+                }
+            }
+        }
         if (searchVo.getNeedPage()) {
             int rowNum = autoexecScriptMapper.searchScriptAndToolCount(searchVo);
             searchVo.setRowNum(rowNum);
