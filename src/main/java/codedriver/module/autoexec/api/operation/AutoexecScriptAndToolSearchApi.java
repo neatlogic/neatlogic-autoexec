@@ -7,11 +7,14 @@ package codedriver.module.autoexec.api.operation;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC;
+import codedriver.framework.autoexec.constvalue.ToolType;
+import codedriver.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.framework.autoexec.dto.AutoexecOperationBaseVo;
 import codedriver.framework.autoexec.dto.AutoexecOperationVo;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
+import codedriver.framework.autoexec.dto.catalog.AutoexecCatalogVo;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.restful.annotation.*;
@@ -45,6 +48,9 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptService autoexecScriptService;
+
+    @Resource
+    private AutoexecCatalogMapper autoexecCatalogMapper;
 
     @Override
     public String getToken() {
@@ -122,6 +128,21 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
         searchVo.setCatalogIdList(autoexecScriptService.getCatalogIdList(searchVo.getCatalogId()));
         // execMode为native的工具可以被任意阶段引用，不受阶段的execMode限制
         tbodyList.addAll(autoexecScriptMapper.searchScriptAndTool(searchVo));
+        //补充完整目录
+        if(CollectionUtils.isNotEmpty(tbodyList)) {
+            List<Long> tbodyScriptCatalogIdList = tbodyList.stream().filter(o -> Objects.equals(o.getType(), ToolType.SCRIPT.getValue())).map(AutoexecOperationVo::getCatalogId).collect(Collectors.toList());
+            if(CollectionUtils.isNotEmpty(tbodyScriptCatalogIdList)) {
+                List<AutoexecCatalogVo> catalogList = autoexecCatalogMapper.getAutoexecFullCatalogByIdList(tbodyScriptCatalogIdList);
+                if(CollectionUtils.isNotEmpty(catalogList)) {
+                    Map<Long,AutoexecCatalogVo> catalogMap = catalogList.stream().collect(Collectors.toMap(AutoexecCatalogVo::getId, o->o));
+                    for (AutoexecOperationVo operationVo : tbodyList) {
+                        if(Objects.equals(operationVo.getType(), ToolType.SCRIPT.getValue())) {
+                            operationVo.setFullCatalogName(catalogMap.get(operationVo.getCatalogId()).getFullCatalogName());
+                        }
+                    }
+                }
+            }
+        }
         if (searchVo.getNeedPage()) {
             int rowNum = autoexecScriptMapper.searchScriptAndToolCount(searchVo);
             searchVo.setRowNum(rowNum);
