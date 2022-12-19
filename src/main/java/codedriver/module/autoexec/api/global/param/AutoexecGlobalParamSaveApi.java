@@ -59,7 +59,7 @@ public class AutoexecGlobalParamSaveApi extends PrivateApiComponentBase {
             @Param(name = "key", type = ApiParamType.REGEX, rule = RegexUtils.ENGLISH_NUMBER_NAME, isRequired = true, desc = "参数名"),
             @Param(name = "name", type = ApiParamType.STRING, isRequired = true, desc = "显示名"),
             @Param(name = "type", type = ApiParamType.STRING, isRequired = true, desc = "类型"),
-            @Param(name = "defaultValue", type = ApiParamType.NOAUTH, isRequired = true, desc = "默认值"),
+            @Param(name = "defaultValue", type = ApiParamType.NOAUTH, isRequired = true, desc = "值"),
             @Param(name = "description", type = ApiParamType.STRING, desc = "描述")
     })
     @Description(desc = "保存自动化全局参数接口")

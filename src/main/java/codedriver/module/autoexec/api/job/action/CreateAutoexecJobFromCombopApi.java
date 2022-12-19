@@ -66,7 +66,7 @@ public class CreateAutoexecJobFromCombopApi extends PrivateApiComponentBase {
             @Param(name = "roundCount", type = ApiParamType.LONG, desc = "分组数 "),
             @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, desc = "执行目标"),
             @Param(name = "planStartTime", type = ApiParamType.LONG, desc = "计划时间"),
-            @Param(name = "triggerType", type = ApiParamType.ENUM, rule = "auto,manual", desc = "触发方式"),
+            @Param(name = "triggerType", type = ApiParamType.ENUM, member = JobTriggerType.class, desc = "触发方式"),
             @Param(name = "assignExecUser", type = ApiParamType.STRING, desc = "指定执行用户")
     })
     @Output({
