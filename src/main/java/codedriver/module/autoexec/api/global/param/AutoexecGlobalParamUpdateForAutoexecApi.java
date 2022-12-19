@@ -47,7 +47,7 @@ public class AutoexecGlobalParamUpdateForAutoexecApi extends PrivateApiComponent
 
     @Input({
             @Param(name = "key", type = ApiParamType.REGEX, rule = RegexUtils.ENGLISH_NUMBER_NAME, isRequired = true, desc = "参数名"),
-            @Param(name = "defaultValue", type = ApiParamType.NOAUTH, isRequired = true, desc = "默认值"),
+            @Param(name = "defaultValue", type = ApiParamType.NOAUTH, isRequired = true, desc = "值"),
     })
     @Description(desc = "更新自动化全局参数,用于autoexec")
     @Override
