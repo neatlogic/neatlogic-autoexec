@@ -986,7 +986,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 isHasNode = true;
             }
             //针对巡检补充os 资产
-            if (Objects.equals(jobVo.getSource(), codedriver.framework.inspect.constvalue.JobSource.INSPECT.getValue())) {
+            if (Objects.equals(jobVo.getSource(), codedriver.framework.inspect.constvalue.JobSource.INSPECT_APP.getValue())) {
                 ICiCrossoverMapper ciCrossoverMapper = CrossoverServiceFactory.getApi(ICiCrossoverMapper.class);
                 CiVo civo = ciCrossoverMapper.getCiById(jobVo.getInvokeId());
                 if (civo.getParentCiName() != null && civo.getParentCiName().toUpperCase(Locale.ROOT).contains("OS")) {
