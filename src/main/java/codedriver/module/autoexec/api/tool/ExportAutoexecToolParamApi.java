@@ -12,6 +12,7 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.framework.autoexec.dto.AutoexecParamConfigVo;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
+import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import codedriver.framework.autoexec.exception.AutoexecToolExportNotFoundToolException;
 import codedriver.framework.autoexec.exception.AutoexecToolNotFoundException;
 import codedriver.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
@@ -34,7 +35,9 @@ import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiCompon
 import codedriver.framework.util.FileUtil;
 import codedriver.framework.util.word.WordBuilder;
 import codedriver.framework.util.word.enums.FontFamily;
+import codedriver.framework.util.word.enums.TableColor;
 import codedriver.framework.util.word.enums.TitleType;
+import codedriver.module.autoexec.dao.mapper.AutoexecProfileMapper;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
@@ -64,6 +67,9 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
 
     @Resource
     private AutoexecToolMapper autoexecToolMapper;
+
+    @Resource
+    private AutoexecProfileMapper autoexecProfileMapper;
 
     @Resource
     private MatrixMapper matrixMapper;
@@ -132,6 +138,17 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
 
             //工具类型分类
             Map<String, List<AutoexecToolVo>> allTypeAutoexecToolListMap = toolVoList.stream().collect(Collectors.groupingBy(e -> e.getTypeName() + "[" + e.getTypeDescription() + "]"));
+            Set<Long> defaultProfileIdSet = toolVoList.stream().map(AutoexecToolVo::getDefaultProfileId).collect(Collectors.toSet());
+            List<AutoexecProfileVo> profileVoList = new ArrayList<>();
+            Map<Long, AutoexecProfileVo> profileVoMap = new HashMap<>();
+            if (CollectionUtils.isNotEmpty(defaultProfileIdSet)) {
+                profileVoList = autoexecProfileMapper.getProfileInfoListByIdList(new ArrayList<>(defaultProfileIdSet));
+                if (CollectionUtils.isNotEmpty(profileVoList)) {
+                    profileVoMap = profileVoList.stream().collect(Collectors.toMap(AutoexecProfileVo::getId, e -> e));
+                }
+            }
+
+
             int typeNum = 1;
             for (String type : allTypeAutoexecToolListMap.keySet()) {
                 wordBuilder.addTitle(TitleType.H2, "1." + typeNum + "  " + type);
@@ -143,7 +160,12 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
                         continue;
                     }
 
-                    wordBuilder.addTitle(TitleType.H3, "1." + typeNum + "." + toolNum + "  " + toolVo.getName());
+                    String toolName = toolVo.getName();
+                    //先获取最后一个 / 所在的位置
+                    int index = toolName.lastIndexOf("/");
+                    //然后获取从最后一个/所在索引+1开始 至 字符串末尾的字符
+                    String showToolName = toolName.substring(index + 1);
+                    wordBuilder.addTitle(TitleType.H3, "1." + typeNum + "." + toolNum + "  " + showToolName + "[" + toolVo.getDescription() + "]");
                     wordBuilder.addParagraph("描述：" + toolVo.getDescription()).setFontSize(12).setFontFamily(FontFamily.REGULAR_SCRIPT.getValue());
                     wordBuilder.addParagraph("执行方式：" + toolVo.getExecModeText()).setFontSize(12).setFontFamily(FontFamily.REGULAR_SCRIPT.getValue());
                     if (CollectionUtils.isEmpty(toolVo.getInputParamList())) {
@@ -162,7 +184,7 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
                         map.put("描述", paramVo.getDescription());
                         list.add(map);
                     }
-                    wordBuilder.addTable(tableHeaderMap).addRows(list);
+                    wordBuilder.addTable(tableHeaderMap, TableColor.GREY).addRows(list);
                     wordBuilder.addBlankRow();
                 }
                 typeNum++;
@@ -200,7 +222,6 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
             String dataSource = config.getDataSource();
             //静态数据源
             if (StringUtils.equals(ParamDataSource.STATIC.getValue(), dataSource)) {
-                returnDefaultValue = new StringBuilder("静态");
                 if (paramDefaultValue != null && !Objects.equals(paramDefaultValue.toString(), "")) {
                     JSONArray dataArray = config.getDataList();
                     if (CollectionUtils.isNotEmpty(dataArray)) {
