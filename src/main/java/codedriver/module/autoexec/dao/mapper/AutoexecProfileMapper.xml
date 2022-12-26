@@ -147,6 +147,17 @@
             <id column="profileOperationId" property="id"/>
             <result column="profileOperationType" property="type"/>
         </collection>
+        <collection property="profileParamVoList"
+                    ofType="codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo">
+            <id column="paramId" property="id"/>
+            <result column="key" property="key"/>
+            <result column="type" property="type"/>
+            <result column="profileId" property="profileId"/>
+            <result column="operationId" property="operationId"/>
+            <result column="operationType" property="operationType"/>
+            <result column="mappingMode" property="mappingMode"/>
+            <result column="defaultValue" property="defaultValue"/>
+        </collection>
     </resultMap>
 
     <select id="getProfileVoById" resultMap="profileMap">
@@ -292,6 +303,27 @@
         dpo.operation_id as profileOperationId
         FROM autoexec_profile ap
         left join autoexec_profile_operation dpo on dpo.profile_id = ap.id
+        WHERE ap.id IN
+        <foreach collection="idList" item="id" open="(" close=")" separator=",">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="getProfileListInvokeParamListByIdList" resultMap="profileMap">
+        SELECT ap.id,
+        ap.name,
+        ap.description,
+        ap.system_id AS fromSystemId,
+        app.id as paramId,
+        app.profile_id as profileId,
+        app.key,
+        app.type,
+        app.default_value AS defaultValue,
+        app.operation_id AS operationId,
+        app.operation_type AS operationType,
+        app.mapping_mode AS mappingMode
+        FROM autoexec_profile ap
+        left join autoexec_profile_param app on ap.id = app.profile_id
         WHERE ap.id IN
         <foreach collection="idList" item="id" open="(" close=")" separator=",">
             #{id}
