@@ -31,6 +31,8 @@ public interface AutoexecProfileMapper extends IAutoexecProfileCrossoverMapper {
 
     List<AutoexecProfileVo> getProfileInfoListByIdList(@Param("idList") List<Long> idList);
 
+    List<AutoexecProfileVo> getProfileListInvokeParamListByIdList(@Param("idList") List<Long> idList);
+
     List<Long> getNeedDeleteProfileParamIdListByProfileIdAndLcd(@Param("profileId") Long profileId, @Param("updateTag") Long updateTag);
 
     AutoexecProfileVo getProfileVoById(Long id);

@@ -12,6 +12,7 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import codedriver.framework.autoexec.dto.AutoexecParamConfigVo;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.AutoexecToolVo;
+import codedriver.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import codedriver.framework.autoexec.dto.profile.AutoexecProfileVo;
 import codedriver.framework.autoexec.exception.AutoexecToolExportNotFoundToolException;
 import codedriver.framework.autoexec.exception.AutoexecToolNotFoundException;
@@ -140,11 +141,11 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
             Map<String, List<AutoexecToolVo>> allTypeAutoexecToolListMap = toolVoList.stream().collect(Collectors.groupingBy(e -> e.getTypeName() + "[" + e.getTypeDescription() + "]"));
             Set<Long> defaultProfileIdSet = toolVoList.stream().map(AutoexecToolVo::getDefaultProfileId).collect(Collectors.toSet());
             List<AutoexecProfileVo> profileVoList = new ArrayList<>();
-            Map<Long, AutoexecProfileVo> profileVoMap = new HashMap<>();
+            Map<Long, List<String>> profileParamKeyListMap = new HashMap<>();
             if (CollectionUtils.isNotEmpty(defaultProfileIdSet)) {
-                profileVoList = autoexecProfileMapper.getProfileInfoListByIdList(new ArrayList<>(defaultProfileIdSet));
+                profileVoList = autoexecProfileMapper.getProfileListInvokeParamListByIdList(new ArrayList<>(defaultProfileIdSet));
                 if (CollectionUtils.isNotEmpty(profileVoList)) {
-                    profileVoMap = profileVoList.stream().collect(Collectors.toMap(AutoexecProfileVo::getId, e -> e));
+                    profileParamKeyListMap = profileVoList.stream().collect(Collectors.toMap(AutoexecProfileVo::getId, e ->  e.getProfileParamVoList().stream().map(AutoexecProfileParamVo::getKey).collect(Collectors.toList())));
                 }
             }
 
@@ -159,6 +160,9 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
                     if (Objects.equals(toolVo.getName(), "cmdbcollect/fcswitchcollector")) {
                         continue;
                     }
+
+                    //profile参数key列表
+                    List<String> profileParamKeyList = profileParamKeyListMap.get(toolVo.getDefaultProfileId());
 
                     String toolName = toolVo.getName();
                     //先获取最后一个 / 所在的位置
@@ -180,7 +184,7 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
                         map.put("参数名", paramVo.getName() + "（" + paramVo.getKey() + "）");
                         map.put("控件类型", paramVo.getTypeText());
                         map.put("必填/选填", ((paramVo.getIsRequired() != null && paramVo.getIsRequired() == 1) ? "必填" : "选填"));
-                        map.put("默认值", new String(getDefaultValue(paramVo)));
+                        map.put("默认值", CollectionUtils.isNotEmpty(profileParamKeyList) && profileParamKeyList.contains(paramVo.getKey()) ? "${" + paramVo.getKey() + "}" : new String(getDefaultValue(paramVo)));
                         map.put("描述", paramVo.getDescription());
                         list.add(map);
                     }
@@ -257,7 +261,6 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
             String dataSource = config.getDataSource();
             //静态数据源
             if (StringUtils.equals(ParamDataSource.STATIC.getValue(), dataSource)) {
-                returnDefaultValue = new StringBuilder("静态");
                 if (paramDefaultValue != null) {
                     List<Object> valueList = (List<Object>) paramDefaultValue;
                     JSONArray dataArray = config.getDataList();
