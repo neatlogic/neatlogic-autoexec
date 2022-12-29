@@ -5,6 +5,7 @@
 
 package codedriver.module.autoexec.api.job.exec;
 
+import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.JobStatus;
@@ -12,6 +13,8 @@ import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.dao.mapper.UserMapper;
+import codedriver.framework.dto.UserVo;
 import codedriver.framework.exception.type.ParamIrregularException;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
@@ -35,6 +38,8 @@ import java.util.Objects;
 public class UpdateAutoexecJobStatusApi extends PrivateApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
+    @Resource
+    UserMapper userMapper;
 
     @Override
     public String getName() {
@@ -63,6 +68,9 @@ public class UpdateAutoexecJobStatusApi extends PrivateApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
+        //更新执行用户上下文
+        UserVo execUser = userMapper.getUserBaseInfoByUuid(jobVo.getExecUser());
+        UserContext.init(execUser,"+8:00");
 
         if (Objects.equals(status, JobStatus.ABORTED.getValue())) {
             statusIng = JobStatus.ABORTING.getValue();
