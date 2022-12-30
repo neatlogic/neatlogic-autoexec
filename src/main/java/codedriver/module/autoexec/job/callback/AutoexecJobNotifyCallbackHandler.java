@@ -18,7 +18,6 @@ import codedriver.framework.notify.dto.NotifyPolicyVo;
 import codedriver.framework.transaction.util.TransactionUtil;
 import codedriver.framework.util.NotifyPolicyUtil;
 import codedriver.module.autoexec.message.handler.AutoexecJobMessageHandler;
-import codedriver.module.autoexec.scheduler.PurgeAutoexecJobDataSchedule;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -34,7 +33,7 @@ import java.util.Objects;
 @Component
 public class AutoexecJobNotifyCallbackHandler extends AutoexecJobCallbackBase {
 
-    private final static Logger logger = LoggerFactory.getLogger(PurgeAutoexecJobDataSchedule.class);
+    private final static Logger logger = LoggerFactory.getLogger(AutoexecJobNotifyCallbackHandler.class);
     @Resource
     private AutoexecJobMapper autoexecJobMapper;
 
