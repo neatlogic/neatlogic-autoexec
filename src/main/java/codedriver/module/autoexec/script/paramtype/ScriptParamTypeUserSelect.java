@@ -66,4 +66,12 @@ public class ScriptParamTypeUserSelect extends ScriptParamTypeBase {
             }
         };
     }
+    @Override
+    public Object getMyTextByValue(Object value) {
+        String valueString = (String) value;
+        if (valueString.startsWith("[") && valueString.endsWith("]")) {
+            return JSONObject.parseArray(valueString);
+        }
+        return value;
+    }
 }
