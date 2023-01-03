@@ -130,6 +130,7 @@ public class AutoexecJobNodeOperationInputParamGetHandler extends AutoexecJobAct
                             param.put("value", inputParams.get(paramVo.getKey()));
                         }
                         param.put("description", paramVo.getDescription());
+                        param.put("type",paramVo.getType());
                         paramList.add(param);
                     }
                 }
