@@ -27,7 +27,6 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -76,7 +75,7 @@ public class ListAutoexecJobSqlApi extends PrivateApiComponentBase {
             Long jobId = paramObj.getLong("jobId");
             String phaseName = paramObj.getString("phaseName");
 
-            if (Objects.nonNull(jobId) && StringUtils.isNotEmpty(phaseName)) {
+            if (jobId != null && StringUtils.isNotEmpty(phaseName)) {
                 List<AutoexecSqlNodeDetailVo> returnSqlList = autoexecJobMapper.getJobSqlDetailListByJobIdAndPhaseName(jobId, phaseName, paramObj.getJSONArray("sqlFiles"));
                 //补充访问地址信息
                 if (CollectionUtils.isNotEmpty(returnSqlList)) {
