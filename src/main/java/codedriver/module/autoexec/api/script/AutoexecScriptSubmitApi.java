@@ -74,7 +74,7 @@ public class AutoexecScriptSubmitApi extends PrivateApiComponentBase {
             throw new AutoexecScriptNotFoundException(scriptId);
         }
         Long catalogId = autoexecScriptMapper.getAutoexecCatalogIdByScriptId(scriptId);
-        if (Objects.isNull(catalogId)) {
+        if (catalogId == null) {
             throw new AutoexecCatalogNotFoundException(catalogId);
         }
         script.setCatalogId(catalogId);
