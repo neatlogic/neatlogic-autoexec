@@ -176,10 +176,10 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService, IAuto
             if (StringUtils.equals(paramVo.getMappingMode(), AutoexecProfileParamInvokeType.GLOBAL_PARAM.getValue())) {
                 //获取引用的全局参数值
                 AutoexecGlobalParamVo globalParamVo = autoexecGlobalParamMapper.getGlobalParamByKey(paramVo.getDefaultValueStr());
-                if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), globalParamVo.getType()) && !Objects.isNull(globalParamVo.getDefaultValue())) {
+                if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), globalParamVo.getType()) && globalParamVo.getDefaultValue() != null) {
                     String pwd = RC4Util.encrypt(globalParamVo.getDefaultValueStr());
                     paramVo.setDefaultValue(pwd);
-                }else{
+                } else {
                     paramVo.setDefaultValue(globalParamVo.getDefaultValue());
                 }
             }

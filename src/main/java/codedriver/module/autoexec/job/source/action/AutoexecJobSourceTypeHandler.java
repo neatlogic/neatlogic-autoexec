@@ -94,7 +94,7 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
         List<AutoexecSqlNodeDetailVo> sqlDetailList = null;
         List<Long> sqlIdList = null;
         JSONArray sqlIdArray = paramObj.getJSONArray("sqlIdList");
-        if (!Objects.isNull(paramObj.getInteger("isAll")) && paramObj.getInteger("isAll") == 1) {
+        if (paramObj.getInteger("isAll") != null && paramObj.getInteger("isAll") == 1) {
             //重置phase的所有sql文件状态
             sqlDetailList = autoexecJobMapper.getJobSqlListByJobIdAndJobPhaseName(paramObj.getLong("jobId"), paramObj.getString("phaseName"));
             sqlIdList = sqlDetailList.stream().map(AutoexecSqlNodeDetailVo::getId).collect(Collectors.toList());
