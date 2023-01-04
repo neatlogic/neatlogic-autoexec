@@ -269,11 +269,11 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
             if (combopVo == null && jobVo.getIsTakeOver() == 0) {
                 throw new AutoexecCombopNotFoundException(jobVo.getOperationId());
             }
-            if (combopVo != null && !Objects.equals(combopVo.getOwner(), jobVo.getExecUser()) && !autoexecCombopService.checkOperableButton(combopVo, CombopAuthorityAction.EXECUTE, jobVo.getExecUser())) {
+            if (combopVo != null && !Objects.equals(combopVo.getOwner(), jobVo.getExecUser()) && !autoexecCombopService.checkOperableButton(combopVo, CombopAuthorityAction.EXECUTE)) {
                 throw new AutoexecJobCanNotCreateException(combopVo.getName());
             }
         } else if (Arrays.asList(CombopOperationType.SCRIPT.getValue(), CombopOperationType.TOOL.getValue()).contains(jobVo.getOperationType())) {
-            if (!AuthActionChecker.checkByUserUuid(jobVo.getExecUser(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
+            if (!AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
                 throw new AutoexecScriptJobCanNotExecuteException(jobVo.getId());
             }
         }
