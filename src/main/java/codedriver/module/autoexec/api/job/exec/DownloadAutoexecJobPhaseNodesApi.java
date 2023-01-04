@@ -18,8 +18,10 @@ import codedriver.framework.autoexec.exception.AutoexecJobGroupNotFoundException
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import codedriver.framework.cmdb.crossover.IResourceCenterAccountCrossoverService;
+import codedriver.framework.cmdb.crossover.IResourceCrossoverMapper;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
 import codedriver.framework.cmdb.dto.resourcecenter.AccountVo;
+import codedriver.framework.cmdb.dto.resourcecenter.ResourceVo;
 import codedriver.framework.cmdb.enums.resourcecenter.Protocol;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.constvalue.CacheControlType;
@@ -45,6 +47,9 @@ import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toCollection;
 
 @Service
 @Transactional
@@ -136,7 +141,7 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
             List<AccountProtocolVo> protocolVoList = resourceAccountCrossoverMapper.searchAccountProtocolListByProtocolName(new AccountProtocolVo());
             IResourceCenterAccountCrossoverService accountService = CrossoverServiceFactory.getApi(IResourceCenterAccountCrossoverService.class);
             //补充第一行数据 {"totalCount":14, "localRunnerId":1, "jobRunnerIds":[1]}
-            if(count != 0) {
+            if (count != 0) {
                 ServletOutputStream os = response.getOutputStream();
                 isNeedDownLoad = true;
                 List<Long> runnerMapIdList = autoexecJobMapper.getJobPhaseNodeRunnerMapIdListByNodeVo(nodeParamVo);
@@ -150,10 +155,40 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                 }
                 //循环分页输出节点流
                 for (int i = 1; i <= pageCount; i++) {
+                    Map<Long, List<Long>> resourceAppSystemMap = new HashMap<>();
                     nodeParamVo.setCurrentPage(i);
                     nodeParamVo.setStartNum(nodeParamVo.getStartNum());
                     List<AutoexecJobPhaseNodeVo> autoexecJobPhaseNodeVoList = autoexecJobMapper.searchJobPhaseNodeByDistinct(nodeParamVo);
                     if (CollectionUtils.isNotEmpty(autoexecJobPhaseNodeVoList)) {
+                        //针对巡检补充os 资产
+                        if (Objects.equals(jobVo.getSource(), codedriver.framework.inspect.constvalue.JobSource.INSPECT_APP.getValue())) {
+                            //批量补充对应资产的appSystemId
+                            IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
+                            List<Long> resourceIdList = autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getResourceId).collect(Collectors.toList());
+                            List<ResourceVo> ipObjectResourceList = resourceCrossoverMapper.getResourceListByIdList(resourceIdList);
+                            if (CollectionUtils.isNotEmpty(ipObjectResourceList)) {
+                                resourceAppSystemMap.putAll(ipObjectResourceList.stream().filter(o -> o.getAppSystemId() != null).collect(Collectors.toMap(ResourceVo::getId, o -> {
+                                    List<Long> appSystemIdList = new ArrayList<>();
+                                    appSystemIdList.add(o.getAppSystemId());
+                                    return appSystemIdList;
+                                }, (k1, k2) -> {
+                                    k1.addAll(k2);
+                                    return k1;
+                                })));
+                            }
+                            List<ResourceVo> osResourceList = resourceCrossoverMapper.getResourceAppSystemListByResourceIdList(resourceIdList);
+                            if (CollectionUtils.isNotEmpty(osResourceList)) {
+                                osResourceList = osResourceList.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(o -> o.getId() + ":" + o.getAppSystemId()))), ArrayList::new));
+                                resourceAppSystemMap.putAll(osResourceList.stream().filter(o -> o.getAppSystemId() != null).collect(Collectors.toMap(ResourceVo::getId, o -> {
+                                    List<Long> appSystemIdList = new ArrayList<>();
+                                    appSystemIdList.add(o.getAppSystemId());
+                                    return appSystemIdList;
+                                }, (k1, k2) -> {
+                                    k1.addAll(k2);
+                                    return k1;
+                                })));
+                            }
+                        }
                         //补充执行用户和账号信息（用户、密码）
                         Long protocolId = autoexecJobPhaseNodeVoList.get(0).getProtocolId();
                         String userName = autoexecJobPhaseNodeVoList.get(0).getUserName();
@@ -190,6 +225,7 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                             nodeJson.put("host", nodeVo.getHost());
                             nodeJson.put("port", nodeVo.getPort());
                             nodeJson.put("runnerId", nodeVo.getRunnerMapId());
+                            nodeJson.put("appSystemId", resourceAppSystemMap.get(nodeVo.getResourceId()));
                             response.setContentType("application/json");
                             response.setHeader("Content-Disposition", " attachment; filename=nodes.json");
                             IOUtils.copyLarge(IOUtils.toInputStream(nodeJson.toJSONString() + System.lineSeparator(), StandardCharsets.UTF_8), os);

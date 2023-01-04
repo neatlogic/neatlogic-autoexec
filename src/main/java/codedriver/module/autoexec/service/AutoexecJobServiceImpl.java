@@ -622,6 +622,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         if (jobContent == null) {
             throw new AutoexecJobConfigNotFoundException(jobVo.getId());
         }
+        AutoexecJobInvokeVo invokeVo = autoexecJobMapper.getJobInvokeByJobId(jobVo.getId());
+        if(invokeVo != null) {
+            jobVo.setInvokeId(invokeVo.getInvokeId());
+        }
         jobVo.setConfigStr(jobContent.getContent());
         List<AutoexecJobPhaseVo> jobPhaseVoList = jobVo.getPhaseList();
         AutoexecJobGroupVo executeJobGroupVo = jobVo.getExecuteJobGroupVo();
