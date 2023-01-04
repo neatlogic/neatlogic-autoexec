@@ -8,12 +8,18 @@ package codedriver.module.autoexec.api.job.exec;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.AutoexecJobPhaseNodeFrom;
+import codedriver.framework.autoexec.constvalue.CombopOperationType;
 import codedriver.framework.autoexec.constvalue.JobNodeStatus;
-import codedriver.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import codedriver.framework.autoexec.dao.mapper.*;
+import codedriver.framework.autoexec.dto.AutoexecToolVo;
+import codedriver.framework.autoexec.dto.AutoexecTypeVo;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobGroupVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import codedriver.framework.autoexec.dto.job.AutoexecJobVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
+import codedriver.framework.autoexec.dto.script.AutoexecScriptVo;
 import codedriver.framework.autoexec.exception.AutoexecJobGroupNotFoundException;
 import codedriver.framework.autoexec.exception.AutoexecJobNotFoundException;
 import codedriver.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
@@ -29,6 +35,7 @@ import codedriver.framework.common.util.PageUtil;
 import codedriver.framework.common.util.RC4Util;
 import codedriver.framework.crossover.CrossoverServiceFactory;
 import codedriver.framework.exception.type.ParamIrregularException;
+import codedriver.framework.inspect.constvalue.AutoexecType;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
@@ -36,10 +43,10 @@ import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import javax.annotation.Resource;
 import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -56,8 +63,20 @@ import static java.util.stream.Collectors.toCollection;
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComponentBase {
-    @Autowired
+    @Resource
     private AutoexecJobMapper autoexecJobMapper;
+
+    @Resource
+    private AutoexecCombopMapper combopMapper;
+
+    @Resource
+    private AutoexecScriptMapper scriptMapper;
+
+    @Resource
+    private AutoexecToolMapper toolMapper;
+
+    @Resource
+    private AutoexecTypeMapper autoexecTypeMapper;
 
     @Override
     public String getToken() {
@@ -127,6 +146,8 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
         }
         nodeParamVo.setStatusBlackList(Collections.singletonList(JobNodeStatus.IGNORED.getValue()));
         nodeParamVo.setNodeFrom(nodeFrom);
+        //获取是不是巡检类型的作业
+        boolean isInspect = isInspect(jobVo);
 
         /*
          * 以下场景会下载，否则无须重新下载
@@ -160,35 +181,38 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                     nodeParamVo.setStartNum(nodeParamVo.getStartNum());
                     List<AutoexecJobPhaseNodeVo> autoexecJobPhaseNodeVoList = autoexecJobMapper.searchJobPhaseNodeByDistinct(nodeParamVo);
                     if (CollectionUtils.isNotEmpty(autoexecJobPhaseNodeVoList)) {
-                        //针对巡检补充os 资产
-                        if (Objects.equals(jobVo.getSource(), codedriver.framework.inspect.constvalue.JobSource.INSPECT_APP.getValue())) {
+                        //针对巡检 补充appSystemId
+                         if (isInspect) {
                             //批量补充对应资产的appSystemId
                             IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
-                            List<Long> resourceIdList = autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getResourceId).collect(Collectors.toList());
-                            List<ResourceVo> ipObjectResourceList = resourceCrossoverMapper.getResourceListByIdList(resourceIdList);
-                            if (CollectionUtils.isNotEmpty(ipObjectResourceList)) {
-                                resourceAppSystemMap.putAll(ipObjectResourceList.stream().filter(o -> o.getAppSystemId() != null).collect(Collectors.toMap(ResourceVo::getId, o -> {
-                                    List<Long> appSystemIdList = new ArrayList<>();
-                                    appSystemIdList.add(o.getAppSystemId());
-                                    return appSystemIdList;
-                                }, (k1, k2) -> {
-                                    k1.addAll(k2);
-                                    return k1;
-                                })));
-                            }
-                            List<ResourceVo> osResourceList = resourceCrossoverMapper.getResourceAppSystemListByResourceIdList(resourceIdList);
-                            if (CollectionUtils.isNotEmpty(osResourceList)) {
-                                osResourceList = osResourceList.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(o -> o.getId() + ":" + o.getAppSystemId()))), ArrayList::new));
-                                resourceAppSystemMap.putAll(osResourceList.stream().filter(o -> o.getAppSystemId() != null).collect(Collectors.toMap(ResourceVo::getId, o -> {
-                                    List<Long> appSystemIdList = new ArrayList<>();
-                                    appSystemIdList.add(o.getAppSystemId());
-                                    return appSystemIdList;
-                                }, (k1, k2) -> {
-                                    k1.addAll(k2);
-                                    return k1;
-                                })));
-                            }
+                            List<Long> resourceIdList = autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getResourceId).filter(Objects::nonNull).collect(Collectors.toList());
+                             if(CollectionUtils.isNotEmpty(resourceIdList)) {
+                                 List<ResourceVo> ipObjectResourceList = resourceCrossoverMapper.getResourceListByIdList(resourceIdList);
+                                 if (CollectionUtils.isNotEmpty(ipObjectResourceList)) {
+                                     resourceAppSystemMap.putAll(ipObjectResourceList.stream().filter(o -> o.getAppSystemId() != null).collect(Collectors.toMap(ResourceVo::getId, o -> {
+                                         List<Long> appSystemIdList = new ArrayList<>();
+                                         appSystemIdList.add(o.getAppSystemId());
+                                         return appSystemIdList;
+                                     }, (k1, k2) -> {
+                                         k1.addAll(k2);
+                                         return k1;
+                                     })));
+                                 }
+                                 List<ResourceVo> osResourceList = resourceCrossoverMapper.getResourceAppSystemListByResourceIdList(resourceIdList);
+                                 if (CollectionUtils.isNotEmpty(osResourceList)) {
+                                     osResourceList = osResourceList.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(o -> o.getId() + ":" + o.getAppSystemId()))), ArrayList::new));
+                                     resourceAppSystemMap.putAll(osResourceList.stream().filter(o -> o.getAppSystemId() != null).collect(Collectors.toMap(ResourceVo::getId, o -> {
+                                         List<Long> appSystemIdList = new ArrayList<>();
+                                         appSystemIdList.add(o.getAppSystemId());
+                                         return appSystemIdList;
+                                     }, (k1, k2) -> {
+                                         k1.addAll(k2);
+                                         return k1;
+                                     })));
+                                 }
+                             }
                         }
+
                         //补充执行用户和账号信息（用户、密码）
                         Long protocolId = autoexecJobPhaseNodeVoList.get(0).getProtocolId();
                         String userName = autoexecJobPhaseNodeVoList.get(0).getUserName();
@@ -250,4 +274,39 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
         return null;
     }
 
+    /**
+     * 根据作业operationId 判读是不是巡检类型的作业
+     * @param jobVo 作业
+     * @return 是｜否
+     */
+    private boolean isInspect(AutoexecJobVo jobVo){
+        boolean isInspect = false;
+        Long typeId = null;
+        if (Objects.equals(CombopOperationType.COMBOP.getValue(), jobVo.getOperationType())) {
+            AutoexecCombopVo combopVo = combopMapper.getAutoexecCombopById(jobVo.getOperationId());
+            if(combopVo != null){
+                typeId = combopVo.getTypeId();
+            }
+        }else if (Objects.equals(CombopOperationType.SCRIPT.getValue(), jobVo.getOperationType())) {
+            AutoexecScriptVersionVo scriptVersionVo = scriptMapper.getVersionByVersionId(jobVo.getOperationId());
+            if(scriptVersionVo != null) {
+                AutoexecScriptVo scriptVo = scriptMapper.getScriptBaseInfoById(scriptVersionVo.getScriptId());
+                if (scriptVo != null) {
+                    typeId = scriptVo.getTypeId();
+                }
+            }
+        }else if (Objects.equals(CombopOperationType.TOOL.getValue(), jobVo.getOperationType())) {
+            AutoexecToolVo toolVo = toolMapper.getToolById(jobVo.getOperationId());
+            if (toolVo != null) {
+                typeId = toolVo.getTypeId();
+            }
+        }
+        if(typeId != null){
+            AutoexecTypeVo typeVo =  autoexecTypeMapper.getTypeById(typeId);
+            if(typeVo != null && Objects.equals(AutoexecType.INSPECT.getValue(),typeVo.getName())){
+                isInspect = true;
+            }
+        }
+        return isInspect;
+    }
 }
