@@ -28,7 +28,8 @@ import java.util.List;
  * @author linbq
  * @since 2021/4/13 11:21
  **/
-@Service
+//@Service
+@Deprecated
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecCombopAuthorityGetApi extends PrivateApiComponentBase {

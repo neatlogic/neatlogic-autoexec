@@ -8,17 +8,18 @@ package codedriver.module.autoexec.api.combop;
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.constvalue.CombopOperationType;
+import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.common.constvalue.ApiParamType;
-import codedriver.framework.dependency.core.DependencyManager;
 import codedriver.framework.exception.type.PermissionDeniedException;
-import codedriver.framework.restful.annotation.*;
+import codedriver.framework.restful.annotation.Description;
+import codedriver.framework.restful.annotation.Input;
+import codedriver.framework.restful.annotation.OperationType;
+import codedriver.framework.restful.annotation.Param;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
-import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
-import codedriver.module.autoexec.dependency.MatrixAutoexecCombopParamDependencyHandler;
 import codedriver.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
@@ -38,8 +39,8 @@ import java.util.Objects;
 @Service
 @Transactional
 @AuthAction(action = AUTOEXEC_BASE.class)
-@OperationType(type = OperationTypeEnum.UPDATE)
-public class AutoexecCombopDeleteApi extends PrivateApiComponentBase {
+@OperationType(type = OperationTypeEnum.DELETE)
+public class AutoexecCombopVersionDeleteApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
@@ -52,12 +53,12 @@ public class AutoexecCombopDeleteApi extends PrivateApiComponentBase {
 
     @Override
     public String getToken() {
-        return "autoexec/combop/delete";
+        return "autoexec/combop/version/delete";
     }
 
     @Override
     public String getName() {
-        return "删除组合工具";
+        return "删除组合工具版本";
     }
 
     @Override
@@ -66,32 +67,21 @@ public class AutoexecCombopDeleteApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "主键id")
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "组合工具版本id")
     })
-    @Description(desc = "删除组合工具")
+    @Description(desc = "删除组合工具版本")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");
-        AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
-        if (autoexecCombopVo != null) {
+        AutoexecCombopVersionVo autoexecCombopVersionVo = autoexecCombopVersionMapper.getAutoexecCombopVersionById(id);
+        if (autoexecCombopVersionVo != null) {
+            AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(autoexecCombopVersionVo.getCombopId());
             autoexecCombopService.setOperableButtonList(autoexecCombopVo);
             if (Objects.equals(autoexecCombopVo.getDeletable(), 0)) {
                 throw new PermissionDeniedException();
             }
-            autoexecCombopMapper.deleteAutoexecCombopById(id);
-            autoexecCombopMapper.deleteAutoexecCombopAuthorityByCombopId(id);
-            autoexecCombopService.deleteDependency(autoexecCombopVo);
-            List<AutoexecCombopVersionVo> autoexecCombopVersionList = autoexecCombopVersionMapper.getAutoexecCombopVersionListByCombopId(id);
-            if (CollectionUtils.isNotEmpty(autoexecCombopVersionList)) {
-                autoexecCombopVersionMapper.deleteAutoexecCombopVersionByCombopId(id);
-                for (AutoexecCombopVersionVo autoexecCombopVersionVo : autoexecCombopVersionList) {
-                    autoexecCombopService.deleteDependency(autoexecCombopVersionVo);
-                }
-            }
-            if (Objects.equals(autoexecCombopVo.getOperationType(), CombopOperationType.SCRIPT.getValue())
-                    || Objects.equals(autoexecCombopVo.getOperationType(), CombopOperationType.TOOL.getValue())) {
-                autoexecCombopMapper.deleteAutoexecOperationGenerateCombop(id);
-            }
+            autoexecCombopVersionMapper.deleteAutoexecCombopVersionById(id);
+            autoexecCombopService.deleteDependency(autoexecCombopVersionVo);
         }
         return null;
     }

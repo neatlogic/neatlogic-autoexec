@@ -32,7 +32,8 @@ import java.util.*;
  * @author linbq
  * @since 2022/3/23 15:47
  **/
-@Service
+@Deprecated
+//@Service
 @AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 @Transactional
@@ -243,9 +244,9 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
     }
 
     private void updateDBdata(AutoexecCombopVo autoexecCombopVo) {
-        autoexecCombopService.deleteDependency(autoexecCombopVo);
+//        autoexecCombopService.deleteDependency(autoexecCombopVo);
         autoexecCombopMapper.updateAutoexecCombopConfigById(autoexecCombopVo);
-        autoexecCombopService.saveDependency(autoexecCombopVo);
+//        autoexecCombopService.saveDependency(autoexecCombopVo);
     }
 
     private Long getOperationId(AutoexecCombopConfigVo config) {

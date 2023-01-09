@@ -1,0 +1,256 @@
+/*
+ * Copyright(c) 2021 TechSureCo.,Ltd.AllRightsReserved.
+ * 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
+ */
+
+package codedriver.module.autoexec.api.combop;
+
+import codedriver.framework.asynchronization.threadlocal.UserContext;
+import codedriver.framework.auth.core.AuthAction;
+import codedriver.framework.auth.core.AuthActionChecker;
+import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
+import codedriver.framework.autoexec.constvalue.CombopAuthorityAction;
+import codedriver.framework.autoexec.constvalue.CombopOperationType;
+import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
+import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopAuthorityVo;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
+import codedriver.framework.autoexec.exception.AutoexecCombopNameRepeatException;
+import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
+import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
+import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.common.constvalue.GroupSearch;
+import codedriver.framework.common.constvalue.UserType;
+import codedriver.framework.dao.mapper.RoleMapper;
+import codedriver.framework.dao.mapper.TeamMapper;
+import codedriver.framework.dao.mapper.UserMapper;
+import codedriver.framework.dto.FieldValidResultVo;
+import codedriver.framework.exception.role.RoleNotFoundException;
+import codedriver.framework.exception.team.TeamNotFoundException;
+import codedriver.framework.exception.type.ParamNotExistsException;
+import codedriver.framework.exception.type.PermissionDeniedException;
+import codedriver.framework.exception.user.UserNotFoundException;
+import codedriver.framework.notify.dao.mapper.NotifyMapper;
+import codedriver.framework.notify.dto.InvokeNotifyPolicyConfigVo;
+import codedriver.framework.notify.exception.NotifyPolicyNotFoundException;
+import codedriver.framework.restful.annotation.*;
+import codedriver.framework.restful.constvalue.OperationTypeEnum;
+import codedriver.framework.restful.core.IValid;
+import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.framework.util.RegexUtils;
+import codedriver.module.autoexec.service.AutoexecCombopService;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
+
+@Service
+@Transactional
+@AuthAction(action = AUTOEXEC_BASE.class)
+@OperationType(type = OperationTypeEnum.UPDATE)
+public class AutoexecCombopBasicInfoSaveApi extends PrivateApiComponentBase {
+
+    @Resource
+    private AutoexecCombopMapper autoexecCombopMapper;
+
+    @Resource
+    private AutoexecTypeMapper autoexecTypeMapper;
+
+    @Resource
+    private AutoexecCombopService autoexecCombopService;
+
+    @Resource
+    private NotifyMapper notifyMapper;
+
+    @Resource
+    private UserMapper userMapper;
+    @Resource
+    private TeamMapper teamMapper;
+    @Resource
+    private RoleMapper roleMapper;
+
+    @Override
+    public String getToken() {
+        return "autoexec/combop/basic/info/save";
+    }
+
+    @Override
+    public String getName() {
+        return "保存组合工具基本信息";
+    }
+
+    @Override
+    public String getConfig() {
+        return null;
+    }
+
+    @Input({
+            @Param(name = "id", type = ApiParamType.LONG, desc = "主键id"),
+            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, isRequired = true, minLength = 1, maxLength = 70, desc = "显示名"),
+            @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
+            @Param(name = "typeId", type = ApiParamType.LONG, isRequired = true, desc = "类型id"),
+            @Param(name = "typeName", type = ApiParamType.STRING, isRequired = true, desc = "类型名"),
+            @Param(name = "viewAuthorityList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "查看权限列表"),
+            @Param(name = "editAuthorityList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "编辑权限列表"),
+            @Param(name = "executeAuthorityList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "执行权限列表"),
+            @Param(name = "owner", type = ApiParamType.STRING, minLength = 37, maxLength = 37, desc = "维护人"),
+            @Param(name = "config", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "配置信息")
+    })
+    @Output({
+            @Param(name = "Return", type = ApiParamType.LONG, desc = "主键id")
+    })
+    @Description(desc = "保存组合工具基本信息")
+    @Override
+    public Object myDoService(JSONObject jsonObj) throws Exception {
+        AutoexecCombopVo autoexecCombopVo = jsonObj.toJavaObject(AutoexecCombopVo.class);
+        if (autoexecCombopMapper.checkAutoexecCombopNameIsRepeat(autoexecCombopVo) != null) {
+            throw new AutoexecCombopNameRepeatException(autoexecCombopVo.getName());
+        }
+        if (autoexecTypeMapper.checkTypeIsExistsById(autoexecCombopVo.getTypeId()) == 0) {
+            throw new AutoexecTypeNotFoundException(autoexecCombopVo.getTypeName());
+        }
+        AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
+        InvokeNotifyPolicyConfigVo invokeNotifyPolicyConfigVo = config.getInvokeNotifyPolicyConfig();
+        if (invokeNotifyPolicyConfigVo != null) {
+            Long policyId = invokeNotifyPolicyConfigVo.getPolicyId();
+            if (policyId != null) {
+                if (notifyMapper.checkNotifyPolicyIsExists(policyId) == 0) {
+                    throw new NotifyPolicyNotFoundException(policyId);
+                }
+            }
+        }
+
+        Long id = jsonObj.getLong("id");
+        if (id == null) {
+            if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(true), AUTOEXEC_COMBOP_ADD.class.getSimpleName())) {
+                throw new PermissionDeniedException(AUTOEXEC_COMBOP_ADD.class);
+            }
+            autoexecCombopVo.setOperationType(CombopOperationType.COMBOP.getValue());
+            autoexecCombopVo.setOwner(UserContext.get().getUserUuid(true));
+            autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
+            autoexecCombopService.saveDependency(autoexecCombopVo);
+            saveAuthority(autoexecCombopVo);
+        } else {
+            String owner = autoexecCombopVo.getOwner();
+            if (owner == null) {
+                throw new ParamNotExistsException("维护人（owner）");
+            }
+            owner = owner.substring(GroupSearch.USER.getValuePlugin().length());
+            if (userMapper.checkUserIsExists(owner) == 0) {
+                throw new UserNotFoundException(owner);
+            }
+            autoexecCombopVo.setOwner(owner);
+            AutoexecCombopVo oldAutoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
+            if (oldAutoexecCombopVo == null) {
+                throw new AutoexecCombopNotFoundException(id);
+            }
+            autoexecCombopService.setOperableButtonList(oldAutoexecCombopVo);
+            if (oldAutoexecCombopVo.getEditable() == 0) {
+                throw new PermissionDeniedException();
+            }
+            autoexecCombopService.deleteDependency(oldAutoexecCombopVo);
+            autoexecCombopService.saveAutoexecCombopConfig(autoexecCombopVo, false);
+            autoexecCombopVo.setConfigStr(null);
+            autoexecCombopMapper.updateAutoexecCombopById(autoexecCombopVo);
+            autoexecCombopService.saveDependency(autoexecCombopVo);
+            autoexecCombopMapper.deleteAutoexecCombopAuthorityByCombopId(id);
+            saveAuthority(autoexecCombopVo);
+        }
+
+        return autoexecCombopVo.getId();
+    }
+
+    public IValid name() {
+        return jsonObj -> {
+            AutoexecCombopVo autoexecCombopVo = JSON.toJavaObject(jsonObj, AutoexecCombopVo.class);
+            if (autoexecCombopMapper.checkAutoexecCombopNameIsRepeat(autoexecCombopVo) != null) {
+                return new FieldValidResultVo(new AutoexecCombopNameRepeatException(autoexecCombopVo.getName()));
+            }
+            return new FieldValidResultVo();
+        };
+    }
+
+    private void saveAuthority(AutoexecCombopVo autoexecCombopVo) {
+        Long combopId = autoexecCombopVo.getId();
+        List<String> viewAuthorityList =  autoexecCombopVo.getViewAuthorityList();
+        if (CollectionUtils.isNotEmpty(viewAuthorityList)) {
+            List<AutoexecCombopAuthorityVo> autoexecCombopAuthorityList = new ArrayList<>();
+            for (String authorityStr : viewAuthorityList) {
+                AutoexecCombopAuthorityVo autoexecCombopAuthorityVo = convertAutoexecCombopAuthorityVo(authorityStr);
+                if (autoexecCombopAuthorityVo == null) {
+                    continue;
+                }
+                autoexecCombopAuthorityVo.setCombopId(combopId);
+                autoexecCombopAuthorityVo.setAction(CombopAuthorityAction.VIEW.getValue());
+                autoexecCombopAuthorityList.add(autoexecCombopAuthorityVo);
+            }
+            autoexecCombopMapper.insertAutoexecCombopAuthorityVoList(autoexecCombopAuthorityList);
+        }
+        List<String> editAuthorityList =  autoexecCombopVo.getEditAuthorityList();
+        if (CollectionUtils.isNotEmpty(editAuthorityList)) {
+            List<AutoexecCombopAuthorityVo> autoexecCombopAuthorityList = new ArrayList<>();
+            for (String authorityStr : editAuthorityList) {
+                AutoexecCombopAuthorityVo autoexecCombopAuthorityVo = convertAutoexecCombopAuthorityVo(authorityStr);
+                if (autoexecCombopAuthorityVo == null) {
+                    continue;
+                }
+                autoexecCombopAuthorityVo.setCombopId(combopId);
+                autoexecCombopAuthorityVo.setAction(CombopAuthorityAction.EDIT.getValue());
+                autoexecCombopAuthorityList.add(autoexecCombopAuthorityVo);
+            }
+            autoexecCombopMapper.insertAutoexecCombopAuthorityVoList(autoexecCombopAuthorityList);
+        }
+        List<String> executeAuthorityList =  autoexecCombopVo.getExecuteAuthorityList();
+        if (CollectionUtils.isNotEmpty(executeAuthorityList)) {
+            List<AutoexecCombopAuthorityVo> autoexecCombopAuthorityList = new ArrayList<>();
+            for (String authorityStr : executeAuthorityList) {
+                AutoexecCombopAuthorityVo autoexecCombopAuthorityVo = convertAutoexecCombopAuthorityVo(authorityStr);
+                if (autoexecCombopAuthorityVo == null) {
+                    continue;
+                }
+                autoexecCombopAuthorityVo.setCombopId(combopId);
+                autoexecCombopAuthorityVo.setAction(CombopAuthorityAction.EXECUTE.getValue());
+                autoexecCombopAuthorityList.add(autoexecCombopAuthorityVo);
+            }
+            autoexecCombopMapper.insertAutoexecCombopAuthorityVoList(autoexecCombopAuthorityList);
+        }
+    }
+
+    private AutoexecCombopAuthorityVo convertAutoexecCombopAuthorityVo(String authority) {
+        if (StringUtils.isNotBlank(authority) && authority.contains("#")) {
+            String[] split = authority.split("#");
+            if (GroupSearch.USER.getValue().equals(split[0])) {
+                if (userMapper.checkUserIsExists(split[1]) == 0) {
+                    throw new UserNotFoundException(split[1]);
+                }
+            } else if (GroupSearch.TEAM.getValue().equals(split[0])) {
+                if (teamMapper.checkTeamIsExists(split[1]) == 0) {
+                    throw new TeamNotFoundException(split[1]);
+                }
+            } else if (GroupSearch.ROLE.getValue().equals(split[0])) {
+                if (roleMapper.checkRoleIsExists(split[1]) == 0) {
+                    throw new RoleNotFoundException(split[1]);
+                }
+            } else if (GroupSearch.COMMON.getValue().equals(split[0])) {
+                if (!UserType.ALL.getValue().equals(split[1])) {
+                    return null;
+                }
+            } else {
+                return null;
+            }
+            AutoexecCombopAuthorityVo autoexecCombopAuthorityVo = new AutoexecCombopAuthorityVo();
+            autoexecCombopAuthorityVo.setType(split[0]);
+            autoexecCombopAuthorityVo.setUuid(split[1]);
+            return autoexecCombopAuthorityVo;
+        }
+        return null;
+    }
+}

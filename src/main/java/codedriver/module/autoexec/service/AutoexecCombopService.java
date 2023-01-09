@@ -7,9 +7,7 @@ package codedriver.module.autoexec.service;
 
 import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.CombopAuthorityAction;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
-import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
+import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 
 import java.util.List;
@@ -68,6 +66,18 @@ public interface AutoexecCombopService {
     boolean verifyAutoexecCombopConfig(AutoexecCombopConfigVo autoexecCombopConfigVo, boolean isExecuteJob);
 
     /**
+     * 校验组合工具每个阶段是否配置正确
+     * 校验规则
+     * 1.每个阶段至少选择了一个工具
+     * 2.引用上游出参或顶层参数，能找到来源（防止修改顶层参数或插件排序、或修改顶层参数带来的影响）
+     *
+     * @param autoexecCombopVersionConfigVo 组合工具版本对象配置信息
+     * @param isExecuteJob           是否执行创建作业
+     * @return 是否合法
+     */
+    boolean verifyAutoexecCombopVersionConfig(AutoexecCombopVersionConfigVo autoexecCombopVersionConfigVo, boolean isExecuteJob);
+
+    /**
      * 通过操作id 获取当前激活版本脚本内容
      *
      * @param operation 操作Id
@@ -86,12 +96,28 @@ public interface AutoexecCombopService {
     void needExecuteConfig(AutoexecCombopVo autoexecCombopVo, AutoexecCombopPhaseVo autoexecCombopPhaseVo);
 
     /**
+     * 判断是否需要设置执行目标、执行用户、连接协议
+     *
+     * @param autoexecCombopVersionVo      组合工具版本信息
+     * @param autoexecCombopPhaseVo 阶段信息
+     */
+    void needExecuteConfig(AutoexecCombopVersionVo autoexecCombopVersionVo, AutoexecCombopPhaseVo autoexecCombopPhaseVo);
+
+    /**
      * 保存组合工具配置信息
      *
      * @param autoexecCombopVo
      * @param isCopy
      */
     void saveAutoexecCombopConfig(AutoexecCombopVo autoexecCombopVo, boolean isCopy);
+
+    /**
+     * 预先准备组合工具版本配置信息
+     *
+     * @param autoexecCombopVersionConfigVo
+     * @param isCopy
+     */
+    void prepareAutoexecCombopVersionConfig(AutoexecCombopVersionConfigVo autoexecCombopVersionConfigVo, boolean isCopy);
 
     /**
      * 保存阶段中操作工具对预置参数集和全局参数的引用关系
@@ -108,6 +134,20 @@ public interface AutoexecCombopService {
     void deleteDependency(AutoexecCombopVo autoexecCombopVo);
 
     /**
+     * 保存阶段中操作工具对预置参数集和全局参数的引用关系
+     *
+     * @param autoexecCombopVersionVo
+     */
+    void saveDependency(AutoexecCombopVersionVo autoexecCombopVersionVo);
+
+    /**
+     * 删除阶段中操作工具对预置参数集和全局参数的引用关系
+     *
+     * @param autoexecCombopVersionVo
+     */
+    void deleteDependency(AutoexecCombopVersionVo autoexecCombopVersionVo);
+
+    /**
      * 获取组合工具信息
      *
      * @param id
@@ -116,8 +156,22 @@ public interface AutoexecCombopService {
     AutoexecCombopVo getAutoexecCombopById(Long id);
 
     /**
+     * 获取组合工具版本信息
+     *
+     * @param id
+     * @return
+     */
+    AutoexecCombopVersionVo getAutoexecCombopVersionById(Long id);
+
+    /**
      * 根据protocolId补充protocol字段和protocolPort字段值
      * @param autoexecCombopConfigVo 组合工具config
      */
     void updateAutoexecCombopExecuteConfigProtocolAndProtocolPort(AutoexecCombopConfigVo autoexecCombopConfigVo);
+
+    /**
+     * 根据protocolId补充protocol字段和protocolPort字段值
+     * @param autoexecCombopVersionConfigVo 组合工具config
+     */
+    void updateAutoexecCombopExecuteConfigProtocolAndProtocolPort(AutoexecCombopVersionConfigVo autoexecCombopVersionConfigVo);
 }

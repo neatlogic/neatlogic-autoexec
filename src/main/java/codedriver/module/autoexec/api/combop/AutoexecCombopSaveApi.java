@@ -45,7 +45,8 @@ import java.util.*;
  * @author linbq
  * @since 2021/4/13 11:21
  **/
-@Service
+//@Service
+@Deprecated
 @Transactional
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
