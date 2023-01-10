@@ -5,7 +5,6 @@
 
 package codedriver.module.autoexec.service;
 
-import codedriver.framework.asynchronization.threadlocal.UserContext;
 import codedriver.framework.autoexec.constvalue.CombopAuthorityAction;
 import codedriver.framework.autoexec.dto.combop.*;
 import codedriver.framework.autoexec.dto.script.AutoexecScriptVersionVo;
@@ -14,7 +13,7 @@ import java.util.List;
 
 /**
  * @author: linbq
- * @since: 2021/4/15 16:13
+ * @date: 2021/4/15 16:13
  **/
 public interface AutoexecCombopService {
 
@@ -37,21 +36,9 @@ public interface AutoexecCombopService {
      *
      * @param autoexecCombopVo 组合工具
      * @param action           权限
-     * @return
+     * @return 是｜否
      */
-    default boolean checkOperableButton(AutoexecCombopVo autoexecCombopVo, CombopAuthorityAction action) {
-        return checkOperableButton(autoexecCombopVo, action, UserContext.get().getUserUuid(true));
-    }
-
-    /**
-     * 检查当前用户是否有当前组合工具的某项权限
-     *
-     * @param autoexecCombopVo 组合工具
-     * @param action           权限
-     * @param user             指定校验权限的用户
-     * @return
-     */
-    boolean checkOperableButton(AutoexecCombopVo autoexecCombopVo, CombopAuthorityAction action, String user);
+    boolean checkOperableButton(AutoexecCombopVo autoexecCombopVo, CombopAuthorityAction action);
 
     /**
      * 校验组合工具每个阶段是否配置正确
