@@ -7,14 +7,17 @@ import codedriver.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
+import codedriver.framework.common.dto.BasePageVo;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
+import codedriver.framework.util.TableResultUtil;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -44,20 +47,29 @@ public class AutoexecCombopVersionListApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "组合工具id")
+            @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "组合工具id"),
+            @Param(name = "status", type = ApiParamType.ENUM, rule = "notPassed,passed", isRequired = true, desc = "是否已经审核通过"),
+            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页数"),
+            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页条数")
     })
     @Output({
-            @Param(explode = AutoexecCombopVersionVo[].class, desc = "组合工具版本列表")
+            @Param(explode = AutoexecCombopVersionVo[].class, desc = "组合工具版本列表"),
+            @Param(explode = BasePageVo.class)
     })
     @Description(desc = "查询组合工具版本列表")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        Long combopId = paramObj.getLong("combopId");
-        AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
+        AutoexecCombopVersionVo autoexecCombopVersionVo = paramObj.toJavaObject(AutoexecCombopVersionVo.class);
+        AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(autoexecCombopVersionVo.getCombopId());
         if (autoexecCombopVo == null) {
-            throw new AutoexecCombopNotFoundException(combopId);
+            throw new AutoexecCombopNotFoundException(autoexecCombopVersionVo.getCombopId());
         }
-        List<AutoexecCombopVersionVo> autoexecCombopVersionList = autoexecCombopVersionMapper.getAutoexecCombopVersionListByCombopId(combopId);
-        return autoexecCombopVersionList;
+        List<AutoexecCombopVersionVo> autoexecCombopVersionList = new ArrayList<>();
+        int rowNum = autoexecCombopVersionMapper.getAutoexecCombopVersionCount(autoexecCombopVersionVo);
+        if (rowNum > 0) {
+            autoexecCombopVersionVo.setRowNum(rowNum);
+            autoexecCombopVersionList = autoexecCombopVersionMapper.getAutoexecCombopVersionList(autoexecCombopVersionVo);
+        }
+        return TableResultUtil.getResult(autoexecCombopVersionList, autoexecCombopVersionVo);
     }
 }

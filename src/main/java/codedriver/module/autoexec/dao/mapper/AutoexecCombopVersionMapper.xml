@@ -19,8 +19,12 @@
             resultType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVersionVo">
         SELECT `id`,
                `name`,
-               `combop_id`          AS combopId,
-               `config`           AS configStr,
+               `combop_id` AS combopId,
+               `is_active` AS isActive,
+               `version`,
+               `status`,
+               `reviewer`,
+               `config` AS configStr,
                `lcd`,
                `lcu`
         FROM `autoexec_combop_version`
@@ -31,12 +35,66 @@
             resultType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVersionVo">
         SELECT `id`,
                `name`,
-               `combop_id`          AS combopId,
-               `config`           AS configStr,
+               `combop_id` AS combopId,
+               `is_active` AS isActive,
+               `version`,
+               `status`,
+               `reviewer`,
+               `config` AS configStr,
                `lcd`,
                `lcu`
         FROM `autoexec_combop_version`
         WHERE `combop_id` = #{value}
+    </select>
+
+    <select id="getAutoexecCombopVersionList" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVersionVo"
+            resultType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVersionVo">
+        SELECT `id`,
+               `name`,
+               `combop_id` AS combopId,
+               `is_active` AS isActive,
+               `version`,
+               `status`,
+               `reviewer`,
+               `config` AS configStr,
+               `lcd`,
+               `lcu`
+        FROM `autoexec_combop_version`
+        WHERE `combop_id` = #{combopId}
+        and `is_active` = 0
+        <choose>
+            <when test="status == 'notPassed'">
+                and `status` != 'passed'
+            </when>
+            <when test="status == 'passed'">
+                and `status` = 'passed'
+            </when>
+        </choose>
+        <choose>
+            <when test="status == 'notPassed'">
+                order by `lcd` desc
+            </when>
+            <when test="status == 'passed'">
+                order by `version` desc
+            </when>
+        </choose>
+        LIMIT #{startNum}, #{pageSize}
+    </select>
+
+    <select id="getAutoexecCombopVersionCount" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVersionVo"
+            resultType="int">
+        SELECT count(1)
+        FROM `autoexec_combop_version`
+        WHERE `combop_id` = #{combopId}
+        and `is_active` = 0
+        <choose>
+            <when test="status == 'notPassed'">
+                and `status` != 'passed'
+            </when>
+            <when test="status == 'passed'">
+                and `status` = 'passed'
+            </when>
+        </choose>
     </select>
 
     <select id="getAutoexecCombopVersionParamListByCombopVersionId" parameterType="java.lang.Long"
@@ -55,7 +113,7 @@
         ORDER BY `sort`
     </select>
 
-    <select id="getAutoexecCombopCurrentVersionIdByCombopId" parameterType="java.lang.Long" resultType="java.lang.Long">
+    <select id="getAutoexecCombopActiveVersionIdByCombopId" parameterType="java.lang.Long" resultType="java.lang.Long">
         SELECT `id`
         FROM `autoexec_combop_version`
         WHERE `combop_id` = #{value} and `is_active` = 1

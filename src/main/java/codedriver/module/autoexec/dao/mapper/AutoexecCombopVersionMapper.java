@@ -13,9 +13,13 @@ public interface AutoexecCombopVersionMapper {
 
     List<AutoexecCombopVersionVo> getAutoexecCombopVersionListByCombopId(Long id);
 
+    List<AutoexecCombopVersionVo> getAutoexecCombopVersionList(AutoexecCombopVersionVo autoexecCombopVersionVo);
+
+    int getAutoexecCombopVersionCount(AutoexecCombopVersionVo autoexecCombopVersionVo);
+
     List<AutoexecParamVo> getAutoexecCombopVersionParamListByCombopVersionId(Long combopVersionId);
 
-    Long getAutoexecCombopCurrentVersionIdByCombopId(Long combopId);
+    Long getAutoexecCombopActiveVersionIdByCombopId(Long combopId);
 
     int insertAutoexecCombopVersion(AutoexecCombopVersionVo autoexecCombopVersionVo);
 

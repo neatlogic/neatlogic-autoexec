@@ -103,8 +103,8 @@ public class AutoexecCombopBasicInfoGetApi extends PrivateApiComponentBase {
         autoexecCombopVo.setViewAuthorityList(viewAuthorityList);
         autoexecCombopVo.setEditAuthorityList(editAuthorityList);
         autoexecCombopVo.setExecuteAuthorityList(executeAuthorityList);
-        Long currentVersionId = autoexecCombopVersionMapper.getAutoexecCombopCurrentVersionIdByCombopId(id);
-        autoexecCombopVo.setCurrentVersionId(currentVersionId);
+        Long activeVersionId = autoexecCombopVersionMapper.getAutoexecCombopActiveVersionIdByCombopId(id);
+        autoexecCombopVo.setActiveVersionId(activeVersionId);
         return autoexecCombopVo;
     }
 }
