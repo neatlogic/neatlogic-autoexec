@@ -119,16 +119,28 @@
         WHERE `combop_id` = #{value} and `is_active` = 1
     </select>
 
+    <select id="getAutoexecCombopMaxVersionByCombopId" parameterType="java.lang.Long" resultType="java.lang.Integer">
+        SELECT max(`version`)
+        FROM `autoexec_combop_version`
+        WHERE `combop_id` = #{value}
+    </select>
+
     <insert id="insertAutoexecCombopVersion" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVersionVo">
         INSERT INTO `autoexec_combop_version` (`id`,
                                                `name`,
                                                `combop_id`,
+                                               `version`,
+                                               `is_active`,
+                                               `status`,
                                                `config`,
                                                `lcd`,
                                                `lcu`)
         VALUES (#{id},
                 #{name},
                 #{combopId},
+                #{version},
+                #{isActive},
+                #{status},
                 #{configStr},
                 NOW(3),
                 #{lcu})
@@ -137,12 +149,21 @@
     <update id="updateAutoexecCombopVersionById" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVersionVo">
         UPDATE `autoexec_combop_version`
         SET `name`             = #{name},
+            `status`           = #{status},
             `config`           = #{configStr}
         WHERE `id` = #{id}
     </update>
 
     <update id="updateAutoexecCombopVersionStatusById" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVersionVo">
         UPDATE `autoexec_combop_version` SET `status` = #{status} WHERE `id` = #{id}
+    </update>
+
+    <update id="disableAutoexecCombopVersionByCombopId" parameterType="java.lang.Long">
+        UPDATE `autoexec_combop_version` SET `is_active` = 0 WHERE `combop_id` = #{value}
+    </update>
+
+    <update id="enableAutoexecCombopVersionById" parameterType="java.lang.Long">
+        UPDATE `autoexec_combop_version` SET `is_active` = 1 WHERE `id` = #{value}
     </update>
 
     <delete id="deleteAutoexecCombopVersionByCombopId" parameterType="java.lang.Long">

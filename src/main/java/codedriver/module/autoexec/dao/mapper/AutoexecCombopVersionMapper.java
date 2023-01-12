@@ -21,11 +21,17 @@ public interface AutoexecCombopVersionMapper {
 
     Long getAutoexecCombopActiveVersionIdByCombopId(Long combopId);
 
+    Integer getAutoexecCombopMaxVersionByCombopId(Long combopId);
+
     int insertAutoexecCombopVersion(AutoexecCombopVersionVo autoexecCombopVersionVo);
 
     int updateAutoexecCombopVersionById(AutoexecCombopVersionVo autoexecCombopVersionVo);
 
     int updateAutoexecCombopVersionStatusById(AutoexecCombopVersionVo autoexecCombopVersionVo);
+
+    int disableAutoexecCombopVersionByCombopId(Long combopId);
+
+    int enableAutoexecCombopVersionById(Long id);
 
     int deleteAutoexecCombopVersionByCombopId(Long id);
 

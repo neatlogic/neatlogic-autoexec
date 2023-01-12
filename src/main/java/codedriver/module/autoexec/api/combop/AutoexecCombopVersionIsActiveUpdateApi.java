@@ -2,7 +2,6 @@ package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_REVIEW;
-import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
@@ -27,7 +26,7 @@ import java.util.Objects;
 @Transactional
 @AuthAction(action = AUTOEXEC_COMBOP_REVIEW.class)
 @OperationType(type = OperationTypeEnum.DELETE)
-public class AutoexecCombopVersionStatusUpdateApi extends PrivateApiComponentBase {
+public class AutoexecCombopVersionIsActiveUpdateApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
@@ -40,12 +39,12 @@ public class AutoexecCombopVersionStatusUpdateApi extends PrivateApiComponentBas
 
     @Override
     public String getToken() {
-        return "autoexec/combop/version/status/update";
+        return "autoexec/combop/version/isactive/update";
     }
 
     @Override
     public String getName() {
-        return "更新组合工具版本状态";
+        return "激活组合工具版本";
     }
 
     @Override
@@ -54,10 +53,9 @@ public class AutoexecCombopVersionStatusUpdateApi extends PrivateApiComponentBas
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "组合工具版本id"),
-            @Param(name = "status", type =ApiParamType.ENUM, rule = "draft,passed,rejected", isRequired = true, desc = "状态")
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "组合工具版本id")
     })
-    @Description(desc = "更新组合工具版本状态")
+    @Description(desc = "激活组合工具版本")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long id = paramObj.getLong("id");
@@ -65,18 +63,20 @@ public class AutoexecCombopVersionStatusUpdateApi extends PrivateApiComponentBas
         if (autoexecCombopVersionVo == null) {
             throw new AutoexecCombopVersionNotFoundException(id);
         }
+        if (autoexecCombopVersionVo.getIsActive() == 1) {
+            return null;
+        }
+        if (!Objects.equals(autoexecCombopVersionVo.getStatus(), "passed")) {
+            // TODO 抛异常
+            return null;
+        }
         AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(autoexecCombopVersionVo.getCombopId());
         autoexecCombopService.setOperableButtonList(autoexecCombopVo);
 //        if (Objects.equals(autoexecCombopVo.getDeletable(), 0)) {
 //            throw new PermissionDeniedException();
 //        }
-        String status = paramObj.getString("status");
-        autoexecCombopVersionVo.setStatus(status);
-        autoexecCombopVersionMapper.updateAutoexecCombopVersionStatusById(autoexecCombopVersionVo);
-        if (Objects.equals(status, ScriptVersionStatus.PASSED.getValue())) {
-            autoexecCombopVersionMapper.disableAutoexecCombopVersionByCombopId(autoexecCombopVersionVo.getCombopId());
-            autoexecCombopVersionMapper.enableAutoexecCombopVersionById(id);
-        }
+        autoexecCombopVersionMapper.disableAutoexecCombopVersionByCombopId(autoexecCombopVersionVo.getCombopId());
+        autoexecCombopVersionMapper.enableAutoexecCombopVersionById(id);
         return null;
     }
 }

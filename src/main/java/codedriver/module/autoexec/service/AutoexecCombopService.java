@@ -99,6 +99,20 @@ public interface AutoexecCombopService {
     void saveAutoexecCombopConfig(AutoexecCombopVo autoexecCombopVo, boolean isCopy);
 
     /**
+     * 设置组合工具版本配置信息的阶段中groupId
+     *
+     * @param autoexecCombopVersionConfigVo
+     */
+    void setAutoexecCombopPhaseGroupId(AutoexecCombopVersionConfigVo autoexecCombopVersionConfigVo);
+
+    /**
+     * 重置组合工具版本配置信息中各种ID，如阶段ID，操作ID
+     *
+     * @param autoexecCombopVersionConfigVo
+     */
+    void resetIdAutoexecCombopVersionConfig(AutoexecCombopVersionConfigVo autoexecCombopVersionConfigVo);
+
+    /**
      * 预先准备组合工具版本配置信息
      *
      * @param autoexecCombopVersionConfigVo

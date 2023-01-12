@@ -10,9 +10,10 @@ import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.auth.core.AuthActionChecker;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
 import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
+import codedriver.framework.autoexec.auth.AUTOEXEC_COMBOP_REVIEW;
+import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
-import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVersionConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
@@ -35,6 +36,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Transactional
@@ -69,6 +71,7 @@ public class AutoexecCombopVersionSaveApi extends PrivateApiComponentBase {
     @Input({
             @Param(name = "id", type = ApiParamType.LONG, desc = "主键id"),
             @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, isRequired = true, minLength = 1, maxLength = 70, desc = "显示名"),
+            @Param(name = "status", type = ApiParamType.ENUM, rule = "draft,submitted", isRequired = true, desc = "状态"),
             @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "组合工具ID"),
             @Param(name = "config", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "配置信息")
     })
@@ -80,6 +83,9 @@ public class AutoexecCombopVersionSaveApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecCombopVersionVo autoexecCombopVersionVo = jsonObj.toJavaObject(AutoexecCombopVersionVo.class);
 
+        if (autoexecCombopVersionMapper.checkAutoexecCombopVersionNameIsRepeat(autoexecCombopVersionVo) != null) {
+            throw new AutoexecCombopVersionNameRepeatException(autoexecCombopVersionVo.getName());
+        }
         AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(autoexecCombopVersionVo.getCombopId());
         if (autoexecCombopVo == null) {
             throw new AutoexecCombopNotFoundException(autoexecCombopVersionVo.getCombopId());
@@ -88,12 +94,23 @@ public class AutoexecCombopVersionSaveApi extends PrivateApiComponentBase {
         if (autoexecCombopVo.getEditable() == 0) {
             throw new PermissionDeniedException();
         }
-
         Long id = jsonObj.getLong("id");
         if (id == null) {
             if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(true), AUTOEXEC_COMBOP_ADD.class.getSimpleName())) {
                 throw new PermissionDeniedException(AUTOEXEC_COMBOP_ADD.class);
             }
+            AutoexecCombopVersionConfigVo config = autoexecCombopVersionVo.getConfig();
+            autoexecCombopService.resetIdAutoexecCombopVersionConfig(config);
+            autoexecCombopService.setAutoexecCombopPhaseGroupId(config);
+            autoexecCombopVersionVo.setConfigStr(null);
+            Integer version = autoexecCombopVersionMapper.getAutoexecCombopMaxVersionByCombopId(autoexecCombopVersionVo.getCombopId());
+            if (version == null) {
+                version = 1;
+            } else {
+                version++;
+            }
+            autoexecCombopVersionVo.setVersion(version);
+            autoexecCombopVersionVo.setIsActive(0);
             autoexecCombopVersionMapper.insertAutoexecCombopVersion(autoexecCombopVersionVo);
             autoexecCombopService.saveDependency(autoexecCombopVersionVo);
         } else {
@@ -118,13 +135,18 @@ public class AutoexecCombopVersionSaveApi extends PrivateApiComponentBase {
             autoexecCombopService.verifyAutoexecCombopVersionConfig(config, false);
             autoexecCombopVersionVo.setConfigStr(configStr);
             autoexecCombopService.deleteDependency(oldAutoexecCombopVersionVo);
-            autoexecCombopService.prepareAutoexecCombopVersionConfig(autoexecCombopVersionVo.getConfig(), false);
+            autoexecCombopService.setAutoexecCombopPhaseGroupId(autoexecCombopVersionVo.getConfig());
+//            autoexecCombopService.prepareAutoexecCombopVersionConfig(autoexecCombopVersionVo.getConfig(), false);
             autoexecCombopVersionVo.setConfigStr(null);
             autoexecCombopVersionMapper.updateAutoexecCombopVersionById(autoexecCombopVersionVo);
             autoexecCombopService.saveDependency(autoexecCombopVersionVo);
         }
-
-        return autoexecCombopVersionVo.getId();
+        JSONObject resultObj = new JSONObject();
+        resultObj.put("id", autoexecCombopVersionVo.getId());
+        if (Objects.equals(autoexecCombopVersionVo.getStatus(), ScriptVersionStatus.SUBMITTED.getValue())) {
+            resultObj.put("reviewable", AuthActionChecker.check(AUTOEXEC_COMBOP_REVIEW.class) ? 1 : 0);
+        }
+        return resultObj;
     }
 
     public IValid name() {
