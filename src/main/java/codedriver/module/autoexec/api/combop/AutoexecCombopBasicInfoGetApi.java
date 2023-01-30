@@ -7,6 +7,7 @@ package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import codedriver.framework.autoexec.dto.AutoexecTypeVo;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
@@ -65,7 +67,8 @@ public class AutoexecCombopBasicInfoGetApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "主键id")
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "主键id"),
+            @Param(name = "versionStatus", type = ApiParamType.ENUM, rule = "draft,submitted,passed,rejected", isRequired = true, desc = "状态")
     })
     @Output({
             @Param(explode = AutoexecCombopVo.class, desc = "组合工具基本信息")
@@ -105,6 +108,13 @@ public class AutoexecCombopBasicInfoGetApi extends PrivateApiComponentBase {
         autoexecCombopVo.setExecuteAuthorityList(executeAuthorityList);
         Long activeVersionId = autoexecCombopVersionMapper.getAutoexecCombopActiveVersionIdByCombopId(id);
         autoexecCombopVo.setActiveVersionId(activeVersionId);
+        String versionStatus = jsonObj.getString("versionStatus");
+        if (Objects.equals(versionStatus, ScriptVersionStatus.PASSED.getValue())) {
+            autoexecCombopVo.setSpecifyVersionId(activeVersionId);
+        } else {
+            Long maxVersionId = autoexecCombopVersionMapper.getAutoexecCombopMaxVersionIdByCombopIdAndStatus(id, versionStatus);
+            autoexecCombopVo.setSpecifyVersionId(maxVersionId);
+        }
         return autoexecCombopVo;
     }
 }

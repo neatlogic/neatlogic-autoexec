@@ -125,6 +125,21 @@
         WHERE `combop_id` = #{value}
     </select>
 
+    <select id="getAutoexecCombopIdListByStatus" parameterType="java.lang.String" resultType="java.lang.Long">
+        SELECT
+            DISTINCT `combop_id`
+        FROM `autoexec_combop_version`
+        WHERE `status` = #{value}
+    </select>
+
+    <select id="getAutoexecCombopMaxVersionIdByCombopIdAndStatus" parameterType="java.util.Map" resultType="java.lang.Long">
+        SELECT
+            max(`id`)
+        FROM `autoexec_combop_version`
+        WHERE combop_id = #{combopId}
+          AND `status` = #{status}
+    </select>
+
     <insert id="insertAutoexecCombopVersion" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVersionVo">
         INSERT INTO `autoexec_combop_version` (`id`,
                                                `name`,

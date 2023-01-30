@@ -2,6 +2,7 @@ package codedriver.module.autoexec.dao.mapper;
 
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -22,6 +23,10 @@ public interface AutoexecCombopVersionMapper {
     Long getAutoexecCombopActiveVersionIdByCombopId(Long combopId);
 
     Integer getAutoexecCombopMaxVersionByCombopId(Long combopId);
+
+    List<Long> getAutoexecCombopIdListByStatus(String status);
+
+    Long getAutoexecCombopMaxVersionIdByCombopIdAndStatus(@Param("combopId") Long combopId, @Param("status") String versionStatus);
 
     int insertAutoexecCombopVersion(AutoexecCombopVersionVo autoexecCombopVersionVo);
 

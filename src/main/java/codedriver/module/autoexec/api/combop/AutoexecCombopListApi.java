@@ -7,23 +7,23 @@ package codedriver.module.autoexec.api.combop;
 
 import codedriver.framework.auth.core.AuthAction;
 import codedriver.framework.autoexec.auth.AUTOEXEC_BASE;
+import codedriver.framework.autoexec.constvalue.ScriptVersionStatus;
 import codedriver.framework.autoexec.dto.AutoexecTypeVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopVo;
 import codedriver.framework.autoexec.exception.AutoexecTypeNotFoundException;
 import codedriver.framework.common.constvalue.ApiParamType;
 import codedriver.framework.common.dto.BasePageVo;
-import codedriver.framework.common.util.PageUtil;
-import codedriver.framework.dao.mapper.TeamMapper;
 import codedriver.framework.restful.annotation.*;
 import codedriver.framework.restful.constvalue.OperationTypeEnum;
 import codedriver.framework.restful.core.privateapi.PrivateApiComponentBase;
 import codedriver.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import codedriver.framework.autoexec.dao.mapper.AutoexecTypeMapper;
+import codedriver.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import codedriver.module.autoexec.service.AutoexecCombopService;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -44,13 +44,13 @@ public class AutoexecCombopListApi extends PrivateApiComponentBase {
     private AutoexecCombopMapper autoexecCombopMapper;
 
     @Resource
+    private AutoexecCombopVersionMapper autoexecCombopVersionMapper;
+
+    @Resource
     private AutoexecTypeMapper autoexecTypeMapper;
 
     @Resource
     private AutoexecCombopService autoexecCombopService;
-
-    @Resource
-    private TeamMapper teamMapper;
 
     @Override
     public String getToken() {
@@ -72,6 +72,7 @@ public class AutoexecCombopListApi extends PrivateApiComponentBase {
             @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "默认值"),
             @Param(name = "typeId", type = ApiParamType.LONG, desc = "类型id"),
             @Param(name = "isActive", type = ApiParamType.ENUM, rule = "0,1", desc = "状态"),
+            @Param(name = "versionStatus", type = ApiParamType.ENUM, rule = "draft,submitted,passed,rejected", desc = "状态"),
             @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页数"),
             @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页条数")
     })
@@ -83,7 +84,6 @@ public class AutoexecCombopListApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject resultObj = new JSONObject();
-        int pageCount = 0;
         AutoexecCombopVo searchVo = jsonObj.toJavaObject(AutoexecCombopVo.class);
         JSONArray defaultValue = searchVo.getDefaultValue();
         if (CollectionUtils.isNotEmpty(defaultValue)) {
@@ -92,26 +92,47 @@ public class AutoexecCombopListApi extends PrivateApiComponentBase {
             resultObj.put("tbodyList", autoexecCombopList);
             return resultObj;
         }
-        int rowNum = autoexecCombopMapper.getAutoexecCombopCount(searchVo);
-        if (rowNum > 0) {
-            pageCount = PageUtil.getPageCount(rowNum, searchVo.getPageSize());
-            List<AutoexecCombopVo> autoexecCombopList = autoexecCombopMapper.getAutoexecCombopList(searchVo);
-            for (AutoexecCombopVo autoexecCombopVo : autoexecCombopList) {
-                AutoexecTypeVo autoexecTypeVo = autoexecTypeMapper.getTypeById(autoexecCombopVo.getTypeId());
-                if (autoexecTypeVo == null) {
-                    throw new AutoexecTypeNotFoundException(autoexecCombopVo.getTypeId());
-                }
-                autoexecCombopVo.setTypeName(autoexecTypeVo.getName());
-                autoexecCombopService.setOperableButtonList(autoexecCombopVo);
-            }
-            resultObj.put("tbodyList", autoexecCombopList);
-        } else {
-            resultObj.put("tbodyList", new ArrayList<>());
+        String versionStatus = jsonObj.getString("versionStatus");
+        if (StringUtils.isBlank(versionStatus)) {
+            versionStatus = ScriptVersionStatus.PASSED.getValue();
         }
-        resultObj.put("rowNum", rowNum);
-        resultObj.put("pageCount", pageCount);
+        List<String> versionStatusList = Arrays.asList(
+                ScriptVersionStatus.PASSED.getValue(),
+                ScriptVersionStatus.DRAFT.getValue(),
+                ScriptVersionStatus.SUBMITTED.getValue(),
+                ScriptVersionStatus.REJECTED.getValue()
+        );
+        Map<String, Integer> versionStatusCountMap = new HashMap<>();
+        for (String status : versionStatusList) {
+            List<Long> combopIdList = autoexecCombopVersionMapper.getAutoexecCombopIdListByStatus(status);
+            if (CollectionUtils.isNotEmpty(combopIdList)) {
+                JSONArray idArray = new JSONArray();
+                combopIdList.forEach(item -> idArray.add(item));
+                searchVo.setDefaultValue(idArray);
+                int rowNum = autoexecCombopMapper.getAutoexecCombopCount(searchVo);
+                if (rowNum > 0 && Objects.equals(status, versionStatus)) {
+                    searchVo.setRowNum(rowNum);
+                    List<AutoexecCombopVo> autoexecCombopList = autoexecCombopMapper.getAutoexecCombopList(searchVo);
+                    for (AutoexecCombopVo autoexecCombopVo : autoexecCombopList) {
+                        AutoexecTypeVo autoexecTypeVo = autoexecTypeMapper.getTypeById(autoexecCombopVo.getTypeId());
+                        if (autoexecTypeVo == null) {
+                            throw new AutoexecTypeNotFoundException(autoexecCombopVo.getTypeId());
+                        }
+                        autoexecCombopVo.setTypeName(autoexecTypeVo.getName());
+                        autoexecCombopService.setOperableButtonList(autoexecCombopVo);
+                    }
+                    resultObj.put("tbodyList", autoexecCombopList);
+                }
+                versionStatusCountMap.put(status, rowNum);
+            } else {
+                versionStatusCountMap.put(status, 0);
+            }
+        }
+        resultObj.put("rowNum", searchVo.getRowNum());
+        resultObj.put("pageCount", searchVo.getPageCount());
         resultObj.put("currentPage", searchVo.getCurrentPage());
         resultObj.put("pageSize", searchVo.getPageSize());
+        resultObj.put("versionStatusCountMap", versionStatusCountMap);
         return resultObj;
     }
 }
