@@ -324,6 +324,104 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
         }
     }
 
+    /**
+     * 补充AutoexecCombopVersionConfigVo对象中的场景名称、预置参数集名称、操作对应的工具信息
+     *
+     * @param config config对象
+     */
+    @Override
+    public void updateAutoexecCombopVersionConfig(AutoexecCombopVersionConfigVo config) {
+//        List<AutoexecCombopScenarioVo> combopScenarioList = config.getScenarioList();
+//        if (CollectionUtils.isNotEmpty(combopScenarioList)) {
+//            for (AutoexecCombopScenarioVo combopScenarioVo : combopScenarioList) {
+//                Long scenarioId = combopScenarioVo.getScenarioId();
+//                if (scenarioId != null) {
+//                    AutoexecScenarioVo autoexecScenarioVo = autoexecScenarioMapper.getScenarioById(scenarioId);
+//                    if (autoexecScenarioVo != null) {
+//                        combopScenarioVo.setScenarioName(autoexecScenarioVo.getName());
+//                    }
+//                }
+//            }
+//        }
+        List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
+        if (CollectionUtils.isNotEmpty(combopPhaseList)) {
+            for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseList) {
+                AutoexecCombopPhaseConfigVo phaseConfigVo = combopPhaseVo.getConfig();
+                combopPhaseVo.setExecModeName(ExecMode.getText(combopPhaseVo.getExecMode()));
+                if (phaseConfigVo == null) {
+                    continue;
+                }
+                List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfigVo.getPhaseOperationList();
+                if (CollectionUtils.isEmpty(phaseOperationList)) {
+                    continue;
+                }
+                for (AutoexecCombopPhaseOperationVo phaseOperationVo : phaseOperationList) {
+                    if (phaseOperationVo == null) {
+                        continue;
+                    }
+                    getAutoexecOperationBaseVoByIdAndType(combopPhaseVo.getName(), phaseOperationVo, false);
+                    AutoexecCombopPhaseOperationConfigVo operationConfigVo = phaseOperationVo.getConfig();
+                    if (operationConfigVo == null) {
+                        continue;
+                    }
+                    Long profileId = operationConfigVo.getProfileId();
+                    if (profileId != null) {
+                        AutoexecProfileVo autoexecProfileVo = autoexecProfileMapper.getProfileVoById(profileId);
+                        if (autoexecProfileVo != null) {
+                            operationConfigVo.setProfileName(autoexecProfileVo.getName());
+                            List<AutoexecProfileParamVo> profileParamList = autoexecProfileService.getProfileParamListById(profileId);
+                            operationConfigVo.setProfileParamList(profileParamList);
+                        }
+                    }
+                    List<AutoexecCombopPhaseOperationVo> ifList = operationConfigVo.getIfList();
+                    if (CollectionUtils.isNotEmpty(ifList)) {
+                        for (AutoexecCombopPhaseOperationVo operationVo : ifList) {
+                            if (operationVo == null) {
+                                continue;
+                            }
+                            getAutoexecOperationBaseVoByIdAndType(combopPhaseVo.getName(), operationVo, false);
+                            AutoexecCombopPhaseOperationConfigVo operationConfig = operationVo.getConfig();
+                            if (operationConfig == null) {
+                                continue;
+                            }
+                            Long operationConfigProfileId = operationConfig.getProfileId();
+                            if (operationConfigProfileId != null) {
+                                AutoexecProfileVo autoexecProfileVo = autoexecProfileMapper.getProfileVoById(operationConfigProfileId);
+                                if (autoexecProfileVo != null) {
+                                    operationConfig.setProfileName(autoexecProfileVo.getName());
+                                    List<AutoexecProfileParamVo> profileParamList = autoexecProfileService.getProfileParamListById(operationConfigProfileId);
+                                    operationConfig.setProfileParamList(profileParamList);
+                                }
+                            }
+                        }
+                    }
+                    List<AutoexecCombopPhaseOperationVo> elseList = operationConfigVo.getElseList();
+                    if (CollectionUtils.isNotEmpty(elseList)) {
+                        for (AutoexecCombopPhaseOperationVo operationVo : elseList) {
+                            if (operationVo == null) {
+                                continue;
+                            }
+                            getAutoexecOperationBaseVoByIdAndType(combopPhaseVo.getName(), operationVo, false);
+                            AutoexecCombopPhaseOperationConfigVo operationConfig = operationVo.getConfig();
+                            if (operationConfig == null) {
+                                continue;
+                            }
+                            Long operationConfigProfileId = operationConfig.getProfileId();
+                            if (operationConfigProfileId != null) {
+                                AutoexecProfileVo autoexecProfileVo = autoexecProfileMapper.getProfileVoById(operationConfigProfileId);
+                                if (autoexecProfileVo != null) {
+                                    operationConfig.setProfileName(autoexecProfileVo.getName());
+                                    List<AutoexecProfileParamVo> profileParamList = autoexecProfileService.getProfileParamListById(operationConfigProfileId);
+                                    operationConfig.setProfileParamList(profileParamList);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     @Override
     public AutoexecOperationBaseVo getAutoexecOperationBaseVoByIdAndType(String phaseName, AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo, boolean throwException) {
         AutoexecOperationBaseVo autoexecToolAndScriptVo = null;

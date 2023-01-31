@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright(c) 2021 TechSureCo.,Ltd.AllRightsReserved.
+  ~ 本内容仅限于深圳市赞悦科技有限公司内部传阅，禁止外泄以及用于其他的商业项目。
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="codedriver.module.autoexec.dao.mapper.AutoexecCombopVersionMapper">
+
+    <select id="checkAutoexecCombopVersionNameIsRepeat"
+            parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVersionVo" resultType="java.lang.Long">
+        SELECT `id`
+        FROM `autoexec_combop_version`
+        WHERE `name` = #{name}
+          AND `id` != #{id} LIMIT 1
+    </select>
+
+    <select id="getAutoexecCombopVersionById" parameterType="java.lang.Long"
+            resultType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVersionVo">
+        SELECT `id`,
+               `name`,
+               `combop_id` AS combopId,
+               `is_active` AS isActive,
+               `version`,
+               `status`,
+               `reviewer`,
+               `config` AS configStr,
+               `lcd`,
+               `lcu`
+        FROM `autoexec_combop_version`
+        WHERE `id` = #{value}
+    </select>
+
+    <select id="getAutoexecCombopVersionListByCombopId" parameterType="java.lang.Long"
+            resultType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVersionVo">
+        SELECT `id`,
+               `name`,
+               `combop_id` AS combopId,
+               `is_active` AS isActive,
+               `version`,
+               `status`,
+               `reviewer`,
+               `config` AS configStr,
+               `lcd`,
+               `lcu`
+        FROM `autoexec_combop_version`
+        WHERE `combop_id` = #{value}
+    </select>
+
+    <select id="getAutoexecCombopVersionList" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVersionVo"
+            resultType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVersionVo">
+        SELECT `id`,
+               `name`,
+               `combop_id` AS combopId,
+               `is_active` AS isActive,
+               `version`,
+               `status`,
+               `reviewer`,
+               `config` AS configStr,
+               `lcd`,
+               `lcu`
+        FROM `autoexec_combop_version`
+        WHERE `combop_id` = #{combopId}
+        and `is_active` = 0
+        <choose>
+            <when test="status == 'notPassed'">
+                and `status` != 'passed'
+            </when>
+            <when test="status == 'passed'">
+                and `status` = 'passed'
+            </when>
+        </choose>
+        <choose>
+            <when test="status == 'notPassed'">
+                order by `lcd` desc
+            </when>
+            <when test="status == 'passed'">
+                order by `version` desc
+            </when>
+        </choose>
+        LIMIT #{startNum}, #{pageSize}
+    </select>
+
+    <select id="getAutoexecCombopVersionCount" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVersionVo"
+            resultType="int">
+        SELECT count(1)
+        FROM `autoexec_combop_version`
+        WHERE `combop_id` = #{combopId}
+        and `is_active` = 0
+        <choose>
+            <when test="status == 'notPassed'">
+                and `status` != 'passed'
+            </when>
+            <when test="status == 'passed'">
+                and `status` = 'passed'
+            </when>
+        </choose>
+    </select>
+
+    <select id="getAutoexecCombopVersionParamListByCombopVersionId" parameterType="java.lang.Long"
+            resultType="codedriver.framework.autoexec.dto.AutoexecParamVo">
+        SELECT `key`,
+               `name`,
+               `default_value` AS defaultValue,
+               `description`,
+               `is_required`   AS isRequired,
+               `type`,
+               `sort`,
+               `config`,
+               `editable`
+        FROM `autoexec_combop_version_param`
+        WHERE `combop_version_id` = #{value}
+        ORDER BY `sort`
+    </select>
+
+    <select id="getAutoexecCombopActiveVersionIdByCombopId" parameterType="java.lang.Long" resultType="java.lang.Long">
+        SELECT `id`
+        FROM `autoexec_combop_version`
+        WHERE `combop_id` = #{value} and `is_active` = 1
+    </select>
+
+    <select id="getAutoexecCombopMaxVersionByCombopId" parameterType="java.lang.Long" resultType="java.lang.Integer">
+        SELECT max(`version`)
+        FROM `autoexec_combop_version`
+        WHERE `combop_id` = #{value}
+    </select>
+
+    <select id="getAutoexecCombopIdListByStatus" parameterType="java.lang.String" resultType="java.lang.Long">
+        SELECT
+            DISTINCT `combop_id`
+        FROM `autoexec_combop_version`
+        WHERE `status` = #{value}
+    </select>
+
+    <select id="getAutoexecCombopMaxVersionIdByCombopIdAndStatus" parameterType="java.util.Map" resultType="java.lang.Long">
+        SELECT
+            max(`id`)
+        FROM `autoexec_combop_version`
+        WHERE combop_id = #{combopId}
+          AND `status` = #{status}
+    </select>
+
+    <insert id="insertAutoexecCombopVersion" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVersionVo">
+        INSERT INTO `autoexec_combop_version` (`id`,
+                                               `name`,
+                                               `combop_id`,
+                                               `version`,
+                                               `is_active`,
+                                               `status`,
+                                               `config`,
+                                               `lcd`,
+                                               `lcu`)
+        VALUES (#{id},
+                #{name},
+                #{combopId},
+                #{version},
+                #{isActive},
+                #{status},
+                #{configStr},
+                NOW(3),
+                #{lcu})
+    </insert>
+
+    <update id="updateAutoexecCombopVersionById" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVersionVo">
+        UPDATE `autoexec_combop_version`
+        SET `name`             = #{name},
+            `status`           = #{status},
+            `config`           = #{configStr}
+        WHERE `id` = #{id}
+    </update>
+
+    <update id="updateAutoexecCombopVersionStatusById" parameterType="codedriver.framework.autoexec.dto.combop.AutoexecCombopVersionVo">
+        UPDATE `autoexec_combop_version` SET `status` = #{status} WHERE `id` = #{id}
+    </update>
+
+    <update id="disableAutoexecCombopVersionByCombopId" parameterType="java.lang.Long">
+        UPDATE `autoexec_combop_version` SET `is_active` = 0 WHERE `combop_id` = #{value}
+    </update>
+
+    <update id="enableAutoexecCombopVersionById" parameterType="java.lang.Long">
+        UPDATE `autoexec_combop_version` SET `is_active` = 1 WHERE `id` = #{value}
+    </update>
+
+    <delete id="deleteAutoexecCombopVersionByCombopId" parameterType="java.lang.Long">
+        DELETE
+        FROM `autoexec_combop_version`
+        WHERE `combop_id` = #{value}
+    </delete>
+
+    <delete id="deleteAutoexecCombopVersionById" parameterType="java.lang.Long">
+        DELETE
+        FROM `autoexec_combop_version`
+        WHERE `id` = #{value}
+    </delete>
+
+</mapper>

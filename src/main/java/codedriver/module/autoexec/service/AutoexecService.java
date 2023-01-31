@@ -10,6 +10,7 @@ import codedriver.framework.autoexec.dto.AutoexecOperationVo;
 import codedriver.framework.autoexec.dto.AutoexecParamVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
 import codedriver.framework.autoexec.dto.combop.AutoexecCombopPhaseOperationVo;
+import codedriver.framework.autoexec.dto.combop.AutoexecCombopVersionConfigVo;
 
 import java.util.List;
 
@@ -42,6 +43,12 @@ public interface AutoexecService {
      * @param config config对象
      */
     void updateAutoexecCombopConfig(AutoexecCombopConfigVo config);
+
+    /**
+     * 补充AutoexecCombopVersionConfigVo对象中的预置参数集名称、操作对应的工具信息
+     * @param config config对象
+     */
+    void updateAutoexecCombopVersionConfig(AutoexecCombopVersionConfigVo config);
 
     /**
      * 补充阶段操作中的自定义工具或工具信息
