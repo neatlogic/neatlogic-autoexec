@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: com.github.magese:ik-analyzer:8.1.0.techsure">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/github/magese/ik-analyzer/8.1.0.techsure/ik-analyzer-8.1.0.techsure.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/com/github/magese/ik-analyzer/8.1.0.techsure/ik-analyzer-8.1.0.techsure-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/com/github/magese/ik-analyzer/8.1.0.techsure/ik-analyzer-8.1.0.techsure-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

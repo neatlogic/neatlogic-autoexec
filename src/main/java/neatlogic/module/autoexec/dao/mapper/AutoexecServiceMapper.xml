@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright(c) 2023 NeatLogic Co., Ltd. All Rights Reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="neatlogic.module.autoexec.dao.mapper.AutoexecServiceMapper">
+
+    <select id="getAutoexecServiceById"
+            resultType="neatlogic.framework.autoexec.dto.service.AutoexecServiceVo">
+        select a.id,
+               a.name,
+               a.is_active as isActive,
+               a.type,
+               a.parent_id as parentId,
+               a.lft,
+               a.rht,
+               a.description,
+               b.combop_id as combopId,
+               b.form_uuid as formUuid,
+               b.config    as configStr
+        from `autoexec_service` a
+                 left join `autoexec_service_config` b on a.id = b.service_id
+        where a.id = #{id}
+    </select>
+
+    <select id="getAutoexecServiceNodeById"
+            resultType="neatlogic.framework.autoexec.dto.service.AutoexecServiceNodeVo">
+        select a.id,
+               a.name,
+               a.is_active as isActive,
+               a.type,
+               a.parent_id as parentId,
+               a.lft,
+               a.rht,
+               a.description
+        from `autoexec_service` a
+        where a.id = #{id}
+    </select>
+
+    <select id="checkAutoexecServiceNameIsRepeat" parameterType="neatlogic.framework.autoexec.dto.service.AutoexecServiceVo" resultType="java.lang.Integer">
+        SELECT COUNT(`id`)
+        FROM `autoexec_service`
+        where `name` = #{name}
+          and `id` != #{id}
+          and `parent_id` = #{parentId}
+    </select>
+
+    <select id="getAllCount" resultType="int">
+        SELECT COUNT(1) FROM `autoexec_service`
+    </select>
+
+
+    <select id="getAutoexecServiceNodeList" parameterType="neatlogic.framework.autoexec.dto.service.AutoexecServiceSearchVo"
+            resultType="neatlogic.framework.autoexec.dto.service.AutoexecServiceNodeVo">
+        SELECT
+            `id`,
+            `name`,
+            `is_active` AS isActive,
+            `type`,
+            `parent_id` AS parentId
+        FROM `autoexec_service`
+        ORDER BY `id`
+            LIMIT #{startNum}, #{pageSize}
+    </select>
+
+    <select id="searchAutoexecServiceCount" parameterType="neatlogic.framework.autoexec.dto.service.AutoexecServiceSearchVo"
+            resultType="int">
+        SELECT
+        count(1)
+        FROM `autoexec_service`
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND `name` like concat('%', #{keyword}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="searchAutoexecServiceList" parameterType="neatlogic.framework.autoexec.dto.service.AutoexecServiceSearchVo"
+            resultType="neatlogic.framework.autoexec.dto.service.AutoexecServiceVo">
+        SELECT
+        `id`,
+        `name`,
+        `is_active` AS isActive,
+        `type`,
+        `parent_id` AS parentId
+        FROM `autoexec_service`
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND `name` like concat('%', #{keyword}, '%')
+            </if>
+        </where>
+        ORDER BY `lft`
+        LIMIT #{startNum}, #{pageSize}
+    </select>
+
+    <sql id="searchVisibleNodeSql">
+        <if test="serviceIdList != null and serviceIdList.size() > 0">
+            AND b.`service_id` IN
+            <foreach collection="serviceIdList" item="serviceId" open="(" separator="," close=")">
+                #{serviceId}
+            </foreach>
+        </if>
+        AND (
+        (b.`type` = 'common' AND b.`uuid` = 'alluser')
+        <if test="authenticationInfoVo.userUuid != null and authenticationInfoVo.userUuid != ''">
+            OR (b.`type` = 'user' AND b.`uuid` = #{authenticationInfoVo.userUuid})
+        </if>
+        <if test="authenticationInfoVo.teamUuidList != null and authenticationInfoVo.teamUuidList.size() > 0">
+            OR (b.`type` = 'team' AND b.`uuid` IN
+            <foreach collection="authenticationInfoVo.teamUuidList" item="teamUuid" open="(" separator="," close=")">
+                #{teamUuid}
+            </foreach>
+            )
+        </if>
+        <if test="authenticationInfoVo.roleUuidList != null and authenticationInfoVo.roleUuidList.size() > 0">
+            OR (b.`type` = 'role' AND b.`uuid` IN
+            <foreach collection="authenticationInfoVo.roleUuidList" item="roleUuid" open="(" separator="," close=")">
+                #{roleUuid}
+            </foreach>
+            )
+        </if>
+        )
+    </sql>
+
+    <select id="getAllVisibleCount" parameterType="neatlogic.framework.autoexec.dto.service.AutoexecServiceSearchVo" resultType="int">
+        SELECT
+        COUNT(DISTINCT a.`id`)
+        FROM `autoexec_service` a
+        JOIN `autoexec_service_authority` b ON b.`service_id` = a.`id`
+        WHERE a.`is_active` = 1
+        <if test="keyword != null and keyword != ''">
+            AND (a.`type` = 'catalog' OR a.`name` LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="type != null and type != ''">
+            AND a.`type` = #{type}
+        </if>
+        <if test="parentId != null">
+            AND a.`parent_id` = #{parentId}
+        </if>
+        <if test="lft != null">
+            AND a.`lft` &gt;= #{lft}
+        </if>
+        <if test="rht != null">
+            AND a.`rht` &lt;= #{rht}
+        </if>
+        <include refid="searchVisibleNodeSql"/>
+    </select>
+
+    <select id="getAutoexecServiceNodeVisibleList" parameterType="neatlogic.framework.autoexec.dto.service.AutoexecServiceSearchVo"
+            resultType="neatlogic.framework.autoexec.dto.service.AutoexecServiceNodeVo">
+        SELECT
+        DISTINCT
+        a.`id`,
+        a.`name`,
+        a.`is_active` AS isActive,
+        a.`type`,
+        a.`parent_id` AS parentId,
+        a.`description`,
+        a.`lft`
+        FROM `autoexec_service` a
+        JOIN `autoexec_service_authority` b ON b.`service_id` = a.`id`
+        WHERE a.`is_active` = 1
+        <if test="keyword != null and keyword != ''">
+            AND (a.`type` = 'catalog' OR a.`name` LIKE CONCAT('%', #{keyword}, '%'))
+        </if>
+        <if test="type != null and type != ''">
+            AND a.`type` = #{type}
+        </if>
+        <if test="parentId != null">
+            AND a.`parent_id` = #{parentId}
+        </if>
+        <if test="lft != null">
+            AND a.`lft` &gt;= #{lft}
+        </if>
+        <if test="rht != null">
+            AND a.`rht` &lt;= #{rht}
+        </if>
+        <include refid="searchVisibleNodeSql"/>
+        ORDER BY a.`id`
+        LIMIT #{startNum}, #{pageSize}
+    </select>
+
+    <select id="getAutoexecServiceUserCount" parameterType="neatlogic.framework.autoexec.dto.service.AutoexecServiceSearchVo"
+            resultType="int">
+        SELECT
+        COUNT(DISTINCT a.`id`)
+        FROM `autoexec_service` a
+        JOIN `autoexec_service_authority` b ON b.`service_id` = a.`id`
+        JOIN `autoexec_service_user` c ON c.`service_id` = a.`id` and c.`user_uuid` = #{authenticationInfoVo.userUuid}
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND a.`name` LIKE concat('%', #{keyword}, '%')
+            </if>
+            <if test="parentId != null">
+                AND a.`parent_id` = #{parentId}
+            </if>
+            <include refid="searchVisibleNodeSql"/>
+        </where>
+    </select>
+
+    <select id="getAutoexecServiceUserList" parameterType="neatlogic.framework.autoexec.dto.service.AutoexecServiceSearchVo"
+            resultType="neatlogic.framework.autoexec.dto.service.AutoexecServiceVo">
+        SELECT
+        DISTINCT
+        a.`id`,
+        a.`name`,
+        a.`is_active` AS isActive,
+        a.`type`,
+        a.`parent_id` AS parentId,
+        a.`description`
+        FROM `autoexec_service` a
+        JOIN `autoexec_service_authority` b ON b.`service_id` = a.`id`
+        JOIN `autoexec_service_user` c ON c.`service_id` = a.`id` and c.`user_uuid` = #{authenticationInfoVo.userUuid}
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND a.`name` LIKE concat('%', #{keyword}, '%')
+            </if>
+            <if test="parentId != null">
+                AND a.`parent_id` = #{parentId}
+            </if>
+            <include refid="searchVisibleNodeSql"/>
+        </where>
+        ORDER BY a.`id`
+        LIMIT #{startNum}, #{pageSize}
+    </select>
+
+    <select id="getAutoexecServiceAuthorityListByServiceId"
+            resultType="neatlogic.framework.autoexec.dto.service.AutoexecServiceAuthorityVo">
+        select service_id as serviceId,
+               uuid,
+               type
+        from autoexec_service_authority
+        where service_id = #{id}
+    </select>
+
+    <select id="getUpwardNameListByLftAndRht" parameterType="java.util.Map" resultType="java.lang.String">
+        SELECT
+            `name`
+        FROM `autoexec_service`
+        WHERE `lft` &lt;= #{lft} AND `rht` &gt;= #{rht}
+        ORDER BY `lft`
+    </select>
+
+    <select id="getUpwardIdListByLftAndRht" parameterType="java.util.Map" resultType="java.lang.Long">
+        SELECT
+            `id`
+        FROM `autoexec_service`
+        WHERE `lft` &lt;= #{lft} AND `rht` &gt;= #{rht}
+        ORDER BY `lft`
+    </select>
+
+    <select id="getFavoriteAutoexecServiceIdListByUserUuidAndServiceIdList" parameterType="java.util.Map" resultType="java.lang.Long">
+        SELECT
+        `service_id`
+        FROM `autoexec_service_user`
+        WHERE `user_uuid` = #{userUuid}
+        AND `service_id` IN
+        <foreach collection="serviceIdList" item="serviceId" open="(" separator="," close=")">
+            #{serviceId}
+        </foreach>
+    </select>
+
+    <select id="getAutoexecServiceCountByParentId" parameterType="java.lang.Long" resultType="int">
+        SELECT COUNT(1) FROM `autoexec_service` WHERE `parent_id` = #{value}
+    </select>
+
+    <insert id="insertAutoexecService" parameterType="neatlogic.framework.autoexec.dto.service.AutoexecServiceVo">
+        INSERT INTO `autoexec_service`
+        (`id`, `name`, `is_active`, `type`, `parent_id`, `lft`, `rht`, `description`)
+        values (#{id}, #{name}, #{isActive}, #{type}, #{parentId}, #{lft}, #{rht}, #{description})
+    </insert>
+
+    <insert id="insertAutoexecServiceConfig"
+            parameterType="neatlogic.framework.autoexec.dto.service.AutoexecServiceVo">
+        INSERT INTO `autoexec_service_config`
+            (`service_id`, `combop_id`, `form_uuid`, `config`)
+        values (#{id}, #{combopId}, #{formUuid}, #{configStr}) ON DUPLICATE KEY
+        UPDATE
+            combop_id = #{combopId},
+            form_uuid = #{formUuid},
+            config = #{configStr}
+    </insert>
+
+    <insert id="insertAutoexecServiceAuthorityList">
+        INSERT INTO `autoexec_service_authority`
+        (`service_id`, `type`, `uuid`)
+        values
+        <foreach collection="list" separator="," item="vo">
+            (#{vo.serviceId}, #{vo.type}, #{vo.uuid})
+        </foreach>
+    </insert>
+
+    <insert id="insertAutoexecServiceUser">
+        insert ignore into autoexec_service_user(service_id, user_uuid, lcd)
+        values (#{id}, #{userUuid}, now(3))
+    </insert>
+
+    <update id="updateServiceById" parameterType="neatlogic.framework.autoexec.dto.service.AutoexecServiceVo">
+        UPDATE `autoexec_service`
+        SET `name`        = #{name},
+            `is_active`   = #{isActive},
+            `description` = #{description}
+        WHERE `id` = #{id}
+    </update>
+
+    <delete id="deleteServiceAuthorityListByServiceId">
+        delete
+        from `autoexec_service_authority`
+        where `service_id` =
+              #{id}
+    </delete>
+
+    <delete id="deleteAutoexecServiceUserByServiceIdAndUserUuid">
+        delete
+        from `autoexec_service_user`
+        where `service_id` = #{id}
+          and `user_uuid` = #{userUuid}
+    </delete>
+
+    <delete id="deleteAutoexecServiceById">
+        delete
+        FROM `autoexec_service`
+        where id =
+              #{id}
+    </delete>
+
+    <delete id="deleteAutoexecServiceUserByServiceId">
+        delete
+        FROM `autoexec_service_user`
+        where service_id =
+              #{id}
+    </delete>
+
+    <delete id="deleteAutoexecServiceAuthorityByServiceId">
+        delete
+        FROM `autoexec_service_authority`
+        where service_id =
+              #{id}
+    </delete>
+</mapper>

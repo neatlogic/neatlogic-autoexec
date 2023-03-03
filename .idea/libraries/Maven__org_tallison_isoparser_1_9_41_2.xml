@@ -1,0 +1,13 @@
+<component name="libraryTable">
+  <library name="Maven: org.tallison:isoparser:1.9.41.2">
+    <CLASSES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/tallison/isoparser/1.9.41.2/isoparser-1.9.41.2.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$MAVEN_REPOSITORY$/org/tallison/isoparser/1.9.41.2/isoparser-1.9.41.2-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$MAVEN_REPOSITORY$/org/tallison/isoparser/1.9.41.2/isoparser-1.9.41.2-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>
