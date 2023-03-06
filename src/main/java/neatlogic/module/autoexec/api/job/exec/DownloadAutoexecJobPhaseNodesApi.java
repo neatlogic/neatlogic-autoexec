@@ -175,6 +175,11 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
          */
         if (lastModifiedLong == 0L || lncd == null || lastModifiedLong < lncd.getTime()) {
             AccountVo executeAccount = getProtocolAndUserName(jobVo, nodeFrom);
+            if (executeAccount == null) {
+                response.setStatus(204);
+                response.getWriter().print(StringUtils.EMPTY);
+                return null;
+            }
             IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
             List<AccountProtocolVo> allProtocolList = resourceAccountCrossoverMapper.getAllAccountProtocolList();
             if (allProtocolList.stream().noneMatch(o -> Objects.equals(o.getId(), executeAccount.getProtocolId()))) {
@@ -376,6 +381,9 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
         AutoexecCombopExecuteConfigVo executeConfigVo;
         if (Objects.equals(AutoexecJobPhaseNodeFrom.JOB.getValue(), nodeFrom)) {
             executeConfigVo = combopVo.getConfig().getExecuteConfig();
+            if (executeConfigVo == null) {
+                return null;
+            }
             protocol = executeConfigVo.getProtocol();
             protocolId = executeConfigVo.getProtocolId();
             account = executeConfigVo.getExecuteUser();
@@ -386,6 +394,9 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                 throw new AutoexecJobGroupNotFoundException(jobVo.getId(), groupVo.getSort());
             }
             executeConfigVo = combopGroupVoOptional.get().getConfig().getExecuteConfig();
+            if (executeConfigVo == null) {
+                return null;
+            }
             protocol = executeConfigVo.getProtocol();
             protocolId = executeConfigVo.getProtocolId();
             account = executeConfigVo.getExecuteUser();
@@ -405,6 +416,9 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                 throw new AutoexecJobPhaseNotFoundException(jobPhaseVo.getName());
             }
             executeConfigVo = combopPhaseVoOptional.get().getConfig().getExecuteConfig();
+            if (executeConfigVo == null) {
+                return null;
+            }
             protocol = executeConfigVo.getProtocol();
             protocolId = executeConfigVo.getProtocolId();
             account = executeConfigVo.getExecuteUser();
