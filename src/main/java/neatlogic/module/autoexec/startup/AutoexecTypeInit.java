@@ -74,9 +74,11 @@ class AutoexecTypeInit extends StartupBase {
             hasInitTypeList = autoexecTypeMapper.getTypeListByNameList(insertTypeNameList);
             hasInitTypeNameMap = hasInitTypeList.stream().collect(Collectors.toMap(AutoexecTypeVo::getName, e -> e));
             List<Long> hasInitTypeIdList = hasInitTypeList.stream().map(AutoexecTypeVo::getId).collect(toList());
-            List<AutoexecTypeAuthVo> reviewAuthList = autoexecTypeMapper.getAutoexecTypeAuthListByTypeIdListAndAction(hasInitTypeIdList, AutoexecTypeAuthorityAction.REVIEW.getValue());
-            for (AutoexecTypeAuthVo authVo : reviewAuthList) {
-                hasReviewAuthInitTypeIdMap.computeIfAbsent(authVo.getTypeId(), key -> new ArrayList<>()).add(authVo);
+            if(CollectionUtils.isNotEmpty(hasInitTypeIdList)) {
+                List<AutoexecTypeAuthVo> reviewAuthList = autoexecTypeMapper.getAutoexecTypeAuthListByTypeIdListAndAction(hasInitTypeIdList, AutoexecTypeAuthorityAction.REVIEW.getValue());
+                for (AutoexecTypeAuthVo authVo : reviewAuthList) {
+                    hasReviewAuthInitTypeIdMap.computeIfAbsent(authVo.getTypeId(), key -> new ArrayList<>()).add(authVo);
+                }
             }
         }
 
