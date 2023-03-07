@@ -364,9 +364,6 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
      */
     private AccountVo getProtocolAndUserName(AutoexecJobVo jobVo, String nodeFrom) {
         AccountVo accountVo = new AccountVo();
-        String protocol;
-        Long protocolId;
-        String account;
         AutoexecJobContentVo jobContent = autoexecJobMapper.getJobContent(jobVo.getConfigHash());
         if (jobContent == null) {
             throw new AutoexecJobConfigNotFoundException(jobVo.getId());
@@ -384,9 +381,6 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
             if (executeConfigVo == null) {
                 return null;
             }
-            protocol = executeConfigVo.getProtocol();
-            protocolId = executeConfigVo.getProtocolId();
-            account = executeConfigVo.getExecuteUser();
         } else if (Objects.equals(AutoexecJobPhaseNodeFrom.GROUP.getValue(), nodeFrom)) {
             AutoexecJobGroupVo groupVo = jobVo.getExecuteJobGroupVo();
             Optional<AutoexecCombopGroupVo> combopGroupVoOptional = combopVo.getConfig().getCombopGroupList().stream().filter(o -> Objects.equals(groupVo.getSort(), o.getSort())).findFirst();
@@ -396,18 +390,6 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
             executeConfigVo = combopGroupVoOptional.get().getConfig().getExecuteConfig();
             if (executeConfigVo == null) {
                 return null;
-            }
-            protocol = executeConfigVo.getProtocol();
-            protocolId = executeConfigVo.getProtocolId();
-            account = executeConfigVo.getExecuteUser();
-            if (protocolId == null) {
-                executeConfigVo = combopVo.getConfig().getExecuteConfig();
-                protocol = executeConfigVo.getProtocol();
-                protocolId = executeConfigVo.getProtocolId();
-            }
-            if (StringUtils.isBlank(account)) {
-                executeConfigVo = combopVo.getConfig().getExecuteConfig();
-                account = executeConfigVo.getExecuteUser();
             }
         } else {
             AutoexecJobPhaseVo jobPhaseVo = jobVo.getExecuteJobPhaseList().get(0);
@@ -419,19 +401,25 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
             if (executeConfigVo == null) {
                 return null;
             }
-            protocol = executeConfigVo.getProtocol();
-            protocolId = executeConfigVo.getProtocolId();
-            account = executeConfigVo.getExecuteUser();
-            if (protocolId == null) {
-                executeConfigVo = combopVo.getConfig().getExecuteConfig();
-                protocol = executeConfigVo.getProtocol();
-                protocolId = executeConfigVo.getProtocolId();
-            }
-            if (StringUtils.isBlank(account)) {
-                executeConfigVo = combopVo.getConfig().getExecuteConfig();
-                account = executeConfigVo.getExecuteUser();
-            }
         }
+        Long protocolId = executeConfigVo.getProtocolId();
+        String account = executeConfigVo.getExecuteUser();
+        //如果帐号和协议为null，则从全局拿帐号和协议
+        if (protocolId == null) {
+            executeConfigVo = combopVo.getConfig().getExecuteConfig();
+            protocolId = executeConfigVo.getProtocolId();
+        }
+        if (StringUtils.isBlank(account)) {
+            executeConfigVo = combopVo.getConfig().getExecuteConfig();
+            account = executeConfigVo.getExecuteUser();
+        }
+        IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
+        AccountProtocolVo protocolVo = resourceAccountCrossoverMapper.getAccountProtocolVoByProtocolId(protocolId);
+        if (protocolVo == null) {
+            throw new ResourceCenterAccountProtocolNotFoundException(protocolId);
+        }
+        String protocol = protocolVo.getName();
+
         //tagent 没有account
         if (!Objects.equals(executeConfigVo.getProtocol(), Protocol.TAGENT.getValue())) {
             accountVo.setAccount(account);
