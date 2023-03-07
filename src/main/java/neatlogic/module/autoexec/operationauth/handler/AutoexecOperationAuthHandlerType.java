@@ -17,13 +17,14 @@ limitations under the License.
 package neatlogic.module.autoexec.operationauth.handler;
 
 import neatlogic.framework.process.operationauth.core.IOperationAuthHandlerType;
+import neatlogic.framework.util.I18nUtils;
 
 /**
  * @author linbq
  * @since 2021/9/8 17:50
  **/
 public enum AutoexecOperationAuthHandlerType implements IOperationAuthHandlerType {
-    AUTOEXEC("autoexec", "自动化");
+    AUTOEXEC("autoexec", "enum.autoexec.autoexecoperationauthhandlertype.autoexec");
 
     AutoexecOperationAuthHandlerType(String value, String text){
         this.value = value;
@@ -40,6 +41,6 @@ public enum AutoexecOperationAuthHandlerType implements IOperationAuthHandlerTyp
 
     @Override
     public String getText() {
-        return text;
+        return I18nUtils.getMessage(text);
     }
 }
