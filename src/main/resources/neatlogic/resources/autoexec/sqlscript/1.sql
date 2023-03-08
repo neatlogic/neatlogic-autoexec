@@ -1,7 +1,7 @@
 -- ----------------------------
 -- Table structure for autoexec_catalog
 -- ----------------------------
-CREATE TABLE `autoexec_catalog` (
+CREATE TABLE IF NOT EXISTS `autoexec_catalog` (
   `id` bigint NOT NULL COMMENT 'id',
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '名称',
   `parent_id` bigint NOT NULL COMMENT '父id',
@@ -14,7 +14,7 @@ CREATE TABLE `autoexec_catalog` (
 -- ----------------------------
 -- Table structure for autoexec_combop
 -- ----------------------------
-CREATE TABLE `autoexec_combop` (
+CREATE TABLE IF NOT EXISTS `autoexec_combop` (
   `id` bigint NOT NULL COMMENT '如果从工具/脚本则直接生成combop则使用对应id，否则id自动生成',
   `uk` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '唯一标识',
   `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '名称',
@@ -36,7 +36,7 @@ CREATE TABLE `autoexec_combop` (
 -- ----------------------------
 -- Table structure for autoexec_combop_authority
 -- ----------------------------
-CREATE TABLE `autoexec_combop_authority` (
+CREATE TABLE IF NOT EXISTS `autoexec_combop_authority` (
   `combop_id` bigint NOT NULL COMMENT '流水线id',
   `type` enum('common','role','user','team') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '对象类型',
   `uuid` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '对象uuid',
@@ -47,7 +47,7 @@ CREATE TABLE `autoexec_combop_authority` (
 -- ----------------------------
 -- Table structure for autoexec_combop_group
 -- ----------------------------
-CREATE TABLE `autoexec_combop_group` (
+CREATE TABLE IF NOT EXISTS `autoexec_combop_group` (
   `id` bigint NOT NULL COMMENT 'id',
   `combop_id` bigint NOT NULL COMMENT '组合工具id',
   `sort` int DEFAULT NULL COMMENT '序号',
@@ -59,7 +59,7 @@ CREATE TABLE `autoexec_combop_group` (
 -- ----------------------------
 -- Table structure for autoexec_combop_param
 -- ----------------------------
-CREATE TABLE `autoexec_combop_param` (
+CREATE TABLE IF NOT EXISTS `autoexec_combop_param` (
   `combop_id` bigint NOT NULL COMMENT '流水线id',
   `key` varchar(70) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '参数名',
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '中文名',
@@ -76,7 +76,7 @@ CREATE TABLE `autoexec_combop_param` (
 -- ----------------------------
 -- Table structure for autoexec_combop_param_matrix
 -- ----------------------------
-CREATE TABLE `autoexec_combop_param_matrix` (
+CREATE TABLE IF NOT EXISTS `autoexec_combop_param_matrix` (
   `combop_id` bigint NOT NULL COMMENT '流水线id',
   `key` varchar(70) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '参数名',
   `matrix_uuid` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '矩阵uuid',
@@ -87,7 +87,7 @@ CREATE TABLE `autoexec_combop_param_matrix` (
 -- ----------------------------
 -- Table structure for autoexec_combop_version
 -- ----------------------------
-CREATE TABLE `autoexec_combop_version` (
+CREATE TABLE IF NOT EXISTS `autoexec_combop_version` (
   `id` bigint NOT NULL COMMENT '主键ID',
   `combop_id` bigint DEFAULT NULL COMMENT '组合工具ID',
   `name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '名称',
@@ -104,7 +104,7 @@ CREATE TABLE `autoexec_combop_version` (
 -- ----------------------------
 -- Table structure for autoexec_customtemplate
 -- ----------------------------
-CREATE TABLE `autoexec_customtemplate` (
+CREATE TABLE IF NOT EXISTS `autoexec_customtemplate` (
   `id` bigint NOT NULL COMMENT 'id',
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '名称',
   `is_active` tinyint DEFAULT NULL COMMENT '是否激活',
@@ -120,7 +120,7 @@ CREATE TABLE `autoexec_customtemplate` (
 -- ----------------------------
 -- Table structure for autoexec_global_param
 -- ----------------------------
-CREATE TABLE `autoexec_global_param` (
+CREATE TABLE IF NOT EXISTS `autoexec_global_param` (
   `id` bigint NOT NULL COMMENT '主键id',
   `key` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '参数名',
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '显示名',
@@ -137,7 +137,7 @@ CREATE TABLE `autoexec_global_param` (
 -- ----------------------------
 -- Table structure for autoexec_job
 -- ----------------------------
-CREATE TABLE `autoexec_job` (
+CREATE TABLE IF NOT EXISTS `autoexec_job` (
   `id` bigint NOT NULL COMMENT 'id',
   `name` varchar(128) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '名称',
   `status` enum('running','pausing','paused','completed','pending','aborting','aborted','succeed','failed','waitInput','ready','revoked','saved','checked') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '作业状态',
@@ -173,7 +173,7 @@ CREATE TABLE `autoexec_job` (
 -- ----------------------------
 -- Table structure for autoexec_job_content
 -- ----------------------------
-CREATE TABLE `autoexec_job_content` (
+CREATE TABLE IF NOT EXISTS `autoexec_job_content` (
   `hash` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '配置hash',
   `content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '配置',
   PRIMARY KEY (`hash`) USING BTREE
@@ -182,7 +182,7 @@ CREATE TABLE `autoexec_job_content` (
 -- ----------------------------
 -- Table structure for autoexec_job_env
 -- ----------------------------
-CREATE TABLE `autoexec_job_env` (
+CREATE TABLE IF NOT EXISTS `autoexec_job_env` (
   `job_id` bigint NOT NULL COMMENT '作业id',
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '环境变量名',
   `value` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '环境变量值',
@@ -192,7 +192,7 @@ CREATE TABLE `autoexec_job_env` (
 -- ----------------------------
 -- Table structure for autoexec_job_group
 -- ----------------------------
-CREATE TABLE `autoexec_job_group` (
+CREATE TABLE IF NOT EXISTS `autoexec_job_group` (
   `id` bigint NOT NULL COMMENT 'id',
   `job_id` bigint NOT NULL COMMENT '作业id',
   `sort` int DEFAULT NULL COMMENT '序号',
@@ -206,7 +206,7 @@ CREATE TABLE `autoexec_job_group` (
 -- ----------------------------
 -- Table structure for autoexec_job_invoke
 -- ----------------------------
-CREATE TABLE `autoexec_job_invoke` (
+CREATE TABLE IF NOT EXISTS `autoexec_job_invoke` (
   `job_id` bigint NOT NULL COMMENT '作业id',
   `invoke_id` bigint NOT NULL COMMENT '来源id',
   `source` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '来源',
@@ -218,7 +218,7 @@ CREATE TABLE `autoexec_job_invoke` (
 -- ----------------------------
 -- Table structure for autoexec_job_phase
 -- ----------------------------
-CREATE TABLE `autoexec_job_phase` (
+CREATE TABLE IF NOT EXISTS `autoexec_job_phase` (
   `id` bigint NOT NULL COMMENT 'id',
   `job_id` bigint NOT NULL COMMENT '作业id',
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '剧本名',
@@ -247,7 +247,7 @@ CREATE TABLE `autoexec_job_phase` (
 -- ----------------------------
 -- Table structure for autoexec_job_phase_node
 -- ----------------------------
-CREATE TABLE `autoexec_job_phase_node` (
+CREATE TABLE IF NOT EXISTS `autoexec_job_phase_node` (
   `id` bigint NOT NULL COMMENT 'id',
   `job_id` bigint DEFAULT NULL COMMENT '作业id',
   `job_phase_id` bigint DEFAULT NULL COMMENT '作业阶段id',
@@ -277,7 +277,7 @@ CREATE TABLE `autoexec_job_phase_node` (
 -- ----------------------------
 -- Table structure for autoexec_job_phase_node_runner
 -- ----------------------------
-CREATE TABLE `autoexec_job_phase_node_runner` (
+CREATE TABLE IF NOT EXISTS `autoexec_job_phase_node_runner` (
   `job_id` bigint DEFAULT NULL COMMENT '作业id',
   `job_phase_id` bigint DEFAULT NULL COMMENT '作业剧本id',
   `node_id` bigint NOT NULL COMMENT '作业剧本节点id',
@@ -289,7 +289,7 @@ CREATE TABLE `autoexec_job_phase_node_runner` (
 -- ----------------------------
 -- Table structure for autoexec_job_phase_operation
 -- ----------------------------
-CREATE TABLE `autoexec_job_phase_operation` (
+CREATE TABLE IF NOT EXISTS `autoexec_job_phase_operation` (
   `job_id` bigint NOT NULL COMMENT '作业id',
   `job_phase_id` bigint NOT NULL COMMENT '作业阶段id',
   `operation_id` bigint DEFAULT NULL COMMENT '作业/工具id',
@@ -315,7 +315,7 @@ CREATE TABLE `autoexec_job_phase_operation` (
 -- ----------------------------
 -- Table structure for autoexec_job_phase_runner
 -- ----------------------------
-CREATE TABLE `autoexec_job_phase_runner` (
+CREATE TABLE IF NOT EXISTS `autoexec_job_phase_runner` (
   `job_id` bigint DEFAULT NULL COMMENT '作业id',
   `job_group_id` bigint DEFAULT NULL COMMENT '作业组id',
   `job_phase_id` bigint NOT NULL COMMENT '作业剧本id',
@@ -333,7 +333,7 @@ CREATE TABLE `autoexec_job_phase_runner` (
 -- ----------------------------
 -- Table structure for autoexec_job_resource_inspect
 -- ----------------------------
-CREATE TABLE `autoexec_job_resource_inspect` (
+CREATE TABLE IF NOT EXISTS `autoexec_job_resource_inspect` (
   `resource_id` bigint NOT NULL COMMENT '资产id',
   `job_id` bigint DEFAULT NULL COMMENT '作业id',
   `phase_id` bigint DEFAULT NULL COMMENT '作业阶段id',
@@ -345,7 +345,7 @@ CREATE TABLE `autoexec_job_resource_inspect` (
 -- ----------------------------
 -- Table structure for autoexec_job_sql_detail
 -- ----------------------------
-CREATE TABLE `autoexec_job_sql_detail` (
+CREATE TABLE IF NOT EXISTS `autoexec_job_sql_detail` (
   `id` bigint NOT NULL COMMENT '主键 id',
   `status` enum('pending','running','aborting','aborted','succeed','failed','ignored','waitInput') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '状态',
   `sql_file` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'sql文件名称',
@@ -375,7 +375,7 @@ CREATE TABLE `autoexec_job_sql_detail` (
 -- ----------------------------
 -- Table structure for autoexec_operation_generate_combop
 -- ----------------------------
-CREATE TABLE `autoexec_operation_generate_combop` (
+CREATE TABLE IF NOT EXISTS `autoexec_operation_generate_combop` (
   `combop_id` bigint NOT NULL COMMENT '组合工具id',
   `operation_type` enum('script','tool') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '工具或自定义工具',
   `operation_id` bigint DEFAULT NULL COMMENT '工具id或自定义工具id',
@@ -386,7 +386,7 @@ CREATE TABLE `autoexec_operation_generate_combop` (
 -- ----------------------------
 -- Table structure for autoexec_profile
 -- ----------------------------
-CREATE TABLE `autoexec_profile` (
+CREATE TABLE IF NOT EXISTS `autoexec_profile` (
   `id` bigint NOT NULL COMMENT '主键',
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '名称',
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '描述',
@@ -403,7 +403,7 @@ CREATE TABLE `autoexec_profile` (
 -- ----------------------------
 -- Table structure for autoexec_profile_cientity
 -- ----------------------------
-CREATE TABLE `autoexec_profile_cientity` (
+CREATE TABLE IF NOT EXISTS `autoexec_profile_cientity` (
   `ci_entity_id` bigint NOT NULL COMMENT '配置项id',
   `profile_id` bigint NOT NULL COMMENT ' id',
   PRIMARY KEY (`ci_entity_id`,`profile_id`) USING BTREE
@@ -412,7 +412,7 @@ CREATE TABLE `autoexec_profile_cientity` (
 -- ----------------------------
 -- Table structure for autoexec_profile_operation
 -- ----------------------------
-CREATE TABLE `autoexec_profile_operation` (
+CREATE TABLE IF NOT EXISTS `autoexec_profile_operation` (
   `operation_id` bigint NOT NULL COMMENT '工具库工具id/自定义工具id',
   `profile_id` bigint NOT NULL COMMENT 'profile id',
   `type` enum('script','tool') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '工具类型',
@@ -423,7 +423,7 @@ CREATE TABLE `autoexec_profile_operation` (
 -- ----------------------------
 -- Table structure for autoexec_profile_param
 -- ----------------------------
-CREATE TABLE `autoexec_profile_param` (
+CREATE TABLE IF NOT EXISTS `autoexec_profile_param` (
   `id` bigint NOT NULL COMMENT '主键 id',
   `profile_id` bigint DEFAULT NULL COMMENT 'profile id',
   `key` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'key',
@@ -440,7 +440,7 @@ CREATE TABLE `autoexec_profile_param` (
 -- ----------------------------
 -- Table structure for autoexec_profile_param_value_invoke
 -- ----------------------------
-CREATE TABLE `autoexec_profile_param_value_invoke` (
+CREATE TABLE IF NOT EXISTS `autoexec_profile_param_value_invoke` (
   `id` bigint NOT NULL COMMENT '主键 id',
   `profile_param_id` bigint NOT NULL COMMENT 'profile 参数id',
   `value_invoke_id` bigint DEFAULT NULL COMMENT '引用参数id（如：全局参数）',
@@ -453,7 +453,7 @@ CREATE TABLE `autoexec_profile_param_value_invoke` (
 -- ----------------------------
 -- Table structure for autoexec_risk
 -- ----------------------------
-CREATE TABLE `autoexec_risk` (
+CREATE TABLE IF NOT EXISTS `autoexec_risk` (
   `id` bigint NOT NULL COMMENT 'id',
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '名称',
   `color` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '颜色',
@@ -471,7 +471,7 @@ CREATE TABLE `autoexec_risk` (
 -- ----------------------------
 -- Table structure for autoexec_scenario
 -- ----------------------------
-CREATE TABLE `autoexec_scenario` (
+CREATE TABLE IF NOT EXISTS `autoexec_scenario` (
   `id` bigint NOT NULL COMMENT '主键 id',
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '名称',
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '描述',
@@ -486,7 +486,7 @@ CREATE TABLE `autoexec_scenario` (
 -- ----------------------------
 -- Table structure for autoexec_scenario_cientity
 -- ----------------------------
-CREATE TABLE `autoexec_scenario_cientity` (
+CREATE TABLE IF NOT EXISTS `autoexec_scenario_cientity` (
   `scenario_id` bigint NOT NULL COMMENT '场景 id',
   `ci_entity_id` bigint NOT NULL COMMENT '应用 id',
   PRIMARY KEY (`ci_entity_id`) USING BTREE
@@ -495,7 +495,7 @@ CREATE TABLE `autoexec_scenario_cientity` (
 -- ----------------------------
 -- Table structure for autoexec_schedule
 -- ----------------------------
-CREATE TABLE `autoexec_schedule` (
+CREATE TABLE IF NOT EXISTS `autoexec_schedule` (
   `id` bigint NOT NULL COMMENT '全局唯一id，跨环境导入用',
   `uuid` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '全局唯一uuid',
   `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '名称',
@@ -516,7 +516,7 @@ CREATE TABLE `autoexec_schedule` (
 -- ----------------------------
 -- Table structure for autoexec_script
 -- ----------------------------
-CREATE TABLE `autoexec_script` (
+CREATE TABLE IF NOT EXISTS `autoexec_script` (
   `id` bigint NOT NULL COMMENT 'id',
   `uk` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '唯一标识(英文名)',
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '名称',
@@ -539,7 +539,7 @@ CREATE TABLE `autoexec_script` (
 -- ----------------------------
 -- Table structure for autoexec_script_audit
 -- ----------------------------
-CREATE TABLE `autoexec_script_audit` (
+CREATE TABLE IF NOT EXISTS `autoexec_script_audit` (
   `id` bigint NOT NULL COMMENT '主键',
   `script_id` bigint DEFAULT NULL COMMENT '脚本ID',
   `script_version_id` bigint DEFAULT NULL COMMENT '脚本版本ID',
@@ -555,7 +555,7 @@ CREATE TABLE `autoexec_script_audit` (
 -- ----------------------------
 -- Table structure for autoexec_script_audit_detail
 -- ----------------------------
-CREATE TABLE `autoexec_script_audit_detail` (
+CREATE TABLE IF NOT EXISTS `autoexec_script_audit_detail` (
   `hash` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT 'hash',
   `content` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '内容',
   PRIMARY KEY (`hash`) USING BTREE
@@ -564,7 +564,7 @@ CREATE TABLE `autoexec_script_audit_detail` (
 -- ----------------------------
 -- Table structure for autoexec_script_line
 -- ----------------------------
-CREATE TABLE `autoexec_script_line` (
+CREATE TABLE IF NOT EXISTS `autoexec_script_line` (
   `id` bigint NOT NULL COMMENT 'id',
   `script_id` bigint DEFAULT NULL COMMENT '脚本id',
   `script_version_id` bigint DEFAULT NULL COMMENT '脚本版本id',
@@ -578,7 +578,7 @@ CREATE TABLE `autoexec_script_line` (
 -- ----------------------------
 -- Table structure for autoexec_script_line_content
 -- ----------------------------
-CREATE TABLE `autoexec_script_line_content` (
+CREATE TABLE IF NOT EXISTS `autoexec_script_line_content` (
   `hash` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '内容hash值',
   `content` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '行脚本内容',
   PRIMARY KEY (`hash`) USING BTREE
@@ -587,7 +587,7 @@ CREATE TABLE `autoexec_script_line_content` (
 -- ----------------------------
 -- Table structure for autoexec_script_validate
 -- ----------------------------
-CREATE TABLE `autoexec_script_validate` (
+CREATE TABLE IF NOT EXISTS `autoexec_script_validate` (
   `id` bigint NOT NULL COMMENT 'id',
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '名称',
   `code` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '危险代码',
@@ -600,7 +600,7 @@ CREATE TABLE `autoexec_script_validate` (
 -- ----------------------------
 -- Table structure for autoexec_script_validate_type
 -- ----------------------------
-CREATE TABLE `autoexec_script_validate_type` (
+CREATE TABLE IF NOT EXISTS `autoexec_script_validate_type` (
   `id` bigint NOT NULL COMMENT 'id',
   `validate_id` bigint DEFAULT NULL COMMENT '高危代码id',
   `script_type` enum('xml','python','vbs','shell','perl','powershell','bat') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '脚本类型',
@@ -610,7 +610,7 @@ CREATE TABLE `autoexec_script_validate_type` (
 -- ----------------------------
 -- Table structure for autoexec_script_version
 -- ----------------------------
-CREATE TABLE `autoexec_script_version` (
+CREATE TABLE IF NOT EXISTS `autoexec_script_version` (
   `id` bigint NOT NULL COMMENT 'id',
   `script_id` bigint DEFAULT NULL COMMENT '脚本id',
   `title` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '标题',
@@ -631,7 +631,7 @@ CREATE TABLE `autoexec_script_version` (
 -- ----------------------------
 -- Table structure for autoexec_script_version_argument
 -- ----------------------------
-CREATE TABLE `autoexec_script_version_argument` (
+CREATE TABLE IF NOT EXISTS `autoexec_script_version_argument` (
   `script_version_id` bigint NOT NULL COMMENT '脚本版本id',
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '参数名',
   `default_value` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '默认值',
@@ -645,7 +645,7 @@ CREATE TABLE `autoexec_script_version_argument` (
 -- ----------------------------
 -- Table structure for autoexec_script_version_lib
 -- ----------------------------
-CREATE TABLE `autoexec_script_version_lib` (
+CREATE TABLE IF NOT EXISTS `autoexec_script_version_lib` (
   `script_version_id` bigint NOT NULL COMMENT '脚本版本id',
   `lib_script_id` bigint NOT NULL COMMENT '依赖的脚本id',
   PRIMARY KEY (`script_version_id`,`lib_script_id`) USING BTREE
@@ -654,7 +654,7 @@ CREATE TABLE `autoexec_script_version_lib` (
 -- ----------------------------
 -- Table structure for autoexec_script_version_param
 -- ----------------------------
-CREATE TABLE `autoexec_script_version_param` (
+CREATE TABLE IF NOT EXISTS `autoexec_script_version_param` (
   `script_version_id` bigint NOT NULL COMMENT '脚本版本id',
   `key` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '参数名',
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '中文名',
@@ -672,7 +672,7 @@ CREATE TABLE `autoexec_script_version_param` (
 -- ----------------------------
 -- Table structure for autoexec_service
 -- ----------------------------
-CREATE TABLE `autoexec_service` (
+CREATE TABLE IF NOT EXISTS `autoexec_service` (
   `id` bigint NOT NULL,
   `name` varchar(200) COLLATE utf8mb4_general_ci NOT NULL,
   `is_active` tinyint(1) NOT NULL,
@@ -691,7 +691,7 @@ CREATE TABLE `autoexec_service` (
 -- ----------------------------
 -- Table structure for autoexec_service_authority
 -- ----------------------------
-CREATE TABLE `autoexec_service_authority` (
+CREATE TABLE IF NOT EXISTS `autoexec_service_authority` (
   `service_id` bigint NOT NULL,
   `type` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
   `uuid` char(32) COLLATE utf8mb4_general_ci NOT NULL,
@@ -701,7 +701,7 @@ CREATE TABLE `autoexec_service_authority` (
 -- ----------------------------
 -- Table structure for autoexec_service_config
 -- ----------------------------
-CREATE TABLE `autoexec_service_config` (
+CREATE TABLE IF NOT EXISTS `autoexec_service_config` (
   `service_id` bigint NOT NULL,
   `combop_id` bigint NOT NULL,
   `form_uuid` char(32) COLLATE utf8mb4_general_ci DEFAULT NULL,
@@ -712,7 +712,7 @@ CREATE TABLE `autoexec_service_config` (
 -- ----------------------------
 -- Table structure for autoexec_service_user
 -- ----------------------------
-CREATE TABLE `autoexec_service_user` (
+CREATE TABLE IF NOT EXISTS `autoexec_service_user` (
   `service_id` bigint NOT NULL,
   `user_uuid` char(32) COLLATE utf8mb4_general_ci NOT NULL,
   `lcd` timestamp NOT NULL,
@@ -722,7 +722,7 @@ CREATE TABLE `autoexec_service_user` (
 -- ----------------------------
 -- Table structure for autoexec_tag
 -- ----------------------------
-CREATE TABLE `autoexec_tag` (
+CREATE TABLE IF NOT EXISTS `autoexec_tag` (
   `id` bigint NOT NULL COMMENT 'id',
   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '标签名称',
   PRIMARY KEY (`id`) USING BTREE
@@ -731,7 +731,7 @@ CREATE TABLE `autoexec_tag` (
 -- ----------------------------
 -- Table structure for autoexec_tool
 -- ----------------------------
-CREATE TABLE `autoexec_tool` (
+CREATE TABLE IF NOT EXISTS `autoexec_tool` (
   `id` bigint NOT NULL COMMENT 'id',
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '名称',
   `is_active` tinyint(1) DEFAULT NULL COMMENT '是否激活',
@@ -752,7 +752,7 @@ CREATE TABLE `autoexec_tool` (
 -- ----------------------------
 -- Table structure for autoexec_type
 -- ----------------------------
-CREATE TABLE `autoexec_type` (
+CREATE TABLE IF NOT EXISTS `autoexec_type` (
   `id` bigint NOT NULL COMMENT 'id',
   `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '分类名',
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '描述',
@@ -766,7 +766,7 @@ CREATE TABLE `autoexec_type` (
 -- ----------------------------
 -- Table structure for autoexec_type_authority
 -- ----------------------------
-CREATE TABLE `autoexec_type_authority` (
+CREATE TABLE IF NOT EXISTS `autoexec_type_authority` (
   `type_id` bigint NOT NULL COMMENT '工具类型id',
   `action` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '操作类型',
   `auth_type` enum('common','user','team','role') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '权限类型\n',
