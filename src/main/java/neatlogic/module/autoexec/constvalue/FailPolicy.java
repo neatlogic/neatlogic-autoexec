@@ -3,12 +3,13 @@ package neatlogic.module.autoexec.constvalue;
 import neatlogic.framework.common.constvalue.IEnum;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.util.I18nUtils;
 
 import java.util.List;
 
 public enum FailPolicy implements IEnum {
-    HANG("hang", "人工处理"), 
-    KEEP_ON("keepon", "向后流转")
+    HANG("hang", "enum.autoexec.failpolicy.hang"),
+    KEEP_ON("keepon", "enum.autoexec.failpolicy.keep_on")
     ;
 
     private String value;
@@ -24,7 +25,7 @@ public enum FailPolicy implements IEnum {
     }
 
     public String getText() {
-        return name;
+        return I18nUtils.getMessage(name);
     }
 
     @Override
