@@ -23,20 +23,17 @@ import neatlogic.framework.autoexec.constvalue.AutoexecJobPhaseNodeFrom;
 import neatlogic.framework.autoexec.constvalue.CombopOperationType;
 import neatlogic.framework.autoexec.constvalue.JobNodeStatus;
 import neatlogic.framework.autoexec.dao.mapper.*;
-import neatlogic.framework.autoexec.dto.AutoexecJobSourceVo;
 import neatlogic.framework.autoexec.dto.AutoexecToolVo;
 import neatlogic.framework.autoexec.dto.AutoexecTypeVo;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopGroupVo;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
-import neatlogic.framework.autoexec.dto.job.*;
+import neatlogic.framework.autoexec.dto.job.AutoexecJobGroupVo;
+import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
+import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
+import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
-import neatlogic.framework.autoexec.exception.*;
-import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
-import neatlogic.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
-import neatlogic.framework.autoexec.source.AutoexecJobSourceFactory;
+import neatlogic.framework.autoexec.exception.AutoexecJobGroupNotFoundException;
+import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
 import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import neatlogic.framework.cmdb.crossover.IResourceCenterAccountCrossoverService;
 import neatlogic.framework.cmdb.crossover.IResourceCrossoverMapper;
@@ -45,7 +42,6 @@ import neatlogic.framework.cmdb.dto.resourcecenter.AccountVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.entity.SoftwareServiceOSVo;
 import neatlogic.framework.cmdb.enums.resourcecenter.Protocol;
-import neatlogic.framework.cmdb.exception.resourcecenter.ResourceCenterAccountProtocolNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.constvalue.CacheControlType;
 import neatlogic.framework.common.util.PageUtil;
@@ -174,30 +170,11 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
          * 2、lastModified小于最近一次节点变动时间(lncd)
          */
         if (lastModifiedLong == 0L || lncd == null || lastModifiedLong < lncd.getTime()) {
-            AccountVo executeAccount = getProtocolAndUserName(jobVo, nodeFrom);
-            if (executeAccount == null) {
-                response.setStatus(204);
-                response.getWriter().print(StringUtils.EMPTY);
-                return null;
-            }
             IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
             List<AccountProtocolVo> allProtocolList = resourceAccountCrossoverMapper.getAllAccountProtocolList();
-            if (allProtocolList.stream().noneMatch(o -> Objects.equals(o.getId(), executeAccount.getProtocolId()))) {
-                throw new ResourceCenterAccountProtocolNotFoundException(executeAccount.getProtocolId());
-            }
-            //批量根据协议查询默认端口
-            List<AccountVo> defaultAccountList;
-            Map<Long, AccountVo> protocolDefaultAccountMap = new HashMap<>();
-            if (CollectionUtils.isNotEmpty(allProtocolList)) {
-                defaultAccountList = resourceAccountCrossoverMapper.getDefaultAccountListByProtocolIdListAndAccount(allProtocolList.stream().map(AccountProtocolVo::getId).collect(Collectors.toList()), executeAccount.getAccount());
-                if (CollectionUtils.isNotEmpty(defaultAccountList)) {
-                    protocolDefaultAccountMap = defaultAccountList.stream().collect(toMap(AccountVo::getProtocolId, o -> o));
-                }
-            }
             int count = autoexecJobMapper.searchJobPhaseNodeByDistinctResourceIdCount(nodeParamVo);
             int pageCount = PageUtil.getPageCount(count, nodeParamVo.getPageSize());
             nodeParamVo.setPageCount(pageCount);
-
             IResourceCenterAccountCrossoverService accountService = CrossoverServiceFactory.getApi(IResourceCenterAccountCrossoverService.class);
             //补充第一行数据 {"totalCount":14, "localRunnerId":1, "jobRunnerIds":[1]}
             if (count != 0) {
@@ -222,6 +199,22 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                     nodeParamVo.setCurrentPage(i);
                     nodeParamVo.setStartNum(nodeParamVo.getStartNum());
                     List<AutoexecJobPhaseNodeVo> autoexecJobPhaseNodeVoList = autoexecJobMapper.searchJobPhaseNodeByDistinct(nodeParamVo);
+                    Long protocolId = autoexecJobPhaseNodeVoList.get(0).getProtocolId();
+                    Optional<AccountProtocolVo> protocolVoOptional = allProtocolList.stream().filter(o->Objects.equals(o.getId(),protocolId)).findFirst();
+                    String protocol = null;
+                    if (protocolVoOptional.isPresent()){
+                        protocol = protocolVoOptional.get().getName();
+                    }
+                    String account = autoexecJobPhaseNodeVoList.get(0).getUserName();
+                    //批量根据协议查询默认端口
+                    List<AccountVo> defaultAccountList;
+                    Map<Long, AccountVo> protocolDefaultAccountMap = new HashMap<>();
+                    if (CollectionUtils.isNotEmpty(allProtocolList)) {
+                        defaultAccountList = resourceAccountCrossoverMapper.getDefaultAccountListByProtocolIdListAndAccount(allProtocolList.stream().map(AccountProtocolVo::getId).collect(Collectors.toList()), account);
+                        if (CollectionUtils.isNotEmpty(defaultAccountList)) {
+                            protocolDefaultAccountMap = defaultAccountList.stream().collect(toMap(AccountVo::getProtocolId, o -> o));
+                        }
+                    }
                     if (CollectionUtils.isNotEmpty(autoexecJobPhaseNodeVoList)) {
                         IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
                         List<Long> resourceIdList = autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getResourceId).filter(Objects::nonNull).collect(Collectors.toList());
@@ -284,8 +277,8 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                                     return k1;
                                 })));
                             }
-                            if (!Objects.equals(executeAccount.getProtocol(), Protocol.TAGENT.getValue())) {
-                                accountByResourceList = resourceAccountCrossoverMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIncludeOsIdList, executeAccount.getProtocolId(), executeAccount.getAccount());
+                            if (!Objects.equals(protocol, Protocol.TAGENT.getValue())) {
+                                accountByResourceList = resourceAccountCrossoverMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIncludeOsIdList, protocolId, account);
                             } else {
                                 List<AccountVo> tagentAccountByIpList = resourceAccountCrossoverMapper.getAccountListByIpList(autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getHost).collect(Collectors.toList()));
                                 if (CollectionUtils.isNotEmpty(tagentAccountByIpList)) {
@@ -293,24 +286,23 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                                 }
                             }
                         }
-                        String finalUserName = autoexecJobPhaseNodeVoList.get(0).getUserName();
                         for (AutoexecJobPhaseNodeVo nodeVo : autoexecJobPhaseNodeVoList) {
                             JSONObject nodeJson = new JSONObject();
-                            AccountVo accountVoTmp = accountService.filterAccountByRules(accountByResourceList, tagentIpAccountMap, nodeVo.getResourceId(), executeAccount, nodeVo.getHost(), resourceOSResourceMap, protocolDefaultAccountMap);
+                            AccountProtocolVo protocolVo = new AccountProtocolVo(protocolId,protocol);
+                            AccountVo accountVoTmp = accountService.filterAccountByRules(accountByResourceList, tagentIpAccountMap, nodeVo.getResourceId(), protocolVo, nodeVo.getHost(), resourceOSResourceMap, protocolDefaultAccountMap);
                             if (accountVoTmp != null) {
                                 nodeJson.put("protocol", accountVoTmp.getProtocol());
                                 nodeJson.put("password", RC4Util.encrypt(accountVoTmp.getPasswordPlain()));
                                 nodeJson.put("protocolPort", accountVoTmp.getProtocolPort());
                             } else {
-                                Optional<AccountProtocolVo> protocolVo = allProtocolList.stream().filter(o -> Objects.equals(o.getId(), nodeVo.getProtocolId())).findFirst();
-                                if (protocolVo.isPresent()) {
-                                    nodeJson.put("protocol", protocolVo.get().getName());
-                                    nodeJson.put("protocolPort", protocolVo.get().getPort());
+                                if (StringUtils.isNotBlank(protocolVo.getName())) {
+                                    nodeJson.put("protocol", protocolVo.getName());
+                                    nodeJson.put("protocolPort", protocolVo.getPort());
                                 } else {
                                     nodeJson.put("protocol", "protocolNotExist");
                                 }
                             }
-                            nodeJson.put("username", finalUserName);
+                            nodeJson.put("username", account);
                             nodeJson.put("nodeName", nodeVo.getNodeName());
                             nodeJson.put("nodeType", nodeVo.getNodeType());
                             nodeJson.put("resourceId", nodeVo.getResourceId());
@@ -352,81 +344,6 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
             }
         }
         return null;
-    }
-
-
-    /**
-     * 根据节点来源获取对应的执行用户和执行协议
-     *
-     * @param jobVo    作业
-     * @param nodeFrom 节点来源
-     * @return 执行账号
-     */
-    private AccountVo getProtocolAndUserName(AutoexecJobVo jobVo, String nodeFrom) {
-        AccountVo accountVo = new AccountVo();
-        AutoexecJobContentVo jobContent = autoexecJobMapper.getJobContent(jobVo.getConfigHash());
-        if (jobContent == null) {
-            throw new AutoexecJobConfigNotFoundException(jobVo.getId());
-        }
-        jobVo.setConfigStr(jobContent.getContent());
-        AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(jobVo.getSource());
-        if (jobSourceVo == null) {
-            throw new AutoexecJobSourceInvalidException(jobVo.getSource());
-        }
-        IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
-        AutoexecCombopVo combopVo = autoexecJobSourceActionHandler.getSnapshotAutoexecCombop(jobVo);
-        AutoexecCombopExecuteConfigVo executeConfigVo;
-        if (Objects.equals(AutoexecJobPhaseNodeFrom.JOB.getValue(), nodeFrom)) {
-            executeConfigVo = combopVo.getConfig().getExecuteConfig();
-            if (executeConfigVo == null) {
-                return null;
-            }
-        } else if (Objects.equals(AutoexecJobPhaseNodeFrom.GROUP.getValue(), nodeFrom)) {
-            AutoexecJobGroupVo groupVo = jobVo.getExecuteJobGroupVo();
-            Optional<AutoexecCombopGroupVo> combopGroupVoOptional = combopVo.getConfig().getCombopGroupList().stream().filter(o -> Objects.equals(groupVo.getSort(), o.getSort())).findFirst();
-            if (!combopGroupVoOptional.isPresent()) {
-                throw new AutoexecJobGroupNotFoundException(jobVo.getId(), groupVo.getSort());
-            }
-            executeConfigVo = combopGroupVoOptional.get().getConfig().getExecuteConfig();
-            if (executeConfigVo == null) {
-                return null;
-            }
-        } else {
-            AutoexecJobPhaseVo jobPhaseVo = jobVo.getExecuteJobPhaseList().get(0);
-            Optional<AutoexecCombopPhaseVo> combopPhaseVoOptional = combopVo.getConfig().getCombopPhaseList().stream().filter(o -> Objects.equals(jobPhaseVo.getName(), o.getName())).findFirst();
-            if (!combopPhaseVoOptional.isPresent()) {
-                throw new AutoexecJobPhaseNotFoundException(jobPhaseVo.getName());
-            }
-            executeConfigVo = combopPhaseVoOptional.get().getConfig().getExecuteConfig();
-            if (executeConfigVo == null) {
-                return null;
-            }
-        }
-        Long protocolId = executeConfigVo.getProtocolId();
-        String account = executeConfigVo.getExecuteUser();
-        //如果帐号和协议为null，则从全局拿帐号和协议
-        if (protocolId == null) {
-            executeConfigVo = combopVo.getConfig().getExecuteConfig();
-            protocolId = executeConfigVo.getProtocolId();
-        }
-        if (StringUtils.isBlank(account)) {
-            executeConfigVo = combopVo.getConfig().getExecuteConfig();
-            account = executeConfigVo.getExecuteUser();
-        }
-        IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
-        AccountProtocolVo protocolVo = resourceAccountCrossoverMapper.getAccountProtocolVoByProtocolId(protocolId);
-        if (protocolVo == null) {
-            throw new ResourceCenterAccountProtocolNotFoundException(protocolId);
-        }
-        String protocol = protocolVo.getName();
-
-        //tagent 没有account
-        if (!Objects.equals(executeConfigVo.getProtocol(), Protocol.TAGENT.getValue())) {
-            accountVo.setAccount(account);
-        }
-        accountVo.setProtocol(protocol);
-        accountVo.setProtocolId(protocolId);
-        return accountVo;
     }
 
     /**
