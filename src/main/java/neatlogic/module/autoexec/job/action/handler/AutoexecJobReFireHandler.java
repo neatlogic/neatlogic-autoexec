@@ -91,12 +91,12 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             //needSqlFileResetStatusPhaseNameList = autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId()).stream().filter(o -> Objects.equals(o.getExecMode(), ExecMode.SQL.getValue())).map(AutoexecJobPhaseVo::getName).collect(Collectors.toList());
         } else if (Objects.equals(jobVo.getAction(), JobAction.REFIRE.getValue())) {
             /*寻找中止|暂停|失败的phase
-             * 1、寻找pending|aborted|paused|failed node 最小sort phaseList
-             * 2、没有满足1条件的，再寻找pending|aborted|paused|failed phaseList
+             * 1、寻找pending|aborted|paused|failed phaseList
+             * 2、没有满足1条件的,再寻找pending|aborted|paused|failed node 最小sort phaseList
              */
-            List<AutoexecJobPhaseVo> autoexecJobPhaseVos = autoexecJobMapper.getJobPhaseListByJobIdAndNodeStatusList(jobVo.getId(), Arrays.asList(JobPhaseStatus.PENDING.getValue(), JobPhaseStatus.ABORTED.getValue(), JobPhaseStatus.PAUSED.getValue(), JobPhaseStatus.FAILED.getValue()));
+            List<AutoexecJobPhaseVo> autoexecJobPhaseVos = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobVo.getId(), Arrays.asList(JobPhaseStatus.PENDING.getValue(), JobPhaseStatus.ABORTED.getValue(), JobPhaseStatus.PAUSED.getValue(), JobPhaseStatus.FAILED.getValue()));
             if (CollectionUtils.isEmpty(autoexecJobPhaseVos)) {
-                autoexecJobPhaseVos = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobVo.getId(), Arrays.asList(JobPhaseStatus.PENDING.getValue(), JobPhaseStatus.ABORTED.getValue(), JobPhaseStatus.PAUSED.getValue(), JobPhaseStatus.FAILED.getValue()));
+                autoexecJobPhaseVos = autoexecJobMapper.getJobPhaseListByJobIdAndNodeStatusList(jobVo.getId(), Arrays.asList(JobPhaseStatus.PENDING.getValue(), JobPhaseStatus.ABORTED.getValue(), JobPhaseStatus.PAUSED.getValue(), JobPhaseStatus.FAILED.getValue()));
             }
             //如果都成功了则无须重跑
             if (CollectionUtils.isEmpty(autoexecJobPhaseVos)) {
