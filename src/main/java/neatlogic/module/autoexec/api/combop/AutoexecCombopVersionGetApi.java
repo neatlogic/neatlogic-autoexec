@@ -31,6 +31,8 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
@@ -75,10 +77,11 @@ public class AutoexecCombopVersionGetApi extends PrivateApiComponentBase {
             throw new AutoexecCombopVersionNotFoundException(id);
         }
         AutoexecCombopVersionConfigVo config = autoexecCombopVersionVo.getConfig();
+        Map<Long, AutoexecCombopGroupVo> groupMap = config.getCombopGroupList().stream().collect(Collectors.toMap(e -> e.getId(), e -> e));
         List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
         if (CollectionUtils.isNotEmpty(combopPhaseList)) {
             for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseList) {
-                autoexecCombopService.needExecuteConfig(autoexecCombopVersionVo, combopPhaseVo);
+                autoexecCombopService.needExecuteConfig(autoexecCombopVersionVo, combopPhaseVo, groupMap.get(combopPhaseVo.getGroupId()));
             }
         }
         return autoexecCombopVersionVo;

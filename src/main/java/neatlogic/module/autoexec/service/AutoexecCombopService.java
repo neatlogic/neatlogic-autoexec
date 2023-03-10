@@ -98,8 +98,9 @@ public interface AutoexecCombopService {
      *
      * @param autoexecCombopVersionVo      组合工具版本信息
      * @param autoexecCombopPhaseVo 阶段信息
+     * @param autoexecCombopGroupVo 组信息
      */
-    void needExecuteConfig(AutoexecCombopVersionVo autoexecCombopVersionVo, AutoexecCombopPhaseVo autoexecCombopPhaseVo);
+    void needExecuteConfig(AutoexecCombopVersionVo autoexecCombopVersionVo, AutoexecCombopPhaseVo autoexecCombopPhaseVo, AutoexecCombopGroupVo autoexecCombopGroupVo);
 
     /**
      * 保存组合工具配置信息
