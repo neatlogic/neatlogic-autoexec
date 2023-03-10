@@ -500,13 +500,19 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
         AutoexecCombopExecuteConfigVo executeConfigVo;
         AutoexecJobGroupVo jobGroupVo = jobVo.getCurrentPhase().getJobGroupVo();
-        //判断group是不是grayScale，如果是则从group中获取执行节点
+        //判断group是不是grayScale，如果是则从group中获取执行节点、帐号、执行用户
         if (Objects.equals(jobGroupVo.getPolicy(), AutoexecJobGroupPolicy.GRAYSCALE.getName())) {
             AutoexecCombopGroupConfigVo groupConfig = jobGroupVo.getConfig();
             if (groupConfig != null) {
                 executeConfigVo = groupConfig.getExecuteConfig();
                 //判断组执行节点是否配置
                 if (executeConfigVo != null) {
+                    if (StringUtils.isNotBlank(executeConfigVo.getExecuteUser())) {
+                        userName = executeConfigVo.getExecuteUser();
+                    }
+                    if (executeConfigVo.getProtocolId() != null) {
+                        protocolId = executeConfigVo.getProtocolId();
+                    }
                     isGroupConfig = executeConfigVo.getExecuteNodeConfig() != null && !executeConfigVo.getExecuteNodeConfig().isNull();
                     if (isGroupConfig) {
                         jobVo.setNodeFrom(AutoexecJobPhaseNodeFrom.GROUP.getValue());
