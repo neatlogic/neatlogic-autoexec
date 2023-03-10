@@ -27,6 +27,7 @@ import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -75,14 +76,6 @@ public class AutoexecCombopVersionGetApi extends PrivateApiComponentBase {
         AutoexecCombopVersionVo autoexecCombopVersionVo = autoexecCombopService.getAutoexecCombopVersionById(id);
         if (autoexecCombopVersionVo == null) {
             throw new AutoexecCombopVersionNotFoundException(id);
-        }
-        AutoexecCombopVersionConfigVo config = autoexecCombopVersionVo.getConfig();
-        Map<Long, AutoexecCombopGroupVo> groupMap = config.getCombopGroupList().stream().collect(Collectors.toMap(e -> e.getId(), e -> e));
-        List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
-        if (CollectionUtils.isNotEmpty(combopPhaseList)) {
-            for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseList) {
-                autoexecCombopService.needExecuteConfig(autoexecCombopVersionVo, combopPhaseVo, groupMap.get(combopPhaseVo.getGroupId()));
-            }
         }
         return autoexecCombopVersionVo;
     }
