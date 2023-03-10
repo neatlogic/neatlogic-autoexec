@@ -63,6 +63,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Transactional
 @Service
@@ -160,10 +161,11 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
         if (scenarioId != null) {
             autoexecJobVo.setScenarioId(scenarioId);
         }
+        Map<Long, AutoexecCombopGroupVo> groupMap = versionConfigVo.getCombopGroupList().stream().collect(Collectors.toMap(e -> e.getId(), e -> e));
         List<AutoexecCombopPhaseVo> combopPhaseList = versionConfigVo.getCombopPhaseList();
         if (CollectionUtils.isNotEmpty(combopPhaseList)) {
             for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseList) {
-                autoexecCombopService.needExecuteConfig(autoexecCombopVersionVo, combopPhaseVo);
+                autoexecCombopService.needExecuteConfig(autoexecCombopVersionVo, combopPhaseVo, groupMap.get(combopPhaseVo.getGroupId()));
             }
         }
         boolean needExecuteUser = autoexecCombopVersionVo.getNeedExecuteUser();

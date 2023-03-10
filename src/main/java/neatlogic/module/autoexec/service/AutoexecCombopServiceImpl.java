@@ -59,6 +59,7 @@ import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.docx4j.wml.P;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -883,27 +884,33 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
     }
 
     @Override
-    public void needExecuteConfig(AutoexecCombopVersionVo autoexecCombopVersionVo, AutoexecCombopPhaseVo autoexecCombopPhaseVo) {
+    public void needExecuteConfig(AutoexecCombopVersionVo autoexecCombopVersionVo, AutoexecCombopPhaseVo autoexecCombopPhaseVo, AutoexecCombopGroupVo autoexecCombopGroupVo) {
         String execMode = autoexecCombopPhaseVo.getExecMode();
-        if (!ExecMode.RUNNER.getValue().equals(execMode) && !ExecMode.SQL.getValue().equals(execMode)) {
-            boolean needExecuteUser = autoexecCombopVersionVo.getNeedExecuteUser();
-            boolean needProtocol = autoexecCombopVersionVo.getNeedProtocol();
-            boolean needExecuteNode = autoexecCombopVersionVo.getNeedExecuteNode();
-            boolean needRoundCount = autoexecCombopVersionVo.getNeedRoundCount();
+        if (ExecMode.RUNNER.getValue().equals(execMode)) {
+            return;
+        }
+        if (ExecMode.SQL.getValue().equals(execMode)) {
+            return;
+        }
+
+        boolean needExecuteUser = autoexecCombopVersionVo.getNeedExecuteUser();
+        boolean needProtocol = autoexecCombopVersionVo.getNeedProtocol();
+        boolean needExecuteNode = autoexecCombopVersionVo.getNeedExecuteNode();
+        boolean needRoundCount = autoexecCombopVersionVo.getNeedRoundCount();
+        AutoexecCombopExecuteConfigVo executeConfigVo = null;
+        if (Objects.equals(AutoexecJobGroupPolicy.GRAYSCALE.getName(), autoexecCombopGroupVo.getPolicy())) {
+            AutoexecCombopGroupConfigVo autoexecCombopGroupConfigVo = autoexecCombopGroupVo.getConfig();
+            executeConfigVo = autoexecCombopGroupConfigVo.getExecuteConfig();
+        } else {
             AutoexecCombopPhaseConfigVo autoexecCombopPhaseConfigVo = autoexecCombopPhaseVo.getConfig();
-            if (autoexecCombopPhaseConfigVo == null) {
-                needExecuteUser = true;
-                needProtocol = true;
-                needExecuteNode = true;
-                needRoundCount = true;
-            }
-            AutoexecCombopExecuteConfigVo executeConfigVo = autoexecCombopPhaseConfigVo.getExecuteConfig();
-            if (executeConfigVo == null) {
-                needExecuteUser = true;
-                needProtocol = true;
-                needExecuteNode = true;
-                needRoundCount = true;
-            }
+            executeConfigVo = autoexecCombopPhaseConfigVo.getExecuteConfig();
+        }
+        if (executeConfigVo == null) {
+            needExecuteUser = true;
+            needProtocol = true;
+            needExecuteNode = true;
+            needRoundCount = true;
+        } else {
             if (!needProtocol) {
                 Long protocolId = executeConfigVo.getProtocolId();
                 if (protocolId == null) {
@@ -936,11 +943,11 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                     needRoundCount = true;
                 }
             }
-            autoexecCombopVersionVo.setNeedExecuteUser(needExecuteUser);
-            autoexecCombopVersionVo.setNeedExecuteNode(needExecuteNode);
-            autoexecCombopVersionVo.setNeedProtocol(needProtocol);
-            autoexecCombopVersionVo.setNeedRoundCount(needRoundCount);
         }
+        autoexecCombopVersionVo.setNeedExecuteUser(needExecuteUser);
+        autoexecCombopVersionVo.setNeedExecuteNode(needExecuteNode);
+        autoexecCombopVersionVo.setNeedProtocol(needProtocol);
+        autoexecCombopVersionVo.setNeedRoundCount(needRoundCount);
     }
 
     @Deprecated
