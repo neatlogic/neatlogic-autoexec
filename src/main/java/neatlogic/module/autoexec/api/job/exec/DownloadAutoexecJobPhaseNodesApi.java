@@ -167,11 +167,11 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
             if ((StringUtils.isBlank(phaseName) || jobPhaseVo == null)) {
                 throw new ParamIrregularException("phase");
             }
-            //如果全部引用全局或者是runner，则无需下载
+            //如果全部引用全局,则无需下载
             if ((Objects.equals(jobPhaseVo.getNodeFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())
                     && Objects.equals(jobPhaseVo.getProtocolFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())
                     && Objects.equals(jobPhaseVo.getUserNameFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue()))
-                    || Objects.equals(ExecMode.RUNNER.getValue(), jobPhaseVo.getExecMode())) {
+                    ) {
                 if (response != null) {
                     response.setStatus(204);
                     response.getWriter().print(StringUtils.EMPTY);
