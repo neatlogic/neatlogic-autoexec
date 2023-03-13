@@ -35,6 +35,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -91,8 +92,12 @@ public class AutoexecCombopDetailGetApi extends PrivateApiComponentBase {
             if (autoexecCombopVersionVo == null) {
                 throw new AutoexecCombopVersionNotFoundException(versionId);
             }
+            Map<Long, AutoexecCombopGroupVo> groupMap = new HashMap<>();
             AutoexecCombopVersionConfigVo versionConfig = autoexecCombopVersionVo.getConfig();
-            Map<Long, AutoexecCombopGroupVo> groupMap = versionConfig.getCombopGroupList().stream().collect(Collectors.toMap(e -> e.getId(), e -> e));
+            List<AutoexecCombopGroupVo> combopGroupList = versionConfig.getCombopGroupList();
+            if (CollectionUtils.isNotEmpty(combopGroupList)) {
+                groupMap = versionConfig.getCombopGroupList().stream().collect(Collectors.toMap(e -> e.getId(), e -> e));
+            }
             List<AutoexecCombopPhaseVo> combopPhaseList = versionConfig.getCombopPhaseList();
             if (CollectionUtils.isNotEmpty(combopPhaseList)) {
                 for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseList) {
