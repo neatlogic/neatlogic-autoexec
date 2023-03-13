@@ -100,12 +100,12 @@ public class AutoexecCombopVersionDeleteApi extends PrivateApiComponentBase {
             // 如果这个组合工具只有一个版本，该版本删除的同时删除组合工具基本信息
             List<AutoexecCombopVersionVo> versionList = autoexecCombopVersionMapper.getAutoexecCombopVersionListByCombopId(autoexecCombopVo.getId());
             if (versionList.size() == 1) {
-                autoexecCombopMapper.deleteAutoexecCombopById(id);
-                autoexecCombopMapper.deleteAutoexecCombopAuthorityByCombopId(id);
+                autoexecCombopMapper.deleteAutoexecCombopById(autoexecCombopVo.getId());
+                autoexecCombopMapper.deleteAutoexecCombopAuthorityByCombopId(autoexecCombopVo.getId());
                 autoexecCombopService.deleteDependency(autoexecCombopVo);
                 if (Objects.equals(autoexecCombopVo.getOperationType(), CombopOperationType.SCRIPT.getValue())
                         || Objects.equals(autoexecCombopVo.getOperationType(), CombopOperationType.TOOL.getValue())) {
-                    autoexecCombopMapper.deleteAutoexecOperationGenerateCombop(id);
+                    autoexecCombopMapper.deleteAutoexecOperationGenerateCombop(autoexecCombopVo.getId());
                 }
             }
             autoexecCombopVersionMapper.deleteAutoexecCombopVersionById(id);
