@@ -25,15 +25,13 @@ import neatlogic.framework.autoexec.crossover.IAutoexecJobActionCrossoverService
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.AutoexecJobSourceVo;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
 import neatlogic.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
 import neatlogic.framework.autoexec.dto.job.*;
 import neatlogic.framework.autoexec.dto.scenario.AutoexecScenarioVo;
-import neatlogic.framework.autoexec.exception.AutoexecJobOperationParamValueInvalidException;
-import neatlogic.framework.autoexec.exception.AutoexecJobParamValueInvalidException;
-import neatlogic.framework.autoexec.exception.AutoexecJobSourceInvalidException;
-import neatlogic.framework.autoexec.exception.AutoexecScenarioIsNotFoundException;
+import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import neatlogic.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
@@ -373,9 +371,19 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         //作业执行权限校验
         autoexecJobSourceActionHandler.executeAuthCheck(autoexecJobParam, false);
         //设置作业执行节点
-        if (combopVo.getConfig() != null && autoexecJobParam.getExecuteConfig() != null) {
+        AutoexecCombopConfigVo config = combopVo.getConfig();
+        if (config == null) {
+            throw new AutoexecCombopAtLeastOnePhaseException();
+        }
+        if (CollectionUtils.isEmpty(config.getCombopPhaseList())) {
+            throw new AutoexecCombopAtLeastOnePhaseException();
+        }
+        if (CollectionUtils.isEmpty(config.getCombopGroupList())) {
+            throw new AutoexecCombopAtLeastOneGroupException();
+        }
+        if (autoexecJobParam.getExecuteConfig() != null) {
             //如果执行传进来的"执行用户"、"协议"为空则使用默认设定的值
-            AutoexecCombopExecuteConfigVo combopExecuteConfigVo = combopVo.getConfig().getExecuteConfig();
+            AutoexecCombopExecuteConfigVo combopExecuteConfigVo = config.getExecuteConfig();
             if (combopExecuteConfigVo == null) {
                 combopExecuteConfigVo = new AutoexecCombopExecuteConfigVo();
             }
@@ -389,8 +397,8 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             if (autoexecJobParam.getExecuteConfig().getExecuteNodeConfig() != null && !autoexecJobParam.getExecuteConfig().getExecuteNodeConfig().isNull()) {
                 combopExecuteConfigVo.setExecuteNodeConfig(autoexecJobParam.getExecuteConfig().getExecuteNodeConfig());
             }
-            combopVo.getConfig().setExecuteConfig(combopExecuteConfigVo);
-            autoexecCombopService.verifyAutoexecCombopConfig(combopVo.getConfig(), true);
+            config.setExecuteConfig(combopExecuteConfigVo);
+            autoexecCombopService.verifyAutoexecCombopConfig(config, true);
         }
 
 
@@ -402,8 +410,8 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             }
             autoexecJobParam.setScenarioId(scenarioVo.getId());
         }
-        autoexecJobParam.setConfigStr(JSONObject.toJSONString(combopVo.getConfig()));
-        autoexecJobParam.setRunTimeParamList(combopVo.getConfig().getRuntimeParamList());
+        autoexecJobParam.setConfigStr(JSONObject.toJSONString(config));
+        autoexecJobParam.setRunTimeParamList(config.getRuntimeParamList());
 
         autoexecJobSourceActionHandler.updateInvokeJob(autoexecJobParam);
         autoexecJobService.saveAutoexecCombopJob(autoexecJobParam);

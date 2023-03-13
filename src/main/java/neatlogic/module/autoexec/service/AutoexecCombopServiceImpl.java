@@ -539,15 +539,24 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             Map<String, String> preOperationNameMap
     ) {
         if (CollectionUtils.isNotEmpty(mappingList)) {
-            List<String> paramList = new ArrayList<>();
-            paramList.add(ParamType.DATE.getValue());
-            paramList.add(ParamType.TIME.getValue());
-            paramList.add(ParamType.DATETIME.getValue());
-            paramList.add(ParamType.SELECT.getValue());
-            paramList.add(ParamType.RADIO.getValue());
-            paramList.add(ParamType.TEXTAREA.getValue());
-            paramList.add(ParamType.PHASE.getValue());
-            paramList.add(ParamType.PASSWORD.getValue());
+            // 输入参数文本框能映射的类型
+            List<String> textMappingParamTypeList = new ArrayList<>();
+            textMappingParamTypeList.add(ParamType.DATE.getValue());
+            textMappingParamTypeList.add(ParamType.TIME.getValue());
+            textMappingParamTypeList.add(ParamType.DATETIME.getValue());
+            textMappingParamTypeList.add(ParamType.SELECT.getValue());
+            textMappingParamTypeList.add(ParamType.RADIO.getValue());
+            textMappingParamTypeList.add(ParamType.TEXTAREA.getValue());
+            textMappingParamTypeList.add(ParamType.PHASE.getValue());
+            textMappingParamTypeList.add(ParamType.PASSWORD.getValue());
+            // 输入参数文本域能映射的类型
+            List<String> textareaMappingParamTypeList = new ArrayList<>();
+            textareaMappingParamTypeList.add(ParamType.TEXT.getValue());
+            textareaMappingParamTypeList.add(ParamType.TEXTAREA.getValue());
+            // 输入参数JSON能映射的类型
+            List<String> jsonMappingParamTypeList = new ArrayList<>();
+            jsonMappingParamTypeList.add(ParamType.JSON.getValue());
+            jsonMappingParamTypeList.add(ParamType.NODE.getValue());
             for (ParamMappingVo paramMappingVo : mappingList) {
                 if (paramMappingVo == null) {
                     continue;
@@ -646,12 +655,16 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                         continue;
                     }
                     if (inputParamVo.getType().equals(ParamType.TEXT.getValue())) {
-                        if (paramList.contains(runtimeParamVo.getType())) {
+                        if (textMappingParamTypeList.contains(runtimeParamVo.getType())) {
                             continue;
                         }
                     } else if (Objects.equals(inputParamVo.getType(), ParamType.TEXTAREA.getValue())) {
                         // 文本域类型 上游节点输出参数值 文本类型
-                        if (Objects.equals(runtimeParamVo.getType(), ParamType.TEXT.getValue())) {
+                        if (textareaMappingParamTypeList.contains(runtimeParamVo.getType())) {
+                            continue;
+                        }
+                    } else if (Objects.equals(inputParamVo.getType(), ParamType.JSON.getValue())) {
+                        if (jsonMappingParamTypeList.contains(runtimeParamVo.getType())) {
                             continue;
                         }
                     }
@@ -673,12 +686,16 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                         continue;
                     }
                     if (inputParamVo.getType().equals(ParamType.TEXT.getValue())) {
-                        if (paramList.contains(globalParamVo.getType())) {
+                        if (textMappingParamTypeList.contains(globalParamVo.getType())) {
                             continue;
                         }
                     } else if (Objects.equals(inputParamVo.getType(), ParamType.TEXTAREA.getValue())) {
                         // 文本域类型 上游节点输出参数值 文本类型
-                        if (Objects.equals(globalParamVo.getType(), ParamType.TEXT.getValue())) {
+                        if (textareaMappingParamTypeList.contains(globalParamVo.getType())) {
+                            continue;
+                        }
+                    } else if (Objects.equals(inputParamVo.getType(), ParamType.JSON.getValue())) {
+                        if (jsonMappingParamTypeList.contains(globalParamVo.getType())) {
                             continue;
                         }
                     }
