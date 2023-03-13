@@ -231,7 +231,9 @@ CREATE TABLE IF NOT EXISTS `autoexec_job_phase` (
   `sort` int NOT NULL COMMENT '阶段排序',
   `lcd` timestamp(3) NULL DEFAULT NULL COMMENT '最近一次更新时间',
   `lncd` timestamp(3) NULL DEFAULT NULL COMMENT '最近一次节点变动时间',
-  `node_from` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '节点来源',
+  `node_from` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT '0' COMMENT '节点来源',
+  `user_name_from` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT '0' COMMENT '用户来源',
+  `protocol_from` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT '0' COMMENT '协议来源',
   `group_id` bigint DEFAULT NULL COMMENT '组id',
   `execute_policy` enum('first','middl','last') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '执行策略',
   `warn_count` int DEFAULT NULL COMMENT '警告数量',
@@ -241,7 +243,10 @@ CREATE TABLE IF NOT EXISTS `autoexec_job_phase` (
   KEY `idx_jobid_name` (`job_id`,`name`) USING BTREE,
   KEY `idx_jobid_sort` (`job_id`,`sort`) USING BTREE,
   KEY `idx_lcd` (`lcd`) USING BTREE,
-  KEY `idx_jobid_groupid` (`job_id`,`group_id`) USING BTREE
+  KEY `idx_jobid_groupid` (`job_id`,`group_id`) USING BTREE,
+  KEY `idx_node_from` (`node_from`) USING BTREE,
+  KEY `idx_user_name_from` (`user_name_from`) USING BTREE,
+  KEY `idx_protocol_from` (`protocol_from`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='自动化作业阶段表';
 
 -- ----------------------------
