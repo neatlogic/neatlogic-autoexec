@@ -19,9 +19,7 @@ package neatlogic.module.autoexec.api.job.exec;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
-import neatlogic.framework.autoexec.constvalue.AutoexecJobPhaseNodeFrom;
-import neatlogic.framework.autoexec.constvalue.CombopOperationType;
-import neatlogic.framework.autoexec.constvalue.JobNodeStatus;
+import neatlogic.framework.autoexec.constvalue.*;
 import neatlogic.framework.autoexec.dao.mapper.*;
 import neatlogic.framework.autoexec.dto.AutoexecToolVo;
 import neatlogic.framework.autoexec.dto.AutoexecTypeVo;
@@ -34,6 +32,7 @@ import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobGroupNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
+import neatlogic.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import neatlogic.framework.cmdb.crossover.IResourceCenterAccountCrossoverService;
 import neatlogic.framework.cmdb.crossover.IResourceCrossoverMapper;
@@ -127,13 +126,16 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
         long lastModifiedLong = 0L;
         Date lncd = null;
 
-        AutoexecJobPhaseNodeVo nodeParamVo = new AutoexecJobPhaseNodeVo(jobId, phaseName, 0, nodeFrom);
+        AutoexecJobPhaseNodeVo nodeParamVo = new AutoexecJobPhaseNodeVo(jobId, phaseName, 0);
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
         if (Objects.equals(AutoexecJobPhaseNodeFrom.JOB.getValue(), nodeFrom)) {
             lncd = jobVo.getLncd();
+            nodeParamVo.setUserNameFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
+            nodeParamVo.setProtocolFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
+            nodeParamVo.setNodeFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
         } else if (Objects.equals(AutoexecJobPhaseNodeFrom.GROUP.getValue(), nodeFrom)) {
             if (groupSort == null) {
                 throw new ParamIrregularException("groupNo");
@@ -143,12 +145,38 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
             if (jobGroupVo == null) {
                 throw new AutoexecJobGroupNotFoundException(jobId, groupSort);
             }
+            List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListByJobIdAndGroupSort(jobId, groupSort);
+            if (CollectionUtils.isEmpty(jobPhaseVoList)) {
+                throw new AutoexecJobPhaseNotFoundException(jobId, groupSort);
+            }
+            AutoexecJobPhaseVo jobPhaseVo = jobPhaseVoList.get(0);
+            //如果全部引用全局，则无需下载
+            if (Objects.equals(jobPhaseVo.getNodeFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())
+                    && Objects.equals(jobPhaseVo.getProtocolFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())
+                    && Objects.equals(jobPhaseVo.getUserNameFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())) {
+                if (response != null) {
+                    response.setStatus(204);
+                    response.getWriter().print(StringUtils.EMPTY);
+                }
+                return null;
+            }
             lncd = jobGroupVo.getLncd();
             jobVo.setExecuteJobGroupVo(jobGroupVo);
         } else if (Objects.equals(AutoexecJobPhaseNodeFrom.PHASE.getValue(), nodeFrom)) {
             AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(jobId, phaseName);
             if ((StringUtils.isBlank(phaseName) || jobPhaseVo == null)) {
                 throw new ParamIrregularException("phase");
+            }
+            //如果全部引用全局或者是runner，则无需下载
+            if ((Objects.equals(jobPhaseVo.getNodeFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())
+                    && Objects.equals(jobPhaseVo.getProtocolFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())
+                    && Objects.equals(jobPhaseVo.getUserNameFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue()))
+                    || Objects.equals(ExecMode.RUNNER.getValue(), jobPhaseVo.getExecMode())) {
+                if (response != null) {
+                    response.setStatus(204);
+                    response.getWriter().print(StringUtils.EMPTY);
+                }
+                return null;
             }
             lncd = jobPhaseVo.getLncd();
             nodeParamVo.setJobPhaseName(jobPhaseVo.getName());
@@ -160,7 +188,7 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
             lastModifiedLong = lastModifiedDec.multiply(new BigDecimal("1000")).longValue();
         }
         nodeParamVo.setStatusBlackList(Collections.singletonList(JobNodeStatus.IGNORED.getValue()));
-        nodeParamVo.setNodeFrom(nodeFrom);
+
         //获取是不是巡检类型的作业
         boolean isInspect = isInspect(jobVo);
 
@@ -200,9 +228,9 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                     nodeParamVo.setStartNum(nodeParamVo.getStartNum());
                     List<AutoexecJobPhaseNodeVo> autoexecJobPhaseNodeVoList = autoexecJobMapper.searchJobPhaseNodeByDistinct(nodeParamVo);
                     Long protocolId = autoexecJobPhaseNodeVoList.get(0).getProtocolId();
-                    Optional<AccountProtocolVo> protocolVoOptional = allProtocolList.stream().filter(o->Objects.equals(o.getId(),protocolId)).findFirst();
+                    Optional<AccountProtocolVo> protocolVoOptional = allProtocolList.stream().filter(o -> Objects.equals(o.getId(), protocolId)).findFirst();
                     String protocol = null;
-                    if (protocolVoOptional.isPresent()){
+                    if (protocolVoOptional.isPresent()) {
                         protocol = protocolVoOptional.get().getName();
                     }
                     String account = autoexecJobPhaseNodeVoList.get(0).getUserName();
@@ -288,7 +316,7 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                         }
                         for (AutoexecJobPhaseNodeVo nodeVo : autoexecJobPhaseNodeVoList) {
                             JSONObject nodeJson = new JSONObject();
-                            AccountProtocolVo protocolVo = new AccountProtocolVo(protocolId,protocol);
+                            AccountProtocolVo protocolVo = new AccountProtocolVo(protocolId, protocol);
                             AccountVo accountVoTmp = accountService.filterAccountByRules(accountByResourceList, tagentIpAccountMap, nodeVo.getResourceId(), protocolVo, nodeVo.getHost(), resourceOSResourceMap, protocolDefaultAccountMap);
                             if (accountVoTmp != null) {
                                 nodeJson.put("protocol", accountVoTmp.getProtocol());

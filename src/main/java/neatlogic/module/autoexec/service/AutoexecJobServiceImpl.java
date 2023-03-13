@@ -206,7 +206,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 nodeVo.setRunnerMapId(runnerMapVo.getRunnerMapId());
                 autoexecJobMapper.insertIgnoreJobPhaseNodeRunner(new AutoexecJobPhaseNodeRunnerVo(nodeVo));
                 autoexecJobMapper.insertJobPhaseRunner(nodeVo.getJobId(), nodeVo.getJobGroupId(), nodeVo.getJobPhaseId(), nodeVo.getRunnerMapId(), nodeVo.getLcd());
-                autoexecJobMapper.updateJobPhaseNodeFrom(jobPhaseVo.getId(), AutoexecJobPhaseNodeFrom.PHASE.getValue());
                 autoexecJobSourceActionHandler.updateJobRunnerMap(jobVo.getId(), runnerMapVo.getRunnerMapId());
             }
         }
@@ -497,6 +496,12 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             //先获取组合工具配置的执行用户和协议
             userName = combopExecuteConfigVo.getExecuteUser();
             protocolId = combopExecuteConfigVo.getProtocolId();
+            if (StringUtils.isNotBlank(userName)) {
+                jobVo.setUserNameFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
+            }
+            if (protocolId != null) {
+                jobVo.setProtocolFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
+            }
         }
         AutoexecCombopExecuteConfigVo executeConfigVo;
         AutoexecJobGroupVo jobGroupVo = jobVo.getCurrentPhase().getJobGroupVo();
@@ -509,9 +514,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 if (executeConfigVo != null) {
                     if (StringUtils.isNotBlank(executeConfigVo.getExecuteUser())) {
                         userName = executeConfigVo.getExecuteUser();
+                        jobVo.setUserNameFrom(AutoexecJobPhaseNodeFrom.GROUP.getValue());
                     }
                     if (executeConfigVo.getProtocolId() != null) {
                         protocolId = executeConfigVo.getProtocolId();
+                        jobVo.setProtocolFrom(AutoexecJobPhaseNodeFrom.GROUP.getValue());
                     }
                     isGroupConfig = executeConfigVo.getExecuteNodeConfig() != null && !executeConfigVo.getExecuteNodeConfig().isNull();
                     if (isGroupConfig) {
@@ -525,11 +532,12 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             if (executeConfigVo != null && Objects.equals(executeConfigVo.getIsPresetExecuteConfig(), 1)) {
                 if (StringUtils.isNotBlank(executeConfigVo.getExecuteUser())) {
                     userName = executeConfigVo.getExecuteUser();
+                    jobVo.setUserNameFrom(AutoexecJobPhaseNodeFrom.PHASE.getValue());
                 }
                 if (executeConfigVo.getProtocolId() != null) {
                     protocolId = executeConfigVo.getProtocolId();
+                    jobVo.setProtocolFrom(AutoexecJobPhaseNodeFrom.PHASE.getValue());
                 }
-
                 //判断阶段执行节点是否配置
                 isPhaseConfig = executeConfigVo.getExecuteNodeConfig() != null && !executeConfigVo.getExecuteNodeConfig().isNull();
                 if (isPhaseConfig) {
@@ -549,7 +557,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
 
         //跟新节点来源
-        autoexecJobMapper.updateJobPhaseNodeFrom(jobVo.getCurrentPhase().getId(), jobVo.getNodeFrom());
+        autoexecJobMapper.updateJobPhaseFrom(jobVo);
 
     }
 
@@ -660,7 +668,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             throw new AutoexecJobConfigNotFoundException(jobVo.getId());
         }
         AutoexecJobInvokeVo invokeVo = autoexecJobMapper.getJobInvokeByJobId(jobVo.getId());
-        if(invokeVo != null) {
+        if (invokeVo != null) {
             jobVo.setInvokeId(invokeVo.getInvokeId());
         }
         jobVo.setConfigStr(jobContent.getContent());
