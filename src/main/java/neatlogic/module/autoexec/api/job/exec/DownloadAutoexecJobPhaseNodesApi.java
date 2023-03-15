@@ -162,6 +162,7 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
             }
             lncd = jobGroupVo.getLncd();
             jobVo.setExecuteJobGroupVo(jobGroupVo);
+            nodeParamVo.setIsDownloadGroup(1);
         } else if (Objects.equals(AutoexecJobPhaseNodeFrom.PHASE.getValue(), nodeFrom)) {
             AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(jobId, phaseName);
             if ((StringUtils.isBlank(phaseName) || jobPhaseVo == null)) {
