@@ -149,6 +149,8 @@ public class AutoexecCombopVersionSaveApi extends PrivateApiComponentBase {
             }
             List<AutoexecCombopVersionVo> versionList = autoexecCombopVersionMapper.getAutoexecCombopVersionListByCombopId(autoexecCombopVersionVo.getCombopId());
             if (versionList.size() > maxNum) {
+                // 需要删除个数
+                int deleteCount = versionList.size() - maxNum;
                 // 根据版本id升序排序
                 versionList.sort(Comparator.comparing(AutoexecCombopVersionVo::getId));
                 // 遍历版本列表，删除最旧的非激活版本
@@ -158,7 +160,10 @@ public class AutoexecCombopVersionSaveApi extends PrivateApiComponentBase {
                     }
                     autoexecCombopVersionMapper.deleteAutoexecCombopVersionById(versionVo.getId());
                     autoexecCombopService.deleteDependency(versionVo);
-                    break;
+                    deleteCount--;
+                    if (deleteCount == 0) {
+                        break;
+                    }
                 }
             }
         } else {
