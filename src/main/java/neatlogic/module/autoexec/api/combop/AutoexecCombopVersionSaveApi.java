@@ -23,6 +23,9 @@ import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import neatlogic.framework.autoexec.constvalue.ScriptVersionStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
+import neatlogic.framework.cmdb.dto.customview.CustomViewAttrVo;
+import neatlogic.framework.dao.mapper.ConfigMapper;
+import neatlogic.framework.dto.ConfigVo;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionConfigVo;
@@ -37,11 +40,13 @@ import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.framework.util.RegexUtils;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -50,9 +55,14 @@ import java.util.Objects;
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class AutoexecCombopVersionSaveApi extends PrivateApiComponentBase {
+    // 组合工具版本数量上限默认值为10，可以在数据库config表中设置key为maxNumOfCombopVersion的数据覆盖该值
+    private final static int MAX_NUM_OF_COMBOP_VERSION = 10;
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
+
+    @Resource
+    private ConfigMapper configMapper;
 
     @Resource
     private AutoexecCombopVersionMapper autoexecCombopVersionMapper;
@@ -126,6 +136,32 @@ public class AutoexecCombopVersionSaveApi extends PrivateApiComponentBase {
             autoexecCombopVersionVo.setIsActive(0);
             autoexecCombopVersionMapper.insertAutoexecCombopVersion(autoexecCombopVersionVo);
             autoexecCombopService.saveDependency(autoexecCombopVersionVo);
+            int maxNum = MAX_NUM_OF_COMBOP_VERSION;
+            ConfigVo configVo = configMapper.getConfigByKey("maxNumOfCombopVersion");
+            if (configVo != null) {
+                String value = configVo.getValue();
+                if (StringUtils.isNotBlank(value)) {
+                    try {
+                        maxNum = Integer.parseInt(value);
+                    } catch (NumberFormatException e) {
+
+                    }
+                }
+            }
+            List<AutoexecCombopVersionVo> versionList = autoexecCombopVersionMapper.getAutoexecCombopVersionListByCombopId(autoexecCombopVersionVo.getCombopId());
+            if (versionList.size() > maxNum) {
+                // 根据版本id升序排序
+                versionList.sort(Comparator.comparing(AutoexecCombopVersionVo::getId));
+                // 遍历版本列表，删除最旧的非激活版本
+                for (AutoexecCombopVersionVo versionVo : versionList) {
+                    if (Objects.equals(versionVo.getIsActive(), 1)) {
+                        continue;
+                    }
+                    autoexecCombopVersionMapper.deleteAutoexecCombopVersionById(versionVo.getId());
+                    autoexecCombopService.deleteDependency(versionVo);
+                    break;
+                }
+            }
         } else {
             AutoexecCombopVersionVo oldAutoexecCombopVersionVo = autoexecCombopVersionMapper.getAutoexecCombopVersionById(id);
             if (oldAutoexecCombopVersionVo == null) {
