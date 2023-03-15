@@ -318,7 +318,7 @@
 
     <update id="updateServiceIsActiveById" parameterType="neatlogic.framework.autoexec.dto.service.AutoexecServiceVo">
         UPDATE `autoexec_service`
-        SET `is_active`   = #{isActive}
+        SET `is_active` = #{isActive}
         WHERE `id` = #{id}
     </update>
 
