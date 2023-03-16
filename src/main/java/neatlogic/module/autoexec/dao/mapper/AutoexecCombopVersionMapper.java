@@ -2,9 +2,11 @@ package neatlogic.module.autoexec.dao.mapper;
 
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
+import neatlogic.framework.common.dto.BasePageVo;
 import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
+import java.util.Map;
 
 public interface AutoexecCombopVersionMapper {
 
@@ -29,6 +31,10 @@ public interface AutoexecCombopVersionMapper {
     List<Long> getAutoexecCombopIdListByStatus(String status);
 
     Long getAutoexecCombopMaxVersionIdByCombopIdAndStatus(@Param("combopId") Long combopId, @Param("status") String versionStatus);
+
+    int getAutoexecCombopVersionCountForUpdateConfig();
+
+    List<Map<String, Object>> getAutoexecCombopVersionListForUpdateConfig(BasePageVo searchVo);
 
     int insertAutoexecCombopVersion(AutoexecCombopVersionVo autoexecCombopVersionVo);
 

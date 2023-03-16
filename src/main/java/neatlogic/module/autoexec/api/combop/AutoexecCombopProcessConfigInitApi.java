@@ -245,10 +245,10 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
                 executeUserObj.put("key", "executeUser");
                 executeUserObj.put("name", "执行用户");
                 executeUserObj.put("isRequired", 1);
-                String executeUser = executeConfigVo.getExecuteUser();
-                if (StringUtils.isNotBlank(executeUser)) {
-                    executeUserObj.put("mappingMode", ParamMappingMode.CONSTANT.getValue());
-                    executeUserObj.put("value", executeUser);
+                ParamMappingVo executeUser = executeConfigVo.getExecuteUser();
+                if (executeUser != null && StringUtils.isNotBlank((String) executeUser.getValue())) {
+                    executeUserObj.put("mappingMode", executeUser.getMappingMode());
+                    executeUserObj.put("value", executeUser.getValue());
                 } else {
                     executeUserObj.put("mappingMode", "");
                     executeUserObj.put("value", "");

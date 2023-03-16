@@ -223,7 +223,8 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             //如果阶段存在任意"执行用户"、"协议"、"节点配置"
             AutoexecCombopExecuteConfigVo phaseExecuteConfig = phaseConfig.getExecuteConfig();
             if (phaseExecuteConfig != null) {
-                if (StringUtils.isBlank(phaseExecuteConfig.getExecuteUser())) {
+                ParamMappingVo executeUser = phaseExecuteConfig.getExecuteUser();
+                if (executeUser == null || StringUtils.isBlank((String) executeUser.getValue())) {
                     isNeedExecuteUser = true;
                 }
                 if (phaseExecuteConfig.getProtocolId() == null) {
@@ -287,8 +288,8 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         if (executeConfigVo != null) {
             if (Objects.equals(executeConfigVo.getWhenToSpecify(), CombopNodeSpecify.NOW.getValue())) {
                 if (isExecuteJob) {
-                    String executeUser = executeConfigVo.getExecuteUser();
-                    if (StringUtils.isBlank(executeUser) && isNeedExecuteUser) {
+                    ParamMappingVo executeUser = executeConfigVo.getExecuteUser();
+                    if ((executeUser == null || StringUtils.isBlank((String) executeUser.getValue())) && isNeedExecuteUser) {
                         throw new AutoexecCombopExecuteUserCannotBeEmptyException();
                     }
                     if (executeConfigVo.getProtocolId() == null && isNeedExecuteNodeConfig) {
@@ -346,7 +347,8 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             //如果阶段存在任意"执行用户"、"协议"、"节点配置"
             AutoexecCombopExecuteConfigVo phaseExecuteConfig = phaseConfig.getExecuteConfig();
             if (phaseExecuteConfig != null) {
-                if (StringUtils.isBlank(phaseExecuteConfig.getExecuteUser())) {
+                ParamMappingVo executeUser = phaseExecuteConfig.getExecuteUser();
+                if (executeUser == null || StringUtils.isBlank((String) executeUser.getValue())) {
                     isNeedExecuteUser = true;
                 }
                 if (phaseExecuteConfig.getProtocolId() == null) {
@@ -410,8 +412,8 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         if (executeConfigVo != null) {
             if (Objects.equals(executeConfigVo.getWhenToSpecify(), CombopNodeSpecify.NOW.getValue())) {
                 if (isExecuteJob) {
-                    String executeUser = executeConfigVo.getExecuteUser();
-                    if (StringUtils.isBlank(executeUser) && isNeedExecuteUser) {
+                    ParamMappingVo executeUser = executeConfigVo.getExecuteUser();
+                    if ((executeUser == null || StringUtils.isBlank((String) executeUser.getValue())) && isNeedExecuteUser) {
                         throw new AutoexecCombopExecuteUserCannotBeEmptyException();
                     }
                     if (executeConfigVo.getProtocolId() == null && isNeedExecuteNodeConfig) {
@@ -868,8 +870,8 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 }
             }
             if (!needExecuteUser) {
-                String executeUser = executeConfigVo.getExecuteUser();
-                if (StringUtils.isBlank(executeUser)) {
+                ParamMappingVo executeUser = executeConfigVo.getExecuteUser();
+                if (executeUser == null || StringUtils.isBlank((String) executeUser.getValue())) {
                     needExecuteUser = true;
                 }
             }
@@ -935,8 +937,8 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 }
             }
             if (!needExecuteUser) {
-                String executeUser = executeConfigVo.getExecuteUser();
-                if (StringUtils.isBlank(executeUser)) {
+                ParamMappingVo executeUser = executeConfigVo.getExecuteUser();
+                if (executeUser == null || StringUtils.isBlank((String) executeUser.getValue())) {
                     needExecuteUser = true;
                 }
             }
