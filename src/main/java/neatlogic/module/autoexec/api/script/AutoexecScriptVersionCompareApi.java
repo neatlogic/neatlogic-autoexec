@@ -35,6 +35,7 @@ import neatlogic.framework.dto.RoleVo;
 import neatlogic.framework.dto.UserVo;
 import neatlogic.framework.dto.WorkAssignmentUnitVo;
 import neatlogic.framework.file.dao.mapper.FileMapper;
+import neatlogic.framework.file.dto.FileVo;
 import neatlogic.framework.lcs.BaseLineVo;
 import neatlogic.framework.lcs.LCSUtil;
 import neatlogic.framework.lcs.SegmentPair;
@@ -183,7 +184,17 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
         compareParamList(targetInputParamList, sourceInputParamList);
         compareParamList(targetOutputParamList, sourceOutputParamList);
         compareArgument(source.getArgument(), target.getArgument());
-        compareLineList(source, target);
+        if (!StringUtils.equals(source.getParser(), ScriptParser.PACKAGE.getValue()) && !StringUtils.equals(target.getParser(), ScriptParser.PACKAGE.getValue())) {
+            compareLineList(source, target);
+        } else if (StringUtils.equals(source.getParser(), ScriptParser.PACKAGE.getValue()) && StringUtils.equals(target.getParser(), ScriptParser.PACKAGE.getValue())) {
+            FileVo sourcePackageFile = source.getPackageFile();
+            FileVo targetPackageFile = target.getPackageFile();
+            if (!Objects.equals(sourcePackageFile.getId(), targetPackageFile.getId())) {
+                sourcePackageFile.setName("<span class='update'>" + sourcePackageFile.getName() + "</span>");
+                targetPackageFile.setName("<span class='update'>" + targetPackageFile.getName() + "</span>");
+            }
+
+        }
         if (!Objects.equals(source.getParser(), target.getParser())) {
             source.setParser("<span class='update'>" + source.getParser() + "</span>");
             target.setParser("<span class='update'>" + target.getParser() + "</span>");
@@ -300,6 +311,7 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
 
     /**
      * 将AutoexecScriptLineVo列表转换成BaseLineVo列表
+     *
      * @param lineList
      * @return
      */
@@ -314,6 +326,7 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
 
     /**
      * 将BaseLineVo列表转换成AutoexecScriptLineVo列表
+     *
      * @param lineList
      * @return
      */
@@ -321,7 +334,7 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
         List<AutoexecScriptLineVo> resultList = new ArrayList<>();
         for (BaseLineVo lineVo : lineList) {
             if (lineVo instanceof AutoexecScriptLineVo) {
-                resultList.add((AutoexecScriptLineVo)lineVo);
+                resultList.add((AutoexecScriptLineVo) lineVo);
             }
         }
         return resultList;
