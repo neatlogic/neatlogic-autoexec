@@ -230,12 +230,10 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
                 ParamMappingVo executeUserParamMappingVo = config.getExecuteUser();
                 if (needExecuteUser && executeUserParamMappingVo != null) {
                     if (Objects.equals(executeUserParamMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue())) {
-                        autoexecJobVo.setAssignExecUser((String) executeUserParamMappingVo.getValue());
                         executeConfigVo.setExecuteUser((String) executeUserParamMappingVo.getValue());
                     } else if (Objects.equals(executeUserParamMappingVo.getMappingMode(), ServiceParamMappingMode.FORMATTR.getValue())) {
                         Object value = formAttributeDataMap.get(executeUserParamMappingVo.getValue());
                         if (value != null) {
-                            autoexecJobVo.setAssignExecUser((String) value);
                             executeConfigVo.setExecuteUser((String) value);
                         }
                     }
@@ -325,12 +323,10 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
                 ParamMappingVo executeUserParamMappingVo = config.getExecuteUser();
                 if (needExecuteUser && executeUserParamMappingVo != null) {
                     if (executeUserParamMappingVo.getValue() != null) {
-                        autoexecJobVo.setAssignExecUser((String) executeUserParamMappingVo.getValue());
                         executeConfigVo.setExecuteUser((String) executeUserParamMappingVo.getValue());
                     } else {
                         String executeUser = paramObj.getString("executeUser");
                         if (executeUser != null) {
-                            autoexecJobVo.setAssignExecUser(executeUser);
                             executeConfigVo.setExecuteUser(executeUser);
                         } else {
                             throw new ParamNotExistsException("执行用户（executeUser）");
