@@ -34,17 +34,14 @@ import neatlogic.framework.exception.file.FileTypeHandlerNotFoundException;
 import neatlogic.framework.file.core.FileOperationType;
 import neatlogic.framework.file.core.FileTypeHandlerFactory;
 import neatlogic.framework.file.core.IFileTypeHandler;
-import neatlogic.framework.file.dao.mapper.FileMapper;
 import neatlogic.framework.file.dto.FileVo;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
 import neatlogic.framework.util.FileUtil;
-import neatlogic.module.autoexec.service.AutoexecScriptService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -67,12 +64,6 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
-
-    @Resource
-    private AutoexecScriptService autoexecScriptService;
-
-    @Autowired
-    private FileMapper fileMapper;
 
     @Override
     public String getToken() {

@@ -84,7 +84,7 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
 
     @Override
     public String getToken() {
-        return "autoexec/script/import/fromjson1";
+        return "autoexec/script/import/fromjson";
     }
 
     @Override
@@ -125,7 +125,7 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
         for (Map.Entry<String, MultipartFile> entry : multipartFileMap.entrySet()) {
             MultipartFile multipartFile = entry.getValue();
             String name = multipartFile.getName();
-            if (name.endsWith("scriptInfo.json")) {
+            if (name.equals("scriptInfo.json")) {
                 String s = MultipartFileToString(multipartFile);
                 if (StringUtils.isNotEmpty(s)) {
                     JSONArray jsonArray = JSONArray.parseArray(s);
@@ -135,7 +135,6 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
                 scriptFileNameMap.put(multipartFile.getName(), multipartFile);
             }
         }
-
 
         if (CollectionUtils.isEmpty(importScriptList)) {
             return null;
@@ -243,7 +242,6 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
                             logger.error(ex.getMessage(), ex);
                         }
                         // 如果minio出现异常，则上传到本地
-//                              filePath = FileUtil.saveData(LocalFileSystemHandler.NAME, tenantUuid, new ByteArrayInputStream(out.toByteArray()), fileVo.getId().toString(), fileVo.getContentType(), fileVo.getType());
                         filePath = FileUtil.saveData(LocalFileSystemHandler.NAME, tenantUuid, multipartFile.getInputStream(), fileVo.getId().toString(), fileVo.getContentType(), fileVo.getType());
                     }
                     fileVo.setPath(filePath);
@@ -254,8 +252,6 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
                 }
 
             }
-            //2w3fdfspofmsopfksdpofksdpokfs
-//            faultMessages.add("1111111111");
             if (CollectionUtils.isEmpty(faultMessages)) {
                 newScriptVo.setTypeId(autoexecTypeMapper.getTypeIdByName(newScriptVo.getTypeName()));
                 newScriptVo.setRiskId(autoexecRiskMapper.getRiskIdByName(newScriptVo.getRiskName()));

@@ -142,7 +142,6 @@ public class AutoexecScriptExportForAutoexecApi extends PrivateBinaryStreamApiCo
             response.setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
             try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {
                 JSONArray jsonArray = new JSONArray();
-//                writer.startArray();
                 for (Long id : idList) {
                     AutoexecScriptVo script = autoexecScriptMapper.getScriptBaseInfoById(id);
                     AutoexecCatalogVo _catalog = autoexecCatalogMapper.getAutoexecCatalogById(script.getCatalogId());
@@ -155,13 +154,12 @@ public class AutoexecScriptExportForAutoexecApi extends PrivateBinaryStreamApiCo
                     script.setArgument(autoexecScriptMapper.getArgumentByVersionId(version.getId()));
                     script.setParamList(autoexecScriptMapper.getAutoexecParamVoListByVersionId(version.getId()));
                     script.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
-                    FileVo file = fileMapper.getFileById(version.getPackageFileId());
-//                    script.setPackageFile(file);
-                    if (file != null) {
-                        script.setPackageFileName(file.getName());
-                    }
-                    if (StringUtils.equals(version.getParser(), ScriptParser.PACKAGE.getValue()) && version.getPackageFileId() != null) {
-                        packageFileIdList.add(version.getPackageFileId());
+                    if (StringUtils.equals(script.getParser(), ScriptParser.PACKAGE.getValue()) && version.getPackageFileId() != null) {
+                        FileVo file = fileMapper.getFileById(version.getPackageFileId());
+                        if (file != null) {
+                            packageFileIdList.add(version.getPackageFileId());
+                            script.setPackageFileName(file.getName());
+                        }
                     }
                     if (CollectionUtils.isNotEmpty(version.getUseLib())) {
                         List<AutoexecOperationVo> scriptList = autoexecScriptMapper.getScriptListByIdList(version.getUseLib());
@@ -183,48 +181,35 @@ public class AutoexecScriptExportForAutoexecApi extends PrivateBinaryStreamApiCo
                         }
                     }
                     jsonArray.add(JSONObject.parseObject(JSON.toJSONString(script, SerializerFeature.DisableCircularReferenceDetect)));
-//                    writer.writeObject(JSONObject.parseObject(JSON.toJSONString(script, SerializerFeature.DisableCircularReferenceDetect)));// 解决json循环引用问题
                 }
                 if (CollectionUtils.isNotEmpty(jsonArray)) {
                     zos.putNextEntry(new ZipEntry("scriptInfo.json"));
                     zos.write(JSONArray.toJSONBytes(jsonArray));
-//                    zos.putNextEntry(new ZipEntry("1234.json"));
-//                    JSONWriter jsonWriter = new JSONWriter(response.getWriter());
-//                    jsonWriter.writeObject(jsonArray);
-//                    zos.write(JSONArray.toJSONBytes(jsonWriter));
                 }
 
                 if (CollectionUtils.isNotEmpty(packageFileIdList)) {
                     List<FileVo> fileVoList = fileMapper.getFileListByIdList(packageFileIdList);
                     for (FileVo fileVo : fileVoList) {
-//                        if (fileVo != null) {
-                            String userUuid = UserContext.get().getUserUuid();
-                            IFileTypeHandler fileTypeHandler = FileTypeHandlerFactory.getHandler(fileVo.getType());
-                            if (fileTypeHandler != null) {
-                                if (StringUtils.equals(userUuid, fileVo.getUserUuid()) || fileTypeHandler.valid(userUuid, fileVo, paramObj)) {
-                                    InputStream inputStream = neatlogic.framework.common.util.FileUtil.getData(fileVo.getPath());
-                                    if (inputStream != null) {
-                                        File inputFile = new File(fileVo.getName());
-                                        FileUtils.copyInputStreamToFile(inputStream, inputFile);
-                                        zip(zos, inputFile, fileVo.getName());
-                                        zos.closeEntry();
-                                        inputStream.close();
-                                    }
-                                } else {
-                                    throw new FileAccessDeniedException(fileVo.getName(), FileOperationType.DOWNLOAD.getText());
+                        String userUuid = UserContext.get().getUserUuid();
+                        IFileTypeHandler fileTypeHandler = FileTypeHandlerFactory.getHandler(fileVo.getType());
+                        if (fileTypeHandler != null) {
+                            if (StringUtils.equals(userUuid, fileVo.getUserUuid()) || fileTypeHandler.valid(userUuid, fileVo, paramObj)) {
+                                InputStream inputStream = neatlogic.framework.common.util.FileUtil.getData(fileVo.getPath());
+                                if (inputStream != null) {
+                                    File inputFile = new File(fileVo.getName());
+                                    FileUtils.copyInputStreamToFile(inputStream, inputFile);
+                                    zip(zos, inputFile, fileVo.getName());
+                                    zos.closeEntry();
+                                    inputStream.close();
                                 }
                             } else {
-                                throw new FileTypeHandlerNotFoundException(fileVo.getType());
+                                throw new FileAccessDeniedException(fileVo.getName(), FileOperationType.DOWNLOAD.getText());
                             }
-//                        } else {
-//                            throw new FileNotFoundException(fileVo.getId());
-//                        }
+                        } else {
+                            throw new FileTypeHandlerNotFoundException(fileVo.getType());
+                        }
                     }
                 }
-
-
-//                writer.endArray();
-//                writer.flush();
             }
         }
 
