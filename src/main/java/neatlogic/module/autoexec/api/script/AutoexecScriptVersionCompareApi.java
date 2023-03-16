@@ -127,12 +127,6 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
         Long targetVersionId = jsonObj.getLong("targetVersionId");
         Integer needToCompare = jsonObj.getInteger("needToCompare");
         AutoexecScriptVersionVo sourceVersion = autoexecScriptService.getScriptVersionDetailByVersionId(sourceVersionId);
-//        if (StringUtils.equals(sourceVersion.getParser(), ScriptParser.PACKAGE.getValue()) && sourceVersion.getPackageFileId() != null) {
-//            FileVo fileVo = fileMapper.getFileById(sourceVersion.getPackageFileId());
-//            if (fileVo != null) {
-//                sourceVersion.setPackageFile(fileVo);
-//            }
-//        }
         AutoexecScriptVersionVo targetVersion = null;
         if (targetVersionId != null) {
             targetVersion = autoexecScriptService.getScriptVersionDetailByVersionId(targetVersionId);
@@ -162,12 +156,6 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
         }
         result.put("sourceVersion", sourceVersion);
         if (targetVersion != null) {
-//            if (StringUtils.equals(targetVersion.getParser(), ScriptParser.PACKAGE.getValue()) && targetVersion.getPackageFileId() != null) {
-//                FileVo fileVo = fileMapper.getFileById(targetVersion.getPackageFileId());
-//                if (fileVo != null) {
-//                    targetVersion.setPackageFile(fileVo);
-//                }
-//            }
             result.put("targetVersion", targetVersion);
             if (!Objects.equals(sourceVersionId, targetVersionId)) {
                 compareScriptVersion(targetVersion, sourceVersion);
