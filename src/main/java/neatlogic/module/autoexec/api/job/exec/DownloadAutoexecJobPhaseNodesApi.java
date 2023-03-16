@@ -172,7 +172,7 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
             if ((Objects.equals(jobPhaseVo.getNodeFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())
                     && Objects.equals(jobPhaseVo.getProtocolFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())
                     && Objects.equals(jobPhaseVo.getUserNameFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue()))
-                    ) {
+            ) {
                 if (response != null) {
                     response.setStatus(204);
                     response.getWriter().print(StringUtils.EMPTY);
@@ -206,10 +206,16 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
             nodeParamVo.setPageCount(pageCount);
             IResourceCenterAccountCrossoverService accountService = CrossoverServiceFactory.getApi(IResourceCenterAccountCrossoverService.class);
             //补充第一行数据 {"totalCount":14, "localRunnerId":1, "jobRunnerIds":[1]}
-            if (count != 0) {
+            //nodes.json 每个作业必须下载
+            if (count != 0 || Objects.equals(AutoexecJobPhaseNodeFrom.JOB.getValue(), nodeFrom)) {
                 ServletOutputStream os = response.getOutputStream();
                 isNeedDownLoad = true;
-                List<Long> runnerMapIdList = autoexecJobMapper.getJobPhaseNodeRunnerMapIdListByNodeVo(nodeParamVo);
+                List<Long> runnerMapIdList = new ArrayList<>();
+                if (Objects.equals(AutoexecJobPhaseNodeFrom.JOB.getValue(), nodeFrom)) {
+                    runnerMapIdList = autoexecJobMapper.getJobRunnerMapIdListByJobId(nodeParamVo.getJobId());
+                } else {
+                    runnerMapIdList = autoexecJobMapper.getJobPhaseNodeRunnerMapIdListByNodeVo(nodeParamVo);
+                }
                 JSONObject firstRow = new JSONObject();
                 firstRow.put("totalCount", count);
                 firstRow.put("localRunnerId", localRunnerId);
