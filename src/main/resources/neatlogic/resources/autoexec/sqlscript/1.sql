@@ -161,6 +161,7 @@ CREATE TABLE IF NOT EXISTS `autoexec_job` (
   `review_status` enum('passed','failed','waiting') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '审核状态',
   `review_time` timestamp(3) NULL DEFAULT NULL COMMENT '审核时间',
   `scenario_id` bigint DEFAULT NULL COMMENT '场景id',
+  `runner_map_id` bigint DEFAULT NULL COMMENT 'runner执行类型phase的runnerId',
   `fcd` timestamp(3) NULL DEFAULT NULL COMMENT '创建时间',
   `fcu` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '创建人',
   PRIMARY KEY (`id`) USING BTREE,
