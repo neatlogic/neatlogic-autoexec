@@ -37,6 +37,7 @@ import neatlogic.framework.common.constvalue.SystemUser;
 import neatlogic.framework.dao.mapper.UserMapper;
 import neatlogic.framework.dto.UserVo;
 import neatlogic.framework.exception.core.ApiRuntimeException;
+import neatlogic.framework.exception.user.UserNotFoundException;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -114,12 +115,15 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         }
         //更新执行用户上下文
         UserVo execUser;
-        if(Objects.equals(SystemUser.SYSTEM.getUserUuid(),jobVo.getExecUser())){
+        if (Objects.equals(SystemUser.SYSTEM.getUserUuid(), jobVo.getExecUser())) {
             execUser = SystemUser.SYSTEM.getUserVo();
-        }else{
+        } else {
             execUser = userMapper.getUserBaseInfoByUuid(jobVo.getExecUser());
         }
-        UserContext.init(execUser,"+8:00");
+        if (execUser == null) {
+            throw new UserNotFoundException(jobVo.getExecUser());
+        }
+        UserContext.init(execUser, "+8:00");
 
         AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseNameWithGroup(jobId, phaseName);
         if (jobPhaseVo == null) {
