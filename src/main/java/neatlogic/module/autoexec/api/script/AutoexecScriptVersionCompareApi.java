@@ -293,7 +293,7 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
         if (!StringUtils.equals(source.getParser(), ScriptParser.PACKAGE.getValue())) {
             sourceBaseLineList = autoexecScriptLineVoListConvertBaseLineVoList(sourceLineList);
         }
-        if (!StringUtils.equals(source.getParser(), ScriptParser.PACKAGE.getValue())) {
+        if (!StringUtils.equals(target.getParser(), ScriptParser.PACKAGE.getValue())) {
             targetBaseLineList = autoexecScriptLineVoListConvertBaseLineVoList(targetLineList);
         }
 
