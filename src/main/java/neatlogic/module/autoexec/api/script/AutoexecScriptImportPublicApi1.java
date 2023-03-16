@@ -2,7 +2,7 @@ package neatlogic.module.autoexec.api.script;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.JSONReader;
+import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_MODIFY;
@@ -15,21 +15,42 @@ import neatlogic.framework.autoexec.dto.script.AutoexecScriptArgumentVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
+import neatlogic.framework.common.config.Config;
+import neatlogic.framework.common.constvalue.SystemUser;
+import neatlogic.framework.common.util.FileUtil;
+import neatlogic.framework.exception.file.FileNotUploadException;
+import neatlogic.framework.exception.user.NoTenantException;
+import neatlogic.framework.file.dao.mapper.FileMapper;
+import neatlogic.framework.file.dto.FileVo;
 import neatlogic.framework.fulltextindex.core.FullTextIndexHandlerFactory;
 import neatlogic.framework.fulltextindex.core.IFullTextIndexHandler;
 import neatlogic.framework.restful.annotation.Description;
 import neatlogic.framework.restful.annotation.OperationType;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
-import neatlogic.framework.restful.core.privateapi.PrivateJsonStreamApiComponentBase;
+import neatlogic.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
 import neatlogic.module.autoexec.fulltextindex.AutoexecFullTextIndexType;
 import neatlogic.module.autoexec.service.AutoexecScriptService;
 import neatlogic.module.autoexec.service.AutoexecService;
+import neatlogic.module.framework.file.handler.LocalFileSystemHandler;
+import neatlogic.module.framework.file.handler.MinioFileSystemHandler;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.web.multipart.MultipartHttpServletRequest;
 
 import javax.annotation.Resource;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 import static java.util.stream.Collectors.toList;
@@ -39,7 +60,9 @@ import static java.util.stream.Collectors.toList;
 @Transactional
 @AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.OPERATE)
-public class AutoexecScriptImportPublicApi extends PrivateJsonStreamApiComponentBase {
+public class AutoexecScriptImportPublicApi1 extends PrivateBinaryStreamApiComponentBase {
+
+    Logger logger = LoggerFactory.getLogger(AutoexecScriptImportPublicApi1.class);
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
@@ -56,9 +79,12 @@ public class AutoexecScriptImportPublicApi extends PrivateJsonStreamApiComponent
     @Resource
     private AutoexecScriptService autoexecScriptService;
 
+    @Autowired
+    private FileMapper fileMapper;
+
     @Override
     public String getToken() {
-        return "autoexec/script/import/fromjson";
+        return "autoexec/script/import/fromjson1";
     }
 
     @Override
@@ -73,7 +99,7 @@ public class AutoexecScriptImportPublicApi extends PrivateJsonStreamApiComponent
 
     @Description(desc = "导入脚本(通过固定格式json文件)")
     @Override
-    public Object myDoService(JSONObject paramObj, JSONReader jsonReader) throws Exception {
+    public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
 
         // 根据名称判断脚本存不存在，如果存在且内容有变化就生成新的激活版本，不存在直接生成新的激活版本
         // todo 用户令牌可用之后，要根据导入用户决定是否自动审核通过
@@ -84,11 +110,39 @@ public class AutoexecScriptImportPublicApi extends PrivateJsonStreamApiComponent
         result.put("faultArray", faultArray);
         result.put("newScriptArray", newScriptArray);
         result.put("updatedScriptArray", updatedScriptArray);
-        jsonReader.startArray();
+
+        String tenantUuid = TenantContext.get().getTenantUuid();
+        if (StringUtils.isBlank(tenantUuid)) {
+            throw new NoTenantException();
+        }
+        MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
+        Map<String, MultipartFile> multipartFileMap = multipartRequest.getFileMap();
+        if (multipartFileMap.isEmpty()) {
+            throw new FileNotUploadException();
+        }
+        Map<String, MultipartFile> scriptFileNameMap = new HashMap<>();
+        List<AutoexecScriptVo> importScriptList = new ArrayList<>();
+        for (Map.Entry<String, MultipartFile> entry : multipartFileMap.entrySet()) {
+            MultipartFile multipartFile = entry.getValue();
+            String name = multipartFile.getName();
+            if (name.endsWith("scriptInfo.json")) {
+                String s = MultipartFileToString(multipartFile);
+                if (StringUtils.isNotEmpty(s)) {
+                    JSONArray jsonArray = JSONArray.parseArray(s);
+                    importScriptList.addAll(jsonArray.toJavaList(AutoexecScriptVo.class));
+                }
+            } else if (name.endsWith(".tar")) {
+                scriptFileNameMap.put(multipartFile.getName(), multipartFile);
+            }
+        }
+
+
+        if (CollectionUtils.isEmpty(importScriptList)) {
+            return null;
+        }
         int i = 1;
-        while (jsonReader.hasNext()) {
+        for (AutoexecScriptVo newScriptVo : importScriptList) {
             List<String> faultMessages = new ArrayList<>();
-            AutoexecScriptVo newScriptVo = jsonReader.readObject(AutoexecScriptVo.class);
             String catalogName = newScriptVo.getCatalogName();
             Long catalogId = null;
             if (StringUtils.isBlank(newScriptVo.getName())) {
@@ -166,8 +220,43 @@ public class AutoexecScriptImportPublicApi extends PrivateJsonStreamApiComponent
                 } else {
                     faultMessages.add("以下依赖工具不存在：" + newScriptVo.getUseLibName());
                 }
+
             }
-            if (faultMessages.isEmpty()) {
+            if (MapUtils.isNotEmpty(scriptFileNameMap) && StringUtils.equals(newScriptVo.getParser(), ScriptParser.PACKAGE.getValue()) && newScriptVo.getPackageFileName() != null) {
+                FileVo packageFile = new FileVo();
+                //检验脚本信息
+                if (scriptFileNameMap.containsKey(newScriptVo.getPackageFileName() )) {
+                    MultipartFile multipartFile = scriptFileNameMap.get(newScriptVo.getPackageFileName() );
+                    FileVo fileVo = new FileVo();
+                    fileVo.setSize(multipartFile.getSize());
+                    fileVo.setName (multipartFile.getName());
+                    fileVo.setUserUuid(SystemUser.SYSTEM.getUserUuid());
+                    fileVo.setType("autoexec");
+                    fileVo.setContentType("application/x-tar");
+                    newScriptVo.setPackageFileId(fileVo.getId());
+                    String filePath;
+                    try {
+                        filePath = FileUtil.saveData(MinioFileSystemHandler.NAME, tenantUuid, multipartFile.getInputStream(), fileVo.getId().toString(), fileVo.getContentType(), fileVo.getType());
+                    } catch (Exception ex) {
+                        //如果没有配置minioUrl，则表示不使用minio，无需抛异常
+                        if (StringUtils.isNotBlank(Config.MINIO_URL())) {
+                            logger.error(ex.getMessage(), ex);
+                        }
+                        // 如果minio出现异常，则上传到本地
+//                              filePath = FileUtil.saveData(LocalFileSystemHandler.NAME, tenantUuid, new ByteArrayInputStream(out.toByteArray()), fileVo.getId().toString(), fileVo.getContentType(), fileVo.getType());
+                        filePath = FileUtil.saveData(LocalFileSystemHandler.NAME, tenantUuid, multipartFile.getInputStream(), fileVo.getId().toString(), fileVo.getContentType(), fileVo.getType());
+                    }
+                    fileVo.setPath(filePath);
+                    fileMapper.insertFile(fileVo);
+                } else {
+                    //错误信息
+                    faultMessages.add("以下依赖脚本包（tar）未上传：" + packageFile.getName());
+                }
+
+            }
+            //2w3fdfspofmsopfksdpofksdpokfs
+//            faultMessages.add("1111111111");
+            if (CollectionUtils.isEmpty(faultMessages)) {
                 newScriptVo.setTypeId(autoexecTypeMapper.getTypeIdByName(newScriptVo.getTypeName()));
                 newScriptVo.setRiskId(autoexecRiskMapper.getRiskIdByName(newScriptVo.getRiskName()));
                 newScriptVo.setCatalogId(catalogId);
@@ -262,8 +351,6 @@ public class AutoexecScriptImportPublicApi extends PrivateJsonStreamApiComponent
             }
             i++;
         }
-        jsonReader.endArray();
-        jsonReader.close();
         return result;
     }
 
@@ -336,6 +423,7 @@ public class AutoexecScriptImportPublicApi extends PrivateJsonStreamApiComponent
         versionVo.setLcu(UserContext.get().getUserUuid());
         versionVo.setStatus(ScriptVersionStatus.PASSED.getValue());
         versionVo.setVersion(version);
+        versionVo.setPackageFileId(scriptVo.getPackageFileId());
         versionVo.setReviewer(UserContext.get().getUserUuid());
         AutoexecScriptArgumentVo argument = scriptVo.getVersionArgument();
         if (argument != null) {
@@ -355,4 +443,25 @@ public class AutoexecScriptImportPublicApi extends PrivateJsonStreamApiComponent
         needDataSourceTypeList.add(ParamType.RADIO.getValue());
         needDataSourceTypeList.add(ParamType.CHECKBOX.getValue());
     }
+
+    private String MultipartFileToString(MultipartFile multipartFile) {
+        InputStreamReader isr;
+        BufferedReader br;
+        StringBuilder txtResult = new StringBuilder();
+        try {
+            isr = new InputStreamReader(multipartFile.getInputStream(), StandardCharsets.UTF_8);
+            br = new BufferedReader(isr);
+            String lineTxt;
+            while ((lineTxt = br.readLine()) != null) {
+                txtResult.append(lineTxt);
+            }
+            isr.close();
+            br.close();
+            return txtResult.toString();
+        } catch (IOException e) {
+            e.printStackTrace();
+            return "";
+        }
+    }
+
 }

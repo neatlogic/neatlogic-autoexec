@@ -24,6 +24,7 @@ import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.auth.core.AuthActionChecker;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
+import neatlogic.framework.autoexec.constvalue.ScriptParser;
 import neatlogic.framework.autoexec.constvalue.ScriptVersionStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptArgumentVo;
@@ -35,6 +36,7 @@ import neatlogic.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecScriptVersionCannotEditException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.dto.FieldValidResultVo;
+import neatlogic.framework.exception.type.ParamNotExistsException;
 import neatlogic.framework.fulltextindex.core.FullTextIndexHandlerFactory;
 import neatlogic.framework.fulltextindex.core.IFullTextIndexHandler;
 import neatlogic.framework.restful.annotation.*;
@@ -46,6 +48,7 @@ import neatlogic.module.autoexec.fulltextindex.AutoexecFullTextIndexType;
 import neatlogic.module.autoexec.service.AutoexecScriptService;
 import neatlogic.module.autoexec.service.AutoexecService;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -99,7 +102,8 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             @Param(name = "paramList", type = ApiParamType.JSONARRAY, desc = "参数列表"),
             @Param(name = "argument", type = ApiParamType.JSONOBJECT, desc = "自由参数"),
             @Param(name = "encoding", type = ApiParamType.ENUM, rule = "UTF-8,GBK", desc = "脚本编码"),
-            @Param(name = "parser", type = ApiParamType.ENUM, rule = "python,ruby,vbscript,perl,powershell,cmd,bash,ksh,csh,sh,javascript", desc = "脚本解析器"),
+            @Param(name = "parser", type = ApiParamType.ENUM, rule = "python,ruby,vbscript,perl,powershell,cmd,bash,ksh,csh,sh,javascript,package", desc = "脚本解析器"),
+            @Param(name = "packageFileId", type = ApiParamType.LONG, desc = "包文件id"),
             @Param(name = "lineList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "脚本内容行数据列表,e.g:[{\"content\":\"#!/usr/bin/env bash\"},{\"content\":\"show_ascii_berry()\"}]"),
     })
     @Output({
@@ -113,6 +117,9 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
 
         JSONObject result = new JSONObject();
         AutoexecScriptVo scriptVo = JSON.toJavaObject(jsonObj, AutoexecScriptVo.class);
+        if (StringUtils.equals(scriptVo.getParser(), ScriptParser.PACKAGE.getValue()) && !jsonObj.containsKey("packageFileId")) {
+            throw new ParamNotExistsException("packageFileId");
+        }
         boolean needSave = true;
 
         /**
@@ -123,6 +130,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
         AutoexecScriptVersionVo versionVo = new AutoexecScriptVersionVo();
         versionVo.setTitle(jsonObj.getString("title"));
         versionVo.setParser(scriptVo.getParser());
+        versionVo.setPackageFileId(scriptVo.getPackageFileId());
         versionVo.setLcu(UserContext.get().getUserUuid());
         versionVo.setStatus(ScriptVersionStatus.DRAFT.getValue());
         JSONArray useLibArray = jsonObj.getJSONArray("useLib");
@@ -154,7 +162,9 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
                 AutoexecScriptVersionVo newVersion = new AutoexecScriptVersionVo();
                 newVersion.setParser(scriptVo.getParser());
                 newVersion.setParamList(scriptVo.getVersionParamList());
-                newVersion.setLineList(scriptVo.getLineList());
+                if (!StringUtils.equals(scriptVo.getParser(), ScriptParser.PACKAGE.getValue())) {
+                    newVersion.setLineList(scriptVo.getLineList());
+                }
                 newVersion.setArgument(scriptVo.getVersionArgument());
                 needSave = autoexecScriptService.checkScriptVersionNeedToUpdate(currentVersion, newVersion);
                 if (needSave) {
@@ -190,7 +200,9 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
                 autoexecScriptMapper.insertScriptVersionArgument(argument);
             }
             // 保存脚本内容
-            autoexecScriptService.saveLineList(scriptVo.getId(), scriptVo.getVersionId(), scriptVo.getLineList());
+            if (!StringUtils.equals(scriptVo.getParser(), ScriptParser.PACKAGE.getValue())) {
+                autoexecScriptService.saveLineList(scriptVo.getId(), scriptVo.getVersionId(), scriptVo.getLineList());
+            }
             // 创建全文索引
             IFullTextIndexHandler fullTextIndexHandler = FullTextIndexHandlerFactory.getHandler(AutoexecFullTextIndexType.SCRIPT_DOCUMENT_VERSION);
             if (fullTextIndexHandler != null) {

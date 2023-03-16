@@ -17,8 +17,10 @@ limitations under the License.
 package neatlogic.module.autoexec.api.script;
 
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
@@ -37,20 +39,31 @@ import neatlogic.framework.autoexec.dto.script.AutoexecScriptAuditVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
 import neatlogic.framework.autoexec.exception.AutoexecScriptNotFoundException;
+import neatlogic.framework.common.config.Config;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.common.constvalue.SystemUser;
+import neatlogic.framework.common.util.FileUtil;
 import neatlogic.framework.exception.core.ApiRuntimeException;
 import neatlogic.framework.exception.file.FileExtNotAllowedException;
 import neatlogic.framework.exception.file.FileNotUploadException;
 import neatlogic.framework.exception.type.ParamNotExistsException;
+import neatlogic.framework.exception.user.NoTenantException;
+import neatlogic.framework.file.dao.mapper.FileMapper;
+import neatlogic.framework.file.dto.FileVo;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
 import neatlogic.module.autoexec.dao.mapper.AutoexecProfileMapper;
 import neatlogic.module.autoexec.service.AutoexecScriptService;
 import neatlogic.module.autoexec.service.AutoexecService;
+import neatlogic.module.framework.file.handler.LocalFileSystemHandler;
+import neatlogic.module.framework.file.handler.MinioFileSystemHandler;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -59,8 +72,7 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -73,6 +85,8 @@ import java.util.zip.ZipInputStream;
 @AuthAction(action = AUTOEXEC_SCRIPT_MODIFY.class)
 @OperationType(type = OperationTypeEnum.OPERATE)
 public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase {
+
+    Logger logger = LoggerFactory.getLogger(AutoexecScriptImportApi.class);
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
@@ -95,9 +109,12 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
     @Resource
     private AutoexecService autoexecService;
 
+    @Autowired
+    private FileMapper fileMapper;
+
     @Override
     public String getToken() {
-        return "autoexec/script/import";
+        return "autoexec/script/import2";
     }
 
     @Override
@@ -143,6 +160,11 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
             throw new FileNotUploadException();
         }
         Map<Long, List<Long>> scriptVersionUseLibMap = new HashMap<>();
+        Map<Integer, FileVo> scriptVersionFileVoMap = new HashMap<>();
+        Map<Integer, File> scriptVersionFileMap = new HashMap<>();
+//        Map<Integer, ByteArrayOutputStream> scriptVersionFileByteArrayOutputStreamMap = new HashMap<>();
+        Integer fileVoFlag = 1;
+        Integer fileFlag = 1;
         JSONArray failReasonList = new JSONArray();
         byte[] buf = new byte[1024];
         int successCount = 0;
@@ -156,8 +178,37 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                     while ((len = zis.read(buf)) != -1) {
                         out.write(buf, 0, len);
                     }
-                    AutoexecScriptVo scriptVo = JSONObject.parseObject(new String(out.toByteArray(), StandardCharsets.UTF_8), new TypeReference<AutoexecScriptVo>() {
-                    });
+                    AutoexecScriptVo scriptVo;
+                    try {
+                        scriptVo = JSONObject.parseObject(new String(out.toByteArray(), StandardCharsets.UTF_8), new TypeReference<AutoexecScriptVo>() {
+                        });
+                        System.out.println(scriptVo.getName());
+                        if (StringUtils.equals(scriptVo.getParser(), ScriptParser.PACKAGE.getValue()) && scriptVo.getPackageFile() != null) {
+                            FileVo packageFile = scriptVo.getPackageFile();
+                            packageFile.setId(null);
+                            scriptVersionFileVoMap.put(fileVoFlag, packageFile);
+                            fileVoFlag++;
+                        }
+                    } catch (JSONException e) {
+
+//                        InputStream inputStream = new ByteArrayInputStream(out.toByteArray());
+//                        MultipartFile
+//                        inputStream
+
+
+//                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                        // 将数据写入 ByteArrayOutputStream 中
+//                        scriptVersionFileByteArrayOutputStreamMap.put(fileFlag, out);
+                        File file = new File("file");
+//                        file.getName();
+                        FileOutputStream fos = new FileOutputStream(file);
+                        fos.write(out.toByteArray());
+                        fos.close();
+                        scriptVersionFileMap.put(fileFlag, file);
+                        fileFlag++;
+                        continue;
+                    }
+
                     if (CollectionUtils.isNotEmpty(scriptIdList) && !scriptIdList.contains(scriptVo.getId())) {
                         continue;
                     }
@@ -201,6 +252,43 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                         autoexecScriptMapper.insertScriptVersionUseLib(entry.getKey(), useLib);
                     }
                 }
+            }
+        }
+
+        System.out.println("scriptVersionFileMap:   " + scriptVersionFileMap.size());
+        System.out.println("scriptVersionFileVoMap:   " + scriptVersionFileVoMap.size());
+        if (MapUtils.isNotEmpty(scriptVersionFileMap) && MapUtils.isNotEmpty(scriptVersionFileVoMap)) {
+            String tenantUuid = TenantContext.get().getTenantUuid();
+            if (StringUtils.isBlank(tenantUuid)) {
+                throw new NoTenantException();
+            }
+            for (int flag = 1; flag <= scriptVersionFileVoMap.size(); flag++) {
+                File file = scriptVersionFileMap.get(flag);
+                FileVo fileVo = scriptVersionFileVoMap.get(flag);
+                File reNameFile = new File(fileVo.getName());
+                file.renameTo(reNameFile);
+//                ByteArrayOutputStream byteArrayOutputStream = scriptVersionFileByteArrayOutputStreamMap.get(1);
+
+                String filePath;
+//                FileVo fileVo = new FileVo();
+//                        fileVo.setName(policyVo.getId() + ".json");
+                fileVo.setSize(reNameFile.length());
+                fileVo.setUserUuid(SystemUser.SYSTEM.getUserUuid());
+                fileVo.setType("autoexec");
+                fileVo.setContentType("application/x-tar");
+                try {
+                    filePath = FileUtil.saveData(MinioFileSystemHandler.NAME, tenantUuid,new FileInputStream(reNameFile), fileVo.getId().toString(), fileVo.getContentType(), fileVo.getType());
+                } catch (Exception ex) {
+                    //如果没有配置minioUrl，则表示不使用minio，无需抛异常
+                    if (StringUtils.isNotBlank(Config.MINIO_URL())) {
+                        logger.error(ex.getMessage(), ex);
+                    }
+                    // 如果minio出现异常，则上传到本地
+//                    filePath = FileUtil.saveData(LocalFileSystemHandler.NAME, tenantUuid, new ByteArrayInputStream(out.toByteArray()), fileVo.getId().toString(), fileVo.getContentType(), fileVo.getType());
+                    filePath = FileUtil.saveData(LocalFileSystemHandler.NAME, tenantUuid, new FileInputStream(reNameFile), fileVo.getId().toString(), fileVo.getContentType(), fileVo.getType());
+                }
+                fileVo.setPath(filePath);
+                fileMapper.insertFile(fileVo);
             }
         }
 
@@ -312,6 +400,16 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
             } else if (ScriptParser.getScriptParser(scriptVo.getParser()) == null) {
                 failReasonList.add("不存在的脚本解析器[" + scriptVo.getParser() + "]");
             }
+            if (StringUtils.equals(scriptVo.getParser(), ScriptParser.PACKAGE.getValue())) {
+                FileVo fileVo = scriptVo.getPackageFile();
+                if (fileVo == null) {
+                    failReasonList.add("脚本依赖包缺失");
+                } else {
+                    if (StringUtils.isNotEmpty(fileVo.getName()) && !fileVo.getName().endsWith(".tar")) {
+                        failReasonList.add("脚本依赖包必须是tar文件");
+                    }
+                }
+            }
             AutoexecScriptVersionVo versionVo = new AutoexecScriptVersionVo(id, ScriptVersionStatus.SUBMITTED.getValue());
             versionVo.setIsActive(0);
             versionVo.setParser(scriptVo.getParser());
@@ -324,6 +422,9 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
             }
             if (CollectionUtils.isNotEmpty(scriptVo.getLineList())) {
                 autoexecScriptService.saveLineList(scriptVo.getId(), versionVo.getId(), scriptVo.getLineList());
+            }
+            if (StringUtils.equals(scriptVo.getParser(), ScriptParser.PACKAGE.getValue()) && scriptVo.getPackageFile() != null) {
+                versionVo.setPackageFileId(scriptVo.getPackageFile().getId());
             }
 
             autoexecScriptMapper.insertScriptVersion(versionVo);

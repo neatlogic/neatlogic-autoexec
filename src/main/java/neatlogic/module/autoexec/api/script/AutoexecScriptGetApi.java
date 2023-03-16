@@ -18,10 +18,7 @@ package neatlogic.module.autoexec.api.script;
 
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
-import neatlogic.framework.autoexec.constvalue.AutoexecFromType;
-import neatlogic.framework.autoexec.constvalue.CombopOperationType;
-import neatlogic.framework.autoexec.constvalue.ScriptAction;
-import neatlogic.framework.autoexec.constvalue.ScriptVersionStatus;
+import neatlogic.framework.autoexec.constvalue.*;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
@@ -35,6 +32,7 @@ import neatlogic.framework.dao.mapper.UserMapper;
 import neatlogic.framework.dependency.core.DependencyManager;
 import neatlogic.framework.dependency.dto.DependencyInfoVo;
 import neatlogic.framework.exception.type.ParamNotExistsException;
+import neatlogic.framework.file.dao.mapper.FileMapper;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -72,6 +70,9 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
 
     @Resource
     private UserMapper userMapper;
+
+    @Resource
+    private FileMapper fileMapper;
 
     @Override
     public String getToken() {
@@ -169,7 +170,11 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         List<AutoexecScriptVersionParamVo> paramList = autoexecScriptMapper.getParamListByVersionId(version.getId());
         version.setParamList(paramList);
         version.setArgument(autoexecScriptMapper.getArgumentByVersionId(version.getId()));
-        version.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
+        if (!StringUtils.equals(version.getParser(), ScriptParser.PACKAGE.getValue())) {
+            version.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
+        } else if (version.getPackageFileId() != null) {
+            version.setPackageFile(fileMapper.getFileById(version.getPackageFileId()));
+        }
         List<Long> combopIdList = new ArrayList<>();
         List<DependencyInfoVo> dependencyInfoList = DependencyManager.getDependencyList(AutoexecScript2CombopPhaseOperationDependencyHandler.class, id);
         for (DependencyInfoVo dependencyInfoVo : dependencyInfoList) {

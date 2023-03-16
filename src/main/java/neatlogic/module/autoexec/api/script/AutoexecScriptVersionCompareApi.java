@@ -16,14 +16,14 @@ limitations under the License.
 
 package neatlogic.module.autoexec.api.script;
 
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
-import neatlogic.framework.autoexec.dto.AutoexecParamConfigVo;
-import neatlogic.framework.lcs.BaseLineVo;
-import neatlogic.framework.lcs.constvalue.ChangeType;
+import neatlogic.framework.autoexec.constvalue.ScriptParser;
 import neatlogic.framework.autoexec.constvalue.ScriptVersionStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecScriptMapper;
+import neatlogic.framework.autoexec.dto.AutoexecParamConfigVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptArgumentVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
@@ -34,8 +34,11 @@ import neatlogic.framework.dao.mapper.UserMapper;
 import neatlogic.framework.dto.RoleVo;
 import neatlogic.framework.dto.UserVo;
 import neatlogic.framework.dto.WorkAssignmentUnitVo;
+import neatlogic.framework.file.dao.mapper.FileMapper;
+import neatlogic.framework.lcs.BaseLineVo;
 import neatlogic.framework.lcs.LCSUtil;
 import neatlogic.framework.lcs.SegmentPair;
+import neatlogic.framework.lcs.constvalue.ChangeType;
 import neatlogic.framework.lcs.constvalue.LineHandler;
 import neatlogic.framework.matrix.dao.mapper.MatrixAttributeMapper;
 import neatlogic.framework.matrix.dao.mapper.MatrixMapper;
@@ -45,7 +48,6 @@ import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.module.autoexec.service.AutoexecScriptService;
-import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -79,6 +81,9 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
 
     @Resource
     private RoleMapper roleMapper;
+
+    @Resource
+    private FileMapper fileMapper;
 
     @Override
     public String getToken() {
@@ -122,6 +127,12 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
         Long targetVersionId = jsonObj.getLong("targetVersionId");
         Integer needToCompare = jsonObj.getInteger("needToCompare");
         AutoexecScriptVersionVo sourceVersion = autoexecScriptService.getScriptVersionDetailByVersionId(sourceVersionId);
+//        if (StringUtils.equals(sourceVersion.getParser(), ScriptParser.PACKAGE.getValue()) && sourceVersion.getPackageFileId() != null) {
+//            FileVo fileVo = fileMapper.getFileById(sourceVersion.getPackageFileId());
+//            if (fileVo != null) {
+//                sourceVersion.setPackageFile(fileVo);
+//            }
+//        }
         AutoexecScriptVersionVo targetVersion = null;
         if (targetVersionId != null) {
             targetVersion = autoexecScriptService.getScriptVersionDetailByVersionId(targetVersionId);
@@ -151,6 +162,12 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
         }
         result.put("sourceVersion", sourceVersion);
         if (targetVersion != null) {
+//            if (StringUtils.equals(targetVersion.getParser(), ScriptParser.PACKAGE.getValue()) && targetVersion.getPackageFileId() != null) {
+//                FileVo fileVo = fileMapper.getFileById(targetVersion.getPackageFileId());
+//                if (fileVo != null) {
+//                    targetVersion.setPackageFile(fileVo);
+//                }
+//            }
             result.put("targetVersion", targetVersion);
             if (!Objects.equals(sourceVersionId, targetVersionId)) {
                 compareScriptVersion(targetVersion, sourceVersion);
@@ -178,11 +195,11 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
         compareParamList(targetInputParamList, sourceInputParamList);
         compareParamList(targetOutputParamList, sourceOutputParamList);
         compareArgument(source.getArgument(), target.getArgument());
+        compareLineList(source, target);
         if (!Objects.equals(source.getParser(), target.getParser())) {
             source.setParser("<span class='update'>" + source.getParser() + "</span>");
             target.setParser("<span class='update'>" + target.getParser() + "</span>");
         }
-        compareLineList(source, target);
     }
 
     /**
@@ -271,9 +288,15 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
         List<AutoexecScriptLineVo> targetLineList = target.getLineList();
         List<BaseLineVo> sourceResultList = new ArrayList<>();
         List<BaseLineVo> targetResultList = new ArrayList<>();
+        List<BaseLineVo> sourceBaseLineList = new ArrayList<>();
+        List<BaseLineVo> targetBaseLineList = new ArrayList<>();
+        if (!StringUtils.equals(source.getParser(), ScriptParser.PACKAGE.getValue())) {
+            sourceBaseLineList = autoexecScriptLineVoListConvertBaseLineVoList(sourceLineList);
+        }
+        if (!StringUtils.equals(source.getParser(), ScriptParser.PACKAGE.getValue())) {
+            targetBaseLineList = autoexecScriptLineVoListConvertBaseLineVoList(targetLineList);
+        }
 
-        List<BaseLineVo> sourceBaseLineList = autoexecScriptLineVoListConvertBaseLineVoList(sourceLineList);
-        List<BaseLineVo> targetBaseLineList = autoexecScriptLineVoListConvertBaseLineVoList(targetLineList);
         List<SegmentPair> segmentPairList = LCSUtil.LCSCompare(sourceBaseLineList, targetBaseLineList);
         for (SegmentPair segmentPair : segmentPairList) {
             LCSUtil.regroupLineList(

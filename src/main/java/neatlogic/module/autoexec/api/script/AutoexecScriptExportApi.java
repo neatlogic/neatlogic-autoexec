@@ -17,30 +17,45 @@ limitations under the License.
 package neatlogic.module.autoexec.api.script;
 
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
+import neatlogic.framework.autoexec.constvalue.ScriptParser;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
-import neatlogic.framework.autoexec.dto.script.*;
+import neatlogic.framework.autoexec.dto.script.AutoexecScriptArgumentVo;
+import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
+import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
 import neatlogic.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.exception.file.FileAccessDeniedException;
+import neatlogic.framework.exception.file.FileNotFoundException;
+import neatlogic.framework.exception.file.FileTypeHandlerNotFoundException;
+import neatlogic.framework.file.core.FileOperationType;
+import neatlogic.framework.file.core.FileTypeHandlerFactory;
+import neatlogic.framework.file.core.IFileTypeHandler;
+import neatlogic.framework.file.dao.mapper.FileMapper;
+import neatlogic.framework.file.dto.FileVo;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
 import neatlogic.framework.util.FileUtil;
 import neatlogic.module.autoexec.service.AutoexecScriptService;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -55,6 +70,9 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
 
     @Resource
     private AutoexecScriptService autoexecScriptService;
+
+    @Autowired
+    private FileMapper fileMapper;
 
     @Override
     public String getToken() {
@@ -95,6 +113,7 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
         List<AutoexecScriptVersionVo> versionVoIncludeArgumentList = autoexecScriptMapper.getActiveVersionIncludeArgumentByScriptIdList(existedIdList);
         List<AutoexecScriptVo> scriptVoIncludeParamList = autoexecScriptMapper.getScriptListIncludeActiveVersionParamByScriptIdList(existedIdList);
         List<AutoexecScriptVersionVo> versionVoIncludeUseLibNameList = autoexecScriptMapper.getActiveVersionIncludeUseLibAndNameByScriptIdList(existedIdList);
+        List<AutoexecScriptVersionVo> versionVoIncludeFileList = autoexecScriptMapper.getActiveVersionIncludeFileByScriptIdList(existedIdList);
 
         if (CollectionUtils.isNotEmpty(versionVoIncludeLineList)) {
             lineMap = versionVoIncludeLineList.stream().collect(Collectors.toMap(AutoexecScriptVersionVo::getScriptId, e -> e));
@@ -117,14 +136,47 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
                 if (version == null) {
                     continue;
                 }
+                //脚本基本信息
                 scriptVo.setParser(version.getParser());
                 scriptVo.setArgument(argumentMap.get(scriptVo.getId()));
                 scriptVo.setParamList(paramMap.get(scriptVo.getId()));
                 scriptVo.setLineList(version.getLineList());
                 scriptVo.setUseLib(useLibMap.get(scriptVo.getId()));
-                zos.putNextEntry(new ZipEntry(scriptVo.getName() + ".json"));
-                zos.write(JSONObject.toJSONBytes(scriptVo));
-                zos.closeEntry();
+                scriptVo.setPackageFileId(version.getPackageFileId());
+
+                //脚本附带tar文件
+                if (StringUtils.equals(scriptVo.getParser(), ScriptParser.PACKAGE.getValue()) && scriptVo.getPackageFileId() != null) {
+                    //---------------------改为批量查
+                    FileVo fileVo = fileMapper.getFileById(scriptVo.getPackageFileId());
+                    if (fileVo != null) {
+                        scriptVo.setPackageFile(fileVo);
+                        zos.putNextEntry(new ZipEntry(scriptVo.getName() + ".json"));
+                        zos.write(JSONObject.toJSONBytes(scriptVo));
+                        String userUuid = UserContext.get().getUserUuid();
+                        IFileTypeHandler fileTypeHandler = FileTypeHandlerFactory.getHandler(fileVo.getType());
+                        if (fileTypeHandler != null) {
+                            if (StringUtils.equals(userUuid, fileVo.getUserUuid()) || fileTypeHandler.valid(userUuid, fileVo, paramObj)) {
+                                InputStream inputStream = neatlogic.framework.common.util.FileUtil.getData(fileVo.getPath());
+                                if (inputStream != null) {
+                                    File inputFile = new File(fileVo.getName());
+                                    FileUtils.copyInputStreamToFile(inputStream, inputFile);
+                                    zip(zos, inputFile, fileVo.getName());
+                                    zos.closeEntry();
+                                    inputStream.close();
+                                }
+                            } else {
+                                throw new FileAccessDeniedException(fileVo.getName(), FileOperationType.DOWNLOAD.getText());
+                            }
+                        } else {
+                            throw new FileTypeHandlerNotFoundException(fileVo.getType());
+                        }
+                    } else {
+                        throw new FileNotFoundException(scriptVo.getPackageFileId());
+                    }
+                } else {
+                    zos.putNextEntry(new ZipEntry(scriptVo.getName() + ".json"));
+                    zos.write(JSONObject.toJSONBytes(scriptVo));
+                }
             }
         }
 
@@ -145,6 +197,36 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
 //            }
 //        }
         return null;
+    }
+
+
+    /***
+     * 重载zip()方法
+     * @param zipOutputStream   zip的输出流
+     * @param inputFile      需要压缩的文件
+     * @param base          文件名
+     * @throws IOException
+     */
+    private void zip(ZipOutputStream zipOutputStream, File inputFile, String base) throws Exception {
+
+        if (inputFile.isDirectory()) {
+            File[] files = inputFile.listFiles();
+            if (base.length() != 0) {
+                zipOutputStream.putNextEntry(new ZipEntry(base + "/"));
+            }
+            for (int i = 0; i < Objects.requireNonNull(files).length; i++) {
+                zip(zipOutputStream, files[i], base + files[i]);
+            }
+        } else {
+            zipOutputStream.putNextEntry(new ZipEntry(base));
+            FileInputStream fileInputStream = new FileInputStream(inputFile);
+            int b;
+//            System.out.println(base);
+            while ((b = fileInputStream.read()) != -1) {
+                zipOutputStream.write(b);
+            }
+            fileInputStream.close();
+        }
     }
 
 
