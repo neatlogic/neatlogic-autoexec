@@ -218,7 +218,7 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                 }
                 JSONObject firstRow = new JSONObject();
                 firstRow.put("totalCount", count);
-                firstRow.put("localRunnerId", localRunnerId);
+                firstRow.put("localRunnerId", jobVo.getRunnerMapId());
                 firstRow.put("jobRunnerIds", runnerMapIdList);
                 IOUtils.copyLarge(IOUtils.toInputStream(firstRow.toJSONString() + System.lineSeparator(), StandardCharsets.UTF_8), os);
                 if (os != null) {
