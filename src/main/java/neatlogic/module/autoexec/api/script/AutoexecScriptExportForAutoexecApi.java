@@ -231,34 +231,30 @@ public class AutoexecScriptExportForAutoexecApi extends PrivateBinaryStreamApiCo
         return null;
     }
 
-
     /***
-     * 重载zip()方法
+     * zip()压缩方法
      * @param zipOutputStream   zip的输出流
      * @param inputFile      需要压缩的文件
-     * @param base          文件名
+     * @param fileName          文件名
      * @throws IOException
      */
-    private void zip(ZipOutputStream zipOutputStream, File inputFile, String base) throws Exception {
-
+    private void zip(ZipOutputStream zipOutputStream, File inputFile, String fileName) throws Exception {
         if (inputFile.isDirectory()) {
             File[] files = inputFile.listFiles();
-            if (base.length() != 0) {
-                zipOutputStream.putNextEntry(new ZipEntry(base + "/"));
+            if (fileName.length() != 0) {
+                zipOutputStream.putNextEntry(new ZipEntry(fileName + "/"));
             }
             for (int i = 0; i < Objects.requireNonNull(files).length; i++) {
-                zip(zipOutputStream, files[i], base + files[i]);
+                zip(zipOutputStream, files[i], fileName + files[i]);
             }
         } else {
-            zipOutputStream.putNextEntry(new ZipEntry(base));
+            zipOutputStream.putNextEntry(new ZipEntry(fileName));
             FileInputStream fileInputStream = new FileInputStream(inputFile);
             int b;
-//            System.out.println(base);
             while ((b = fileInputStream.read()) != -1) {
                 zipOutputStream.write(b);
             }
             fileInputStream.close();
         }
     }
-
 }

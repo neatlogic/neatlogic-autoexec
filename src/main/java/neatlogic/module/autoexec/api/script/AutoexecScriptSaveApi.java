@@ -92,7 +92,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
             @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, maxLength = 50, isRequired = true, xss = true, desc = "名称"),
             @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sqlfile,native,null", desc = "执行方式"),
             @Param(name = "typeId", type = ApiParamType.LONG, desc = "脚本分类ID", isRequired = true),
-            @Param(name = "catalogId", type = ApiParamType.LONG, desc = "工具目录ID", isRequired = true),
+            @Param(name = "catalogId", type = ApiParamType.LONG, desc = "z工具目录ID", isRequired = true),
             @Param(name = "riskId", type = ApiParamType.LONG, desc = "操作级别ID"),
             @Param(name = "isLib", type = ApiParamType.INTEGER, desc = "是否库文件（1：是，0：否，默认否）", isRequired = true),
             @Param(name = "userLib", type = ApiParamType.JSONARRAY, desc = "依赖工具"),

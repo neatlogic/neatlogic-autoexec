@@ -109,6 +109,7 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
         Map<Long, AutoexecScriptArgumentVo> argumentMap = new HashMap<>();
         Map<Long, List<AutoexecParamVo>> paramMap = new HashMap<>();
         Map<Long, List<Long>> useLibMap = new HashMap<>();
+        Map<Long, FileVo> fileVoMap = new HashMap<>();
         List<AutoexecScriptVersionVo> versionVoIncludeLineList = autoexecScriptMapper.getActiveVersionListIncludeLineByScriptIdList(existedIdList);
         List<AutoexecScriptVersionVo> versionVoIncludeArgumentList = autoexecScriptMapper.getActiveVersionIncludeArgumentByScriptIdList(existedIdList);
         List<AutoexecScriptVo> scriptVoIncludeParamList = autoexecScriptMapper.getScriptListIncludeActiveVersionParamByScriptIdList(existedIdList);
@@ -126,6 +127,9 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
         }
         if (CollectionUtils.isNotEmpty(versionVoIncludeUseLibNameList)) {
             useLibMap = versionVoIncludeUseLibNameList.stream().collect(Collectors.toMap(AutoexecScriptVersionVo::getScriptId, AutoexecScriptVersionVo::getUseLib));
+        }
+        if (CollectionUtils.isNotEmpty(versionVoIncludeFileList)) {
+            fileVoMap = versionVoIncludeFileList.stream().collect(Collectors.toMap(AutoexecScriptVersionVo::getScriptId, AutoexecScriptVersionVo::getPackageFile));
         }
         String fileName = FileUtil.getEncodedFileName("自定义工具." + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak");
         response.setContentType("application/zip");
@@ -146,8 +150,7 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
 
                 //脚本附带tar文件
                 if (StringUtils.equals(scriptVo.getParser(), ScriptParser.PACKAGE.getValue()) && scriptVo.getPackageFileId() != null) {
-                    //---------------------改为批量查
-                    FileVo fileVo = fileMapper.getFileById(scriptVo.getPackageFileId());
+                    FileVo fileVo = fileVoMap.get(scriptVo.getId());
                     if (fileVo != null) {
                         scriptVo.setPackageFile(fileVo);
                         zos.putNextEntry(new ZipEntry(scriptVo.getName() + ".json"));
@@ -179,55 +182,33 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
                 }
             }
         }
-
-//            for (Long id : existedIdList) {
-//                AutoexecScriptVo script = autoexecScriptMapper.getScriptBaseInfoById(id);
-////                List<AutoexecScriptVersionVo> versionList = autoexecScriptService
-////                        .getScriptVersionDetailListByScriptId(new AutoexecScriptVersionVo(id, ScriptVersionStatus.PASSED.getValue()));
-////                script.setVersionList(versionList);
-//                AutoexecScriptVersionVo version = autoexecScriptMapper.getActiveVersionWithUseLibsByScriptId(id);
-//                script.setParser(version.getParser());
-//                script.setArgument(autoexecScriptMapper.getArgumentByVersionId(version.getId()));
-//                script.setParamList(autoexecScriptMapper.getAutoexecParamVoListByVersionId(version.getId()));
-//                script.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
-//                script.setUseLib(version.getUseLib());
-//                zos.putNextEntry(new ZipEntry(script.getName() + ".json"));
-//                zos.write(JSONObject.toJSONBytes(script));
-//                zos.closeEntry();
-//            }
-//        }
         return null;
     }
 
-
     /***
-     * 重载zip()方法
+     * zip()压缩方法
      * @param zipOutputStream   zip的输出流
      * @param inputFile      需要压缩的文件
-     * @param base          文件名
+     * @param fileName          文件名
      * @throws IOException
      */
-    private void zip(ZipOutputStream zipOutputStream, File inputFile, String base) throws Exception {
-
+    private void zip(ZipOutputStream zipOutputStream, File inputFile, String fileName) throws Exception {
         if (inputFile.isDirectory()) {
             File[] files = inputFile.listFiles();
-            if (base.length() != 0) {
-                zipOutputStream.putNextEntry(new ZipEntry(base + "/"));
+            if (fileName.length() != 0) {
+                zipOutputStream.putNextEntry(new ZipEntry(fileName + "/"));
             }
             for (int i = 0; i < Objects.requireNonNull(files).length; i++) {
-                zip(zipOutputStream, files[i], base + files[i]);
+                zip(zipOutputStream, files[i], fileName + files[i]);
             }
         } else {
-            zipOutputStream.putNextEntry(new ZipEntry(base));
+            zipOutputStream.putNextEntry(new ZipEntry(fileName));
             FileInputStream fileInputStream = new FileInputStream(inputFile);
             int b;
-//            System.out.println(base);
             while ((b = fileInputStream.read()) != -1) {
                 zipOutputStream.write(b);
             }
             fileInputStream.close();
         }
     }
-
-
 }

@@ -162,7 +162,6 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
         Map<Long, List<Long>> scriptVersionUseLibMap = new HashMap<>();
         Map<Integer, FileVo> scriptVersionFileVoMap = new HashMap<>();
         Map<Integer, File> scriptVersionFileMap = new HashMap<>();
-//        Map<Integer, ByteArrayOutputStream> scriptVersionFileByteArrayOutputStreamMap = new HashMap<>();
         Integer fileVoFlag = 1;
         Integer fileFlag = 1;
         JSONArray failReasonList = new JSONArray();
@@ -182,7 +181,6 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                     try {
                         scriptVo = JSONObject.parseObject(new String(out.toByteArray(), StandardCharsets.UTF_8), new TypeReference<AutoexecScriptVo>() {
                         });
-                        System.out.println(scriptVo.getName());
                         if (StringUtils.equals(scriptVo.getParser(), ScriptParser.PACKAGE.getValue()) && scriptVo.getPackageFile() != null) {
                             FileVo packageFile = scriptVo.getPackageFile();
                             packageFile.setId(null);
@@ -190,17 +188,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                             fileVoFlag++;
                         }
                     } catch (JSONException e) {
-
-//                        InputStream inputStream = new ByteArrayInputStream(out.toByteArray());
-//                        MultipartFile
-//                        inputStream
-
-
-//                        ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                        // 将数据写入 ByteArrayOutputStream 中
-//                        scriptVersionFileByteArrayOutputStreamMap.put(fileFlag, out);
                         File file = new File("file");
-//                        file.getName();
                         FileOutputStream fos = new FileOutputStream(file);
                         fos.write(out.toByteArray());
                         fos.close();
@@ -267,24 +255,19 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                 FileVo fileVo = scriptVersionFileVoMap.get(flag);
                 File reNameFile = new File(fileVo.getName());
                 file.renameTo(reNameFile);
-//                ByteArrayOutputStream byteArrayOutputStream = scriptVersionFileByteArrayOutputStreamMap.get(1);
-
                 String filePath;
-//                FileVo fileVo = new FileVo();
-//                        fileVo.setName(policyVo.getId() + ".json");
                 fileVo.setSize(reNameFile.length());
                 fileVo.setUserUuid(SystemUser.SYSTEM.getUserUuid());
                 fileVo.setType("autoexec");
                 fileVo.setContentType("application/x-tar");
                 try {
-                    filePath = FileUtil.saveData(MinioFileSystemHandler.NAME, tenantUuid,new FileInputStream(reNameFile), fileVo.getId().toString(), fileVo.getContentType(), fileVo.getType());
+                    filePath = FileUtil.saveData(MinioFileSystemHandler.NAME, tenantUuid, new FileInputStream(reNameFile), fileVo.getId().toString(), fileVo.getContentType(), fileVo.getType());
                 } catch (Exception ex) {
                     //如果没有配置minioUrl，则表示不使用minio，无需抛异常
                     if (StringUtils.isNotBlank(Config.MINIO_URL())) {
                         logger.error(ex.getMessage(), ex);
                     }
                     // 如果minio出现异常，则上传到本地
-//                    filePath = FileUtil.saveData(LocalFileSystemHandler.NAME, tenantUuid, new ByteArrayInputStream(out.toByteArray()), fileVo.getId().toString(), fileVo.getContentType(), fileVo.getType());
                     filePath = FileUtil.saveData(LocalFileSystemHandler.NAME, tenantUuid, new FileInputStream(reNameFile), fileVo.getId().toString(), fileVo.getContentType(), fileVo.getType());
                 }
                 fileVo.setPath(filePath);
