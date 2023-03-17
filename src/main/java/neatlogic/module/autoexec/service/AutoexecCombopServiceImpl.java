@@ -350,6 +350,15 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 ParamMappingVo executeUser = phaseExecuteConfig.getExecuteUser();
                 if (executeUser == null || StringUtils.isBlank((String) executeUser.getValue())) {
                     isNeedExecuteUser = true;
+                } else {
+                    if (Objects.equals(executeUser.getMappingMode(), ParamMappingMode.RUNTIME_PARAM.getValue())) {
+                        String key = (String) executeUser.getValue();
+                        if (StringUtils.isNotBlank(key)) {
+                            if (!runtimeParamMap.containsKey(key)) {
+                                throw new AutoexecParamMappingTargetNotFoundException(autoexecCombopPhaseVo.getName(), key);
+                            }
+                        }
+                    }
                 }
                 if (phaseExecuteConfig.getProtocolId() == null) {
                     isNeedProtocol = true;
@@ -408,11 +417,46 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 }
             }
         }
+        List<AutoexecCombopGroupVo> combopGroupList = config.getCombopGroupList();
+        if (CollectionUtils.isNotEmpty(combopGroupList)) {
+            for (AutoexecCombopGroupVo combopGroupVo : combopGroupList) {
+                AutoexecCombopGroupConfigVo combopGroupConfig = combopGroupVo.getConfig();
+                if (combopGroupConfig == null) {
+                    continue;
+                }
+                AutoexecCombopExecuteConfigVo executeConfigVo = combopGroupConfig.getExecuteConfig();
+                if (executeConfigVo == null) {
+                    continue;
+                }
+                ParamMappingVo executeUser = executeConfigVo.getExecuteUser();
+                if (executeUser != null) {
+                    if (Objects.equals(executeUser.getMappingMode(), ParamMappingMode.RUNTIME_PARAM.getValue())) {
+                        String key = (String) executeUser.getValue();
+                        if (StringUtils.isNotBlank(key)) {
+                            if (!runtimeParamMap.containsKey(key)) {
+                                throw new AutoexecParamMappingTargetNotFoundException(combopGroupVo.getSort(), key);
+                            }
+                        }
+                    }
+                }
+            }
+        }
         AutoexecCombopExecuteConfigVo executeConfigVo = config.getExecuteConfig();
         if (executeConfigVo != null) {
+            ParamMappingVo executeUser = executeConfigVo.getExecuteUser();
+            if (executeUser != null) {
+                if (Objects.equals(executeUser.getMappingMode(), ParamMappingMode.RUNTIME_PARAM.getValue())) {
+                    String key = (String) executeUser.getValue();
+                    if (StringUtils.isNotBlank(key)) {
+                        if (!runtimeParamMap.containsKey(key)) {
+                            throw new AutoexecParamMappingTargetNotFoundException(key);
+                        }
+                    }
+                }
+            }
             if (Objects.equals(executeConfigVo.getWhenToSpecify(), CombopNodeSpecify.NOW.getValue())) {
                 if (isExecuteJob) {
-                    ParamMappingVo executeUser = executeConfigVo.getExecuteUser();
+                    executeUser = executeConfigVo.getExecuteUser();
                     if ((executeUser == null || StringUtils.isBlank((String) executeUser.getValue())) && isNeedExecuteUser) {
                         throw new AutoexecCombopExecuteUserCannotBeEmptyException();
                     }
