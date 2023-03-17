@@ -189,7 +189,7 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
         } else if (StringUtils.equals(source.getParser(), ScriptParser.PACKAGE.getValue()) && StringUtils.equals(target.getParser(), ScriptParser.PACKAGE.getValue())) {
             FileVo sourcePackageFile = source.getPackageFile();
             FileVo targetPackageFile = target.getPackageFile();
-            if (!Objects.equals(sourcePackageFile.getId(), targetPackageFile.getId())) {
+            if (sourcePackageFile != null && targetPackageFile != null && !Objects.equals(sourcePackageFile.getId(), targetPackageFile.getId())) {
                 sourcePackageFile.setName("<span class='update'>" + sourcePackageFile.getName() + "</span>");
                 targetPackageFile.setName("<span class='update'>" + targetPackageFile.getName() + "</span>");
             }
