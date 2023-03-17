@@ -42,6 +42,7 @@ import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
 import neatlogic.framework.util.FileUtil;
+import neatlogic.framework.util.ZipUtil;
 import neatlogic.module.autoexec.service.AutoexecScriptService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
@@ -53,8 +54,6 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -194,13 +193,13 @@ public class AutoexecScriptExportForAutoexecApi extends PrivateBinaryStreamApiCo
                         IFileTypeHandler fileTypeHandler = FileTypeHandlerFactory.getHandler(fileVo.getType());
                         if (fileTypeHandler != null) {
                             if (StringUtils.equals(userUuid, fileVo.getUserUuid()) || fileTypeHandler.valid(userUuid, fileVo, paramObj)) {
-                                InputStream inputStream = neatlogic.framework.common.util.FileUtil.getData(fileVo.getPath());
-                                if (inputStream != null) {
-                                    File inputFile = new File(fileVo.getName());
-                                    FileUtils.copyInputStreamToFile(inputStream, inputFile);
-                                    zip(zos, inputFile, fileVo.getName());
-                                    zos.closeEntry();
-                                    inputStream.close();
+                                try (InputStream inputStream = neatlogic.framework.common.util.FileUtil.getData(fileVo.getPath())) {
+                                    if (inputStream != null) {
+                                        File inputFile = new File(fileVo.getName());
+                                        FileUtils.copyInputStreamToFile(inputStream, inputFile);
+                                        ZipUtil.zip(zos, inputFile, fileVo.getName());
+                                        zos.closeEntry();
+                                    }
                                 }
                             } else {
                                 throw new FileAccessDeniedException(fileVo.getName(), FileOperationType.DOWNLOAD.getText());
@@ -214,32 +213,5 @@ public class AutoexecScriptExportForAutoexecApi extends PrivateBinaryStreamApiCo
         }
 
         return null;
-    }
-
-    /***
-     * zip()压缩方法
-     * @param zipOutputStream   zip的输出流
-     * @param inputFile      需要压缩的文件
-     * @param fileName          文件名
-     * @throws IOException
-     */
-    private void zip(ZipOutputStream zipOutputStream, File inputFile, String fileName) throws Exception {
-        if (inputFile.isDirectory()) {
-            File[] files = inputFile.listFiles();
-            if (fileName.length() != 0) {
-                zipOutputStream.putNextEntry(new ZipEntry(fileName + "/"));
-            }
-            for (int i = 0; i < Objects.requireNonNull(files).length; i++) {
-                zip(zipOutputStream, files[i], fileName + files[i]);
-            }
-        } else {
-            zipOutputStream.putNextEntry(new ZipEntry(fileName));
-            FileInputStream fileInputStream = new FileInputStream(inputFile);
-            int b;
-            while ((b = fileInputStream.read()) != -1) {
-                zipOutputStream.write(b);
-            }
-            fileInputStream.close();
-        }
     }
 }

@@ -39,6 +39,7 @@ import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
 import neatlogic.framework.util.FileUtil;
+import neatlogic.framework.util.ZipUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -48,11 +49,12 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipOutputStream;
@@ -154,7 +156,7 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
                                 if (inputStream != null) {
                                     File inputFile = new File(fileVo.getName());
                                     FileUtils.copyInputStreamToFile(inputStream, inputFile);
-                                    zip(zos, inputFile, fileVo.getName());
+                                    ZipUtil.zip(zos, inputFile, fileVo.getName());
                                     zos.closeEntry();
                                     inputStream.close();
                                 }
@@ -174,32 +176,5 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
             }
         }
         return null;
-    }
-
-    /***
-     * zip()压缩方法
-     * @param zipOutputStream   zip的输出流
-     * @param inputFile      需要压缩的文件
-     * @param fileName          文件名
-     * @throws IOException
-     */
-    private void zip(ZipOutputStream zipOutputStream, File inputFile, String fileName) throws Exception {
-        if (inputFile.isDirectory()) {
-            File[] files = inputFile.listFiles();
-            if (fileName.length() != 0) {
-                zipOutputStream.putNextEntry(new ZipEntry(fileName + "/"));
-            }
-            for (int i = 0; i < Objects.requireNonNull(files).length; i++) {
-                zip(zipOutputStream, files[i], fileName + files[i]);
-            }
-        } else {
-            zipOutputStream.putNextEntry(new ZipEntry(fileName));
-            FileInputStream fileInputStream = new FileInputStream(inputFile);
-            int b;
-            while ((b = fileInputStream.read()) != -1) {
-                zipOutputStream.write(b);
-            }
-            fileInputStream.close();
-        }
     }
 }

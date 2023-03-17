@@ -168,56 +168,57 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
         int failureCount = 0;
         for (Map.Entry<String, MultipartFile> entry : multipartFileMap.entrySet()) {
             MultipartFile multipartFile = entry.getValue();
-            try (ZipInputStream zis = new ZipInputStream(multipartFile.getInputStream());
-                 ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-                ZipEntry ze = null;
-                while ((ze = zis.getNextEntry()) != null) {
-                    int len;
-                    while ((len = zis.read(buf)) != -1) {
-                        out.write(buf, 0, len);
-                    }
-                    AutoexecScriptVo scriptVo;
-                    try {
-                        scriptVo = JSONObject.parseObject(new String(out.toByteArray(), StandardCharsets.UTF_8), new TypeReference<AutoexecScriptVo>() {
-                        });
-                        if (StringUtils.equals(scriptVo.getParser(), ScriptParser.PACKAGE.getValue()) && scriptVo.getPackageFile() != null) {
-                            FileVo packageFile = scriptVo.getPackageFile();
-                            packageFile.setId(null);
+            try (ZipInputStream zis = new ZipInputStream(multipartFile.getInputStream())) {
+                try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+                    ZipEntry ze = null;
+                    while ((ze = zis.getNextEntry()) != null) {
+                        int len;
+                        while ((len = zis.read(buf)) != -1) {
+                            out.write(buf, 0, len);
                         }
-                    } catch (JSONException e) {
-                        File file = new File(ze.getName());
-                        FileOutputStream fos = new FileOutputStream(file);
-                        fos.write(out.toByteArray());
-                        fos.close();
-                        scriptVersionFileMap.put(ze.getName(), file);
-                        continue;
-                    }
+                        AutoexecScriptVo scriptVo;
+                        try {
+                            scriptVo = JSONObject.parseObject(new String(out.toByteArray(), StandardCharsets.UTF_8), new TypeReference<AutoexecScriptVo>() {
+                            });
+                            if (StringUtils.equals(scriptVo.getParser(), ScriptParser.PACKAGE.getValue()) && scriptVo.getPackageFile() != null) {
+                                FileVo packageFile = scriptVo.getPackageFile();
+                                packageFile.setId(null);
+                            }
+                        } catch (JSONException e) {
+                            File file = new File(ze.getName());
+                            FileOutputStream fos = new FileOutputStream(file);
+                            fos.write(out.toByteArray());
+                            fos.close();
+                            scriptVersionFileMap.put(ze.getName(), file);
+                            continue;
+                        }
 
-                    if (CollectionUtils.isNotEmpty(scriptIdList) && !scriptIdList.contains(scriptVo.getId())) {
-                        continue;
-                    }
-                    JSONObject result = save(scriptVo, isReplace);
-                    if (result.containsKey("failReasonList")) {
-                        failReasonList.add(result);
-                        failureCount++;
-                    } else if (result.containsKey("hasSubmittedVersion") && result.getBoolean("hasSubmittedVersion")) {
-                        result.put("isWarn", 1);
-                        result.put("id", scriptVo.getId());
-                        result.put("warnItem", scriptVo.getName());
-                        result.put("fileName", multipartFile.getOriginalFilename());
-                        failReasonList.add(result);
-                        failureCount++;
-                    } else if (result.containsKey("newVersionId")) {
-                        //脚本版本的依赖工具列表
-                        if (CollectionUtils.isNotEmpty(scriptVo.getUseLib())) {
-                            scriptVersionUseLibMap.put(result.getLong("newVersionId"), scriptVo.getUseLib());
+                        if (CollectionUtils.isNotEmpty(scriptIdList) && !scriptIdList.contains(scriptVo.getId())) {
+                            continue;
                         }
-                        if (result.containsKey("newPackageFileName") && result.containsKey("newPackageFileId")) {
-                            fileNameIdMap.put(result.getString("newPackageFileName"), result.getLong("newPackageFileId"));
+                        JSONObject result = save(scriptVo, isReplace);
+                        if (result.containsKey("failReasonList")) {
+                            failReasonList.add(result);
+                            failureCount++;
+                        } else if (result.containsKey("hasSubmittedVersion") && result.getBoolean("hasSubmittedVersion")) {
+                            result.put("isWarn", 1);
+                            result.put("id", scriptVo.getId());
+                            result.put("warnItem", scriptVo.getName());
+                            result.put("fileName", multipartFile.getOriginalFilename());
+                            failReasonList.add(result);
+                            failureCount++;
+                        } else if (result.containsKey("newVersionId")) {
+                            //脚本版本的依赖工具列表
+                            if (CollectionUtils.isNotEmpty(scriptVo.getUseLib())) {
+                                scriptVersionUseLibMap.put(result.getLong("newVersionId"), scriptVo.getUseLib());
+                            }
+                            if (result.containsKey("newPackageFileName") && result.containsKey("newPackageFileId")) {
+                                fileNameIdMap.put(result.getString("newPackageFileName"), result.getLong("newPackageFileId"));
+                            }
+                            successCount++;
                         }
-                        successCount++;
+                        out.reset();
                     }
-                    out.reset();
                 }
             } catch (IOException e) {
                 throw new FileExtNotAllowedException(multipartFile.getOriginalFilename());
