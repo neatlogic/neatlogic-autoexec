@@ -114,7 +114,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
 
     @Override
     public String getToken() {
-        return "autoexec/script/import2";
+        return "autoexec/script/import";
     }
 
     @Override
