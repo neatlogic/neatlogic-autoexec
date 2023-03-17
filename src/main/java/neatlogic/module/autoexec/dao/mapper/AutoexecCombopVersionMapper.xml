@@ -231,6 +231,10 @@ limitations under the License.
         UPDATE `autoexec_combop_version` SET `is_active` = 1 WHERE `id` = #{value}
     </update>
 
+    <update id="updateAutoexecCombopVersionConfigById" parameterType="java.util.Map">
+        UPDATE `autoexec_combop_version` SET `config` = #{configStr} WHERE `id` = #{id}
+    </update>
+
     <delete id="deleteAutoexecCombopVersionByCombopId" parameterType="java.lang.Long">
         DELETE
         FROM `autoexec_combop_version`

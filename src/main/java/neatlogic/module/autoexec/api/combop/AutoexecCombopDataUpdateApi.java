@@ -3,10 +3,8 @@ package neatlogic.module.autoexec.api.combop;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
-import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.autoexec.constvalue.ParamMappingMode;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
-import neatlogic.framework.autoexec.dto.AutoexecParamVo;
 import neatlogic.framework.autoexec.dto.combop.*;
 import neatlogic.framework.common.dto.BasePageVo;
 import neatlogic.framework.restful.annotation.Description;
@@ -30,6 +28,8 @@ public class AutoexecCombopDataUpdateApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopVersionMapper autoexecCombopVersionMapper;
+    @Resource
+    private AutoexecCombopMapper autoexecCombopMapper;
 
     @Override
     public String getToken() {
@@ -51,20 +51,78 @@ public class AutoexecCombopDataUpdateApi extends PrivateApiComponentBase {
     @Description(desc = "更新组合工具数据")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        int rowNum = autoexecCombopVersionMapper.getAutoexecCombopVersionCountForUpdateConfig();
-        if (rowNum == 0) {
-            return null;
+        JSONObject resultObj = new JSONObject();
+        int count = autoexecCombopMapper.getAutoexecCombopCountForUpdateConfig();
+        if (count > 0) {
+            BasePageVo searchVo = new BasePageVo();
+            searchVo.setRowNum(count);
+            for (int currentPage = 1; currentPage <= searchVo.getPageCount(); currentPage++) {
+                searchVo.setCurrentPage(currentPage);
+                List<Map<String, Object>> list = autoexecCombopMapper.getAutoexecCombopListForUpdateConfig(searchVo);
+                for (Map<String, Object> combop : list) {
+                    Long id = (Long) combop.get("id");
+                    String configStr = (String) combop.get("config");
+                    if (StringUtils.isBlank(configStr)) {
+                        continue;
+                    }
+                    JSONObject config = null;
+                    try {
+                        config = JSONObject.parseObject(configStr);
+                    } catch (JSONException e) {
+                        System.out.println("格式不对");
+                    }
+                    if (MapUtils.isEmpty(config)) {
+                        continue;
+                    }
+                    boolean flag = false;
+                    if (config.containsKey("executeConfig")) {
+                        config.remove("executeConfig");
+                        flag = true;
+                    }
+                    if (config.containsKey("combopGroupList")) {
+                        config.remove("combopGroupList");
+                        flag = true;
+                    }
+                    if (config.containsKey("combopPhaseList")) {
+                        config.remove("combopPhaseList");
+                        flag = true;
+                    }
+                    if (config.containsKey("runtimeParamList")) {
+                        config.remove("runtimeParamList");
+                        flag = true;
+                    }
+                    if (config.containsKey("defaultScenarioId")) {
+                        config.remove("defaultScenarioId");
+                        flag = true;
+                    }
+                    if (config.containsKey("scenarioList")) {
+                        config.remove("scenarioList");
+                        flag = true;
+                    }
+                    if (flag) {
+                        System.out.println(id);
+                        System.out.println(combop.get("name"));
+                        System.out.println(config.toJSONString());
+                        autoexecCombopMapper.updateAutoexecCombopConfigByIdAndConfigStr(id, config.toJSONString());
+                    }
+                }
+            }
         }
+        int rowNum = autoexecCombopVersionMapper.getAutoexecCombopVersionCountForUpdateConfig();
+        resultObj.put("总数", rowNum);
+        if (rowNum == 0) {
+            return resultObj;
+        }
+        int needUpdateCount = 0;
+        int updatedCount = 0;
         BasePageVo searchVo = new BasePageVo();
-//        searchVo.setPageSize(100);
+        searchVo.setPageSize(100);
         searchVo.setRowNum(rowNum);
         for (int currentPage = 1; currentPage <= searchVo.getPageCount(); currentPage++) {
             searchVo.setCurrentPage(currentPage);
             List<Map<String, Object>> list = autoexecCombopVersionMapper.getAutoexecCombopVersionListForUpdateConfig(searchVo);
             for (Map<String, Object> version : list) {
-                System.out.println(version.get("id"));
-                System.out.println(version.get("name"));
-//                System.out.println(JSONObject.toJSONString(version));
+                Long id = (Long) version.get("id");
                 String configStr = (String) version.get("config");
                 if (StringUtils.isBlank(configStr)) {
                     continue;
@@ -78,28 +136,63 @@ public class AutoexecCombopDataUpdateApi extends PrivateApiComponentBase {
                 if (MapUtils.isEmpty(config)) {
                     continue;
                 }
-                System.out.println(config);
-                JSONObject executeConfig = config.getJSONObject("executeConfig");
-                if (MapUtils.isNotEmpty(executeConfig)) {
-                    Object executeUser = executeConfig.get("executeUser");
-                    if (executeUser == null) {
-                        ParamMappingVo paramMappingVo = new ParamMappingVo();
-                        paramMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
-                        config.put("executeUser", paramMappingVo);
-                    } else {
-                        if (executeUser instanceof String) {
-                            ParamMappingVo paramMappingVo = new ParamMappingVo();
-                            paramMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
-                            paramMappingVo.setValue(executeUser);
-                            config.put("executeUser", paramMappingVo);
+                try {
+                    AutoexecCombopVersionConfigVo configVo = config.toJavaObject(AutoexecCombopVersionConfigVo.class);
+                    continue;
+                } catch (JSONException e) {
+                }
+                needUpdateCount++;
+//                if (Objects.equals(id, 818075860795538L)) {
+//                    System.out.println("");
+//                }
+                boolean flag = false;
+                {
+                    JSONObject executeConfig = config.getJSONObject("executeConfig");
+                    if (updateExecuteConfig(executeConfig)) {
+                        flag = true;
+                    }
+                }
+                JSONArray combopGroupList = config.getJSONArray("combopGroupList");
+                if (CollectionUtils.isNotEmpty(combopGroupList)) {
+                    for (int i = 0; i < combopGroupList.size(); i++) {
+                        JSONObject group = combopGroupList.getJSONObject(i);
+                        JSONObject groupConfig = group.getJSONObject("config");
+                        if (MapUtils.isEmpty(groupConfig)) {
+                            continue;
+                        }
+                        JSONObject executeConfig = groupConfig.getJSONObject("executeConfig");
+                        if (updateExecuteConfig(executeConfig)) {
+                            flag = true;
                         }
                     }
                 }
-                JSONArray combopGroupArray = config.getJSONArray("combopGroupList");
+                JSONArray combopPhaseList = config.getJSONArray("combopPhaseList");
+                if (CollectionUtils.isNotEmpty(combopPhaseList)) {
+                    for (int i = 0; i < combopPhaseList.size(); i++) {
+                        JSONObject phase = combopPhaseList.getJSONObject(i);
+                        JSONObject phaseConfig = phase.getJSONObject("config");
+                        if (MapUtils.isEmpty(phaseConfig)) {
+                            continue;
+                        }
+                        JSONObject executeConfig = phaseConfig.getJSONObject("executeConfig");
+                        if (updateExecuteConfig(executeConfig)) {
+                            flag = true;
+                        }
+                    }
+                }
+                if (flag) {
+                    try {
+                        AutoexecCombopVersionConfigVo configVo = config.toJavaObject(AutoexecCombopVersionConfigVo.class);
+                        autoexecCombopVersionMapper.updateAutoexecCombopVersionConfigById(id, config.toJSONString());
+                        updatedCount++;
+                    } catch (JSONException e) {
+                    }
+                }
             }
-            break;
+//            break;
         }
-
+        resultObj.put("已更新个数", updatedCount);
+        resultObj.put("需要更新个数", needUpdateCount);
 //        AutoexecCombopVo search = new AutoexecCombopVo();
 //        int rowNum = autoexecCombopMapper.getAutoexecCombopCount(search);
 //        if (rowNum == 0) {
@@ -134,6 +227,33 @@ public class AutoexecCombopDataUpdateApi extends PrivateApiComponentBase {
 //                autoexecCombopVersionMapper.insertAutoexecCombopVersion(versionVo);
 //            }
 //        }
-        return null;
+        return resultObj;
+    }
+
+    /**
+     * 更新执行目标配置executeConfig
+     * @param executeConfig
+     * @return 返回标识更新前后是否发生变化
+     */
+    private boolean updateExecuteConfig(JSONObject executeConfig) {
+        if (MapUtils.isNotEmpty(executeConfig)) {
+            Object executeUser = executeConfig.get("executeUser");
+            if (executeUser == null) {
+                ParamMappingVo paramMappingVo = new ParamMappingVo();
+                paramMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
+                paramMappingVo.setValue("");
+                executeConfig.put("executeUser", paramMappingVo);
+                return true;
+            } else {
+                if (executeUser instanceof String) {
+                    ParamMappingVo paramMappingVo = new ParamMappingVo();
+                    paramMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
+                    paramMappingVo.setValue(executeUser);
+                    executeConfig.put("executeUser", paramMappingVo);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
