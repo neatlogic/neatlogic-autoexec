@@ -47,7 +47,6 @@ import neatlogic.framework.exception.core.ApiRuntimeException;
 import neatlogic.framework.exception.file.FileExtNotAllowedException;
 import neatlogic.framework.exception.file.FileNotUploadException;
 import neatlogic.framework.exception.type.ParamNotExistsException;
-import neatlogic.framework.exception.user.NoTenantException;
 import neatlogic.framework.file.dao.mapper.FileMapper;
 import neatlogic.framework.file.dto.FileVo;
 import neatlogic.framework.restful.annotation.*;
@@ -78,6 +77,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 
 @Service
@@ -160,10 +160,8 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
             throw new FileNotUploadException();
         }
         Map<Long, List<Long>> scriptVersionUseLibMap = new HashMap<>();
-        Map<Integer, FileVo> scriptVersionFileVoMap = new HashMap<>();
-        Map<Integer, File> scriptVersionFileMap = new HashMap<>();
-        Integer fileVoFlag = 1;
-        Integer fileFlag = 1;
+        Map<String, File> scriptVersionFileMap = new HashMap<>();
+        List<String> fileNameList = new ArrayList<>();
         JSONArray failReasonList = new JSONArray();
         byte[] buf = new byte[1024];
         int successCount = 0;
@@ -172,7 +170,8 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
             MultipartFile multipartFile = entry.getValue();
             try (ZipInputStream zis = new ZipInputStream(multipartFile.getInputStream());
                  ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-                while (zis.getNextEntry() != null) {
+                ZipEntry ze = null;
+                while ((ze = zis.getNextEntry()) != null) {
                     int len;
                     while ((len = zis.read(buf)) != -1) {
                         out.write(buf, 0, len);
@@ -184,16 +183,13 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                         if (StringUtils.equals(scriptVo.getParser(), ScriptParser.PACKAGE.getValue()) && scriptVo.getPackageFile() != null) {
                             FileVo packageFile = scriptVo.getPackageFile();
                             packageFile.setId(null);
-                            scriptVersionFileVoMap.put(fileVoFlag, packageFile);
-                            fileVoFlag++;
                         }
                     } catch (JSONException e) {
-                        File file = new File("file");
+                        File file = new File(ze.getName());
                         FileOutputStream fos = new FileOutputStream(file);
                         fos.write(out.toByteArray());
                         fos.close();
-                        scriptVersionFileMap.put(fileFlag, file);
-                        fileFlag++;
+                        scriptVersionFileMap.put(ze.getName(), file);
                         continue;
                     }
 
@@ -215,6 +211,9 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                         //脚本版本的依赖工具列表
                         if (CollectionUtils.isNotEmpty(scriptVo.getUseLib())) {
                             scriptVersionUseLibMap.put(result.getLong("newVersionId"), scriptVo.getUseLib());
+                        }
+                        if (result.containsKey("newPackageFileName")) {
+                            fileNameList.add(result.getString("newPackageFileName"));
                         }
                         successCount++;
                     }
@@ -243,32 +242,27 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
             }
         }
 
-        System.out.println("scriptVersionFileMap:   " + scriptVersionFileMap.size());
-        System.out.println("scriptVersionFileVoMap:   " + scriptVersionFileVoMap.size());
-        if (MapUtils.isNotEmpty(scriptVersionFileMap) && MapUtils.isNotEmpty(scriptVersionFileVoMap)) {
+        if (CollectionUtils.isNotEmpty(fileNameList)) {
             String tenantUuid = TenantContext.get().getTenantUuid();
-            if (StringUtils.isBlank(tenantUuid)) {
-                throw new NoTenantException();
-            }
-            for (int flag = 1; flag <= scriptVersionFileVoMap.size(); flag++) {
-                File file = scriptVersionFileMap.get(flag);
-                FileVo fileVo = scriptVersionFileVoMap.get(flag);
-                File reNameFile = new File(fileVo.getName());
-                file.renameTo(reNameFile);
+
+            for (String fileName : fileNameList) {
+                File file = scriptVersionFileMap.get(fileName);
+                FileVo fileVo = new FileVo();
                 String filePath;
-                fileVo.setSize(reNameFile.length());
+                fileVo.setName(fileName);
+                fileVo.setSize(file.length());
                 fileVo.setUserUuid(SystemUser.SYSTEM.getUserUuid());
                 fileVo.setType("autoexec");
                 fileVo.setContentType("application/x-tar");
                 try {
-                    filePath = FileUtil.saveData(MinioFileSystemHandler.NAME, tenantUuid, new FileInputStream(reNameFile), fileVo.getId().toString(), fileVo.getContentType(), fileVo.getType());
+                    filePath = FileUtil.saveData(MinioFileSystemHandler.NAME, tenantUuid, new FileInputStream(file), fileVo.getId().toString(), fileVo.getContentType(), fileVo.getType());
                 } catch (Exception ex) {
                     //如果没有配置minioUrl，则表示不使用minio，无需抛异常
                     if (StringUtils.isNotBlank(Config.MINIO_URL())) {
                         logger.error(ex.getMessage(), ex);
                     }
                     // 如果minio出现异常，则上传到本地
-                    filePath = FileUtil.saveData(LocalFileSystemHandler.NAME, tenantUuid, new FileInputStream(reNameFile), fileVo.getId().toString(), fileVo.getContentType(), fileVo.getType());
+                    filePath = FileUtil.saveData(LocalFileSystemHandler.NAME, tenantUuid, new FileInputStream(file), fileVo.getId().toString(), fileVo.getContentType(), fileVo.getType());
                 }
                 fileVo.setPath(filePath);
                 fileMapper.insertFile(fileVo);

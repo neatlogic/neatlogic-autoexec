@@ -172,7 +172,8 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         version.setArgument(autoexecScriptMapper.getArgumentByVersionId(version.getId()));
         if (!StringUtils.equals(version.getParser(), ScriptParser.PACKAGE.getValue())) {
             version.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
-        } else if (version.getPackageFileId() != null) {
+        }
+        if (version.getPackageFileId() != null) {
             version.setPackageFile(fileMapper.getFileById(version.getPackageFileId()));
         }
         List<Long> combopIdList = new ArrayList<>();
