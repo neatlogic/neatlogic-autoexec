@@ -161,7 +161,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
         }
         Map<Long, List<Long>> scriptVersionUseLibMap = new HashMap<>();
         Map<String, File> scriptVersionFileMap = new HashMap<>();
-        List<String> fileNameList = new ArrayList<>();
+        Map<String, Long> fileNameIdMap = new HashMap<>();
         JSONArray failReasonList = new JSONArray();
         byte[] buf = new byte[1024];
         int successCount = 0;
@@ -212,8 +212,8 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                         if (CollectionUtils.isNotEmpty(scriptVo.getUseLib())) {
                             scriptVersionUseLibMap.put(result.getLong("newVersionId"), scriptVo.getUseLib());
                         }
-                        if (result.containsKey("newPackageFileName")) {
-                            fileNameList.add(result.getString("newPackageFileName"));
+                        if (result.containsKey("newPackageFileName") && result.containsKey("newPackageFileId")) {
+                            fileNameIdMap.put(result.getString("newPackageFileName"), result.getLong("newPackageFileId"));
                         }
                         successCount++;
                     }
@@ -242,14 +242,14 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
             }
         }
 
-        if (CollectionUtils.isNotEmpty(fileNameList)) {
+        if (MapUtils.isNotEmpty(fileNameIdMap)) {
             String tenantUuid = TenantContext.get().getTenantUuid();
-
-            for (String fileName : fileNameList) {
-                File file = scriptVersionFileMap.get(fileName);
+            for (Map.Entry<String, Long> entry : fileNameIdMap.entrySet()) {
+                File file = scriptVersionFileMap.get(entry.getKey());
                 FileVo fileVo = new FileVo();
                 String filePath;
-                fileVo.setName(fileName);
+                fileVo.setId(entry.getValue());
+                fileVo.setName(entry.getKey());
                 fileVo.setSize(file.length());
                 fileVo.setUserUuid(SystemUser.SYSTEM.getUserUuid());
                 fileVo.setType("autoexec");
@@ -382,9 +382,12 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                 if (fileVo == null) {
                     failReasonList.add("脚本依赖包缺失");
                 } else {
+                    fileVo.setId(null);
                     if (StringUtils.isNotEmpty(fileVo.getName()) && !fileVo.getName().endsWith(".tar")) {
                         failReasonList.add("脚本依赖包必须是tar文件");
                     }
+                    result.put("newPackageFileName", fileVo.getName());
+                    result.put("newPackageFileId", fileVo.getId());
                 }
             }
             AutoexecScriptVersionVo versionVo = new AutoexecScriptVersionVo(id, ScriptVersionStatus.SUBMITTED.getValue());
