@@ -219,7 +219,6 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
                 } else {
                     faultMessages.add("以下依赖工具不存在：" + newScriptVo.getUseLibName());
                 }
-
             }
             if (MapUtils.isNotEmpty(scriptFileNameMap) && StringUtils.equals(newScriptVo.getParser(), ScriptParser.PACKAGE.getValue()) && newScriptVo.getPackageFileName() != null) {
                 FileVo packageFile = new FileVo();
@@ -250,7 +249,6 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
                     //错误信息
                     faultMessages.add("以下依赖脚本包（tar）未上传：" + packageFile.getName());
                 }
-
             }
             if (CollectionUtils.isEmpty(faultMessages)) {
                 newScriptVo.setTypeId(autoexecTypeMapper.getTypeIdByName(newScriptVo.getTypeName()));
@@ -459,5 +457,4 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
             return "";
         }
     }
-
 }
