@@ -287,14 +287,8 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
         List<AutoexecScriptLineVo> targetLineList = target.getLineList();
         List<BaseLineVo> sourceResultList = new ArrayList<>();
         List<BaseLineVo> targetResultList = new ArrayList<>();
-        List<BaseLineVo> sourceBaseLineList = new ArrayList<>();
-        List<BaseLineVo> targetBaseLineList = new ArrayList<>();
-        if (!StringUtils.equals(source.getParser(), ScriptParser.PACKAGE.getValue())) {
-            sourceBaseLineList = autoexecScriptLineVoListConvertBaseLineVoList(sourceLineList);
-        }
-        if (!StringUtils.equals(target.getParser(), ScriptParser.PACKAGE.getValue())) {
-            targetBaseLineList = autoexecScriptLineVoListConvertBaseLineVoList(targetLineList);
-        }
+        List<BaseLineVo> sourceBaseLineList = autoexecScriptLineVoListConvertBaseLineVoList(sourceLineList);
+        List<BaseLineVo> targetBaseLineList = autoexecScriptLineVoListConvertBaseLineVoList(targetLineList);
 
         List<SegmentPair> segmentPairList = LCSUtil.LCSCompare(sourceBaseLineList, targetBaseLineList);
         for (SegmentPair segmentPair : segmentPairList) {
