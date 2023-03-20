@@ -37,6 +37,7 @@ import neatlogic.framework.dependency.core.DependencyManager;
 import neatlogic.framework.dependency.dto.DependencyInfoVo;
 import neatlogic.framework.deploy.exception.DeployJobParamIrregularException;
 import neatlogic.framework.dto.OperateVo;
+import neatlogic.framework.file.dao.mapper.FileMapper;
 import neatlogic.framework.lrcode.LRCodeManager;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCustomTemplateMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecProfileMapper;
@@ -75,6 +76,9 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
     @Resource
     private AutoexecProfileMapper autoexecProfileMapper;
 
+    @Resource
+    private FileMapper fileMapper;
+
 
     /**
      * 获取脚本版本详细信息，包括参数与脚本内容
@@ -89,8 +93,12 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
             throw new AutoexecScriptVersionNotFoundException(versionId);
         }
         version.setParamList(autoexecScriptMapper.getParamListByVersionId(versionId));
-        version.setLineList(autoexecScriptMapper.getLineListByVersionId(versionId));
         version.setArgument(autoexecScriptMapper.getArgumentByVersionId(versionId));
+        if (!StringUtils.equals(version.getParser(), ScriptParser.PACKAGE.getValue())) {
+            version.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
+        } else if (version.getPackageFileId() != null) {
+            version.setPackageFile(fileMapper.getFileById(version.getPackageFileId()));
+        }
         return version;
     }
 
@@ -202,6 +210,9 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
     @Override
     public boolean checkScriptVersionNeedToUpdate(AutoexecScriptVersionVo before, AutoexecScriptVersionVo after) {
         if (!Objects.equals(before.getParser(), after.getParser())) {
+            return true;
+        }
+        if (StringUtils.equals(before.getParser(), ScriptParser.PACKAGE.getValue())) {
             return true;
         }
         List<AutoexecScriptVersionParamVo> beforeParamList = before.getParamList() != null ? before.getParamList() : new ArrayList<>();
