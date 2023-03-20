@@ -616,7 +616,7 @@ CREATE TABLE IF NOT EXISTS `autoexec_script_validate_type` (
 -- ----------------------------
 -- Table structure for autoexec_script_version
 -- ----------------------------
-CREATE TABLE IF NOT EXISTS `autoexec_script_version`(
+CREATE TABLE IF NOT EXISTS `autoexec_script_version` (
     `id`              bigint NOT NULL COMMENT 'id',
     `script_id`       bigint                                                       DEFAULT NULL COMMENT '脚本id',
     `title`           varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '标题',
