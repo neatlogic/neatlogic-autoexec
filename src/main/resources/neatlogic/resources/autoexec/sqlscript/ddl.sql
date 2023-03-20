@@ -616,22 +616,23 @@ CREATE TABLE IF NOT EXISTS `autoexec_script_validate_type` (
 -- ----------------------------
 -- Table structure for autoexec_script_version
 -- ----------------------------
-CREATE TABLE IF NOT EXISTS `autoexec_script_version` (
-  `id` bigint NOT NULL COMMENT 'id',
-  `script_id` bigint DEFAULT NULL COMMENT '脚本id',
-  `title` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '标题',
-  `version` int DEFAULT NULL COMMENT '版本号',
-  `encoding` enum('UTF-8','GBK') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '脚本编码',
-  `parser` varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '脚本解析器',
-  `status` enum('draft','rejected','passed','submitted') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'draft:编辑中、rejected:已驳回、passed:已通过、submitted:待审批',
-  `reviewer` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '审批人',
-  `is_active` tinyint(1) DEFAULT NULL COMMENT '是否激活',
-  `config` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '脚本配置信息',
-  `lcd` timestamp(3) NULL DEFAULT NULL COMMENT '最后修改时间',
-  `lcu` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '最后修改人',
-  PRIMARY KEY (`id`) USING BTREE,
-  UNIQUE KEY `uniq_scriptid_version` (`script_id`,`version`) USING BTREE,
-  KEY `idx_status` (`status`) USING BTREE
+CREATE TABLE `autoexec_script_version`(
+    `id`              bigint NOT NULL COMMENT 'id',
+    `script_id`       bigint                                                       DEFAULT NULL COMMENT '脚本id',
+    `title`           varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '标题',
+    `version`         int                                                          DEFAULT NULL COMMENT '版本号',
+    `encoding`        enum('UTF-8','GBK') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '脚本编码',
+    `parser`          varchar(20) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '脚本解析器',
+    `status`          enum('draft','rejected','passed','submitted') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT 'draft:编辑中、rejected:已驳回、passed:已通过、submitted:待审批',
+    `reviewer`        char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci    DEFAULT NULL COMMENT '审批人',
+    `is_active`       tinyint(1) DEFAULT NULL COMMENT '是否激活',
+    `config`          longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '脚本配置信息',
+    `lcd`             timestamp(3) NULL DEFAULT NULL COMMENT '最后修改时间',
+    `lcu`             char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci    DEFAULT NULL COMMENT '最后修改人',
+    `package_file_id` bigint                                                       DEFAULT NULL COMMENT '包文件id',
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `uniq_scriptid_version` (`script_id`,`version`) USING BTREE,
+    KEY               `idx_status` (`status`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='自动化自定义工具版本表';
 
 -- ----------------------------
