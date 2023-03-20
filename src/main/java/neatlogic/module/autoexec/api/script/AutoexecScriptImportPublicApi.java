@@ -439,18 +439,12 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
     }
 
     private String MultipartFileToString(MultipartFile multipartFile) {
-        InputStreamReader isr;
-        BufferedReader br;
         StringBuilder txtResult = new StringBuilder();
-        try {
-            isr = new InputStreamReader(multipartFile.getInputStream(), StandardCharsets.UTF_8);
-            br = new BufferedReader(isr);
+        try (InputStreamReader isr = new InputStreamReader(multipartFile.getInputStream(), StandardCharsets.UTF_8); BufferedReader br = new BufferedReader(isr)) {
             String lineTxt;
             while ((lineTxt = br.readLine()) != null) {
                 txtResult.append(lineTxt);
             }
-            isr.close();
-            br.close();
             return txtResult.toString();
         } catch (IOException e) {
             e.printStackTrace();
