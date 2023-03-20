@@ -84,7 +84,7 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
 
     @Override
     public String getToken() {
-        return "autoexec/script/import/fromjson";
+        return "autoexec/script/import/forautoexec";
     }
 
     @Override
