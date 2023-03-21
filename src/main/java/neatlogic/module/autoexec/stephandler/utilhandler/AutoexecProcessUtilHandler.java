@@ -153,13 +153,6 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
                 ProcessTaskOperationType.STEP_TRANSFER
         };
         JSONArray authorityList = configObj.getJSONArray("authorityList");
-//        Integer enableAuthority = configObj.getInteger("enableAuthority");
-//        if (Objects.equals(enableAuthority, 1)) {
-//            authorityList = configObj.getJSONArray("authorityList");
-//        } else {
-//            enableAuthority = 0;
-//        }
-//        resultObj.put("enableAuthority", enableAuthority);
         JSONArray authorityArray = ProcessConfigUtil.regulateAuthorityList(authorityList, stepActions);
         resultObj.put("authorityList", authorityArray);
 
