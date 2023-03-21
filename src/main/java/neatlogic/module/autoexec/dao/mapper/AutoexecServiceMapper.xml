@@ -30,6 +30,7 @@
                a.description,
                b.combop_id as combopId,
                b.form_uuid as formUuid,
+               b.config_expired as configExpired,
                b.config    as configStr
         from `autoexec_service` a
                  left join `autoexec_service_config` b on a.id = b.service_id
@@ -286,12 +287,14 @@
     <insert id="insertAutoexecServiceConfig"
             parameterType="neatlogic.framework.autoexec.dto.service.AutoexecServiceVo">
         INSERT INTO `autoexec_service_config`
-            (`service_id`, `combop_id`, `form_uuid`, `config`)
-        values (#{id}, #{combopId}, #{formUuid}, #{configStr}) ON DUPLICATE KEY
+            (`service_id`, `combop_id`, `form_uuid`, `config_expired`, `config_expired_reason`, `config`)
+        values (#{id}, #{combopId}, #{formUuid}, #{configExpired}, #{configExpiredReason}, #{configStr}) ON DUPLICATE KEY
         UPDATE
-            combop_id = #{combopId},
-            form_uuid = #{formUuid},
-            config = #{configStr}
+            `combop_id` = #{combopId},
+            `form_uuid` = #{formUuid},
+            `config_expired` = #{configExpired},
+            `config_expired_reason` = #{configExpiredReason},
+            `config` = #{configStr}
     </insert>
 
     <insert id="insertAutoexecServiceAuthorityList">
@@ -319,6 +322,12 @@
     <update id="updateServiceIsActiveById" parameterType="neatlogic.framework.autoexec.dto.service.AutoexecServiceVo">
         UPDATE `autoexec_service`
         SET `is_active` = #{isActive}
+        WHERE `id` = #{id}
+    </update>
+
+    <update id="updateServiceConfigExpiredById" parameterType="neatlogic.framework.autoexec.dto.service.AutoexecServiceVo">
+        UPDATE `autoexec_service`
+        SET `config_expired` = #{configExpired}
         WHERE `id` = #{id}
     </update>
 

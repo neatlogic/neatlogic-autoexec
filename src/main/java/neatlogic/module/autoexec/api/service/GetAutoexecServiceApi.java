@@ -19,6 +19,16 @@ package neatlogic.module.autoexec.api.service;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_SERVICE_MANAGE;
+import neatlogic.framework.autoexec.constvalue.AutoexecServiceType;
+import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
+import neatlogic.framework.autoexec.dto.AutoexecParamVo;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionConfigVo;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
+import neatlogic.framework.autoexec.dto.combop.ParamMappingVo;
+import neatlogic.framework.autoexec.dto.service.AutoexecServiceConfigVo;
+import neatlogic.framework.util.I18nUtils;
+import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecServiceMapper;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceAuthorityVo;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceVo;
@@ -27,12 +37,18 @@ import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
+import neatlogic.module.autoexec.service.AutoexecServiceService;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @Service
 @AuthAction(action = AUTOEXEC_SERVICE_MANAGE.class)
@@ -41,6 +57,9 @@ public class GetAutoexecServiceApi extends PrivateApiComponentBase {
 
     @Resource
     AutoexecServiceMapper autoexecServiceMapper;
+
+    @Resource
+    AutoexecServiceService autoexecServiceService;
 
     @Override
     public String getToken() {
@@ -77,6 +96,15 @@ public class GetAutoexecServiceApi extends PrivateApiComponentBase {
             authorityVoList.forEach(e -> authorityList.add(e.getType() + "#" + e.getUuid()));
             serviceVo.setAuthorityList(authorityList);
         }
+        if (Objects.equals(serviceVo.getType(), AutoexecServiceType.SERVICE.getValue()) && Objects.equals(serviceVo.getConfigExpired(), 0)) {
+            String reason = autoexecServiceService.checkConfigExpired(serviceVo);
+            if (StringUtils.isNotBlank(reason)) {
+                serviceVo.setConfigExpired(1);
+                serviceVo.setConfigExpiredReason(reason);
+                autoexecServiceMapper.updateServiceConfigExpiredById(serviceVo);
+            }
+        }
         return serviceVo;
     }
+
 }

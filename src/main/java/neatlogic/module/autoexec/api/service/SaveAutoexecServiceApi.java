@@ -21,15 +21,15 @@ import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_SERVICE_MANAGE;
 import neatlogic.framework.autoexec.constvalue.AutoexecServiceType;
+import neatlogic.framework.autoexec.constvalue.ServiceParamMappingMode;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
+import neatlogic.framework.autoexec.dto.combop.ParamMappingVo;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceAuthorityVo;
+import neatlogic.framework.autoexec.dto.service.AutoexecServiceConfigVo;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceNodeVo;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceVo;
-import neatlogic.framework.autoexec.exception.AutoexecCombopNotFoundException;
-import neatlogic.framework.autoexec.exception.AutoexecServiceIsNotCatalogException;
-import neatlogic.framework.autoexec.exception.AutoexecServiceNameIsRepeatException;
-import neatlogic.framework.autoexec.exception.AutoexecServiceNotFoundException;
+import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.constvalue.GroupSearch;
 import neatlogic.framework.dependency.core.DependencyManager;
@@ -49,6 +49,7 @@ import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.module.autoexec.dao.mapper.AutoexecServiceMapper;
 import neatlogic.module.autoexec.dependency.AutoexecCombop2AutoexecServiceDependencyHandler;
 import neatlogic.module.autoexec.dependency.Form2AutoexecServiceDependencyHandler;
+import neatlogic.module.autoexec.service.AutoexecServiceService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -57,6 +58,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Transactional
@@ -72,6 +74,9 @@ public class SaveAutoexecServiceApi extends PrivateApiComponentBase {
 
     @Resource
     private FormMapper formMapper;
+
+    @Resource
+    AutoexecServiceService autoexecServiceService;
 
     @Override
     public String getToken() {
@@ -114,6 +119,12 @@ public class SaveAutoexecServiceApi extends PrivateApiComponentBase {
             }
             if (!paramObj.containsKey("combopId")) {
                 throw new ParamNotExistsException("combopId");
+            }
+            checkRuntimeParamMapping(serviceVo);
+            String reason = autoexecServiceService.checkConfigExpired(serviceVo);
+            if (StringUtils.isNotBlank(reason)) {
+                serviceVo.setConfigExpired(1);
+                serviceVo.setConfigExpiredReason(reason);
             }
         }
         Long id = paramObj.getLong("id");
@@ -196,5 +207,44 @@ public class SaveAutoexecServiceApi extends PrivateApiComponentBase {
             }
             return new FieldValidResultVo();
         };
+    }
+
+    /**
+     * 检测参数映射是否有问题
+     * @param serviceVo
+     */
+    private void checkRuntimeParamMapping(AutoexecServiceVo serviceVo) {
+        AutoexecServiceConfigVo config = serviceVo.getConfig();
+        if (config == null) {
+            return;
+        }
+        List<ParamMappingVo> paramMappingList =  config.getRuntimeParamList();
+        if (CollectionUtils.isEmpty(paramMappingList)) {
+            return;
+        }
+        String formUuid = serviceVo.getFormUuid();
+        for (ParamMappingVo paramMappingVo : paramMappingList) {
+            String key = paramMappingVo.getKey();
+            String name = paramMappingVo.getName();
+            Object value = paramMappingVo.getValue();
+            String mappingMode = paramMappingVo.getMappingMode();
+            if (StringUtils.isNotBlank(formUuid)) {
+                if (Objects.equals(mappingMode, ServiceParamMappingMode.CONSTANT.getValue())) {
+                    if (value == null) {
+                        throw new AutoexecParamMappingNotMappedException(name + "(" + key + ")");
+                    }
+                } else if (Objects.equals(mappingMode, ServiceParamMappingMode.FORMATTR.getValue())) {
+                    if (value == null) {
+                        throw new AutoexecParamMappingNotMappedException(name + "(" + key + ")");
+                    }
+                }
+            } else {
+                if (Objects.equals(mappingMode, ServiceParamMappingMode.CONSTANT.getValue())) {
+                    if (value == null) {
+                        throw new AutoexecParamMappingNotMappedException(name + "(" + key + ")");
+                    }
+                }
+            }
+        }
     }
 }
