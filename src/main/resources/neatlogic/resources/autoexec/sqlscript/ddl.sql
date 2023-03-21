@@ -712,7 +712,6 @@ CREATE TABLE IF NOT EXISTS `autoexec_service_config` (
   `service_id` bigint NOT NULL COMMENT '服务ID',
   `combop_id` bigint NOT NULL COMMENT '组合工具ID',
   `form_uuid` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '表单UUID',
-  `config_expired` tinyint(1) DEFAULT NULL COMMENT '配置已失效',
   `config` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '配置信息',
   PRIMARY KEY (`service_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
