@@ -680,14 +680,14 @@ CREATE TABLE IF NOT EXISTS `autoexec_script_version_param` (
 -- Table structure for autoexec_service
 -- ----------------------------
 CREATE TABLE IF NOT EXISTS `autoexec_service` (
-  `id` bigint NOT NULL,
-  `name` varchar(200) COLLATE utf8mb4_general_ci NOT NULL,
-  `is_active` tinyint(1) NOT NULL,
-  `type` enum('service','catalog') COLLATE utf8mb4_general_ci NOT NULL,
-  `parent_id` bigint DEFAULT NULL,
-  `lft` int DEFAULT NULL,
-  `rht` int DEFAULT NULL,
-  `description` mediumtext COLLATE utf8mb4_general_ci,
+  `id` bigint NOT NULL COMMENT '唯一标识',
+  `name` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '名称',
+  `is_active` tinyint(1) NOT NULL COMMENT '是否激活',
+  `type` enum('service','catalog') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '节点类型',
+  `parent_id` bigint DEFAULT NULL COMMENT '父节点',
+  `lft` int DEFAULT NULL COMMENT '左编码',
+  `rht` int DEFAULT NULL COMMENT '右编码',
+  `description` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '描述',
   PRIMARY KEY (`id`),
   UNIQUE KEY `idx_name` (`name`),
   KEY `idx_parent_id` (`parent_id`),
@@ -699,9 +699,9 @@ CREATE TABLE IF NOT EXISTS `autoexec_service` (
 -- Table structure for autoexec_service_authority
 -- ----------------------------
 CREATE TABLE IF NOT EXISTS `autoexec_service_authority` (
-  `service_id` bigint NOT NULL,
-  `type` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-  `uuid` char(32) COLLATE utf8mb4_general_ci NOT NULL,
+  `service_id` bigint NOT NULL COMMENT '服务ID',
+  `type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '授权对象类型',
+  `uuid` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '授权对象',
   PRIMARY KEY (`service_id`,`type`,`uuid`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -709,10 +709,11 @@ CREATE TABLE IF NOT EXISTS `autoexec_service_authority` (
 -- Table structure for autoexec_service_config
 -- ----------------------------
 CREATE TABLE IF NOT EXISTS `autoexec_service_config` (
-  `service_id` bigint NOT NULL,
-  `combop_id` bigint NOT NULL,
-  `form_uuid` char(32) COLLATE utf8mb4_general_ci DEFAULT NULL,
-  `config` mediumtext COLLATE utf8mb4_general_ci,
+  `service_id` bigint NOT NULL COMMENT '服务ID',
+  `combop_id` bigint NOT NULL COMMENT '组合工具ID',
+  `form_uuid` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '表单UUID',
+  `config_expired` tinyint(1) DEFAULT NULL COMMENT '配置已失效',
+  `config` mediumtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '配置信息',
   PRIMARY KEY (`service_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
@@ -720,9 +721,9 @@ CREATE TABLE IF NOT EXISTS `autoexec_service_config` (
 -- Table structure for autoexec_service_user
 -- ----------------------------
 CREATE TABLE IF NOT EXISTS `autoexec_service_user` (
-  `service_id` bigint NOT NULL,
-  `user_uuid` char(32) COLLATE utf8mb4_general_ci NOT NULL,
-  `lcd` timestamp NOT NULL,
+  `service_id` bigint NOT NULL COMMENT '服务ID',
+  `user_uuid` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '收藏用户UUID',
+  `lcd` timestamp NOT NULL COMMENT '收藏时间',
   PRIMARY KEY (`user_uuid`,`service_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
