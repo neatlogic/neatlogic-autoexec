@@ -540,8 +540,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 executeConfigVo = groupConfig.getExecuteConfig();
                 //判断组执行节点是否配置
                 if (executeConfigVo != null) {
-                    userName = getFinalExecuteUser(executeConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
-                    if (StringUtils.isNotBlank(userName)) {
+                    String userNameTmp = getFinalExecuteUser(executeConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
+                    if (StringUtils.isNotBlank(userNameTmp)) {
+                        userName = userNameTmp;
                         jobVo.setUserNameFrom(AutoexecJobPhaseNodeFrom.GROUP.getValue());
                     }
                     if (executeConfigVo.getProtocolId() != null) {
@@ -558,8 +559,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         } else {
             executeConfigVo = combopPhaseExecuteConfigVo.getExecuteConfig();
             if (executeConfigVo != null && Objects.equals(executeConfigVo.getIsPresetExecuteConfig(), 1)) {
-                userName = getFinalExecuteUser(executeConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
-                if (StringUtils.isNotBlank(userName)) {
+                String userNameTmp = getFinalExecuteUser(executeConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
+                if (StringUtils.isNotBlank(userNameTmp)) {
+                    userName = userNameTmp;
                     jobVo.setUserNameFrom(AutoexecJobPhaseNodeFrom.PHASE.getValue());
                 }
                 if (executeConfigVo.getProtocolId() != null) {

@@ -149,11 +149,12 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
             if (CollectionUtils.isEmpty(jobPhaseVoList)) {
                 throw new AutoexecJobPhaseNotFoundException(jobId, groupSort);
             }
-            AutoexecJobPhaseVo jobPhaseVo = jobPhaseVoList.get(0);
-            //如果全部引用全局，则无需下载
-            if (Objects.equals(jobPhaseVo.getNodeFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())
-                    && Objects.equals(jobPhaseVo.getProtocolFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())
-                    && Objects.equals(jobPhaseVo.getUserNameFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())) {
+            Optional<AutoexecJobPhaseVo> jobPhaseVoOptional = jobPhaseVoList.stream().filter(o -> !Arrays.asList(ExecMode.SQL.getValue(), ExecMode.RUNNER.getValue()).contains(o.getExecMode())).findFirst();
+            //如果需要执行目标的阶段全部引用全局，则无需下载
+            if (!jobPhaseVoOptional.isPresent() || Objects.equals(jobPhaseVoOptional.get().getNodeFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())
+                    && Objects.equals(jobPhaseVoOptional.get().getProtocolFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())
+                    && Objects.equals(jobPhaseVoOptional.get().getUserNameFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())
+            ) {
                 if (response != null) {
                     response.setStatus(204);
                     response.getWriter().print(StringUtils.EMPTY);
