@@ -16,10 +16,10 @@ limitations under the License.
 
 package neatlogic.module.autoexec.job.action.handler;
 
-import neatlogic.framework.asynchronization.threadlocal.TenantContext;
-import neatlogic.framework.asynchronization.threadlocal.UserContext;
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.ExecMode;
 import neatlogic.framework.autoexec.constvalue.JobAction;
+import neatlogic.framework.autoexec.constvalue.JobNodeStatus;
 import neatlogic.framework.autoexec.constvalue.JobPhaseStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
@@ -28,12 +28,8 @@ import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobPhaseRunnerNotFoundException;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import neatlogic.framework.dto.runner.RunnerMapVo;
-import neatlogic.framework.exception.runner.RunnerHttpRequestException;
-import neatlogic.framework.integration.authentication.enums.AuthenticateType;
-import neatlogic.framework.util.HttpRequestUtil;
-import com.alibaba.fastjson.JSONObject;
+import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -49,6 +45,8 @@ import java.util.Objects;
 public class AutoexecJobPhaseIgnoreHandler extends AutoexecJobActionHandlerBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
+    @Resource
+    AutoexecJobService autoexecJobService;
 
     @Override
     public String getName() {
@@ -76,26 +74,10 @@ public class AutoexecJobPhaseIgnoreHandler extends AutoexecJobActionHandlerBase 
             if(CollectionUtils.isEmpty(runnerMapVos)){
                 throw new AutoexecJobPhaseRunnerNotFoundException(jobPhaseVo.getJobId(),jobPhaseVo.getName(),jobPhaseVo.getId());
             }
+            jobVo.setExecuteJobNodeVoList(Collections.singletonList(new AutoexecJobPhaseNodeVo("host",0,0L)));
             autoexecJobMapper.updateJobPhaseRunnerStatus(Collections.singletonList(jobPhaseVo.getId()),runnerMapVos.get(0).getRunnerMapId(),JobPhaseStatus.IGNORED.getValue());
             autoexecJobMapper.updateJobPhaseNodeStatusByJobPhaseIdAndIsDelete(jobPhaseVo.getId(), JobPhaseStatus.IGNORED.getValue(), 0);
-            JSONObject paramJson = new JSONObject();
-            paramJson.put("jobId", jobVo.getId());
-            paramJson.put("tenant", TenantContext.get().getTenantUuid());
-            paramJson.put("execUser", UserContext.get().getUserUuid(true));
-            paramJson.put("phaseName", jobPhaseVo.getName());
-            paramJson.put("execMode", ExecMode.RUNNER.getValue());
-            paramJson.put("phaseNodeList", Collections.singletonList(new AutoexecJobPhaseNodeVo("host",0,0L)));
-            for (RunnerMapVo runner : runnerMapVos) {
-                String url = runner.getUrl() + "api/rest/job/phase/node/status/ignore";
-                HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(5000).setReadTimeout(5000).sendRequest();
-                if (StringUtils.isNotBlank(requestUtil.getError())) {
-                    throw new RunnerHttpRequestException(url + ":" + requestUtil.getError());
-                }
-                JSONObject resultJson = requestUtil.getResultJson();
-                if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                    throw new RunnerHttpRequestException(url + ":" + requestUtil.getError());
-                }
-            }
+            autoexecJobService.updateJobNodeStatus(runnerMapVos, jobVo, JobNodeStatus.IGNORED.getValue());
         }
         return null;
     }
