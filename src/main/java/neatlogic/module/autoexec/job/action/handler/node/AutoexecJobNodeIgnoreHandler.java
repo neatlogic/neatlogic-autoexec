@@ -16,8 +16,7 @@ limitations under the License.
 
 package neatlogic.module.autoexec.job.action.handler.node;
 
-import neatlogic.framework.asynchronization.threadlocal.TenantContext;
-import neatlogic.framework.asynchronization.threadlocal.UserContext;
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.ExecMode;
 import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.constvalue.JobNodeStatus;
@@ -30,11 +29,7 @@ import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandler
 import neatlogic.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
 import neatlogic.framework.deploy.constvalue.JobSourceType;
 import neatlogic.framework.dto.runner.RunnerMapVo;
-import neatlogic.framework.exception.runner.RunnerHttpRequestException;
-import neatlogic.framework.integration.authentication.enums.AuthenticateType;
-import neatlogic.framework.util.HttpRequestUtil;
 import neatlogic.module.autoexec.service.AutoexecJobService;
-import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -100,25 +95,7 @@ public class AutoexecJobNodeIgnoreHandler extends AutoexecJobActionHandlerBase {
             runnerVos.add(new RunnerMapVo(nodeVo.getRunnerUrl(), nodeVo.getRunnerMapId()));
         }
         runnerVos = runnerVos.stream().filter(o -> StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
-        autoexecJobService.checkRunnerHealth(runnerVos);
-        JSONObject paramJson = new JSONObject();
-        paramJson.put("jobId", jobVo.getId());
-        paramJson.put("tenant", TenantContext.get().getTenantUuid());
-        paramJson.put("execUser", UserContext.get().getUserUuid(true));
-        paramJson.put("phaseName", currentPhaseVo.getName());
-        paramJson.put("execMode", currentPhaseVo.getExecMode());
-        paramJson.put("phaseNodeList", jobVo.getExecuteJobNodeVoList());
-        for (RunnerMapVo runner : runnerVos) {
-            String url = runner.getUrl() + "api/rest/job/phase/node/status/ignore";
-            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(5000).setReadTimeout(5000).sendRequest();
-            if (StringUtils.isNotBlank(requestUtil.getError())) {
-                throw new RunnerHttpRequestException(url + ":" + requestUtil.getError());
-            }
-            JSONObject resultJson = requestUtil.getResultJson();
-            if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                throw new RunnerHttpRequestException(url + ":" + requestUtil.getError());
-            }
-        }
+        autoexecJobService.updateJobNodeStatus(runnerVos, jobVo, JobNodeStatus.IGNORED.getValue());
         //更新mysql
         if (Objects.equals(currentPhaseVo.getExecMode(), ExecMode.SQL.getValue())) {
             if (handler != null && CollectionUtils.isNotEmpty(sqlIdList)) {

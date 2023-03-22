@@ -219,4 +219,13 @@ public interface AutoexecJobService {
      */
     void refreshPhaseRunnerList(AutoexecJobPhaseVo jobPhaseVo);
 
+
+    /**
+     * 更新作业节点状态
+     * @param runnerVos 执行器
+     * @param jobVo 作业
+     * @param nodeStatus 目标节点状态
+     */
+    void updateJobNodeStatus(List<RunnerMapVo> runnerVos, AutoexecJobVo jobVo, String nodeStatus);
+
 }

@@ -675,6 +675,14 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 refreshPhaseRunnerStatus(jobPhaseVo);
             }
         }
+        //update runnerPhaseNodeStatus
+        List<AutoexecCombopPhaseVo> combopRunnerPhaseList = configVo.getCombopPhaseList().stream().filter(o -> Objects.equals(ExecMode.RUNNER.getValue(), o.getExecMode())).collect(Collectors.toList());
+        for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopRunnerPhaseList) {
+            Optional<AutoexecJobPhaseVo> jobPhaseVoOptional = jobPhaseVoList.stream().filter(o -> Objects.equals(o.getName(), autoexecCombopPhaseVo.getName())).findFirst();
+            if(jobPhaseVoOptional.isPresent()) {
+                autoexecJobMapper.updateJobPhaseNodeStatusByJobPhaseIdAndIsDelete(jobPhaseVoOptional.get().getId(), JobNodeStatus.PENDING.getValue(), 0);
+            }
+        }
     }
 
     @Override
@@ -1151,7 +1159,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             } else {
                 jobPhaseNodeVo = jobPhaseNodeVoOptional.get();
                 jobPhaseNodeVo.setLcd(jobPhaseVo.getLcd());
-                if(isResetNode){
+                if (isResetNode) {
                     jobPhaseNodeVo.setStatus(JobNodeStatus.PENDING.getValue());
                 }
             }
@@ -1507,6 +1515,31 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             logger.error(ex.getMessage(), ex);
             assert restVo != null;
             throw new RunnerConnectRefusedException(restVo.getUrl() + " " + result);
+        }
+    }
+
+
+    @Override
+    public void updateJobNodeStatus(List<RunnerMapVo> runnerVos, AutoexecJobVo jobVo, String nodeStatus) {
+        checkRunnerHealth(runnerVos);
+        JSONObject paramJson = new JSONObject();
+        paramJson.put("jobId", jobVo.getId());
+        paramJson.put("tenant", TenantContext.get().getTenantUuid());
+        paramJson.put("execUser", UserContext.get().getUserUuid(true));
+        paramJson.put("phaseName", jobVo.getCurrentPhase().getName());
+        paramJson.put("execMode", jobVo.getCurrentPhase().getExecMode());
+        paramJson.put("phaseNodeList", jobVo.getExecuteJobNodeVoList());
+        paramJson.put("nodeStatus", nodeStatus);
+        for (RunnerMapVo runner : runnerVos) {
+            String url = runner.getUrl() + "api/rest/job/phase/node/status/update";
+            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(5000).setReadTimeout(5000).sendRequest();
+            if (StringUtils.isNotBlank(requestUtil.getError())) {
+                throw new RunnerHttpRequestException(url + ":" + requestUtil.getError());
+            }
+            JSONObject resultJson = requestUtil.getResultJson();
+            if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
+                throw new RunnerHttpRequestException(url + ":" + requestUtil.getError());
+            }
         }
     }
 
