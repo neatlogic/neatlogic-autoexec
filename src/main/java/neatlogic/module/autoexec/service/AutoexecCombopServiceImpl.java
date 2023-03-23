@@ -223,7 +223,8 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             //如果阶段存在任意"执行用户"、"协议"、"节点配置"
             AutoexecCombopExecuteConfigVo phaseExecuteConfig = phaseConfig.getExecuteConfig();
             if (phaseExecuteConfig != null) {
-                if (StringUtils.isBlank(phaseExecuteConfig.getExecuteUser())) {
+                ParamMappingVo executeUser = phaseExecuteConfig.getExecuteUser();
+                if (executeUser == null || StringUtils.isBlank((String) executeUser.getValue())) {
                     isNeedExecuteUser = true;
                 }
                 if (phaseExecuteConfig.getProtocolId() == null) {
@@ -287,8 +288,8 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         if (executeConfigVo != null) {
             if (Objects.equals(executeConfigVo.getWhenToSpecify(), CombopNodeSpecify.NOW.getValue())) {
                 if (isExecuteJob) {
-                    String executeUser = executeConfigVo.getExecuteUser();
-                    if (StringUtils.isBlank(executeUser) && isNeedExecuteUser) {
+                    ParamMappingVo executeUser = executeConfigVo.getExecuteUser();
+                    if ((executeUser == null || StringUtils.isBlank((String) executeUser.getValue())) && isNeedExecuteUser) {
                         throw new AutoexecCombopExecuteUserCannotBeEmptyException();
                     }
                     if (executeConfigVo.getProtocolId() == null && isNeedExecuteNodeConfig) {
@@ -346,8 +347,18 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             //如果阶段存在任意"执行用户"、"协议"、"节点配置"
             AutoexecCombopExecuteConfigVo phaseExecuteConfig = phaseConfig.getExecuteConfig();
             if (phaseExecuteConfig != null) {
-                if (StringUtils.isBlank(phaseExecuteConfig.getExecuteUser())) {
+                ParamMappingVo executeUser = phaseExecuteConfig.getExecuteUser();
+                if (executeUser == null || StringUtils.isBlank((String) executeUser.getValue())) {
                     isNeedExecuteUser = true;
+                } else {
+                    if (Objects.equals(executeUser.getMappingMode(), ParamMappingMode.RUNTIME_PARAM.getValue())) {
+                        String key = (String) executeUser.getValue();
+                        if (StringUtils.isNotBlank(key)) {
+                            if (!runtimeParamMap.containsKey(key)) {
+                                throw new AutoexecParamMappingTargetNotFoundException(autoexecCombopPhaseVo.getName(), key);
+                            }
+                        }
+                    }
                 }
                 if (phaseExecuteConfig.getProtocolId() == null) {
                     isNeedProtocol = true;
@@ -406,12 +417,47 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 }
             }
         }
+        List<AutoexecCombopGroupVo> combopGroupList = config.getCombopGroupList();
+        if (CollectionUtils.isNotEmpty(combopGroupList)) {
+            for (AutoexecCombopGroupVo combopGroupVo : combopGroupList) {
+                AutoexecCombopGroupConfigVo combopGroupConfig = combopGroupVo.getConfig();
+                if (combopGroupConfig == null) {
+                    continue;
+                }
+                AutoexecCombopExecuteConfigVo executeConfigVo = combopGroupConfig.getExecuteConfig();
+                if (executeConfigVo == null) {
+                    continue;
+                }
+                ParamMappingVo executeUser = executeConfigVo.getExecuteUser();
+                if (executeUser != null) {
+                    if (Objects.equals(executeUser.getMappingMode(), ParamMappingMode.RUNTIME_PARAM.getValue())) {
+                        String key = (String) executeUser.getValue();
+                        if (StringUtils.isNotBlank(key)) {
+                            if (!runtimeParamMap.containsKey(key)) {
+                                throw new AutoexecParamMappingTargetNotFoundException(combopGroupVo.getSort(), key);
+                            }
+                        }
+                    }
+                }
+            }
+        }
         AutoexecCombopExecuteConfigVo executeConfigVo = config.getExecuteConfig();
         if (executeConfigVo != null) {
+            ParamMappingVo executeUser = executeConfigVo.getExecuteUser();
+            if (executeUser != null) {
+                if (Objects.equals(executeUser.getMappingMode(), ParamMappingMode.RUNTIME_PARAM.getValue())) {
+                    String key = (String) executeUser.getValue();
+                    if (StringUtils.isNotBlank(key)) {
+                        if (!runtimeParamMap.containsKey(key)) {
+                            throw new AutoexecParamMappingTargetNotFoundException(key);
+                        }
+                    }
+                }
+            }
             if (Objects.equals(executeConfigVo.getWhenToSpecify(), CombopNodeSpecify.NOW.getValue())) {
                 if (isExecuteJob) {
-                    String executeUser = executeConfigVo.getExecuteUser();
-                    if (StringUtils.isBlank(executeUser) && isNeedExecuteUser) {
+                    executeUser = executeConfigVo.getExecuteUser();
+                    if ((executeUser == null || StringUtils.isBlank((String) executeUser.getValue())) && isNeedExecuteUser) {
                         throw new AutoexecCombopExecuteUserCannotBeEmptyException();
                     }
                     if (executeConfigVo.getProtocolId() == null && isNeedExecuteNodeConfig) {
@@ -868,8 +914,8 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 }
             }
             if (!needExecuteUser) {
-                String executeUser = executeConfigVo.getExecuteUser();
-                if (StringUtils.isBlank(executeUser)) {
+                ParamMappingVo executeUser = executeConfigVo.getExecuteUser();
+                if (executeUser == null || StringUtils.isBlank((String) executeUser.getValue())) {
                     needExecuteUser = true;
                 }
             }
@@ -935,8 +981,8 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 }
             }
             if (!needExecuteUser) {
-                String executeUser = executeConfigVo.getExecuteUser();
-                if (StringUtils.isBlank(executeUser)) {
+                ParamMappingVo executeUser = executeConfigVo.getExecuteUser();
+                if (executeUser == null || StringUtils.isBlank((String) executeUser.getValue())) {
                     needExecuteUser = true;
                 }
             }

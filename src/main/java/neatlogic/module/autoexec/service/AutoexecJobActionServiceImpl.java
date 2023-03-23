@@ -391,7 +391,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             if (autoexecJobParam.getExecuteConfig().getProtocolId() != null) {
                 combopExecuteConfigVo.setProtocolId(autoexecJobParam.getExecuteConfig().getProtocolId());
             }
-            if (StringUtils.isNotBlank(autoexecJobParam.getExecuteConfig().getExecuteUser())) {
+            if (autoexecJobParam.getExecuteConfig().getExecuteUser() != null) {
                 combopExecuteConfigVo.setExecuteUser(autoexecJobParam.getExecuteConfig().getExecuteUser());
             }
             if (autoexecJobParam.getExecuteConfig().getExecuteNodeConfig() != null && !autoexecJobParam.getExecuteConfig().getExecuteNodeConfig().isNull()) {

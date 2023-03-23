@@ -101,7 +101,7 @@ public class CreateAutoexecJobFromOperationApi extends PrivateApiComponentBase {
         }
         jsonObj.put("source", JobSource.TEST.getValue());
         AutoexecJobVo jobVo = JSONObject.toJavaObject(jsonObj, AutoexecJobVo.class);
-        jobVo.setRunTimeParamList(combopVo.getRuntimeParamList() == null ? new ArrayList<>() : combopVo.getRuntimeParamList());
+        jobVo.setRunTimeParamList(combopVo.getConfig().getRuntimeParamList() == null ? new ArrayList<>() : combopVo.getConfig().getRuntimeParamList());
         jobVo.setOperationType(jsonObj.getString("type"));
         jobVo.setIsFirstFire(1);
         jobVo.setAction(JobAction.FIRE.getValue());
@@ -171,8 +171,8 @@ public class CreateAutoexecJobFromOperationApi extends PrivateApiComponentBase {
         combopVo.setName("TEST_" + phaseOperationParam.getName());
         combopVo.setId(phaseOperationParam.getOperationId());
         combopVo.setOperationType(phaseOperationParam.getOperationType());
-        combopVo.setRuntimeParamList(phaseOperationParam.getInputParamList());
         combopVo.setConfig(new AutoexecCombopConfigVo());
+        combopVo.getConfig().setRuntimeParamList(phaseOperationParam.getInputParamList());
         combopVo.getConfig().setCombopPhaseList(Collections.singletonList(autoexecCombopPhaseVo));
         combopVo.getConfig().setCombopGroupList(Collections.singletonList(combopGroupVo));
         return combopVo;

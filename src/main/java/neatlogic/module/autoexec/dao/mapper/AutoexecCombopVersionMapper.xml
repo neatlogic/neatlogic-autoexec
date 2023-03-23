@@ -166,6 +166,19 @@ limitations under the License.
           AND `status` = #{status}
     </select>
 
+    <select id="getAutoexecCombopVersionCountForUpdateConfig" resultType="int">
+        SELECT COUNT(1) FROM `autoexec_combop_version`
+    </select>
+
+    <select id="getAutoexecCombopVersionListForUpdateConfig" parameterType="neatlogic.framework.common.dto.BasePageVo" resultType="java.util.HashMap">
+        SELECT
+            `id`,
+            `name`,
+            `config`
+        FROM `autoexec_combop_version`
+        LIMIT #{startNum}, #{pageSize}
+    </select>
+
     <insert id="insertAutoexecCombopVersion" parameterType="neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo">
         INSERT INTO `autoexec_combop_version` (`id`,
                                                `name`,
@@ -216,6 +229,10 @@ limitations under the License.
 
     <update id="enableAutoexecCombopVersionById" parameterType="java.lang.Long">
         UPDATE `autoexec_combop_version` SET `is_active` = 1 WHERE `id` = #{value}
+    </update>
+
+    <update id="updateAutoexecCombopVersionConfigById" parameterType="java.util.Map">
+        UPDATE `autoexec_combop_version` SET `config` = #{configStr} WHERE `id` = #{id}
     </update>
 
     <delete id="deleteAutoexecCombopVersionByCombopId" parameterType="java.lang.Long">
