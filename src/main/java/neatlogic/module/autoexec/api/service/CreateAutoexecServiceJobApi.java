@@ -161,13 +161,14 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
         if (scenarioId != null) {
             autoexecJobVo.setScenarioId(scenarioId);
         }
-        Map<Long, AutoexecCombopGroupVo> groupMap = versionConfigVo.getCombopGroupList().stream().collect(Collectors.toMap(e -> e.getId(), e -> e));
-        List<AutoexecCombopPhaseVo> combopPhaseList = versionConfigVo.getCombopPhaseList();
-        if (CollectionUtils.isNotEmpty(combopPhaseList)) {
-            for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseList) {
-                autoexecCombopService.needExecuteConfig(autoexecCombopVersionVo, combopPhaseVo, groupMap.get(combopPhaseVo.getGroupId()));
-            }
-        }
+//        Map<Long, AutoexecCombopGroupVo> groupMap = versionConfigVo.getCombopGroupList().stream().collect(Collectors.toMap(e -> e.getId(), e -> e));
+//        List<AutoexecCombopPhaseVo> combopPhaseList = versionConfigVo.getCombopPhaseList();
+//        if (CollectionUtils.isNotEmpty(combopPhaseList)) {
+//            for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseList) {
+//                autoexecCombopService.needExecuteConfig(autoexecCombopVersionVo, combopPhaseVo, groupMap.get(combopPhaseVo.getGroupId()));
+//            }
+//        }
+        autoexecCombopService.needExecuteConfig(autoexecCombopVersionVo);
         boolean needExecuteUser = autoexecCombopVersionVo.getNeedExecuteUser();
         boolean needExecuteNode = autoexecCombopVersionVo.getNeedExecuteNode();
         boolean needProtocol = autoexecCombopVersionVo.getNeedProtocol();

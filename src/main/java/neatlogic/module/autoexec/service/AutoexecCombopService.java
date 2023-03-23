@@ -101,6 +101,12 @@ public interface AutoexecCombopService {
      * @param autoexecCombopGroupVo 组信息
      */
     void needExecuteConfig(AutoexecCombopVersionVo autoexecCombopVersionVo, AutoexecCombopPhaseVo autoexecCombopPhaseVo, AutoexecCombopGroupVo autoexecCombopGroupVo);
+    /**
+     * 判断是否需要设置执行目标、执行用户、连接协议、分批数量
+     *
+     * @param autoexecCombopVersionVo      组合工具版本信息
+     */
+    void needExecuteConfig(AutoexecCombopVersionVo autoexecCombopVersionVo);
 
     /**
      * 保存组合工具配置信息

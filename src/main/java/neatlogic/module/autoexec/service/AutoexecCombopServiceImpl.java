@@ -967,6 +967,21 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         autoexecCombopVersionVo.setNeedRoundCount(needRoundCount);
     }
 
+    @Override
+    public void needExecuteConfig(AutoexecCombopVersionVo autoexecCombopVersionVo) {
+        Map<Long, AutoexecCombopGroupVo> groupMap = new HashMap<>();
+        AutoexecCombopVersionConfigVo versionConfig = autoexecCombopVersionVo.getConfig();
+        List<AutoexecCombopGroupVo> combopGroupList = versionConfig.getCombopGroupList();
+        if (CollectionUtils.isNotEmpty(combopGroupList)) {
+            groupMap = versionConfig.getCombopGroupList().stream().collect(Collectors.toMap(e -> e.getId(), e -> e));
+        }
+        List<AutoexecCombopPhaseVo> combopPhaseList = versionConfig.getCombopPhaseList();
+        if (CollectionUtils.isNotEmpty(combopPhaseList)) {
+            for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseList) {
+                needExecuteConfig(autoexecCombopVersionVo, combopPhaseVo, groupMap.get(combopPhaseVo.getGroupId()));
+            }
+        }
+    }
     @Deprecated
     @Override
     public void saveAutoexecCombopConfig(AutoexecCombopVo autoexecCombopVo, boolean isCopy) {
