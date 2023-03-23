@@ -30,7 +30,10 @@ import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
 import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.common.util.FileUtil;
 import neatlogic.framework.exception.type.ParamIrregularException;
+import neatlogic.framework.file.dao.mapper.FileMapper;
+import neatlogic.framework.file.dto.FileVo;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
@@ -44,6 +47,7 @@ import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.math.BigDecimal;
@@ -68,6 +72,9 @@ public class GetAutoexecJobPhaseOperationScriptBinaryForAutoexecApi extends Priv
 
     @Resource
     private AutoexecCatalogMapper autoexecCatalogMapper;
+
+    @Resource
+    private FileMapper fileMapper;
 
     @Override
     public String getToken() {
@@ -109,7 +116,7 @@ public class GetAutoexecJobPhaseOperationScriptBinaryForAutoexecApi extends Priv
         }
         AutoexecScriptVo scriptVo = null;
         AutoexecScriptVersionVo scriptVersionVo = null;
-        if (StringUtils.isNotBlank(operationId) && !Objects.equals(operationId,"None")) {
+        if (StringUtils.isNotBlank(operationId) && !Objects.equals(operationId, "None")) {
             Long opId = Long.valueOf(operationId.substring(operationId.lastIndexOf("_") + 1));
             AutoexecJobPhaseOperationVo jobPhaseOperationVo = autoexecJobMapper.getJobPhaseOperationByOperationId(opId);
             if (jobPhaseOperationVo == null) {
@@ -169,31 +176,42 @@ public class GetAutoexecJobPhaseOperationScriptBinaryForAutoexecApi extends Priv
             response.setHeader("ScriptName", scriptVo.getName());
             response.setHeader("ScriptVersionId", scriptVersionVo.getId().toString());
             response.setHeader("ScriptInterpreter", scriptVersionVo.getParser());
-            response.setHeader("ScriptIsLib", CollectionUtils.isEmpty(libScriptIdList)?"0":"1");
+            response.setHeader("ScriptIsLib", CollectionUtils.isEmpty(libScriptIdList) ? "0" : "1");
             response.setHeader("ScriptUseLibs", scriptVersionVo.getUseLib().toString());
             if (lastModified != null && lastModified.multiply(new BigDecimal("1000")).longValue() >= scriptVersionVo.getLcd().getTime()) {
                 response.setStatus(205);
                 response.getWriter().print(StringUtils.EMPTY);
             } else {
                 //获取脚本内容
-                String script = autoexecCombopService.getScriptVersionContent(scriptVersionVo);
-                if(acceptStream) {
+                if (acceptStream || scriptVersionVo.getPackageFileId() != null) {
+                    InputStream in;
+                    if (scriptVersionVo.getPackageFileId() != null) {
+                        FileVo fileVo = fileMapper.getFileById(scriptVersionVo.getPackageFileId());
+                        if (fileVo == null) {
+                            throw new FileNotFoundException(scriptVersionVo.getPackageFileId().toString());
+                        }
+                        in = FileUtil.getData(fileVo.getPath());
+                    } else {
+                        String script = autoexecCombopService.getScriptVersionContent(scriptVersionVo);
+                        in = IOUtils.toInputStream(script, StandardCharsets.UTF_8);
+                    }
                     response.setContentType("application/octet-stream");
                     response.setHeader("Content-Disposition", " attachment; filename=\"" + neatlogic.framework.util.FileUtil.getEncodedFileName(scriptVo.getName()) + "\"");
-                    InputStream in = IOUtils.toInputStream(script, StandardCharsets.UTF_8);
+
                     OutputStream os = response.getOutputStream();
                     IOUtils.copyLarge(in, os);
                     os.flush();
                     os.close();
                     in.close();
-                }else{
+                } else {
+                    String script = autoexecCombopService.getScriptVersionContent(scriptVersionVo);
                     result.put("script", script);
                     result.put("scriptCatalog", scriptCatalog);
                     result.put("scriptId", scriptVersionVo.getScriptId());
                     result.put("scriptName", scriptVo.getName());
                     result.put("scriptVersionId", scriptVersionVo.getId());
                     result.put("scriptInterpreter", scriptVersionVo.getParser());
-                    result.put("scriptIsLib", CollectionUtils.isEmpty(libScriptIdList)?"0":"1");
+                    result.put("scriptIsLib", CollectionUtils.isEmpty(libScriptIdList) ? "0" : "1");
                     result.put("scriptUseLibs", scriptVersionVo.getUseLib());
                 }
             }
