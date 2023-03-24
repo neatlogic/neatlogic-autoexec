@@ -25,14 +25,14 @@ import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
 import neatlogic.framework.autoexec.dto.combop.ParamMappingVo;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceConfigVo;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceVo;
-import neatlogic.framework.autoexec.exception.AutoexecCombopActiveVersionNotFoundException;
-import neatlogic.framework.autoexec.exception.AutoexecCombopNotFoundException;
+import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.form.constvalue.FormHandler;
 import neatlogic.framework.form.dao.mapper.FormMapper;
 import neatlogic.framework.form.dto.FormAttributeVo;
 import neatlogic.framework.form.dto.FormVersionVo;
 import neatlogic.framework.form.dto.FormVo;
 import neatlogic.framework.form.exception.FormActiveVersionNotFoundExcepiton;
+import neatlogic.framework.form.exception.FormAttributeNotFoundException;
 import neatlogic.framework.form.exception.FormNotFoundException;
 import neatlogic.framework.util.I18nUtils;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
@@ -62,81 +62,6 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
 
     @Override
     public String checkConfigExpired(AutoexecServiceVo serviceVo, boolean throwException) {
-//        AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(serviceVo.getCombopId());
-//        if (autoexecCombopVo == null) {
-//            return I18nUtils.getMessage("exception.autoexec.autoexeccombopnotfoundexception", serviceVo.getCombopId());
-//        }
-//        AutoexecCombopVersionVo versionVo = autoexecCombopVersionMapper.getAutoexecCombopActiveVersionByCombopId(serviceVo.getCombopId());
-//        if (versionVo == null) {
-//            return I18nUtils.getMessage("exception.autoexec.autoexeccombopactiveversionnotfoundexception", autoexecCombopVo.getName());
-//        }
-//        autoexecCombopService.needExecuteConfig(versionVo);
-//        AutoexecCombopVersionConfigVo versionConfigVo = versionVo.getConfig();
-//        List<AutoexecParamVo> runtimeParamList = versionConfigVo.getRuntimeParamList();
-//        Map<String, AutoexecParamVo> runtimeParamMap = runtimeParamList.stream().collect(Collectors.toMap(e -> e.getKey(), e -> e));
-//
-//        List<String> list = new ArrayList<>();
-//        AutoexecServiceConfigVo serviceConfigVo = serviceVo.getConfig();
-//        Long scenarioId = serviceConfigVo.getScenarioId();
-//        if (CollectionUtils.isNotEmpty(versionConfigVo.getScenarioList()) && scenarioId == null) {
-//            list.add("场景未设置");
-//        }
-//        ParamMappingVo roundCountMappingVo = serviceConfigVo.getRoundCount();
-//        if (versionVo.getNeedRoundCount()) {
-//            if (roundCountMappingVo == null) {
-//                list.add("分批数量未设置");
-//            } else {
-//                String mappingMode = roundCountMappingVo.getMappingMode();
-//                if (Objects.equals(mappingMode, ServiceParamMappingMode.CONSTANT.getValue())) {
-//
-//                } else if (Objects.equals(mappingMode, ServiceParamMappingMode.IS_EMPTY.getValue())) {
-//
-//                } else if (Objects.equals(mappingMode, ServiceParamMappingMode.FORMATTR.getValue())) {
-//
-//                } else if (Objects.equals(mappingMode, ServiceParamMappingMode.NOT_SET_UP.getValue())) {
-//
-//                }
-//            }
-//        }
-//        ParamMappingVo protocolMappingVo = serviceConfigVo.getProtocol();
-//        if (versionVo.getNeedProtocol()) {
-//            if (protocolMappingVo == null) {
-//                list.add("连接协议未设置");
-//            }
-//        }
-//        ParamMappingVo executeUserMappingVo = serviceConfigVo.getExecuteUser();
-//        if (versionVo.getNeedExecuteUser()) {
-//            if (executeUserMappingVo == null) {
-//                list.add("执行用户未设置");
-//            }
-//        }
-//        ParamMappingVo executeNodeParamMappingVo = serviceConfigVo.getExecuteNodeConfig();
-//        if (versionVo.getNeedExecuteNode()) {
-//            if (executeNodeParamMappingVo == null) {
-//                list.add("执行目标未设置");
-//            }
-//        }
-//        List<ParamMappingVo> runtimeParamMappingList = serviceConfigVo.getRuntimeParamList();
-//        for (ParamMappingVo runtimeParamMapping : runtimeParamMappingList) {
-//            String key = runtimeParamMapping.getKey();
-//            AutoexecParamVo runtimeParamVo = runtimeParamMap.remove(key);
-//            if (runtimeParamVo == null) {
-//                list.add("作业参数“" + runtimeParamMapping.getName() + "(" + key + ")“不存在");
-//                continue;
-//            }
-//            if (!Objects.equals(runtimeParamMapping.getType(), runtimeParamVo.getType())) {
-//                list.add("作业参数“" + runtimeParamMapping.getName() + "(" + key + ")“类型发生变化，由“" + runtimeParamMapping.getType() + "”变成“" + runtimeParamVo.getType() + "”");
-//            }
-//        }
-//        if (MapUtils.isNotEmpty(runtimeParamMap)) {
-//            for (Map.Entry<String, AutoexecParamVo> entry : runtimeParamMap.entrySet()) {
-//                AutoexecParamVo runtimeParamVo = entry.getValue();
-//                list.add("作业参数“" + runtimeParamVo.getName() + "(" + runtimeParamVo.getKey() + ")“未映射");
-//            }
-//        }
-//        if (CollectionUtils.isNotEmpty(list)) {
-//            return String.join("；", list);
-//        }
         Map<String, FormAttributeVo> formAttributeMap = new HashMap<>();
         String formName = "";
         String formUuid = serviceVo.getFormUuid();
@@ -146,7 +71,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 if (throwException) {
                     throw new FormNotFoundException(formUuid);
                 } else {
-
+                    return I18nUtils.getMessage("exception.framework.formnotfoundexception", formUuid);
                 }
             }
             FormVersionVo formVersionVo = formMapper.getActionFormVersionByFormUuid(formUuid);
@@ -154,7 +79,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 if (throwException) {
                     throw new FormActiveVersionNotFoundExcepiton(formVo.getName());
                 } else {
-
+                    return I18nUtils.getMessage("exception.framework.formactiveversionnotfoundexcepiton", formVo.getName());
                 }
             }
             List<FormAttributeVo> formAttributeList = formVersionVo.getFormAttributeList();
@@ -167,7 +92,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
             if (throwException) {
                 throw new AutoexecCombopNotFoundException(serviceVo.getCombopId());
             } else {
-
+                return I18nUtils.getMessage("exception.autoexec.autoexeccombopnotfoundexception", serviceVo.getCombopId());
             }
         }
         AutoexecCombopVersionVo versionVo = autoexecCombopVersionMapper.getAutoexecCombopActiveVersionByCombopId(serviceVo.getCombopId());
@@ -175,7 +100,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
             if (throwException) {
                 throw new AutoexecCombopActiveVersionNotFoundException(autoexecCombopVo.getName());
             } else {
-
+                return I18nUtils.getMessage("exception.autoexec.autoexeccombopactiveversionnotfoundexception", autoexecCombopVo.getName());
             }
         }
         autoexecCombopService.needExecuteConfig(versionVo);
@@ -185,18 +110,18 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
         Long scenarioId = serviceConfigVo.getScenarioId();
         if (CollectionUtils.isNotEmpty(versionConfigVo.getScenarioList()) && scenarioId == null) {
             if (throwException) {
-
+                throw new AutoexecScenarioIsRequiredException();
             } else {
-                list.add("场景未设置");
+                list.add(I18nUtils.getMessage("exception.autoexec.autoexecscenarioisrequiredexception"));
             }
         }
         ParamMappingVo roundCountMappingVo = serviceConfigVo.getRoundCount();
         if (versionVo.getNeedRoundCount()) {
             if (roundCountMappingVo == null) {
                 if (throwException) {
-
+                    throw new AutoexecRoundCountIsRequiredException();
                 } else {
-                    list.add("分批数量未设置");
+                    list.add(I18nUtils.getMessage("exception.autoexec.autoexecroundcountisrequiredexception"));
                 }
             } else {
                 Object value = roundCountMappingVo.getValue();
@@ -204,31 +129,31 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 if (Objects.equals(mappingMode, ServiceParamMappingMode.CONSTANT.getValue())) {
                     if (value == null) {
                         if (throwException) {
-
+                            throw new AutoexecRoundCountIsRequiredException();
                         } else {
-                            list.add("分批数量未设置");
+                            list.add(I18nUtils.getMessage("exception.autoexec.autoexecroundcountisrequiredexception"));
                         }
                     }
                 } else if (Objects.equals(mappingMode, ServiceParamMappingMode.FORMATTR.getValue())) {
                     if (StringUtils.isBlank(formUuid)) {
                         if (throwException) {
-
+                            throw new AutoexecServiceNotReferencedFormException();
                         } else {
-                            list.add("未引用表单，不能映射表单属性");
+                            list.add(I18nUtils.getMessage("exception.autoexec.autoexecservicenotreferencedformexception"));
                         }
                     } else if (StringUtils.isBlank((String) value)) {
                         if (throwException) {
-
+                            throw new AutoexecRoundCountIsRequiredException();
                         } else {
-                            list.add("分批数量未设置");
+                            list.add(I18nUtils.getMessage("exception.autoexec.autoexecroundcountisrequiredexception"));
                         }
                     } else {
                         FormAttributeVo formAttributeVo = formAttributeMap.get((String) value);
                         if (formAttributeVo == null) {
                             if (throwException) {
-
+                                throw new FormAttributeNotFoundException(formName, (String) value);
                             } else {
-                                list.add("分批数量设置错误，表单”" + formName + "“中没有找不到“" + value + "”属性");
+                                list.add(I18nUtils.getMessage("exception.framework.formattributenotfoundexception.1", formName, value));
                             }
                         } else if (!Objects.equals(formAttributeVo.getHandler(), FormHandler.FORMNUMBER.getHandler())) {
                             if (throwException) {
@@ -245,9 +170,9 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
         if (versionVo.getNeedProtocol()) {
             if (protocolMappingVo == null) {
                 if (throwException) {
-
+                    throw new AutoexecProtocolIsRequiredException();
                 } else {
-                    list.add("连接协议未设置");
+                    list.add(I18nUtils.getMessage("exception.autoexec.autoexecprotocolisrequiredexception"));
                 }
             } else {
                 Object value = roundCountMappingVo.getValue();
@@ -255,31 +180,31 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 if (Objects.equals(mappingMode, ServiceParamMappingMode.CONSTANT.getValue())) {
                     if (value == null) {
                         if (throwException) {
-
+                            throw new AutoexecProtocolIsRequiredException();
                         } else {
-                            list.add("连接协议未设置");
+                            list.add(I18nUtils.getMessage("exception.autoexec.autoexecprotocolisrequiredexception"));
                         }
                     }
                 } else if (Objects.equals(mappingMode, ServiceParamMappingMode.FORMATTR.getValue())) {
                     if (StringUtils.isBlank(formUuid)) {
                         if (throwException) {
-
+                            throw new AutoexecServiceNotReferencedFormException();
                         } else {
-                            list.add("未引用表单，不能映射表单属性");
+                            list.add(I18nUtils.getMessage("exception.autoexec.autoexecservicenotreferencedformexception"));
                         }
                     } else if (StringUtils.isBlank((String) value)) {
                         if (throwException) {
-
+                            throw new AutoexecProtocolIsRequiredException();
                         } else {
-                            list.add("连接协议未设置");
+                            list.add(I18nUtils.getMessage("exception.autoexec.autoexecprotocolisrequiredexception"));
                         }
                     } else {
                         FormAttributeVo formAttributeVo = formAttributeMap.get((String) value);
                         if (formAttributeVo == null) {
                             if (throwException) {
-
+                                throw new FormAttributeNotFoundException(formName, (String) value);
                             } else {
-                                list.add("连接协议设置错误，表单”" + formName + "“中没有找不到“" + value + "”属性");
+                                list.add(I18nUtils.getMessage("exception.framework.formattributenotfoundexception.1", formName, value));
                             }
                         } else if (!Objects.equals(formAttributeVo.getHandler(), neatlogic.framework.cmdb.enums.FormHandler.FORMPROTOCOL.getHandler())) {
                             if (throwException) {
@@ -296,9 +221,9 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
         if (versionVo.getNeedExecuteUser()) {
             if (executeUserMappingVo == null) {
                 if (throwException) {
-
+                    throw new AutoexecExecuteUserIsRequiredException();
                 } else {
-                    list.add("执行用户未设置");
+                    list.add(I18nUtils.getMessage("exception.autoexec.autoexecexecuteuserisrequiredexception"));
                 }
             } else {
                 Object value = roundCountMappingVo.getValue();
@@ -306,31 +231,31 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 if (Objects.equals(mappingMode, ServiceParamMappingMode.CONSTANT.getValue())) {
                     if (value == null) {
                         if (throwException) {
-
+                            throw new AutoexecExecuteUserIsRequiredException();
                         } else {
-                            list.add("执行用户未设置");
+                            list.add(I18nUtils.getMessage("exception.autoexec.autoexecexecuteuserisrequiredexception"));
                         }
                     }
                 } else if (Objects.equals(mappingMode, ServiceParamMappingMode.FORMATTR.getValue())) {
                     if (StringUtils.isBlank(formUuid)) {
                         if (throwException) {
-
+                            throw new AutoexecServiceNotReferencedFormException();
                         } else {
-                            list.add("未引用表单，不能映射表单属性");
+                            list.add(I18nUtils.getMessage("exception.autoexec.autoexecservicenotreferencedformexception"));
                         }
                     } else if (StringUtils.isBlank((String) value)) {
                         if (throwException) {
-
+                            throw new AutoexecExecuteUserIsRequiredException();
                         } else {
-                            list.add("执行用户未设置");
+                            list.add(I18nUtils.getMessage("exception.autoexec.autoexecexecuteuserisrequiredexception"));
                         }
                     } else {
                         FormAttributeVo formAttributeVo = formAttributeMap.get((String) value);
                         if (formAttributeVo == null) {
                             if (throwException) {
-
+                                throw new FormAttributeNotFoundException(formName, (String) value);
                             } else {
-                                list.add("执行用户设置错误，表单”" + formName + "“中没有找不到“" + value + "”属性");
+                                list.add(I18nUtils.getMessage("exception.framework.formattributenotfoundexception.1", formName, value));
                             }
                         } else if (!Objects.equals(formAttributeVo.getHandler(), FormHandler.FORMNUMBER.getHandler())) {
                             if (throwException) {
@@ -347,9 +272,9 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
         if (versionVo.getNeedExecuteNode()) {
             if (executeNodeParamMappingVo == null) {
                 if (throwException) {
-
+                    throw new AutoexecExecuteNodeIsRequiredException();
                 } else {
-                    list.add("执行目标未设置");
+                    list.add(I18nUtils.getMessage("exception.autoexec.autoexecexecutenodeisrequiredexception"));
                 }
             } else {
                 Object value = roundCountMappingVo.getValue();
@@ -357,31 +282,31 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 if (Objects.equals(mappingMode, ServiceParamMappingMode.CONSTANT.getValue())) {
                     if (value == null) {
                         if (throwException) {
-
+                            throw new AutoexecExecuteNodeIsRequiredException();
                         } else {
-                            list.add("执行目标未设置");
+                            list.add(I18nUtils.getMessage("exception.autoexec.autoexecexecutenodeisrequiredexception"));
                         }
                     }
                 } else if (Objects.equals(mappingMode, ServiceParamMappingMode.FORMATTR.getValue())) {
                     if (StringUtils.isBlank(formUuid)) {
                         if (throwException) {
-
+                            throw new AutoexecServiceNotReferencedFormException();
                         } else {
-                            list.add("未引用表单，不能映射表单属性");
+                            list.add(I18nUtils.getMessage("exception.autoexec.autoexecservicenotreferencedformexception"));
                         }
                     } else if (StringUtils.isBlank((String) value)) {
                         if (throwException) {
-
+                            throw new AutoexecExecuteNodeIsRequiredException();
                         } else {
-                            list.add("执行目标未设置");
+                            list.add(I18nUtils.getMessage("exception.autoexec.autoexecexecutenodeisrequiredexception"));
                         }
                     } else {
                         FormAttributeVo formAttributeVo = formAttributeMap.get((String) value);
                         if (formAttributeVo == null) {
                             if (throwException) {
-
+                                throw new FormAttributeNotFoundException(formName, (String) value);
                             } else {
-                                list.add("执行目标设置错误，表单”" + formName + "“中没有找不到“" + value + "”属性");
+                                list.add(I18nUtils.getMessage("exception.framework.formattributenotfoundexception.1", formName, value));
                             }
                         } else if (!Objects.equals(formAttributeVo.getHandler(), neatlogic.framework.cmdb.enums.FormHandler.FORMRESOURECES.getHandler())) {
                             if (throwException) {
@@ -408,46 +333,52 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 Object value = runtimeParamMapping.getValue();
                 String mappingMode = runtimeParamMapping.getMappingMode();
                 AutoexecParamVo runtimeParamVo = runtimeParamMap.remove(key);
+                if (runtimeParamVo != null) {
+                    name = runtimeParamVo.getName();
+                }
+                if (name == null) {
+                    name = "";
+                }
                 if (runtimeParamVo == null) {
                     if (throwException) {
-
+                        throw new AutoexecJobParamNotFoundException(autoexecCombopVo.getName(), name + "(" + key + ")");
                     } else {
-                        list.add("作业参数“" + runtimeParamMapping.getName() + "(" + key + ")“不存在");
+                        list.add(I18nUtils.getMessage("exception.autoexec.autoexecjobparamnotfoundexception", autoexecCombopVo.getName(), name + "(" + key + ")"));
                     }
                 } else if (!Objects.equals(runtimeParamMapping.getType(), runtimeParamVo.getType())) {
                     if (throwException) {
-
+                        throw new AutoexecJobParamTypeChangedException(autoexecCombopVo.getName(), name + "(" + key + ")", runtimeParamMapping.getType(), runtimeParamVo.getType());
                     } else {
-                        list.add("作业参数“" + runtimeParamMapping.getName() + "(" + key + ")“类型发生变化，由“" + runtimeParamMapping.getType() + "”变成“" + runtimeParamVo.getType() + "”");
+                        list.add(I18nUtils.getMessage("exception.autoexec.autoexecjobparamtypechangedexception", autoexecCombopVo.getName(), name + "(" + key + ")", runtimeParamMapping.getType(), runtimeParamVo.getType()));
                     }
                 } else if (Objects.equals(mappingMode, ServiceParamMappingMode.CONSTANT.getValue())) {
                     if (value == null) {
                         if (throwException) {
-
+                            throw new AutoexecJobParamIsRequiredException(autoexecCombopVo.getName(), name + "(" + key + ")");
                         } else {
-                            list.add("作业参数”" + name + "(" + key + ")“未设置");
+                            list.add(I18nUtils.getMessage("exception.autoexec.autoexecjobparamisrequiredexception", autoexecCombopVo.getName(), name + "(" + key + ")"));
                         }
                     }
                 } else if (Objects.equals(mappingMode, ServiceParamMappingMode.FORMATTR.getValue())) {
                     if (StringUtils.isBlank(formUuid)) {
                         if (throwException) {
-
+                            throw new AutoexecServiceNotReferencedFormException();
                         } else {
-                            list.add("未引用表单，不能映射表单属性");
+                            list.add(I18nUtils.getMessage("exception.autoexec.autoexecservicenotreferencedformexception"));
                         }
                     } else if (StringUtils.isBlank((String) value)) {
                         if (throwException) {
-
+                            throw new AutoexecJobParamIsRequiredException(autoexecCombopVo.getName(), name + "(" + key + ")");
                         } else {
-                            list.add("作业参数”" + name + "(" + key + ")“未设置");
+                            list.add(I18nUtils.getMessage("exception.autoexec.autoexecjobparamisrequiredexception", autoexecCombopVo.getName(), name + "(" + key + ")"));
                         }
                     } else {
                         FormAttributeVo formAttributeVo = formAttributeMap.get((String) value);
                         if (formAttributeVo == null) {
                             if (throwException) {
-
+                                throw new FormAttributeNotFoundException(formName, (String) value);
                             } else {
-                                list.add("作业参数”" + name + "(" + key + ")“设置错误，表单”" + formName + "“中没有找不到“" + value + "”属性");
+                                list.add(I18nUtils.getMessage("exception.framework.formattributenotfoundexception.1", formName, value));
                             }
                         }
                     }
@@ -456,38 +387,21 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 } else if (Objects.equals(mappingMode, ServiceParamMappingMode.NOT_SET_UP.getValue())) {
                     if (StringUtils.isNotBlank(formUuid)) {
                         if (throwException) {
-
+                            throw new AutoexecJobParamIsRequiredException(autoexecCombopVo.getName(), name + "(" + key + ")");
                         } else {
-                            list.add("已引用表单，作业参数”" + name + "(" + key + ")“不能不设置");
+                            list.add(I18nUtils.getMessage("exception.autoexec.autoexecjobparamisrequiredexception", autoexecCombopVo.getName(), name + "(" + key + ")"));
                         }
                     }
                 }
-//                if (StringUtils.isNotBlank(formUuid)) {
-//                    if (Objects.equals(mappingMode, ServiceParamMappingMode.CONSTANT.getValue())) {
-//                        if (value == null) {
-//                            throw new AutoexecParamMappingNotMappedException(name + "(" + key + ")");
-//                        }
-//                    } else if (Objects.equals(mappingMode, ServiceParamMappingMode.FORMATTR.getValue())) {
-//                        if (value == null) {
-//                            throw new AutoexecParamMappingNotMappedException(name + "(" + key + ")");
-//                        }
-//                    }
-//                } else {
-//                    if (Objects.equals(mappingMode, ServiceParamMappingMode.CONSTANT.getValue())) {
-//                        if (value == null) {
-//                            throw new AutoexecParamMappingNotMappedException(name + "(" + key + ")");
-//                        }
-//                    }
-//                }
             }
         }
         if (MapUtils.isNotEmpty(runtimeParamMap)) {
             for (Map.Entry<String, AutoexecParamVo> entry : runtimeParamMap.entrySet()) {
                 AutoexecParamVo runtimeParamVo = entry.getValue();
                 if (throwException) {
-
+                    throw new AutoexecJobParamIsRequiredException(autoexecCombopVo.getName(), runtimeParamVo.getName() + "(" + runtimeParamVo.getKey() + ")");
                 } else {
-                    list.add("作业参数“" + runtimeParamVo.getName() + "(" + runtimeParamVo.getKey() + ")“未映射");
+                    list.add(I18nUtils.getMessage("exception.autoexec.autoexecjobparamisrequiredexception", autoexecCombopVo.getName(), runtimeParamVo.getName() + "(" + runtimeParamVo.getKey() + ")"));
                 }
             }
         }
