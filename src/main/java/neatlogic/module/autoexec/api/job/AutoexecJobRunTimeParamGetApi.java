@@ -16,8 +16,11 @@ limitations under the License.
 
 package neatlogic.module.autoexec.api.job;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
+import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobContentVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
@@ -27,10 +30,6 @@ import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -94,8 +93,6 @@ public class AutoexecJobRunTimeParamGetApi extends PrivateApiComponentBase {
             }
             result.put("runTimeParamList", runTimeParam);
         }
-        //TODO 环境变量
-        result.put("environmentList", CollectionUtils.EMPTY_COLLECTION);
         return result;
     }
 

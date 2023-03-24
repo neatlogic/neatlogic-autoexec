@@ -123,17 +123,17 @@ public class InformAutoexecJobPhaseRoundEndApi extends PrivateApiComponentBase {
 
     /**
      * @param jobGroup 作业组
-     * @param phaseVo      阶段
-     * @param roundNo      round号
+     * @param phaseVo  阶段
+     * @param roundNo  round号
      */
     private boolean isJobPhaseRoundNodeAllCompleted(AutoexecJobGroupVo jobGroup, AutoexecJobPhaseVo phaseVo, Integer roundNo) {
         List<Integer> roundCountList = new ArrayList<>();
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(phaseVo.getJobId());
         Integer roundCount = jobVo.getRoundCount();
-        if(jobGroup.getRoundCount() != null){
+        if (jobGroup.getRoundCount() != null) {
             roundCount = phaseVo.getRoundCount();
         }
-        if(phaseVo.getRoundCount() != null){
+        if (phaseVo.getRoundCount() != null) {
             roundCount = phaseVo.getRoundCount();
         }
         AutoexecJobPhaseNodeVo nodeParamVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), phaseVo.getName(), 0);
@@ -142,7 +142,7 @@ public class InformAutoexecJobPhaseRoundEndApi extends PrivateApiComponentBase {
             roundCount = 2;
         }
         //全部串行
-        if(roundCount == 0){
+        if (roundCount == 0) {
             roundCount = totalNodeCount;
         }
         int parallelCount = totalNodeCount / roundCount;
@@ -171,8 +171,8 @@ public class InformAutoexecJobPhaseRoundEndApi extends PrivateApiComponentBase {
         //设置分页，查询该phase round
         nodeParamVo.setPageSize(roundCountList.get(roundNo - 1));
         List<AutoexecJobPhaseNodeVo> notCompletedNodeList = autoexecJobMapper.getJobPhaseNodeIdListByNodeVoAndStartNum(nodeParamVo, startNum).stream().filter(o -> Arrays.asList(JobNodeStatus.PENDING.getValue(), JobNodeStatus.RUNNING.getValue()).contains(o.getStatus())).collect(Collectors.toList());
-        //如果非runner则存在没完成的node，则抛异常. runner 则暂时不做判断
-        return Objects.equals(phaseVo.getExecMode(), ExecMode.RUNNER.getValue()) || CollectionUtils.isEmpty(notCompletedNodeList);
+        //如果非runner|sql 则存在没完成的node，则抛异常. runner 则暂时不做判断
+        return Arrays.asList(ExecMode.RUNNER.getValue(), ExecMode.SQL.getValue()).contains(phaseVo.getExecMode()) || CollectionUtils.isEmpty(notCompletedNodeList);
     }
 
     @Override

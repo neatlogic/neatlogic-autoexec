@@ -231,11 +231,14 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
                 ParamMappingVo executeUserParamMappingVo = config.getExecuteUser();
                 if (needExecuteUser && executeUserParamMappingVo != null) {
                     if (Objects.equals(executeUserParamMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue())) {
-                        executeConfigVo.setExecuteUser((String) executeUserParamMappingVo.getValue());
+                        executeConfigVo.setExecuteUser(executeUserParamMappingVo);
                     } else if (Objects.equals(executeUserParamMappingVo.getMappingMode(), ServiceParamMappingMode.FORMATTR.getValue())) {
                         Object value = formAttributeDataMap.get(executeUserParamMappingVo.getValue());
                         if (value != null) {
-                            executeConfigVo.setExecuteUser((String) value);
+                            ParamMappingVo paramMappingVo = new ParamMappingVo();
+                            paramMappingVo.setMappingMode(ServiceParamMappingMode.CONSTANT.getValue());
+                            paramMappingVo.setValue(value);
+                            executeConfigVo.setExecuteUser(paramMappingVo);
                         }
                     }
                 }
@@ -324,11 +327,14 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
                 ParamMappingVo executeUserParamMappingVo = config.getExecuteUser();
                 if (needExecuteUser && executeUserParamMappingVo != null) {
                     if (executeUserParamMappingVo.getValue() != null) {
-                        executeConfigVo.setExecuteUser((String) executeUserParamMappingVo.getValue());
+                        executeConfigVo.setExecuteUser(executeUserParamMappingVo);
                     } else {
                         String executeUser = paramObj.getString("executeUser");
                         if (executeUser != null) {
-                            executeConfigVo.setExecuteUser(executeUser);
+                            ParamMappingVo paramMappingVo = new ParamMappingVo();
+                            paramMappingVo.setMappingMode(ServiceParamMappingMode.CONSTANT.getValue());
+                            paramMappingVo.setValue(executeUser);
+                            executeConfigVo.setExecuteUser(paramMappingVo);
                         } else {
                             throw new ParamNotExistsException("执行用户（executeUser）");
                         }

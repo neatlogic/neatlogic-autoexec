@@ -89,9 +89,13 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
             List<AutoexecJobPhaseNodeVo> needResetNodeList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseIdAndExceptStatus(jobVo.getId(), jobPhaseVo.getId(), Arrays.asList(JobNodeStatus.IGNORED.getValue(), JobNodeStatus.SUCCEED.getValue()));
             if (CollectionUtils.isNotEmpty(needResetNodeList)) {
                 autoexecJobMapper.updateJobPhaseNodeListStatus(needResetNodeList.stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()), JobNodeStatus.PENDING.getValue());
-                //jobVo.setExecuteJobNodeVoList(needResetNodeList);
-                //autoexecJobService.resetJobNodeStatus(jobVo); //跳过重跑阶段，无需对节点操作    
-
+                jobVo.setExecuteJobNodeVoList(needResetNodeList);
+                List<RunnerMapVo> runnerMapVos = autoexecJobMapper.getJobPhaseNodeRunnerListByJobPhaseId(jobPhaseVo.getId());
+                if (CollectionUtils.isEmpty(runnerMapVos)) {
+                    throw new AutoexecJobPhaseRunnerNotFoundException(jobPhaseVo.getJobId(), jobPhaseVo.getName(), jobPhaseVo.getId());
+                }
+                autoexecJobService.updateJobNodeStatus(runnerMapVos, jobVo, JobNodeStatus.PENDING.getValue());
+                jobVo.setExecuteJobNodeVoList(null);
             }
         }
         jobPhaseVo.setJobGroupVo(autoexecJobMapper.getJobGroupById(jobPhaseVo.getGroupId()));

@@ -110,6 +110,30 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     @Resource
     private MongoTemplate mongoTemplate;
 
+    /**
+     * 获取最终的执行用户
+     * @param executeUser 执行用户映射信息
+     * @param runTimeParamList 作业参数列表
+     * @return
+     */
+    private String getFinalExecuteUser(ParamMappingVo executeUser, List<AutoexecParamVo> runTimeParamList) {
+        if (executeUser != null) {
+            String value = (String) executeUser.getValue();
+            if (StringUtils.isNotBlank(value)) {
+                if (Objects.equals(executeUser.getMappingMode(), ParamMappingMode.CONSTANT.getValue())) {
+                    return value;
+                } else if (Objects.equals(executeUser.getMappingMode(), ParamMappingMode.RUNTIME_PARAM.getValue())) {
+                    for (AutoexecParamVo runtimeParam : runTimeParamList) {
+                        if (Objects.equals(value, runtimeParam.getKey())) {
+                            return (String) runtimeParam.getValue();
+                        }
+                    }
+                }
+            }
+        }
+        return StringUtils.EMPTY;
+    }
+
     @Override
     public void saveAutoexecCombopJob(AutoexecJobVo jobVo) {
         AutoexecCombopConfigVo config = jobVo.getConfig();
@@ -140,7 +164,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         Long protocolId = null;
         if (combopExecuteConfigVo != null) {
             //先获取组合工具配置的执行用户和协议
-            userName = combopExecuteConfigVo.getExecuteUser();
+            userName = getFinalExecuteUser(combopExecuteConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
             protocolId = combopExecuteConfigVo.getProtocolId();
         }
         //获取group Map
@@ -498,7 +522,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         Long protocolId = null;
         if (combopExecuteConfigVo != null) {
             //先获取组合工具配置的执行用户和协议
-            userName = combopExecuteConfigVo.getExecuteUser();
+            userName = getFinalExecuteUser(combopExecuteConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
             protocolId = combopExecuteConfigVo.getProtocolId();
             if (StringUtils.isNotBlank(userName)) {
                 jobVo.setUserNameFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
@@ -516,8 +540,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 executeConfigVo = groupConfig.getExecuteConfig();
                 //判断组执行节点是否配置
                 if (executeConfigVo != null) {
-                    if (StringUtils.isNotBlank(executeConfigVo.getExecuteUser())) {
-                        userName = executeConfigVo.getExecuteUser();
+                    String userNameTmp = getFinalExecuteUser(executeConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
+                    if (StringUtils.isNotBlank(userNameTmp)) {
+                        userName = userNameTmp;
                         jobVo.setUserNameFrom(AutoexecJobPhaseNodeFrom.GROUP.getValue());
                     }
                     if (executeConfigVo.getProtocolId() != null) {
@@ -534,8 +559,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         } else {
             executeConfigVo = combopPhaseExecuteConfigVo.getExecuteConfig();
             if (executeConfigVo != null && Objects.equals(executeConfigVo.getIsPresetExecuteConfig(), 1)) {
-                if (StringUtils.isNotBlank(executeConfigVo.getExecuteUser())) {
-                    userName = executeConfigVo.getExecuteUser();
+                String userNameTmp = getFinalExecuteUser(executeConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
+                if (StringUtils.isNotBlank(userNameTmp)) {
+                    userName = userNameTmp;
                     jobVo.setUserNameFrom(AutoexecJobPhaseNodeFrom.PHASE.getValue());
                 }
                 if (executeConfigVo.getProtocolId() != null) {
@@ -649,6 +675,14 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 jobVo.setCurrentPhase(jobPhaseVo);
                 initPhaseExecuteUserAndProtocolAndNode(jobVo, combopExecuteConfigVo, combopPhaseExecuteConfigVo);
                 refreshPhaseRunnerStatus(jobPhaseVo);
+            }
+        }
+        //update runnerPhaseNodeStatus
+        List<AutoexecCombopPhaseVo> combopRunnerPhaseList = configVo.getCombopPhaseList().stream().filter(o -> Objects.equals(ExecMode.RUNNER.getValue(), o.getExecMode())).collect(Collectors.toList());
+        for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopRunnerPhaseList) {
+            Optional<AutoexecJobPhaseVo> jobPhaseVoOptional = jobPhaseVoList.stream().filter(o -> Objects.equals(o.getName(), autoexecCombopPhaseVo.getName())).findFirst();
+            if(jobPhaseVoOptional.isPresent()) {
+                autoexecJobMapper.updateJobPhaseNodeStatusByJobPhaseIdAndIsDelete(jobPhaseVoOptional.get().getId(), JobNodeStatus.PENDING.getValue(), 0);
             }
         }
     }
@@ -1127,7 +1161,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             } else {
                 jobPhaseNodeVo = jobPhaseNodeVoOptional.get();
                 jobPhaseNodeVo.setLcd(jobPhaseVo.getLcd());
-                if(isResetNode){
+                if (isResetNode) {
                     jobPhaseNodeVo.setStatus(JobNodeStatus.PENDING.getValue());
                 }
             }
@@ -1483,6 +1517,31 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             logger.error(ex.getMessage(), ex);
             assert restVo != null;
             throw new RunnerConnectRefusedException(restVo.getUrl() + " " + result);
+        }
+    }
+
+
+    @Override
+    public void updateJobNodeStatus(List<RunnerMapVo> runnerVos, AutoexecJobVo jobVo, String nodeStatus) {
+        checkRunnerHealth(runnerVos);
+        JSONObject paramJson = new JSONObject();
+        paramJson.put("jobId", jobVo.getId());
+        paramJson.put("tenant", TenantContext.get().getTenantUuid());
+        paramJson.put("execUser", UserContext.get().getUserUuid(true));
+        paramJson.put("phaseName", jobVo.getCurrentPhase().getName());
+        paramJson.put("execMode", jobVo.getCurrentPhase().getExecMode());
+        paramJson.put("phaseNodeList", jobVo.getExecuteJobNodeVoList());
+        paramJson.put("nodeStatus", nodeStatus);
+        for (RunnerMapVo runner : runnerVos) {
+            String url = runner.getUrl() + "api/rest/job/phase/node/status/update";
+            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(5000).setReadTimeout(5000).sendRequest();
+            if (StringUtils.isNotBlank(requestUtil.getError())) {
+                throw new RunnerHttpRequestException(url + ":" + requestUtil.getError());
+            }
+            JSONObject resultJson = requestUtil.getResultJson();
+            if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
+                throw new RunnerHttpRequestException(url + ":" + requestUtil.getError());
+            }
         }
     }
 

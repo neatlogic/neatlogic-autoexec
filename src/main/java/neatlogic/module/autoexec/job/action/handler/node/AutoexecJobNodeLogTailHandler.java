@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Arrays;
+import java.util.Objects;
 
 /**
  * @author lvzk
@@ -72,11 +73,13 @@ public class AutoexecJobNodeLogTailHandler extends AutoexecJobActionHandlerBase 
         paramJson.put("execMode", phaseVo.getExecMode());
         paramJson.put("direction", StringUtils.isBlank(paramJson.getString("direction")) ? "down" : paramJson.getString("direction"));
         JSONObject result = new JSONObject();
-        String nodeStatus = null;
+        String nodeStatus = JobNodeStatus.PENDING.getValue();
         if (StringUtils.isBlank(paramJson.getString("sqlName"))) {//获取node节点的状态（包括operation status）
             AutoexecJobPhaseNodeVo phaseNodeVo = autoexecJobService.getNodeOperationStatus(paramJson, false);
             result.put("interact", phaseNodeVo.getInteract());
-            nodeStatus = phaseNodeVo.getStatus();
+            if(!StringUtils.isBlank(phaseNodeVo.getStatus())) {
+                nodeStatus = phaseNodeVo.getStatus();
+            }
         } else {//获取sql 状态
             String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/status/get";
             JSONObject statusJson = JSONObject.parseObject(AutoexecUtil.requestRunner(url, paramJson));
@@ -85,10 +88,12 @@ public class AutoexecJobNodeLogTailHandler extends AutoexecJobActionHandlerBase 
                 nodeStatus = statusJson.getString("status");
             }
         }
-        paramJson.put("status",nodeStatus);
-        result.putAll(JSONObject.parseObject(AutoexecUtil.requestRunner(paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/log/tail", paramJson)));
+        paramJson.put("status", nodeStatus);
+        if(!Objects.equals(JobNodeStatus.PENDING.getValue(),nodeStatus)) {
+            result.putAll(JSONObject.parseObject(AutoexecUtil.requestRunner(paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/log/tail", paramJson)));
+        }
         result.put("isRefresh", 0);
-        if (Arrays.asList(JobNodeStatus.RUNNING.getValue(), JobNodeStatus.ABORTING.getValue()).contains(nodeStatus)) {
+        if (Objects.equals(JobNodeStatus.PENDING.getValue(),nodeStatus) || Arrays.asList(JobNodeStatus.RUNNING.getValue(), JobNodeStatus.ABORTING.getValue()).contains(nodeStatus)) {
             result.put("isRefresh", 1);
         }
         result.put("nodeStatus", nodeStatus);
