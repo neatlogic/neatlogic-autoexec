@@ -24,7 +24,7 @@ import neatlogic.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import neatlogic.framework.autoexec.dto.AutoexecTypeVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopAuthorityVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
-import neatlogic.framework.autoexec.exception.AutoexecCombopNotFoundException;
+import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.constvalue.GroupSearch;
 import neatlogic.framework.restful.annotation.*;
@@ -121,9 +121,21 @@ public class AutoexecCombopBasicInfoGetApi extends PrivateApiComponentBase {
         autoexecCombopVo.setActiveVersionId(activeVersionId);
         String versionStatus = jsonObj.getString("versionStatus");
         if (Objects.equals(versionStatus, ScriptVersionStatus.PASSED.getValue())) {
+            if (activeVersionId == null) {
+                throw new AutoexecCombopActiveVersionNotFoundException(autoexecCombopVo.getName());
+            }
             autoexecCombopVo.setSpecifyVersionId(activeVersionId);
         } else {
             Long maxVersionId = autoexecCombopVersionMapper.getAutoexecCombopMaxVersionIdByCombopIdAndStatus(id, versionStatus);
+            if (maxVersionId == null) {
+                if (Objects.equals(versionStatus, ScriptVersionStatus.DRAFT.getValue())) {
+                    throw new AutoexecCombopDraftVersionNotFoundException(autoexecCombopVo.getName());
+                } else if (Objects.equals(versionStatus, ScriptVersionStatus.SUBMITTED.getValue())) {
+                    throw new AutoexecCombopSubmittedVersionNotFoundException(autoexecCombopVo.getName());
+                } else if (Objects.equals(versionStatus, ScriptVersionStatus.REJECTED.getValue())) {
+                    throw new AutoexecCombopRejectedVersionNotFoundException(autoexecCombopVo.getName());
+                }
+            }
             autoexecCombopVo.setSpecifyVersionId(maxVersionId);
         }
         return autoexecCombopVo;
