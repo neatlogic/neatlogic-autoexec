@@ -24,7 +24,10 @@ import neatlogic.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import neatlogic.framework.autoexec.dto.AutoexecTypeVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopAuthorityVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
+import neatlogic.framework.autoexec.exception.AutoexecCombopDraftVersionNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecCombopNotFoundException;
+import neatlogic.framework.autoexec.exception.AutoexecCombopRejectedVersionNotFoundException;
+import neatlogic.framework.autoexec.exception.AutoexecCombopSubmittedVersionNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.constvalue.GroupSearch;
 import neatlogic.framework.restful.annotation.*;
@@ -124,6 +127,15 @@ public class AutoexecCombopBasicInfoGetApi extends PrivateApiComponentBase {
             autoexecCombopVo.setSpecifyVersionId(activeVersionId);
         } else {
             Long maxVersionId = autoexecCombopVersionMapper.getAutoexecCombopMaxVersionIdByCombopIdAndStatus(id, versionStatus);
+            if (maxVersionId == null) {
+                if (Objects.equals(versionStatus, ScriptVersionStatus.DRAFT.getValue())) {
+                    throw new AutoexecCombopDraftVersionNotFoundException(autoexecCombopVo.getName());
+                } else if (Objects.equals(versionStatus, ScriptVersionStatus.SUBMITTED.getValue())) {
+                    throw new AutoexecCombopSubmittedVersionNotFoundException(autoexecCombopVo.getName());
+                } else if (Objects.equals(versionStatus, ScriptVersionStatus.REJECTED.getValue())) {
+                    throw new AutoexecCombopRejectedVersionNotFoundException(autoexecCombopVo.getName());
+                }
+            }
             autoexecCombopVo.setSpecifyVersionId(maxVersionId);
         }
         return autoexecCombopVo;
