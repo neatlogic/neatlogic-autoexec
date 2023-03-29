@@ -232,6 +232,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), jobPhaseVo, "runner", JobNodeStatus.PENDING.getValue(), userName, protocolId);
                 autoexecJobMapper.insertJobPhaseNode(nodeVo);
                 nodeVo.setRunnerMapId(runnerMapVo.getRunnerMapId());
+                runnerMapper.insertRunnerMap(runnerMapVo);
                 autoexecJobMapper.insertIgnoreJobPhaseNodeRunner(new AutoexecJobPhaseNodeRunnerVo(nodeVo));
                 autoexecJobMapper.insertJobPhaseRunner(nodeVo.getJobId(), nodeVo.getJobGroupId(), nodeVo.getJobPhaseId(), nodeVo.getRunnerMapId(), nodeVo.getLcd());
                 autoexecJobSourceActionHandler.updateJobRunnerMap(jobVo.getId(), runnerMapVo.getRunnerMapId());
