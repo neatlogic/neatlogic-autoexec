@@ -106,6 +106,12 @@ public class AutoexecCombopVersionSaveApi extends PrivateApiComponentBase {
         if (autoexecCombopVo == null) {
             throw new AutoexecCombopNotFoundException(autoexecCombopVersionVo.getCombopId());
         }
+        if (Objects.equals(autoexecCombopVersionVo.getStatus(), ScriptVersionStatus.SUBMITTED.getValue())) {
+            Long versionId = autoexecCombopVersionMapper.getAutoexecCombopMaxVersionIdByCombopIdAndStatus(autoexecCombopVersionVo.getCombopId(), autoexecCombopVersionVo.getStatus());
+            if (versionId != null) {
+                throw new AutoexecCombopHasSubmittedVersionException(autoexecCombopVo.getName());
+            }
+        }
         autoexecCombopService.setOperableButtonList(autoexecCombopVo);
         if (autoexecCombopVo.getEditable() == 0) {
             throw new PermissionDeniedException();

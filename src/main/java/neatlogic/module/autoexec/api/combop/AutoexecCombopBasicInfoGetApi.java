@@ -33,6 +33,7 @@ import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -79,7 +80,7 @@ public class AutoexecCombopBasicInfoGetApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "主键id"),
-            @Param(name = "versionStatus", type = ApiParamType.ENUM, rule = "draft,submitted,passed,rejected", isRequired = true, desc = "状态")
+            @Param(name = "versionStatus", type = ApiParamType.ENUM, rule = "draft,submitted,passed,rejected", desc = "状态")
     })
     @Output({
             @Param(explode = AutoexecCombopVo.class, desc = "组合工具基本信息")
@@ -120,6 +121,9 @@ public class AutoexecCombopBasicInfoGetApi extends PrivateApiComponentBase {
         Long activeVersionId = autoexecCombopVersionMapper.getAutoexecCombopActiveVersionIdByCombopId(id);
         autoexecCombopVo.setActiveVersionId(activeVersionId);
         String versionStatus = jsonObj.getString("versionStatus");
+        if (StringUtils.isBlank(versionStatus)) {
+            versionStatus = ScriptVersionStatus.PASSED.getValue();
+        }
         if (Objects.equals(versionStatus, ScriptVersionStatus.PASSED.getValue())) {
             if (activeVersionId == null) {
                 throw new AutoexecCombopActiveVersionNotFoundException(autoexecCombopVo.getName());
