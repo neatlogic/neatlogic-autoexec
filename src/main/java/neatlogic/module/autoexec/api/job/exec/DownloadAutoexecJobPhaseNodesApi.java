@@ -316,7 +316,7 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                             if (!Objects.equals(protocol, Protocol.TAGENT.getValue())) {
                                 accountByResourceList = resourceAccountCrossoverMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIncludeOsIdList, protocolId, account);
                             } else {
-                                List<AccountVo> tagentAccountByIpList = resourceAccountCrossoverMapper.getAccountListByIpList(autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getHost).collect(Collectors.toList()));
+                                List<AccountVo> tagentAccountByIpList = resourceAccountCrossoverMapper.getAccountListByIpListAndProtocolId(autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getHost).collect(Collectors.toList()), protocolId);
                                 if (CollectionUtils.isNotEmpty(tagentAccountByIpList)) {
                                     tagentIpAccountMap = tagentAccountByIpList.stream().collect(Collectors.toMap(AccountVo::getIp, o -> o));
                                 }
