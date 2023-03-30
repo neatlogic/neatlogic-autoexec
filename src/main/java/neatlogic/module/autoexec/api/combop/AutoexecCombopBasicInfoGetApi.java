@@ -23,6 +23,7 @@ import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import neatlogic.framework.autoexec.dto.AutoexecTypeVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopAuthorityVo;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
 import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.common.constvalue.ApiParamType;
@@ -33,6 +34,7 @@ import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -79,7 +81,8 @@ public class AutoexecCombopBasicInfoGetApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "主键id"),
-            @Param(name = "versionStatus", type = ApiParamType.ENUM, rule = "draft,submitted,passed,rejected", isRequired = true, desc = "状态")
+            @Param(name = "versionId", type = ApiParamType.LONG, desc = "versionId"),
+            @Param(name = "versionStatus", type = ApiParamType.ENUM, rule = "draft,submitted,passed,rejected", desc = "状态")
     })
     @Output({
             @Param(explode = AutoexecCombopVo.class, desc = "组合工具基本信息")
@@ -119,24 +122,35 @@ public class AutoexecCombopBasicInfoGetApi extends PrivateApiComponentBase {
         autoexecCombopVo.setExecuteAuthorityList(executeAuthorityList);
         Long activeVersionId = autoexecCombopVersionMapper.getAutoexecCombopActiveVersionIdByCombopId(id);
         autoexecCombopVo.setActiveVersionId(activeVersionId);
-        String versionStatus = jsonObj.getString("versionStatus");
-        if (Objects.equals(versionStatus, ScriptVersionStatus.PASSED.getValue())) {
-            if (activeVersionId == null) {
-                throw new AutoexecCombopActiveVersionNotFoundException(autoexecCombopVo.getName());
+        Long versionId = jsonObj.getLong("versionId");
+        if (versionId != null) {
+            AutoexecCombopVersionVo versionVo = autoexecCombopVersionMapper.getAutoexecCombopVersionById(versionId);
+            if (versionVo == null) {
+                throw new AutoexecCombopVersionNotFoundException(versionId);
             }
-            autoexecCombopVo.setSpecifyVersionId(activeVersionId);
+            autoexecCombopVo.setSpecifyVersionId(versionId);
         } else {
-            Long maxVersionId = autoexecCombopVersionMapper.getAutoexecCombopMaxVersionIdByCombopIdAndStatus(id, versionStatus);
-            if (maxVersionId == null) {
-                if (Objects.equals(versionStatus, ScriptVersionStatus.DRAFT.getValue())) {
-                    throw new AutoexecCombopDraftVersionNotFoundException(autoexecCombopVo.getName());
-                } else if (Objects.equals(versionStatus, ScriptVersionStatus.SUBMITTED.getValue())) {
-                    throw new AutoexecCombopSubmittedVersionNotFoundException(autoexecCombopVo.getName());
-                } else if (Objects.equals(versionStatus, ScriptVersionStatus.REJECTED.getValue())) {
-                    throw new AutoexecCombopRejectedVersionNotFoundException(autoexecCombopVo.getName());
+            String versionStatus = jsonObj.getString("versionStatus");
+            if (StringUtils.isNotBlank(versionStatus)) {
+                if (Objects.equals(versionStatus, ScriptVersionStatus.PASSED.getValue())) {
+                    if (activeVersionId == null) {
+                        throw new AutoexecCombopActiveVersionNotFoundException(autoexecCombopVo.getName());
+                    }
+                    autoexecCombopVo.setSpecifyVersionId(activeVersionId);
+                } else {
+                    Long maxVersionId = autoexecCombopVersionMapper.getAutoexecCombopMaxVersionIdByCombopIdAndStatus(id, versionStatus);
+                    if (maxVersionId == null) {
+                        if (Objects.equals(versionStatus, ScriptVersionStatus.DRAFT.getValue())) {
+                            throw new AutoexecCombopDraftVersionNotFoundException(autoexecCombopVo.getName());
+                        } else if (Objects.equals(versionStatus, ScriptVersionStatus.SUBMITTED.getValue())) {
+                            throw new AutoexecCombopSubmittedVersionNotFoundException(autoexecCombopVo.getName());
+                        } else if (Objects.equals(versionStatus, ScriptVersionStatus.REJECTED.getValue())) {
+                            throw new AutoexecCombopRejectedVersionNotFoundException(autoexecCombopVo.getName());
+                        }
+                    }
+                    autoexecCombopVo.setSpecifyVersionId(maxVersionId);
                 }
             }
-            autoexecCombopVo.setSpecifyVersionId(maxVersionId);
         }
         return autoexecCombopVo;
     }
