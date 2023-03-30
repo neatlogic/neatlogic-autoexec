@@ -327,10 +327,10 @@
     </update>
 
     <update id="updateServiceConfigExpiredById" parameterType="neatlogic.framework.autoexec.dto.service.AutoexecServiceVo">
-        UPDATE `autoexec_service`
+        UPDATE `autoexec_service_config`
         SET `config_expired` = #{configExpired},
             `config_expired_reason` = #{configExpiredReason}
-        WHERE `id` = #{id}
+        WHERE `service_id` = #{id}
     </update>
 
     <delete id="deleteServiceAuthorityListByServiceId">

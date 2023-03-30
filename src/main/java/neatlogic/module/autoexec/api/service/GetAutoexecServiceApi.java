@@ -96,7 +96,7 @@ public class GetAutoexecServiceApi extends PrivateApiComponentBase {
             authorityVoList.forEach(e -> authorityList.add(e.getType() + "#" + e.getUuid()));
             serviceVo.setAuthorityList(authorityList);
         }
-        if (Objects.equals(serviceVo.getType(), AutoexecServiceType.SERVICE.getValue()) && Objects.equals(serviceVo.getConfigExpired(), 0)) {
+        if (Objects.equals(serviceVo.getType(), AutoexecServiceType.SERVICE.getValue()) && !Objects.equals(serviceVo.getConfigExpired(), 1)) {
             String reason = autoexecServiceService.checkConfigExpired(serviceVo, false);
             if (StringUtils.isNotBlank(reason)) {
                 serviceVo.setConfigExpired(1);
