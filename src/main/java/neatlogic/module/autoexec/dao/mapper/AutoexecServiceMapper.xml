@@ -31,6 +31,7 @@
                b.combop_id as combopId,
                b.form_uuid as formUuid,
                b.config_expired as configExpired,
+               b.config_expired_reason as configExpiredReason,
                b.config    as configStr
         from `autoexec_service` a
                  left join `autoexec_service_config` b on a.id = b.service_id
@@ -327,7 +328,8 @@
 
     <update id="updateServiceConfigExpiredById" parameterType="neatlogic.framework.autoexec.dto.service.AutoexecServiceVo">
         UPDATE `autoexec_service`
-        SET `config_expired` = #{configExpired}
+        SET `config_expired` = #{configExpired},
+            `config_expired_reason` = #{configExpiredReason}
         WHERE `id` = #{id}
     </update>
 
