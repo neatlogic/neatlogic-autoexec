@@ -26,6 +26,7 @@ import neatlogic.framework.notify.core.NotifyPolicyHandlerBase;
 import neatlogic.framework.notify.dto.NotifyTriggerTemplateVo;
 import neatlogic.framework.notify.dto.NotifyTriggerVo;
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.util.I18nUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -39,7 +40,7 @@ import java.util.List;
 public class AutoexecCombopNotifyPolicyHandler extends NotifyPolicyHandlerBase {
     @Override
     public String getName() {
-        return "组合工具";
+        return I18nUtils.getMessage("handler.notify.autoexec.combop");
     }
 
     /**
