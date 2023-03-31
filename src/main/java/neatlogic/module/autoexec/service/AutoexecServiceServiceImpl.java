@@ -155,12 +155,6 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             } else {
                                 list.add(I18nUtils.getMessage("exception.framework.formattributenotfoundexception.1", formName, value));
                             }
-                        } else if (!Objects.equals(formAttributeVo.getHandler(), FormHandler.FORMNUMBER.getHandler())) {
-                            if (throwException) {
-
-                            } else {
-
-                            }
                         }
                     }
                 }
@@ -205,12 +199,6 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                                 throw new FormAttributeNotFoundException(formName, (String) value);
                             } else {
                                 list.add(I18nUtils.getMessage("exception.framework.formattributenotfoundexception.1", formName, value));
-                            }
-                        } else if (!Objects.equals(formAttributeVo.getHandler(), neatlogic.framework.cmdb.enums.FormHandler.FORMPROTOCOL.getHandler())) {
-                            if (throwException) {
-
-                            } else {
-
                             }
                         }
                     }
@@ -257,12 +245,6 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             } else {
                                 list.add(I18nUtils.getMessage("exception.framework.formattributenotfoundexception.1", formName, value));
                             }
-                        } else if (!Objects.equals(formAttributeVo.getHandler(), FormHandler.FORMNUMBER.getHandler())) {
-                            if (throwException) {
-
-                            } else {
-
-                            }
                         }
                     }
                 }
@@ -307,12 +289,6 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                                 throw new FormAttributeNotFoundException(formName, (String) value);
                             } else {
                                 list.add(I18nUtils.getMessage("exception.framework.formattributenotfoundexception.1", formName, value));
-                            }
-                        } else if (!Objects.equals(formAttributeVo.getHandler(), neatlogic.framework.cmdb.enums.FormHandler.FORMRESOURECES.getHandler())) {
-                            if (throwException) {
-
-                            } else {
-
                             }
                         }
                     }
