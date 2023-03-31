@@ -383,7 +383,13 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         }
                     }
                 } else if (Objects.equals(mappingMode, ServiceParamMappingMode.IS_EMPTY.getValue())) {
-
+                    if (Objects.equals(runtimeParamVo.getIsRequired(), 1)) {
+                        if (throwException) {
+                            throw new AutoexecJobParamCannotBeEmptyException(autoexecCombopVo.getName(), name + "(" + key + ")");
+                        } else {
+                            list.add(I18nUtils.getMessage("exception.autoexec.autoexecjobparamcannotbeemptyexception", autoexecCombopVo.getName(), name + "(" + key + ")"));
+                        }
+                    }
                 } else if (Objects.equals(mappingMode, ServiceParamMappingMode.NOT_SET_UP.getValue())) {
                     if (StringUtils.isNotBlank(formUuid)) {
                         if (throwException) {
