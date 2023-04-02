@@ -17,14 +17,22 @@
 package neatlogic.module.autoexec.job.source.handler;
 
 import neatlogic.framework.autoexec.constvalue.JobSource;
+import neatlogic.framework.autoexec.dao.mapper.AutoexecScriptMapper;
+import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.common.dto.ValueTextVo;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class ScriptTestJobSourceHandler implements IAutoexecJobSource {
+
+    @Resource
+    private AutoexecScriptMapper autoexecScriptMapper;
 
     @Override
     public String getValue() {
@@ -38,6 +46,14 @@ public class ScriptTestJobSourceHandler implements IAutoexecJobSource {
 
     @Override
     public List<ValueTextVo> getListByIdList(List<Long> idList) {
-        return null;
+        if (CollectionUtils.isEmpty(idList)) {
+            return null;
+        }
+        List<ValueTextVo> resultList = new ArrayList<>();
+        List<AutoexecScriptVersionVo> list = autoexecScriptMapper.getVersionByVersionIdList(idList);
+        for (AutoexecScriptVersionVo versionVo : list) {
+            resultList.add(new ValueTextVo(versionVo.getId(), versionVo.getTitle()));
+        }
+        return resultList;
     }
 }

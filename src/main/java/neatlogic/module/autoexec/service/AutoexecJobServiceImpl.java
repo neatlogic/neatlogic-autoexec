@@ -1310,8 +1310,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     continue;
                 }
                 List<ValueTextVo> list = sourceHandler.getListByIdList(new ArrayList<>(entry.getValue()));
-                for (ValueTextVo valueTextVo : list) {
-                    invokeIdInvokeNameMap.put((Long) valueTextVo.getValue(), valueTextVo.getText());
+                if (CollectionUtils.isNotEmpty(list)) {
+                    for (ValueTextVo valueTextVo : list) {
+                        invokeIdInvokeNameMap.put((Long) valueTextVo.getValue(), valueTextVo.getText());
+                    }
                 }
             }
             //补充权限

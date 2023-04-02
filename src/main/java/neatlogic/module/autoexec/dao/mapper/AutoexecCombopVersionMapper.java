@@ -16,6 +16,8 @@ public interface AutoexecCombopVersionMapper {
 
     List<AutoexecCombopVersionVo> getAutoexecCombopVersionListByCombopId(Long id);
 
+    List<AutoexecCombopVersionVo> getAutoexecCombopVersionListByIdList(List<Long> idList);
+
     List<AutoexecCombopVersionVo> getAutoexecCombopVersionList(AutoexecCombopVersionVo autoexecCombopVersionVo);
 
     int getAutoexecCombopVersionCount(AutoexecCombopVersionVo autoexecCombopVersionVo);

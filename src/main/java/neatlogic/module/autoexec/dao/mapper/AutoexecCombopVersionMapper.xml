@@ -58,6 +58,25 @@ limitations under the License.
         WHERE `combop_id` = #{value}
     </select>
 
+    <select id="getAutoexecCombopVersionListByIdList" parameterType="java.util.List"
+            resultType="neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo">
+        SELECT `id`,
+               `name`,
+               `combop_id` AS combopId,
+               `is_active` AS isActive,
+               `version`,
+               `status`,
+               `reviewer`,
+               `config` AS configStr,
+               `lcd`,
+               `lcu`
+        FROM `autoexec_combop_version`
+        WHERE `id` IN
+        <foreach collection="list" item="id" open="(" separator="," close="">
+            #{id}
+        </foreach>
+    </select>
+
     <select id="getAutoexecCombopVersionList" parameterType="neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo"
             resultType="neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo">
         SELECT `id`,

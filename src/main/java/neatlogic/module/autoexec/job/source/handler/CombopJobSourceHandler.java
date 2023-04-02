@@ -17,14 +17,22 @@
 package neatlogic.module.autoexec.job.source.handler;
 
 import neatlogic.framework.autoexec.constvalue.JobSource;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
 import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.common.dto.ValueTextVo;
+import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
 public class CombopJobSourceHandler implements IAutoexecJobSource {
+
+    @Resource
+    private AutoexecCombopVersionMapper autoexecCombopVersionMapper;
 
     @Override
     public String getValue() {
@@ -38,6 +46,14 @@ public class CombopJobSourceHandler implements IAutoexecJobSource {
 
     @Override
     public List<ValueTextVo> getListByIdList(List<Long> idList) {
-        return null;
+        if (CollectionUtils.isEmpty(idList)) {
+            return null;
+        }
+        List<ValueTextVo> resultList = new ArrayList<>();
+        List<AutoexecCombopVersionVo> list = autoexecCombopVersionMapper.getAutoexecCombopVersionListByIdList(idList);
+        for (AutoexecCombopVersionVo versionVo : list) {
+            resultList.add(new ValueTextVo(versionVo.getId(), versionVo.getName()));
+        }
+        return resultList;
     }
 }
