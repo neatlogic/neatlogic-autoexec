@@ -204,13 +204,6 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
     }
 
     @Override
-    public void updateInvokeJob(AutoexecJobVo jobVo) {
-        if (jobVo.getInvokeId() == null) {
-            jobVo.setInvokeId(jobVo.getCombopVersionId());
-        }
-    }
-
-    @Override
     public AutoexecSqlNodeDetailVo getSqlDetail(AutoexecJobVo jobVo) {
         return autoexecJobMapper.getJobSqlByJobPhaseIdAndResourceIdAndSqlName(jobVo.getActionParam().getLong("jobPhaseId"), jobVo.getActionParam().getLong("resourceId"), jobVo.getActionParam().getString("sqlName"));
     }
