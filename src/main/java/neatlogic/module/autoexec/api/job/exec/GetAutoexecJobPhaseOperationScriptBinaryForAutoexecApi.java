@@ -127,7 +127,7 @@ public class GetAutoexecJobPhaseOperationScriptBinaryForAutoexecApi extends Priv
                 throw new AutoexecScriptNotFoundException(scriptId);
             }
             //如果不是测试作业 则获取最新版本的脚本
-            if (!Objects.equals(JobSource.TEST.getValue(), jobVo.getSource())) {
+            if (!Objects.equals(JobSource.TEST.getValue(), jobVo.getSource()) && !Objects.equals(JobSource.SCRIPT_TEST.getValue(), jobVo.getSource())) {
                 scriptVersionVo = autoexecScriptMapper.getActiveVersionWithUseLibsByScriptId(scriptVo.getId());
                 if (scriptVersionVo == null) {
                     throw new AutoexecScriptVersionHasNoActivedException(scriptVo.getName());

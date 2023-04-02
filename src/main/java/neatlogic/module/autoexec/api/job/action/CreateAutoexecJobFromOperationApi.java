@@ -83,7 +83,6 @@ public class CreateAutoexecJobFromOperationApi extends PrivateApiComponentBase {
     @Input({
             @Param(name = "operationId", type = ApiParamType.LONG, isRequired = true, desc = "自定义工具库版本ID|工具库ID"),
             @Param(name = "param", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "执行参数"),
-            @Param(name = "source", type = ApiParamType.STRING, isRequired = true, desc = "来源 itsm|human   ITSM|人工发起的等，不传默认是人工发起的"),
             @Param(name = "type", type = ApiParamType.ENUM, rule = "script,tool", isRequired = true, desc = "类型 script|tool   自定义工具库|工具库"),
             @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, desc = "执行目标", isRequired = true),
             @Param(name = "argumentMappingList", type = ApiParamType.JSONARRAY, desc = "自由参数"),
@@ -99,10 +98,15 @@ public class CreateAutoexecJobFromOperationApi extends PrivateApiComponentBase {
             AutoexecCombopExecuteConfigVo executeConfigVo = JSON.toJavaObject(jsonObj.getJSONObject("executeConfig"), AutoexecCombopExecuteConfigVo.class);
             combopVo.getConfig().setExecuteConfig(executeConfigVo);
         }
-        jsonObj.put("source", JobSource.TEST.getValue());
+        String type = jsonObj.getString("type");
+        if (Objects.equals(CombopOperationType.SCRIPT.getValue(), type)) {
+            jsonObj.put("source", JobSource.SCRIPT_TEST.getValue());
+        } else if (Objects.equals(CombopOperationType.TOOL.getValue(), type)) {
+            jsonObj.put("source", JobSource.TOOL_TEST.getValue());
+        }
         AutoexecJobVo jobVo = JSONObject.toJavaObject(jsonObj, AutoexecJobVo.class);
         jobVo.setRunTimeParamList(combopVo.getConfig().getRuntimeParamList() == null ? new ArrayList<>() : combopVo.getConfig().getRuntimeParamList());
-        jobVo.setOperationType(jsonObj.getString("type"));
+        jobVo.setOperationType(type);
         jobVo.setIsFirstFire(1);
         jobVo.setAction(JobAction.FIRE.getValue());
         jobVo.setInvokeId(jobVo.getOperationId());

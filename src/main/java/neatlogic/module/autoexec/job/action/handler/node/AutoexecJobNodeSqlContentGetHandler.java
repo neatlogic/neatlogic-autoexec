@@ -17,7 +17,6 @@ limitations under the License.
 package neatlogic.module.autoexec.job.action.handler.node;
 
 import neatlogic.framework.autoexec.constvalue.JobAction;
-import neatlogic.framework.autoexec.dto.AutoexecJobSourceVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobSourceInvalidException;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
@@ -25,6 +24,7 @@ import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandler
 import neatlogic.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
 import neatlogic.framework.autoexec.source.AutoexecJobSourceFactory;
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -53,11 +53,11 @@ public class AutoexecJobNodeSqlContentGetHandler extends AutoexecJobActionHandle
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         AutoexecJobVo jonInfo = autoexecJobMapper.getJobInfo(jobVo.getCurrentNode().getJobId());
         if (jonInfo != null) {
-            AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(jobVo.getSource());
-            if (jobSourceVo == null) {
+            IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
+            if (jobSource == null) {
                 throw new AutoexecJobSourceInvalidException(jobVo.getSource());
             }
-            IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
+            IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
             return autoexecJobSourceActionHandler.getJobSqlContent(jobVo);
         }
         return null;
