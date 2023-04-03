@@ -16,33 +16,37 @@ limitations under the License.
 
 package neatlogic.module.autoexec.api.combop;
 
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import neatlogic.framework.autoexec.constvalue.CombopOperationType;
-import neatlogic.framework.autoexec.dto.AutoexecParamVo;
-import neatlogic.framework.autoexec.dto.combop.*;
+import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
+import neatlogic.framework.autoexec.dao.mapper.AutoexecTypeMapper;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionConfigVo;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
 import neatlogic.framework.autoexec.exception.AutoexecCombopNameRepeatException;
 import neatlogic.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecTypeNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.dto.FieldValidResultVo;
+import neatlogic.framework.notify.dao.mapper.NotifyMapper;
+import neatlogic.framework.notify.dto.InvokeNotifyPolicyConfigVo;
+import neatlogic.framework.notify.exception.NotifyPolicyNotFoundException;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.IValid;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
-import neatlogic.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import neatlogic.framework.util.RegexUtils;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
-import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -68,6 +72,9 @@ public class AutoexecCombopCopyApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecTypeMapper autoexecTypeMapper;
+
+    @Resource
+    private NotifyMapper notifyMapper;
 
     @Override
     public String getToken() {
@@ -110,6 +117,17 @@ public class AutoexecCombopCopyApi extends PrivateApiComponentBase {
 //        Long typeId = jsonObj.getLong("typeId");
         if (autoexecTypeMapper.checkTypeIsExistsById(autoexecCombopVo.getTypeId()) == 0) {
             throw new AutoexecTypeNotFoundException(autoexecCombopVo.getTypeName());
+        }
+        AutoexecCombopConfigVo configVo = autoexecCombopVo.getConfig();
+        InvokeNotifyPolicyConfigVo invokeNotifyPolicyConfigVo = configVo.getInvokeNotifyPolicyConfig();
+        if (invokeNotifyPolicyConfigVo != null) {
+            Long policyId = invokeNotifyPolicyConfigVo.getPolicyId();
+            if (policyId != null) {
+                if (notifyMapper.checkNotifyPolicyIsExists(policyId) == 0) {
+                    throw new NotifyPolicyNotFoundException(policyId);
+                }
+                autoexecCombopVo.setNotifyPolicyId(policyId);
+            }
         }
 //        autoexecCombopVo.setTypeId(typeId);
 //        String name = jsonObj.getString("name");

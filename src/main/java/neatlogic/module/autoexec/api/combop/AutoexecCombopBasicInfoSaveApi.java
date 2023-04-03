@@ -125,6 +125,7 @@ public class AutoexecCombopBasicInfoSaveApi extends PrivateApiComponentBase {
                 if (notifyMapper.checkNotifyPolicyIsExists(policyId) == 0) {
                     throw new NotifyPolicyNotFoundException(policyId);
                 }
+                autoexecCombopVo.setNotifyPolicyId(policyId);
             }
         }
 
