@@ -30,6 +30,7 @@ import neatlogic.framework.autoexec.dto.service.AutoexecServiceConfigVo;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceSearchVo;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceVo;
 import neatlogic.framework.autoexec.exception.AutoexecCombopActiveVersionNotFoundException;
+import neatlogic.framework.autoexec.exception.AutoexecServiceConfigExpiredException;
 import neatlogic.framework.autoexec.exception.AutoexecServiceNotFoundException;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import neatlogic.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
@@ -49,7 +50,6 @@ import neatlogic.framework.scheduler.core.IJob;
 import neatlogic.framework.scheduler.core.SchedulerManager;
 import neatlogic.framework.scheduler.dto.JobObject;
 import neatlogic.framework.scheduler.exception.ScheduleHandlerNotFoundException;
-import neatlogic.framework.service.AuthenticationInfoService;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecServiceMapper;
 import neatlogic.module.autoexec.schedule.plugin.AutoexecJobAutoFireJob;
@@ -63,7 +63,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Transactional
 @Service
@@ -79,9 +78,6 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecJobActionService autoexecJobActionService;
-
-    @Resource
-    private AuthenticationInfoService authenticationInfoService;
 
     @Resource
     private AutoexecCombopService autoexecCombopService;
@@ -124,6 +120,9 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
         if (autoexecServiceVo == null) {
             throw new AutoexecServiceNotFoundException(serviceId);
         }
+        if (!Objects.equals(autoexecServiceVo.getConfigExpired(), 0)) {
+            throw new AutoexecServiceConfigExpiredException(autoexecServiceVo.getName());
+        }
         List<Long> upwardIdList = autoexecServiceMapper.getUpwardIdListByLftAndRht(autoexecServiceVo.getLft(), autoexecServiceVo.getRht());
         AutoexecServiceSearchVo searchVo = new AutoexecServiceSearchVo();
         searchVo.setServiceIdList(upwardIdList);
@@ -161,13 +160,7 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
         if (scenarioId != null) {
             autoexecJobVo.setScenarioId(scenarioId);
         }
-//        Map<Long, AutoexecCombopGroupVo> groupMap = versionConfigVo.getCombopGroupList().stream().collect(Collectors.toMap(e -> e.getId(), e -> e));
-//        List<AutoexecCombopPhaseVo> combopPhaseList = versionConfigVo.getCombopPhaseList();
-//        if (CollectionUtils.isNotEmpty(combopPhaseList)) {
-//            for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseList) {
-//                autoexecCombopService.needExecuteConfig(autoexecCombopVersionVo, combopPhaseVo, groupMap.get(combopPhaseVo.getGroupId()));
-//            }
-//        }
+
         autoexecCombopService.needExecuteConfig(autoexecCombopVersionVo);
         boolean needExecuteUser = autoexecCombopVersionVo.getNeedExecuteUser();
         boolean needExecuteNode = autoexecCombopVersionVo.getNeedExecuteNode();

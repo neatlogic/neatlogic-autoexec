@@ -68,12 +68,15 @@
     <select id="getAutoexecServiceNodeList" parameterType="neatlogic.framework.autoexec.dto.service.AutoexecServiceSearchVo"
             resultType="neatlogic.framework.autoexec.dto.service.AutoexecServiceNodeVo">
         SELECT
-            `id`,
-            `name`,
-            `is_active` AS isActive,
-            `type`,
-            `parent_id` AS parentId
-        FROM `autoexec_service`
+            a.`id`,
+            a.`name`,
+            a.`is_active` AS isActive,
+            a.`type`,
+            a.`parent_id` AS parentId,
+            b.`config_expired` AS configExpired,
+            b.`config_expired_reason` AS configExpiredReason
+        FROM `autoexec_service` a
+        LEFT JOIN `autoexec_service_config` b on b.`service_id` = a.`id`
         ORDER BY `id`
             LIMIT #{startNum}, #{pageSize}
     </select>
@@ -171,9 +174,12 @@
         a.`type`,
         a.`parent_id` AS parentId,
         a.`description`,
-        a.`lft`
+        a.`lft`,
+        c.`config_expired` AS configExpired,
+        c.`config_expired_reason` AS configExpiredReason
         FROM `autoexec_service` a
         JOIN `autoexec_service_authority` b ON b.`service_id` = a.`id`
+        LEFT JOIN `autoexec_service_config` c ON c.`service_id` = a.`id`
         WHERE a.`is_active` = 1
         <if test="keyword != null and keyword != ''">
             AND (a.`type` = 'catalog' OR a.`name` LIKE CONCAT('%', #{keyword}, '%'))
@@ -222,10 +228,13 @@
         a.`is_active` AS isActive,
         a.`type`,
         a.`parent_id` AS parentId,
-        a.`description`
+        a.`description`,
+        d.`config_expired` AS configExpired,
+        d.`config_expired_reason` AS configExpiredReason
         FROM `autoexec_service` a
         JOIN `autoexec_service_authority` b ON b.`service_id` = a.`id`
         JOIN `autoexec_service_user` c ON c.`service_id` = a.`id` and c.`user_uuid` = #{authenticationInfoVo.userUuid}
+        LEFT JOIN `autoexec_service_config` d ON d.`service_id` = a.`id`
         <where>
             <if test="keyword != null and keyword != ''">
                 AND a.`name` LIKE concat('%', #{keyword}, '%')
