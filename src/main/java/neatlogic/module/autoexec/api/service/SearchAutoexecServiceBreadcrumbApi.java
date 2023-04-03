@@ -35,7 +35,6 @@ import neatlogic.framework.dto.AuthenticationInfoVo;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import neatlogic.framework.service.AuthenticationInfoService;
 import neatlogic.framework.util.TableResultUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
@@ -51,9 +50,6 @@ public class SearchAutoexecServiceBreadcrumbApi extends PrivateApiComponentBase 
 
     @Resource
     private AutoexecServiceMapper autoexecServiceMapper;
-
-    @Resource
-    private AuthenticationInfoService authenticationInfoService;
 
     @Override
     public String getToken() {
@@ -94,7 +90,7 @@ public class SearchAutoexecServiceBreadcrumbApi extends PrivateApiComponentBase 
             searchVo.setRht(parentNodeVo.getRht());
         }
         searchVo.setParentId(null);
-        AuthenticationInfoVo authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(UserContext.get().getUserUuid(true));
+        AuthenticationInfoVo authenticationInfoVo = UserContext.get().getAuthenticationInfoVo();
         searchVo.setAuthenticationInfoVo(authenticationInfoVo);
         int rowNum = autoexecServiceMapper.getAllVisibleCount(searchVo);
         if (rowNum == 0) {

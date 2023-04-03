@@ -26,10 +26,7 @@ import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceAuthorityVo;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceNodeVo;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceVo;
-import neatlogic.framework.autoexec.exception.AutoexecCombopNotFoundException;
-import neatlogic.framework.autoexec.exception.AutoexecServiceIsNotCatalogException;
-import neatlogic.framework.autoexec.exception.AutoexecServiceNameIsRepeatException;
-import neatlogic.framework.autoexec.exception.AutoexecServiceNotFoundException;
+import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.constvalue.GroupSearch;
 import neatlogic.framework.dependency.core.DependencyManager;
@@ -49,14 +46,14 @@ import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.module.autoexec.dao.mapper.AutoexecServiceMapper;
 import neatlogic.module.autoexec.dependency.AutoexecCombop2AutoexecServiceDependencyHandler;
 import neatlogic.module.autoexec.dependency.Form2AutoexecServiceDependencyHandler;
+import neatlogic.module.autoexec.service.AutoexecServiceService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Service
 @Transactional
@@ -72,6 +69,9 @@ public class SaveAutoexecServiceApi extends PrivateApiComponentBase {
 
     @Resource
     private FormMapper formMapper;
+
+    @Resource
+    AutoexecServiceService autoexecServiceService;
 
     @Override
     public String getToken() {
@@ -115,6 +115,14 @@ public class SaveAutoexecServiceApi extends PrivateApiComponentBase {
             if (!paramObj.containsKey("combopId")) {
                 throw new ParamNotExistsException("combopId");
             }
+            String formUuid = serviceVo.getFormUuid();
+            if (StringUtils.isNotEmpty(formUuid)) {
+                FormVo formVo = formMapper.getFormByUuid(formUuid);
+                if (formVo == null) {
+                    throw new FormNotFoundException(formUuid);
+                }
+            }
+            autoexecServiceService.checkConfigExpired(serviceVo, true);
         }
         Long id = paramObj.getLong("id");
         Long parentId = paramObj.getLong("parentId");
