@@ -16,9 +16,11 @@
 
 package neatlogic.module.autoexec.api.service;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_SERVICE_MANAGE;
+import neatlogic.framework.autoexec.constvalue.AutoexecServiceType;
 import neatlogic.module.autoexec.dao.mapper.AutoexecServiceMapper;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceAuthorityVo;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceVo;
@@ -27,12 +29,14 @@ import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
+import neatlogic.module.autoexec.service.AutoexecServiceService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @AuthAction(action = AUTOEXEC_SERVICE_MANAGE.class)
@@ -41,6 +45,9 @@ public class GetAutoexecServiceApi extends PrivateApiComponentBase {
 
     @Resource
     AutoexecServiceMapper autoexecServiceMapper;
+
+    @Resource
+    AutoexecServiceService autoexecServiceService;
 
     @Override
     public String getToken() {
@@ -77,6 +84,17 @@ public class GetAutoexecServiceApi extends PrivateApiComponentBase {
             authorityVoList.forEach(e -> authorityList.add(e.getType() + "#" + e.getUuid()));
             serviceVo.setAuthorityList(authorityList);
         }
+        if (Objects.equals(serviceVo.getType(), AutoexecServiceType.SERVICE.getValue())) {
+            JSONArray reasonList = autoexecServiceService.checkConfigExpired(serviceVo, false);
+            if (CollectionUtils.isNotEmpty(reasonList)) {
+                serviceVo.setConfigExpired(1);
+                JSONObject reasonObj = new JSONObject();
+                reasonObj.put("reasonList", reasonList);
+                serviceVo.setConfigExpiredReason(reasonObj);
+                autoexecServiceMapper.updateServiceConfigExpiredById(serviceVo);
+            }
+        }
         return serviceVo;
     }
+
 }

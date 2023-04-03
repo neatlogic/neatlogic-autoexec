@@ -72,6 +72,8 @@ public interface AutoexecServiceMapper {
 
     void updateServiceIsActiveById(AutoexecServiceVo searchVo);
 
+    void updateServiceConfigExpiredById(AutoexecServiceVo serviceVo);
+
     void deleteServiceAuthorityListByServiceId(Long id);
 
     void deleteAutoexecServiceUserByServiceIdAndUserUuid(@Param("id") Long id, @Param("userUuid") String userUuid);
