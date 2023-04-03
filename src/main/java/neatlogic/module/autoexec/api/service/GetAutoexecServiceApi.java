@@ -16,6 +16,7 @@
 
 package neatlogic.module.autoexec.api.service;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_SERVICE_MANAGE;
@@ -30,7 +31,6 @@ import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.module.autoexec.service.AutoexecServiceService;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -84,11 +84,13 @@ public class GetAutoexecServiceApi extends PrivateApiComponentBase {
             authorityVoList.forEach(e -> authorityList.add(e.getType() + "#" + e.getUuid()));
             serviceVo.setAuthorityList(authorityList);
         }
-        if (Objects.equals(serviceVo.getType(), AutoexecServiceType.SERVICE.getValue()) && !Objects.equals(serviceVo.getConfigExpired(), 1)) {
-            String reason = autoexecServiceService.checkConfigExpired(serviceVo, false);
-            if (StringUtils.isNotBlank(reason)) {
+        if (Objects.equals(serviceVo.getType(), AutoexecServiceType.SERVICE.getValue())) {
+            JSONArray reasonList = autoexecServiceService.checkConfigExpired(serviceVo, false);
+            if (CollectionUtils.isNotEmpty(reasonList)) {
                 serviceVo.setConfigExpired(1);
-                serviceVo.setConfigExpiredReason(reason);
+                JSONObject reasonObj = new JSONObject();
+                reasonObj.put("reasonList", reasonList);
+                serviceVo.setConfigExpiredReason(reasonObj);
                 autoexecServiceMapper.updateServiceConfigExpiredById(serviceVo);
             }
         }

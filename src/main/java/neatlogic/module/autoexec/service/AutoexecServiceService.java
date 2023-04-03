@@ -16,6 +16,7 @@
 
 package neatlogic.module.autoexec.service;
 
+import com.alibaba.fastjson.JSONArray;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceVo;
 
 public interface AutoexecServiceService {
@@ -23,7 +24,7 @@ public interface AutoexecServiceService {
      * 检测服务配置信息是否已失效，如果失效，则返回失效原因
      * @param serviceVo 服务信息
      * @param throwException 是否抛异常，不抛异常就记录日志
-     * @return 失效原因
+     * @return 失效原因列表
      */
-    String checkConfigExpired(AutoexecServiceVo serviceVo, boolean throwException);
+    JSONArray checkConfigExpired(AutoexecServiceVo serviceVo, boolean throwException);
 }
