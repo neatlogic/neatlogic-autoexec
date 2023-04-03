@@ -21,15 +21,9 @@ import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_SERVICE_MANAGE;
 import neatlogic.framework.autoexec.constvalue.AutoexecServiceType;
-import neatlogic.framework.autoexec.constvalue.ServiceParamMappingMode;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
-import neatlogic.framework.autoexec.dto.AutoexecParamVo;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionConfigVo;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
-import neatlogic.framework.autoexec.dto.combop.ParamMappingVo;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceAuthorityVo;
-import neatlogic.framework.autoexec.dto.service.AutoexecServiceConfigVo;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceNodeVo;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceVo;
 import neatlogic.framework.autoexec.exception.*;
@@ -38,12 +32,8 @@ import neatlogic.framework.common.constvalue.GroupSearch;
 import neatlogic.framework.dependency.core.DependencyManager;
 import neatlogic.framework.dto.FieldValidResultVo;
 import neatlogic.framework.exception.type.ParamNotExistsException;
-import neatlogic.framework.form.constvalue.FormHandler;
 import neatlogic.framework.form.dao.mapper.FormMapper;
-import neatlogic.framework.form.dto.FormAttributeVo;
-import neatlogic.framework.form.dto.FormVersionVo;
 import neatlogic.framework.form.dto.FormVo;
-import neatlogic.framework.form.exception.FormActiveVersionNotFoundExcepiton;
 import neatlogic.framework.form.exception.FormNotFoundException;
 import neatlogic.framework.lrcode.LRCodeManager;
 import neatlogic.framework.restful.annotation.Description;
@@ -53,22 +43,17 @@ import neatlogic.framework.restful.annotation.Param;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.IValid;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import neatlogic.framework.util.I18nUtils;
-import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecServiceMapper;
 import neatlogic.module.autoexec.dependency.AutoexecCombop2AutoexecServiceDependencyHandler;
 import neatlogic.module.autoexec.dependency.Form2AutoexecServiceDependencyHandler;
-import neatlogic.module.autoexec.service.AutoexecCombopService;
 import neatlogic.module.autoexec.service.AutoexecServiceService;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -87,12 +72,6 @@ public class SaveAutoexecServiceApi extends PrivateApiComponentBase {
 
     @Resource
     AutoexecServiceService autoexecServiceService;
-
-    @Resource
-    AutoexecCombopVersionMapper autoexecCombopVersionMapper;
-
-    @Resource
-    private AutoexecCombopService autoexecCombopService;
 
     @Override
     public String getToken() {

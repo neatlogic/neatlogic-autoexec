@@ -29,7 +29,6 @@ import neatlogic.framework.dto.AuthenticationInfoVo;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import neatlogic.framework.service.AuthenticationInfoService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -46,9 +45,6 @@ public class AllVisibleAutoexecServiceForTreeApi extends PrivateApiComponentBase
 
     @Resource
     private AutoexecServiceMapper autoexecServiceMapper;
-
-    @Resource
-    private AuthenticationInfoService authenticationInfoService;
 
     @Override
     public String getToken() {
@@ -73,7 +69,7 @@ public class AllVisibleAutoexecServiceForTreeApi extends PrivateApiComponentBase
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecServiceSearchVo searchVo = new AutoexecServiceSearchVo();
-        AuthenticationInfoVo authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(UserContext.get().getUserUuid(true));
+        AuthenticationInfoVo authenticationInfoVo = UserContext.get().getAuthenticationInfoVo();
         searchVo.setAuthenticationInfoVo(authenticationInfoVo);
         int rowNum = autoexecServiceMapper.getAllVisibleCount(searchVo);
         if (rowNum == 0) {

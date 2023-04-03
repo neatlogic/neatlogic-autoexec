@@ -92,22 +92,7 @@ public class AutoexecCombopDetailGetApi extends PrivateApiComponentBase {
             if (autoexecCombopVersionVo == null) {
                 throw new AutoexecCombopVersionNotFoundException(versionId);
             }
-//            Map<Long, AutoexecCombopGroupVo> groupMap = new HashMap<>();
             AutoexecCombopVersionConfigVo versionConfig = autoexecCombopVersionVo.getConfig();
-//            List<AutoexecCombopGroupVo> combopGroupList = versionConfig.getCombopGroupList();
-//            if (CollectionUtils.isNotEmpty(combopGroupList)) {
-//                groupMap = versionConfig.getCombopGroupList().stream().collect(Collectors.toMap(e -> e.getId(), e -> e));
-//            }
-//            List<AutoexecCombopPhaseVo> combopPhaseList = versionConfig.getCombopPhaseList();
-//            if (CollectionUtils.isNotEmpty(combopPhaseList)) {
-//                for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseList) {
-//                    autoexecCombopService.needExecuteConfig(autoexecCombopVersionVo, combopPhaseVo, groupMap.get(combopPhaseVo.getGroupId()));
-//                }
-//                autoexecCombopVo.setNeedExecuteNode(autoexecCombopVersionVo.getNeedExecuteNode());
-//                autoexecCombopVo.setNeedExecuteUser(autoexecCombopVersionVo.getNeedExecuteUser());
-//                autoexecCombopVo.setNeedProtocol(autoexecCombopVersionVo.getNeedProtocol());
-//                autoexecCombopVo.setNeedRoundCount(autoexecCombopVersionVo.getNeedRoundCount());
-//            }
             autoexecCombopService.needExecuteConfig(autoexecCombopVersionVo);
             autoexecCombopVo.setNeedExecuteNode(autoexecCombopVersionVo.getNeedExecuteNode());
             autoexecCombopVo.setNeedExecuteUser(autoexecCombopVersionVo.getNeedExecuteUser());
