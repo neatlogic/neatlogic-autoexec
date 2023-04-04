@@ -20,7 +20,6 @@ import neatlogic.framework.autoexec.constvalue.ExecMode;
 import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.constvalue.JobPhaseStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
-import neatlogic.framework.autoexec.dto.AutoexecJobSourceVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
@@ -28,6 +27,7 @@ import neatlogic.framework.autoexec.exception.AutoexecJobSourceInvalidException;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
 import neatlogic.framework.autoexec.source.AutoexecJobSourceFactory;
+import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.exception.type.ParamIrregularException;
 import neatlogic.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONArray;
@@ -71,11 +71,11 @@ public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
             if(CollectionUtils.isEmpty(sqlIdArray)){
                 throw new ParamIrregularException("sqlIdList");
             }
-            AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(jobVo.getSource());
-            if (jobSourceVo == null) {
+            IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
+            if (jobSource == null) {
                 throw new AutoexecJobSourceInvalidException(jobVo.getSource());
             }
-            nodeVoList = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType()).getJobNodeListBySqlIdList(sqlIdArray.toJavaList(Long.class));
+            nodeVoList = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType()).getJobNodeListBySqlIdList(sqlIdArray.toJavaList(Long.class));
         }else {
             nodeVoList = autoexecJobMapper.getJobPhaseNodeListByJobPhaseIdAndResourceIdList(jobVo.getCurrentPhaseId(), resourceIdList);
             //重置节点开始和结束时间,以防 失败节点直接"重跑"导致耗时异常
