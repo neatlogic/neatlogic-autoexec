@@ -1296,26 +1296,26 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 }
             }
 
-            Map<String, Set<Long>> sourceKeyInvokeIdSetMap = new HashMap<>();
-            Map<Long, Long> jobIdInvokeIdMap = new HashMap<>();
-            List<AutoexecJobInvokeVo> jobInvokeList = autoexecJobMapper.getJobInvokeListByJobIdList(jobIdList);
-            for (AutoexecJobInvokeVo jobInvokeVo : jobInvokeList) {
-                sourceKeyInvokeIdSetMap.computeIfAbsent(jobInvokeVo.getSource(), key -> new HashSet<>()).add(jobInvokeVo.getInvokeId());
-                jobIdInvokeIdMap.put(jobInvokeVo.getJobId(), jobInvokeVo.getInvokeId());
-            }
-            Map<Long, String> invokeIdInvokeNameMap = new HashMap<>();
-            for (Map.Entry<String, Set<Long>> entry : sourceKeyInvokeIdSetMap.entrySet()) {
-                IAutoexecJobSource sourceHandler = AutoexecJobSourceFactory.getHandler(entry.getKey());
-                if (sourceHandler == null) {
-                    continue;
-                }
-                List<ValueTextVo> list = sourceHandler.getListByIdList(new ArrayList<>(entry.getValue()));
-                if (CollectionUtils.isNotEmpty(list)) {
-                    for (ValueTextVo valueTextVo : list) {
-                        invokeIdInvokeNameMap.put((Long) valueTextVo.getValue(), valueTextVo.getText());
-                    }
-                }
-            }
+//            Map<String, Set<Long>> sourceKeyInvokeIdSetMap = new HashMap<>();
+//            Map<Long, Long> jobIdInvokeIdMap = new HashMap<>();
+//            List<AutoexecJobInvokeVo> jobInvokeList = autoexecJobMapper.getJobInvokeListByJobIdList(jobIdList);
+//            for (AutoexecJobInvokeVo jobInvokeVo : jobInvokeList) {
+//                sourceKeyInvokeIdSetMap.computeIfAbsent(jobInvokeVo.getSource(), key -> new HashSet<>()).add(jobInvokeVo.getInvokeId());
+//                jobIdInvokeIdMap.put(jobInvokeVo.getJobId(), jobInvokeVo.getInvokeId());
+//            }
+//            Map<Long, String> invokeIdInvokeNameMap = new HashMap<>();
+//            for (Map.Entry<String, Set<Long>> entry : sourceKeyInvokeIdSetMap.entrySet()) {
+//                IAutoexecJobSource sourceHandler = AutoexecJobSourceFactory.getHandler(entry.getKey());
+//                if (sourceHandler == null) {
+//                    continue;
+//                }
+//                List<ValueTextVo> list = sourceHandler.getListByIdList(new ArrayList<>(entry.getValue()));
+//                if (CollectionUtils.isNotEmpty(list)) {
+//                    for (ValueTextVo valueTextVo : list) {
+//                        invokeIdInvokeNameMap.put((Long) valueTextVo.getValue(), valueTextVo.getText());
+//                    }
+//                }
+//            }
             //补充权限
             for (AutoexecJobVo vo : jobVoList) {
                 vo.setOperationName(operationIdNameMap.get(vo.getOperationId()));
@@ -1336,9 +1336,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 if (vo.getParentId() != null) {
                     vo.setChildren(parentJobChildrenListMap.get(vo.getId()));
                 }
-                Long invokeId = jobIdInvokeIdMap.get(vo.getId());
-                vo.setInvokeId(invokeId);
-                vo.setInvokeName(invokeIdInvokeNameMap.get(invokeId));
+//                Long invokeId = jobIdInvokeIdMap.get(vo.getId());
+//                vo.setInvokeId(invokeId);
+//                vo.setInvokeName(invokeIdInvokeNameMap.get(invokeId));
             }
         }
         return jobVoList;
