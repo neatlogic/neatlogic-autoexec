@@ -259,6 +259,9 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
             if (autoexecJobParam.getInvokeId() == null) {
                 autoexecJobParam.setInvokeId(versionId);
             }
+            if (autoexecJobParam.getRouteId() == null) {
+                autoexecJobParam.setRouteId(versionId.toString());
+            }
         }
         if (StringUtils.isBlank(autoexecJobParam.getName())) {
             autoexecJobParam.setName(combopVo.getName());

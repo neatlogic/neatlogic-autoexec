@@ -125,17 +125,17 @@ public class AutoexecScheduleJob extends JobBase {
             schedulerManager.unloadJob(jobObject);
         }else {
 //        System.out.println(new Date() + "执行定时作业：'" + autoexecScheduleVo.getName() + "'");
-            JSONObject paramObj = autoexecScheduleVo.getConfig();
-            paramObj.put("combopId", combopId);
-            paramObj.put("source", JobSource.AUTOEXEC_SCHEDULE.getValue());
-            paramObj.put("invokeId", autoexecScheduleVo.getId());
-            paramObj.put("operationId", autoexecCombopVo.getId());
-            paramObj.put("operationType", CombopOperationType.COMBOP.getValue());
-            paramObj.put("isFirstFire", 1);
+            AutoexecJobVo jobVo = new AutoexecJobVo();
+            jobVo.setCombopId(combopId);
+            jobVo.setSource(JobSource.AUTOEXEC_SCHEDULE.getValue());
+            jobVo.setInvokeId(autoexecScheduleVo.getId());
+            jobVo.setRouteId(autoexecScheduleVo.getId().toString());
+            jobVo.setOperationId(autoexecScheduleVo.getId());
+            jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
+            jobVo.setIsFirstFire(1);
             UserVo fcuVo = userMapper.getUserByUuid(autoexecScheduleVo.getFcu());
             UserContext.init(fcuVo, SystemUser.SYSTEM.getTimezone());
             UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(fcuVo).getCc());
-            AutoexecJobVo jobVo = JSONObject.toJavaObject(paramObj, AutoexecJobVo.class);
             autoexecJobActionService.validateAndCreateJobFromCombop(jobVo);
             jobVo.setAction(JobAction.FIRE.getValue());
             IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());

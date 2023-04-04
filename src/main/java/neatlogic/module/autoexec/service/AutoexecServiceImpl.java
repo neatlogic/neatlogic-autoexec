@@ -631,7 +631,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
         if (value == null) {
             return true;
         }
-        String valueStr = (String) value;
+        String valueStr = value.toString();
         if (StringUtils.isBlank(valueStr)) {
             return true;
         }

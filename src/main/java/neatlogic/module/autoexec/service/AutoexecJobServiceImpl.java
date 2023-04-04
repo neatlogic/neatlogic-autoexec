@@ -149,7 +149,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         if (jobSource == null) {
             throw new AutoexecJobSourceInvalidException(jobVo.getSource());
         }
-        AutoexecJobInvokeVo invokeVo = new AutoexecJobInvokeVo(jobVo.getId(), jobVo.getInvokeId(), jobVo.getSource(), jobSource.getType());
+        AutoexecJobInvokeVo invokeVo = new AutoexecJobInvokeVo(jobVo.getId(), jobVo.getInvokeId(), jobVo.getSource(), jobSource.getType(), jobVo.getRouteId());
         autoexecJobMapper.insertJobInvoke(invokeVo);
         autoexecJobMapper.insertIgnoreJobContent(new AutoexecJobContentVo(jobVo.getConfigHash(), jobVo.getConfigStr()));
         getFinalRuntimeParamList(jobVo.getRunTimeParamList(), jobVo.getParam());
@@ -627,6 +627,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     }
 
     private void getFinalRuntimeParamList(List<AutoexecParamVo> runTimeParamList, JSONObject param) {
+        if (MapUtils.isEmpty(param)) {
+            return;
+        }
         if (CollectionUtils.isNotEmpty(runTimeParamList)) {
             for (AutoexecParamVo paramVo : runTimeParamList) {
                 if (paramVo != null) {

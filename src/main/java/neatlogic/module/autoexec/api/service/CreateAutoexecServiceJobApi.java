@@ -120,7 +120,7 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
         if (autoexecServiceVo == null) {
             throw new AutoexecServiceNotFoundException(serviceId);
         }
-        if (!Objects.equals(autoexecServiceVo.getConfigExpired(), 0)) {
+        if (Objects.equals(autoexecServiceVo.getConfigExpired(), 1)) {
             throw new AutoexecServiceConfigExpiredException(autoexecServiceVo.getName());
         }
         List<Long> upwardIdList = autoexecServiceMapper.getUpwardIdListByLftAndRht(autoexecServiceVo.getLft(), autoexecServiceVo.getRht());
@@ -145,6 +145,7 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
         autoexecJobVo.setOperationType(CombopOperationType.COMBOP.getValue());
         autoexecJobVo.setOperationId(combopId);
         autoexecJobVo.setInvokeId(serviceId);
+        autoexecJobVo.setRouteId(serviceId.toString());
         autoexecJobVo.setCombopId(combopId);
         autoexecJobVo.setName(paramObj.getString("name"));
         autoexecJobVo.setSource(JobSource.SERVICE.getValue());
