@@ -126,11 +126,11 @@ public class AutoexecScheduleJob extends JobBase {
         }else {
 //        System.out.println(new Date() + "执行定时作业：'" + autoexecScheduleVo.getName() + "'");
             AutoexecJobVo jobVo = new AutoexecJobVo();
-            jobVo.setCombopId(combopId);
+//            jobVo.setCombopId(combopId);
+            jobVo.setOperationId(combopId);
             jobVo.setSource(JobSource.AUTOEXEC_SCHEDULE.getValue());
             jobVo.setInvokeId(autoexecScheduleVo.getId());
             jobVo.setRouteId(autoexecScheduleVo.getId().toString());
-            jobVo.setOperationId(autoexecScheduleVo.getId());
             jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
             jobVo.setIsFirstFire(1);
             UserVo fcuVo = userMapper.getUserByUuid(autoexecScheduleVo.getFcu());
