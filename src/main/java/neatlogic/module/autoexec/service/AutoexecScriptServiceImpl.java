@@ -99,7 +99,6 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
         } else if (version.getPackageFileId() != null) {
             version.setPackageFile(fileMapper.getFileById(version.getPackageFileId()));
         }
-        version.setUseLibName(autoexecScriptMapper.getVersionUseLibNameByVersionId(versionId));
         return version;
     }
 
