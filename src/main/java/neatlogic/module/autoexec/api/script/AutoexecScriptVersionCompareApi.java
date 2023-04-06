@@ -55,10 +55,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @AuthAction(action = AUTOEXEC_SCRIPT_SEARCH.class)
@@ -198,6 +196,60 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
         if (!Objects.equals(source.getParser(), target.getParser())) {
             source.setParser("<span class='update'>" + source.getParser() + "</span>");
             target.setParser("<span class='update'>" + target.getParser() + "</span>");
+        }
+        compareUseLibName(source, target);
+    }
+
+    /**
+     * 依赖工具对比
+     *
+     * @param source 来源版本
+     * @param target 目标版本
+     */
+    private void compareUseLibName(AutoexecScriptVersionVo source, AutoexecScriptVersionVo target) {
+        List<String> sourceUseLibNameList = source.getUseLibName();
+        List<String> targetUseLibNameList = target.getUseLibName();
+        if (CollectionUtils.isNotEmpty(sourceUseLibNameList) && CollectionUtils.isEmpty(targetUseLibNameList)) {
+            List<String> newUseLib = new ArrayList<>();
+            for (String useLibName : sourceUseLibNameList) {
+                newUseLib.add("<span class='insert'>" + useLibName + "</span>");
+            }
+            source.setUseLibName(newUseLib);
+            return;
+        }
+        if (CollectionUtils.isEmpty(sourceUseLibNameList) && CollectionUtils.isNotEmpty(targetUseLibNameList)) {
+            List<String> newUseLib = new ArrayList<>();
+            for (String useLibName : targetUseLibNameList) {
+                newUseLib.add("<span class='delete'>" + useLibName + "</span>");
+            }
+            target.setUseLibName(newUseLib);
+            return;
+        }
+        if (CollectionUtils.isNotEmpty(sourceUseLibNameList) && CollectionUtils.isNotEmpty(targetUseLibNameList)) {
+            Map<Integer, String> sourceUseLibNameMap = new HashMap<>();
+            for (int i = 1; i <= sourceUseLibNameList.size(); i++) {
+                sourceUseLibNameMap.put(i, sourceUseLibNameList.get(i - 1));
+            }
+            Map<Integer, String> targetUseLibNameMap = new HashMap<>();
+            for (int i = 1; i <= targetUseLibNameList.size(); i++) {
+                targetUseLibNameMap.put(i, targetUseLibNameList.get(i - 1));
+            }
+            List<String> sourceNewUseLibNameList = sourceUseLibNameList.stream().filter(item -> !targetUseLibNameList.contains(item)).collect(Collectors.toList());
+            List<String> targetDeleteUseLibNameList = targetUseLibNameList.stream().filter(item -> !sourceUseLibNameList.contains(item)).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(sourceNewUseLibNameList)) {
+                List<String> newList = new ArrayList<>();
+                for (Map.Entry<Integer, String> entry : sourceUseLibNameMap.entrySet()) {
+                    newList.add(sourceNewUseLibNameList.contains(entry.getValue()) ? ("<span class='insert'>" + entry.getValue() + "</span>") : entry.getValue());
+                }
+                source.setUseLibName(newList);
+            }
+            if (CollectionUtils.isNotEmpty(targetDeleteUseLibNameList)) {
+                List<String> newList = new ArrayList<>();
+                for (Map.Entry<Integer, String> entry : targetUseLibNameMap.entrySet()) {
+                    newList.add(targetDeleteUseLibNameList.contains(entry.getValue()) ? ("<span class='delete'>" + entry.getValue() + "</span>") : entry.getValue());
+                }
+                target.setUseLibName(newList);
+            }
         }
     }
 
