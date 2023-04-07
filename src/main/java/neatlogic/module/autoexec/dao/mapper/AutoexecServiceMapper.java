@@ -28,6 +28,8 @@ public interface AutoexecServiceMapper {
 
     AutoexecServiceVo getAutoexecServiceById(Long id);
 
+    List<AutoexecServiceVo> getAutoexecServiceListByIdList(List<Long> idList);
+
     AutoexecServiceNodeVo getAutoexecServiceNodeById(Long id);
 
     int checkAutoexecServiceNameIsRepeat(AutoexecServiceVo vo);

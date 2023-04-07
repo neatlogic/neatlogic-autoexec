@@ -38,6 +38,23 @@
         where a.id = #{id}
     </select>
 
+    <select id="getAutoexecServiceListByIdList"
+            resultType="neatlogic.framework.autoexec.dto.service.AutoexecServiceVo">
+        select a.id,
+               a.name,
+               a.is_active as isActive,
+               a.type,
+               a.parent_id as parentId,
+               a.lft,
+               a.rht,
+               a.description
+        from `autoexec_service` a
+        where a.id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </select>
+
     <select id="getAutoexecServiceNodeById"
             resultType="neatlogic.framework.autoexec.dto.service.AutoexecServiceNodeVo">
         select a.id,

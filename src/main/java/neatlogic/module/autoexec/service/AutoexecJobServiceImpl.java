@@ -37,6 +37,7 @@ import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
 import neatlogic.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
 import neatlogic.framework.autoexec.source.AutoexecJobSourceFactory;
+import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.autoexec.util.AutoexecUtil;
 import neatlogic.framework.cmdb.crossover.ICiCrossoverMapper;
 import neatlogic.framework.cmdb.crossover.IResourceCenterResourceCrossoverService;
@@ -44,6 +45,7 @@ import neatlogic.framework.cmdb.crossover.IResourceCrossoverMapper;
 import neatlogic.framework.cmdb.dto.ci.CiVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
+import neatlogic.framework.common.dto.ValueTextVo;
 import neatlogic.framework.common.util.PageUtil;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dao.mapper.ConfigMapper;
@@ -143,11 +145,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             jobVo.setStatus(JobStatus.PENDING.getValue());
         }
         //更新关联来源关系
-        AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(jobVo.getSource());
-        if (jobSourceVo == null) {
+        IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
+        if (jobSource == null) {
             throw new AutoexecJobSourceInvalidException(jobVo.getSource());
         }
-        AutoexecJobInvokeVo invokeVo = new AutoexecJobInvokeVo(jobVo.getId(), jobVo.getInvokeId(), jobVo.getSource(), jobSourceVo.getType());
+        AutoexecJobInvokeVo invokeVo = new AutoexecJobInvokeVo(jobVo.getId(), jobVo.getInvokeId(), jobVo.getSource(), jobSource.getType());
         autoexecJobMapper.insertJobInvoke(invokeVo);
         autoexecJobMapper.insertIgnoreJobContent(new AutoexecJobContentVo(jobVo.getConfigHash(), jobVo.getConfigStr()));
         getFinalRuntimeParamList(jobVo.getRunTimeParamList(), jobVo.getParam());
@@ -217,7 +219,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             if (Arrays.asList(ExecMode.TARGET.getValue(), ExecMode.RUNNER_TARGET.getValue()).contains(autoexecCombopPhaseVo.getExecMode())) {
                 initPhaseExecuteUserAndProtocolAndNode(jobVo, combopExecuteConfigVo, combopPhaseExecuteConfigVo);
             } else {
-                IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
+                IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
                 if (runnerMapVo == null) {
                     List<RunnerMapVo> runnerMapList = autoexecJobSourceActionHandler.getRunnerMapList(jobVo);
                     if (CollectionUtils.isEmpty(runnerMapList)) {
@@ -446,7 +448,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 String script;
                 // 因为组合工具草稿测试功能和自定义脚本版本测试功能的source都置为test，所以增加scriptVersionId != null判断
                 // 自定义脚本版本测试功能执行if代码块逻辑，组合工具草稿测试功能执行else代码块逻辑
-                if (Objects.equals(jobVo.getSource(), JobSource.TEST.getValue()) && autoexecCombopPhaseOperationVo.getScriptVersionId() != null) {
+                if ((Objects.equals(jobVo.getSource(), JobSource.TEST.getValue()) || Objects.equals(jobVo.getSource(), JobSource.SCRIPT_TEST.getValue())) && autoexecCombopPhaseOperationVo.getScriptVersionId() != null) {
                     scriptVersionVo = autoexecScriptMapper.getVersionByVersionId(autoexecCombopPhaseOperationVo.getScriptVersionId());
                     if (scriptVersionVo == null) {
                         throw new AutoexecScriptVersionNotFoundException(id);
@@ -722,11 +724,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         List<AutoexecJobGroupVo> jobGroupVos = autoexecJobMapper.getJobGroupByJobId(jobVo.getId());
         Map<Long, AutoexecJobGroupVo> jobGroupIdMap = jobGroupVos.stream().collect(Collectors.toMap(AutoexecJobGroupVo::getId, e -> e));
         if (CollectionUtils.isNotEmpty(jobPhaseVoList)) {
-            AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(jobVo.getSource());
-            if (jobSourceVo == null) {
+            IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
+            if (jobSource == null) {
                 throw new AutoexecJobSourceInvalidException(jobVo.getSource());
             }
-            IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
+            IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
             AutoexecCombopVo combopVo = autoexecJobSourceActionHandler.getSnapshotAutoexecCombop(jobVo);
             Map<String, String> descriptionMap = new HashMap<>();
             for (AutoexecCombopPhaseVo combopPhase : combopVo.getConfig().getCombopPhaseList()) {
@@ -760,8 +762,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      */
     private Long getRunnerByTargetIp(AutoexecJobVo jobVo) {
         if (jobVo.getCurrentPhase().getCurrentNode() != null) {
-            AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(jobVo.getSource());
-            if (jobSourceVo == null) {
+            IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
+            if (jobSource == null) {
                 throw new AutoexecJobSourceInvalidException(jobVo.getSource());
             }
             //确保已存在的资产使用同一个runner
@@ -769,7 +771,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             if (runnerMapId != null) {
                 return runnerMapId;
             }
-            IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
+            IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
             List<RunnerMapVo> runnerMapVos = autoexecJobSourceActionHandler.getRunnerMapList(jobVo);
             if (CollectionUtils.isNotEmpty(runnerMapVos)) {
                 int runnerMapIndex = (int) (jobVo.getCurrentPhase().getCurrentNode().getId() % runnerMapVos.size());
@@ -1222,9 +1224,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }*/
         //else
         Long jobId = jobVo.getId();
-        AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(jobVo.getSource());
-        if (jobSourceVo != null) {
-            IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
+        IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
+        if (jobSource != null) {
+            IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
             if (autoexecJobSourceActionHandler != null)
                 autoexecJobSourceActionHandler.deleteJob(jobVo);
         }
@@ -1294,14 +1296,34 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 }
             }
 
+//            Map<String, Set<Long>> sourceKeyInvokeIdSetMap = new HashMap<>();
+//            Map<Long, Long> jobIdInvokeIdMap = new HashMap<>();
+//            List<AutoexecJobInvokeVo> jobInvokeList = autoexecJobMapper.getJobInvokeListByJobIdList(jobIdList);
+//            for (AutoexecJobInvokeVo jobInvokeVo : jobInvokeList) {
+//                sourceKeyInvokeIdSetMap.computeIfAbsent(jobInvokeVo.getSource(), key -> new HashSet<>()).add(jobInvokeVo.getInvokeId());
+//                jobIdInvokeIdMap.put(jobInvokeVo.getJobId(), jobInvokeVo.getInvokeId());
+//            }
+//            Map<Long, String> invokeIdInvokeNameMap = new HashMap<>();
+//            for (Map.Entry<String, Set<Long>> entry : sourceKeyInvokeIdSetMap.entrySet()) {
+//                IAutoexecJobSource sourceHandler = AutoexecJobSourceFactory.getHandler(entry.getKey());
+//                if (sourceHandler == null) {
+//                    continue;
+//                }
+//                List<ValueTextVo> list = sourceHandler.getListByIdList(new ArrayList<>(entry.getValue()));
+//                if (CollectionUtils.isNotEmpty(list)) {
+//                    for (ValueTextVo valueTextVo : list) {
+//                        invokeIdInvokeNameMap.put((Long) valueTextVo.getValue(), valueTextVo.getText());
+//                    }
+//                }
+//            }
             //补充权限
             for (AutoexecJobVo vo : jobVoList) {
                 vo.setOperationName(operationIdNameMap.get(vo.getOperationId()));
-                AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(vo.getSource());
-                if (jobSourceVo == null) {
+                IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(vo.getSource());
+                if (jobSource == null) {
                     throw new AutoexecJobSourceInvalidException(vo.getSource());
                 }
-                IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
+                IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
                 autoexecJobSourceActionHandler.getJobActionAuth(vo);
                 //补充warnCount和ignore tooltips
                 AutoexecJobVo jobWarnCountStatus = autoexecJobVoMap.get(vo.getId());
@@ -1314,9 +1336,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 if (vo.getParentId() != null) {
                     vo.setChildren(parentJobChildrenListMap.get(vo.getId()));
                 }
+//                Long invokeId = jobIdInvokeIdMap.get(vo.getId());
+//                vo.setInvokeId(invokeId);
+//                vo.setInvokeName(invokeIdInvokeNameMap.get(invokeId));
             }
-
-
         }
         return jobVoList;
     }
@@ -1380,11 +1403,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         JSONObject statusJson = JSONObject.parseObject(AutoexecUtil.requestRunner(url, paramJson));
         AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(statusJson);
         if (isNeedOperationList) {
-            AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(autoexecJobVo.getSource());
-            if (jobSourceVo == null) {
+            IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(autoexecJobVo.getSource());
+            if (jobSource == null) {
                 throw new AutoexecJobSourceInvalidException(autoexecJobVo.getSource());
             }
-            IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
+            IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
             AutoexecCombopVo combopVo = autoexecJobSourceActionHandler.getSnapshotAutoexecCombop(autoexecJobVo);
             AutoexecCombopConfigVo config = combopVo.getConfig();
             if (config != null) {

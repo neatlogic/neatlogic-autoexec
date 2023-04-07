@@ -19,6 +19,7 @@ package neatlogic.module.autoexec.api.job;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.source.AutoexecJobSourceFactory;
+import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.restful.annotation.Description;
 import neatlogic.framework.restful.annotation.Input;
 import neatlogic.framework.restful.annotation.OperationType;
@@ -29,7 +30,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
-import java.util.Map;
+import java.util.List;
 
 /**
  * @author lvzk
@@ -60,12 +61,12 @@ public class AutoexecJobSourceListApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONArray sourceArray = new JSONArray();
-        Map<String, String> sourceMap = AutoexecJobSourceFactory.getSourceValueMap();
-        for (Map.Entry<String, String> entry : sourceMap.entrySet()) {
+        List<IAutoexecJobSource> list = AutoexecJobSourceFactory.getEnumInstanceList();
+        for (IAutoexecJobSource jobSource : list) {
             sourceArray.add(new JSONObject() {
                 {
-                    put("value", entry.getKey());
-                    put("text", entry.getValue());
+                    put("value", jobSource.getValue());
+                    put("text", jobSource.getText());
                 }
             });
         }

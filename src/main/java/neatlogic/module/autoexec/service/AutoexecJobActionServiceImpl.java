@@ -23,7 +23,6 @@ import neatlogic.framework.autoexec.constvalue.ParamMappingMode;
 import neatlogic.framework.autoexec.constvalue.ToolType;
 import neatlogic.framework.autoexec.crossover.IAutoexecJobActionCrossoverService;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
-import neatlogic.framework.autoexec.dto.AutoexecJobSourceVo;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
@@ -39,6 +38,7 @@ import neatlogic.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandle
 import neatlogic.framework.autoexec.script.paramtype.IScriptParamType;
 import neatlogic.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import neatlogic.framework.autoexec.source.AutoexecJobSourceFactory;
+import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountVo;
 import neatlogic.framework.common.constvalue.SystemUser;
@@ -171,11 +171,11 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             }
         }});
         //补充各个作业来源类型的特殊参数，如：发布的environment
-        AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(jobVo.getSource());
-        if (jobSourceVo == null) {
+        IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
+        if (jobSource == null) {
             throw new AutoexecJobSourceInvalidException(jobVo.getSource());
         }
-        IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
+        IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
         autoexecJobSourceActionHandler.getFireParamJson(paramJson, jobVo);
     }
 
@@ -362,11 +362,11 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
 
     @Override
     public void validateAndCreateJobFromCombop(AutoexecJobVo autoexecJobParam) {
-        AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(autoexecJobParam.getSource());
-        if (jobSourceVo == null) {
+        IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(autoexecJobParam.getSource());
+        if (jobSource == null) {
             throw new AutoexecJobSourceInvalidException(autoexecJobParam.getSource());
         }
-        IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
+        IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
         AutoexecCombopVo combopVo = autoexecJobSourceActionHandler.getAutoexecCombop(autoexecJobParam);
         //作业执行权限校验
         autoexecJobSourceActionHandler.executeAuthCheck(autoexecJobParam, false);

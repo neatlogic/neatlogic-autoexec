@@ -19,7 +19,6 @@ package neatlogic.module.autoexec.api.job;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
-import neatlogic.framework.autoexec.dto.AutoexecJobSourceVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobContentVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
@@ -27,6 +26,7 @@ import neatlogic.framework.autoexec.exception.AutoexecJobSourceInvalidException;
 import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
 import neatlogic.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
 import neatlogic.framework.autoexec.source.AutoexecJobSourceFactory;
+import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.deploy.exception.DeployJobCannotExecuteException;
 import neatlogic.framework.exception.type.PermissionDeniedException;
@@ -78,11 +78,11 @@ public class GetAutoexecJobCreatePayloadApi extends PrivateApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
-        AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(jobVo.getSource());
-        if (jobSourceVo == null) {
+        IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
+        if (jobSource == null) {
             throw new AutoexecJobSourceInvalidException(jobVo.getSource());
         }
-        IAutoexecJobSourceTypeHandler autoexecJobSourceHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
+        IAutoexecJobSourceTypeHandler autoexecJobSourceHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
         try {
             autoexecJobSourceHandler.executeAuthCheck(jobVo, false);
         }catch (DeployJobCannotExecuteException exception){

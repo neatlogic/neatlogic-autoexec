@@ -22,6 +22,7 @@ import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.constvalue.CombopOperationType;
 import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.constvalue.JobTriggerType;
+import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import neatlogic.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
@@ -34,6 +35,7 @@ import neatlogic.framework.scheduler.core.IJob;
 import neatlogic.framework.scheduler.core.SchedulerManager;
 import neatlogic.framework.scheduler.dto.JobObject;
 import neatlogic.framework.scheduler.exception.ScheduleHandlerNotFoundException;
+import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.schedule.plugin.AutoexecJobAutoFireJob;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
 import com.alibaba.fastjson.JSONObject;
@@ -71,7 +73,7 @@ public class CreateAutoexecJobFromCombopApi extends PrivateApiComponentBase {
             @Param(name = "combopVersionId", type = ApiParamType.LONG, desc = "组合工具版本ID"),
             @Param(name = "name", type = ApiParamType.STRING, isRequired = true, desc = "作业名"),
             @Param(name = "param", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "执行参数"),
-            @Param(name = "source", type = ApiParamType.STRING, isRequired = true, desc = "来源 itsm|human   ITSM|人工发起的等，不传默认是人工发起的"),
+            @Param(name = "source", type = ApiParamType.STRING, isRequired = true, desc = "来源 itsm|combop   ITSM|组合工具发起的等"),
             @Param(name = "invokeId", type = ApiParamType.LONG, desc = "来源id"),
             @Param(name = "scenarioId", type = ApiParamType.LONG, desc = "场景id"),
             @Param(name = "scenarioName", type = ApiParamType.STRING, desc = "场景名, 如果入参也有scenarioId，则会以scenarioName为准"),
@@ -89,9 +91,6 @@ public class CreateAutoexecJobFromCombopApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         jsonObj.put("operationType", CombopOperationType.COMBOP.getValue());
         jsonObj.put("operationId", jsonObj.getLong("combopId"));
-        if (!jsonObj.containsKey("invokeId")) {
-            jsonObj.put("invokeId", jsonObj.getLong("combopId"));
-        }
         AutoexecJobVo autoexecJobParam = JSONObject.toJavaObject(jsonObj, AutoexecJobVo.class);
 
         autoexecJobActionService.validateAndCreateJobFromCombop(autoexecJobParam);

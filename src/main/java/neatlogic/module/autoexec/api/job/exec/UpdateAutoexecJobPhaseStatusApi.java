@@ -32,6 +32,7 @@ import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
 import neatlogic.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
 import neatlogic.framework.autoexec.source.AutoexecJobSourceFactory;
+import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.constvalue.SystemUser;
 import neatlogic.framework.dao.mapper.UserMapper;
@@ -136,11 +137,11 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         //更新phase_runner 状态,如果status是Completed，则得该runner所有节点或sql都succeed
         boolean isCanUpdatePhaseStatus = true;
         if (Objects.equals(phaseRunnerStatus, JobPhaseStatus.COMPLETED.getValue())) {
-            AutoexecJobSourceVo jobSourceVo = AutoexecJobSourceFactory.getSourceMap().get(jobVo.getSource());
-            if (jobSourceVo == null) {
+            IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
+            if (jobSource == null) {
                 throw new AutoexecJobSourceInvalidException(jobVo.getSource());
             }
-            IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSourceVo.getType());
+            IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
             isCanUpdatePhaseStatus = autoexecJobSourceActionHandler.getIsCanUpdatePhaseRunner(jobPhaseVo, runnerId);
         }
 

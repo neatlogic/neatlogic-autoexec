@@ -239,9 +239,15 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
         Long versionId = autoexecJobParam.getCombopVersionId();
         if (versionId == null) {
             versionId = autoexecCombopVersionMapper.getAutoexecCombopActiveVersionIdByCombopId(combopVo.getId());
+            if (versionId == null) {
+                throw new AutoexecCombopActiveVersionNotFoundException(combopVo.getName());
+            }
         }
         if (versionId != null) {
             AutoexecCombopVersionVo versionVo = autoexecCombopVersionMapper.getAutoexecCombopVersionById(versionId);
+            if (versionVo == null) {
+                throw new AutoexecCombopVersionNotFoundException(versionId);
+            }
             AutoexecCombopVersionConfigVo versionConfig = versionVo.getConfig();
             if (versionConfig != null) {
                 AutoexecCombopConfigVo config = combopVo.getConfig();
@@ -249,6 +255,9 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
                 config.setCombopGroupList(versionConfig.getCombopGroupList());
                 config.setCombopPhaseList(versionConfig.getCombopPhaseList());
                 config.setRuntimeParamList(versionConfig.getRuntimeParamList());
+            }
+            if (autoexecJobParam.getInvokeId() == null) {
+                autoexecJobParam.setInvokeId(versionId);
             }
         }
         if (StringUtils.isBlank(autoexecJobParam.getName())) {
@@ -305,7 +314,9 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
 
     @Override
     public void getJobActionAuth(AutoexecJobVo jobVo) {
-        if ((Objects.equals(jobVo.getSource(), JobSource.TEST.getValue()))) {
+        if (Objects.equals(jobVo.getSource(), JobSource.TEST.getValue())
+                || Objects.equals(jobVo.getSource(), JobSource.SCRIPT_TEST.getValue())
+                || Objects.equals(jobVo.getSource(), JobSource.TOOL_TEST.getValue())) {
             if (AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class)) {
                 if (UserContext.get().getUserUuid().equals(jobVo.getExecUser())) {
                     jobVo.setIsCanExecute(1);
