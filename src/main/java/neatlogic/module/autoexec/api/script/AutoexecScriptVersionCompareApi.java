@@ -222,13 +222,13 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
             }
             target.setUseLibName(newUseLib);
         } else if (CollectionUtils.isNotEmpty(sourceUseLibNameList) && CollectionUtils.isNotEmpty(targetUseLibNameList)) {
-            List<String> oldSourceUseLibNameList1 = new ArrayList<>(sourceUseLibNameList);
+            List<String> oldSourceUseLibNameList = new ArrayList<>(sourceUseLibNameList);
             List<String> oldTargetUseLibNameList = new ArrayList<>(targetUseLibNameList);
             List<String> sourceNewUseLibNameList = sourceUseLibNameList.stream().filter(item -> !targetUseLibNameList.contains(item)).collect(Collectors.toList());
             List<String> targetDeleteUseLibNameList = targetUseLibNameList.stream().filter(item -> !sourceUseLibNameList.contains(item)).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(sourceNewUseLibNameList)) {
                 List<String> newList = new ArrayList<>();
-                oldSourceUseLibNameList1.forEach(e -> newList.add(sourceNewUseLibNameList.contains(e) ? ("<span class='insert'>" + e + "</span>") : e));
+                oldSourceUseLibNameList.forEach(e -> newList.add(sourceNewUseLibNameList.contains(e) ? ("<span class='insert'>" + e + "</span>") : e));
                 source.setUseLibName(newList);
             }
             if (CollectionUtils.isNotEmpty(targetDeleteUseLibNameList)) {
