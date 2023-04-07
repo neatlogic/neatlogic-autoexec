@@ -211,30 +211,27 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
         List<String> targetUseLibNameList = target.getUseLibName();
         if (CollectionUtils.isNotEmpty(sourceUseLibNameList) && CollectionUtils.isEmpty(targetUseLibNameList)) {
             List<String> newUseLib = new ArrayList<>();
-            for (String useLibName : sourceUseLibNameList) {
-                newUseLib.add("<span class='insert'>" + useLibName + "</span>");
-            }
+            sourceUseLibNameList.forEach(e -> newUseLib.add(("<span class='insert'>" + e + "</span>")));
             source.setUseLibName(newUseLib);
         } else if (CollectionUtils.isEmpty(sourceUseLibNameList) && CollectionUtils.isNotEmpty(targetUseLibNameList)) {
             List<String> newUseLib = new ArrayList<>();
-            for (String useLibName : targetUseLibNameList) {
-                newUseLib.add("<span class='delete'>" + useLibName + "</span>");
-            }
+            targetUseLibNameList.forEach(e -> newUseLib.add(("<span class='delete'>" + e + "</span>")));
             target.setUseLibName(newUseLib);
         } else if (CollectionUtils.isNotEmpty(sourceUseLibNameList) && CollectionUtils.isNotEmpty(targetUseLibNameList)) {
             List<String> oldSourceUseLibNameList = new ArrayList<>(sourceUseLibNameList);
             List<String> oldTargetUseLibNameList = new ArrayList<>(targetUseLibNameList);
+
             List<String> sourceNewUseLibNameList = sourceUseLibNameList.stream().filter(item -> !targetUseLibNameList.contains(item)).collect(Collectors.toList());
             List<String> targetDeleteUseLibNameList = targetUseLibNameList.stream().filter(item -> !sourceUseLibNameList.contains(item)).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(sourceNewUseLibNameList)) {
-                List<String> newList = new ArrayList<>();
-                oldSourceUseLibNameList.forEach(e -> newList.add(sourceNewUseLibNameList.contains(e) ? ("<span class='insert'>" + e + "</span>") : e));
-                source.setUseLibName(newList);
+                List<String> newUseLib = new ArrayList<>();
+                oldSourceUseLibNameList.forEach(e -> newUseLib.add(sourceNewUseLibNameList.contains(e) ? ("<span class='insert'>" + e + "</span>") : e));
+                source.setUseLibName(newUseLib);
             }
             if (CollectionUtils.isNotEmpty(targetDeleteUseLibNameList)) {
-                List<String> newList = new ArrayList<>();
-                oldTargetUseLibNameList.forEach(e -> newList.add(targetDeleteUseLibNameList.contains(e) ? ("<span class='delete'>" + e + "</span>") : e));
-                target.setUseLibName(newList);
+                List<String> newUseLib = new ArrayList<>();
+                oldTargetUseLibNameList.forEach(e -> newUseLib.add(targetDeleteUseLibNameList.contains(e) ? ("<span class='delete'>" + e + "</span>") : e));
+                target.setUseLibName(newUseLib);
             }
         }
     }
