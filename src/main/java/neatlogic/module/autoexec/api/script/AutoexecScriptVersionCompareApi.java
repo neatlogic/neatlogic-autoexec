@@ -171,31 +171,31 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
     /**
      * 脚本版本对比，对比内容包括出参入参、解析器、脚本内容
      *
-     * @param source 源版本
      * @param target 目标版本
+     * @param source 源版本
      */
-    private void compareScriptVersion(AutoexecScriptVersionVo source, AutoexecScriptVersionVo target) {
-        List<AutoexecScriptVersionParamVo> sourceInputParamList = source.getInputParamList() != null ? source.getInputParamList() : new ArrayList<>();
-        List<AutoexecScriptVersionParamVo> sourceOutputParamList = source.getOutputParamList() != null ? source.getOutputParamList() : new ArrayList<>();
+    private void compareScriptVersion(AutoexecScriptVersionVo target, AutoexecScriptVersionVo source) {
         List<AutoexecScriptVersionParamVo> targetInputParamList = target.getInputParamList() != null ? target.getInputParamList() : new ArrayList<>();
         List<AutoexecScriptVersionParamVo> targetOutputParamList = target.getOutputParamList() != null ? target.getOutputParamList() : new ArrayList<>();
-        compareParamList(targetInputParamList, sourceInputParamList);
-        compareParamList(targetOutputParamList, sourceOutputParamList);
-        compareArgument(source.getArgument(), target.getArgument());
-        if (!StringUtils.equals(source.getParser(), ScriptParser.PACKAGE.getValue()) && !StringUtils.equals(target.getParser(), ScriptParser.PACKAGE.getValue())) {
-            compareLineList(source, target);
-        } else if (StringUtils.equals(source.getParser(), ScriptParser.PACKAGE.getValue()) && StringUtils.equals(target.getParser(), ScriptParser.PACKAGE.getValue())) {
-            FileVo sourcePackageFile = source.getPackageFile();
+        List<AutoexecScriptVersionParamVo> sourceInputParamList = source.getInputParamList() != null ? source.getInputParamList() : new ArrayList<>();
+        List<AutoexecScriptVersionParamVo> sourceOutputParamList = source.getOutputParamList() != null ? source.getOutputParamList() : new ArrayList<>();
+        compareParamList(sourceInputParamList, targetInputParamList);
+        compareParamList(sourceOutputParamList, targetOutputParamList);
+        compareArgument(target.getArgument(), source.getArgument());
+        if (!StringUtils.equals(target.getParser(), ScriptParser.PACKAGE.getValue()) && !StringUtils.equals(source.getParser(), ScriptParser.PACKAGE.getValue())) {
+            compareLineList(target, source);
+        } else if (StringUtils.equals(target.getParser(), ScriptParser.PACKAGE.getValue()) && StringUtils.equals(source.getParser(), ScriptParser.PACKAGE.getValue())) {
             FileVo targetPackageFile = target.getPackageFile();
-            if (sourcePackageFile != null && targetPackageFile != null && !Objects.equals(sourcePackageFile.getId(), targetPackageFile.getId())) {
-                sourcePackageFile.setName("<span class='update'>" + sourcePackageFile.getName() + "</span>");
+            FileVo sourcePackageFile = source.getPackageFile();
+            if (targetPackageFile != null && sourcePackageFile != null && !Objects.equals(targetPackageFile.getId(), sourcePackageFile.getId())) {
                 targetPackageFile.setName("<span class='update'>" + targetPackageFile.getName() + "</span>");
+                sourcePackageFile.setName("<span class='update'>" + sourcePackageFile.getName() + "</span>");
             }
 
         }
-        if (!Objects.equals(source.getParser(), target.getParser())) {
-            source.setParser("<span class='update'>" + source.getParser() + "</span>");
+        if (!Objects.equals(target.getParser(), source.getParser())) {
             target.setParser("<span class='update'>" + target.getParser() + "</span>");
+            source.setParser("<span class='update'>" + source.getParser() + "</span>");
         }
         compareUseLibName(source, target);
     }
