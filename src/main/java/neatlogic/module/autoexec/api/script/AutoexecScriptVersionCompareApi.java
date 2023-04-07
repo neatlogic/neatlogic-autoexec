@@ -215,39 +215,25 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
                 newUseLib.add("<span class='insert'>" + useLibName + "</span>");
             }
             source.setUseLibName(newUseLib);
-            return;
-        }
-        if (CollectionUtils.isEmpty(sourceUseLibNameList) && CollectionUtils.isNotEmpty(targetUseLibNameList)) {
+        } else if (CollectionUtils.isEmpty(sourceUseLibNameList) && CollectionUtils.isNotEmpty(targetUseLibNameList)) {
             List<String> newUseLib = new ArrayList<>();
             for (String useLibName : targetUseLibNameList) {
                 newUseLib.add("<span class='delete'>" + useLibName + "</span>");
             }
             target.setUseLibName(newUseLib);
-            return;
-        }
-        if (CollectionUtils.isNotEmpty(sourceUseLibNameList) && CollectionUtils.isNotEmpty(targetUseLibNameList)) {
-            Map<Integer, String> sourceUseLibNameMap = new HashMap<>();
-            for (int i = 1; i <= sourceUseLibNameList.size(); i++) {
-                sourceUseLibNameMap.put(i, sourceUseLibNameList.get(i - 1));
-            }
-            Map<Integer, String> targetUseLibNameMap = new HashMap<>();
-            for (int i = 1; i <= targetUseLibNameList.size(); i++) {
-                targetUseLibNameMap.put(i, targetUseLibNameList.get(i - 1));
-            }
+        } else if (CollectionUtils.isNotEmpty(sourceUseLibNameList) && CollectionUtils.isNotEmpty(targetUseLibNameList)) {
+            List<String> oldSourceUseLibNameList1 = new ArrayList<>(sourceUseLibNameList);
+            List<String> oldTargetUseLibNameList = new ArrayList<>(targetUseLibNameList);
             List<String> sourceNewUseLibNameList = sourceUseLibNameList.stream().filter(item -> !targetUseLibNameList.contains(item)).collect(Collectors.toList());
             List<String> targetDeleteUseLibNameList = targetUseLibNameList.stream().filter(item -> !sourceUseLibNameList.contains(item)).collect(Collectors.toList());
             if (CollectionUtils.isNotEmpty(sourceNewUseLibNameList)) {
                 List<String> newList = new ArrayList<>();
-                for (Map.Entry<Integer, String> entry : sourceUseLibNameMap.entrySet()) {
-                    newList.add(sourceNewUseLibNameList.contains(entry.getValue()) ? ("<span class='insert'>" + entry.getValue() + "</span>") : entry.getValue());
-                }
+                oldSourceUseLibNameList1.forEach(e -> newList.add(sourceNewUseLibNameList.contains(e) ? ("<span class='insert'>" + e + "</span>") : e));
                 source.setUseLibName(newList);
             }
             if (CollectionUtils.isNotEmpty(targetDeleteUseLibNameList)) {
                 List<String> newList = new ArrayList<>();
-                for (Map.Entry<Integer, String> entry : targetUseLibNameMap.entrySet()) {
-                    newList.add(targetDeleteUseLibNameList.contains(entry.getValue()) ? ("<span class='delete'>" + entry.getValue() + "</span>") : entry.getValue());
-                }
+                oldTargetUseLibNameList.forEach(e -> newList.add(targetDeleteUseLibNameList.contains(e) ? ("<span class='delete'>" + e + "</span>") : e));
                 target.setUseLibName(newList);
             }
         }
