@@ -156,7 +156,7 @@ CREATE TABLE IF NOT EXISTS `autoexec_job` (
   `trigger_type` enum('auto','manual') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '触发方式(auto:自动触发；manual)',
   `lncd` timestamp(3) NULL DEFAULT NULL COMMENT '最近一次节点变动时间',
   `config_hash` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '配置hash',
-  `parent_id` bigint DEFAULT NULL COMMENT '父id',
+  `parent_id` bigint DEFAULT NULL COMMENT '父id，值为-1时，代表该数据是父作业',
   `reviewer` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '审核人',
   `review_status` enum('passed','failed','waiting') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '审核状态',
   `review_time` timestamp(3) NULL DEFAULT NULL COMMENT '审核时间',
