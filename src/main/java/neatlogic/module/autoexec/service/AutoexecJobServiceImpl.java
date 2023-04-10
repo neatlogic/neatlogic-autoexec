@@ -16,9 +16,6 @@
 
 package neatlogic.module.autoexec.service;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.autoexec.constvalue.*;
@@ -27,6 +24,7 @@ import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecToolMapper;
+import neatlogic.framework.autoexec.dto.AutoexecJobSourceVo;
 import neatlogic.framework.autoexec.dto.AutoexecOperationVo;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
 import neatlogic.framework.autoexec.dto.AutoexecToolVo;
@@ -47,6 +45,7 @@ import neatlogic.framework.cmdb.crossover.IResourceCrossoverMapper;
 import neatlogic.framework.cmdb.dto.ci.CiVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
+import neatlogic.framework.common.dto.ValueTextVo;
 import neatlogic.framework.common.util.PageUtil;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dao.mapper.ConfigMapper;
@@ -62,6 +61,9 @@ import neatlogic.framework.exception.runner.RunnerNotMatchException;
 import neatlogic.framework.integration.authentication.enums.AuthenticateType;
 import neatlogic.framework.util.HttpRequestUtil;
 import neatlogic.framework.util.RestUtil;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -79,8 +81,8 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import static java.util.stream.Collectors.*;
 import static neatlogic.framework.common.util.CommonUtil.distinctByKey;
+import static java.util.stream.Collectors.*;
 
 /**
  * @since 2021/4/12 18:44
@@ -112,8 +114,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
 
     /**
      * 获取最终的执行用户
-     *
-     * @param executeUser      执行用户映射信息
+     * @param executeUser 执行用户映射信息
      * @param runTimeParamList 作业参数列表
      * @return
      */
@@ -219,13 +220,15 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 initPhaseExecuteUserAndProtocolAndNode(jobVo, combopExecuteConfigVo, combopPhaseExecuteConfigVo);
             } else {
                 IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
-                List<RunnerMapVo> runnerMapList = autoexecJobSourceActionHandler.getRunnerMapList(jobVo);
-                if (CollectionUtils.isEmpty(runnerMapList)) {
-                    throw new RunnerNotMatchException();
+                if (runnerMapVo == null) {
+                    List<RunnerMapVo> runnerMapList = autoexecJobSourceActionHandler.getRunnerMapList(jobVo);
+                    if (CollectionUtils.isEmpty(runnerMapList)) {
+                        throw new RunnerNotMatchException();
+                    }
+                    int runnerMapIndex = (int) (Math.random() * runnerMapList.size());
+                    runnerMapVo = runnerMapList.get(runnerMapIndex);
+                    autoexecJobMapper.updateJobLocalRunnerId(jobVo.getId(), runnerMapVo.getRunnerMapId());
                 }
-                int runnerMapIndex = (int) (Math.random() * runnerMapList.size());
-                runnerMapVo = runnerMapList.get(runnerMapIndex);
-                autoexecJobMapper.updateJobLocalRunnerId(jobVo.getId(), runnerMapVo.getRunnerMapId());
                 Date nowTime = new Date(System.currentTimeMillis());
                 jobPhaseVo.setLcd(nowTime);
                 AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), jobPhaseVo, "runner", JobNodeStatus.PENDING.getValue(), userName, protocolId);
@@ -681,7 +684,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         List<AutoexecCombopPhaseVo> combopRunnerPhaseList = configVo.getCombopPhaseList().stream().filter(o -> Objects.equals(ExecMode.RUNNER.getValue(), o.getExecMode())).collect(Collectors.toList());
         for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopRunnerPhaseList) {
             Optional<AutoexecJobPhaseVo> jobPhaseVoOptional = jobPhaseVoList.stream().filter(o -> Objects.equals(o.getName(), autoexecCombopPhaseVo.getName())).findFirst();
-            if (jobPhaseVoOptional.isPresent()) {
+            if(jobPhaseVoOptional.isPresent()) {
                 autoexecJobMapper.updateJobPhaseNodeStatusByJobPhaseIdAndIsDelete(jobPhaseVoOptional.get().getId(), JobNodeStatus.PENDING.getValue(), 0);
             }
         }
