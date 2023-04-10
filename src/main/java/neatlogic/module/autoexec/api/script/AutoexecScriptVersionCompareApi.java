@@ -55,10 +55,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @AuthAction(action = AUTOEXEC_SCRIPT_SEARCH.class)
@@ -173,31 +171,57 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
     /**
      * 脚本版本对比，对比内容包括出参入参、解析器、脚本内容
      *
-     * @param source 源版本
      * @param target 目标版本
+     * @param source 源版本
      */
-    private void compareScriptVersion(AutoexecScriptVersionVo source, AutoexecScriptVersionVo target) {
-        List<AutoexecScriptVersionParamVo> sourceInputParamList = source.getInputParamList() != null ? source.getInputParamList() : new ArrayList<>();
-        List<AutoexecScriptVersionParamVo> sourceOutputParamList = source.getOutputParamList() != null ? source.getOutputParamList() : new ArrayList<>();
+    private void compareScriptVersion(AutoexecScriptVersionVo target, AutoexecScriptVersionVo source) {
         List<AutoexecScriptVersionParamVo> targetInputParamList = target.getInputParamList() != null ? target.getInputParamList() : new ArrayList<>();
         List<AutoexecScriptVersionParamVo> targetOutputParamList = target.getOutputParamList() != null ? target.getOutputParamList() : new ArrayList<>();
-        compareParamList(targetInputParamList, sourceInputParamList);
-        compareParamList(targetOutputParamList, sourceOutputParamList);
-        compareArgument(source.getArgument(), target.getArgument());
-        if (!StringUtils.equals(source.getParser(), ScriptParser.PACKAGE.getValue()) && !StringUtils.equals(target.getParser(), ScriptParser.PACKAGE.getValue())) {
-            compareLineList(source, target);
-        } else if (StringUtils.equals(source.getParser(), ScriptParser.PACKAGE.getValue()) && StringUtils.equals(target.getParser(), ScriptParser.PACKAGE.getValue())) {
-            FileVo sourcePackageFile = source.getPackageFile();
+        List<AutoexecScriptVersionParamVo> sourceInputParamList = source.getInputParamList() != null ? source.getInputParamList() : new ArrayList<>();
+        List<AutoexecScriptVersionParamVo> sourceOutputParamList = source.getOutputParamList() != null ? source.getOutputParamList() : new ArrayList<>();
+        compareParamList(sourceInputParamList, targetInputParamList);
+        compareParamList(sourceOutputParamList, targetOutputParamList);
+        compareArgument(target.getArgument(), source.getArgument());
+        if (!StringUtils.equals(target.getParser(), ScriptParser.PACKAGE.getValue()) && !StringUtils.equals(source.getParser(), ScriptParser.PACKAGE.getValue())) {
+            compareLineList(target, source);
+        } else if (StringUtils.equals(target.getParser(), ScriptParser.PACKAGE.getValue()) && StringUtils.equals(source.getParser(), ScriptParser.PACKAGE.getValue())) {
             FileVo targetPackageFile = target.getPackageFile();
-            if (sourcePackageFile != null && targetPackageFile != null && !Objects.equals(sourcePackageFile.getId(), targetPackageFile.getId())) {
-                sourcePackageFile.setName("<span class='update'>" + sourcePackageFile.getName() + "</span>");
+            FileVo sourcePackageFile = source.getPackageFile();
+            if (targetPackageFile != null && sourcePackageFile != null && !Objects.equals(targetPackageFile.getId(), sourcePackageFile.getId())) {
                 targetPackageFile.setName("<span class='update'>" + targetPackageFile.getName() + "</span>");
+                sourcePackageFile.setName("<span class='update'>" + sourcePackageFile.getName() + "</span>");
             }
 
         }
-        if (!Objects.equals(source.getParser(), target.getParser())) {
-            source.setParser("<span class='update'>" + source.getParser() + "</span>");
+        if (!Objects.equals(target.getParser(), source.getParser())) {
             target.setParser("<span class='update'>" + target.getParser() + "</span>");
+            source.setParser("<span class='update'>" + source.getParser() + "</span>");
+        }
+        compareUseLibName(source, target);
+    }
+
+    /**
+     * 依赖工具对比
+     *
+     * @param source 来源版本
+     * @param target 目标版本
+     */
+    private void compareUseLibName(AutoexecScriptVersionVo source, AutoexecScriptVersionVo target) {
+        List<String> sourceUseLibNameList = source.getUseLibName();
+        List<String> targetUseLibNameList = target.getUseLibName();
+        if (CollectionUtils.isNotEmpty(sourceUseLibNameList) && CollectionUtils.isEmpty(targetUseLibNameList)) {
+            source.setUseLibName(sourceUseLibNameList.stream().map(e -> ("<span class='insert'>" + e + "</span>")).collect(Collectors.toList()));
+        } else if (CollectionUtils.isEmpty(sourceUseLibNameList) && CollectionUtils.isNotEmpty(targetUseLibNameList)) {
+            target.setUseLibName(targetUseLibNameList.stream().map(e -> "<span class='delete'>" + e + "</span>").collect(Collectors.toList()));
+        } else if (CollectionUtils.isNotEmpty(sourceUseLibNameList) && CollectionUtils.isNotEmpty(targetUseLibNameList)) {
+            List<String> sourceNewUseLibNameList = sourceUseLibNameList.stream().filter(item -> !targetUseLibNameList.contains(item)).collect(Collectors.toList());
+            List<String> targetDeleteUseLibNameList = targetUseLibNameList.stream().filter(item -> !sourceUseLibNameList.contains(item)).collect(Collectors.toList());
+            if (CollectionUtils.isNotEmpty(sourceNewUseLibNameList)) {
+                source.setUseLibName(sourceUseLibNameList.stream().map(e -> sourceNewUseLibNameList.contains(e) ? ("<span class='insert'>" + e + "</span>") : e).collect(Collectors.toList()));
+            }
+            if (CollectionUtils.isNotEmpty(targetDeleteUseLibNameList)) {
+                target.setUseLibName(targetUseLibNameList.stream().map(e -> targetDeleteUseLibNameList.contains(e) ? ("<span class='delete'>" + e + "</span>") : e).collect(Collectors.toList()));
+            }
         }
     }
 
