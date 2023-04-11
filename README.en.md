@@ -1,4 +1,4 @@
-English / [Chinese](README.md)
+[Chinese](README.md) / English
 
 ## about
 
@@ -21,7 +21,20 @@ Based on a combined script of tools and custom tools, add tools to the stage and
 
 ### Job
 
-Initiate automated jobs based on composite tools
+There are two ways to execute jobs, including manually initiating tasks and timed jobs.
+1. Initiate automated jobs based on composite tools
 ![img.png](README_IMAGES/img2.png)
 On the job management page, you can filter target jobs based on needs and view job details
 ![img.png](README_IMAGES/img3.png)
+2. Timed job is achieved through a "timer+combination tool" approach.The configuration of timed jobs includes two parts: basic information and tool parameters. The combination of basic information, tools, and scheduled plans determine the script and execution time of the job. Tool parameters are preset parameters for execution, including batch quantity, execution target, execution account, and operation parameters.
+![img.png](README_IMAGES/img7.png)
+![img.png](README_IMAGES/img8.png)
+
+### Preset parameter set
+
+The preset parameter set can be associated with one or more tools, and the parameters merge the input parameters of the associated tools into a parameter set, supporting pre configured parameter values.
+![img.png](README_IMAGES/img4.png)
+* The tool is directly associated with a preset parameter set. When combining tools to reference a tool, the tool's configuration defaults to enabling the associated preset parameter set, and the input parameter mapping value of the tool defaults to the preset parameter set configuration.
+  ![img.png](README_IMAGES/img5.png)
+* The tool is not associated with a preset parameter set, When referencing a tool in combination, the tool's configuration defaults to turning off the preset parameter set. If the association preset parameter set is enabled, you can freely select the preset parameter set associated with the current tool.
+  ![img.png](README_IMAGES/img6.png)

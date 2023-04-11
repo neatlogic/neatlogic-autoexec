@@ -151,6 +151,7 @@ public class SaveAutoexecServiceApi extends PrivateApiComponentBase {
             autoexecServiceMapper.updateServiceById(serviceVo);
         }
         if (paramObj.getString("type").equals("service")) {
+            serviceVo.setConfigExpired(0);
             autoexecServiceMapper.insertAutoexecServiceConfig(serviceVo);
             Long combopId = serviceVo.getCombopId();
             AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
