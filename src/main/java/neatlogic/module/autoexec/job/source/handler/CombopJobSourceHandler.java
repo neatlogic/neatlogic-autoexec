@@ -16,10 +16,11 @@
 
 package neatlogic.module.autoexec.job.source.handler;
 
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.JobSource;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
+import neatlogic.framework.autoexec.dto.job.AutoexecJobRouteVo;
 import neatlogic.framework.autoexec.source.IAutoexecJobSource;
-import neatlogic.framework.common.dto.ValueTextVo;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
@@ -45,14 +46,21 @@ public class CombopJobSourceHandler implements IAutoexecJobSource {
     }
 
     @Override
-    public List<ValueTextVo> getListByIdList(List<Long> idList) {
-        if (CollectionUtils.isEmpty(idList)) {
+    public List<AutoexecJobRouteVo> getListByUniqueKeyList(List<String> uniqueKeyList) {
+        if (CollectionUtils.isEmpty(uniqueKeyList)) {
             return null;
         }
-        List<ValueTextVo> resultList = new ArrayList<>();
+        List<Long> idList = new ArrayList<>();
+        for (String str : uniqueKeyList) {
+            idList.add(Long.valueOf(str));
+        }
+        List<AutoexecJobRouteVo> resultList = new ArrayList<>();
         List<AutoexecCombopVersionVo> list = autoexecCombopVersionMapper.getAutoexecCombopVersionListByIdList(idList);
         for (AutoexecCombopVersionVo versionVo : list) {
-            resultList.add(new ValueTextVo(versionVo.getId(), versionVo.getName()));
+            JSONObject config = new JSONObject();
+            config.put("id", versionVo.getCombopId());
+            config.put("versionId", versionVo.getId());
+            resultList.add(new AutoexecJobRouteVo(versionVo.getId(), versionVo.getName(), config));
         }
         return resultList;
     }

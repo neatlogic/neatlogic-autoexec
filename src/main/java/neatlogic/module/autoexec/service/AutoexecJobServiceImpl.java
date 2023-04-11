@@ -24,7 +24,6 @@ import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecToolMapper;
-import neatlogic.framework.autoexec.dto.AutoexecJobSourceVo;
 import neatlogic.framework.autoexec.dto.AutoexecOperationVo;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
 import neatlogic.framework.autoexec.dto.AutoexecToolVo;
@@ -45,7 +44,6 @@ import neatlogic.framework.cmdb.crossover.IResourceCrossoverMapper;
 import neatlogic.framework.cmdb.dto.ci.CiVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
-import neatlogic.framework.common.dto.ValueTextVo;
 import neatlogic.framework.common.util.PageUtil;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dao.mapper.ConfigMapper;
@@ -1299,26 +1297,28 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 }
             }
 
-//            Map<String, Set<Long>> sourceKeyInvokeIdSetMap = new HashMap<>();
-//            Map<Long, Long> jobIdInvokeIdMap = new HashMap<>();
-//            List<AutoexecJobInvokeVo> jobInvokeList = autoexecJobMapper.getJobInvokeListByJobIdList(jobIdList);
-//            for (AutoexecJobInvokeVo jobInvokeVo : jobInvokeList) {
-//                sourceKeyInvokeIdSetMap.computeIfAbsent(jobInvokeVo.getSource(), key -> new HashSet<>()).add(jobInvokeVo.getInvokeId());
-//                jobIdInvokeIdMap.put(jobInvokeVo.getJobId(), jobInvokeVo.getInvokeId());
-//            }
-//            Map<Long, String> invokeIdInvokeNameMap = new HashMap<>();
-//            for (Map.Entry<String, Set<Long>> entry : sourceKeyInvokeIdSetMap.entrySet()) {
-//                IAutoexecJobSource sourceHandler = AutoexecJobSourceFactory.getHandler(entry.getKey());
-//                if (sourceHandler == null) {
-//                    continue;
-//                }
-//                List<ValueTextVo> list = sourceHandler.getListByIdList(new ArrayList<>(entry.getValue()));
-//                if (CollectionUtils.isNotEmpty(list)) {
-//                    for (ValueTextVo valueTextVo : list) {
-//                        invokeIdInvokeNameMap.put((Long) valueTextVo.getValue(), valueTextVo.getText());
-//                    }
-//                }
-//            }
+            Map<String, Set<String>> sourceKeyInvokeIdSetMap = new HashMap<>();
+            Map<Long, String> jobIdToRouteIdMap = new HashMap<>();
+            List<AutoexecJobInvokeVo> jobInvokeList = autoexecJobMapper.getJobInvokeListByJobIdList(jobIdList);
+            for (AutoexecJobInvokeVo jobInvokeVo : jobInvokeList) {
+                if (jobInvokeVo.getRouteId() != null) {
+                    sourceKeyInvokeIdSetMap.computeIfAbsent(jobInvokeVo.getSource(), key -> new HashSet<>()).add(jobInvokeVo.getRouteId());
+                }
+                jobIdToRouteIdMap.put(jobInvokeVo.getJobId(), jobInvokeVo.getRouteId());
+            }
+            Map<String, AutoexecJobRouteVo> routeMap = new HashMap<>();
+            for (Map.Entry<String, Set<String>> entry : sourceKeyInvokeIdSetMap.entrySet()) {
+                IAutoexecJobSource sourceHandler = AutoexecJobSourceFactory.getHandler(entry.getKey());
+                if (sourceHandler == null) {
+                    continue;
+                }
+                List<AutoexecJobRouteVo> list = sourceHandler.getListByUniqueKeyList(new ArrayList<>(entry.getValue()));
+                if (CollectionUtils.isNotEmpty(list)) {
+                    for (AutoexecJobRouteVo jobRouteVo : list) {
+                        routeMap.put(jobRouteVo.getId().toString(), jobRouteVo);
+                    }
+                }
+            }
             //补充权限
             for (AutoexecJobVo vo : jobVoList) {
                 vo.setOperationName(operationIdNameMap.get(vo.getOperationId()));
@@ -1339,9 +1339,14 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 if (vo.getParentId() != null) {
                     vo.setChildren(parentJobChildrenListMap.get(vo.getId()));
                 }
-//                Long invokeId = jobIdInvokeIdMap.get(vo.getId());
-//                vo.setInvokeId(invokeId);
-//                vo.setInvokeName(invokeIdInvokeNameMap.get(invokeId));
+                String routeId = jobIdToRouteIdMap.get(vo.getId());
+                if (routeId != null) {
+                    vo.setRouteId(routeId);
+                    AutoexecJobRouteVo routeVo = routeMap.get(routeId);
+                    if (routeVo != null) {
+                        vo.setRoute(routeVo);
+                    }
+                }
             }
         }
         return jobVoList;

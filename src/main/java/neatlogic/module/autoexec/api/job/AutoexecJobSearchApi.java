@@ -114,4 +114,9 @@ public class AutoexecJobSearchApi extends PrivateApiComponentBase {
     public String getToken() {
         return "autoexec/job/search";
     }
+
+    @Override
+    public boolean disableReturnCircularReferenceDetect() {
+        return true;
+    }
 }
