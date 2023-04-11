@@ -68,6 +68,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.*;
+import static neatlogic.framework.common.util.CommonUtil.distinctByKey;
 
 @Service
 @Transactional
@@ -318,7 +319,7 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                             } else {
                                 List<AccountVo> tagentAccountByIpList = resourceAccountCrossoverMapper.getAccountListByIpListAndProtocolId(autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getHost).collect(Collectors.toList()), protocolId);
                                 if (CollectionUtils.isNotEmpty(tagentAccountByIpList)) {
-                                    tagentIpAccountMap = tagentAccountByIpList.stream().collect(Collectors.toMap(AccountVo::getIp, o -> o));
+                                    tagentIpAccountMap = tagentAccountByIpList.stream().filter(distinctByKey(AccountVo::getName)).collect(Collectors.toMap(AccountVo::getIp, o -> o));
                                 }
                             }
                         }
