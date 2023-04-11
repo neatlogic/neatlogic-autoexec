@@ -120,7 +120,7 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
         if (autoexecServiceVo == null) {
             throw new AutoexecServiceNotFoundException(serviceId);
         }
-        if (!Objects.equals(autoexecServiceVo.getConfigExpired(), 0)) {
+        if (Objects.equals(autoexecServiceVo.getConfigExpired(), 1)) {
             throw new AutoexecServiceConfigExpiredException(autoexecServiceVo.getName());
         }
         List<Long> upwardIdList = autoexecServiceMapper.getUpwardIdListByLftAndRht(autoexecServiceVo.getLft(), autoexecServiceVo.getRht());
