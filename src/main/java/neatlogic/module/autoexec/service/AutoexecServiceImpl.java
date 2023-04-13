@@ -31,10 +31,7 @@ import neatlogic.framework.autoexec.dto.scenario.AutoexecScenarioVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
-import neatlogic.framework.autoexec.exception.AutoexecCombopOperationNotFoundException;
-import neatlogic.framework.autoexec.exception.AutoexecParamIrregularException;
-import neatlogic.framework.autoexec.exception.AutoexecParamMappingNotFoundException;
-import neatlogic.framework.autoexec.exception.AutoexecParamValueIrregularException;
+import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.autoexec.script.paramtype.IScriptParamType;
 import neatlogic.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import neatlogic.framework.exception.type.*;
@@ -103,7 +100,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 String mappingMode = param.getMappingMode();
                 int index = i + 1;
                 if (StringUtils.isBlank(key)) {
-                    throw new ParamNotExistsException(index, "英文名");
+                    throw new AutoexecParameterEnglishNameParamNotExistException(index);
                 }
                 if (keySet.contains(key)) {
                     throw new ParamRepeatsException(key);
@@ -114,19 +111,19 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                     throw new ParamIrregularException(key);
                 }
                 if (StringUtils.isBlank(name)) {
-                    throw new ParamNotExistsException(index, key, "中文名");
+                    throw new AutoexecParameterChineseNameParamNotExistException(index, key);
                 }
                 if (!RegexUtils.regexPatternMap.get(RegexUtils.NAME_WITH_SPACE).matcher(name).matches()) {
                     throw new AutoexecParamIrregularException(index, key, name);
                 }
                 if (param instanceof AutoexecScriptVersionParamVo && StringUtils.isBlank(mode)) {
-                    throw new ParamNotExistsException(index, key, "参数模式");
+                    throw new AutoexecParameterModeParamNotExistException(index, key);
                 }
                 if (StringUtils.isNotBlank(mode) && ParamMode.getParamMode(mode) == null) {
                     throw new AutoexecParamIrregularException(index, key, mode);
                 }
                 if (StringUtils.isBlank(type)) {
-                    throw new ParamNotExistsException(index, key, "控件类型");
+                    throw new AutoexecParameterControlTypeParamNotExistException(index, key);
                 }
                 if (ParamMode.INPUT.getValue().equals(param.getMode())) {
                     ParamType paramType = ParamType.getParamType(type);
@@ -134,7 +131,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                         throw new AutoexecParamIrregularException(index, key, type);
                     }
                     if (isRequired == null) {
-                        throw new ParamNotExistsException(index, key, "是否必填");
+                        throw new AutoexecParameterRequiredParamNotExistException(index, key);
                     }
                     if (mappingMode != null && AutoexecProfileParamInvokeType.getParamType(mappingMode) == null) {
                         throw new AutoexecParamMappingNotFoundException(key, mappingMode);
@@ -187,25 +184,25 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
             if (autoexecParamVo != null) {
                 String key = autoexecParamVo.getKey();
                 if (StringUtils.isBlank(key)) {
-                    throw new ParamNotExistsException(index, "英文名");
+                    throw new AutoexecParameterEnglishNameParamNotExistException(index);
                 }
                 if (!RegexUtils.isMatch(key, RegexUtils.ENGLISH_NUMBER_NAME)) {
                     throw new ParamIrregularException(key);
                 }
                 String name = autoexecParamVo.getName();
                 if (StringUtils.isBlank(name)) {
-                    throw new ParamNotExistsException(index, key, "中文名");
+                    throw new AutoexecParameterChineseNameParamNotExistException(index, key);
                 }
                 if (!RegexUtils.isMatch(name, RegexUtils.NAME_WITH_SLASH)) {
                     throw new AutoexecParamIrregularException(index, key, name);
                 }
                 Integer isRequired = autoexecParamVo.getIsRequired();
                 if (isRequired == null) {
-                    throw new ParamNotExistsException(index, key, "是否必填");
+                    throw new AutoexecParameterRequiredParamNotExistException(index, key);
                 }
                 String type = autoexecParamVo.getType();
                 if (StringUtils.isBlank(type)) {
-                    throw new ParamNotExistsException(index, key, "控件类型");
+                    throw new AutoexecParameterControlTypeParamNotExistException(index, key);
                 }
                 ParamType paramType = ParamType.getParamType(type);
                 if (paramType == null) {

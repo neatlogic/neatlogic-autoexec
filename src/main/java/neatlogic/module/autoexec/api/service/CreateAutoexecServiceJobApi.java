@@ -30,6 +30,7 @@ import neatlogic.framework.autoexec.dto.service.AutoexecServiceConfigVo;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceSearchVo;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceVo;
 import neatlogic.framework.autoexec.exception.AutoexecCombopActiveVersionNotFoundException;
+import neatlogic.framework.autoexec.exception.AutoexecJobParamNotExistException;
 import neatlogic.framework.autoexec.exception.AutoexecServiceConfigExpiredException;
 import neatlogic.framework.autoexec.exception.AutoexecServiceNotFoundException;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
@@ -174,7 +175,7 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
             JSONArray formAttributeDataList = paramObj.getJSONArray("formAttributeDataList");
             JSONArray hidecomponentList = paramObj.getJSONArray("hidecomponentList");
             if (CollectionUtils.isEmpty(formAttributeDataList)) {
-                throw new ParamNotExistsException("表单属性数据列表（formAttributeDataList）");
+                throw new ParamNotExistsException("formAttributeDataList");
             }
             if (CollectionUtils.isEmpty(hidecomponentList)) {
                 hidecomponentList = new JSONArray();
@@ -297,7 +298,7 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
                         if(autoexecParamVo.getDefaultValue() != null) {
                             continue;
                         }
-                        throw new ParamNotExistsException("作业参数[" + autoexecParamVo.getName() + "]（" + autoexecParamVo.getKey() + "）");
+                        throw new AutoexecJobParamNotExistException(autoexecParamVo.getName(), autoexecParamVo.getKey());
                     }
                 }
                 autoexecJobVo.setParam(param);
@@ -313,7 +314,7 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
                         if (roundCount != null) {
                             autoexecJobVo.setRoundCount(roundCount);
                         } else {
-                            throw new ParamNotExistsException("分批数量（roundCount）");
+                            throw new ParamNotExistsException("roundCount");
                         }
                     }
                 }
@@ -330,7 +331,7 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
                             paramMappingVo.setValue(executeUser);
                             executeConfigVo.setExecuteUser(paramMappingVo);
                         } else {
-                            throw new ParamNotExistsException("执行用户（executeUser）");
+                            throw new ParamNotExistsException("executeUser");
                         }
                     }
                 }
@@ -343,7 +344,7 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
                         if (protocol != null) {
                             executeConfigVo.setProtocolId(protocol);
                         } else {
-                            throw new ParamNotExistsException("协议ID（protocol）");
+                            throw new ParamNotExistsException("protocol");
                         }
                     }
                 }
@@ -355,7 +356,7 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
                     } else {
                         AutoexecCombopExecuteNodeConfigVo executeNodeConfig = paramObj.getObject("executeNodeConfig", AutoexecCombopExecuteNodeConfigVo.class);
                         if (executeNodeConfig.isNull()) {
-                            throw new ParamNotExistsException("执行目标（executeNodeConfig）");
+                            throw new ParamNotExistsException("executeNodeConfig");
                         } else {
                             executeConfigVo.setExecuteNodeConfig(executeNodeConfig);
                         }
@@ -397,7 +398,7 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
                         if(autoexecParamVo.getDefaultValue() != null) {
                             continue;
                         }
-                        throw new ParamNotExistsException("作业参数[" + autoexecParamVo.getName() + "]（" + autoexecParamVo.getKey() + "）");
+                        throw new AutoexecJobParamNotExistException(autoexecParamVo.getName(), autoexecParamVo.getKey());
                     }
                 }
                 autoexecJobVo.setParam(param);
