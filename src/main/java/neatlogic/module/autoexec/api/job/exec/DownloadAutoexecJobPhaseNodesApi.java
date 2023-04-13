@@ -51,6 +51,8 @@ import neatlogic.framework.inspect.constvalue.AutoexecType;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
+import neatlogic.framework.tagent.dao.mapper.TagentMapper;
+import neatlogic.framework.cmdb.dto.resourcecenter.AccountBaseVo;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.io.IOUtils;
@@ -89,6 +91,9 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
 
     @Resource
     private AutoexecTypeMapper autoexecTypeMapper;
+
+    @Resource
+    private TagentMapper tagentMapper;
 
     @Override
     public String getToken() {
@@ -231,7 +236,7 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                     Map<Long, JSONObject> resourceServicePortsMap = new HashMap<>();
                     Map<Long, List<Long>> resourceAppSystemMap = new HashMap<>();
                     List<AccountVo> accountByResourceList = new ArrayList<>();
-                    Map<String, AccountVo> tagentIpAccountMap = new HashMap<>();
+                    Map<String, AccountBaseVo> tagentIpAccountMap = new HashMap<>();
                     Map<Long, Long> resourceOSResourceMap = new HashMap<>();//节点resourceId->对应操作系统resourceId
                     nodeParamVo.setCurrentPage(i);
                     nodeParamVo.setStartNum(nodeParamVo.getStartNum());
@@ -317,16 +322,16 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                             if (!Objects.equals(protocol, Protocol.TAGENT.getValue())) {
                                 accountByResourceList = resourceAccountCrossoverMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIncludeOsIdList, protocolId, account);
                             } else {
-                                List<AccountVo> tagentAccountByIpList = resourceAccountCrossoverMapper.getAccountListByIpListAndProtocolId(autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getHost).collect(Collectors.toList()), protocolId);
+                                List<AccountBaseVo> tagentAccountByIpList = tagentMapper.getAccountListByIpListAndProtocolId(autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getHost).collect(Collectors.toList()), protocolId);
                                 if (CollectionUtils.isNotEmpty(tagentAccountByIpList)) {
-                                    tagentIpAccountMap = tagentAccountByIpList.stream().filter(distinctByKey(AccountVo::getName)).collect(Collectors.toMap(AccountVo::getIp, o -> o));
+                                    tagentIpAccountMap = tagentAccountByIpList.stream().filter(distinctByKey(AccountBaseVo::getName)).collect(Collectors.toMap(AccountBaseVo::getIp, o -> o));
                                 }
                             }
                         }
                         for (AutoexecJobPhaseNodeVo nodeVo : autoexecJobPhaseNodeVoList) {
                             JSONObject nodeJson = new JSONObject();
                             AccountProtocolVo protocolVo = new AccountProtocolVo(protocolId, protocol);
-                            AccountVo accountVoTmp = accountService.filterAccountByRules(accountByResourceList, tagentIpAccountMap, nodeVo.getResourceId(), protocolVo, nodeVo.getHost(), resourceOSResourceMap, protocolDefaultAccountMap);
+                            AccountBaseVo accountVoTmp = accountService.filterAccountByRules(accountByResourceList, tagentIpAccountMap, nodeVo.getResourceId(), protocolVo, nodeVo.getHost(), resourceOSResourceMap, protocolDefaultAccountMap);
                             if (accountVoTmp != null) {
                                 nodeJson.put("protocol", accountVoTmp.getProtocol());
                                 nodeJson.put("password", RC4Util.encrypt(accountVoTmp.getPasswordPlain()));
