@@ -79,7 +79,7 @@ public class AutoexecCatalogSaveApi extends PrivateApiComponentBase {
             vo.setRht(lft + 1);
             autoexecCatalogMapper.insertAutoexecCatalog(vo);
         }
-        return null;
+        return vo.getId();
     }
 
     public IValid name() {
