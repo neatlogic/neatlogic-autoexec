@@ -212,7 +212,8 @@ CREATE TABLE IF NOT EXISTS `autoexec_job_invoke` (
   `invoke_id` bigint NOT NULL COMMENT '来源id',
   `source` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '来源',
   `type` enum('auto','deploy') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '来源类型',
-  PRIMARY KEY (`job_id`,`invoke_id`) USING BTREE,
+  `route_id` varchar(32) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '配置路由ID',
+  PRIMARY KEY (`job_id`),
   KEY `idx_invoke_id` (`invoke_id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='自动化作业来源表';
 
