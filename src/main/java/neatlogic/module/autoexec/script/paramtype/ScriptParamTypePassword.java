@@ -78,7 +78,7 @@ public class ScriptParamTypePassword extends ScriptParamTypeBase {
         return new JSONObject() {
             {
                 this.put("type", "password");
-                this.put("maxlength", 50);
+//                this.put("maxlength", 50);
                 this.put("showPassword", true);
                 this.put("placeholder", "请输入");
             }
