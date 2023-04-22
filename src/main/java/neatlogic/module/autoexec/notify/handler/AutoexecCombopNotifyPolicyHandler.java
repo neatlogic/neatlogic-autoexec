@@ -16,6 +16,7 @@
 
 package neatlogic.module.autoexec.notify.handler;
 
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import neatlogic.framework.autoexec.constvalue.AutoexecJobNotifyParam;
 import neatlogic.framework.autoexec.constvalue.AutoexecJobNotifyTriggerType;
@@ -25,8 +26,6 @@ import neatlogic.framework.notify.core.NotifyHandlerType;
 import neatlogic.framework.notify.core.NotifyPolicyHandlerBase;
 import neatlogic.framework.notify.dto.NotifyTriggerTemplateVo;
 import neatlogic.framework.notify.dto.NotifyTriggerVo;
-import com.alibaba.fastjson.JSONObject;
-import neatlogic.framework.util.I18nUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -40,7 +39,7 @@ import java.util.List;
 public class AutoexecCombopNotifyPolicyHandler extends NotifyPolicyHandlerBase {
     @Override
     public String getName() {
-        return I18nUtils.getMessage("handler.notify.autoexec.combop");
+        return "handler.notify.autoexec.combop";
     }
 
     /**

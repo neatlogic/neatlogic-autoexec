@@ -2,7 +2,7 @@
 
 ## about
 
-Neatlogic-autoexec is an automated management module that comes with customization tools, combined tool, job management, and other functions.
+Neatlogic-autoexec is an automation management module that enables one click automated execution of scenarios through combination of code scripts, such as MySQL database installation. The module includes functions such as custom tools, combination tools, and job management.
 
 ## Feature
 
