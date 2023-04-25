@@ -60,4 +60,12 @@ public interface AutoexecJobActionService {
      * @throws Exception 异常
      */
     void initExecuteUserContext(AutoexecJobVo jobVo) throws Exception;
+
+    /**
+     * 设置作业的激活方式
+     * @param triggerType
+     * @param planStartTime
+     * @param jobVo
+     */
+    void settingJobFireMode(String triggerType, Long planStartTime, AutoexecJobVo jobVo) throws Exception;
 }
