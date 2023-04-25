@@ -35,7 +35,6 @@ import neatlogic.framework.filter.core.LoginAuthHandlerBase;
 import neatlogic.framework.scheduler.core.JobBase;
 import neatlogic.framework.scheduler.dto.JobObject;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
-import com.alibaba.fastjson.JSONObject;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.springframework.stereotype.Component;
@@ -126,7 +125,6 @@ public class AutoexecScheduleJob extends JobBase {
         }else {
 //        System.out.println(new Date() + "执行定时作业：'" + autoexecScheduleVo.getName() + "'");
             AutoexecJobVo jobVo = new AutoexecJobVo();
-//            jobVo.setCombopId(combopId);
             jobVo.setOperationId(combopId);
             jobVo.setSource(JobSource.AUTOEXEC_SCHEDULE.getValue());
             jobVo.setInvokeId(autoexecScheduleVo.getId());
