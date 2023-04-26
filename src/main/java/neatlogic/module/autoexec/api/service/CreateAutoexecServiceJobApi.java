@@ -146,6 +146,7 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
         autoexecJobVo.setOperationType(CombopOperationType.COMBOP.getValue());
         autoexecJobVo.setOperationId(combopId);
         autoexecJobVo.setInvokeId(serviceId);
+        autoexecJobVo.setRouteId(serviceId.toString());
         autoexecJobVo.setCombopId(combopId);
         autoexecJobVo.setName(paramObj.getString("name"));
         autoexecJobVo.setSource(JobSource.SERVICE.getValue());
@@ -404,42 +405,14 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
             }
         }
         autoexecJobActionService.validateAndCreateJobFromCombop(autoexecJobVo);
+        autoexecJobActionService.settingJobFireMode(triggerType, planStartTime, autoexecJobVo);
         JSONObject resultObj = new JSONObject();
         resultObj.put("jobId", autoexecJobVo.getId());
-        //如果是自动开始且计划开始时间小于等于当前时间则直接激活作业
-        if (Objects.equals(JobTriggerType.AUTO.getValue(), triggerType) && (planStartTime != null && planStartTime <= System.currentTimeMillis())) {
-            fireJob(autoexecJobVo);
-            return resultObj;
-        }
-
-        if (triggerType != null) {
-            // 保存之后，如果设置的人工触发，那只有点执行按钮才能触发；如果是自动触发，则启动一个定时作业；如果没到点就人工触发了，则取消定时作业，立即执行
-            if (JobTriggerType.AUTO.getValue().equals(triggerType)) {
-                if (planStartTime == null) {
-                    throw new ParamIrregularException("planStartTime");
-                }
-                IJob jobHandler = SchedulerManager.getHandler(AutoexecJobAutoFireJob.class.getName());
-                if (jobHandler == null) {
-                    throw new ScheduleHandlerNotFoundException(AutoexecJobAutoFireJob.class.getName());
-                }
-                JobObject.Builder jobObjectBuilder = new JobObject.Builder(autoexecJobVo.getId().toString(), jobHandler.getGroupName(), jobHandler.getClassName(), TenantContext.get().getTenantUuid());
-                jobHandler.reloadJob(jobObjectBuilder.build());
-            }
-        } else {
-            fireJob(autoexecJobVo);
-        }
         return resultObj;
     }
 
     @Override
     public String getToken() {
         return "autoexec/service/job/create";
-    }
-
-    private void fireJob(AutoexecJobVo autoexecJobParam) throws Exception {
-        IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
-        autoexecJobParam.setAction(JobAction.FIRE.getValue());
-        autoexecJobParam.setIsFirstFire(1);
-        fireAction.doService(autoexecJobParam);
     }
 }

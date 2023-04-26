@@ -16,11 +16,12 @@
 
 package neatlogic.module.autoexec.job.source.handler;
 
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.JobSource;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecScriptMapper;
+import neatlogic.framework.autoexec.dto.job.AutoexecJobRouteVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import neatlogic.framework.autoexec.source.IAutoexecJobSource;
-import neatlogic.framework.common.dto.ValueTextVo;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
 
@@ -45,14 +46,21 @@ public class ScriptTestJobSourceHandler implements IAutoexecJobSource {
     }
 
     @Override
-    public List<ValueTextVo> getListByIdList(List<Long> idList) {
-        if (CollectionUtils.isEmpty(idList)) {
+    public List<AutoexecJobRouteVo> getListByUniqueKeyList(List<String> uniqueKeyList) {
+        if (CollectionUtils.isEmpty(uniqueKeyList)) {
             return null;
         }
-        List<ValueTextVo> resultList = new ArrayList<>();
+        List<Long> idList = new ArrayList<>();
+        for (String str : uniqueKeyList) {
+            idList.add(Long.valueOf(str));
+        }
+        List<AutoexecJobRouteVo> resultList = new ArrayList<>();
         List<AutoexecScriptVersionVo> list = autoexecScriptMapper.getVersionByVersionIdList(idList);
         for (AutoexecScriptVersionVo versionVo : list) {
-            resultList.add(new ValueTextVo(versionVo.getId(), versionVo.getTitle()));
+            JSONObject config = new JSONObject();
+            config.put("scriptId", versionVo.getScriptId());
+            config.put("versionId", versionVo.getId());
+            resultList.add(new AutoexecJobRouteVo(versionVo.getId(), versionVo.getTitle(), config));
         }
         return resultList;
     }

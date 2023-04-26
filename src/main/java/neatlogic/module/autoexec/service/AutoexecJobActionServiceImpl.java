@@ -19,6 +19,7 @@ package neatlogic.module.autoexec.service;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.autoexec.constvalue.JobAction;
+import neatlogic.framework.autoexec.constvalue.JobTriggerType;
 import neatlogic.framework.autoexec.constvalue.ParamMappingMode;
 import neatlogic.framework.autoexec.constvalue.ToolType;
 import neatlogic.framework.autoexec.crossover.IAutoexecJobActionCrossoverService;
@@ -45,12 +46,18 @@ import neatlogic.framework.common.constvalue.SystemUser;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dao.mapper.UserMapper;
 import neatlogic.framework.dto.UserVo;
+import neatlogic.framework.exception.type.ParamIrregularException;
 import neatlogic.framework.exception.user.UserNotFoundException;
 import neatlogic.framework.filter.core.LoginAuthHandlerBase;
+import neatlogic.framework.scheduler.core.IJob;
+import neatlogic.framework.scheduler.core.SchedulerManager;
+import neatlogic.framework.scheduler.dto.JobObject;
+import neatlogic.framework.scheduler.exception.ScheduleHandlerNotFoundException;
 import neatlogic.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecScenarioMapper;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.module.autoexec.schedule.plugin.AutoexecJobAutoFireJob;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -454,5 +461,26 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
 
         UserContext.init(execUser, "+8:00");
         UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(execUser).getCc());
+    }
+
+    @Override
+    public void settingJobFireMode(String triggerType, Long planStartTime, AutoexecJobVo jobVo) throws Exception {
+        //如果是立即执行或者如果是自动开始且计划开始时间小于等于当前时间则直接激活作业
+        if (triggerType == null || (Objects.equals(JobTriggerType.AUTO.getValue(), triggerType) && planStartTime != null && planStartTime <= System.currentTimeMillis())) {
+            IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
+            jobVo.setAction(JobAction.FIRE.getValue());
+            jobVo.setIsFirstFire(1);
+            fireAction.doService(jobVo);
+        } else if (Objects.equals(JobTriggerType.AUTO.getValue(), triggerType)) {
+            if (planStartTime == null) {
+                throw new ParamIrregularException("planStartTime");
+            }
+            IJob jobHandler = SchedulerManager.getHandler(AutoexecJobAutoFireJob.class.getName());
+            if (jobHandler == null) {
+                throw new ScheduleHandlerNotFoundException(AutoexecJobAutoFireJob.class.getName());
+            }
+            JobObject.Builder jobObjectBuilder = new JobObject.Builder(jobVo.getId().toString(), jobHandler.getGroupName(), jobHandler.getClassName(), TenantContext.get().getTenantUuid());
+            jobHandler.reloadJob(jobObjectBuilder.build());
+        }
     }
 }

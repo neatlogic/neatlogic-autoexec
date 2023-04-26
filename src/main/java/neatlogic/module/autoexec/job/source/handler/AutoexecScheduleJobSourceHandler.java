@@ -16,11 +16,12 @@
 
 package neatlogic.module.autoexec.job.source.handler;
 
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.JobSource;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecScheduleMapper;
+import neatlogic.framework.autoexec.dto.job.AutoexecJobRouteVo;
 import neatlogic.framework.autoexec.dto.schedule.AutoexecScheduleVo;
 import neatlogic.framework.autoexec.source.IAutoexecJobSource;
-import neatlogic.framework.common.dto.ValueTextVo;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
 
@@ -45,14 +46,20 @@ public class AutoexecScheduleJobSourceHandler implements IAutoexecJobSource {
     }
 
     @Override
-    public List<ValueTextVo> getListByIdList(List<Long> idList) {
-        if (CollectionUtils.isEmpty(idList)) {
+    public List<AutoexecJobRouteVo> getListByUniqueKeyList(List<String> uniqueKeyList) {
+        if (CollectionUtils.isEmpty(uniqueKeyList)) {
             return null;
         }
-        List<ValueTextVo> resultList = new ArrayList<>();
+        List<Long> idList = new ArrayList<>();
+        for (String str : uniqueKeyList) {
+            idList.add(Long.valueOf(str));
+        }
+        List<AutoexecJobRouteVo> resultList = new ArrayList<>();
         List<AutoexecScheduleVo> list = autoexecScheduleMapper.getAutoexecScheduleListByIdList(idList);
         for (AutoexecScheduleVo scheduleVo : list) {
-            resultList.add(new ValueTextVo(scheduleVo.getId(), scheduleVo.getName()));
+            JSONObject config = new JSONObject();
+            config.put("id", scheduleVo.getId());
+            resultList.add(new AutoexecJobRouteVo(scheduleVo.getId(), scheduleVo.getName(), config));
         }
         return resultList;
     }

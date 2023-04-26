@@ -18,6 +18,8 @@ package neatlogic.module.autoexec.stephandler.component;
 
 import neatlogic.framework.autoexec.constvalue.CombopOperationType;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
+import neatlogic.framework.autoexec.dto.combop.ParamMappingVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobEnvVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.common.constvalue.SystemUser;
@@ -117,14 +119,15 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         if (StringUtils.isBlank(configHash)) {
             ProcessTaskStepVo processTaskStepVo = processTaskMapper.getProcessTaskStepBaseInfoById(currentProcessTaskStepVo.getId());
             configHash = processTaskStepVo.getConfigHash();
+            currentProcessTaskStepVo.setProcessStepUuid(processTaskStepVo.getProcessStepUuid());
         }
         String config = selectContentByHashMapper.getProcessTaskStepConfigByHash(configHash);
         if (StringUtils.isNotBlank(config)) {
             JSONObject autoexecConfig = (JSONObject) JSONPath.read(config, "autoexecConfig");
             if (MapUtils.isNotEmpty(autoexecConfig)) {
-                JSONObject paramObj = new JSONObject();
+                AutoexecJobVo jobVo = new AutoexecJobVo();
                 Long combopId = autoexecConfig.getLong("autoexecCombopId");
-                paramObj.put("combopId", combopId);
+                jobVo.setCombopId(combopId);
                 JSONArray runtimeParamList = autoexecConfig.getJSONArray("runtimeParamList");
                 JSONObject param = new JSONObject();
                 if (CollectionUtils.isNotEmpty(runtimeParamList)) {
@@ -143,7 +146,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                             }
                         }
                     }
-                    paramObj.put("param", param);
+                    jobVo.setParam(param);
                 }
                 JSONArray executeParamList = autoexecConfig.getJSONArray("executeParamList");
                 JSONObject executeConfig = new JSONObject();
@@ -154,23 +157,35 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                             String key = executeParamObj.getString("key");
                             Object value = executeParamObj.get("value");
                             String mappingMode = executeParamObj.getString("mappingMode");
-                            executeConfig.put(key, parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
+                            if (Objects.equals(key, "executeUser")) {
+                                ParamMappingVo paramMappingVo = new ParamMappingVo();
+                                if (Objects.equals(mappingMode, "runtimeparam")) {
+                                    paramMappingVo.setMappingMode("runtimeparam");
+                                    paramMappingVo.setValue(value);
+                                } else {
+                                    paramMappingVo.setMappingMode("runtimeparam");
+                                    paramMappingVo.setValue(parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
+                                }
+                                executeConfig.put(key, paramMappingVo);
+                            } else {
+                                executeConfig.put(key, parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
+                            }
                         }
                     }
-                    paramObj.put("executeConfig", executeConfig);
+                    jobVo.setExecuteConfig(executeConfig.toJavaObject(AutoexecCombopExecuteConfigVo.class));
                 }
                 Long autoexecJobId = autoexecJobMapper.getJobIdByInvokeIdLimitOne(currentProcessTaskStepVo.getId());
                 //如果工单步骤ID没有绑定自动化作业ID，则需要创建自动化作业
                 if (autoexecJobId == null) {
-                    paramObj.put("source", AutoExecJobProcessSource.ITSM.getValue());
-                    paramObj.put("roundCount", 32);
-                    paramObj.put("operationId", combopId);
-                    paramObj.put("operationType", CombopOperationType.COMBOP.getValue());
-                    paramObj.put("invokeId", currentProcessTaskStepVo.getId());
-                    paramObj.put("isFirstFire", 1);
-                    paramObj.put("assignExecUser", SystemUser.SYSTEM.getUserUuid());
+                    jobVo.setSource(AutoExecJobProcessSource.ITSM.getValue());
+                    jobVo.setRoundCount(32);
+                    jobVo.setOperationId(combopId);
+                    jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
+                    jobVo.setInvokeId(currentProcessTaskStepVo.getId());
+                    jobVo.setRouteId(currentProcessTaskStepVo.getProcessStepUuid());
+                    jobVo.setIsFirstFire(1);
+                    jobVo.setAssignExecUser(SystemUser.SYSTEM.getUserUuid());
                     try {
-                        AutoexecJobVo jobVo = JSONObject.toJavaObject(paramObj, AutoexecJobVo.class);
                         autoexecJobActionService.validateCreateJob(jobVo);
 //                        AutoexecJobVo jobVo = autoexecJobActionService.validateCreateJobFromCombop(paramObj, false);
 //                        autoexecJobActionService.fire(jobVo);
