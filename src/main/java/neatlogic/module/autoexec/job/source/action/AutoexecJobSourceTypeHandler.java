@@ -154,6 +154,18 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
         return result;
     }
 
+    /**
+     * 工具库工具sqlfile/sqlcheck会调用此方法
+     * <p>
+     * 1、按照对应的顺序insert（DUPLICAT）
+     * status默认pending
+     * isModified默认0
+     * wornCount默认为0
+     * sort为插入的顺序
+     * 2、将需要逻辑删的数据的is_delete改为1，sort改为999999
+     *
+     * @param paramObj 当前阶段的所有sql信息
+     */
     @Override
     public void checkinSqlList(JSONObject paramObj) {
         AutoexecJobPhaseVo targetPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseName(paramObj.getLong("jobId"), paramObj.getString("targetPhaseName"));
@@ -182,6 +194,16 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
         }
     }
 
+    /**
+     * 工具库工具sqlfile/sqlexec会调用此方法
+     * 若sql不存在，则insert
+     * 若sql存在则更新
+     *  status为pending，start_time、end_time不更新
+     *  status为running，更新start_time为now(3)
+     *  status为其他状态时，更新end_time为now(3)
+     *
+     * @param paramObj 单条sql的信息
+     */
     @Override
     public void updateSqlStatus(JSONObject paramObj) {
         AutoexecSqlNodeDetailVo paramSqlVo = paramObj.getJSONObject("sqlStatus").toJavaObject(AutoexecSqlNodeDetailVo.class);
