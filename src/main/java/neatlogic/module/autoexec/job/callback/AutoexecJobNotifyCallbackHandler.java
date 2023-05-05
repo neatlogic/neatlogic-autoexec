@@ -20,11 +20,14 @@ import neatlogic.framework.autoexec.constvalue.AutoexecJobNotifyTriggerType;
 import neatlogic.framework.autoexec.constvalue.CombopOperationType;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.job.callback.core.AutoexecJobCallbackBase;
+import neatlogic.framework.crossover.CrossoverServiceFactory;
+import neatlogic.framework.notify.crossover.INotifyServiceCrossoverService;
 import neatlogic.framework.notify.dao.mapper.NotifyMapper;
-import neatlogic.framework.notify.dto.NotifyPolicyConfigVo;
+import neatlogic.framework.notify.dto.InvokeNotifyPolicyConfigVo;
 import neatlogic.framework.notify.dto.NotifyPolicyVo;
 import neatlogic.framework.transaction.util.TransactionUtil;
 import neatlogic.framework.util.NotifyPolicyUtil;
@@ -83,34 +86,49 @@ public class AutoexecJobNotifyCallbackHandler extends AutoexecJobCallbackBase {
     @Override
     public void doService(Long invokeId, AutoexecJobVo jobVo) {
         AutoexecJobNotifyTriggerType trigger = AutoexecJobNotifyTriggerType.getTrigger(jobVo.getStatus());
-        if (trigger != null) {
-            AutoexecJobVo jobInfo = autoexecJobMapper.getJobInfo(jobVo.getId());
-            if (jobInfo != null && Objects.equals(jobInfo.getOperationType(), CombopOperationType.COMBOP.getValue())) {
-                Long operationId = jobInfo.getOperationId();
-                if (operationId != null) {
-                    AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(operationId);
-                    if (combopVo != null) {
-                        Long notifyPolicyId = combopVo.getNotifyPolicyId();
-                        if (notifyPolicyId != null) {
-                            NotifyPolicyVo notifyPolicyVo = notifyMapper.getNotifyPolicyById(notifyPolicyId);
-                            if (notifyPolicyVo != null) {
-                                NotifyPolicyConfigVo policyConfig = notifyPolicyVo.getConfig();
-                                if (policyConfig != null) {
-                                    try {
-                                        String notifyAuditMessage = jobInfo.getId() + "-" + jobInfo.getName();
-                                        NotifyPolicyUtil.execute(notifyPolicyVo.getHandler(), trigger, AutoexecJobMessageHandler.class
-                                                , notifyPolicyVo, null, null, null
-                                                , jobInfo, null, notifyAuditMessage);
-                                    } catch (Exception ex) {
-                                        logger.error("自动化作业：" + jobInfo.getId() + "-" + jobInfo.getName() + "通知失败");
-                                        logger.error(ex.getMessage(), ex);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        if (trigger == null) {
+            return;
+        }
+        AutoexecJobVo jobInfo = autoexecJobMapper.getJobInfo(jobVo.getId());
+        if (jobInfo == null) {
+            return;
+        }
+        if (!Objects.equals(jobInfo.getOperationType(), CombopOperationType.COMBOP.getValue())) {
+            return;
+        }
+        Long operationId = jobInfo.getOperationId();
+        if (operationId == null) {
+            return;
+        }
+        AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(operationId);
+        if (combopVo == null) {
+            return;
+        }
+        AutoexecCombopConfigVo config = combopVo.getConfig();
+        if (config == null) {
+            return;
+        }
+        INotifyServiceCrossoverService notifyServiceCrossoverService = CrossoverServiceFactory.getApi(INotifyServiceCrossoverService.class);
+        InvokeNotifyPolicyConfigVo invokeNotifyPolicyConfigVo = notifyServiceCrossoverService.regulateNotifyPolicyConfig(config.getInvokeNotifyPolicyConfig());
+        if (invokeNotifyPolicyConfigVo == null) {
+            return;
+        }
+        Long notifyPolicyId = invokeNotifyPolicyConfigVo.getPolicyId();
+        if (notifyPolicyId == null) {
+            return;
+        }
+        NotifyPolicyVo notifyPolicyVo = notifyMapper.getNotifyPolicyById(notifyPolicyId);
+        if (notifyPolicyVo == null || notifyPolicyVo.getConfig() == null) {
+            return;
+        }
+        try {
+            String notifyAuditMessage = jobInfo.getId() + "-" + jobInfo.getName();
+            NotifyPolicyUtil.execute(notifyPolicyVo.getHandler(), trigger, AutoexecJobMessageHandler.class
+                    , notifyPolicyVo, null, null, null
+                    , jobInfo, null, notifyAuditMessage);
+        } catch (Exception ex) {
+            logger.error("自动化作业：" + jobInfo.getId() + "-" + jobInfo.getName() + "通知失败");
+            logger.error(ex.getMessage(), ex);
         }
     }
 }
