@@ -118,10 +118,7 @@ public class AutoexecJobNotifyCallbackHandler extends AutoexecJobCallbackBase {
             return;
         }
         NotifyPolicyVo notifyPolicyVo = notifyMapper.getNotifyPolicyById(notifyPolicyId);
-        if (notifyPolicyVo == null) {
-            return;
-        }
-        if (notifyPolicyVo.getConfig() == null) {
+        if (notifyPolicyVo == null || notifyPolicyVo.getConfig() == null) {
             return;
         }
         try {
