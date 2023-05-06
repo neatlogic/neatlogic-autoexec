@@ -159,11 +159,11 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                             String mappingMode = executeParamObj.getString("mappingMode");
                             if (Objects.equals(key, "executeUser")) {
                                 ParamMappingVo paramMappingVo = new ParamMappingVo();
-                                if (Objects.equals(mappingMode, "runtimeparam")) {
-                                    paramMappingVo.setMappingMode("runtimeparam");
+                                if (Objects.equals(mappingMode, "runtimeparam") || Objects.equals(mappingMode, "constant")) {
+                                    paramMappingVo.setMappingMode(mappingMode);
                                     paramMappingVo.setValue(value);
                                 } else {
-                                    paramMappingVo.setMappingMode("runtimeparam");
+                                    paramMappingVo.setMappingMode("constant");
                                     paramMappingVo.setValue(parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
                                 }
                                 executeConfig.put(key, paramMappingVo);
@@ -172,6 +172,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                             }
                         }
                     }
+                    System.out.println(executeConfig.toJSONString());
                     jobVo.setExecuteConfig(executeConfig.toJavaObject(AutoexecCombopExecuteConfigVo.class));
                 }
                 Long autoexecJobId = autoexecJobMapper.getJobIdByInvokeIdLimitOne(currentProcessTaskStepVo.getId());
