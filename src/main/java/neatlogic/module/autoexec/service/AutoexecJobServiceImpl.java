@@ -795,6 +795,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      * @param protocolId            连接node 协议Id
      */
     private boolean getJobNodeList(AutoexecCombopExecuteConfigVo combopExecuteConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
+        //执行用户不能为空
+        if(StringUtils.isBlank(userName)){
+            logger.error("autoexec job username is blank!");
+            throw new AutoexecUserNameNotFoundException();
+        }
         if (combopExecuteConfigVo == null) {
             return false;
         }
