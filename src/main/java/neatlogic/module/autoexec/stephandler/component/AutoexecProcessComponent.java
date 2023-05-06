@@ -172,7 +172,6 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                             }
                         }
                     }
-                    System.out.println(executeConfig.toJSONString());
                     jobVo.setExecuteConfig(executeConfig.toJavaObject(AutoexecCombopExecuteConfigVo.class));
                 }
                 Long autoexecJobId = autoexecJobMapper.getJobIdByInvokeIdLimitOne(currentProcessTaskStepVo.getId());
