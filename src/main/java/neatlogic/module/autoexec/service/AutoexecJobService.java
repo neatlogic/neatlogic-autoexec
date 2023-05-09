@@ -64,7 +64,7 @@ public interface AutoexecJobService {
      * @param jobPhaseVoList 需要刷新节点的phase
      * @param executeConfig  执行时的参数（执行目标，用户，协议）
      */
-    void refreshJobPhaseNodeList(Long jobId, List<AutoexecJobPhaseVo> jobPhaseVoList, JSONObject executeConfig);
+    void refreshJobPhaseNodeList(Long jobId, List<AutoexecJobPhaseVo> jobPhaseVoList, AutoexecCombopExecuteConfigVo executeConfig);
 
     /**
      * 刷新激活剧本的所有节点信息
@@ -85,7 +85,7 @@ public interface AutoexecJobService {
      * @param jobId         作业id
      * @param executeConfig 执行时的参数（执行目标，用户，协议）
      */
-    void refreshJobNodeList(Long jobId, JSONObject executeConfig);
+    void refreshJobNodeList(Long jobId, AutoexecCombopExecuteConfigVo executeConfig);
 
     /**
      * 刷新作业所有阶段节点信息

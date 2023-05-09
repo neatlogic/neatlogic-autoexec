@@ -23,8 +23,11 @@ import neatlogic.framework.autoexec.dto.combop.ParamMappingVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobEnvVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.common.constvalue.SystemUser;
+import neatlogic.framework.form.dto.FormAttributeVo;
+import neatlogic.framework.form.dto.FormVersionVo;
 import neatlogic.framework.process.constvalue.*;
 import neatlogic.framework.process.dto.ProcessTaskFormAttributeDataVo;
+import neatlogic.framework.process.dto.ProcessTaskFormVo;
 import neatlogic.framework.process.dto.ProcessTaskStepVo;
 import neatlogic.framework.process.dto.ProcessTaskStepWorkerVo;
 import neatlogic.framework.process.exception.processtask.ProcessTaskException;
@@ -48,6 +51,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author linbq
@@ -122,90 +126,463 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             currentProcessTaskStepVo.setProcessStepUuid(processTaskStepVo.getProcessStepUuid());
         }
         String config = selectContentByHashMapper.getProcessTaskStepConfigByHash(configHash);
-        if (StringUtils.isNotBlank(config)) {
-            JSONObject autoexecConfig = (JSONObject) JSONPath.read(config, "autoexecConfig");
-            if (MapUtils.isNotEmpty(autoexecConfig)) {
-                AutoexecJobVo jobVo = new AutoexecJobVo();
-                Long combopId = autoexecConfig.getLong("autoexecCombopId");
-                jobVo.setCombopId(combopId);
-                JSONArray runtimeParamList = autoexecConfig.getJSONArray("runtimeParamList");
-                JSONObject param = new JSONObject();
-                if (CollectionUtils.isNotEmpty(runtimeParamList)) {
-                    for (int i = 0; i < runtimeParamList.size(); i++) {
-                        JSONObject runtimeParamObj = runtimeParamList.getJSONObject(i);
-                        if (MapUtils.isNotEmpty(runtimeParamObj)) {
-                            String key = runtimeParamObj.getString("key");
-                            if (StringUtils.isNotBlank(key)) {
-                                Object value = runtimeParamObj.get("value");
-                                if (value != null) {
-                                    String mappingMode = runtimeParamObj.getString("mappingMode");
-                                    param.put(key, parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
-                                } else {
-                                    param.put(key, value);
-                                }
-                            }
-                        }
+//        if (StringUtils.isNotBlank(config)) {
+//            JSONObject autoexecConfig = (JSONObject) JSONPath.read(config, "autoexecConfig");
+//            if (MapUtils.isNotEmpty(autoexecConfig)) {
+//                AutoexecJobVo jobVo = createAutoexecJobVo(currentProcessTaskStepVo, autoexecConfig);
+//                Long autoexecJobId = autoexecJobMapper.getJobIdByInvokeIdLimitOne(currentProcessTaskStepVo.getId());
+//                //如果工单步骤ID没有绑定自动化作业ID，则需要创建自动化作业
+//                if (autoexecJobId == null) {
+//                    try {
+//                        autoexecJobActionService.validateCreateJob(jobVo);
+//                    } catch (Exception e) {
+//                        logger.error(e.getMessage(), e);
+//                        String failPolicy = autoexecConfig.getString("failPolicy");
+//                        if (FailPolicy.KEEP_ON.getValue().equals(failPolicy)) {
+//                            processTaskStepComplete(currentProcessTaskStepVo.getId(), null);
+//                        }
+//                    }
+//                } else {//否则重新刷新作业运行参数，以及节点后，需人工干预重跑作业
+//                    autoexecJobService.refreshJobParam(autoexecJobId, jobVo.getParam());
+//                    autoexecJobService.refreshJobNodeList(autoexecJobId, jobVo.getExecuteConfig());
+//                }
+//            }
+//        }
+        if (StringUtils.isBlank(config)) {
+            return 0;
+        }
+        JSONArray autoexecConfigList = (JSONArray) JSONPath.read(config, "autoexecConfigList");
+        if (CollectionUtils.isEmpty(autoexecConfigList)) {
+            return 0;
+        }
+        for (int i = 0; i < autoexecConfigList.size(); i++) {
+            JSONObject autoexecConfig = autoexecConfigList.getJSONObject(i);
+            if (MapUtils.isEmpty(autoexecConfig)) {
+                continue;
+            }
+            List<AutoexecJobVo> autoexecJobList = createAutoexecJobList(currentProcessTaskStepVo, autoexecConfig);
+            if (CollectionUtils.isEmpty(autoexecJobList)) {
+                continue;
+            }
+            for (AutoexecJobVo jobVo : autoexecJobList) {
+                try {
+                    autoexecJobActionService.validateCreateJob(jobVo);
+                } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
+                    String failPolicy = autoexecConfig.getString("failPolicy");
+                    if (FailPolicy.KEEP_ON.getValue().equals(failPolicy)) {
+                        processTaskStepComplete(currentProcessTaskStepVo.getId(), null);
                     }
-                    jobVo.setParam(param);
-                }
-                JSONArray executeParamList = autoexecConfig.getJSONArray("executeParamList");
-                JSONObject executeConfig = new JSONObject();
-                if (CollectionUtils.isNotEmpty(executeParamList)) {
-                    for (int i = 0; i < executeParamList.size(); i++) {
-                        JSONObject executeParamObj = executeParamList.getJSONObject(i);
-                        if (MapUtils.isNotEmpty(executeParamObj)) {
-                            String key = executeParamObj.getString("key");
-                            Object value = executeParamObj.get("value");
-                            String mappingMode = executeParamObj.getString("mappingMode");
-                            if (Objects.equals(key, "executeUser")) {
-                                ParamMappingVo paramMappingVo = new ParamMappingVo();
-                                if (Objects.equals(mappingMode, "runtimeparam") || Objects.equals(mappingMode, "constant")) {
-                                    paramMappingVo.setMappingMode(mappingMode);
-                                    paramMappingVo.setValue(value);
-                                } else {
-                                    paramMappingVo.setMappingMode("constant");
-                                    paramMappingVo.setValue(parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
-                                }
-                                executeConfig.put(key, paramMappingVo);
-                            } else {
-                                executeConfig.put(key, parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
-                            }
-                        }
-                    }
-                    jobVo.setExecuteConfig(executeConfig.toJavaObject(AutoexecCombopExecuteConfigVo.class));
-                }
-                Long autoexecJobId = autoexecJobMapper.getJobIdByInvokeIdLimitOne(currentProcessTaskStepVo.getId());
-                //如果工单步骤ID没有绑定自动化作业ID，则需要创建自动化作业
-                if (autoexecJobId == null) {
-                    jobVo.setSource(AutoExecJobProcessSource.ITSM.getValue());
-                    jobVo.setRoundCount(32);
-                    jobVo.setOperationId(combopId);
-                    jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
-                    jobVo.setInvokeId(currentProcessTaskStepVo.getId());
-                    jobVo.setRouteId(currentProcessTaskStepVo.getProcessStepUuid());
-                    jobVo.setIsFirstFire(1);
-                    jobVo.setAssignExecUser(SystemUser.SYSTEM.getUserUuid());
-                    try {
-                        autoexecJobActionService.validateCreateJob(jobVo);
-//                        AutoexecJobVo jobVo = autoexecJobActionService.validateCreateJobFromCombop(paramObj, false);
-//                        autoexecJobActionService.fire(jobVo);
-                    } catch (Exception e) {
-                        logger.error(e.getMessage(), e);
-                        String failPolicy = autoexecConfig.getString("failPolicy");
-                        if (FailPolicy.KEEP_ON.getValue().equals(failPolicy)) {
-                            processTaskStepComplete(currentProcessTaskStepVo.getId(), null);
-                        }
-                        /* 异常提醒 **/
-//                        IProcessStepHandlerUtil.saveStepRemind(currentProcessTaskStepVo, currentProcessTaskStepVo.getId(), "创建作业失败", ProcessTaskStepRemindType.ERROR);
-//                        throw new ProcessTaskException(e);
-                    }
-                } else {//否则重新刷新作业运行参数，以及节点后，需人工干预重跑作业
-                    autoexecJobService.refreshJobParam(autoexecJobId, param);
-                    autoexecJobService.refreshJobNodeList(autoexecJobId, executeConfig);
                 }
             }
         }
         return 1;
+    }
+
+    private List<AutoexecJobVo> createAutoexecJobList(ProcessTaskStepVo currentProcessTaskStepVo, JSONObject autoexecConfig) {
+        Map<String, ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataMap = new HashMap<>();
+        Map<String, FormAttributeVo> formAttributeMap = new HashMap<>();
+        Long processTaskId = currentProcessTaskStepVo.getProcessTaskId();
+        ProcessTaskFormVo processTaskFormVo = processTaskMapper.getProcessTaskFormByProcessTaskId(processTaskId);
+        if (processTaskFormVo != null) {
+            String formContent = selectContentByHashMapper.getProcessTaskFromContentByHash(processTaskFormVo.getFormContentHash());
+            FormVersionVo formVersionVo = new FormVersionVo();
+            formVersionVo.setFormUuid(processTaskFormVo.getFormUuid());
+            formVersionVo.setFormName(processTaskFormVo.getFormName());
+            formVersionVo.setFormConfig(JSONObject.parseObject(formContent));
+            List<FormAttributeVo> formAttributeList = formVersionVo.getFormAttributeList();
+            if (CollectionUtils.isNotEmpty(formAttributeList)) {
+                formAttributeMap = formAttributeList.stream().collect(Collectors.toMap(e -> e.getUuid(), e -> e));
+            }
+            List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskMapper.getProcessTaskStepFormAttributeDataByProcessTaskId(processTaskId);
+            if (CollectionUtils.isNotEmpty(processTaskFormAttributeDataList)) {
+                processTaskFormAttributeDataMap = processTaskFormAttributeDataList.stream().collect(Collectors.toMap(e -> e.getAttributeUuid(), e -> e));
+            }
+        }
+        String createJobPolicy = autoexecConfig.getString("createJobPolicy");
+        if (Objects.equals(createJobPolicy, "single")) {
+            AutoexecJobVo jobVo = createSingleAutoexecJobVo(currentProcessTaskStepVo, autoexecConfig, formAttributeMap, processTaskFormAttributeDataMap);
+            if (jobVo != null) {
+                List<AutoexecJobVo> resultList = new ArrayList<>();
+                resultList.add(jobVo);
+                return resultList;
+            }
+            return null;
+        } else if (Objects.equals(createJobPolicy, "batch")) {
+            return createBatchAutoexecJobVo(currentProcessTaskStepVo, autoexecConfig, formAttributeMap, processTaskFormAttributeDataMap);
+        } else {
+            return null;
+        }
+    }
+
+    private AutoexecJobVo createSingleAutoexecJobVo(
+            ProcessTaskStepVo currentProcessTaskStepVo,
+            JSONObject autoexecConfig,
+            Map<String, FormAttributeVo> formAttributeMap,
+            Map<String, ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataMap) {
+        AutoexecJobVo jobVo = new AutoexecJobVo();
+        Long combopId = autoexecConfig.getLong("autoexecCombopId");
+        String jobName = autoexecConfig.getString("jobName");
+        JSONArray runtimeParamList = autoexecConfig.getJSONArray("runtimeParamList");
+        JSONObject param = new JSONObject();
+        if (CollectionUtils.isNotEmpty(runtimeParamList)) {
+            for (int i = 0; i < runtimeParamList.size(); i++) {
+                JSONObject runtimeParamObj = runtimeParamList.getJSONObject(i);
+                if (MapUtils.isEmpty(runtimeParamObj)) {
+                    continue;
+                }
+                String key = runtimeParamObj.getString("key");
+                if (StringUtils.isBlank(key)) {
+                    continue;
+                }
+                Object value = runtimeParamObj.get("value");
+                if (value == null) {
+                    continue;
+                }
+                String mappingMode = runtimeParamObj.getString("mappingMode");
+                if (Objects.equals(mappingMode, "formTableComponent")) {
+                    String column = runtimeParamObj.getString("column");
+                    FormAttributeVo formAttributeVo = formAttributeMap.get(value);
+                    ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
+                    param.put(key, parseFormTableComponentMappingValue(formAttributeVo, attributeDataVo, column));
+                } else if (Objects.equals(mappingMode, "formCommonComponent")) {
+                    param.put(key, processTaskFormAttributeDataMap.get(value));
+                } else if (Objects.equals(mappingMode, "constant")) {
+                    param.put(key, value);
+                }
+            }
+            jobVo.setParam(param);
+        }
+        JSONArray executeParamList = autoexecConfig.getJSONArray("executeParamList");
+        JSONObject executeConfig = new JSONObject();
+        if (CollectionUtils.isNotEmpty(executeParamList)) {
+            for (int i = 0; i < executeParamList.size(); i++) {
+                JSONObject executeParamObj = executeParamList.getJSONObject(i);
+                if (MapUtils.isEmpty(executeParamObj)) {
+                    continue;
+                }
+                String key = executeParamObj.getString("key");
+                if (StringUtils.isBlank(key)) {
+                    continue;
+                }
+                Object value = executeParamObj.get("value");
+                if (value == null) {
+                    continue;
+                }
+                String mappingMode = executeParamObj.getString("mappingMode");
+                if (Objects.equals(mappingMode, "formTableComponent")) {
+                    String column = executeParamObj.getString("column");
+                    FormAttributeVo formAttributeVo = formAttributeMap.get(value);
+                    ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
+                    if (Objects.equals(key, "executeUser")) {
+                        ParamMappingVo paramMappingVo = new ParamMappingVo();
+                        paramMappingVo.setMappingMode("constant");
+                        paramMappingVo.setValue(parseFormTableComponentMappingValue(formAttributeVo, attributeDataVo, column));
+                        executeConfig.put(key, paramMappingVo);
+                    } else {
+                        executeConfig.put(key, parseFormTableComponentMappingValue(formAttributeVo, attributeDataVo, column));
+                    }
+                } else if (Objects.equals(mappingMode, "formCommonComponent")) {
+                    if (Objects.equals(key, "executeUser")) {
+                        ParamMappingVo paramMappingVo = new ParamMappingVo();
+                        paramMappingVo.setMappingMode("constant");
+                        paramMappingVo.setValue(processTaskFormAttributeDataMap.get(value));
+                        executeConfig.put(key, paramMappingVo);
+                    } else {
+                        executeConfig.put(key, processTaskFormAttributeDataMap.get(value));
+                    }
+                } else if (Objects.equals(mappingMode, "constant")) {
+                    if (Objects.equals(key, "executeUser")) {
+                        ParamMappingVo paramMappingVo = new ParamMappingVo();
+                        paramMappingVo.setMappingMode("constant");
+                        paramMappingVo.setValue(value);
+                        executeConfig.put(key, paramMappingVo);
+                    } else {
+                        executeConfig.put(key, value);
+                    }
+                } else if (Objects.equals(mappingMode, "runtimeparam")) {
+                    if (Objects.equals(key, "executeUser")) {
+                        ParamMappingVo paramMappingVo = new ParamMappingVo();
+                        paramMappingVo.setMappingMode("runtimeparam");
+                        paramMappingVo.setValue(value);
+                        executeConfig.put(key, paramMappingVo);
+                    }
+                }
+            }
+            jobVo.setExecuteConfig(executeConfig.toJavaObject(AutoexecCombopExecuteConfigVo.class));
+        }
+        jobVo.setSource(AutoExecJobProcessSource.ITSM.getValue());
+        jobVo.setRoundCount(32);
+        jobVo.setOperationId(combopId);
+        jobVo.setName(jobName);
+        jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
+        jobVo.setInvokeId(currentProcessTaskStepVo.getId());
+        jobVo.setRouteId(currentProcessTaskStepVo.getProcessStepUuid());
+        jobVo.setIsFirstFire(1);
+        jobVo.setAssignExecUser(SystemUser.SYSTEM.getUserUuid());
+        return jobVo;
+    }
+
+    private List<AutoexecJobVo> createBatchAutoexecJobVo(
+            ProcessTaskStepVo currentProcessTaskStepVo,
+            JSONObject autoexecConfig,
+            Map<String, FormAttributeVo> formAttributeMap,
+            Map<String, ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataMap) {
+        Long combopId = autoexecConfig.getLong("autoexecCombopId");
+        String jobName = autoexecConfig.getString("jobName");
+        List<AutoexecJobVo> resultList = new ArrayList<>();
+        JSONObject batchJobDataSource = autoexecConfig.getJSONObject("batchJobDataSource");
+        if (MapUtils.isEmpty(batchJobDataSource)) {
+            return resultList;
+        }
+        String attributeUuid = batchJobDataSource.getString("attributeUuid");
+        if (StringUtils.isBlank(attributeUuid)) {
+            return resultList;
+        }
+        ProcessTaskFormAttributeDataVo formAttributeDataVo = processTaskFormAttributeDataMap.get(attributeUuid);
+        if (formAttributeDataVo == null) {
+            return resultList;
+        }
+        Object dataObj = formAttributeDataVo.getDataObj();
+        if (dataObj == null) {
+            return resultList;
+        }
+        JSONArray tbodyList = new JSONArray();
+        JSONArray dataList = (JSONArray) dataObj;
+        JSONArray filterList = batchJobDataSource.getJSONArray("filterList");
+        if (CollectionUtils.isNotEmpty(filterList)) {
+            for (int i = 0; i < dataList.size(); i++) {
+                JSONObject data = dataList.getJSONObject(i);
+                if (MapUtils.isEmpty(data)) {
+                    continue;
+                }
+                boolean flag = true;
+                for (int j = 0; j < filterList.size(); j++) {
+                    JSONObject filterObj = filterList.getJSONObject(j);
+                    if (MapUtils.isEmpty(filterObj)) {
+                        continue;
+                    }
+                    String column = filterObj.getString("column");
+                    if (StringUtils.isBlank(column)) {
+                        continue;
+                    }
+                    String expression = filterObj.getString("expression");
+                    if (StringUtils.isBlank(expression)) {
+                        continue;
+                    }
+                    String value = filterObj.getString("value");
+                    if (StringUtils.isBlank(value)) {
+                        continue;
+                    }
+                    if (Objects.equals(expression, "equal")) {
+                        if (!Objects.equals(value, data.getString(column))) {
+                            flag = false;
+                        }
+                    }
+                }
+                if (flag) {
+                    tbodyList.add(data);
+                }
+            }
+        } else {
+            tbodyList = dataList;
+        }
+        if (CollectionUtils.isEmpty(tbodyList)) {
+            return resultList;
+        }
+        for (int index = 0; index < tbodyList.size(); index++) {
+            AutoexecJobVo jobVo = new AutoexecJobVo();
+            jobVo.setSource(AutoExecJobProcessSource.ITSM.getValue());
+            jobVo.setRoundCount(32);
+            jobVo.setOperationId(combopId);
+            jobVo.setName(jobName);
+            jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
+            jobVo.setInvokeId(currentProcessTaskStepVo.getId());
+            jobVo.setRouteId(currentProcessTaskStepVo.getProcessStepUuid());
+            jobVo.setIsFirstFire(1);
+            jobVo.setAssignExecUser(SystemUser.SYSTEM.getUserUuid());
+            JSONObject tbodyObj = tbodyList.getJSONObject(index);
+            JSONArray executeParamList = autoexecConfig.getJSONArray("executeParamList");
+            if (CollectionUtils.isNotEmpty(executeParamList)) {
+                JSONObject executeConfig = new JSONObject();
+                for (int i = 0; i < executeParamList.size(); i++) {
+                    JSONObject executeParamObj = executeParamList.getJSONObject(i);
+                    if (MapUtils.isEmpty(executeParamObj)) {
+                        continue;
+                    }
+                    String key = executeParamObj.getString("key");
+                    if (StringUtils.isBlank(key)) {
+                        continue;
+                    }
+                    String mappingMode = executeParamObj.getString("mappingMode");
+                    Object value = executeParamObj.get("value");
+                    if (Objects.equals(mappingMode, "formTableComponent")) {
+                        String column = executeParamObj.getString("column");
+                        if (Objects.equals(value, attributeUuid)) {
+                            String columnValue = tbodyObj.getString(column);
+                            executeConfig.put(key, columnValue);
+                        } else {
+                            FormAttributeVo formAttributeVo = formAttributeMap.get(value);
+                            ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
+                            if (Objects.equals(key, "executeUser")) {
+                                ParamMappingVo paramMappingVo = new ParamMappingVo();
+                                paramMappingVo.setMappingMode("constant");
+                                paramMappingVo.setValue(parseFormTableComponentMappingValue(formAttributeVo, attributeDataVo, column));
+                                executeConfig.put(key, paramMappingVo);
+                            } else {
+                                executeConfig.put(key, parseFormTableComponentMappingValue(formAttributeVo, attributeDataVo, column));
+                            }
+                        }
+                    } else {
+                        if (Objects.equals(mappingMode, "formCommonComponent")) {
+                            if (Objects.equals(key, "executeUser")) {
+                                ParamMappingVo paramMappingVo = new ParamMappingVo();
+                                paramMappingVo.setMappingMode("constant");
+                                paramMappingVo.setValue(processTaskFormAttributeDataMap.get(value));
+                                executeConfig.put(key, paramMappingVo);
+                            } else {
+                                executeConfig.put(key, processTaskFormAttributeDataMap.get(value));
+                            }
+                        } else if (Objects.equals(mappingMode, "constant")) {
+                            if (Objects.equals(key, "executeUser")) {
+                                ParamMappingVo paramMappingVo = new ParamMappingVo();
+                                paramMappingVo.setMappingMode("constant");
+                                paramMappingVo.setValue(value);
+                                executeConfig.put(key, paramMappingVo);
+                            } else {
+                                executeConfig.put(key, value);
+                            }
+                        } else if (Objects.equals(mappingMode, "runtimeparam")) {
+                            if (Objects.equals(key, "executeUser")) {
+                                ParamMappingVo paramMappingVo = new ParamMappingVo();
+                                paramMappingVo.setMappingMode("runtimeparam");
+                                paramMappingVo.setValue(value);
+                                executeConfig.put(key, paramMappingVo);
+                            }
+                        }
+                    }
+                }
+                jobVo.setExecuteConfig(executeConfig.toJavaObject(AutoexecCombopExecuteConfigVo.class));
+            }
+            JSONArray runtimeParamList = autoexecConfig.getJSONArray("runtimeParamList");
+            if (CollectionUtils.isNotEmpty(runtimeParamList)) {
+                JSONObject param = new JSONObject();
+                for (int i = 0; i < runtimeParamList.size(); i++) {
+                    JSONObject runtimeParamObj = runtimeParamList.getJSONObject(i);
+                    if (MapUtils.isEmpty(runtimeParamObj)) {
+                        continue;
+                    }
+                    String key = runtimeParamObj.getString("key");
+                    if (StringUtils.isNotBlank(key)) {
+                        continue;
+                    }
+                    Object value = runtimeParamObj.get("value");
+                    if (value == null) {
+                        continue;
+                    }
+                    String mappingMode = runtimeParamObj.getString("mappingMode");
+                    if (Objects.equals(mappingMode, "formTableComponent")) {
+                        String column = runtimeParamObj.getString("column");
+                        if (Objects.equals(value, attributeUuid)) {
+                            String columnValue = tbodyObj.getString(column);
+                            param.put(key, columnValue);
+                        } else {
+                            FormAttributeVo formAttributeVo = formAttributeMap.get(value);
+                            ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
+                            param.put(key, parseFormTableComponentMappingValue(formAttributeVo, attributeDataVo, column));
+                        }
+                    } else if (Objects.equals(mappingMode, "formCommonComponent")) {
+                        param.put(key, processTaskFormAttributeDataMap.get(value));
+                    } else if (Objects.equals(mappingMode, "constant")) {
+                        param.put(key, value);
+                    }
+                }
+                jobVo.setParam(param);
+            }
+            resultList.add(jobVo);
+        }
+        return resultList;
+    }
+
+    private List<String> parseFormTableComponentMappingValue(FormAttributeVo formAttributeVo, ProcessTaskFormAttributeDataVo formAttributeDataVo, String column) {
+        List<String> resultList = new ArrayList<>();
+        JSONArray tbodyList = (JSONArray) formAttributeDataVo.getDataObj();
+        if (CollectionUtils.isEmpty(tbodyList)) {
+            return resultList;
+        }
+        for (int i = 0; i < tbodyList.size(); i++) {
+            JSONObject tbodyObj = tbodyList.getJSONObject(i);
+            if (MapUtils.isEmpty(tbodyObj)) {
+                continue;
+            }
+            String columnValue = tbodyObj.getString(column);
+            if (StringUtils.isBlank(columnValue)) {
+                continue;
+            }
+            resultList.add(columnValue);
+        }
+        return resultList;
+    }
+
+    private AutoexecJobVo createAutoexecJobVo(ProcessTaskStepVo currentProcessTaskStepVo, JSONObject autoexecConfig) {
+        AutoexecJobVo jobVo = new AutoexecJobVo();
+        Long combopId = autoexecConfig.getLong("autoexecCombopId");
+        jobVo.setCombopId(combopId);
+        JSONArray runtimeParamList = autoexecConfig.getJSONArray("runtimeParamList");
+        JSONObject param = new JSONObject();
+        if (CollectionUtils.isNotEmpty(runtimeParamList)) {
+            for (int i = 0; i < runtimeParamList.size(); i++) {
+                JSONObject runtimeParamObj = runtimeParamList.getJSONObject(i);
+                if (MapUtils.isNotEmpty(runtimeParamObj)) {
+                    String key = runtimeParamObj.getString("key");
+                    if (StringUtils.isNotBlank(key)) {
+                        Object value = runtimeParamObj.get("value");
+                        if (value != null) {
+                            String mappingMode = runtimeParamObj.getString("mappingMode");
+                            param.put(key, parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
+                        } else {
+                            param.put(key, value);
+                        }
+                    }
+                }
+            }
+            jobVo.setParam(param);
+        }
+        JSONArray executeParamList = autoexecConfig.getJSONArray("executeParamList");
+        JSONObject executeConfig = new JSONObject();
+        if (CollectionUtils.isNotEmpty(executeParamList)) {
+            for (int i = 0; i < executeParamList.size(); i++) {
+                JSONObject executeParamObj = executeParamList.getJSONObject(i);
+                if (MapUtils.isNotEmpty(executeParamObj)) {
+                    String key = executeParamObj.getString("key");
+                    Object value = executeParamObj.get("value");
+                    String mappingMode = executeParamObj.getString("mappingMode");
+                    if (Objects.equals(key, "executeUser")) {
+                        ParamMappingVo paramMappingVo = new ParamMappingVo();
+                        if (Objects.equals(mappingMode, "runtimeparam") || Objects.equals(mappingMode, "constant")) {
+                            paramMappingVo.setMappingMode(mappingMode);
+                            paramMappingVo.setValue(value);
+                        } else {
+                            paramMappingVo.setMappingMode("constant");
+                            paramMappingVo.setValue(parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
+                        }
+                        executeConfig.put(key, paramMappingVo);
+                    } else {
+                        executeConfig.put(key, parseMappingValue(currentProcessTaskStepVo, mappingMode, value));
+                    }
+                }
+            }
+            jobVo.setExecuteConfig(executeConfig.toJavaObject(AutoexecCombopExecuteConfigVo.class));
+        }
+        jobVo.setSource(AutoExecJobProcessSource.ITSM.getValue());
+        jobVo.setRoundCount(32);
+        jobVo.setOperationId(combopId);
+        jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
+        jobVo.setInvokeId(currentProcessTaskStepVo.getId());
+        jobVo.setRouteId(currentProcessTaskStepVo.getProcessStepUuid());
+        jobVo.setIsFirstFire(1);
+        jobVo.setAssignExecUser(SystemUser.SYSTEM.getUserUuid());
+        return jobVo;
     }
 
     private void processTaskStepComplete(Long processTaskStepId, Long autoexecJobId) {
