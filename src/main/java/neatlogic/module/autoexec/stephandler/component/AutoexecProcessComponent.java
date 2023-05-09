@@ -22,6 +22,7 @@ import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import neatlogic.framework.autoexec.dto.combop.ParamMappingVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobEnvVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
+import neatlogic.framework.common.constvalue.Expression;
 import neatlogic.framework.common.constvalue.SystemUser;
 import neatlogic.framework.form.dto.FormAttributeVo;
 import neatlogic.framework.form.dto.FormVersionVo;
@@ -374,9 +375,34 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     if (StringUtils.isBlank(value)) {
                         continue;
                     }
-                    if (Objects.equals(expression, "equal")) {
+                    if (Objects.equals(expression, Expression.EQUAL.getExpression())) {
                         if (!Objects.equals(value, data.getString(column))) {
                             flag = false;
+                            break;
+                        }
+                    } else if (Objects.equals(expression, Expression.UNEQUAL.getExpression())) {
+                        if (Objects.equals(value, data.getString(column))) {
+                            flag = false;
+                            break;
+                        }
+                    } else if (Objects.equals(expression, Expression.INCLUDE.getExpression())) {
+                        String columnValue = data.getString(column);
+                        if (StringUtils.isBlank(columnValue)) {
+                            flag = false;
+                            break;
+                        }
+                        if (!columnValue.contains(value)) {
+                            flag = false;
+                            break;
+                        }
+                    } else if (Objects.equals(expression, Expression.EXCLUDE.getExpression())) {
+                        String columnValue = data.getString(column);
+                        if (StringUtils.isBlank(columnValue)) {
+                            continue;
+                        }
+                        if (columnValue.contains(value)) {
+                            flag = false;
+                            break;
                         }
                     }
                 }
