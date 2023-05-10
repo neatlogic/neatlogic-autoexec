@@ -1,5 +1,5 @@
 /*
-Copyright(c) $today.year NeatLogic Co., Ltd. All Rights Reserved.
+Copyright(c) 2023 NeatLogic Co., Ltd. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,27 +16,18 @@ limitations under the License.
 
 package neatlogic.module.autoexec.service;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthActionChecker;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import neatlogic.framework.autoexec.constvalue.*;
 import neatlogic.framework.autoexec.crossover.IAutoexecCombopCrossoverService;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
-import neatlogic.framework.autoexec.dao.mapper.AutoexecTypeMapper;
-import neatlogic.framework.autoexec.dto.AutoexecParamConfigVo;
-import neatlogic.framework.common.constvalue.GroupSearch;
-import neatlogic.framework.common.constvalue.UserType;
-import neatlogic.framework.common.util.RC4Util;
-import neatlogic.framework.dao.mapper.RoleMapper;
-import neatlogic.framework.dao.mapper.TeamMapper;
-import neatlogic.framework.dao.mapper.UserMapper;
-import neatlogic.framework.exception.role.RoleNotFoundException;
-import neatlogic.framework.exception.team.TeamNotFoundException;
-import neatlogic.framework.exception.user.UserNotFoundException;
-import neatlogic.framework.notify.dto.InvokeNotifyPolicyConfigVo;
-import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecScriptMapper;
+import neatlogic.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import neatlogic.framework.autoexec.dto.AutoexecOperationBaseVo;
+import neatlogic.framework.autoexec.dto.AutoexecParamConfigVo;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
 import neatlogic.framework.autoexec.dto.combop.*;
 import neatlogic.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
@@ -47,19 +38,27 @@ import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
+import neatlogic.framework.common.constvalue.GroupSearch;
 import neatlogic.framework.common.constvalue.SystemUser;
+import neatlogic.framework.common.constvalue.UserType;
+import neatlogic.framework.common.util.RC4Util;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
+import neatlogic.framework.dao.mapper.RoleMapper;
+import neatlogic.framework.dao.mapper.TeamMapper;
+import neatlogic.framework.dao.mapper.UserMapper;
 import neatlogic.framework.dependency.core.DependencyManager;
 import neatlogic.framework.dto.AuthenticationInfoVo;
+import neatlogic.framework.exception.role.RoleNotFoundException;
+import neatlogic.framework.exception.team.TeamNotFoundException;
+import neatlogic.framework.exception.user.UserNotFoundException;
+import neatlogic.framework.notify.dto.InvokeNotifyPolicyConfigVo;
 import neatlogic.framework.service.AuthenticationInfoService;
+import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
 import neatlogic.module.autoexec.dependency.*;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.docx4j.wml.P;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
