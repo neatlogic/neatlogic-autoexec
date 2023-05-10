@@ -152,16 +152,28 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         if (StringUtils.isBlank(config)) {
             return 0;
         }
-        JSONArray autoexecConfigList = (JSONArray) JSONPath.read(config, "autoexecConfigList");
-        if (CollectionUtils.isEmpty(autoexecConfigList)) {
+        JSONObject autoexecConfig = (JSONObject) JSONPath.read(config, "autoexecConfig");
+        if (MapUtils.isEmpty(autoexecConfig)) {
             return 0;
         }
-        for (int i = 0; i < autoexecConfigList.size(); i++) {
-            JSONObject autoexecConfig = autoexecConfigList.getJSONObject(i);
-            if (MapUtils.isEmpty(autoexecConfig)) {
+        Integer rerunStepToCreateNewJob = autoexecConfig.getInteger("rerunStepToCreateNewJob");
+        if (!Objects.equals(rerunStepToCreateNewJob, 1)) {
+            Long autoexecJobId = autoexecJobMapper.getJobIdByInvokeIdLimitOne(currentProcessTaskStepVo.getId());
+            if (autoexecJobId != null) {
+                return 1;
+            }
+        }
+        JSONArray configList = autoexecConfig.getJSONArray("configList");
+        if (CollectionUtils.isEmpty(configList)) {
+            return 0;
+        }
+        boolean flag = false;
+        for (int i = 0; i < configList.size(); i++) {
+            JSONObject configObj = configList.getJSONObject(i);
+            if (MapUtils.isEmpty(configObj)) {
                 continue;
             }
-            List<AutoexecJobVo> autoexecJobList = createAutoexecJobList(currentProcessTaskStepVo, autoexecConfig);
+            List<AutoexecJobVo> autoexecJobList = createAutoexecJobList(currentProcessTaskStepVo, configObj);
             if (CollectionUtils.isEmpty(autoexecJobList)) {
                 continue;
             }
@@ -170,11 +182,14 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     autoexecJobActionService.validateCreateJob(jobVo);
                 } catch (Exception e) {
                     logger.error(e.getMessage(), e);
-                    String failPolicy = autoexecConfig.getString("failPolicy");
-                    if (FailPolicy.KEEP_ON.getValue().equals(failPolicy)) {
-                        processTaskStepComplete(currentProcessTaskStepVo.getId(), null);
-                    }
+                    flag = true;
                 }
+            }
+        }
+        if (flag) {
+            String failPolicy = autoexecConfig.getString("failPolicy");
+            if (FailPolicy.KEEP_ON.getValue().equals(failPolicy)) {
+                processTaskStepComplete(currentProcessTaskStepVo.getId(), null);
             }
         }
         return 1;
