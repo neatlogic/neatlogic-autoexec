@@ -1,5 +1,5 @@
 /*
-Copyright(c) $today.year NeatLogic Co., Ltd. All Rights Reserved.
+Copyright(c) 2023 NeatLogic Co., Ltd. All Rights Reserved.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -16,6 +16,8 @@ limitations under the License.
 
 package neatlogic.module.autoexec.startup;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.AutoexecTypeAuthorityAction;
 import neatlogic.framework.autoexec.constvalue.AutoexecTypeType;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecTypeMapper;
@@ -27,8 +29,6 @@ import neatlogic.framework.common.constvalue.SystemUser;
 import neatlogic.framework.common.constvalue.UserType;
 import neatlogic.framework.deploy.constvalue.DeployWhiteType;
 import neatlogic.framework.startup.StartupBase;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
