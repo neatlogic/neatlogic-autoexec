@@ -526,7 +526,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                         continue;
                     }
                     String key = runtimeParamObj.getString("key");
-                    if (StringUtils.isNotBlank(key)) {
+                    if (StringUtils.isBlank(key)) {
                         continue;
                     }
                     Object value = runtimeParamObj.get("value");
