@@ -302,10 +302,16 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     if (Objects.equals(key, "executeUser")) {
                         ParamMappingVo paramMappingVo = new ParamMappingVo();
                         paramMappingVo.setMappingMode("constant");
-                        paramMappingVo.setValue(processTaskFormAttributeDataMap.get(value));
+                        ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
+                        if (attributeDataVo != null) {
+                            paramMappingVo.setValue(attributeDataVo.getDataObj());
+                        }
                         executeConfig.put(key, paramMappingVo);
                     } else {
-                        executeConfig.put(key, processTaskFormAttributeDataMap.get(value));
+                        ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
+                        if (attributeDataVo != null) {
+                            executeConfig.put(key, attributeDataVo.getDataObj());
+                        }
                     }
                 } else if (Objects.equals(mappingMode, "constant")) {
                     if (Objects.equals(key, "executeUser")) {
@@ -479,10 +485,16 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                             if (Objects.equals(key, "executeUser")) {
                                 ParamMappingVo paramMappingVo = new ParamMappingVo();
                                 paramMappingVo.setMappingMode("constant");
-                                paramMappingVo.setValue(processTaskFormAttributeDataMap.get(value));
+                                ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
+                                if (attributeDataVo != null) {
+                                    paramMappingVo.setValue(attributeDataVo.getDataObj());
+                                }
                                 executeConfig.put(key, paramMappingVo);
                             } else {
-                                executeConfig.put(key, processTaskFormAttributeDataMap.get(value));
+                                ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
+                                if (attributeDataVo != null) {
+                                    executeConfig.put(key, attributeDataVo.getDataObj());
+                                }
                             }
                         } else if (Objects.equals(mappingMode, "constant")) {
                             if (Objects.equals(key, "executeUser")) {
@@ -533,7 +545,10 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                             param.put(key, parseFormTableComponentMappingValue(formAttributeVo, attributeDataVo, column));
                         }
                     } else if (Objects.equals(mappingMode, "formCommonComponent")) {
-                        param.put(key, processTaskFormAttributeDataMap.get(value));
+                        ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
+                        if (attributeDataVo != null) {
+                            param.put(key, attributeDataVo.getDataObj());
+                        }
                     } else if (Objects.equals(mappingMode, "constant")) {
                         param.put(key, value);
                     }

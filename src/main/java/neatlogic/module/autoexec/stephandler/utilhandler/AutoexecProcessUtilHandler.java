@@ -31,6 +31,7 @@ import neatlogic.framework.process.stephandler.core.ProcessStepInternalHandlerBa
 import neatlogic.framework.process.util.ProcessConfigUtil;
 import neatlogic.framework.process.constvalue.AutoexecProcessStepHandlerType;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import neatlogic.framework.util.SnowflakeUtil;
 import neatlogic.module.autoexec.notify.handler.AutoexecCombopNotifyPolicyHandler;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -66,16 +67,18 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
 
     @Override
     public Object getHandlerStepInitInfo(ProcessTaskStepVo currentProcessTaskStepVo) {
-        Long autoexecJobId = autoexecJobMapper.getJobIdByInvokeIdLimitOne(currentProcessTaskStepVo.getId());
-        if (autoexecJobId != null) {
-            AutoexecJobVo autoexecJobVo = autoexecJobMapper.getJobInfo(autoexecJobId);
-            if (autoexecJobVo != null) {
-                List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListWithGroupByJobId(autoexecJobId);
-                autoexecJobVo.setPhaseList(jobPhaseVoList);
-                return autoexecJobVo;
-            }
+        JSONObject resultObj = new JSONObject();
+        List<Long> jobIdList = autoexecJobMapper.getJobIdListByInvokeId(currentProcessTaskStepVo.getId());
+        if (CollectionUtils.isEmpty(jobIdList)) {
+            return null;
         }
-        return null;
+        List<AutoexecJobVo> autoexecJobList = autoexecJobMapper.getJobListByIdList(jobIdList);
+        for (AutoexecJobVo autoexecJobVo : autoexecJobList) {
+            List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListWithGroupByJobId(autoexecJobVo.getId());
+            autoexecJobVo.setPhaseList(jobPhaseVoList);
+        }
+        resultObj.put("jobList", autoexecJobList);
+        return resultObj;
     }
 
     @Override
@@ -235,8 +238,73 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
         resultObj.put("replaceableTextList", ProcessConfigUtil.regulateReplaceableTextList(configObj.getJSONArray("replaceableTextList")));
 
         /* 自动化配置 **/
-        JSONObject autoexecObj = new JSONObject();
         JSONObject autoexecConfig = configObj.getJSONObject("autoexecConfig");
+//        resultObj.put("autoexecConfig", getAutoexecConfig(autoexecConfig));
+        resultObj.put("autoexecConfig", autoexecConfig);
+
+        /** 分配处理人 **/
+        JSONObject workerPolicyConfig = configObj.getJSONObject("workerPolicyConfig");
+        JSONObject workerPolicyObj = ProcessConfigUtil.regulateWorkerPolicyConfig(workerPolicyConfig);
+        resultObj.put("workerPolicyConfig", workerPolicyObj);
+
+        JSONArray tagList = configObj.getJSONArray("tagList");
+        if (tagList == null) {
+            tagList = new JSONArray();
+        }
+        resultObj.put("tagList", tagList);
+        /** 表单场景 **/
+        String formSceneUuid = configObj.getString("formSceneUuid");
+        String formSceneName = configObj.getString("formSceneName");
+        resultObj.put("formSceneUuid", formSceneUuid == null ? "" : formSceneUuid);
+        resultObj.put("formSceneName", formSceneName == null ? "" : formSceneName);
+        return resultObj;
+    }
+
+    private JSONObject getAutoexecConfig2(JSONObject autoexecConfig) {
+        JSONObject autoexecObj = new JSONObject();
+        if (autoexecConfig == null) {
+            autoexecConfig = new JSONObject();
+        }
+        // 失败策略
+        String failPolicy = autoexecConfig.getString("failPolicy");
+        if (failPolicy == null) {
+            failPolicy = "";
+        }
+        autoexecObj.put("failPolicy", failPolicy);
+        // 回退步骤新建作业
+        Integer rerunStepToCreateNewJob = autoexecConfig.getInteger("rerunStepToCreateNewJob");
+        if (rerunStepToCreateNewJob == null) {
+            rerunStepToCreateNewJob = 0;
+        }
+        autoexecObj.put("rerunStepToCreateNewJob", rerunStepToCreateNewJob);
+        JSONArray configArray = new JSONArray();
+        JSONArray configList = autoexecConfig.getJSONArray("configList");
+        if (CollectionUtils.isNotEmpty(configList)) {
+            for (int i = 0; i < configList.size(); i++) {
+                JSONObject config =configList.getJSONObject(i);
+                if (MapUtils.isEmpty(config)) {
+                    continue;
+                }
+                JSONObject configObj = new JSONObject();
+                Long id = config.getLong("id");
+                if (id == null) {
+                    id = SnowflakeUtil.uniqueLong();
+                }
+                configObj.put("id", id);
+                Long autoexecCombopId = config.getLong("autoexecCombopId");
+                if (autoexecCombopId == null) {
+                }
+                configObj.put("autoexecCombopId", autoexecCombopId);
+
+                configArray.add(configObj);
+            }
+        }
+        autoexecObj.put("configList", configArray);
+        return autoexecObj;
+    }
+
+    private JSONObject getAutoexecConfig(JSONObject autoexecConfig) {
+        JSONObject autoexecObj = new JSONObject();
         if (autoexecConfig == null) {
             autoexecConfig = new JSONObject();
         }
@@ -318,23 +386,6 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
             }
             autoexecObj.put("formAttributeList", formAttributeArray);
         }
-        resultObj.put("autoexecConfig", autoexecObj);
-
-        /** 分配处理人 **/
-        JSONObject workerPolicyConfig = configObj.getJSONObject("workerPolicyConfig");
-        JSONObject workerPolicyObj = ProcessConfigUtil.regulateWorkerPolicyConfig(workerPolicyConfig);
-        resultObj.put("workerPolicyConfig", workerPolicyObj);
-
-        JSONArray tagList = configObj.getJSONArray("tagList");
-        if (tagList == null) {
-            tagList = new JSONArray();
-        }
-        resultObj.put("tagList", tagList);
-        /** 表单场景 **/
-        String formSceneUuid = configObj.getString("formSceneUuid");
-        String formSceneName = configObj.getString("formSceneName");
-        resultObj.put("formSceneUuid", formSceneUuid == null ? "" : formSceneUuid);
-        resultObj.put("formSceneName", formSceneName == null ? "" : formSceneName);
-        return resultObj;
+        return autoexecObj;
     }
 }
