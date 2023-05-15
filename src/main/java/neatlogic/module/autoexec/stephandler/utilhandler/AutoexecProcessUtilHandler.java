@@ -268,7 +268,7 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
         // 失败策略
         String failPolicy = autoexecConfig.getString("failPolicy");
         if (failPolicy == null) {
-            failPolicy = "";
+            failPolicy = StringUtils.EMPTY;
         }
         autoexecObj.put("failPolicy", failPolicy);
         // 回退步骤新建作业
@@ -285,6 +285,10 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
                 if (MapUtils.isEmpty(config)) {
                     continue;
                 }
+                String createJobPolicy = config.getString("createJobPolicy");
+                if (createJobPolicy == null) {
+                    continue;
+                }
                 JSONObject configObj = new JSONObject();
                 Long id = config.getLong("id");
                 if (id == null) {
@@ -292,10 +296,19 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
                 }
                 configObj.put("id", id);
                 Long autoexecCombopId = config.getLong("autoexecCombopId");
-                if (autoexecCombopId == null) {
+                if (autoexecCombopId != null) {
+                    configObj.put("autoexecCombopId", autoexecCombopId);
                 }
-                configObj.put("autoexecCombopId", autoexecCombopId);
-
+                String jobName = config.getString("jobName");
+                if (jobName == null) {
+                    jobName = StringUtils.EMPTY;
+                }
+                configObj.put("jobName", jobName);
+                Boolean isShow = config.getBoolean("isShow");
+                if (isShow == null) {
+                    isShow = false;
+                }
+                configObj.put("isShow", isShow);
                 configArray.add(configObj);
             }
         }
