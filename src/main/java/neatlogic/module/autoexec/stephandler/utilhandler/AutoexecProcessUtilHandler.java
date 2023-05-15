@@ -239,7 +239,7 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
 
         /* 自动化配置 **/
         JSONObject autoexecConfig = configObj.getJSONObject("autoexecConfig");
-//        resultObj.put("autoexecConfig", getAutoexecConfig(autoexecConfig));
+//        resultObj.put("autoexecConfig", getAutoexecConfig2(autoexecConfig));
         resultObj.put("autoexecConfig", autoexecConfig);
 
         /** 分配处理人 **/
@@ -309,6 +309,61 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
                     isShow = false;
                 }
                 configObj.put("isShow", isShow);
+                if (Objects.equals(createJobPolicy, "single")) {
+
+                } else if (Objects.equals(createJobPolicy, "batch")) {
+                    JSONObject batchJobDataSourceObj = new JSONObject();
+                    JSONObject batchJobDataSource = config.getJSONObject("batchJobDataSource");
+                    if (MapUtils.isNotEmpty(batchJobDataSource)) {
+                        String attributeUuid = batchJobDataSourceObj.getString("attributeUuid");
+                        if (attributeUuid == null) {
+                            attributeUuid = StringUtils.EMPTY;
+                        }
+                        batchJobDataSourceObj.put("attributeUuid", attributeUuid);
+                        JSONArray filterArray = new JSONArray();
+                        JSONArray filterList = batchJobDataSource.getJSONArray("filterList");
+                        if (CollectionUtils.isNotEmpty(filterList)) {
+                            for (int j = 0; j < filterList.size(); j++) {
+                                JSONObject filter = filterArray.getJSONObject(j);
+                                if (MapUtils.isEmpty(filter)) {
+                                    continue;
+                                }
+                                JSONObject filterObj = new JSONObject();
+                                filterObj.put("column", filter.getString("column"));
+                                filterObj.put("expression", filter.getString("expression"));
+                                filterObj.put("value", filter.getString("value"));
+                                filterArray.add(filterObj);
+                            }
+                        }
+                        batchJobDataSourceObj.put("filterList", filterArray);
+                    }
+                    configObj.put("batchJobDataSource", batchJobDataSourceObj);
+                }
+                JSONArray executeParamList = autoexecConfig.getJSONArray("executeParamList");
+                if (executeParamList != null) {
+                    JSONArray executeParamArray = new JSONArray();
+                    for (int j = 0; j < executeParamList.size(); j++) {
+                        JSONObject executeParamObj = executeParamList.getJSONObject(j);
+                        if (MapUtils.isEmpty(executeParamObj)) {
+                            continue;
+                        }
+                        JSONObject executeParam = new JSONObject();
+                        String mappingMode = executeParamObj.getString("mappingMode");
+//                        if (Objects.equals(mappingMode, "") || Objects.equals(mappingMode, "")) {
+//
+//                        }
+                        executeParam.put("key", executeParamObj.getString("key"));
+                        executeParam.put("name", executeParamObj.getString("name"));
+                        executeParam.put("mappingMode", mappingMode);
+                        executeParam.put("value", executeParamObj.get("value"));
+                        executeParam.put("isRequired", executeParamObj.getInteger("isRequired"));
+                        executeParamArray.add(executeParam);
+                    }
+                    autoexecObj.put("executeParamList", executeParamArray);
+                }
+                JSONArray runtimeParamList = autoexecConfig.getJSONArray("runtimeParamList");
+                JSONArray exportParamList = autoexecConfig.getJSONArray("exportParamList");
+                JSONArray formAttributeList = autoexecConfig.getJSONArray("formAttributeList");
                 configArray.add(configObj);
             }
         }
