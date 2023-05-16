@@ -166,13 +166,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             if (!Objects.equals(rerunStepToCreateNewJob, 1)) {
                 Long autoexecJobId = autoexecJobMapper.getJobIdByInvokeIdLimitOne(currentProcessTaskStepVo.getId());
                 if (autoexecJobId != null) {
-//                    System.out.println("return 1");
                     return 1;
-                }
-            } else {
-                Long autoexecJobId = autoexecJobMapper.getJobIdByInvokeIdLimitOne(currentProcessTaskStepVo.getId());
-                if (autoexecJobId != null) {
-                    System.out.println("这里需要删除旧作业");
                 }
             }
             JSONArray configList = autoexecConfig.getJSONArray("configList");
@@ -280,14 +274,12 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         JSONArray runtimeParamList = autoexecConfig.getJSONArray("runtimeParamList");
         if (CollectionUtils.isNotEmpty(runtimeParamList)) {
             JSONObject param = getParam(runtimeParamList, formAttributeMap, processTaskFormAttributeDataMap);
-//            System.out.println(param);
             jobVo.setParam(param);
         }
         // 目标参数赋值列表
         JSONArray executeParamList = autoexecConfig.getJSONArray("executeParamList");
         if (CollectionUtils.isNotEmpty(executeParamList)) {
             AutoexecCombopExecuteConfigVo executeConfig = getAutoexecCombopExecuteConfig(executeParamList, formAttributeMap, processTaskFormAttributeDataMap);
-//            System.out.println(JSONObject.toJSONString(executeConfig));
             jobVo.setExecuteConfig(executeConfig);
         }
         jobVo.setSource(AutoExecJobProcessSource.ITSM.getValue());
@@ -346,14 +338,12 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             JSONArray executeParamList = autoexecConfig.getJSONArray("executeParamList");
             if (CollectionUtils.isNotEmpty(executeParamList)) {
                 AutoexecCombopExecuteConfigVo executeConfig = getAutoexecCombopExecuteConfig(executeParamList, tbodyObj, formAttributeMap, processTaskFormAttributeDataMap);
-//                System.out.println(JSONObject.toJSONString(executeConfig));
                 jobVo.setExecuteConfig(executeConfig);
             }
             // 作业参数赋值列表
             JSONArray runtimeParamList = autoexecConfig.getJSONArray("runtimeParamList");
             if (CollectionUtils.isNotEmpty(runtimeParamList)) {
                 JSONObject param = getParam(runtimeParamList, tbodyObj, formAttributeMap, processTaskFormAttributeDataMap);
-//                System.out.println(param);
                 jobVo.setParam(param);
             }
             resultList.add(jobVo);

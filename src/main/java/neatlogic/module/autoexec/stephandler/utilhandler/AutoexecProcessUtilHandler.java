@@ -239,8 +239,8 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
 
         /* 自动化配置 **/
         JSONObject autoexecConfig = configObj.getJSONObject("autoexecConfig");
-//        resultObj.put("autoexecConfig", getAutoexecConfig2(autoexecConfig));
-        resultObj.put("autoexecConfig", autoexecConfig);
+        JSONObject autoexecObj = regulateAutoexecConfig(autoexecConfig);
+        resultObj.put("autoexecConfig", autoexecObj);
 
         /** 分配处理人 **/
         JSONObject workerPolicyConfig = configObj.getJSONObject("workerPolicyConfig");
@@ -260,7 +260,7 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
         return resultObj;
     }
 
-    private JSONObject getAutoexecConfig2(JSONObject autoexecConfig) {
+    private JSONObject regulateAutoexecConfig(JSONObject autoexecConfig) {
         JSONObject autoexecObj = new JSONObject();
         if (autoexecConfig == null) {
             autoexecConfig = new JSONObject();
@@ -290,6 +290,7 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
                     continue;
                 }
                 JSONObject configObj = new JSONObject();
+                configObj.put("createJobPolicy", createJobPolicy);
                 Long id = config.getLong("id");
                 if (id == null) {
                     id = SnowflakeUtil.uniqueLong();
@@ -309,13 +310,12 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
                     isShow = false;
                 }
                 configObj.put("isShow", isShow);
-                if (Objects.equals(createJobPolicy, "single")) {
-
-                } else if (Objects.equals(createJobPolicy, "batch")) {
+                // 批量创建作业
+                if (Objects.equals(createJobPolicy, "batch")) {
                     JSONObject batchJobDataSourceObj = new JSONObject();
                     JSONObject batchJobDataSource = config.getJSONObject("batchJobDataSource");
                     if (MapUtils.isNotEmpty(batchJobDataSource)) {
-                        String attributeUuid = batchJobDataSourceObj.getString("attributeUuid");
+                        String attributeUuid = batchJobDataSource.getString("attributeUuid");
                         if (attributeUuid == null) {
                             attributeUuid = StringUtils.EMPTY;
                         }
@@ -324,7 +324,7 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
                         JSONArray filterList = batchJobDataSource.getJSONArray("filterList");
                         if (CollectionUtils.isNotEmpty(filterList)) {
                             for (int j = 0; j < filterList.size(); j++) {
-                                JSONObject filter = filterArray.getJSONObject(j);
+                                JSONObject filter = filterList.getJSONObject(j);
                                 if (MapUtils.isEmpty(filter)) {
                                     continue;
                                 }
@@ -339,31 +339,77 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
                     }
                     configObj.put("batchJobDataSource", batchJobDataSourceObj);
                 }
-                JSONArray executeParamList = autoexecConfig.getJSONArray("executeParamList");
+                // 作业参数赋值列表
+                JSONArray runtimeParamList = config.getJSONArray("runtimeParamList");
+                if (runtimeParamList != null) {
+                    JSONArray runtimeParamArray = new JSONArray();
+                    for (int j = 0; j < runtimeParamList.size(); j++) {
+                        JSONObject runtimeParamObj = runtimeParamList.getJSONObject(j);
+                        if (MapUtils.isNotEmpty(runtimeParamObj)) {
+                            JSONObject runtimeParam = new JSONObject();
+                            runtimeParam.put("key", runtimeParamObj.getString("key"));
+                            runtimeParam.put("name", runtimeParamObj.getString("name"));
+                            runtimeParam.put("mappingMode", runtimeParamObj.getString("mappingMode"));
+                            runtimeParam.put("value", runtimeParamObj.get("value"));
+                            runtimeParam.put("column", runtimeParamObj.get("column"));
+                            runtimeParam.put("isRequired", runtimeParamObj.getInteger("isRequired"));
+                            runtimeParam.put("type", runtimeParamObj.getString("type"));
+                            runtimeParam.put("config", runtimeParamObj.get("config"));
+                            runtimeParamArray.add(runtimeParam);
+                        }
+                    }
+                    configObj.put("runtimeParamList", runtimeParamArray);
+                }
+                // 目标参数赋值列表
+                JSONArray executeParamList = config.getJSONArray("executeParamList");
                 if (executeParamList != null) {
                     JSONArray executeParamArray = new JSONArray();
                     for (int j = 0; j < executeParamList.size(); j++) {
                         JSONObject executeParamObj = executeParamList.getJSONObject(j);
-                        if (MapUtils.isEmpty(executeParamObj)) {
-                            continue;
+                        if (MapUtils.isNotEmpty(executeParamObj)) {
+                            JSONObject executeParam = new JSONObject();
+                            executeParam.put("key", executeParamObj.getString("key"));
+                            executeParam.put("name", executeParamObj.getString("name"));
+                            executeParam.put("mappingMode", executeParamObj.getString("mappingMode"));
+                            executeParam.put("value", executeParamObj.get("value"));
+                            executeParam.put("column", executeParamObj.get("column"));
+                            executeParam.put("isRequired", executeParamObj.getInteger("isRequired"));
+                            executeParamArray.add(executeParam);
                         }
-                        JSONObject executeParam = new JSONObject();
-                        String mappingMode = executeParamObj.getString("mappingMode");
-//                        if (Objects.equals(mappingMode, "") || Objects.equals(mappingMode, "")) {
-//
-//                        }
-                        executeParam.put("key", executeParamObj.getString("key"));
-                        executeParam.put("name", executeParamObj.getString("name"));
-                        executeParam.put("mappingMode", mappingMode);
-                        executeParam.put("value", executeParamObj.get("value"));
-                        executeParam.put("isRequired", executeParamObj.getInteger("isRequired"));
-                        executeParamArray.add(executeParam);
                     }
-                    autoexecObj.put("executeParamList", executeParamArray);
+                    configObj.put("executeParamList", executeParamArray);
                 }
-                JSONArray runtimeParamList = autoexecConfig.getJSONArray("runtimeParamList");
-                JSONArray exportParamList = autoexecConfig.getJSONArray("exportParamList");
-                JSONArray formAttributeList = autoexecConfig.getJSONArray("formAttributeList");
+                // 导出参数列表
+                JSONArray exportParamList = config.getJSONArray("exportParamList");
+                if (exportParamList != null) {
+                    JSONArray exportParamArray = new JSONArray();
+                    for (int j = 0; j < exportParamList.size(); j++) {
+                        JSONObject exportParamObj = exportParamList.getJSONObject(j);
+                        if (MapUtils.isNotEmpty(exportParamObj)) {
+                            JSONObject exportParam = new JSONObject();
+                            exportParam.put("value", exportParamObj.getString("value"));
+                            exportParam.put("text", exportParamObj.getString("text"));
+                            exportParamArray.add(exportParam);
+                        }
+                    }
+                    configObj.put("exportParamList", exportParamArray);
+                }
+                // 表单赋值列表
+                JSONArray formAttributeList = config.getJSONArray("formAttributeList");
+                if (formAttributeList != null) {
+                    JSONArray formAttributeArray = new JSONArray();
+                    for (int j = 0; j < formAttributeList.size(); j++) {
+                        JSONObject formAttributeObj = formAttributeList.getJSONObject(j);
+                        if (MapUtils.isNotEmpty(formAttributeObj)) {
+                            JSONObject formAttribute = new JSONObject();
+                            formAttribute.put("key", formAttributeObj.getString("key"));
+                            formAttribute.put("name", formAttributeObj.getString("name"));
+                            formAttribute.put("value", formAttributeObj.get("value"));
+                            formAttributeArray.add(formAttribute);
+                        }
+                    }
+                    configObj.put("formAttributeList", formAttributeArray);
+                }
                 configArray.add(configObj);
             }
         }
