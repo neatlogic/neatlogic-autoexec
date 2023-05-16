@@ -42,7 +42,6 @@ import neatlogic.framework.process.stephandler.core.ProcessStepHandlerFactory;
 import neatlogic.framework.process.stephandler.core.ProcessStepThread;
 import neatlogic.module.autoexec.constvalue.FailPolicy;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
-import neatlogic.module.autoexec.service.AutoexecJobService;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.JSONPath;
@@ -70,9 +69,6 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     @Resource
     private AutoexecJobActionService autoexecJobActionService;
-
-    @Resource
-    private AutoexecJobService autoexecJobService;
 
     @Override
     public String getHandler() {
