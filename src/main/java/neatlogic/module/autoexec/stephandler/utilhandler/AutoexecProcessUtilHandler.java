@@ -41,9 +41,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author linbq
@@ -72,9 +70,14 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
         if (CollectionUtils.isEmpty(jobIdList)) {
             return null;
         }
+        Map<Long, List<AutoexecJobPhaseVo>> jobIdToAutoexecJobPhaseListMap = new HashMap<>();
+        List<AutoexecJobPhaseVo> jobPhaseList = autoexecJobMapper.getJobPhaseListWithGroupByJobIdList(jobIdList);
+        for (AutoexecJobPhaseVo autoexecJobPhaseVo : jobPhaseList) {
+            jobIdToAutoexecJobPhaseListMap.computeIfAbsent(autoexecJobPhaseVo.getJobId(), key -> new ArrayList<>()).add(autoexecJobPhaseVo);
+        }
         List<AutoexecJobVo> autoexecJobList = autoexecJobMapper.getJobListByIdList(jobIdList);
         for (AutoexecJobVo autoexecJobVo : autoexecJobList) {
-            List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListWithGroupByJobId(autoexecJobVo.getId());
+            List<AutoexecJobPhaseVo> jobPhaseVoList = jobIdToAutoexecJobPhaseListMap.get(autoexecJobVo.getId());
             autoexecJobVo.setPhaseList(jobPhaseVoList);
         }
         resultObj.put("jobList", autoexecJobList);
