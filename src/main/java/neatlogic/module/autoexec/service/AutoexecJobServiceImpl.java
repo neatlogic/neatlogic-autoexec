@@ -644,12 +644,12 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     }
 
     @Override
-    public void refreshJobPhaseNodeList(Long jobId, List<AutoexecJobPhaseVo> jobPhaseVoList, JSONObject executeConfig) {
-        AutoexecCombopExecuteConfigVo combopExecuteConfigVo = null;
+    public void refreshJobPhaseNodeList(Long jobId, List<AutoexecJobPhaseVo> jobPhaseVoList, AutoexecCombopExecuteConfigVo combopExecuteConfigVo) {
+//        AutoexecCombopExecuteConfigVo combopExecuteConfigVo = null;
         //优先使用传进来的执行节点
-        if (MapUtils.isNotEmpty(executeConfig)) {
-            combopExecuteConfigVo = JSON.toJavaObject(executeConfig, AutoexecCombopExecuteConfigVo.class);
-        }
+//        if (MapUtils.isNotEmpty(executeConfig)) {
+//            combopExecuteConfigVo = JSON.toJavaObject(executeConfig, AutoexecCombopExecuteConfigVo.class);
+//        }
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
         jobVo.setConfigStr(autoexecJobMapper.getJobContent(jobVo.getConfigHash()).getContent());
         //重跑获取已存在节点的resourceId -> runnerMapId
@@ -697,7 +697,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     }
 
     @Override
-    public void refreshJobNodeList(Long jobId, JSONObject executeConfig) {
+    public void refreshJobNodeList(Long jobId, AutoexecCombopExecuteConfigVo executeConfig) {
         List<AutoexecJobPhaseVo> phaseVoList = autoexecJobMapper.getJobPhaseListWithGroupByJobId(jobId);
         refreshJobPhaseNodeList(jobId, phaseVoList, executeConfig);
     }
