@@ -359,7 +359,6 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         }
         if (!Objects.equals(formAttributeDataVo.getType(), neatlogic.framework.form.constvalue.FormHandler.FORMTABLEINPUTER.getHandler())
                 && !Objects.equals(formAttributeDataVo.getType(), neatlogic.framework.form.constvalue.FormHandler.FORMTABLESELECTOR.getHandler())) {
-            logger.warn("");
             return tbodyList;
         }
         if (formAttributeDataVo.getDataObj() == null) {
