@@ -10,7 +10,7 @@ import neatlogic.framework.common.dto.BasePageVo;
 import neatlogic.framework.restful.annotation.Description;
 import neatlogic.framework.restful.annotation.Output;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import neatlogic.framework.scheduler.annotation.Input;
+import neatlogic.framework.scheduler.annotation.Prop;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.CollectionUtils;
@@ -46,7 +46,7 @@ public class AutoexecCombopDataUpdateApi extends PrivateApiComponentBase {
         return null;
     }
 
-    @Input({})
+    @Prop({})
     @Output({})
     @Description(desc = "更新组合工具数据")
     @Override
