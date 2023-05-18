@@ -23,15 +23,20 @@ import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import neatlogic.framework.autoexec.dto.AutoexecTypeVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopAuthorityVo;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
 import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.constvalue.GroupSearch;
+import neatlogic.framework.crossover.CrossoverServiceFactory;
+import neatlogic.framework.notify.crossover.INotifyServiceCrossoverService;
+import neatlogic.framework.notify.dto.InvokeNotifyPolicyConfigVo;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
+import neatlogic.module.autoexec.notify.handler.AutoexecCombopNotifyPolicyHandler;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
@@ -152,6 +157,10 @@ public class AutoexecCombopBasicInfoGetApi extends PrivateApiComponentBase {
                 }
             }
         }
+        AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
+        INotifyServiceCrossoverService notifyServiceCrossoverService = CrossoverServiceFactory.getApi(INotifyServiceCrossoverService.class);
+        InvokeNotifyPolicyConfigVo invokeNotifyPolicyConfigVo = notifyServiceCrossoverService.regulateNotifyPolicyConfig(config.getInvokeNotifyPolicyConfig(), AutoexecCombopNotifyPolicyHandler.class);
+        config.setInvokeNotifyPolicyConfig(invokeNotifyPolicyConfigVo);
         return autoexecCombopVo;
     }
 }

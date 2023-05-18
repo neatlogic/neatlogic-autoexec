@@ -19,16 +19,13 @@ package neatlogic.module.autoexec.api.combop;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecTypeMapper;
-import neatlogic.framework.autoexec.dto.AutoexecParamVo;
 import neatlogic.framework.autoexec.dto.AutoexecTypeVo;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
 import neatlogic.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.exception.type.ParamNotExistsException;
 import neatlogic.framework.notify.dao.mapper.NotifyMapper;
-import neatlogic.framework.notify.dto.NotifyPolicyVo;
 import neatlogic.framework.restful.annotation.Description;
 import neatlogic.framework.restful.annotation.Input;
 import neatlogic.framework.restful.annotation.OperationType;
@@ -115,26 +112,16 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
             throw new AutoexecCombopNotFoundException(stringBuilder.toString());
         }
         Set<Long> typeIdSet = new HashSet<>();
-        Set<Long> notifyPolicyIdSet = new HashSet<>();
         List<AutoexecCombopVo> autoexecCombopVoList = new ArrayList<>();
         for (Long id : existIdList) {
             AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
             List<AutoexecCombopVersionVo> versionList = autoexecCombopVersionMapper.getAutoexecCombopVersionListByCombopId(id);
             autoexecCombopVo.setVersionList(versionList);
             typeIdSet.add(autoexecCombopVo.getTypeId());
-            Long notifyPolicyId = autoexecCombopVo.getNotifyPolicyId();
-            if (notifyPolicyId != null) {
-                notifyPolicyIdSet.add(notifyPolicyId);
-            }
             autoexecCombopVoList.add(autoexecCombopVo);
         }
         List<AutoexecTypeVo> autoexecTypeList = autoexecTypeMapper.getTypeListByIdList(new ArrayList<>(typeIdSet));
         Map<Long, AutoexecTypeVo> autoexecTypeMap = autoexecTypeList.stream().collect(Collectors.toMap(e -> e.getId(), e -> e));
-        Map<Long, NotifyPolicyVo> notifyPolicyMap = new HashMap<>();
-        if (CollectionUtils.isNotEmpty(notifyPolicyIdSet)) {
-            List<NotifyPolicyVo> notifyPolicyList = notifyMapper.getNotifyPolicyListByIdList(new ArrayList<>(notifyPolicyIdSet));
-            notifyPolicyMap = notifyPolicyList.stream().collect(Collectors.toMap(e -> e.getId(), e -> e));
-        }
         //设置导出文件名
         String fileName = FileUtil.getEncodedFileName("组合工具." + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak");
         response.setContentType("application/octet-stream");
@@ -145,13 +132,6 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
                 AutoexecTypeVo autoexecTypeVo = autoexecTypeMap.get(autoexecCombopVo.getTypeId());
                 if (autoexecTypeVo != null) {
                     autoexecCombopVo.setTypeName(autoexecTypeVo.getName());
-                }
-                Long notifyPolicyId = autoexecCombopVo.getNotifyPolicyId();
-                if (notifyPolicyId != null) {
-                    NotifyPolicyVo notifyPolicyVo = notifyPolicyMap.get(notifyPolicyId);
-                    if (notifyPolicyVo != null) {
-                        autoexecCombopVo.setNotifyPolicyName(notifyPolicyVo.getName());
-                    }
                 }
                 zipos.putNextEntry(new ZipEntry(autoexecCombopVo.getName() + ".json"));
                 zipos.write(JSONObject.toJSONBytes(autoexecCombopVo));
