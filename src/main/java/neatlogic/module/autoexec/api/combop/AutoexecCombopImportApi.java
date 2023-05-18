@@ -762,9 +762,6 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         if (!Objects.equals(obj1.getOperationType(), obj2.getOperationType())) {
             return false;
         }
-        if (!Objects.equals(obj1.getNotifyPolicyId(), obj2.getNotifyPolicyId())) {
-            return false;
-        }
         if (!Objects.equals(obj1.getOwner(), obj2.getOwner())) {
             return false;
         }

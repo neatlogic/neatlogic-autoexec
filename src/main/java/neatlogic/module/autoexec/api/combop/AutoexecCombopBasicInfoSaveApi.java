@@ -31,20 +31,22 @@ import neatlogic.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecTypeNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.constvalue.GroupSearch;
+import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dao.mapper.UserMapper;
 import neatlogic.framework.dto.FieldValidResultVo;
 import neatlogic.framework.exception.type.ParamNotExistsException;
 import neatlogic.framework.exception.type.PermissionDeniedException;
 import neatlogic.framework.exception.user.UserNotFoundException;
+import neatlogic.framework.notify.crossover.INotifyServiceCrossoverService;
 import neatlogic.framework.notify.dao.mapper.NotifyMapper;
 import neatlogic.framework.notify.dto.InvokeNotifyPolicyConfigVo;
-import neatlogic.framework.notify.exception.NotifyPolicyNotFoundException;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.IValid;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.framework.util.RegexUtils;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
+import neatlogic.module.autoexec.notify.handler.AutoexecCombopNotifyPolicyHandler;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -118,17 +120,9 @@ public class AutoexecCombopBasicInfoSaveApi extends PrivateApiComponentBase {
             throw new AutoexecTypeNotFoundException(autoexecCombopVo.getTypeName());
         }
         AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
-        InvokeNotifyPolicyConfigVo invokeNotifyPolicyConfigVo = config.getInvokeNotifyPolicyConfig();
-        if (invokeNotifyPolicyConfigVo != null) {
-            Long policyId = invokeNotifyPolicyConfigVo.getPolicyId();
-            if (policyId != null) {
-                if (notifyMapper.checkNotifyPolicyIsExists(policyId) == 0) {
-                    throw new NotifyPolicyNotFoundException(policyId);
-                }
-                autoexecCombopVo.setNotifyPolicyId(policyId);
-            }
-        }
-
+        INotifyServiceCrossoverService notifyServiceCrossoverService = CrossoverServiceFactory.getApi(INotifyServiceCrossoverService.class);
+        InvokeNotifyPolicyConfigVo invokeNotifyPolicyConfigVo = notifyServiceCrossoverService.regulateNotifyPolicyConfig(config.getInvokeNotifyPolicyConfig(), AutoexecCombopNotifyPolicyHandler.class);
+        config.setInvokeNotifyPolicyConfig(invokeNotifyPolicyConfigVo);
         Long id = jsonObj.getLong("id");
         if (id == null) {
             if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(true), AUTOEXEC_COMBOP_ADD.class.getSimpleName())) {
@@ -137,6 +131,7 @@ public class AutoexecCombopBasicInfoSaveApi extends PrivateApiComponentBase {
             autoexecCombopVo.setOperationType(CombopOperationType.COMBOP.getValue());
             autoexecCombopVo.setOwner(UserContext.get().getUserUuid(true));
             autoexecCombopVo.setIsActive(0);
+            autoexecCombopVo.setConfigStr(null);
             autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
             autoexecCombopService.saveDependency(autoexecCombopVo);
             autoexecCombopService.saveAuthority(autoexecCombopVo);

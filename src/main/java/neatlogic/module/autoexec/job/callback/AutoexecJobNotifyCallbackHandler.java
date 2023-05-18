@@ -32,12 +32,14 @@ import neatlogic.framework.notify.dto.NotifyPolicyVo;
 import neatlogic.framework.transaction.util.TransactionUtil;
 import neatlogic.framework.util.NotifyPolicyUtil;
 import neatlogic.module.autoexec.message.handler.AutoexecJobMessageHandler;
+import org.apache.commons.collections4.CollectionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.TransactionStatus;
 
 import javax.annotation.Resource;
+import java.util.List;
 import java.util.Objects;
 
 /**
@@ -113,12 +115,12 @@ public class AutoexecJobNotifyCallbackHandler extends AutoexecJobCallbackBase {
         if (invokeNotifyPolicyConfigVo == null) {
             return;
         }
-        Long notifyPolicyId;
-        if (invokeNotifyPolicyConfigVo.getIsCustom() == 1) {
-            notifyPolicyId = invokeNotifyPolicyConfigVo.getPolicyId();
-        } else {
-            notifyPolicyId = invokeNotifyPolicyConfigVo.getDefaultPolicyId();
+        // 触发点被排除，不用发送邮件
+        List<String> excludeTriggerList = invokeNotifyPolicyConfigVo.getExcludeTriggerList();
+        if (CollectionUtils.isNotEmpty(excludeTriggerList) && excludeTriggerList.contains(trigger.getTrigger())) {
+            return;
         }
+        Long notifyPolicyId = invokeNotifyPolicyConfigVo.getPolicyId();
         if (notifyPolicyId == null) {
             return;
         }
