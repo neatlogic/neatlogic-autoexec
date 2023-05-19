@@ -166,8 +166,8 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
                     }
                 }
             }
-            autoexecCombopService.needExecuteConfig(autoexecCombopVo, autoexecCombopPhaseVo);
         }
+        autoexecCombopService.needExecuteConfig(autoexecCombopVersionVo);
         List<String> existedExportParamValueList = new ArrayList<>();
         JSONArray exportParamList = new JSONArray();
         for (int i = allExportParamList.size() - 1; i >= 0; i--) {
@@ -180,15 +180,20 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
             exportParamList.add(exportParamObj);
         }
         resultObj.put("exportParamList", exportParamList);
-
+        // 判断该组合工具的所有阶段是否都是Runner或SQL执行方式，如果是，直接返回，因为不需要设置执行目标
+        if (autoexecCombopVersionVo.getAllPhasesAreRunnerOrSqlExecMode()) {
+            resultObj.put("allPhasesAreRunnerOrSqlExecMode", true);
+            return resultObj;
+        }
+        resultObj.put("allPhasesAreRunnerOrSqlExecMode", false);
         // 流程图自动化节点是否需要设置执行用户，只有当有某个非runner类型的阶段，没有设置执行用户时，needExecuteUser=true
-        boolean needExecuteUser = autoexecCombopVo.getNeedExecuteUser();
+        boolean needExecuteUser = autoexecCombopVersionVo.getNeedExecuteUser();
         // 流程图自动化节点是否需要设置连接协议，只有当有某个非runner类型的阶段，没有设置连接协议时，needProtocol=true
-        boolean needProtocol = autoexecCombopVo.getNeedProtocol();
+        boolean needProtocol = autoexecCombopVersionVo.getNeedProtocol();
         // 流程图自动化节点是否需要设置执行目标，只有当有某个非runner类型的阶段，没有设置执行目标时，needExecuteNode=true
-        boolean needExecuteNode = autoexecCombopVo.getNeedExecuteNode();
+        boolean needExecuteNode = autoexecCombopVersionVo.getNeedExecuteNode();
         // 流程图自动化节点是否需要设置分批数量，只有当有某个非runner类型的阶段，没有设置分批数量时，needRoundCount=true
-        boolean needRoundCount = autoexecCombopVo.getNeedRoundCount();
+        boolean needRoundCount = autoexecCombopVersionVo.getNeedRoundCount();
         if (!needExecuteUser && !needProtocol && !needExecuteNode && !needRoundCount) {
             return resultObj;
         }

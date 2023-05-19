@@ -88,14 +88,6 @@ public interface AutoexecCombopService {
     /**
      * 判断是否需要设置执行目标、执行用户、连接协议
      *
-     * @param autoexecCombopVo      组合工具信息
-     * @param autoexecCombopPhaseVo 阶段信息
-     */
-    void needExecuteConfig(AutoexecCombopVo autoexecCombopVo, AutoexecCombopPhaseVo autoexecCombopPhaseVo);
-
-    /**
-     * 判断是否需要设置执行目标、执行用户、连接协议
-     *
      * @param autoexecCombopVersionVo      组合工具版本信息
      * @param autoexecCombopPhaseVo 阶段信息
      * @param autoexecCombopGroupVo 组信息
@@ -107,15 +99,6 @@ public interface AutoexecCombopService {
      * @param autoexecCombopVersionVo      组合工具版本信息
      */
     void needExecuteConfig(AutoexecCombopVersionVo autoexecCombopVersionVo);
-
-    /**
-     * 保存组合工具配置信息
-     *
-     * @param autoexecCombopVo
-     * @param isCopy
-     */
-    @Deprecated
-    void saveAutoexecCombopConfig(AutoexecCombopVo autoexecCombopVo, boolean isCopy);
 
     /**
      * 设置组合工具版本配置信息的阶段中groupId
@@ -130,14 +113,6 @@ public interface AutoexecCombopService {
      * @param autoexecCombopVersionConfigVo
      */
     void resetIdAutoexecCombopVersionConfig(AutoexecCombopVersionConfigVo autoexecCombopVersionConfigVo);
-
-    /**
-     * 预先准备组合工具版本配置信息
-     *
-     * @param autoexecCombopVersionConfigVo
-     * @param isCopy
-     */
-    void prepareAutoexecCombopVersionConfig(AutoexecCombopVersionConfigVo autoexecCombopVersionConfigVo, boolean isCopy);
 
     /**
      * 保存阶段中操作工具对预置参数集和全局参数的引用关系
@@ -174,12 +149,6 @@ public interface AutoexecCombopService {
      * @return
      */
     AutoexecCombopVersionVo getAutoexecCombopVersionById(Long id);
-
-    /**
-     * 根据protocolId补充protocol字段和protocolPort字段值
-     * @param autoexecCombopConfigVo 组合工具config
-     */
-    void updateAutoexecCombopExecuteConfigProtocolAndProtocolPort(AutoexecCombopConfigVo autoexecCombopConfigVo);
 
     /**
      * 根据protocolId补充protocol字段和protocolPort字段值
