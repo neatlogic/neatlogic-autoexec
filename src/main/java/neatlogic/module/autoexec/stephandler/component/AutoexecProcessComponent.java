@@ -16,6 +16,7 @@ limitations under the License.
 
 package neatlogic.module.autoexec.stephandler.component;
 
+import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.autoexec.constvalue.CombopOperationType;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
@@ -30,10 +31,8 @@ import neatlogic.framework.common.constvalue.SystemUser;
 import neatlogic.framework.form.dto.FormAttributeVo;
 import neatlogic.framework.form.dto.FormVersionVo;
 import neatlogic.framework.process.constvalue.*;
-import neatlogic.framework.process.dto.ProcessTaskFormAttributeDataVo;
-import neatlogic.framework.process.dto.ProcessTaskFormVo;
-import neatlogic.framework.process.dto.ProcessTaskStepVo;
-import neatlogic.framework.process.dto.ProcessTaskStepWorkerVo;
+import neatlogic.framework.process.dao.mapper.ProcessTaskStepDataMapper;
+import neatlogic.framework.process.dto.*;
 import neatlogic.framework.process.exception.processtask.ProcessTaskException;
 import neatlogic.framework.process.exception.processtask.ProcessTaskNoPermissionException;
 import neatlogic.framework.process.stephandler.core.IProcessStepHandler;
@@ -69,6 +68,9 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     @Resource
     private AutoexecJobActionService autoexecJobActionService;
+
+    @Resource
+    private ProcessTaskStepDataMapper processTaskStepDataMapper;
 
     @Override
     public String getHandler() {
@@ -165,10 +167,17 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     return 1;
                 }
             }
+            // 删除上次创建作业的报错信息
+            ProcessTaskStepDataVo processTaskStepData = new ProcessTaskStepDataVo();
+            processTaskStepData.setProcessTaskId(currentProcessTaskStepVo.getProcessTaskId());
+            processTaskStepData.setProcessTaskStepId(currentProcessTaskStepVo.getId());
+            processTaskStepData.setType("autoexecCreateJobError");
+            processTaskStepDataMapper.deleteProcessTaskStepData(processTaskStepData);
             JSONArray configList = autoexecConfig.getJSONArray("configList");
             if (CollectionUtils.isEmpty(configList)) {
                 return 0;
             }
+            JSONArray errorMessageList = new JSONArray();
             boolean flag = false;
             for (int i = 0; i < configList.size(); i++) {
                 JSONObject configObj = configList.getJSONObject(i);
@@ -186,12 +195,26 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     } catch (Exception e) {
                         // 增加提醒
                         logger.error(e.getMessage(), e);
+                        JSONObject errorMessageObj = new JSONObject();
+                        errorMessageObj.put("jobId", jobVo.getId());
+                        errorMessageObj.put("jobName", jobVo.getName());
+                        errorMessageObj.put("error", e.getMessage());
+                        errorMessageList.add(errorMessageObj);
                         flag = true;
                     }
                 }
             }
             // 如果有一个作业创建有异常，则根据失败策略执行操作
             if (flag) {
+                ProcessTaskStepDataVo processTaskStepDataVo = new ProcessTaskStepDataVo();
+                processTaskStepDataVo.setProcessTaskId(currentProcessTaskStepVo.getProcessTaskId());
+                processTaskStepDataVo.setProcessTaskStepId(currentProcessTaskStepVo.getId());
+                processTaskStepDataVo.setType("autoexecCreateJobError");
+                JSONObject dataObj = new JSONObject();
+                dataObj.put("errorList", errorMessageList);
+                processTaskStepDataVo.setData(dataObj.toJSONString());
+                processTaskStepDataVo.setFcu(UserContext.get().getUserUuid());
+                processTaskStepDataMapper.replaceProcessTaskStepData(processTaskStepDataVo);
                 String failPolicy = autoexecConfig.getString("failPolicy");
                 if (FailPolicy.KEEP_ON.getValue().equals(failPolicy)) {
                     processTaskStepComplete(currentProcessTaskStepVo.getId(), null);
@@ -313,7 +336,10 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         if (MapUtils.isEmpty(batchJobDataSource)) {
             return resultList;
         }
-        JSONArray tbodyList = getTbodyList(batchJobDataSource, processTaskFormAttributeDataMap);
+        String attributeUuid = batchJobDataSource.getString("attributeUuid");
+        ProcessTaskFormAttributeDataVo formAttributeDataVo = processTaskFormAttributeDataMap.get(attributeUuid);
+        JSONArray filterList = batchJobDataSource.getJSONArray("filterList");
+        JSONArray tbodyList = getTbodyList(formAttributeDataVo, filterList);
         if (CollectionUtils.isEmpty(tbodyList)) {
             return resultList;
         }
@@ -347,13 +373,8 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         return resultList;
     }
 
-    private JSONArray getTbodyList(JSONObject batchJobDataSource, Map<String, ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataMap) {
+    private JSONArray getTbodyList(ProcessTaskFormAttributeDataVo formAttributeDataVo, JSONArray filterList) {
         JSONArray tbodyList = new JSONArray();
-        String attributeUuid = batchJobDataSource.getString("attributeUuid");
-        if (StringUtils.isBlank(attributeUuid)) {
-            return tbodyList;
-        }
-        ProcessTaskFormAttributeDataVo formAttributeDataVo = processTaskFormAttributeDataMap.get(attributeUuid);
         if (formAttributeDataVo == null) {
             return tbodyList;
         }
@@ -366,7 +387,6 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         }
         JSONArray dataList = (JSONArray) formAttributeDataVo.getDataObj();
         // 数据过滤
-        JSONArray filterList = batchJobDataSource.getJSONArray("filterList");
         if (CollectionUtils.isNotEmpty(filterList)) {
             for (int i = 0; i < dataList.size(); i++) {
                 JSONObject data = dataList.getJSONObject(i);
@@ -466,7 +486,9 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                 } else {
                     FormAttributeVo formAttributeVo = formAttributeMap.get(value);
                     ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
-                    param.put(key, parseFormTableComponentMappingValue(formAttributeVo, attributeDataVo, column));
+                    JSONArray filterList = runtimeParamObj.getJSONArray("filterList");
+                    JSONArray tbodyList = getTbodyList(attributeDataVo, filterList);
+                    param.put(key, parseFormTableComponentMappingValue(formAttributeVo, tbodyList, column));
                 }
             } else if (Objects.equals(mappingMode, "formCommonComponent")) {
                 ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
@@ -519,7 +541,9 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     } else {
                         FormAttributeVo formAttributeVo = formAttributeMap.get(value);
                         ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
-                        List<String> list = parseFormTableComponentMappingValue(formAttributeVo, attributeDataVo, column);
+                        JSONArray filterList = executeParamObj.getJSONArray("filterList");
+                        JSONArray tbodyList = getTbodyList(attributeDataVo, filterList);
+                        List<String> list = parseFormTableComponentMappingValue(formAttributeVo, tbodyList, column);
                         if (CollectionUtils.isNotEmpty(list)) {
                             List<AutoexecNodeVo> inputNodeList = new ArrayList<>();
                             for (String str : list) {
@@ -589,9 +613,8 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         return executeConfig.toJavaObject(AutoexecCombopExecuteConfigVo.class);
     }
 
-    private List<String> parseFormTableComponentMappingValue(FormAttributeVo formAttributeVo, ProcessTaskFormAttributeDataVo formAttributeDataVo, String column) {
+    private List<String> parseFormTableComponentMappingValue(FormAttributeVo formAttributeVo, JSONArray tbodyList, String column) {
         List<String> resultList = new ArrayList<>();
-        JSONArray tbodyList = (JSONArray) formAttributeDataVo.getDataObj();
         if (CollectionUtils.isEmpty(tbodyList)) {
             return resultList;
         }
