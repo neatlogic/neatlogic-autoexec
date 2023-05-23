@@ -373,7 +373,7 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
                             runtimeParam.put("mappingMode", runtimeParamObj.getString("mappingMode"));
                             runtimeParam.put("value", runtimeParamObj.get("value"));
                             runtimeParam.put("column", runtimeParamObj.getString("column"));
-                            runtimeParamObj.put("filterList", runtimeParamObj.getJSONArray("filterList"));
+                            runtimeParam.put("filterList", runtimeParamObj.getJSONArray("filterList"));
                             runtimeParam.put("isRequired", runtimeParamObj.getInteger("isRequired"));
                             runtimeParam.put("type", runtimeParamObj.getString("type"));
                             runtimeParam.put("config", runtimeParamObj.getJSONObject("config"));
