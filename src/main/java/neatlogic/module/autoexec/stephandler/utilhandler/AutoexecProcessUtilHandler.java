@@ -21,8 +21,10 @@ import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.notify.crossover.INotifyServiceCrossoverService;
 import neatlogic.framework.process.constvalue.ProcessTaskOperationType;
+import neatlogic.framework.process.dao.mapper.ProcessTaskStepDataMapper;
 import neatlogic.framework.process.dto.ProcessStepVo;
 import neatlogic.framework.process.dto.ProcessStepWorkerPolicyVo;
+import neatlogic.framework.process.dto.ProcessTaskStepDataVo;
 import neatlogic.framework.process.dto.ProcessTaskStepVo;
 import neatlogic.framework.process.dto.processconfig.ActionConfigActionVo;
 import neatlogic.framework.process.dto.processconfig.ActionConfigVo;
@@ -53,6 +55,9 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
     @Resource
     private AutoexecJobMapper autoexecJobMapper;
 
+    @Resource
+    private ProcessTaskStepDataMapper processTaskStepDataMapper;
+
     @Override
     public String getHandler() {
         return AutoexecProcessStepHandlerType.AUTOEXEC.getHandler();
@@ -67,20 +72,33 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
     public Object getHandlerStepInitInfo(ProcessTaskStepVo currentProcessTaskStepVo) {
         JSONObject resultObj = new JSONObject();
         List<Long> jobIdList = autoexecJobMapper.getJobIdListByInvokeId(currentProcessTaskStepVo.getId());
-        if (CollectionUtils.isEmpty(jobIdList)) {
-            return null;
+        if (CollectionUtils.isNotEmpty(jobIdList)) {
+            Map<Long, List<AutoexecJobPhaseVo>> jobIdToAutoexecJobPhaseListMap = new HashMap<>();
+            List<AutoexecJobPhaseVo> jobPhaseList = autoexecJobMapper.getJobPhaseListWithGroupByJobIdList(jobIdList);
+            for (AutoexecJobPhaseVo autoexecJobPhaseVo : jobPhaseList) {
+                jobIdToAutoexecJobPhaseListMap.computeIfAbsent(autoexecJobPhaseVo.getJobId(), key -> new ArrayList<>()).add(autoexecJobPhaseVo);
+            }
+            List<AutoexecJobVo> autoexecJobList = autoexecJobMapper.getJobListByIdList(jobIdList);
+            for (AutoexecJobVo autoexecJobVo : autoexecJobList) {
+                List<AutoexecJobPhaseVo> jobPhaseVoList = jobIdToAutoexecJobPhaseListMap.get(autoexecJobVo.getId());
+                autoexecJobVo.setPhaseList(jobPhaseVoList);
+            }
+            resultObj.put("jobList", autoexecJobList);
         }
-        Map<Long, List<AutoexecJobPhaseVo>> jobIdToAutoexecJobPhaseListMap = new HashMap<>();
-        List<AutoexecJobPhaseVo> jobPhaseList = autoexecJobMapper.getJobPhaseListWithGroupByJobIdList(jobIdList);
-        for (AutoexecJobPhaseVo autoexecJobPhaseVo : jobPhaseList) {
-            jobIdToAutoexecJobPhaseListMap.computeIfAbsent(autoexecJobPhaseVo.getJobId(), key -> new ArrayList<>()).add(autoexecJobPhaseVo);
+        ProcessTaskStepDataVo searchVo = new ProcessTaskStepDataVo();
+        searchVo.setProcessTaskId(currentProcessTaskStepVo.getProcessTaskId());
+        searchVo.setProcessTaskStepId(currentProcessTaskStepVo.getId());
+        searchVo.setType("autoexecCreateJobError");
+        ProcessTaskStepDataVo processTaskStepDataVo = processTaskStepDataMapper.getProcessTaskStepData(searchVo);
+        if (processTaskStepDataVo != null) {
+            JSONObject dataObj = processTaskStepDataVo.getData();
+            if (MapUtils.isNotEmpty(dataObj)) {
+                JSONArray errorList = dataObj.getJSONArray("errorList");
+                if (CollectionUtils.isNotEmpty(errorList)) {
+                    resultObj.put("errorList", errorList);
+                }
+            }
         }
-        List<AutoexecJobVo> autoexecJobList = autoexecJobMapper.getJobListByIdList(jobIdList);
-        for (AutoexecJobVo autoexecJobVo : autoexecJobList) {
-            List<AutoexecJobPhaseVo> jobPhaseVoList = jobIdToAutoexecJobPhaseListMap.get(autoexecJobVo.getId());
-            autoexecJobVo.setPhaseList(jobPhaseVoList);
-        }
-        resultObj.put("jobList", autoexecJobList);
         return resultObj;
     }
 
@@ -354,10 +372,11 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
                             runtimeParam.put("name", runtimeParamObj.getString("name"));
                             runtimeParam.put("mappingMode", runtimeParamObj.getString("mappingMode"));
                             runtimeParam.put("value", runtimeParamObj.get("value"));
-                            runtimeParam.put("column", runtimeParamObj.get("column"));
+                            runtimeParam.put("column", runtimeParamObj.getString("column"));
+                            runtimeParamObj.put("filterList", runtimeParamObj.getJSONArray("filterList"));
                             runtimeParam.put("isRequired", runtimeParamObj.getInteger("isRequired"));
                             runtimeParam.put("type", runtimeParamObj.getString("type"));
-                            runtimeParam.put("config", runtimeParamObj.get("config"));
+                            runtimeParam.put("config", runtimeParamObj.getJSONObject("config"));
                             runtimeParamArray.add(runtimeParam);
                         }
                     }
@@ -375,7 +394,8 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
                             executeParam.put("name", executeParamObj.getString("name"));
                             executeParam.put("mappingMode", executeParamObj.getString("mappingMode"));
                             executeParam.put("value", executeParamObj.get("value"));
-                            executeParam.put("column", executeParamObj.get("column"));
+                            executeParam.put("column", executeParamObj.getString("column"));
+                            executeParam.put("filterList", executeParamObj.getJSONArray("filterList"));
                             executeParam.put("isRequired", executeParamObj.getInteger("isRequired"));
                             executeParamArray.add(executeParam);
                         }
