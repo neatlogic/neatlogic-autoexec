@@ -903,18 +903,44 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         if (CollectionUtils.isNotEmpty(paramList)) {
             List<AutoexecParamVo> runTimeParamList = jobVo.getRunTimeParamList();
             Set<Long> resourceIdSet = new HashSet<>();
+            List<ResourceSearchVo> resourceSearchList = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(runTimeParamList)) {
                 List<AutoexecParamVo> paramObjList = runTimeParamList.stream().filter(p -> paramList.contains(p.getKey())).collect(Collectors.toList());
                 paramObjList.forEach(p -> {
                     if (p.getValue() instanceof JSONArray) {
                         JSONArray valueArray = (JSONArray) p.getValue();
                         for (int i = 0; i < valueArray.size(); i++) {
-                            resourceIdSet.add(valueArray.getJSONObject(i).getLong("id"));
+                            JSONObject valueObj = valueArray.getJSONObject(i);
+                            Long id = valueObj.getLong("id");
+                            if (id != null) {
+                                resourceIdSet.add(id);
+                            } else {
+                                String ip = valueObj.getString("ip");
+                                if (StringUtils.isNotBlank(ip)) {
+                                    Integer port = valueObj.getInteger("port");
+                                    String name = valueObj.getString("name");
+                                    ResourceSearchVo resourceSearchVo = new ResourceSearchVo();
+                                    resourceSearchVo.setIp(ip);
+                                    if (port != null) {
+                                        resourceSearchVo.setPort(port.toString());
+                                    }
+                                    resourceSearchVo.setName(name);
+                                    resourceSearchList.add(resourceSearchVo);
+                                }
+                            }
                         }
                     }
                 });
+                IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
+                if (CollectionUtils.isNotEmpty(resourceSearchList)) {
+                    for (ResourceSearchVo resourceSearchVo : resourceSearchList) {
+                        Long id = resourceCrossoverMapper.getResourceIdByIpAndPortAndName(resourceSearchVo);
+                        if (id != null) {
+                            resourceIdSet.add(id);
+                        }
+                    }
+                }
                 if (CollectionUtils.isNotEmpty(resourceIdSet)) {
-                    IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
                     List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceByIdList(new ArrayList<>(resourceIdSet));
                     if (CollectionUtils.isNotEmpty(resourceVoList)) {
                         updateJobPhaseNode(jobVo, resourceVoList, userName, protocolId);
