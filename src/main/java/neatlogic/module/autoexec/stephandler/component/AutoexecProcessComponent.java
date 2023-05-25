@@ -18,6 +18,7 @@ package neatlogic.module.autoexec.stephandler.component;
 
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.autoexec.constvalue.CombopOperationType;
+import neatlogic.framework.autoexec.constvalue.ParamType;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteNodeConfigVo;
@@ -421,7 +422,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                             flag = false;
                             break;
                         }
-                    } else if (Objects.equals(expression, Expression.INCLUDE.getExpression())) {
+                    } else if (Objects.equals(expression, Expression.LIKE.getExpression())) {
                         String columnValue = data.getString(column);
                         if (StringUtils.isBlank(columnValue)) {
                             flag = false;
@@ -431,7 +432,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                             flag = false;
                             break;
                         }
-                    } else if (Objects.equals(expression, Expression.EXCLUDE.getExpression())) {
+                    } else if (Objects.equals(expression, Expression.NOTLIKE.getExpression())) {
                         String columnValue = data.getString(column);
                         if (StringUtils.isBlank(columnValue)) {
                             continue;
@@ -488,7 +489,9 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
                     JSONArray filterList = runtimeParamObj.getJSONArray("filterList");
                     JSONArray tbodyList = getTbodyList(attributeDataVo, filterList);
-                    param.put(key, parseFormTableComponentMappingValue(formAttributeVo, tbodyList, column));
+                    List<String> list = parseFormTableComponentMappingValue(formAttributeVo, tbodyList, column);
+                    String type = runtimeParamObj.getString("type");
+                    param.put(key, convertDateType(type, list));
                 }
             } else if (Objects.equals(mappingMode, "formCommonComponent")) {
                 ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
@@ -793,6 +796,24 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         return null;
     }
 
+    /**
+     * 把表单表格组件中某列数据集合转换成作业参数对应的数据
+     * @param paramType 作业参数类型
+     * @param sourceList 某列数据集合
+     * @return
+     */
+    private Object convertDateType(String paramType, List<String> sourceList) {
+        if (Objects.equals(paramType, ParamType.NODE.getValue())) {
+            if (CollectionUtils.isNotEmpty(sourceList)) {
+                JSONArray inputNodeList = new JSONArray();
+                for (String str : sourceList) {
+                    inputNodeList.add(new AutoexecNodeVo(str));
+                }
+                return inputNodeList;
+            }
+        }
+        return sourceList;
+    }
     @Override
     protected int myAssign(ProcessTaskStepVo currentProcessTaskStepVo, Set<ProcessTaskStepWorkerVo> workerSet) throws ProcessTaskException {
         return defaultAssign(currentProcessTaskStepVo, workerSet);
