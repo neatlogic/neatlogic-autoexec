@@ -18,6 +18,7 @@ package neatlogic.module.autoexec.stephandler.component;
 
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.autoexec.constvalue.CombopOperationType;
+import neatlogic.framework.autoexec.constvalue.JobStatus;
 import neatlogic.framework.autoexec.constvalue.ParamType;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
@@ -180,6 +181,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             }
             JSONArray errorMessageList = new JSONArray();
             boolean flag = false;
+            List<Long> jobIdList = new ArrayList<>();
             for (int i = 0; i < configList.size(); i++) {
                 JSONObject configObj = configList.getJSONObject(i);
                 if (MapUtils.isEmpty(configObj)) {
@@ -193,6 +195,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                 for (AutoexecJobVo jobVo : autoexecJobList) {
                     try {
                         autoexecJobActionService.validateCreateJob(jobVo);
+                        jobIdList.add(jobVo.getId());
                     } catch (Exception e) {
                         // 增加提醒
                         logger.error(e.getMessage(), e);
@@ -218,7 +221,40 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                 processTaskStepDataMapper.replaceProcessTaskStepData(processTaskStepDataVo);
                 String failPolicy = autoexecConfig.getString("failPolicy");
                 if (FailPolicy.KEEP_ON.getValue().equals(failPolicy)) {
-                    processTaskStepComplete(currentProcessTaskStepVo.getId(), null);
+                    if (CollectionUtils.isNotEmpty(jobIdList)) {
+                        List<String> runningStatusList = new ArrayList<>();
+                        runningStatusList.add(JobStatus.PAUSED.getValue());
+                        runningStatusList.add(JobStatus.PAUSING.getValue());
+                        runningStatusList.add(JobStatus.PENDING.getValue());
+                        runningStatusList.add(JobStatus.READY.getValue());
+                        runningStatusList.add(JobStatus.RUNNING.getValue());
+                        runningStatusList.add(JobStatus.SAVED.getValue());
+                        runningStatusList.add(JobStatus.WAIT_INPUT.getValue());
+                        List<String> completedStatusList = new ArrayList<>();
+                        completedStatusList.add(JobStatus.COMPLETED.getValue());
+                        completedStatusList.add(JobStatus.CHECKED.getValue());
+                        List<String> failedStatusList = new ArrayList<>();
+                        failedStatusList.add(JobStatus.ABORTED.getValue());
+                        failedStatusList.add(JobStatus.ABORTING.getValue());
+                        failedStatusList.add(JobStatus.FAILED.getValue());
+                        failedStatusList.add(JobStatus.REVOKED.getValue());
+                        int completed = 0, failed = 0, running = 0;
+                        List<AutoexecJobVo> autoexecJobList = autoexecJobMapper.getJobListByIdList(jobIdList);
+                        for (AutoexecJobVo autoexecJobVo : autoexecJobList) {
+                            if (runningStatusList.contains(autoexecJobVo.getStatus())) {
+                                running++;
+                            } else if (completedStatusList.contains(autoexecJobVo.getStatus())) {
+                                completed++;
+                            } else if (failedStatusList.contains(autoexecJobVo.getStatus())) {
+                                failed++;
+                            }
+                        }
+                        if (running == 0 && completed == 0) {
+                            processTaskStepComplete(currentProcessTaskStepVo.getId(), null);
+                        }
+                    } else {
+                        processTaskStepComplete(currentProcessTaskStepVo.getId(), null);
+                    }
                 }
             }
         } catch (Exception e) {
