@@ -16,6 +16,7 @@
 
 package neatlogic.module.autoexec.stephandler.utilhandler;
 
+import neatlogic.framework.autoexec.constvalue.JobStatus;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
@@ -73,6 +74,7 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
         JSONObject resultObj = new JSONObject();
         List<Long> jobIdList = autoexecJobMapper.getJobIdListByInvokeId(currentProcessTaskStepVo.getId());
         if (CollectionUtils.isNotEmpty(jobIdList)) {
+            int completed = 0, failed = 0, running = 0;
             Map<Long, List<AutoexecJobPhaseVo>> jobIdToAutoexecJobPhaseListMap = new HashMap<>();
             List<AutoexecJobPhaseVo> jobPhaseList = autoexecJobMapper.getJobPhaseListWithGroupByJobIdList(jobIdList);
             for (AutoexecJobPhaseVo autoexecJobPhaseVo : jobPhaseList) {
@@ -82,6 +84,21 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
             for (AutoexecJobVo autoexecJobVo : autoexecJobList) {
                 List<AutoexecJobPhaseVo> jobPhaseVoList = jobIdToAutoexecJobPhaseListMap.get(autoexecJobVo.getId());
                 autoexecJobVo.setPhaseList(jobPhaseVoList);
+                if (JobStatus.isRunningStatus(autoexecJobVo.getStatus())) {
+                    running++;
+                } else if (JobStatus.isCompletedStatus(autoexecJobVo.getStatus())) {
+                    completed++;
+                } else if (JobStatus.isFailedStatus(autoexecJobVo.getStatus())) {
+                    failed++;
+                }
+            }
+
+            if (running > 0) {
+                resultObj.put("status", JobStatus.RUNNING.getValue());
+            } else if (failed > 0) {
+                resultObj.put("status", JobStatus.FAILED.getValue());
+            } else if (completed > 0) {
+                resultObj.put("status", JobStatus.COMPLETED.getValue());
             }
             resultObj.put("jobList", autoexecJobList);
         }
