@@ -74,22 +74,6 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
         JSONObject resultObj = new JSONObject();
         List<Long> jobIdList = autoexecJobMapper.getJobIdListByInvokeId(currentProcessTaskStepVo.getId());
         if (CollectionUtils.isNotEmpty(jobIdList)) {
-            List<String> runningStatusList = new ArrayList<>();
-            runningStatusList.add(JobStatus.PAUSED.getValue());
-            runningStatusList.add(JobStatus.PAUSING.getValue());
-            runningStatusList.add(JobStatus.PENDING.getValue());
-            runningStatusList.add(JobStatus.READY.getValue());
-            runningStatusList.add(JobStatus.RUNNING.getValue());
-            runningStatusList.add(JobStatus.SAVED.getValue());
-            runningStatusList.add(JobStatus.WAIT_INPUT.getValue());
-            List<String> completedStatusList = new ArrayList<>();
-            completedStatusList.add(JobStatus.COMPLETED.getValue());
-            completedStatusList.add(JobStatus.CHECKED.getValue());
-            List<String> failedStatusList = new ArrayList<>();
-            failedStatusList.add(JobStatus.ABORTED.getValue());
-            failedStatusList.add(JobStatus.ABORTING.getValue());
-            failedStatusList.add(JobStatus.FAILED.getValue());
-            failedStatusList.add(JobStatus.REVOKED.getValue());
             int completed = 0, failed = 0, running = 0;
             Map<Long, List<AutoexecJobPhaseVo>> jobIdToAutoexecJobPhaseListMap = new HashMap<>();
             List<AutoexecJobPhaseVo> jobPhaseList = autoexecJobMapper.getJobPhaseListWithGroupByJobIdList(jobIdList);
@@ -100,11 +84,11 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
             for (AutoexecJobVo autoexecJobVo : autoexecJobList) {
                 List<AutoexecJobPhaseVo> jobPhaseVoList = jobIdToAutoexecJobPhaseListMap.get(autoexecJobVo.getId());
                 autoexecJobVo.setPhaseList(jobPhaseVoList);
-                if (runningStatusList.contains(autoexecJobVo.getStatus())) {
+                if (JobStatus.isRunningStatus(autoexecJobVo.getStatus())) {
                     running++;
-                } else if (completedStatusList.contains(autoexecJobVo.getStatus())) {
+                } else if (JobStatus.isCompletedStatus(autoexecJobVo.getStatus())) {
                     completed++;
-                } else if (failedStatusList.contains(autoexecJobVo.getStatus())) {
+                } else if (JobStatus.isFailedStatus(autoexecJobVo.getStatus())) {
                     failed++;
                 }
             }

@@ -222,34 +222,14 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                 String failPolicy = autoexecConfig.getString("failPolicy");
                 if (FailPolicy.KEEP_ON.getValue().equals(failPolicy)) {
                     if (CollectionUtils.isNotEmpty(jobIdList)) {
-                        List<String> runningStatusList = new ArrayList<>();
-                        runningStatusList.add(JobStatus.PAUSED.getValue());
-                        runningStatusList.add(JobStatus.PAUSING.getValue());
-                        runningStatusList.add(JobStatus.PENDING.getValue());
-                        runningStatusList.add(JobStatus.READY.getValue());
-                        runningStatusList.add(JobStatus.RUNNING.getValue());
-                        runningStatusList.add(JobStatus.SAVED.getValue());
-                        runningStatusList.add(JobStatus.WAIT_INPUT.getValue());
-                        List<String> completedStatusList = new ArrayList<>();
-                        completedStatusList.add(JobStatus.COMPLETED.getValue());
-                        completedStatusList.add(JobStatus.CHECKED.getValue());
-                        List<String> failedStatusList = new ArrayList<>();
-                        failedStatusList.add(JobStatus.ABORTED.getValue());
-                        failedStatusList.add(JobStatus.ABORTING.getValue());
-                        failedStatusList.add(JobStatus.FAILED.getValue());
-                        failedStatusList.add(JobStatus.REVOKED.getValue());
-                        int completed = 0, failed = 0, running = 0;
+                        int running = 0;
                         List<AutoexecJobVo> autoexecJobList = autoexecJobMapper.getJobListByIdList(jobIdList);
                         for (AutoexecJobVo autoexecJobVo : autoexecJobList) {
-                            if (runningStatusList.contains(autoexecJobVo.getStatus())) {
+                            if (JobStatus.isRunningStatus(autoexecJobVo.getStatus())) {
                                 running++;
-                            } else if (completedStatusList.contains(autoexecJobVo.getStatus())) {
-                                completed++;
-                            } else if (failedStatusList.contains(autoexecJobVo.getStatus())) {
-                                failed++;
                             }
                         }
-                        if (running == 0 && completed == 0) {
+                        if (running == 0) {
                             processTaskStepComplete(currentProcessTaskStepVo.getId(), null);
                         }
                     } else {
