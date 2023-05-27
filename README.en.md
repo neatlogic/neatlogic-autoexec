@@ -2,7 +2,7 @@
 
 ## About
 
-neatlogic-autoexec is an automation management module. The automation module can execute one-click scenario automation
+neatlogic-autoexec can execute one-click scenario automation
 by combining script codes, such as the installation of MySQL databases. The module includes functionalities such as
 custom tools, combined tools, and job management. The auto-discovery features of
 auto-deployment [neatlogic-deploy](../../../neatlogic-deploy/blob/develop3.0.0/README.md),
