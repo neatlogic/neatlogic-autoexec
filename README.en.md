@@ -11,13 +11,26 @@ management [neatlogic-cmdb](../../../neatlogic-cmdb/blob/develop3.0.0/README.md)
 of neatlogic-autoexec.
 neatlogic-autoexec cannot be deployed or built independently. If you need to build and deploy it, please refer to the
 instructions in [neatlogic-itom-all](../../../neatlogic-itom-all/blob/develop3.0.0/README.md).
+
+## Architecture Diagram
+
+neatlogic-autoexec is the management platform for automation modules, mainly used for the configuration of automated
+jobs. Execution still needs to be supported in conjunction with neatlogic-runner
+and [neatlogic-autoexec-backend](../../../neatlogic-autoexec-backend/blob/develop3.0.0/README.md). [neatlogic-autoexec-scripts](../../../neatlogic-autoexec-scripts/blob/develop3.0.0/README.md)
+includes a large number of original factory scripts, covering complex scenarios such as installing databases,
+replicating virtual machines, and disaster recovery switching.
+![img9.png](README_IMAGES/img9.png)
+
 ## Feature
 
 ### Tools
 
-Tools are divided into two types: system built tools and custom tools. The execution methods of the tools support local execution (runner) and execution on the target machine (target, runner ->target)<br>
+Tools are divided into two types: system built tools and custom tools. The execution methods of the tools support local
+execution (runner) and execution on the target machine (target, runner ->target)<br>
 ![img.png](README_IMAGES/img.png)
-A variety of script parsers are built into the custom tool, supporting commonly used script types such as python, javascript, perl, and sh, and supporting the definition of input and input parameters. Default values can be configured for parameter values.
+A variety of script parsers are built into the custom tool, supporting commonly used script types such as python,
+javascript, perl, and sh, and supporting the definition of input and input parameters. Default values can be configured
+for parameter values.
 
 ### Combined tool
 

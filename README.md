@@ -12,6 +12,14 @@ neatlogic-autoexec是自动化管理模块，自动化模块可以通过组合�
 和配置管理[neatlogic-cmdb](../../../neatlogic-cmdb/blob/develop3.0.0/README.md)的自动发现功能，也使用了neatlogic-autoexec的基础能力。
 neatlogic-autoexec不能单独部署，也不能单独构建，如需构建和部署，请参考[neatlogic-itom-all](../../../neatlogic-itom-all/blob/develop3.0.0/README.md)
 的说明文档。
+
+## 架构图
+
+neatlogic-autoexec是自动化模块的管理平台，主要用于自动化作业的配置，执行还需要配合neatlogic-runner和[neatlogic-autoexec-backend](../../../neatlogic-autoexec-backend/blob/develop3.0.0/README.md)
+支持，[neatlogic-autoexec-scripts](../../../neatlogic-autoexec-scripts/blob/develop3.0.0/README.md)
+则包含了大量原厂脚本，涵盖了安装数据库、复制虚拟机、灾备切换等复杂场景。
+![img9.png](README_IMAGES/img9.png)
+
 ## 主要功能
 
 ### 工具
