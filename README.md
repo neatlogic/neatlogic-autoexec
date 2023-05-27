@@ -16,7 +16,7 @@ neatlogic-autoexec不能单独部署，也不能单独构建，如需构建和�
 
 ## 架构图
 
-neatlogic-autoexec是自动化模块的管理平台，主要用于自动化作业的配置，执行还需要配合neatlogic-runner和[neatlogic-autoexec-backend](../../../neatlogic-autoexec-backend/blob/master/README.MD)
+neatlogic-autoexec是自动化模块的管理平台，主要用于自动化作业的配置，执行还需要配合[neatlogic-runner](../../../neatlogic-runner/blob/develop3.0.0/README.md)和[neatlogic-autoexec-backend](../../../neatlogic-autoexec-backend/blob/master/README.MD)
 支持，[neatlogic-autoexec-scripts](../../../neatlogic-autoexec-scripts/blob/master/README.md)
 则包含了大量原厂脚本，涵盖了安装数据库、复制虚拟机、灾备切换等复杂场景。
 ![img9.png](README_IMAGES/img9.png)

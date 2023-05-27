@@ -15,7 +15,7 @@ instructions in [neatlogic-itom-all](../../../neatlogic-itom-all/blob/develop3.0
 ## Architecture Diagram
 
 neatlogic-autoexec is the management platform for automation modules, mainly used for the configuration of automated
-jobs. Execution still needs to be supported in conjunction with neatlogic-runner
+jobs. Execution still needs to be supported in conjunction with [neatlogic-runner](../../../neatlogic-runner/blob/develop3.0.0/README.md)
 and [neatlogic-autoexec-backend](../../../neatlogic-autoexec-backend/blob/master/README.MD). [neatlogic-autoexec-scripts](../../../neatlogic-autoexec-scripts/blob/master/README.md)
 includes a large number of original factory scripts, covering complex scenarios such as installing databases,
 replicating virtual machines, and disaster recovery switching.
