@@ -1,60 +1,530 @@
-[Chinese](README.md) / English
+[中文](README.md) / English
+<p align="left">
+    <a href="https://opensource.org/licenses/Apache-2.0" alt="License">
+        <img src="https://img.shields.io/badge/License-Apache%202.0-blue.svg" /></a>
+<a target="_blank" href="https://join.slack.com/t/neatlogichome/shared_invite/zt-1w037axf8-r_i2y4pPQ1Z8FxOkAbb64w">
+<img src="https://img.shields.io/badge/Slack-Neatlogic-orange" /></a>
+</p>
 
 ## About
 
-neatlogic-autoexec can execute one-click scenario automation
-by combining script codes, such as the installation of MySQL databases. The module includes functionalities such as
-custom tools, combined tools, and job management. The auto-discovery features of
-auto-deployment [neatlogic-deploy](../../../neatlogic-deploy/blob/develop3.0.0/README.md),
-inspection [neatlogic-inspect](../../../neatlogic-inspect/blob/develop3.0.0/README.md), and configuration
-management [neatlogic-cmdb](../../../neatlogic-cmdb/blob/develop3.0.0/README.md) also make use of the basic capabilities
-of neatlogic-autoexec.
-neatlogic-autoexec cannot be deployed or built independently. If you need to build and deploy it, please refer to the
-instructions in [neatlogic-itom-all](../../../neatlogic-itom-all/blob/develop3.0.0/README.md).
+neatlogic-autoexec is an automation module that enables one-click automation execution of various scenarios by combining
+code scripts. For example, it can be used for tasks like MySQL database installation. The module includes features such
+as custom tools, composite tools, and job management. It also utilizes the automatic discovery feature
+of [neatlogic-deploy](../../../neatlogic-deploy/blob/develop3.0.0/README.en.md), [neatlogic-inspect](../../../neatlogic-inspect/blob/develop3.0.0/README.en.md),
+and [neatlogic-cmdb](../../../neatlogic-cmdb/blob/develop3.0.0/README.en.md) for automated deployment, inspection, and
+configuration management. neatlogic-autoexec cannot be deployed or built independently. For building and deployment
+instructions, please refer to the documentation
+of [neatlogic-itom-all](../../../neatlogic-itom-all/blob/develop3.0.0/README.en.md).
 
 ## Architecture Diagram
 
-neatlogic-autoexec is the management platform for automation modules, mainly used for the configuration of automated
-jobs. Execution still needs to be supported in conjunction with [neatlogic-runner](../../../neatlogic-runner/blob/develop3.0.0/README.md)
-and [neatlogic-autoexec-backend](../../../neatlogic-autoexec-backend/blob/master/README.MD). [neatlogic-autoexec-scripts](../../../neatlogic-autoexec-scripts/blob/master/README.md)
-includes a large number of original factory scripts, covering complex scenarios such as installing databases,
-replicating virtual machines, and disaster recovery switching.
+neatlogic-autoexec is a management platform for automation modules, primarily used for configuring automation jobs. To
+execute these jobs, it requires support
+from [neatlogic-runner](../../../neatlogic-runner/blob/develop3.0.0/README.en.md)
+and [neatlogic-autoexec-backend](../../../neatlogic-autoexec-backend/blob/master/README.en.md). [neatlogic-autoexec-scripts](../../../neatlogic-autoexec-scripts/blob/master/README.en.md)
+contains a large number of original scripts that cover complex scenarios such as database installation, virtual machine
+replication, and disaster recovery switchover.
 ![img9.png](README_IMAGES/img9.png)
 
-## Feature
+## Key Terminology
 
-### Tools
+### Orchestration (Composite Tool)
 
-Tools are divided into two types: system built tools and custom tools. The execution methods of the tools support local
-execution (runner) and execution on the target machine (target, runner ->target)<br>
-![img.png](README_IMAGES/img.png)
-A variety of script parsers are built into the custom tool, supporting commonly used script types such as python,
-javascript, perl, and sh, and supporting the definition of input and input parameters. Default values can be configured
-for parameter values.
-
-### Combined tool
-
-Based on a combined script of tools and custom tools, add tools to the stage and complete tool configuration by creating a stage framework.
+Multiple phase groups are combined to form an orchestration, which is the smallest unit of automation deployment. Atomic
+tools need to be included in an orchestration in order to be executed. Multiple phase groups within an orchestration are
+executed in a sequential manner.
 ![img.png](README_IMAGES/img1.png)
--Support the definition of job parameters, which can be referenced by tool parameters and execution targets
--Support for preset execution goals in stages or stage groups, as well as for the entire job. Stage execution goals have a higher priority.
 
-### Job
+### Phase Group
 
-There are two ways to execute jobs, including manually initiating tasks and timed jobs.
-1. Initiate automated jobs based on composite tools
-![img.png](README_IMAGES/img2.png)
-On the job management page, you can filter target jobs based on needs and view job details
-![img.png](README_IMAGES/img3.png)
-2. Timed job is achieved through a "timer+combination tool" approach.The configuration of timed jobs includes two parts: basic information and tool parameters. The combination of basic information, tools, and scheduled plans determine the script and execution time of the job. Tool parameters are preset parameters for execution, including batch quantity, execution target, execution account, and operation parameters.
-![img.png](README_IMAGES/img7.png)
-![img.png](README_IMAGES/img8.png)
+Multiple stages are combined in parallel to form a phase group. A phase group consists of multiple stages, which can be
+executed in parallel (oneshot executing) or sequentially on multiple target nodes (gray scale executing). Each batch of
+nodes executes the stages within the phase group in sequence before initiating the next batch.
 
-### Preset parameter set
+### Stage
 
-The preset parameter set can be associated with one or more tools, and the parameters merge the input parameters of the associated tools into a parameter set, supporting pre configured parameter values.
+Multiple atomic tools are combined to form a stage, where the atomic tools within the same stage are executed in the
+specified order. If a stage has multiple target nodes, they can be executed in multiple batches. The atomic tools within
+a stage are executed sequentially on the same node.
+
+### Atomic Tool
+
+An atomic tool is similar to a command-line tool developed independently. It accepts named parameters or anonymous
+parameters (free parameters) and performs designated functions based on the input parameters. It outputs other
+parameters as required for subsequent tool usage.
+
+#### Classification by Execution Mode
+
+Atomic tools are classified into three categories based on their execution mode: runner executing, remote executing, and
+runner to remote executing.
+
+##### Runner Executing: Atomic tools are executed locally on the operating system where the automation scheduler (runner) is running.
+
+##### Remote Executing: Atomic tools are pushed by the automation scheduler to the remote server's operating system and executed under a specific user's identity.
+
+##### Runner to Remote Executing: Atomic tools are executed on the operating system where the runner is running, and the tools connect to remote servers or other automation targets for relevant processing.
+
+#### Classification by Development Mode
+
+Atomic tools are classified into built-in tools and customized tools based on their development mode.
+
+##### Built-in Tools: Released along with the automation scheduler version, built-in tools primarily include standardized functionalities such as parameter aggregation, parameter extraction, environment variable settings, conditional routing, file copying, file processing, and simple custom script execution.
+
+##### Customized Tools
+
+: Custom scripts, libraries, or packages that can be managed through the custom tool management interface. They are used
+to perform non-standard tasks with specific user characteristics. Import and export tools are provided to facilitate the
+import and export of custom tools to SVN or Git. Custom scripts can also be managed using Git or SVN.
+
+Demo orchestration example:
+![img.png](README_IMAGES/img10.png)
+
+## Core Features of Orchestration
+
+By combining multiple atomic tools and their input/output parameters, predefined functionalities can be achieved through
+the sequential and parallel execution of the tools. The core features include orchestration editing, phase group
+settings, stage settings, execution flow control, orchestration parameter definition, atomic tool parameter input,
+parameter referencing, parameter extraction, and parameter aggregation.
+
+### Execution Flow Control
+
+Automation execution involves tasks such as sequential and parallel execution across multiple target nodes, batch
+execution, conditional branching, and parameter passing.
+
+#### Common Execution Flows
+
+##### Sequential Execution on Multiple Target Nodes
+
+Use a phase group to include multiple stages within the same group. Set the phase group to "grayScale" execution mode
+and select the target execution nodes. Set the execution mode to sequential. This ensures that the stages within the
+phase group are executed on each target node in sequence.
+![img.png](README_IMAGES/img11.png)
+
+##### Parallel Execution on Multiple Target Nodes
+
+Use a phase group to include multiple stages within the same group. Set the phase group to "oneshot" execution mode and
+select the target execution nodes. Set the execution mode to parallel. This allows multiple target nodes to execute the
+stages within the phase group concurrently.
+![img.png](README_IMAGES/img12.png)
+
+##### Batch Execution on Multiple Target Nodes for a Single Stage
+
+Set individual batch execution strategies for the target stages (if not set individually, the batch strategy at the job
+level will be used). Specify the batch quantity. Multiple target nodes will be divided into batches and execute the
+stages in batches.
+![img.png](README_IMAGES/img13.png)
+
+##### Batch Execution on Multiple Target Nodes for Multiple Stages
+
+Set individual batch execution strategies for the target phase group (if not set individually, the batch strategy at the
+job level will be used). Specify the batch quantity. Multiple target nodes will be divided into batches and execute the
+stages within the phase group in a sequential manner.
+![img.png](README_IMAGES/img14.png)
+![img.png](README_IMAGES/img15.png)
+
+##### Sequential Execution of Multiple Stages on Multiple Target Nodes
+
+Configure multiple phase groups within the orchestration, with each phase group containing a single stage. The stages
+will be executed one after another, and all target nodes must complete the current stage before moving on to the next
+stage.
+
+##### Execution without Remote Target Nodes
+
+Set the stage execution mode to runner executing, which does not require specifying target execution nodes. This is
+generally used for pre-processing or post-processing that involves multiple target nodes to prepare or aggregate data.
+
+##### Combining Multiple Execution Strategies
+
+Execution modes can be set at the global, phase group, and stage levels. By combining phase groups and stages, complex
+execution strategy requirements can be achieved.
+![img.png](README_IMAGES/img16.png)
+
+##### Conditional Execution
+
+The automation scheduler provides the built-in IF-Block tool, which allows for conditional checks and if...else...
+handling. Conditional statements can be based on environment variable values or the existence of files.
+![img.png](README_IMAGES/img17.png)
+
+#### Job Failure Exit
+
+##### native/failjob
+
+This tool allows for intentional exit of a job. It is usually used in conjunction with IF-Else to fail and exit the job
+based on specific conditions.
+
+##### native/failkeys
+
+This tool enables the failure and exit of a job when specific keywords or regular expressions are detected in the log.
+
+### Parameter Passing and Referencing
+
+#### Parameter Scope
+
+Parameters have two scopes: global scope and node-specific scope. Node-specific parameters can be aggregated and
+transformed into global parameters using native tools.
+
+##### Node Scope
+
+Output parameters generated by tools executed on remote nodes have a scope limited to the respective node. Atomic tools
+will only see the upstream output parameters belonging to the same node when executed on that node.
+
+##### Global Scope
+
+Output parameters generated by tools executed locally on the Runner OS have a global scope, visible and referenceable by
+all other nodes.
+
+##### Parameter Extraction, Aggregation, and Scope Transformation
+
+###### native/extractoutval built-in tool
+
+Extracts the output of upstream tools without changing the scope. Generally used to extract and provide a portion of
+data (in JSON format) collected by various target nodes to downstream tools within the same node.
+
+###### basic/aggoutput built-in tool
+
+Aggregates and transforms the output of multiple nodes into a JSON object with a global scope, providing it to
+downstream nodes. Recommended for use with a limited number of nodes (not exceeding 32).
+
+###### basic/concatoutout built-in tool
+
+Concatenates the output of a specific variable from multiple nodes, supporting string and array concatenation.
+Recommended for use with a limited number of nodes (not exceeding 32). Output can be in multiple formats: multi-line
+text or JSON text.
+
+###### basic/mergeoutput built-in tool
+
+Performs a union operation on a key-value collection from multiple nodes, resulting in a JSON object with a global
+scope. Recommended for use with a limited number of nodes (not exceeding 32), providing the output to downstream nodes.
+
+##### Environment Variables
+
+The native/setenv tool can be used to set environment variables, which also have node-specific and global scopes. The
+scope is determined by the parameters of setenv.
+
+##### Global Variables
+
+Automation includes global variable definition configurations and the ability to modify the values of already configured
+global variables during execution. This is generally used in automation scenarios that involve certain
+continuity-related processing based on execution time. For example, the last reconciliation time generated at the end of
+the day in a banking system. This time is updated automatically after each reconciliation, and it is used as input for
+the next day's automated reconciliation scheduling.
+
+###### native/updategparam
+
+Updates the value of a specific variable in the global parameter table.
+
+#### Parameter Referencing
+
+Parameters can be referenced in three ways: referencing job parameters (which have a global scope and can be referenced
+anywhere) by selecting them in the orchestration interface, referencing upstream tool output parameters (taking note of
+the scope, as node-specific parameters cannot be referenced across nodes) by selecting and using them in the
+orchestration interface, or referencing environment variables using the format `${variable_name}`. There are four types
+of environment variables: 1) Runner process environment variables, 2) built-in environment variables (AUTOEXEC_JOBID,
+AUTOEXEC_NODE, NODE_NAME, NODE_HOST, NODE_PORT), where AUTOEXEC_NODE is in JSON format and the others are regular text,
+
+3) environment variables set using native/setenv (note the scope), and 4) job parameters (which also act as environment
+   variables, taking care not to conflict with built-in environment variables).
+
+### Manual Intervention during Execution
+
+#### Manual Control during Execution
+
+![img.png](README_IMAGES/img18.png)
+![img.png](README_IMAGES/img19.png)
+
+##### Job Details and Logs
+
+Click on the "Job Management" menu in the automation module to view the job list. Click on a specific job to view its
+details. The job details page displays the execution status of each stage and node. In the upper-right corner of the job
+details page, there are buttons for viewing job console logs, execution records, pausing, stopping, and restarting the
+job.
+
+In the stage details section, there are execution buttons at the top. In the specific node list, real-time logs and
+execution records can be viewed.
+
+##### Pause Execution
+
+Pausing execution, also known as graceful stop. Open the job details page and click the "Pause" button in the
+upper-right corner of the job execution interface. The job will pause after completing the currently executing atomic
+operation. The executing stage and job will be in the "Paused" state.
+
+##### Stop Execution
+
+Forcefully terminate the execution of the current job. Open the job details page and click the "Stop" button in the
+upper-right corner of the job execution interface. All ongoing operations of the job will be forcefully stopped, and the
+executing nodes, stages, and the job itself will enter the "Stopped" state.
+
+##### Resume Execution
+
+After a job has been paused, click the "Restart" button in the upper-right corner of the job details page. A dialog box
+will appear, select "Skip succeeded or ignored nodes", and click "Confirm". This will skip the operations of nodes that
+have already succeeded or been ignored and continue executing the failed or unexecuted stages.
+
+##### Restart Execution
+
+After a job has been stopped, click the "Restart" button in the upper-right corner of the job details page. A dialog box
+will appear, select "Restart all", and click "Confirm". This will reset all statuses and restart the job from the
+beginning.
+
+##### Continue Execution of a Specific Stage
+
+In the job details page, click on a specific stage and then click the "Execute" button in the stage details page. A
+dialog box will appear, select "Skip succeeded or ignored nodes", and click "Confirm". This will skip the operations of
+nodes that have already succeeded or been ignored and continue executing the failed or unexecuted operations of the
+current stage. The execution of downstream stages will not be triggered, and the job will remain in the "In Progress"
+state.
+
+##### Restart Execution of a Specific Stage
+
+In the job details page, click on a specific stage and then click the "Execute" button in the stage details page. A
+dialog box will appear, select "Restart all", and click "Confirm". This will reset the status of the current stage and
+restart it from the beginning. The execution of downstream stages will not be triggered, and the job will remain in
+the "In Progress" state.
+
+##### Restart Execution of a Specific Node
+
+In the job details page, click on a specific stage, and then click the "Restart" button in the node details page. This
+will restart the execution of that specific node. After the node has completed execution, downstream nodes or stages
+will not be triggered. The job will remain in the "In Progress" state.
+
+#### User Input during Execution
+
+The interact/interact tool can be used to interactively input values during the execution process. The input parameters
+can be referenced by downstream tools. The interact/continue tool supports confirmation prompts during the execution
+process. Selecting "No" will stop the execution.
+
+### Connectivity Check and Wait Tools
+
+In automation scenarios related to environment installation, it is often necessary to wait for a service to start after
+software installation before proceeding to the next step. In such cases, the built-in check and wait tools can be used
+to check connectivity and wait (avoid using the sleep tool for artificial delays, as it is not the correct method).
+
+#### inspect/pingcheckwait tool
+
+Continuously pings a specific IP address, retrying until the maximum number of retries specified by the parameters is
+reached. If the connection is still not established, it will result in a failure exit.
+
+#### inspect/tcpcheckwait tool
+
+Performs a continuous TCP three-way handshake, retrying until the maximum number of retries specified by the parameters
+is reached. If the connection is still
+
+not established, it will result in a failure exit.
+
+#### inspect/urlcheckwait tool
+
+Continuously accesses a specific URL, retrying until the maximum number of retries specified by the parameters is
+reached. If the connection is still not established, it will result in a failure exit.
+
+### File Transfer
+
+#### File Transfer between Remote Operating Systems
+
+##### fileops/filetripletrans tool
+
+Transfers files or directories from the source host to the execution target OS via the Runner. The file or directory is
+transferred from the source OS to the Runner and then to the target OS, without being stored in between.
+
+##### fileops/filep2ptrans tool
+
+Direct file transfer between remote hosts, temporarily using a TCP port for transmission on the execution target OS. The
+default port used is 1025.
+
+#### File Transfer between Runner and Execution Target OS
+
+##### fileops/remotecopy tool
+
+Uploads and downloads files between the Runner and the execution target OS.
+
+#### File Transfer between Runner and File Server
+
+##### fileops/ftpget tool
+
+Downloads files from a file server using FTP.
+
+##### fileops/ftpput tool
+
+Uploads files to a file server using FTP.
+
+##### fileops/httpget tool
+
+Downloads files from a file server using HTTP.
+
+##### fileops/httpput tool
+
+Uploads files to a file server using HTTP.
+
+##### fileops/scpget tool
+
+Downloads files from a file server using SSH.
+
+##### fileops/scpput tool
+
+Uploads files to a file server using SSH.
+
+#### File Transfer between Execution Target OS and File Server
+
+##### fileremote/nfsmount tool
+
+Mounts an NFS service to the current OS for file transfer between the execution target OS and the file server using NFS.
+
+##### fileremote/nfsumount tool
+
+Unmounts a mounted NFS mount point.
+
+##### fileremote/ftpget tool
+
+Downloads files from a file server using FTP.
+
+##### fileremote/ftpput tool
+
+Uploads files to a file server using FTP.
+
+##### fileremote/httpget tool
+
+Downloads files from a file server using HTTP.
+
+##### fileremote/httpput tool
+
+Uploads files to a file server using HTTP.
+
+##### fileremote/scpget tool
+
+Downloads files from a file server using SSH.
+
+##### fileremote/scpput tool
+
+Uploads files to a file server using SSH.
+
+### Simple Script Execution
+
+#### Executing a Small Script on the Execution Target OS
+
+##### osbasic/execscript
+
+Executes a small script on the execution target OS in the automation. It is recommended to use it only for scripts with
+up to 10 lines. For complex scripts, it is recommended to use the custom script library functionality to write separate
+custom tools.
+
+##### build/localscript
+
+Executes a small script on the Runner. It is only supported in the integrated and deployment environments and may throw
+an error in other scenarios. It is recommended to use it only for scripts with up to 10 lines. For complex scripts, it
+is recommended to use the custom script library functionality to write separate custom tools.
+
+#### Executing a Small Script on a Fixed OS
+
+##### basic/rexecscript
+
+Connects to a remote OS using SSH or Tagent protocol based on the IP address and user password provided as parameters
+and executes a script. This is generally used for executing scripts on OS other than the execution target OS. It is
+recommended to use it only for scripts with up to 10 lines. For complex scripts, it is recommended to use the custom
+script library functionality to write separate custom tools.
+
+### Basic OS Configuration Handling
+
+#### osbasic/getcmdout
+
+Retrieves command-line output and stores it in the output parameters. The output parameters can be in either text or
+JSON format.
+
+#### osbasic/setuserenv
+
+Sets user environment variables.
+
+#### osbasic/sethostname
+
+Sets the hostname.
+
+#### osbasic/resetuserpwd
+
+Resets the user password.
+
+#### osbasic/changeuserpwd
+
+Modifies the user password.
+
+#### osbasic/modifyini
+
+Modifies an ini-formatted file (a file in the format of key=value).
+
+#### osbasic/modifyhost
+
+Modifies the hosts file of the OS.
+
+#### osbasic/modifylimit
+
+Modifies the limit settings of Linux/Unix.
+
+#### osbasic/modifysysctl
+
+Modifies the sysctl settings of Linux.
+
+#### osbasic/checkport
+
+Checks if a specific port on the execution target OS is in use and returns the result in the output parameters.
+
+#### osbasic/getallnicip
+
+Retrieves the IP configuration of all network cards on the execution target OS and outputs it in JSON format to the
+output parameters.
+
+#### osbasic/gensshkey
+
+Generates SSH public-private key pairs for a specific user on the execution target OS.
+
+#### osbasic/getblockdevsize
+
+Retrieves the sizes (in MB) of all block devices on the execution target OS.
+
+#### osbasic/scsiudevrules
+
+Generates Udev rules for SCSI disks in a shared SCSI disk environment. The Udev rules are generated on one of the hosts
+and then configured on other hosts using other steps.
+
+### Service Start and Stop
+
+#### startstop/stopwait
+
+Calls a remote command to stop an application and checks if the application has stopped while tailing the log.
+
+#### startstop/startwait
+
+Calls a remote command to start an application and checks if the application has started while tailing the log.
+
+#### startstop/checkprocess
+
+Checks if the number of processes meets the expected value.
+
+#### startstop/checklog
+
+Checks if specific keywords appear in the service output log.
+
+### Parent-Child Jobs
+
+The job management supports the tree display of parent-child jobs, and a child job can be created using the
+basic/createjob tool.
+
+## Other Features
+
+### Predefined Parameter Sets
+
+A predefined parameter set can be associated with one or more tools, and the parameters will be merged into one set,
+supporting pre-configured parameter values.
 ![img.png](README_IMAGES/img4.png)
-* The tool is directly associated with a preset parameter set. When combining tools to reference a tool, the tool's configuration defaults to enabling the associated preset parameter set, and the input parameter mapping value of the tool defaults to the preset parameter set configuration.
-  ![img.png](README_IMAGES/img5.png)
-* The tool is not associated with a preset parameter set, When referencing a tool in combination, the tool's configuration defaults to turning off the preset parameter set. If the association preset parameter set is enabled, you can freely select the preset parameter set associated with the current tool.
-  ![img.png](README_IMAGES/img6.png)
+
+#### Directly Associating Predefined Parameter Sets with Tools
+
+When tools are associated with predefined parameter sets, the configuration of the tool will default to
+
+enable the associated predefined parameter set, and the input parameter mappings of the tool will default to the values
+specified in the predefined parameter set.
+![img.png](README_IMAGES/img5.png)
+
+#### Not Associating Predefined Parameter Sets with Tools
+
+When tools are not associated with predefined parameter sets, the configuration of the tool will default to disable the
+predefined parameter set. If the predefined parameter set is enabled, any predefined parameter set associated with the
+current tool can be selected.
+![img.png](README_IMAGES/img6.png)
