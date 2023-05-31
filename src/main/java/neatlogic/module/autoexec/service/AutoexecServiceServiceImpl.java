@@ -188,7 +188,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             } else {
                                 JSONObject jsonObj = new JSONObject();
                                 jsonObj.put("key", "roundCount");
-                                jsonObj.put("description", I18nUtils.getMessage("exception.framework.formattributenotfoundexception.1", formName, value));
+                                jsonObj.put("description", I18nUtils.getMessage("exception.framework.formattributenotfoundexception.b", formName, value));
                                 reasonList.add(jsonObj);
                             }
                         }
@@ -248,7 +248,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             } else {
                                 JSONObject jsonObj = new JSONObject();
                                 jsonObj.put("key", "protocol");
-                                jsonObj.put("description", I18nUtils.getMessage("exception.framework.formattributenotfoundexception.1", formName, value));
+                                jsonObj.put("description", I18nUtils.getMessage("exception.framework.formattributenotfoundexception.b", formName, value));
                                 reasonList.add(jsonObj);
                             }
                         }
@@ -308,7 +308,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             } else {
                                 JSONObject jsonObj = new JSONObject();
                                 jsonObj.put("key", "executeUser");
-                                jsonObj.put("description", I18nUtils.getMessage("exception.framework.formattributenotfoundexception.1", formName, value));
+                                jsonObj.put("description", I18nUtils.getMessage("exception.framework.formattributenotfoundexception.b", formName, value));
                                 reasonList.add(jsonObj);
                             }
                         }
@@ -368,7 +368,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             } else {
                                 JSONObject jsonObj = new JSONObject();
                                 jsonObj.put("key", "executeNodeConfig");
-                                jsonObj.put("description", I18nUtils.getMessage("exception.framework.formattributenotfoundexception.1", formName, value));
+                                jsonObj.put("description", I18nUtils.getMessage("exception.framework.formattributenotfoundexception.b", formName, value));
                                 reasonList.add(jsonObj);
                             }
                         }
@@ -452,7 +452,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             } else {
                                 JSONObject jsonObj = new JSONObject();
                                 jsonObj.put("key", key);
-                                jsonObj.put("description", I18nUtils.getMessage("exception.framework.formattributenotfoundexception.1", formName, value));
+                                jsonObj.put("description", I18nUtils.getMessage("exception.framework.formattributenotfoundexception.b", formName, value));
                                 reasonList.add(jsonObj);
                             }
                         }

@@ -18,7 +18,7 @@
 		http://neatlogic.com/schema/neatlogic
 		http://neatlogic.com/schema/neatlogic.xsd">
 
-    <neatlogic:module id="autoexec" name="自动化模块" groupName="modulegroup.autoexec" group="autoexec" groupSort="5"
+    <neatlogic:module id="autoexec" name="自动化模块" groupName="modulegroup.autoexec.a" group="autoexec" groupSort="5"
                        groupDescription="modulegroup.autoexec.desc"/>
 
     <context:component-scan base-package="neatlogic.module.autoexec"/>

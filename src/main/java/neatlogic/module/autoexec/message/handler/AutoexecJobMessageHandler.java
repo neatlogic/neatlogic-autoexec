@@ -11,7 +11,7 @@ public class AutoexecJobMessageHandler extends MessageHandlerBase {
 
     @Override
     public String getName() {
-        return "handler.message.autoexec";
+        return "handler.message.autoexec.a";
     }
 
     @Override
