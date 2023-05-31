@@ -40,7 +40,7 @@ import java.util.List;
 public class AutoexecCombopNotifyPolicyHandler extends NotifyPolicyHandlerBase {
     @Override
     public String getName() {
-        return "handler.notify.autoexec.combop";
+        return "common.combop";
     }
 
     /**
