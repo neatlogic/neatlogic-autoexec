@@ -324,7 +324,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         jobVo.setName(jobName);
         jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
         jobVo.setInvokeId(currentProcessTaskStepVo.getId());
-        jobVo.setRouteId(currentProcessTaskStepVo.getProcessStepUuid());
+        jobVo.setRouteId(currentProcessTaskStepVo.getId().toString());
         jobVo.setIsFirstFire(1);
         jobVo.setAssignExecUser(SystemUser.SYSTEM.getUserUuid());
         return jobVo;
@@ -369,7 +369,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             jobVo.setName(jobName);
             jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
             jobVo.setInvokeId(currentProcessTaskStepVo.getId());
-            jobVo.setRouteId(currentProcessTaskStepVo.getProcessStepUuid());
+            jobVo.setRouteId(currentProcessTaskStepVo.getId().toString());
             jobVo.setIsFirstFire(1);
             jobVo.setAssignExecUser(SystemUser.SYSTEM.getUserUuid());
             JSONObject tbodyObj = tbodyList.getJSONObject(index);
@@ -706,7 +706,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         jobVo.setOperationId(combopId);
         jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
         jobVo.setInvokeId(currentProcessTaskStepVo.getId());
-        jobVo.setRouteId(currentProcessTaskStepVo.getProcessStepUuid());
+        jobVo.setRouteId(currentProcessTaskStepVo.getId().toString());
         jobVo.setIsFirstFire(1);
         jobVo.setAssignExecUser(SystemUser.SYSTEM.getUserUuid());
         return jobVo;
