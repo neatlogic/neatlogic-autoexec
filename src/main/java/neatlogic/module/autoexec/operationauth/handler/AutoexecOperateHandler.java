@@ -16,6 +16,9 @@ limitations under the License.
 
 package neatlogic.module.autoexec.operationauth.handler;
 
+import neatlogic.framework.autoexec.constvalue.JobStatus;
+import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.process.constvalue.ProcessTaskOperationType;
 import neatlogic.framework.process.dto.ProcessTaskStepVo;
 import neatlogic.framework.process.dto.ProcessTaskVo;
@@ -24,10 +27,14 @@ import neatlogic.framework.process.operationauth.core.OperationAuthHandlerBase;
 import neatlogic.framework.process.operationauth.core.TernaryPredicate;
 import neatlogic.module.autoexec.operationauth.exception.ProcessTaskAutoexecHandlerNotEnableOperateException;
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.module.autoexec.operationauth.exception.ProcessTaskAutoexecJobRunningException;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.Resource;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -36,6 +43,8 @@ import java.util.Map;
  **/
 @Component
 public class AutoexecOperateHandler extends OperationAuthHandlerBase {
+    @Resource
+    private AutoexecJobMapper autoexecJobMapper;
 
     private final Map<ProcessTaskOperationType, TernaryPredicate<ProcessTaskVo, ProcessTaskStepVo, String, Map<Long, Map<ProcessTaskOperationType, ProcessTaskPermissionDeniedException>>, JSONObject>> operationBiPredicateMap = new HashMap<>();
 
@@ -84,6 +93,31 @@ public class AutoexecOperateHandler extends OperationAuthHandlerBase {
                     //1.提示“自动化节点不支持'回复'操作”；
                     operationTypePermissionDeniedExceptionMap.computeIfAbsent(id, key -> new HashMap<>())
                             .put(operationType, new ProcessTaskAutoexecHandlerNotEnableOperateException(operationType.getText()));
+                    return false;
+                });
+
+        operationBiPredicateMap.put(ProcessTaskOperationType.STEP_COMPLETE,
+                (processTaskVo, processTaskStepVo, userUuid, operationTypePermissionDeniedExceptionMap, extraParam) -> {
+                    Long id = processTaskStepVo.getId();
+                    List<Long> jobIdList = autoexecJobMapper.getJobIdListByInvokeId(id);
+                    if (CollectionUtils.isEmpty(jobIdList)) {
+                        return true;
+                    }
+                    int running = 0;
+                    List<AutoexecJobVo> autoexecJobList = autoexecJobMapper.getJobListByIdList(jobIdList);
+                    for (AutoexecJobVo autoexecJobVo : autoexecJobList) {
+                        if (JobStatus.isRunningStatus(autoexecJobVo.getStatus())) {
+                            running++;
+                        }
+                    }
+
+                    if (running == 0) {
+                        return true;
+                    }
+                    ProcessTaskOperationType operationType = ProcessTaskOperationType.STEP_COMPLETE;
+
+                    operationTypePermissionDeniedExceptionMap.computeIfAbsent(id, key -> new HashMap<>())
+                            .put(operationType, new ProcessTaskAutoexecJobRunningException());
                     return false;
                 });
     }

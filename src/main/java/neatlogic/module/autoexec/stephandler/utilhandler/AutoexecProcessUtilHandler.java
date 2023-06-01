@@ -38,6 +38,7 @@ import neatlogic.framework.util.SnowflakeUtil;
 import neatlogic.module.autoexec.notify.handler.AutoexecCombopNotifyPolicyHandler;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -58,6 +59,9 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
 
     @Resource
     private ProcessTaskStepDataMapper processTaskStepDataMapper;
+
+    @Resource
+    AutoexecJobService autoexecJobService;
 
     @Override
     public String getHandler() {
@@ -84,6 +88,7 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
             for (AutoexecJobVo autoexecJobVo : autoexecJobList) {
                 List<AutoexecJobPhaseVo> jobPhaseVoList = jobIdToAutoexecJobPhaseListMap.get(autoexecJobVo.getId());
                 autoexecJobVo.setPhaseList(jobPhaseVoList);
+                autoexecJobVo.setCompletionRate(autoexecJobService.calculationCompletionRate(jobPhaseVoList));
                 if (JobStatus.isRunningStatus(autoexecJobVo.getStatus())) {
                     running++;
                 } else if (JobStatus.isCompletedStatus(autoexecJobVo.getStatus())) {
