@@ -228,4 +228,10 @@ public interface AutoexecJobService {
      */
     void updateJobNodeStatus(List<RunnerMapVo> runnerVos, AutoexecJobVo jobVo, String nodeStatus);
 
+    /**
+     * 计算完成比例
+     * @return
+     */
+    Integer calculationCompletionRate(List<AutoexecJobPhaseVo> jobPhaseVoList);
+
 }
