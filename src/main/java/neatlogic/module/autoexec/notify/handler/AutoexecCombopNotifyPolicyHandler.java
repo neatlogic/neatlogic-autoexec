@@ -40,7 +40,7 @@ import java.util.List;
 public class AutoexecCombopNotifyPolicyHandler extends NotifyPolicyHandlerBase {
     @Override
     public String getName() {
-        return "common.combop";
+        return "组合工具";
     }
 
     /**

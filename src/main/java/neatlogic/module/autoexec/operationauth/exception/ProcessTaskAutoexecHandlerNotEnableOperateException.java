@@ -26,6 +26,6 @@ public class ProcessTaskAutoexecHandlerNotEnableOperateException extends Process
     private static final long serialVersionUID = 9216337410118158662L;
 
     public ProcessTaskAutoexecHandlerNotEnableOperateException(String operationType) {
-        super("exception.autoexec.processtaskautoexechandlernotenableoperateexception", operationType);
+        super("自动化节点不支持“{0}”操作", operationType);
     }
 }

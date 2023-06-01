@@ -11,12 +11,12 @@ public class AutoexecJobMessageHandler extends MessageHandlerBase {
 
     @Override
     public String getName() {
-        return "handler.message.autoexec.a";
+        return "自动化作业";
     }
 
     @Override
     public String getDescription() {
-        return "handler.message.autoexec.description";
+        return "实时显示自动化作业相关信息";
     }
 
     @Override

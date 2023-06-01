@@ -6,16 +6,16 @@ import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.util.I18nUtils;
 
 public enum AutoexecType implements IAutoexecType {
-    TEST(3L, "TEST", "enum.autoexec.autoexectype.test"),
-    INSTALL(4L, "INSTALL", "enum.autoexec.autoexectype.install"),
-    START_STOP(5L, "START_STOP", "common.startstop"),
-    NATIVE(6L, "NATIVE", "common.schedulerbuiltintools"),
-    BASIC(7L, "BASIC", "common.basictool"),
-    TEMP(8L, "TEMP", "enum.autoexec.autoexectype.temp"),
-    BIZ_JOBS(10L, "BIZ_JOBS", "enum.autoexec.autoexectype.biz_jobs"),
-    BACKUP(12L, "BACKUP", "enum.autoexec.autoexectype.backup"),
-    SQL_FILE(13L, "SQL_FILE", "common.sqlfile"),
-    DR_SWITCH(14L, "DR_SWITCH", "enum.autoexec.autoexectype.dr_switch"),
+    TEST(3L, "TEST", "测试用工具"),
+    INSTALL(4L, "INSTALL", "软件安装配置"),
+    START_STOP(5L, "START_STOP", "启停操作"),
+    NATIVE(6L, "NATIVE", "调度器内置工具"),
+    BASIC(7L, "BASIC", "基础工具"),
+    TEMP(8L, "TEMP", "临时使用"),
+    BIZ_JOBS(10L, "BIZ_JOBS", "作业调度"),
+    BACKUP(12L, "BACKUP", "备份"),
+    SQL_FILE(13L, "SQL_FILE", "SQL处理"),
+    DR_SWITCH(14L, "DR_SWITCH", "灾备切换"),
     ;
 
     private final Long id;

@@ -150,7 +150,7 @@ public class TestApi extends PrivateApiComponentBase {
 
         enumMap.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(System.out::println);
 
-        return I18nUtils.getMessage("auth.framework.usermodify.name");
+        return I18nUtils.getMessage("用户管理权限");
     }
 
 

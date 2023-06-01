@@ -24,7 +24,7 @@ import neatlogic.framework.util.I18nUtils;
  * @since 2021/9/8 17:50
  **/
 public enum AutoexecOperationAuthHandlerType implements IOperationAuthHandlerType {
-    AUTOEXEC("autoexec", "common.autoexec");
+    AUTOEXEC("autoexec", "自动化");
 
     AutoexecOperationAuthHandlerType(String value, String text){
         this.value = value;
