@@ -26,6 +26,6 @@ public class ProcessTaskAutoexecJobRunningException extends ProcessTaskPermissio
     private static final long serialVersionUID = 9216337410118158764L;
 
     public ProcessTaskAutoexecJobRunningException() {
-        super("exception.autoexec.processtaskautoexecjobrunningexception");
+        super("自动化作业正在执行，无法人工流转");
     }
 }
