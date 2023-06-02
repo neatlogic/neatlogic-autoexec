@@ -16,6 +16,7 @@ limitations under the License.
 
 package neatlogic.module.autoexec.stephandler.component;
 
+import com.alibaba.fastjson.JSONException;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.autoexec.constvalue.CombopOperationType;
 import neatlogic.framework.autoexec.constvalue.JobStatus;
@@ -30,9 +31,11 @@ import neatlogic.framework.autoexec.dto.node.AutoexecNodeVo;
 import neatlogic.framework.cmdb.enums.FormHandler;
 import neatlogic.framework.common.constvalue.Expression;
 import neatlogic.framework.common.constvalue.SystemUser;
+import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.form.dto.FormAttributeVo;
 import neatlogic.framework.form.dto.FormVersionVo;
 import neatlogic.framework.process.constvalue.*;
+import neatlogic.framework.process.crossover.IProcessTaskCrossoverService;
 import neatlogic.framework.process.dao.mapper.ProcessTaskStepDataMapper;
 import neatlogic.framework.process.dto.*;
 import neatlogic.framework.process.exception.processtask.ProcessTaskException;
@@ -169,6 +172,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     return 1;
                 }
             }
+            autoexecJobMapper.deleteAutoexecJobByProcessTaskStepId(currentProcessTaskStepVo.getId());
             // 删除上次创建作业的报错信息
             ProcessTaskStepDataVo processTaskStepData = new ProcessTaskStepDataVo();
             processTaskStepData.setProcessTaskId(currentProcessTaskStepVo.getProcessTaskId());
@@ -195,6 +199,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                 for (AutoexecJobVo jobVo : autoexecJobList) {
                     try {
                         autoexecJobActionService.validateCreateJob(jobVo);
+                        autoexecJobMapper.insertAutoexecJobProcessTaskStep(jobVo.getId(), currentProcessTaskStepVo.getId());
                         jobIdList.add(jobVo.getId());
                     } catch (Exception e) {
                         // 增加提醒
@@ -512,7 +517,12 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             } else if (Objects.equals(mappingMode, "formCommonComponent")) {
                 ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
                 if (attributeDataVo != null) {
-                    param.put(key, attributeDataVo.getDataObj());
+                    if (Objects.equals(attributeDataVo.getType(), "formtext")) {
+                        String type = runtimeParamObj.getString("type");
+                        param.put(key, convertDateType(type, (String) attributeDataVo.getDataObj()));
+                    } else {
+                        param.put(key, attributeDataVo.getDataObj());
+                    }
                 }
             } else if (Objects.equals(mappingMode, "constant")) {
                 param.put(key, value);
@@ -594,6 +604,22 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                             if (Objects.equals(attributeDataVo.getType(), FormHandler.FORMRESOURECES.getHandler())) {
                                 // 映射的表单组件是执行目标
                                 executeNodeConfigVo = ((JSONObject) dataObj).toJavaObject(AutoexecCombopExecuteNodeConfigVo.class);
+                            } else if (Objects.equals(attributeDataVo.getType(), "formtext")) {
+                                // 映射的表单组件是文本框
+                                String dataStr = dataObj.toString();
+                                try {
+                                    List<AutoexecNodeVo> inputNodeList = new ArrayList<>();
+                                    JSONArray array = JSONArray.parseArray(dataStr);
+                                    for (int j = 0; j < array.size(); j++) {
+                                        String str = array.getString(j);
+                                        inputNodeList.add(new AutoexecNodeVo(str));
+                                    }
+                                    executeNodeConfigVo.setInputNodeList(inputNodeList);
+                                } catch (JSONException e) {
+                                    List<AutoexecNodeVo> inputNodeList = new ArrayList<>();
+                                    inputNodeList.add(new AutoexecNodeVo(dataObj.toString()));
+                                    executeNodeConfigVo.setInputNodeList(inputNodeList);
+                                }
                             } else {
                                 // 映射的表单组件不是执行目标
                                 List<AutoexecNodeVo> inputNodeList = new ArrayList<>();
@@ -830,6 +856,31 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         }
         return sourceList;
     }
+
+    /**
+     * 把表单文本框组件数据转换成作业参数对应的数据
+     * @param paramType 作业参数类型
+     * @param source 数据
+     * @return
+     */
+    private Object convertDateType(String paramType, String source) {
+        if (Objects.equals(paramType, ParamType.NODE.getValue())) {
+            if (StringUtils.isNotBlank(source)) {
+                JSONArray inputNodeList = new JSONArray();
+                try {
+                    JSONArray array = JSONArray.parseArray(source);
+                    for (int i = 0; i < array.size(); i++) {
+                        String str = array.getString(i);
+                        inputNodeList.add(new AutoexecNodeVo(str));
+                    }
+                } catch (JSONException e) {
+                    inputNodeList.add(new AutoexecNodeVo(source));
+                }
+                return inputNodeList;
+            }
+        }
+        return source;
+    }
     @Override
     protected int myAssign(ProcessTaskStepVo currentProcessTaskStepVo, Set<ProcessTaskStepWorkerVo> workerSet) throws ProcessTaskException {
         return defaultAssign(currentProcessTaskStepVo, workerSet);
@@ -852,6 +903,130 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     @Override
     protected int myComplete(ProcessTaskStepVo currentProcessTaskStepVo) throws ProcessTaskException {
+        return 10;
+    }
+
+    @Override
+    protected int myBeforeComplete(ProcessTaskStepVo currentProcessTaskStepVo) throws ProcessTaskException {
+        Long processTaskStepId = currentProcessTaskStepVo.getId();
+        ProcessTaskStepVo processTaskStepVo = processTaskMapper.getProcessTaskStepBaseInfoById(processTaskStepId);
+        String config = selectContentByHashMapper.getProcessTaskStepConfigByHash(processTaskStepVo.getConfigHash());
+        if (StringUtils.isBlank(config)) {
+            return 0;
+        }
+        JSONArray configList = (JSONArray) JSONPath.read(config, "autoexecConfig.configList");
+        if (CollectionUtils.isEmpty(configList)) {
+            return 0;
+        }
+        List<Long> jobIdList = autoexecJobMapper.getJobIdListByProcessTaskStepId(processTaskStepId);
+        if (CollectionUtils.isEmpty(jobIdList)) {
+            return 0;
+        }
+        List<AutoexecJobEnvVo> autoexecJobEnvVoList = autoexecJobMapper.getAutoexecJobEnvListByJobIdList(jobIdList);
+
+        Map<String, List<String>> autoexecJobEnvMap = new HashMap<>();
+        for (AutoexecJobEnvVo autoexecJobEnvVo : autoexecJobEnvVoList) {
+            autoexecJobEnvMap.computeIfAbsent(autoexecJobEnvVo.getName(), k -> new ArrayList<>()).add(autoexecJobEnvVo.getValue());
+        }
+        Map<String, List<String>> formAttributeNewDataMap = new HashMap<>();
+        for (int j = 0; j < configList.size(); j++) {
+            JSONObject configObj = configList.getJSONObject(j);
+            if (MapUtils.isEmpty(configObj)) {
+                continue;
+            }
+            JSONArray formAttributeList = configObj.getJSONArray("formAttributeList");
+            if (CollectionUtils.isEmpty(formAttributeList)) {
+                continue;
+            }
+            for (int i = 0; i < formAttributeList.size(); i++) {
+                JSONObject formAttributeObj = formAttributeList.getJSONObject(i);
+                String key = formAttributeObj.getString("key");
+                if (StringUtils.isBlank(key)) {
+                    continue;
+                }
+                String value = formAttributeObj.getString("value");
+                if (StringUtils.isBlank(value)) {
+                    continue;
+                }
+                List<String> newValue = autoexecJobEnvMap.get(value);
+                if (newValue != null) {
+                    formAttributeNewDataMap.put(key, newValue);
+                }
+            }
+        }
+        if (MapUtils.isEmpty(formAttributeNewDataMap)) {
+            return 0;
+        }
+        IProcessTaskCrossoverService processTaskCrossoverService = CrossoverServiceFactory.getApi(IProcessTaskCrossoverService.class);
+        List<FormAttributeVo> formAttributeList = processTaskCrossoverService.getFormAttributeListByProcessTaskId(processTaskStepVo.getProcessTaskId());
+        if (CollectionUtils.isEmpty(formAttributeList)) {
+            return 0;
+        }
+
+
+        Map<String, FormAttributeVo> formAttributeMap = formAttributeList.stream().collect(Collectors.toMap(e -> e.getUuid(), e -> e));
+        JSONObject paramObj = currentProcessTaskStepVo.getParamObj();
+        JSONArray formAttributeDataList = paramObj.getJSONArray("formAttributeDataList");
+        if (formAttributeDataList == null) {
+            formAttributeDataList = new JSONArray();
+            List<String> hidecomponentList = formAttributeList.stream().map(FormAttributeVo::getUuid).collect(Collectors.toList());
+            paramObj.put("hidecomponentList", hidecomponentList);
+            List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskMapper.getProcessTaskStepFormAttributeDataByProcessTaskId(processTaskStepVo.getProcessTaskId());
+            Map<String, ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataMap = processTaskFormAttributeDataList.stream().collect(Collectors.toMap(e -> e.getAttributeUuid(), e -> e));
+            for (Map.Entry<String, ProcessTaskFormAttributeDataVo> entry : processTaskFormAttributeDataMap.entrySet()) {
+                ProcessTaskFormAttributeDataVo processTaskFormAttributeDataVo = entry.getValue();
+                JSONObject formAttributeDataObj = new JSONObject();
+                formAttributeDataObj.put("attributeUuid", processTaskFormAttributeDataVo.getAttributeUuid());
+                formAttributeDataObj.put("handler", processTaskFormAttributeDataVo.getType());
+                formAttributeDataObj.put("dataList", processTaskFormAttributeDataVo.getDataObj());
+                formAttributeDataList.add(formAttributeDataObj);
+            }
+        }
+
+        for (Map.Entry<String, List<String>> entry : formAttributeNewDataMap.entrySet()) {
+            String attributeUuid = entry.getKey();
+            FormAttributeVo formAttributeVo = formAttributeMap.get(attributeUuid);
+            if (formAttributeVo == null) {
+                continue;
+            }
+            List<String> newDataList = entry.getValue();
+            if (CollectionUtils.isEmpty(newDataList)) {
+                continue;
+            }
+
+            JSONObject formAttributeDataObj = null;
+            for (int i = 0; i < formAttributeDataList.size(); i++) {
+                JSONObject tempObj = formAttributeDataList.getJSONObject(i);
+                if (Objects.equals(tempObj.getString("attributeUuid"), attributeUuid)) {
+                    formAttributeDataObj = tempObj;
+                }
+            }
+            if (formAttributeDataObj == null) {
+                formAttributeDataObj = new JSONObject();
+                formAttributeDataList.add(formAttributeDataObj);
+            }
+            formAttributeDataObj.put("attributeUuid", attributeUuid);
+            formAttributeDataObj.put("handler", formAttributeVo.getHandler());
+            if (newDataList.size() == 1) {
+                // 如果只有一个元素，把唯一的元素取出来赋值给表单组件
+                formAttributeDataObj.put("dataList", newDataList.get(0));
+            } else {
+                // 如果有多个元素，分为两种情况
+                // 1.元素也是一个数组，需要把所有元素（数组）平摊成一个大一维数组
+                // 2.元素不是一个数组，不需要特殊处理
+                JSONArray newDataArray = new JSONArray();
+                for (String newData : newDataList) {
+                    try {
+                        JSONArray array = JSONArray.parseArray(newData);
+                        newDataArray.addAll(array);
+                    } catch (JSONException e) {
+                        newDataArray.add(newData);
+                    }
+                }
+                formAttributeDataObj.put("dataList", JSONObject.toJSONString(newDataArray));
+            }
+        }
+        paramObj.put("formAttributeDataList", formAttributeDataList);
         return 0;
     }
 
