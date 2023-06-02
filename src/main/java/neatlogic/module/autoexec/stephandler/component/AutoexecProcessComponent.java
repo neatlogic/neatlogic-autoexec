@@ -517,7 +517,12 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             } else if (Objects.equals(mappingMode, "formCommonComponent")) {
                 ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
                 if (attributeDataVo != null) {
-                    param.put(key, attributeDataVo.getDataObj());
+                    if (Objects.equals(attributeDataVo.getType(), "formtext")) {
+                        String type = runtimeParamObj.getString("type");
+                        param.put(key, convertDateType(type, (String) attributeDataVo.getDataObj()));
+                    } else {
+                        param.put(key, attributeDataVo.getDataObj());
+                    }
                 }
             } else if (Objects.equals(mappingMode, "constant")) {
                 param.put(key, value);
@@ -599,6 +604,22 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                             if (Objects.equals(attributeDataVo.getType(), FormHandler.FORMRESOURECES.getHandler())) {
                                 // 映射的表单组件是执行目标
                                 executeNodeConfigVo = ((JSONObject) dataObj).toJavaObject(AutoexecCombopExecuteNodeConfigVo.class);
+                            } else if (Objects.equals(attributeDataVo.getType(), "formtext")) {
+                                // 映射的表单组件是文本框
+                                String dataStr = dataObj.toString();
+                                try {
+                                    List<AutoexecNodeVo> inputNodeList = new ArrayList<>();
+                                    JSONArray array = JSONArray.parseArray(dataStr);
+                                    for (int j = 0; j < array.size(); j++) {
+                                        String str = array.getString(j);
+                                        inputNodeList.add(new AutoexecNodeVo(str));
+                                    }
+                                    executeNodeConfigVo.setInputNodeList(inputNodeList);
+                                } catch (JSONException e) {
+                                    List<AutoexecNodeVo> inputNodeList = new ArrayList<>();
+                                    inputNodeList.add(new AutoexecNodeVo(dataObj.toString()));
+                                    executeNodeConfigVo.setInputNodeList(inputNodeList);
+                                }
                             } else {
                                 // 映射的表单组件不是执行目标
                                 List<AutoexecNodeVo> inputNodeList = new ArrayList<>();
@@ -834,6 +855,31 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             }
         }
         return sourceList;
+    }
+
+    /**
+     * 把表单文本框组件数据转换成作业参数对应的数据
+     * @param paramType 作业参数类型
+     * @param source 数据
+     * @return
+     */
+    private Object convertDateType(String paramType, String source) {
+        if (Objects.equals(paramType, ParamType.NODE.getValue())) {
+            if (StringUtils.isNotBlank(source)) {
+                JSONArray inputNodeList = new JSONArray();
+                try {
+                    JSONArray array = JSONArray.parseArray(source);
+                    for (int i = 0; i < array.size(); i++) {
+                        String str = array.getString(i);
+                        inputNodeList.add(new AutoexecNodeVo(str));
+                    }
+                } catch (JSONException e) {
+                    inputNodeList.add(new AutoexecNodeVo(source));
+                }
+                return inputNodeList;
+            }
+        }
+        return source;
     }
     @Override
     protected int myAssign(ProcessTaskStepVo currentProcessTaskStepVo, Set<ProcessTaskStepWorkerVo> workerSet) throws ProcessTaskException {
