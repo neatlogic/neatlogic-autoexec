@@ -517,7 +517,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             } else if (Objects.equals(mappingMode, "formCommonComponent")) {
                 ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
                 if (attributeDataVo != null) {
-                    if (Objects.equals(attributeDataVo.getType(), "formtext")) {
+                    if (Objects.equals(attributeDataVo.getType(), "formtext") || Objects.equals(attributeDataVo.getType(), "formtextarea")) {
                         String type = runtimeParamObj.getString("type");
                         param.put(key, convertDateType(type, (String) attributeDataVo.getDataObj()));
                     } else {
@@ -604,7 +604,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                             if (Objects.equals(attributeDataVo.getType(), FormHandler.FORMRESOURECES.getHandler())) {
                                 // 映射的表单组件是执行目标
                                 executeNodeConfigVo = ((JSONObject) dataObj).toJavaObject(AutoexecCombopExecuteNodeConfigVo.class);
-                            } else if (Objects.equals(attributeDataVo.getType(), "formtext")) {
+                            } else if (Objects.equals(attributeDataVo.getType(), "formtext") || Objects.equals(attributeDataVo.getType(), "formtextarea")) {
                                 // 映射的表单组件是文本框
                                 String dataStr = dataObj.toString();
                                 try {
