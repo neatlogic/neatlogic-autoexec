@@ -11,7 +11,7 @@ import neatlogic.framework.restful.annotation.Description;
 import neatlogic.framework.restful.annotation.OperationType;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import neatlogic.framework.util.I18nUtils;
+import neatlogic.framework.util.$;
 import org.apache.commons.lang3.StringUtils;
 import org.reflections.Reflections;
 import org.springframework.stereotype.Service;
@@ -150,7 +150,7 @@ public class TestApi extends PrivateApiComponentBase {
 
         enumMap.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(System.out::println);
 
-        return I18nUtils.getMessage("用户管理权限");
+        return $.t("用户管理权限");
     }
 
 

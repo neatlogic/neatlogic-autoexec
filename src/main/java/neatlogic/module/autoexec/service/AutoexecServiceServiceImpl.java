@@ -35,7 +35,7 @@ import neatlogic.framework.form.dto.FormVo;
 import neatlogic.framework.form.exception.FormActiveVersionNotFoundExcepiton;
 import neatlogic.framework.form.exception.FormAttributeNotFoundException;
 import neatlogic.framework.form.exception.FormNotFoundException;
-import neatlogic.framework.util.I18nUtils;
+import neatlogic.framework.util.$;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -43,7 +43,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -75,7 +78,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 } else {
                     JSONObject jsonObj = new JSONObject();
                     jsonObj.put("key", "formUuid");
-                    jsonObj.put("description", I18nUtils.getMessage("表单：“{0}”不存在", formUuid));
+                    jsonObj.put("description", $.t("表单：“{0}”不存在", formUuid));
                     reasonList.add(jsonObj);
                     return reasonList;
                 }
@@ -87,7 +90,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 } else {
                     JSONObject jsonObj = new JSONObject();
                     jsonObj.put("key", "formUuid");
-                    jsonObj.put("description", I18nUtils.getMessage("表单：“{0}”没有激活版本", formVo.getName()));
+                    jsonObj.put("description", $.t("表单：“{0}”没有激活版本", formVo.getName()));
                     reasonList.add(jsonObj);
                     return reasonList;
                 }
@@ -104,7 +107,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
             } else {
                 JSONObject jsonObj = new JSONObject();
                 jsonObj.put("key", "combopId");
-                jsonObj.put("description", I18nUtils.getMessage("组合工具：“{0}”不存在", serviceVo.getCombopId()));
+                jsonObj.put("description", $.t("组合工具：“{0}”不存在", serviceVo.getCombopId()));
                 reasonList.add(jsonObj);
                 return reasonList;
             }
@@ -116,7 +119,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
             } else {
                 JSONObject jsonObj = new JSONObject();
                 jsonObj.put("key", "combopId");
-                jsonObj.put("description", I18nUtils.getMessage("组合工具：“{0}”没有激活版本", autoexecCombopVo.getName()));
+                jsonObj.put("description", $.t("组合工具：“{0}”没有激活版本", autoexecCombopVo.getName()));
                 reasonList.add(jsonObj);
                 return reasonList;
             }
@@ -132,7 +135,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
             } else {
                 JSONObject jsonObj = new JSONObject();
                 jsonObj.put("key", "scenarioId");
-                jsonObj.put("description", I18nUtils.getMessage("场景必须设置"));
+                jsonObj.put("description", $.t("场景必须设置"));
                 reasonList.add(jsonObj);
             }
         }
@@ -144,7 +147,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 } else {
                     JSONObject jsonObj = new JSONObject();
                     jsonObj.put("key", "roundCount");
-                    jsonObj.put("description", I18nUtils.getMessage("分批数量必须设置"));
+                    jsonObj.put("description", $.t("分批数量必须设置"));
                     reasonList.add(jsonObj);
                 }
             } else {
@@ -157,7 +160,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", "roundCount");
-                            jsonObj.put("description", I18nUtils.getMessage("分批数量必须设置"));
+                            jsonObj.put("description", $.t("分批数量必须设置"));
                             reasonList.add(jsonObj);
                         }
                     }
@@ -168,7 +171,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", "roundCount");
-                            jsonObj.put("description", I18nUtils.getMessage("服务目录未引用表单，不能映射表单属性"));
+                            jsonObj.put("description", $.t("服务目录未引用表单，不能映射表单属性"));
                             reasonList.add(jsonObj);
                         }
                     } else if (StringUtils.isBlank((String) value)) {
@@ -177,7 +180,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", "roundCount");
-                            jsonObj.put("description", I18nUtils.getMessage("分批数量必须设置"));
+                            jsonObj.put("description", $.t("分批数量必须设置"));
                             reasonList.add(jsonObj);
                         }
                     } else {
@@ -188,7 +191,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             } else {
                                 JSONObject jsonObj = new JSONObject();
                                 jsonObj.put("key", "roundCount");
-                                jsonObj.put("description", I18nUtils.getMessage("表单”{0}“中找不到“{1}”属性", formName, value));
+                                jsonObj.put("description", $.t("表单”{0}“中找不到“{1}”属性", formName, value));
                                 reasonList.add(jsonObj);
                             }
                         }
@@ -204,7 +207,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 } else {
                     JSONObject jsonObj = new JSONObject();
                     jsonObj.put("key", "protocol");
-                    jsonObj.put("description", I18nUtils.getMessage("连接协议必须设置"));
+                    jsonObj.put("description", $.t("连接协议必须设置"));
                     reasonList.add(jsonObj);
                 }
             } else {
@@ -217,7 +220,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", "protocol");
-                            jsonObj.put("description", I18nUtils.getMessage("连接协议必须设置"));
+                            jsonObj.put("description", $.t("连接协议必须设置"));
                             reasonList.add(jsonObj);
                         }
                     }
@@ -228,7 +231,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", "protocol");
-                            jsonObj.put("description", I18nUtils.getMessage("服务目录未引用表单，不能映射表单属性"));
+                            jsonObj.put("description", $.t("服务目录未引用表单，不能映射表单属性"));
                             reasonList.add(jsonObj);
                         }
                     } else if (StringUtils.isBlank((String) value)) {
@@ -237,7 +240,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", "protocol");
-                            jsonObj.put("description", I18nUtils.getMessage("连接协议必须设置"));
+                            jsonObj.put("description", $.t("连接协议必须设置"));
                             reasonList.add(jsonObj);
                         }
                     } else {
@@ -248,7 +251,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             } else {
                                 JSONObject jsonObj = new JSONObject();
                                 jsonObj.put("key", "protocol");
-                                jsonObj.put("description", I18nUtils.getMessage("表单”{0}“中找不到“{1}”属性", formName, value));
+                                jsonObj.put("description", $.t("表单”{0}“中找不到“{1}”属性", formName, value));
                                 reasonList.add(jsonObj);
                             }
                         }
@@ -264,7 +267,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 } else {
                     JSONObject jsonObj = new JSONObject();
                     jsonObj.put("key", "executeUser");
-                    jsonObj.put("description", I18nUtils.getMessage("执行用户必须设置"));
+                    jsonObj.put("description", $.t("执行用户必须设置"));
                     reasonList.add(jsonObj);
                 }
             } else {
@@ -277,7 +280,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", "executeUser");
-                            jsonObj.put("description", I18nUtils.getMessage("执行用户必须设置"));
+                            jsonObj.put("description", $.t("执行用户必须设置"));
                             reasonList.add(jsonObj);
                         }
                     }
@@ -288,7 +291,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", "executeUser");
-                            jsonObj.put("description", I18nUtils.getMessage("服务目录未引用表单，不能映射表单属性"));
+                            jsonObj.put("description", $.t("服务目录未引用表单，不能映射表单属性"));
                             reasonList.add(jsonObj);
                         }
                     } else if (StringUtils.isBlank((String) value)) {
@@ -297,7 +300,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", "executeUser");
-                            jsonObj.put("description", I18nUtils.getMessage("执行用户必须设置"));
+                            jsonObj.put("description", $.t("执行用户必须设置"));
                             reasonList.add(jsonObj);
                         }
                     } else {
@@ -308,7 +311,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             } else {
                                 JSONObject jsonObj = new JSONObject();
                                 jsonObj.put("key", "executeUser");
-                                jsonObj.put("description", I18nUtils.getMessage("表单”{0}“中找不到“{1}”属性", formName, value));
+                                jsonObj.put("description", $.t("表单”{0}“中找不到“{1}”属性", formName, value));
                                 reasonList.add(jsonObj);
                             }
                         }
@@ -324,7 +327,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 } else {
                     JSONObject jsonObj = new JSONObject();
                     jsonObj.put("key", "executeNodeConfig");
-                    jsonObj.put("description", I18nUtils.getMessage("执行目标必须设置"));
+                    jsonObj.put("description", $.t("执行目标必须设置"));
                     reasonList.add(jsonObj);
                 }
             } else {
@@ -337,7 +340,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", "executeNodeConfig");
-                            jsonObj.put("description", I18nUtils.getMessage("执行目标必须设置"));
+                            jsonObj.put("description", $.t("执行目标必须设置"));
                             reasonList.add(jsonObj);
                         }
                     }
@@ -348,7 +351,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", "executeNodeConfig");
-                            jsonObj.put("description", I18nUtils.getMessage("服务目录未引用表单，不能映射表单属性"));
+                            jsonObj.put("description", $.t("服务目录未引用表单，不能映射表单属性"));
                             reasonList.add(jsonObj);
                         }
                     } else if (StringUtils.isBlank((String) value)) {
@@ -357,7 +360,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", "executeNodeConfig");
-                            jsonObj.put("description", I18nUtils.getMessage("执行目标必须设置"));
+                            jsonObj.put("description", $.t("执行目标必须设置"));
                             reasonList.add(jsonObj);
                         }
                     } else {
@@ -368,7 +371,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             } else {
                                 JSONObject jsonObj = new JSONObject();
                                 jsonObj.put("key", "executeNodeConfig");
-                                jsonObj.put("description", I18nUtils.getMessage("表单”{0}“中找不到“{1}”属性", formName, value));
+                                jsonObj.put("description", $.t("表单”{0}“中找不到“{1}”属性", formName, value));
                                 reasonList.add(jsonObj);
                             }
                         }
@@ -402,7 +405,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                     } else {
                         JSONObject jsonObj = new JSONObject();
                         jsonObj.put("key", key);
-                        jsonObj.put("description", I18nUtils.getMessage("组合工具“{0}”的作业参数中没有“{1}”的参数", autoexecCombopVo.getName(), name + "(" + key + ")"));
+                        jsonObj.put("description", $.t("组合工具“{0}”的作业参数中没有“{1}”的参数", autoexecCombopVo.getName(), name + "(" + key + ")"));
                         reasonList.add(jsonObj);
                     }
                 } else if (!Objects.equals(runtimeParamMapping.getType(), runtimeParamVo.getType())) {
@@ -411,7 +414,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                     } else {
                         JSONObject jsonObj = new JSONObject();
                         jsonObj.put("key", key);
-                        jsonObj.put("description", I18nUtils.getMessage("组合工具“{0}”的作业参数“{1}“类型发生变化，由“{2}”变成“{3}”类型", autoexecCombopVo.getName(), name + "(" + key + ")", runtimeParamMapping.getType(), runtimeParamVo.getType()));
+                        jsonObj.put("description", $.t("组合工具“{0}”的作业参数“{1}“类型发生变化，由“{2}”变成“{3}”类型", autoexecCombopVo.getName(), name + "(" + key + ")", runtimeParamMapping.getType(), runtimeParamVo.getType()));
                         reasonList.add(jsonObj);
                     }
                 } else if (Objects.equals(mappingMode, ServiceParamMappingMode.CONSTANT.getValue())) {
@@ -421,7 +424,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", key);
-                            jsonObj.put("description", I18nUtils.getMessage("组合工具“{0}”的作业参数“{1}“必须设置", autoexecCombopVo.getName(), name + "(" + key + ")"));
+                            jsonObj.put("description", $.t("组合工具“{0}”的作业参数“{1}“必须设置", autoexecCombopVo.getName(), name + "(" + key + ")"));
                             reasonList.add(jsonObj);
                         }
                     }
@@ -432,7 +435,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", key);
-                            jsonObj.put("description", I18nUtils.getMessage("服务目录未引用表单，不能映射表单属性"));
+                            jsonObj.put("description", $.t("服务目录未引用表单，不能映射表单属性"));
                             reasonList.add(jsonObj);
                         }
                     } else if (StringUtils.isBlank((String) value)) {
@@ -441,7 +444,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", key);
-                            jsonObj.put("description", I18nUtils.getMessage("组合工具“{0}”的作业参数“{1}“必须设置", autoexecCombopVo.getName(), name + "(" + key + ")"));
+                            jsonObj.put("description", $.t("组合工具“{0}”的作业参数“{1}“必须设置", autoexecCombopVo.getName(), name + "(" + key + ")"));
                             reasonList.add(jsonObj);
                         }
                     } else {
@@ -452,7 +455,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             } else {
                                 JSONObject jsonObj = new JSONObject();
                                 jsonObj.put("key", key);
-                                jsonObj.put("description", I18nUtils.getMessage("表单”{0}“中找不到“{1}”属性", formName, value));
+                                jsonObj.put("description", $.t("表单”{0}“中找不到“{1}”属性", formName, value));
                                 reasonList.add(jsonObj);
                             }
                         }
@@ -464,7 +467,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", key);
-                            jsonObj.put("description", I18nUtils.getMessage("组合工具“{0}”的作业参数“{1}“不能为空", autoexecCombopVo.getName(), name + "(" + key + ")"));
+                            jsonObj.put("description", $.t("组合工具“{0}”的作业参数“{1}“不能为空", autoexecCombopVo.getName(), name + "(" + key + ")"));
                             reasonList.add(jsonObj);
                         }
                     }
@@ -475,7 +478,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", key);
-                            jsonObj.put("description", I18nUtils.getMessage("组合工具“{0}”的作业参数“{1}“必须设置", autoexecCombopVo.getName(), name + "(" + key + ")"));
+                            jsonObj.put("description", $.t("组合工具“{0}”的作业参数“{1}“必须设置", autoexecCombopVo.getName(), name + "(" + key + ")"));
                             reasonList.add(jsonObj);
                         }
                     }
@@ -490,7 +493,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 } else {
                     JSONObject jsonObj = new JSONObject();
                     jsonObj.put("key", runtimeParamVo.getKey());
-                    jsonObj.put("description", I18nUtils.getMessage("组合工具“{0}”的作业参数“{1}“必须设置", autoexecCombopVo.getName(), runtimeParamVo.getName() + "(" + runtimeParamVo.getKey() + ")"));
+                    jsonObj.put("description", $.t("组合工具“{0}”的作业参数“{1}“必须设置", autoexecCombopVo.getName(), runtimeParamVo.getName() + "(" + runtimeParamVo.getKey() + ")"));
                     reasonList.add(jsonObj);
                 }
             }

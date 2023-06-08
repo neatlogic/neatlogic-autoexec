@@ -17,7 +17,7 @@
 package neatlogic.module.autoexec.fulltextindex;
 
 import neatlogic.framework.fulltextindex.core.IFullTextIndexType;
-import neatlogic.framework.util.I18nUtils;
+import neatlogic.framework.util.$;
 
 public enum AutoexecFullTextIndexType implements IFullTextIndexType {
     SCRIPT_DOCUMENT_VERSION("script_document_version", "自定义工具版本");
@@ -37,7 +37,7 @@ public enum AutoexecFullTextIndexType implements IFullTextIndexType {
 
     @Override
     public String getTypeName() {
-        return I18nUtils.getMessage(typeName);
+        return $.t(typeName);
     }
 
     @Override
