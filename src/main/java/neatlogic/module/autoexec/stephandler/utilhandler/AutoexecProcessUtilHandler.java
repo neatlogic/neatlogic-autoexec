@@ -348,6 +348,11 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
                     jobName = StringUtils.EMPTY;
                 }
                 configObj.put("jobName", jobName);
+                String jobNamePrefix = config.getString("jobNamePrefix");
+                if (jobNamePrefix == null) {
+                    jobNamePrefix = StringUtils.EMPTY;
+                }
+                configObj.put("jobNamePrefix", jobNamePrefix);
                 Boolean isShow = config.getBoolean("isShow");
                 if (isShow == null) {
                     isShow = false;

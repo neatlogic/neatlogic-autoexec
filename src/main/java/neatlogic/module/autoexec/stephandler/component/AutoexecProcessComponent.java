@@ -311,6 +311,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         Long combopId = autoexecConfig.getLong("autoexecCombopId");
         // 作业名称
         String jobName = autoexecConfig.getString("jobName");
+        String jobNamePrefixKey = autoexecConfig.getString("jobNamePrefix");
         // 作业参数赋值列表
         JSONArray runtimeParamList = autoexecConfig.getJSONArray("runtimeParamList");
         if (CollectionUtils.isNotEmpty(runtimeParamList)) {
@@ -323,10 +324,12 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             AutoexecCombopExecuteConfigVo executeConfig = getAutoexecCombopExecuteConfig(executeParamList, formAttributeMap, processTaskFormAttributeDataMap);
             jobVo.setExecuteConfig(executeConfig);
         }
+
+        String jobNamePrefixValue = getJobNamePrefixValue(jobNamePrefixKey, jobVo.getExecuteConfig(), jobVo.getParam());
         jobVo.setSource(AutoExecJobProcessSource.ITSM.getValue());
         jobVo.setRoundCount(32);
         jobVo.setOperationId(combopId);
-        jobVo.setName(jobName);
+        jobVo.setName(jobNamePrefixValue + jobName);
         jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
         jobVo.setInvokeId(currentProcessTaskStepVo.getId());
         jobVo.setRouteId(currentProcessTaskStepVo.getId().toString());
@@ -352,6 +355,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         Long combopId = autoexecConfig.getLong("autoexecCombopId");
         // 作业名称
         String jobName = autoexecConfig.getString("jobName");
+        String jobNamePrefixKey = autoexecConfig.getString("jobNamePrefix");
         List<AutoexecJobVo> resultList = new ArrayList<>();
         // 批量遍历表格
         JSONObject batchJobDataSource = autoexecConfig.getJSONObject("batchJobDataSource");
@@ -371,7 +375,6 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             jobVo.setSource(AutoExecJobProcessSource.ITSM.getValue());
             jobVo.setRoundCount(32);
             jobVo.setOperationId(combopId);
-            jobVo.setName(jobName);
             jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
             jobVo.setInvokeId(currentProcessTaskStepVo.getId());
             jobVo.setRouteId(currentProcessTaskStepVo.getId().toString());
@@ -390,9 +393,97 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                 JSONObject param = getParam(runtimeParamList, tbodyObj, formAttributeMap, processTaskFormAttributeDataMap);
                 jobVo.setParam(param);
             }
+            String jobNamePrefixValue = getJobNamePrefixValue(jobNamePrefixKey, jobVo.getExecuteConfig(), jobVo.getParam());
+            jobVo.setName(jobNamePrefixValue + jobName);
             resultList.add(jobVo);
         }
         return resultList;
+    }
+
+    /**
+     * 根据设置找到作业名称前缀值
+     * @param jobNamePrefixKey 作业名称前缀key
+     * @param executeConfig 目标参数
+     * @param param 作业参数
+     * @return 返回作业名称前缀值
+     */
+    private String getJobNamePrefixValue(String jobNamePrefixKey, AutoexecCombopExecuteConfigVo executeConfig, JSONObject param) {
+        String jobNamePrefixValue = StringUtils.EMPTY;
+        if (StringUtils.isBlank(jobNamePrefixKey)) {
+            return jobNamePrefixValue;
+        }
+        if (Objects.equals(jobNamePrefixKey, "executeNodeConfig")) {
+            AutoexecCombopExecuteNodeConfigVo executeNodeConfig = executeConfig.getExecuteNodeConfig();
+            List<AutoexecNodeVo> inputNodeList = executeNodeConfig.getInputNodeList();
+            List<AutoexecNodeVo> selectNodeList = executeNodeConfig.getSelectNodeList();
+            List<String> paramList = executeNodeConfig.getParamList();
+            if (CollectionUtils.isNotEmpty(inputNodeList)) {
+                List<String> list = new ArrayList<>();
+                for (AutoexecNodeVo node : inputNodeList) {
+                    list.add(node.toString());
+                }
+                jobNamePrefixValue = String.join("", list);
+            } else if (CollectionUtils.isNotEmpty(selectNodeList)) {
+                List<String> list = new ArrayList<>();
+                for (AutoexecNodeVo node : selectNodeList) {
+                    list.add(node.toString());
+                }
+                jobNamePrefixValue = String.join("", list);
+            } else if (CollectionUtils.isNotEmpty(paramList)) {
+                List<String> list = new ArrayList<>();
+                for (String paramKey : paramList) {
+                    Object value = param.get(paramKey);
+                    if (value != null) {
+                        if (value instanceof String) {
+                            list.add((String) value);
+                        } else {
+                            list.add(JSONObject.toJSONString(value));
+                        }
+                    }
+                }
+                jobNamePrefixValue = String.join("", list);
+            }
+        } else if (Objects.equals(jobNamePrefixKey, "executeUser")) {
+            ParamMappingVo executeUser = executeConfig.getExecuteUser();
+            if (executeUser != null) {
+                Object value = executeUser.getValue();
+                if (value != null) {
+                    if (Objects.equals(executeUser.getMappingMode(), "runtimeparam")) {
+                        value = param.get(value);
+                    }
+                    if (value != null) {
+                        if (value instanceof String) {
+                            jobNamePrefixValue = (String) value;
+                        } else {
+                            jobNamePrefixValue = JSONObject.toJSONString(value);
+                        }
+                    }
+                }
+            }
+        } else if (Objects.equals(jobNamePrefixKey, "protocolId")) {
+            Long protocolId = executeConfig.getProtocolId();
+            if (protocolId != null) {
+                jobNamePrefixValue = protocolId.toString();
+            }
+        } else if (Objects.equals(jobNamePrefixKey, "roundCount")) {
+            Integer roundCount = executeConfig.getRoundCount();
+            if (roundCount != null) {
+                jobNamePrefixValue = roundCount.toString();
+            }
+        } else {
+            Object jobNamePrefixObj = param.get(jobNamePrefixKey);
+            if (jobNamePrefixObj instanceof String) {
+                jobNamePrefixValue = (String) jobNamePrefixObj;
+            } else {
+                jobNamePrefixValue = JSONObject.toJSONString(jobNamePrefixObj);
+            }
+        }
+        if (StringUtils.isBlank(jobNamePrefixValue)) {
+            return StringUtils.EMPTY;
+        } else if (jobNamePrefixValue.length() > 32) {
+            return jobNamePrefixValue.substring(0, 32);
+        }
+        return jobNamePrefixValue;
     }
 
     private JSONArray getTbodyList(ProcessTaskFormAttributeDataVo formAttributeDataVo, JSONArray filterList) {
