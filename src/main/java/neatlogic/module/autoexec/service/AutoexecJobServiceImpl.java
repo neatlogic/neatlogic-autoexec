@@ -45,11 +45,10 @@ import neatlogic.framework.cmdb.dto.ci.CiVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
 import neatlogic.framework.common.util.PageUtil;
+import neatlogic.framework.config.ConfigManager;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
-import neatlogic.framework.dao.mapper.ConfigMapper;
 import neatlogic.framework.dao.mapper.runner.RunnerMapper;
 import neatlogic.framework.deploy.crossover.IDeploySqlCrossoverMapper;
-import neatlogic.framework.dto.ConfigVo;
 import neatlogic.framework.dto.RestVo;
 import neatlogic.framework.dto.runner.RunnerMapVo;
 import neatlogic.framework.exception.runner.RunnerConnectRefusedException;
@@ -104,8 +103,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     private AutoexecCombopVersionMapper autoexecCombopVersionMapper;
     @Resource
     RunnerMapper runnerMapper;
-    @Resource
-    ConfigMapper configMapper;
 
     @Resource
     private MongoTemplate mongoTemplate;
@@ -1407,21 +1404,18 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
 
     @Override
     public void validateAutoexecJobLogEncoding(String encoding) {
-        ConfigVo encodingConfig = configMapper.getConfigByKey(AutoexecTenantConfig.AUTOEXEC_JOB_LOG_ENCODING.getKey());
         boolean configChecked = false;
-        if (encodingConfig != null) {
-            String encodingConfigValue = encodingConfig.getValue();
-            if (StringUtils.isNotBlank(encodingConfigValue)) {
-                try {
-                    configChecked = true;
-                    JSONArray array = JSONArray.parseArray(encodingConfigValue);
-                    if (!array.contains(encoding)) {
-                        throw new AutoexecJobLogEncodingIllegalException(encoding);
-                    }
-                } catch (Exception ex) {
-                    configChecked = false;
-                    logger.error("autoexec.job.log.encoding格式非JsonArray");
+        String encodingConfigValue = ConfigManager.getConfig(AutoexecTenantConfig.AUTOEXEC_JOB_LOG_ENCODING);
+        if (StringUtils.isNotBlank(encodingConfigValue)) {
+            try {
+                configChecked = true;
+                JSONArray array = JSONArray.parseArray(encodingConfigValue);
+                if (!array.contains(encoding)) {
+                    throw new AutoexecJobLogEncodingIllegalException(encoding);
                 }
+            } catch (Exception ex) {
+                configChecked = false;
+                logger.error("autoexec.job.log.encoding格式非JsonArray");
             }
         }
         if (!configChecked && JobLogEncoding.getJobLogEncoding(encoding) == null) {

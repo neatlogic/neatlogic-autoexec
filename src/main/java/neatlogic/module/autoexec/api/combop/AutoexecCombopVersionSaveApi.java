@@ -23,8 +23,7 @@ import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import neatlogic.framework.autoexec.constvalue.ScriptVersionStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
-import neatlogic.framework.dao.mapper.ConfigMapper;
-import neatlogic.framework.dto.ConfigVo;
+import neatlogic.framework.config.ConfigManager;
 import neatlogic.framework.autoexec.constvalue.AutoexecTenantConfig;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
@@ -58,9 +57,6 @@ public class AutoexecCombopVersionSaveApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
-
-    @Resource
-    private ConfigMapper configMapper;
 
     @Resource
     private AutoexecCombopVersionMapper autoexecCombopVersionMapper;
@@ -140,16 +136,13 @@ public class AutoexecCombopVersionSaveApi extends PrivateApiComponentBase {
             autoexecCombopVersionVo.setIsActive(0);
             autoexecCombopVersionMapper.insertAutoexecCombopVersion(autoexecCombopVersionVo);
             autoexecCombopService.saveDependency(autoexecCombopVersionVo);
-            int maxNum = Integer.parseInt(AutoexecTenantConfig.MAX_NUM_OF_COMBOP_VERSION.getValue());
-            ConfigVo configVo = configMapper.getConfigByKey(AutoexecTenantConfig.MAX_NUM_OF_COMBOP_VERSION.getKey());
-            if (configVo != null) {
-                String value = configVo.getValue();
-                if (StringUtils.isNotBlank(value)) {
-                    try {
-                        maxNum = Integer.parseInt(value);
-                    } catch (NumberFormatException e) {
+            Integer maxNum = null;
+            String maxNumOfCombopVersion = ConfigManager.getConfig(AutoexecTenantConfig.MAX_NUM_OF_COMBOP_VERSION);
+            if (StringUtils.isNotBlank(maxNumOfCombopVersion)) {
+                try {
+                    maxNum = Integer.parseInt(maxNumOfCombopVersion);
+                } catch (NumberFormatException e) {
 
-                    }
                 }
             }
             List<AutoexecCombopVersionVo> versionList = autoexecCombopVersionMapper.getAutoexecCombopVersionListByCombopId(autoexecCombopVersionVo.getCombopId());

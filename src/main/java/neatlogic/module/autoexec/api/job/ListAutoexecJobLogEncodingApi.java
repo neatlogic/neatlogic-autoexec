@@ -19,8 +19,7 @@ package neatlogic.module.autoexec.api.job;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.constvalue.JobLogEncoding;
-import neatlogic.framework.dao.mapper.ConfigMapper;
-import neatlogic.framework.dto.ConfigVo;
+import neatlogic.framework.config.ConfigManager;
 import neatlogic.framework.restful.annotation.Description;
 import neatlogic.framework.restful.annotation.Input;
 import neatlogic.framework.restful.annotation.OperationType;
@@ -36,7 +35,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
-import javax.annotation.Resource;
 import java.util.List;
 
 /**
@@ -50,9 +48,6 @@ import java.util.List;
 public class ListAutoexecJobLogEncodingApi extends PrivateApiComponentBase {
 
     final static Logger logger = LoggerFactory.getLogger(ListAutoexecJobLogEncodingApi.class);
-
-    @Resource
-    ConfigMapper configMapper;
 
     @Override
     public String getName() {
@@ -70,15 +65,12 @@ public class ListAutoexecJobLogEncodingApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         List<String> result = null;
-        ConfigVo encodingConfig = configMapper.getConfigByKey(AutoexecTenantConfig.AUTOEXEC_JOB_LOG_ENCODING.getKey());
-        if (encodingConfig != null) {
-            String encodingConfigValue = encodingConfig.getValue();
-            if (StringUtils.isNotBlank(encodingConfigValue)) {
-                try {
-                    result = JSONArray.parseArray(encodingConfigValue).toJavaList(String.class);
-                } catch (Exception ex) {
-                    logger.error("autoexec.job.log.encoding格式非JsonArray");
-                }
+        String encodingConfigValue = ConfigManager.getConfig(AutoexecTenantConfig.AUTOEXEC_JOB_LOG_ENCODING);
+        if (StringUtils.isNotBlank(encodingConfigValue)) {
+            try {
+                result = JSONArray.parseArray(encodingConfigValue).toJavaList(String.class);
+            } catch (Exception ex) {
+                logger.error("autoexec.job.log.encoding格式非JsonArray");
             }
         }
         if (CollectionUtils.isEmpty(result)) {
