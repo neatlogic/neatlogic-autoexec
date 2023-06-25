@@ -29,6 +29,7 @@ import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.autoexec.constvalue.AutoexecTenantConfig;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -69,7 +70,7 @@ public class ListAutoexecJobLogEncodingApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         List<String> result = null;
-        ConfigVo encodingConfig = configMapper.getConfigByKey("autoexec.job.log.encoding");
+        ConfigVo encodingConfig = configMapper.getConfigByKey(AutoexecTenantConfig.AUTOEXEC_JOB_LOG_ENCODING.getKey());
         if (encodingConfig != null) {
             String encodingConfigValue = encodingConfig.getValue();
             if (StringUtils.isNotBlank(encodingConfigValue)) {

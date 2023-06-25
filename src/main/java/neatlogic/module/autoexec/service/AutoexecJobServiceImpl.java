@@ -59,9 +59,9 @@ import neatlogic.framework.exception.runner.RunnerNotMatchException;
 import neatlogic.framework.integration.authentication.enums.AuthenticateType;
 import neatlogic.framework.util.HttpRequestUtil;
 import neatlogic.framework.util.RestUtil;
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.autoexec.constvalue.AutoexecTenantConfig;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -1407,7 +1407,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
 
     @Override
     public void validateAutoexecJobLogEncoding(String encoding) {
-        ConfigVo encodingConfig = configMapper.getConfigByKey("autoexec.job.log.encoding");
+        ConfigVo encodingConfig = configMapper.getConfigByKey(AutoexecTenantConfig.AUTOEXEC_JOB_LOG_ENCODING.getKey());
         boolean configChecked = false;
         if (encodingConfig != null) {
             String encodingConfigValue = encodingConfig.getValue();

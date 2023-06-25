@@ -25,6 +25,7 @@ import neatlogic.framework.autoexec.constvalue.ScriptVersionStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.dao.mapper.ConfigMapper;
 import neatlogic.framework.dto.ConfigVo;
+import neatlogic.framework.autoexec.constvalue.AutoexecTenantConfig;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionConfigVo;
@@ -54,8 +55,6 @@ import java.util.Objects;
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class AutoexecCombopVersionSaveApi extends PrivateApiComponentBase {
-    // 组合工具版本数量上限默认值为10，可以在数据库config表中设置key为maxNumOfCombopVersion的数据覆盖该值
-    private final static int MAX_NUM_OF_COMBOP_VERSION = 10;
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
@@ -141,8 +140,8 @@ public class AutoexecCombopVersionSaveApi extends PrivateApiComponentBase {
             autoexecCombopVersionVo.setIsActive(0);
             autoexecCombopVersionMapper.insertAutoexecCombopVersion(autoexecCombopVersionVo);
             autoexecCombopService.saveDependency(autoexecCombopVersionVo);
-            int maxNum = MAX_NUM_OF_COMBOP_VERSION;
-            ConfigVo configVo = configMapper.getConfigByKey("maxNumOfCombopVersion");
+            int maxNum = Integer.parseInt(AutoexecTenantConfig.MAX_NUM_OF_COMBOP_VERSION.getValue());
+            ConfigVo configVo = configMapper.getConfigByKey(AutoexecTenantConfig.MAX_NUM_OF_COMBOP_VERSION.getKey());
             if (configVo != null) {
                 String value = configVo.getValue();
                 if (StringUtils.isNotBlank(value)) {
