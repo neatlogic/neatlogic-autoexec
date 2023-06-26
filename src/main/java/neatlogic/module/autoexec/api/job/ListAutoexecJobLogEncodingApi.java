@@ -51,7 +51,7 @@ public class ListAutoexecJobLogEncodingApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取自动化作业日志字符编码集合";
+        return "nmaaj.listautoexecjoblogencodingapi.getname";
     }
 
     @Override
@@ -61,7 +61,7 @@ public class ListAutoexecJobLogEncodingApi extends PrivateApiComponentBase {
 
     @Input({})
     @Output({})
-    @Description(desc = "获取自动化作业日志字符编码集合")
+    @Description(desc = "nmaaj.listautoexecjoblogencodingapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         List<String> result = null;
@@ -70,7 +70,7 @@ public class ListAutoexecJobLogEncodingApi extends PrivateApiComponentBase {
             try {
                 result = JSONArray.parseArray(encodingConfigValue).toJavaList(String.class);
             } catch (Exception ex) {
-                logger.error("autoexec.job.log.encoding格式非JsonArray");
+                logger.error("nmaaj.listautoexecjoblogencodingapi.mydoservice.error");
             }
         }
         if (CollectionUtils.isEmpty(result)) {

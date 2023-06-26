@@ -1415,7 +1415,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 }
             } catch (Exception ex) {
                 configChecked = false;
-                logger.error("autoexec.job.log.encoding格式非JsonArray");
+                logger.error("nmaaj.listautoexecjoblogencodingapi.mydoservice.error");
             }
         }
         if (!configChecked && JobLogEncoding.getJobLogEncoding(encoding) == null) {

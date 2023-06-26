@@ -71,7 +71,7 @@ public class AutoexecCombopVersionSaveApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "保存组合工具版本信息";
+        return "nmaac.autoexeccombopversionsaveapi.getname";
     }
 
     @Override
@@ -80,16 +80,16 @@ public class AutoexecCombopVersionSaveApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "主键id"),
-            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, isRequired = true, minLength = 1, maxLength = 70, desc = "显示名"),
-            @Param(name = "status", type = ApiParamType.ENUM, rule = "draft,submitted", isRequired = true, desc = "状态"),
-            @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "组合工具ID"),
-            @Param(name = "config", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "配置信息")
+            @Param(name = "id", type = ApiParamType.LONG, desc = "commom.id"),
+            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, isRequired = true, minLength = 1, maxLength = 70, desc = "common.name"),
+            @Param(name = "status", type = ApiParamType.ENUM, rule = "draft,submitted", isRequired = true, desc = "common.status"),
+            @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.combopid"),
+            @Param(name = "config", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "common.config")
     })
     @Output({
-            @Param(name = "Return", type = ApiParamType.LONG, desc = "主键id")
+            @Param(name = "Return", type = ApiParamType.LONG, desc = "commom.id")
     })
-    @Description(desc = "保存组合工具版本信息")
+    @Description(desc = "nmaac.autoexeccombopversionsaveapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecCombopVersionVo autoexecCombopVersionVo = jsonObj.toJavaObject(AutoexecCombopVersionVo.class);
