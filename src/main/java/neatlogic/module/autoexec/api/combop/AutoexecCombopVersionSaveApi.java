@@ -80,14 +80,14 @@ public class AutoexecCombopVersionSaveApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "commom.id"),
+            @Param(name = "id", type = ApiParamType.LONG, desc = "common.id"),
             @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, isRequired = true, minLength = 1, maxLength = 70, desc = "common.name"),
             @Param(name = "status", type = ApiParamType.ENUM, rule = "draft,submitted", isRequired = true, desc = "common.status"),
             @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.combopid"),
             @Param(name = "config", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "common.config")
     })
     @Output({
-            @Param(name = "Return", type = ApiParamType.LONG, desc = "commom.id")
+            @Param(name = "Return", type = ApiParamType.LONG, desc = "common.id")
     })
     @Description(desc = "nmaac.autoexeccombopversionsaveapi.getname")
     @Override
