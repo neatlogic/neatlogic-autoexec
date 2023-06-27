@@ -23,8 +23,8 @@ import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import neatlogic.framework.autoexec.constvalue.ScriptVersionStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
-import neatlogic.framework.dao.mapper.ConfigMapper;
-import neatlogic.framework.dto.ConfigVo;
+import neatlogic.framework.config.ConfigManager;
+import neatlogic.framework.autoexec.constvalue.AutoexecTenantConfig;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionConfigVo;
@@ -54,14 +54,9 @@ import java.util.Objects;
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class AutoexecCombopVersionSaveApi extends PrivateApiComponentBase {
-    // 组合工具版本数量上限默认值为10，可以在数据库config表中设置key为maxNumOfCombopVersion的数据覆盖该值
-    private final static int MAX_NUM_OF_COMBOP_VERSION = 10;
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
-
-    @Resource
-    private ConfigMapper configMapper;
 
     @Resource
     private AutoexecCombopVersionMapper autoexecCombopVersionMapper;
@@ -76,7 +71,7 @@ public class AutoexecCombopVersionSaveApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "保存组合工具版本信息";
+        return "nmaac.autoexeccombopversionsaveapi.getname";
     }
 
     @Override
@@ -85,16 +80,16 @@ public class AutoexecCombopVersionSaveApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "主键id"),
-            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, isRequired = true, minLength = 1, maxLength = 70, desc = "显示名"),
-            @Param(name = "status", type = ApiParamType.ENUM, rule = "draft,submitted", isRequired = true, desc = "状态"),
-            @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "组合工具ID"),
-            @Param(name = "config", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "配置信息")
+            @Param(name = "id", type = ApiParamType.LONG, desc = "common.id"),
+            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, isRequired = true, minLength = 1, maxLength = 70, desc = "common.name"),
+            @Param(name = "status", type = ApiParamType.ENUM, rule = "draft,submitted", isRequired = true, desc = "common.status"),
+            @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.combopid"),
+            @Param(name = "config", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "common.config")
     })
     @Output({
-            @Param(name = "Return", type = ApiParamType.LONG, desc = "主键id")
+            @Param(name = "Return", type = ApiParamType.LONG, desc = "common.id")
     })
-    @Description(desc = "保存组合工具版本信息")
+    @Description(desc = "nmaac.autoexeccombopversionsaveapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecCombopVersionVo autoexecCombopVersionVo = jsonObj.toJavaObject(AutoexecCombopVersionVo.class);
@@ -141,16 +136,13 @@ public class AutoexecCombopVersionSaveApi extends PrivateApiComponentBase {
             autoexecCombopVersionVo.setIsActive(0);
             autoexecCombopVersionMapper.insertAutoexecCombopVersion(autoexecCombopVersionVo);
             autoexecCombopService.saveDependency(autoexecCombopVersionVo);
-            int maxNum = MAX_NUM_OF_COMBOP_VERSION;
-            ConfigVo configVo = configMapper.getConfigByKey("maxNumOfCombopVersion");
-            if (configVo != null) {
-                String value = configVo.getValue();
-                if (StringUtils.isNotBlank(value)) {
-                    try {
-                        maxNum = Integer.parseInt(value);
-                    } catch (NumberFormatException e) {
+            Integer maxNum = null;
+            String maxNumOfCombopVersion = ConfigManager.getConfig(AutoexecTenantConfig.MAX_NUM_OF_COMBOP_VERSION);
+            if (StringUtils.isNotBlank(maxNumOfCombopVersion)) {
+                try {
+                    maxNum = Integer.parseInt(maxNumOfCombopVersion);
+                } catch (NumberFormatException e) {
 
-                    }
                 }
             }
             List<AutoexecCombopVersionVo> versionList = autoexecCombopVersionMapper.getAutoexecCombopVersionListByCombopId(autoexecCombopVersionVo.getCombopId());
