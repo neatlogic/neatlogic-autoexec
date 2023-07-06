@@ -106,7 +106,9 @@ public class ListAutoexecJobSqlApi extends PrivateApiComponentBase {
                     //循环sql列表，根据sqlVo里面resourceId获取访问地址
                     for (DeploySqlNodeDetailVo sqlDetailVo : returnSqlList) {
                         CiEntityVo ciEntity = ciEntityVoMap.get(sqlDetailVo.getResourceId());
-                        sqlDetailVo.setServiceAddr(getServeAddr(ciEntity));
+                        if(ciEntity != null) {
+                            sqlDetailVo.setServiceAddr(getServeAddr(ciEntity));
+                        }
                     }
                 }
             }
