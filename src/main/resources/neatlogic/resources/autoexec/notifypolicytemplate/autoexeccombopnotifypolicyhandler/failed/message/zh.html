@@ -1,0 +1,48 @@
+<!--
+  ~ Copyright(c) 2023 NeatLogic Co., Ltd. All Rights Reserved.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>作业:[${DATA.jobId}]${DATA.jobName}执行失败提醒</title>
+</head>
+<body>
+<p style="font-size: 14px">用户:${DATA.operator}发起的作业：[${DATA.jobId}]${DATA.jobName}执行失败！</p>
+<p style="font-size: 14px">失败阶段为：</p>
+<#if DATA.jobPhaseList?? && (DATA.jobPhaseList?size > 0)>
+<table cellpadding="2" cellspacing="0" border="1" style="border-collapse: collapse; font-size: 14px;width:100%;text-align:center;">
+  <tr>
+    <th>阶段名称</th>
+    <th>执行方式</th>
+    <th>开始时间</th>
+    <th>结束时间</th>
+  </tr>
+  <#list DATA.jobPhaseList as item>
+  <#if item.status == 'failed'>
+  <tr>
+    <td>${item.name}</td>
+    <td>${item.execMode}</td>
+    <td>${(item.startTime)?string('yyyy-MM-dd HH:mm:ss')}</td>
+    <td>${(item.endTime)?string('yyyy-MM-dd HH:mm:ss')}</td>
+  </tr>
+</#if>
+</#list>
+</table>
+</#if>
+<p style="font-size: 14px">详细信息请访问<a href="${DATA.homeUrl}/autoexec.html#/job-detail?id=${DATA.id}">作业详情</a>。</p>
+</body>
+</html>
