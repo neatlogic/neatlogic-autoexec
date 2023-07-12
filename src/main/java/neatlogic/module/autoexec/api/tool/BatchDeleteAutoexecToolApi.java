@@ -30,7 +30,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Date;
 import java.util.List;
 
 @Service
@@ -56,18 +55,18 @@ public class BatchDeleteAutoexecToolApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "lcd", type = ApiParamType.LONG, isRequired = true, desc = "common.editdate")
+            @Param(name = "modifyTimeMilliseconds", type = ApiParamType.LONG, isRequired = true, desc = "common.modifytimemilliseconds")
     })
     @Output({})
     @Description(desc = "nmaat.batchdeleteautoexectoolapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        Date lcd = paramObj.getDate("lcd");
-        int count = autoexecToolMapper.getToolCountByLcd(lcd);
+        Long modifyTimeMilliseconds = paramObj.getLong("modifyTimeMilliseconds");
+        int count = autoexecToolMapper.getToolCountByModifyTimeMilliseconds(modifyTimeMilliseconds);
         if (count == 0) {
             return null;
         }
-        List<Long> idList = autoexecToolMapper.getToolIdListByExcludeLcd(lcd);
+        List<Long> idList = autoexecToolMapper.getToolIdListByExcludeModifyTimeMilliseconds(modifyTimeMilliseconds);
         if (CollectionUtils.isNotEmpty(idList)) {
             autoexecToolMapper.deleteToolByIdList(idList);
             for (Long id : idList) {
