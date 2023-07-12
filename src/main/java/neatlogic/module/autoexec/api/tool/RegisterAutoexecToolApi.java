@@ -69,7 +69,7 @@ public class RegisterAutoexecToolApi extends PrivateApiComponentBase {
     private AutoexecRiskMapper autoexecRiskMapper;
 
     @Resource
-    private AutoexecGlobalParamMapper autoexecGbobalParamMapper;
+    private AutoexecGlobalParamMapper autoexecGlobalParamMapper;
 
     @Resource
     private AutoexecService autoexecService;
@@ -81,7 +81,7 @@ public class RegisterAutoexecToolApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "注册内置工具";
+        return "nmaat.registerautoexectoolapi.getname";
     }
 
     @Override
@@ -90,15 +90,15 @@ public class RegisterAutoexecToolApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "opName", type = ApiParamType.REGEX, rule = RegexUtils.NAME_WITH_SLASH, maxLength = 50, isRequired = true, desc = "工具名称"),
-            @Param(name = "opType", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sqlfile,native", isRequired = true, desc = "执行方式"),
-            @Param(name = "typeName", type = ApiParamType.REGEX, rule = RegexUtils.NAME, maxLength = 50, isRequired = true, desc = "工具分类名称"),
-            @Param(name = "riskName", type = ApiParamType.REGEX, rule = RegexUtils.NAME, maxLength = 50, isRequired = true, desc = "操作级别名称"),
-            @Param(name = "interpreter", type = ApiParamType.ENUM, rule = "python,ruby,vbscript,perl,powershell,cmd,bash,ksh,csh,sh,javascript", isRequired = true, desc = "解析器"),
-            @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
-            @Param(name = "option", type = ApiParamType.JSONARRAY,
-                    desc = "入参(当控件类型为[select,multiselect,radio,checkbox]时，需要在dataSource字段填写数据源，格式如下：[{\"text\":\"否\",\"value\":\"0\"},{\"text\":\"是\",\"value\":\"1\"}]，defaultValue字段填写数据源中的value值)"),
-            @Param(name = "argument", type = ApiParamType.JSONOBJECT, desc = "{\n" +
+            @Param(name = "opName", type = ApiParamType.REGEX, rule = RegexUtils.NAME_WITH_SLASH, maxLength = 50, isRequired = true, desc = "common.name"),
+            @Param(name = "opType", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sqlfile,native", isRequired = true, desc = "term.autoexec.execmode"),
+            @Param(name = "typeName", type = ApiParamType.REGEX, rule = RegexUtils.NAME, maxLength = 50, isRequired = true, desc = "common.typename"),
+            @Param(name = "riskName", type = ApiParamType.REGEX, rule = RegexUtils.NAME, maxLength = 50, isRequired = true, desc = "term.autoexec.riskname"),
+            @Param(name = "interpreter", type = ApiParamType.ENUM, rule = "python,ruby,vbscript,perl,powershell,cmd,bash,ksh,csh,sh,javascript", isRequired = true, desc = "term.autoexec.scriptparser"),
+            @Param(name = "description", type = ApiParamType.STRING, desc = "common.description"),
+            @Param(name = "option", type = ApiParamType.JSONARRAY, desc = "term.autoexec.inputparamlist",
+                    help = "当控件类型为[select,multiselect,radio,checkbox]时，需要在dataSource字段填写数据源，格式如下：[{\"text\":\"否\",\"value\":\"0\"},{\"text\":\"是\",\"value\":\"1\"}]，defaultValue字段填写数据源中的value值"),
+            @Param(name = "argument", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.freeparam", help = "{\n" +
                     "        \"name\":\"日志路径\",\n" +
                     "        \"help\":\"日志路径，支持通配符和反引号\",\n" +
                     "        \"type\":\"input\",\n" +
@@ -107,11 +107,13 @@ public class RegisterAutoexecToolApi extends PrivateApiComponentBase {
                     "        \"required\":\"true\",\n" +
                     "        \"validate\":\"\"\n" +
                     "    }"),
-            @Param(name = "output", type = ApiParamType.JSONARRAY, desc = "出参"),
+            @Param(name = "output", type = ApiParamType.JSONARRAY, desc = "term.autoexec.outputparamlist"),
+            @Param(name = "defaultProfile", type = ApiParamType.STRING, desc = ""),
+            @Param(name = "lcd", type = ApiParamType.LONG, isRequired = true, desc = "common.editdate")
     })
     @Output({
     })
-    @Description(desc = "注册内置工具")
+    @Description(desc = "nmaat.registerautoexectoolapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         String opName = jsonObj.getString("opName");
@@ -231,10 +233,10 @@ public class RegisterAutoexecToolApi extends PrivateApiComponentBase {
                     if (globalParamType == null) {
                         throw new AutoexecGlobalParamTypeNotFoundException(key, type);
                     }
-                    if (autoexecGbobalParamMapper.getGlobalParamByKey(mappingValue) == null) {
+                    if (autoexecGlobalParamMapper.getGlobalParamByKey(mappingValue) == null) {
                         // 如果不存在名为{mappingValue}的全局参数，则创建
                         AutoexecGlobalParamVo globalParamVo = new AutoexecGlobalParamVo(mappingValue, mappingValue, globalParamType.getValue());
-                        autoexecGbobalParamMapper.insertGlobalParam(globalParamVo);
+                        autoexecGlobalParamMapper.insertGlobalParam(globalParamVo);
                     }
                     param.put("mappingMode", AutoexecProfileParamInvokeType.GLOBAL_PARAM.getValue());
                     param.put("defaultValue", mappingValue);
