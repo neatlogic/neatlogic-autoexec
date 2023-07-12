@@ -38,7 +38,6 @@ import neatlogic.framework.exception.type.ParamNotExistsException;
 import neatlogic.framework.exception.type.PermissionDeniedException;
 import neatlogic.framework.exception.user.UserNotFoundException;
 import neatlogic.framework.notify.crossover.INotifyServiceCrossoverService;
-import neatlogic.framework.notify.dao.mapper.NotifyMapper;
 import neatlogic.framework.notify.dto.InvokeNotifyPolicyConfigVo;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
@@ -74,9 +73,6 @@ public class AutoexecCombopBasicInfoSaveApi extends PrivateApiComponentBase {
     private AutoexecCombopService autoexecCombopService;
 
     @Resource
-    private NotifyMapper notifyMapper;
-
-    @Resource
     private UserMapper userMapper;
 
     @Override
@@ -86,7 +82,7 @@ public class AutoexecCombopBasicInfoSaveApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "保存组合工具基本信息";
+        return "nmaac.autoexeccombopbasicinfosaveapi.getname";
     }
 
     @Override
@@ -95,21 +91,21 @@ public class AutoexecCombopBasicInfoSaveApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "主键id"),
-            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, isRequired = true, minLength = 1, maxLength = 70, desc = "显示名"),
-            @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
-            @Param(name = "typeId", type = ApiParamType.LONG, isRequired = true, desc = "类型id"),
-            @Param(name = "typeName", type = ApiParamType.STRING, isRequired = true, desc = "类型名"),
-            @Param(name = "viewAuthorityList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "查看权限列表"),
-            @Param(name = "editAuthorityList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "编辑权限列表"),
-            @Param(name = "executeAuthorityList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "执行权限列表"),
-            @Param(name = "owner", type = ApiParamType.STRING, minLength = 37, maxLength = 37, desc = "维护人"),
-            @Param(name = "config", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "配置信息")
+            @Param(name = "id", type = ApiParamType.LONG, desc = "common.id"),
+            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, isRequired = true, minLength = 1, maxLength = 70, desc = "common.name"),
+            @Param(name = "description", type = ApiParamType.STRING, desc = "common.description"),
+            @Param(name = "typeId", type = ApiParamType.LONG, isRequired = true, desc = "common.typeid"),
+            @Param(name = "typeName", type = ApiParamType.STRING, isRequired = true, desc = "common.typename"),
+            @Param(name = "viewAuthorityList", type = ApiParamType.JSONARRAY, isRequired = true, minSize = 1, desc = "common.viewauthoritylist"),
+            @Param(name = "editAuthorityList", type = ApiParamType.JSONARRAY, isRequired = true, minSize = 1, desc = "common.editauthoritylist"),
+            @Param(name = "executeAuthorityList", type = ApiParamType.JSONARRAY, isRequired = true, minSize = 1, desc = "common.executeauthoritylist"),
+            @Param(name = "owner", type = ApiParamType.STRING, minLength = 37, maxLength = 37, desc = "common.owneruuid"),
+            @Param(name = "config", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "common.config")
     })
     @Output({
-            @Param(name = "Return", type = ApiParamType.LONG, desc = "主键id")
+            @Param(name = "Return", type = ApiParamType.LONG, desc = "common.id")
     })
-    @Description(desc = "保存组合工具基本信息")
+    @Description(desc = "nmaac.autoexeccombopbasicinfosaveapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecCombopVo autoexecCombopVo = jsonObj.toJavaObject(AutoexecCombopVo.class);
