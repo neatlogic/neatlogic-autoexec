@@ -45,6 +45,7 @@ import neatlogic.framework.cmdb.dto.resourcecenter.AccountVo;
 import neatlogic.framework.common.constvalue.SystemUser;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dao.mapper.UserMapper;
+import neatlogic.framework.dto.AuthenticationInfoVo;
 import neatlogic.framework.dto.UserVo;
 import neatlogic.framework.exception.type.ParamIrregularException;
 import neatlogic.framework.exception.user.UserNotFoundException;
@@ -53,6 +54,7 @@ import neatlogic.framework.scheduler.core.IJob;
 import neatlogic.framework.scheduler.core.SchedulerManager;
 import neatlogic.framework.scheduler.dto.JobObject;
 import neatlogic.framework.scheduler.exception.ScheduleHandlerNotFoundException;
+import neatlogic.framework.service.AuthenticationInfoService;
 import neatlogic.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecScenarioMapper;
 import com.alibaba.fastjson.JSONArray;
@@ -98,6 +100,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
 
     @Resource
     AutoexecScenarioMapper autoexecScenarioMapper;
+
+    @Resource
+    private AuthenticationInfoService authenticationInfoService;
 
     /**
      * 拼装给proxy的param
@@ -449,17 +454,19 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
     @Override
     public void initExecuteUserContext(AutoexecJobVo jobVo) throws Exception {
         UserVo execUser;
+        AuthenticationInfoVo authenticationInfoVo = null;
         //初始化执行用户上下文
         if (Objects.equals(jobVo.getExecUser(), SystemUser.SYSTEM.getUserUuid())) {
             execUser = SystemUser.SYSTEM.getUserVo();
         } else {
             execUser = userMapper.getUserBaseInfoByUuid(jobVo.getExecUser());
+            authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(jobVo.getExecUser());
         }
         if (execUser == null) {
             throw new UserNotFoundException(jobVo.getExecUser());
         }
 
-        UserContext.init(execUser, "+8:00");
+        UserContext.init(execUser, authenticationInfoVo, "+8:00");
         UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(execUser).getCc());
     }
 

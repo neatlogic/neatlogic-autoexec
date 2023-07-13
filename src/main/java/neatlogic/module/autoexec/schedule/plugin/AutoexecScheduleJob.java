@@ -30,10 +30,12 @@ import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFact
 import neatlogic.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import neatlogic.framework.common.constvalue.SystemUser;
 import neatlogic.framework.dao.mapper.UserMapper;
+import neatlogic.framework.dto.AuthenticationInfoVo;
 import neatlogic.framework.dto.UserVo;
 import neatlogic.framework.filter.core.LoginAuthHandlerBase;
 import neatlogic.framework.scheduler.core.JobBase;
 import neatlogic.framework.scheduler.dto.JobObject;
+import neatlogic.framework.service.AuthenticationInfoService;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
@@ -61,6 +63,9 @@ public class AutoexecScheduleJob extends JobBase {
 
     @Resource
     UserMapper userMapper;
+
+    @Resource
+    private AuthenticationInfoService authenticationInfoService;
 
     @Override
     public String getGroupName() {
@@ -132,7 +137,8 @@ public class AutoexecScheduleJob extends JobBase {
             jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
             jobVo.setIsFirstFire(1);
             UserVo fcuVo = userMapper.getUserByUuid(autoexecScheduleVo.getFcu());
-            UserContext.init(fcuVo, SystemUser.SYSTEM.getTimezone());
+            AuthenticationInfoVo authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(autoexecScheduleVo.getFcu());
+            UserContext.init(fcuVo, authenticationInfoVo, SystemUser.SYSTEM.getTimezone());
             UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(fcuVo).getCc());
             autoexecJobActionService.validateAndCreateJobFromCombop(jobVo);
             jobVo.setAction(JobAction.FIRE.getValue());
