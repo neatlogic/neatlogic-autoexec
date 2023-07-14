@@ -39,12 +39,14 @@ import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.constvalue.SystemUser;
 import neatlogic.framework.dao.mapper.UserMapper;
+import neatlogic.framework.dto.AuthenticationInfoVo;
 import neatlogic.framework.dto.UserVo;
 import neatlogic.framework.exception.core.ApiRuntimeException;
 import neatlogic.framework.exception.user.UserNotFoundException;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
+import neatlogic.framework.service.AuthenticationInfoService;
 import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
@@ -72,9 +74,12 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
     @Resource
     UserMapper userMapper;
 
+    @Resource
+    private AuthenticationInfoService authenticationInfoService;
+
     @Override
     public String getName() {
-        return "回调更新作业阶段状态";
+        return "nmaaje.updateautoexecjobphasestatusapi.getname";
     }
 
     @Override
@@ -89,14 +94,14 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
      */
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
-            @Param(name = "phase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
-            @Param(name = "status", type = ApiParamType.STRING, desc = "状态", isRequired = true),
-            @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数")
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
+            @Param(name = "phase", type = ApiParamType.STRING, desc = "term.autoexec.phase", isRequired = true),
+            @Param(name = "status", type = ApiParamType.STRING, desc = "common.status", isRequired = true),
+            @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.passthroughenv")
     })
     @Output({
     })
-    @Description(desc = "回调更新作业阶段状态")
+    @Description(desc = "nmaaje.updateautoexecjobphasestatusapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
@@ -118,15 +123,17 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         }
         //更新执行用户上下文
         UserVo execUser;
+        AuthenticationInfoVo authenticationInfoVo = null;
         if (Objects.equals(SystemUser.SYSTEM.getUserUuid(), jobVo.getExecUser())) {
             execUser = SystemUser.SYSTEM.getUserVo();
         } else {
             execUser = userMapper.getUserBaseInfoByUuid(jobVo.getExecUser());
+            authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(jobVo.getExecUser());
         }
         if (execUser == null) {
             throw new UserNotFoundException(jobVo.getExecUser());
         }
-        UserContext.init(execUser, "+8:00");
+        UserContext.init(execUser, authenticationInfoVo, "+8:00");
 
         AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseNameWithGroup(jobId, phaseName);
         if (jobPhaseVo == null) {

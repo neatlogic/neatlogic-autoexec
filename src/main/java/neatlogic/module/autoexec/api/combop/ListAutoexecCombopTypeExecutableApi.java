@@ -27,7 +27,6 @@ import neatlogic.framework.dto.AuthenticationInfoVo;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import neatlogic.framework.service.AuthenticationInfoService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
@@ -44,9 +43,6 @@ public class ListAutoexecCombopTypeExecutableApi extends PrivateApiComponentBase
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
 
-    @Resource
-    private AuthenticationInfoService authenticationInfoService;
-
     @Override
     public String getToken() {
         return "autoexec/combop/type/executable/list";
@@ -54,7 +50,7 @@ public class ListAutoexecCombopTypeExecutableApi extends PrivateApiComponentBase
 
     @Override
     public String getName() {
-        return "查询当前用户可执行的组合工具所属分类列表";
+        return "nmaac.listautoexeccomboptypeexecutableapi.getname";
     }
 
     @Override
@@ -65,16 +61,16 @@ public class ListAutoexecCombopTypeExecutableApi extends PrivateApiComponentBase
     @Input({
     })
     @Output({
-            @Param(name = "Return", explode = AutoexecTypeVo[].class, desc = "工具分类列表")
+            @Param(name = "Return", explode = AutoexecTypeVo[].class, desc = "common.tbodylist")
     })
-    @Description(desc = "查询当前用户可执行的组合工具所属分类列表")
+    @Description(desc = "nmaac.listautoexeccomboptypeexecutableapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         List<AutoexecTypeVo> list;
         if (AuthActionChecker.check(AUTOEXEC_MODIFY.class)) {
             list = autoexecCombopMapper.getAllAutoexecTypeListUsedByCombop();
         } else {
-            AuthenticationInfoVo authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(UserContext.get().getUserUuid(true));
+            AuthenticationInfoVo authenticationInfoVo = UserContext.get().getAuthenticationInfoVo();
             Set<Long> idSet = autoexecCombopMapper.getExecutableAutoexecCombopIdListByAuthenticationInfo(authenticationInfoVo);
             list = autoexecCombopMapper.getAutoexecTypeListByCombopIdList(new ArrayList<>(idSet));
         }
