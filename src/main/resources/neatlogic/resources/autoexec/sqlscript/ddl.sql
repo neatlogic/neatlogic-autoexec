@@ -657,7 +657,7 @@ CREATE TABLE IF NOT EXISTS `autoexec_script_version_lib` (
   `script_version_id` bigint NOT NULL COMMENT '脚本版本id',
   `lib_script_id` bigint NOT NULL COMMENT '依赖的脚本id',
   PRIMARY KEY (`script_version_id`,`lib_script_id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='自动化脚本依赖表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='自动化脚本依赖表';
 
 -- ----------------------------
 -- Table structure for autoexec_script_version_param
