@@ -109,7 +109,7 @@ public class RegisterAutoexecToolApi extends PrivateApiComponentBase {
                     "    }"),
             @Param(name = "output", type = ApiParamType.JSONARRAY, desc = "term.autoexec.outputparamlist"),
             @Param(name = "defaultProfile", type = ApiParamType.STRING, desc = ""),
-            @Param(name = "modifyTimeMilliseconds", type = ApiParamType.LONG, isRequired = true, desc = "common.modifytimemilliseconds")
+            @Param(name = "epochTime", type = ApiParamType.LONG, isRequired = true, desc = "common.editdate")
     })
     @Output({
     })
