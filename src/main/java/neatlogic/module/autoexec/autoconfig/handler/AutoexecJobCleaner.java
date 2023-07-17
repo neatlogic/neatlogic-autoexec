@@ -75,7 +75,7 @@ public class AutoexecJobCleaner extends AuditCleanerBase {
             List<RunnerMapVo> runnerVos = runnerMapper.getRunnerByRunnerMapIdList(runnerMapIdList);
             if (CollectionUtils.isNotEmpty(runnerVos)) {
                 runnerVos = runnerVos.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getId))), ArrayList::new));
-                UserContext.init(SystemUser.SYSTEM.getUserVo(), SystemUser.SYSTEM.getTimezone());
+                UserContext.init(SystemUser.SYSTEM);
                 UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(SystemUser.SYSTEM.getUserVo()).getCc());
                 for (RunnerMapVo runner : runnerVos) {
                     String url = runner.getUrl() + "api/rest/job/data/purge";

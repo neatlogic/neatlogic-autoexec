@@ -22,6 +22,7 @@ import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.dao.mapper.TeamMapper;
+import neatlogic.framework.dto.AuthenticationInfoVo;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -111,9 +112,10 @@ public class AutoexecJobAuthActionManager {
      */
     public void setAutoexecJobAction(AutoexecJobVo autoexecJobVo) {
         List<String> userList = new ArrayList<>();
-        userList.add(UserContext.get().getUserUuid());
-        userList.addAll(UserContext.get().getRoleUuidList());
-        userList.addAll(teamMapper.getTeamUuidListByUserUuid(UserContext.get().getUserUuid()));
+        AuthenticationInfoVo authenticationInfoVo = UserContext.get().getAuthenticationInfoVo();
+        userList.add(authenticationInfoVo.getUserUuid());
+        userList.addAll(authenticationInfoVo.getRoleUuidList());
+        userList.addAll(authenticationInfoVo.getTeamUuidList());
         if (autoexecJobMapper.checkIsJobUser(autoexecJobVo.getId(), userList) > 0) {
             if (CollectionUtils.isNotEmpty(actionList)) {
                 for (String action : actionList) {

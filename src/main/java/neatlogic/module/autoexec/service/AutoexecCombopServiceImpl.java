@@ -52,7 +52,6 @@ import neatlogic.framework.exception.role.RoleNotFoundException;
 import neatlogic.framework.exception.team.TeamNotFoundException;
 import neatlogic.framework.exception.user.UserNotFoundException;
 import neatlogic.framework.notify.dto.InvokeNotifyPolicyConfigVo;
-import neatlogic.framework.service.AuthenticationInfoService;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
 import neatlogic.module.autoexec.dependency.*;
@@ -84,9 +83,6 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
     private AutoexecScriptMapper autoexecScriptMapper;
 
     @Resource
-    private AuthenticationInfoService authenticationInfoService;
-
-    @Resource
     private AutoexecProfileService autoexecProfileService;
 
     @Resource
@@ -110,7 +106,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
     @Override
     public void setOperableButtonList(AutoexecCombopVo autoexecCombopVo) {
         String userUuid = UserContext.get().getUserUuid(true);
-        AuthenticationInfoVo authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(userUuid);
+        AuthenticationInfoVo authenticationInfoVo = UserContext.get().getAuthenticationInfoVo();
         if (AuthActionChecker.check(AUTOEXEC_MODIFY.class) || Objects.equals(autoexecCombopVo.getOwner(), userUuid)) {
             autoexecCombopVo.setViewable(1);
             autoexecCombopVo.setEditable(1);
@@ -172,9 +168,6 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 return true;
             } else {
                 authenticationInfoVo = UserContext.get().getAuthenticationInfoVo();
-                if(authenticationInfoVo == null) {
-                    authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(userUuid);
-                }
                 List<String> authorityList = autoexecCombopMapper.getAutoexecCombopAuthorityListByCombopIdAndUserUuidAndTeamUuidListAndRoleUuidList(autoexecCombopVo.getId(), userUuid, authenticationInfoVo.getTeamUuidList(), authenticationInfoVo.getRoleUuidList());
                 return authorityList.contains(action.getValue());
             }
