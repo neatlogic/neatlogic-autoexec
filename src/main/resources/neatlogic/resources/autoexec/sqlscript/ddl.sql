@@ -757,7 +757,7 @@ CREATE TABLE IF NOT EXISTS `autoexec_tool` (
   `lcd` timestamp(3) NULL DEFAULT NULL COMMENT '最后修改时间',
   `lcu` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '最后修改人',
   `is_lib` tinyint DEFAULT NULL COMMENT '是否库文件',
-  `epoch_time` bigint DEFAULT NULL COMMENT '最后修改时间的秒数',
+  `import_time` bigint DEFAULT NULL COMMENT '最后导入时间的秒数',
   PRIMARY KEY (`id`) USING BTREE,
   UNIQUE KEY `unique_name` (`name`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='自动化工具表';
