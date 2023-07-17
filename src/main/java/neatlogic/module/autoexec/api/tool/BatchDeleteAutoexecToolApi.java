@@ -55,18 +55,18 @@ public class BatchDeleteAutoexecToolApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "epochTime", type = ApiParamType.LONG, isRequired = true, desc = "common.editdate")
+            @Param(name = "importTime", type = ApiParamType.LONG, isRequired = true, desc = "common.editdate")
     })
     @Output({})
     @Description(desc = "nmaat.batchdeleteautoexectoolapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        Long epochTime = paramObj.getLong("epochTime");
-        int count = autoexecToolMapper.getToolCountByEpochTime(epochTime);
+        Long importTime = paramObj.getLong("importTime");
+        int count = autoexecToolMapper.getToolCountByImportTime(importTime);
         if (count == 0) {
             return null;
         }
-        List<Long> idList = autoexecToolMapper.getToolIdListByExcludeEpochTime(epochTime);
+        List<Long> idList = autoexecToolMapper.getToolIdListByExcludeImportTime(importTime);
         if (CollectionUtils.isNotEmpty(idList)) {
             autoexecToolMapper.deleteToolByIdList(idList);
             for (Long id : idList) {
