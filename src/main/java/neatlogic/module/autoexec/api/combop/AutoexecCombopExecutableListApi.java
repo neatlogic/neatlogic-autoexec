@@ -29,7 +29,6 @@ import neatlogic.framework.dto.AuthenticationInfoVo;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import neatlogic.framework.service.AuthenticationInfoService;
 import neatlogic.framework.util.TableResultUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -56,9 +55,6 @@ public class AutoexecCombopExecutableListApi extends PrivateApiComponentBase {
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
 
-    @Resource
-    private AuthenticationInfoService authenticationInfoService;
-
     @Override
     public String getToken() {
         return "autoexec/combop/executable/list";
@@ -66,7 +62,7 @@ public class AutoexecCombopExecutableListApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "查询当前用户可执行的组合工具列表";
+        return "nmaac.autoexeccombopexecutablelistapi.getname";
     }
 
     @Override
@@ -75,17 +71,17 @@ public class AutoexecCombopExecutableListApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "keyword", type = ApiParamType.STRING, desc = "模糊查询，支持名称或唯一标识"),
-            @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "默认值"),
-            @Param(name = "typeId", type = ApiParamType.LONG, desc = "类型id"),
-            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页数"),
-            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页条数")
+            @Param(name = "keyword", type = ApiParamType.STRING, desc = "common.keyword"),
+            @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "common.defaultvalue"),
+            @Param(name = "typeId", type = ApiParamType.LONG, desc = "common.typeid"),
+            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "common.currentpage"),
+            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "common.pagesize")
     })
     @Output({
             @Param(explode = BasePageVo.class),
-            @Param(name = "tbodyList", explode = AutoexecCombopVo[].class, desc = "组合工具列表")
+            @Param(name = "tbodyList", explode = AutoexecCombopVo[].class, desc = "common.tbodylist")
     })
-    @Description(desc = "查询当前用户可执行的组合工具列表")
+    @Description(desc = "nmaac.autoexeccombopexecutablelistapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         List<AutoexecCombopVo> autoexecCombopList = new ArrayList<>();
@@ -107,8 +103,7 @@ public class AutoexecCombopExecutableListApi extends PrivateApiComponentBase {
             }
         } else {
             //用户没有“自动化管理员权限”时，组合工具维护人或者有执行授权
-            String userUuid = UserContext.get().getUserUuid(true);
-            AuthenticationInfoVo authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(userUuid);
+            AuthenticationInfoVo authenticationInfoVo = UserContext.get().getAuthenticationInfoVo();
             Set<Long> idSet = autoexecCombopMapper.getExecutableAutoexecCombopIdListByKeywordAndAuthenticationInfo(searchVo.getKeyword(), searchVo.getTypeId(), authenticationInfoVo);
             List<Long> idList = new ArrayList<>(idSet);
             idList.sort(Comparator.reverseOrder());

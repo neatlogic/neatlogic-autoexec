@@ -26,12 +26,14 @@ import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.constvalue.SystemUser;
 import neatlogic.framework.dao.mapper.UserMapper;
+import neatlogic.framework.dto.AuthenticationInfoVo;
 import neatlogic.framework.dto.UserVo;
 import neatlogic.framework.exception.type.ParamIrregularException;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.service.AuthenticationInfoService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,9 +55,12 @@ public class UpdateAutoexecJobStatusApi extends PrivateApiComponentBase {
     @Resource
     UserMapper userMapper;
 
+    @Resource
+    private AuthenticationInfoService authenticationInfoService;
+
     @Override
     public String getName() {
-        return "回调更新作业状态";
+        return "nmaaje.updateautoexecjobstatusapi.getname";
     }
 
     @Override
@@ -64,13 +69,13 @@ public class UpdateAutoexecJobStatusApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
-            @Param(name = "status", type = ApiParamType.STRING, desc = "状态", isRequired = true),
-            @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数")
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
+            @Param(name = "status", type = ApiParamType.STRING, desc = "common.status", isRequired = true),
+            @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.passthroughenv")
     })
     @Output({
     })
-    @Description(desc = "回调更新作业状态,目前只有 中止和暂停会调该接口")
+    @Description(desc = "nmaaje.updateautoexecjobstatusapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
@@ -82,12 +87,14 @@ public class UpdateAutoexecJobStatusApi extends PrivateApiComponentBase {
         }
         //更新执行用户上下文
         UserVo execUser;
+        AuthenticationInfoVo authenticationInfoVo = null;
         if(Objects.equals(SystemUser.SYSTEM.getUserUuid(),jobVo.getExecUser())){
             execUser = SystemUser.SYSTEM.getUserVo();
         }else{
             execUser = userMapper.getUserBaseInfoByUuid(jobVo.getExecUser());
+            authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(jobVo.getExecUser());
         }
-        UserContext.init(execUser,"+8:00");
+        UserContext.init(execUser, authenticationInfoVo, "+8:00");
 
         if (Objects.equals(status, JobStatus.ABORTED.getValue())) {
             statusIng = JobStatus.ABORTING.getValue();

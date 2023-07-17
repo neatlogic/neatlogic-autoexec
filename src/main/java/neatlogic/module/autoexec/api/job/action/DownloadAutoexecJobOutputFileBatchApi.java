@@ -55,7 +55,7 @@ public class DownloadAutoexecJobOutputFileBatchApi extends PublicBinaryStreamApi
 
     @Override
     public String getName() {
-        return "批量下载作业输出文件";
+        return "nmaaja.downloadautoexecjoboutputfilebatchapi.getname";
     }
 
     @Override
@@ -64,11 +64,11 @@ public class DownloadAutoexecJobOutputFileBatchApi extends PublicBinaryStreamApi
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
     })
     @Output({
     })
-    @Description(desc = "批量下载作业输出文件")
+    @Description(desc = "nmaaja.downloadautoexecjoboutputfilebatchapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
@@ -76,7 +76,7 @@ public class DownloadAutoexecJobOutputFileBatchApi extends PublicBinaryStreamApi
         if (jobInfo == null) {
             throw new AutoexecJobNotFoundException(jobId);
         }
-        UserContext.init(SystemUser.SYSTEM.getUserVo(),SystemUser.SYSTEM.getTimezone());
+        UserContext.init(SystemUser.SYSTEM);
         UserContext.get().setResponse(response);
         List<RunnerVo> runnerVoList = autoexecJobMapper.getJobRunnerListByJobId(jobId);
         for(RunnerVo runnerVo : runnerVoList){
