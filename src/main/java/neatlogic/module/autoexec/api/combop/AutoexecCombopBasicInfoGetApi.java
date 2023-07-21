@@ -27,6 +27,8 @@ import neatlogic.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
 import neatlogic.framework.autoexec.exception.*;
+import neatlogic.framework.autoexec.exception.combop.AutoexecCombopNotFoundEditTargetException;
+import neatlogic.framework.autoexec.exception.combop.AutoexecCombopVersionNotFoundEditTargetException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.constvalue.GroupSearch;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
@@ -71,7 +73,7 @@ public class AutoexecCombopBasicInfoGetApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "查询组合工具基本信息";
+        return "nmaac.autoexeccombopbasicinfogetapi.getname";
     }
 
     @Override
@@ -85,20 +87,20 @@ public class AutoexecCombopBasicInfoGetApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "主键id"),
-            @Param(name = "versionId", type = ApiParamType.LONG, desc = "versionId"),
-            @Param(name = "versionStatus", type = ApiParamType.ENUM, rule = "draft,submitted,passed,rejected", desc = "状态")
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "common.id"),
+            @Param(name = "versionId", type = ApiParamType.LONG, desc = "common.versionid"),
+            @Param(name = "versionStatus", type = ApiParamType.ENUM, rule = "draft,submitted,passed,rejected", desc = "common.status")
     })
     @Output({
-            @Param(explode = AutoexecCombopVo.class, desc = "组合工具基本信息")
+            @Param(explode = AutoexecCombopVo.class, desc = "term.autoexec.combopbaseinfo")
     })
-    @Description(desc = "查询组合工具基本信息")
+    @Description(desc = "nmaac.autoexeccombopbasicinfogetapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");
         AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
         if (autoexecCombopVo == null) {
-            throw new AutoexecCombopNotFoundException(id);
+            throw new AutoexecCombopNotFoundEditTargetException(id);
         }
         AutoexecTypeVo autoexecTypeVo = autoexecTypeMapper.getTypeById(autoexecCombopVo.getTypeId());
         if (autoexecTypeVo != null) {
@@ -131,7 +133,7 @@ public class AutoexecCombopBasicInfoGetApi extends PrivateApiComponentBase {
         if (versionId != null) {
             AutoexecCombopVersionVo versionVo = autoexecCombopVersionMapper.getAutoexecCombopVersionById(versionId);
             if (versionVo == null) {
-                throw new AutoexecCombopVersionNotFoundException(versionId);
+                throw new AutoexecCombopVersionNotFoundEditTargetException(versionId);
             }
             autoexecCombopVo.setSpecifyVersionId(versionId);
         } else {

@@ -5,7 +5,7 @@ import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecScheduleMapper;
 import neatlogic.framework.autoexec.dto.schedule.AutoexecScheduleVo;
-import neatlogic.framework.autoexec.exception.AutoexecScheduleNotFoundException;
+import neatlogic.framework.autoexec.exception.schedule.AutoexecScheduleNotFoundEditTargetException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
@@ -33,7 +33,7 @@ public class AutoexecScheduleGetApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取定时作业信息";
+        return "nmaas.autoexecschedulegetapi.getname";
     }
 
     @Override
@@ -42,18 +42,18 @@ public class AutoexecScheduleGetApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "定时作业id")
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "common.id")
     })
-    @Description(desc = "获取定时作业信息")
+    @Description(desc = "nmaas.autoexecschedulegetapi.getname")
     @Output({
-            @Param(name = "Return", explode = AutoexecScheduleVo.class, desc = "定时作业信息")
+            @Param(name = "Return", explode = AutoexecScheduleVo.class, desc = "term.autoexec.scheduleinfo")
     })
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long id = paramObj.getLong("id");
         AutoexecScheduleVo autoexecScheduleVo = autoexecScheduleMapper.getAutoexecScheduleById(id);
         if (autoexecScheduleVo == null) {
-            throw new AutoexecScheduleNotFoundException(id);
+            throw new AutoexecScheduleNotFoundEditTargetException(id);
         }
         if (autoexecCombopMapper.checkAutoexecCombopIsExists(autoexecScheduleVo.getAutoexecCombopId()) == 0) {
             autoexecScheduleVo.setAutoexecCombopId(null);

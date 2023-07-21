@@ -28,10 +28,10 @@ import neatlogic.framework.autoexec.constvalue.ScriptAndToolOperate;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dto.AutoexecToolVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
+import neatlogic.framework.autoexec.exception.tool.AutoexecToolNotFoundEditTargetException;
 import neatlogic.framework.dependency.core.DependencyManager;
 import neatlogic.framework.dependency.dto.DependencyInfoVo;
 import neatlogic.framework.dto.OperateVo;
-import neatlogic.framework.autoexec.exception.AutoexecToolNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
@@ -66,7 +66,7 @@ public class AutoexecToolGetApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取工具";
+        return "nmaat.autoexectoolgetapi.getname";
     }
 
     @Override
@@ -75,18 +75,18 @@ public class AutoexecToolGetApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "工具ID"),
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "common.id"),
     })
     @Output({
             @Param(explode = AutoexecToolVo.class)
     })
-    @Description(desc = "获取工具")
+    @Description(desc = "nmaat.autoexectoolgetapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");
         AutoexecToolVo tool = autoexecToolMapper.getToolById(id);
         if (tool == null) {
-            throw new AutoexecToolNotFoundException(id);
+            throw new AutoexecToolNotFoundEditTargetException(id);
         }
         List<Long> combopIdList = new ArrayList<>();
         List<DependencyInfoVo> dependencyInfoList = DependencyManager.getDependencyList(AutoexecTool2CombopPhaseOperationDependencyHandler.class, id);
