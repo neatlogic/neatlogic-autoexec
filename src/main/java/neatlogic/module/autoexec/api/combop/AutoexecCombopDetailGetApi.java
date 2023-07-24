@@ -23,22 +23,17 @@ import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import neatlogic.framework.autoexec.dto.AutoexecTypeVo;
 import neatlogic.framework.autoexec.dto.combop.*;
-import neatlogic.framework.autoexec.exception.AutoexecCombopNotFoundException;
-import neatlogic.framework.autoexec.exception.AutoexecCombopVersionNotFoundException;
+import neatlogic.framework.autoexec.exception.combop.AutoexecCombopNotFoundEditTargetException;
+import neatlogic.framework.autoexec.exception.combop.AutoexecCombopVersionNotFoundEditTargetException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
-import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
 
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
@@ -58,20 +53,20 @@ public class AutoexecCombopDetailGetApi extends PrivateApiComponentBase {
     private AutoexecTypeMapper autoexecTypeMapper;
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "主键id"),
-            @Param(name = "versionId", type = ApiParamType.LONG, desc = "版本id")
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "common.id"),
+            @Param(name = "versionId", type = ApiParamType.LONG, desc = "common.versionid")
     })
     @Output({
-            @Param(explode = AutoexecCombopVo.class, desc = "组合工具基本信息")
+            @Param(explode = AutoexecCombopVo.class, desc = "term.autoexec.combopdetailsinfo")
     })
-    @Description(desc = "查询组合工具基本信息")
+    @Description(desc = "nmaac.autoexeccombopdetailgetapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long id = paramObj.getLong("id");
         Long versionId = paramObj.getLong("versionId");
         AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
         if (autoexecCombopVo == null) {
-            throw new AutoexecCombopNotFoundException(id);
+            throw new AutoexecCombopNotFoundEditTargetException(id);
         }
         AutoexecTypeVo autoexecTypeVo = autoexecTypeMapper.getTypeById(autoexecCombopVo.getTypeId());
         if (autoexecTypeVo != null) {
@@ -90,7 +85,7 @@ public class AutoexecCombopDetailGetApi extends PrivateApiComponentBase {
         if (versionId != null) {
             AutoexecCombopVersionVo autoexecCombopVersionVo = autoexecCombopService.getAutoexecCombopVersionById(versionId);
             if (autoexecCombopVersionVo == null) {
-                throw new AutoexecCombopVersionNotFoundException(versionId);
+                throw new AutoexecCombopVersionNotFoundEditTargetException(versionId);
             }
             AutoexecCombopVersionConfigVo versionConfig = autoexecCombopVersionVo.getConfig();
             autoexecCombopService.needExecuteConfig(autoexecCombopVersionVo);
@@ -117,7 +112,7 @@ public class AutoexecCombopDetailGetApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取组合工具及激活版本详细信息";
+        return "nmaac.autoexeccombopdetailgetapi.getname";
     }
 
     @Override

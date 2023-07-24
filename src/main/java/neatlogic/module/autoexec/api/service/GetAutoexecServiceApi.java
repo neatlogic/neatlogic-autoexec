@@ -21,10 +21,10 @@ import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_SERVICE_MANAGE;
 import neatlogic.framework.autoexec.constvalue.AutoexecServiceType;
+import neatlogic.framework.autoexec.exception.service.AutoexecServiceNotFoundEditTargetException;
 import neatlogic.module.autoexec.dao.mapper.AutoexecServiceMapper;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceAuthorityVo;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceVo;
-import neatlogic.framework.autoexec.exception.AutoexecServiceNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
@@ -56,7 +56,7 @@ public class GetAutoexecServiceApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取服务目录信息";
+        return "nmpac.cataloggetapi.getname";
     }
 
     @Override
@@ -65,18 +65,18 @@ public class GetAutoexecServiceApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "服务id")
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "common.id")
     })
     @Output({
-            @Param(explode = AutoexecServiceVo.class, desc = "服务目录信息")
+            @Param(explode = AutoexecServiceVo.class, desc = "term.autoexec.serviceinfo")
     })
-    @Description(desc = "获取服务目录信息接口")
+    @Description(desc = "nmpac.cataloggetapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long id = paramObj.getLong("id");
         AutoexecServiceVo serviceVo = autoexecServiceMapper.getAutoexecServiceById(id);
         if (serviceVo == null) {
-            throw new AutoexecServiceNotFoundException(id);
+            throw new AutoexecServiceNotFoundEditTargetException(id);
         }
         List<AutoexecServiceAuthorityVo> authorityVoList = autoexecServiceMapper.getAutoexecServiceAuthorityListByServiceId(id);
         if (CollectionUtils.isNotEmpty(authorityVoList)) {

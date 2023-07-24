@@ -19,11 +19,10 @@ package neatlogic.module.autoexec.api.job;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.constvalue.JobStatus;
-import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobInvokeVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
-import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
+import neatlogic.framework.autoexec.exception.job.AutoexecJobNotFoundEditTargetException;
 import neatlogic.framework.autoexec.exception.AutoexecJobSourceInvalidException;
 import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
 import neatlogic.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
@@ -33,7 +32,6 @@ import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import neatlogic.module.autoexec.service.AutoexecCombopService;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
@@ -52,15 +50,9 @@ public class AutoexecJobInfoGetApi extends PrivateApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
 
-    @Resource
-    AutoexecCombopMapper autoexecCombopMapper;
-
-    @Resource
-    AutoexecCombopService autoexecCombopService;
-
     @Override
     public String getName() {
-        return "获取作业详情";
+        return "nmaaj.autoexecjobinfogetapi.getname";
     }
 
     @Override
@@ -69,19 +61,19 @@ public class AutoexecJobInfoGetApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true)
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true)
     })
     @Output({
-            @Param(explode = AutoexecJobVo.class, desc = "列表"),
+            @Param(explode = AutoexecJobVo.class, desc = "term.autoexec.jobinfo"),
     })
-    @Description(desc = "获取作业详情")
+    @Description(desc = "nmaaj.autoexecjobinfogetapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
         //作业基本信息
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
         if (jobVo == null) {
-            throw new AutoexecJobNotFoundException(jobId.toString());
+            throw new AutoexecJobNotFoundEditTargetException(jobId);
         }
         //判断是否有执行与接管权限
         if(!Objects.equals(jobVo.getStatus(), JobStatus.CHECKED.getValue())) {

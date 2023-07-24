@@ -27,6 +27,8 @@ import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
 import neatlogic.framework.autoexec.exception.*;
+import neatlogic.framework.autoexec.exception.script.AutoexecScriptNotFoundEditTargetException;
+import neatlogic.framework.autoexec.exception.script.AutoexecScriptVersionNotFoundEditTargetException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.dao.mapper.UserMapper;
 import neatlogic.framework.dependency.core.DependencyManager;
@@ -81,7 +83,7 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "查看脚本";
+        return "nmaas.autoexecscriptgetapi.getname";
     }
 
     @Override
@@ -95,14 +97,14 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "脚本ID，表示不指定版本查看，两个参数二选一"),
-            @Param(name = "versionId", type = ApiParamType.LONG, desc = "脚本版本ID，表示指定版本查看"),
-            @Param(name = "status", type = ApiParamType.ENUM, rule = "draft,passed,rejected", desc = "状态(传id而非versionId时，表示从列表查看脚本，此时必须传status参数)"),
+            @Param(name = "id", type = ApiParamType.LONG, desc = "common.id", help = "表示不指定版本查看，两个参数二选一"),
+            @Param(name = "versionId", type = ApiParamType.LONG, desc = "common.versionid", help = "表示指定版本查看"),
+            @Param(name = "status", type = ApiParamType.ENUM, rule = "draft,passed,rejected", desc = "common.status", help = "传id而非versionId时，表示从列表查看脚本，此时必须传status参数"),
     })
     @Output({
-            @Param(name = "script", explode = AutoexecScriptVo.class, desc = "脚本内容"),
+            @Param(name = "script", explode = AutoexecScriptVo.class, desc = "term.autoexec.scriptinfo"),
     })
-    @Description(desc = "查看脚本")
+    @Description(desc = "nmaas.autoexecscriptgetapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
@@ -119,7 +121,7 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
                 throw new ParamNotExistsException("status");
             }
             if (autoexecScriptMapper.checkScriptIsExistsById(id) == 0) {
-                throw new AutoexecScriptNotFoundException(id);
+                throw new AutoexecScriptNotFoundEditTargetException(id);
             }
             /**
              * 如果是从已通过列表进入详情页，则取当前激活版本
@@ -151,7 +153,7 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         } else if (versionId != null) { // 指定查看某个版本
             AutoexecScriptVersionVo currentVersion = autoexecScriptMapper.getVersionByVersionId(versionId);
             if (currentVersion == null) {
-                throw new AutoexecScriptVersionNotFoundException(versionId);
+                throw new AutoexecScriptVersionNotFoundEditTargetException(versionId);
             }
             // 已通过版本不显示标题
             if (Objects.equals(currentVersion.getStatus(), ScriptVersionStatus.PASSED.getValue())) {
@@ -162,7 +164,7 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         }
         script = autoexecScriptMapper.getScriptBaseInfoById(id);
         if (script == null) {
-            throw new AutoexecScriptNotFoundException(id);
+            throw new AutoexecScriptNotFoundEditTargetException(id);
         }
         script.setVersionVo(version);
         AutoexecScriptVersionVo currentVersion = autoexecScriptMapper.getActiveVersionByScriptId(id);
