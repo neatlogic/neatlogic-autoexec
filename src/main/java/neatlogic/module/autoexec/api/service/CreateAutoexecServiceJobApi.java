@@ -168,8 +168,8 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
         boolean needExecuteNode = autoexecCombopVersionVo.getNeedExecuteNode();
         boolean needProtocol = autoexecCombopVersionVo.getNeedProtocol();
         boolean needRoundCount = autoexecCombopVersionVo.getNeedRoundCount();
-        // 如果服务编辑页设置了表单，且分批数量、执行目标、连接协议、执行帐号、作业参数是必填时，要么映射表单组件，要么映射常量（必填）。
-        // 如果服务编辑页没有设置了表单，那么分批数量、执行目标、连接协议、执行帐号、作业参数等可填也可不填，不填的话，在服务创建作业时再填。
+        // 如果服务编辑页设置了表单，且分批数量、执行目标、连接协议、执行账号、作业参数是必填时，要么映射表单组件，要么映射常量（必填）。
+        // 如果服务编辑页没有设置了表单，那么分批数量、执行目标、连接协议、执行账号、作业参数等可填也可不填，不填的话，在服务创建作业时再填。
         String formUuid = autoexecServiceVo.getFormUuid();
         if (StringUtils.isNotBlank(formUuid)) {
             JSONArray formAttributeDataList = paramObj.getJSONArray("formAttributeDataList");

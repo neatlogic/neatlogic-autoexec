@@ -531,7 +531,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
         AutoexecCombopExecuteConfigVo executeConfigVo;
         AutoexecJobGroupVo jobGroupVo = jobVo.getCurrentPhase().getJobGroupVo();
-        //判断group是不是grayScale，如果是则从group中获取执行节点、帐号、执行用户
+        //判断group是不是grayScale，如果是则从group中获取执行节点、账号、执行用户
         if (Objects.equals(jobGroupVo.getPolicy(), AutoexecJobGroupPolicy.GRAYSCALE.getName())) {
             AutoexecCombopGroupConfigVo groupConfig = jobGroupVo.getConfig();
             if (groupConfig != null) {
@@ -1148,7 +1148,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      *
      * @param jobVo          作业
      * @param resourceVoList 最新阶段资产列表
-     * @param userName       帐号
+     * @param userName       账号
      * @param protocolId     协议id
      */
     private void updateJobPhaseNode(AutoexecJobVo jobVo, List<ResourceVo> resourceVoList, String userName, Long protocolId) {
@@ -1160,7 +1160,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      *
      * @param jobVo          作业
      * @param resourceVoList 最新阶段资产列表
-     * @param userName       帐号
+     * @param userName       账号
      * @param protocolId     协议id
      * @param isResetNode    是否需要重置节点状态
      */
