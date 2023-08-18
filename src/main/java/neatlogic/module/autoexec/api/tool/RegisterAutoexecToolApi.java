@@ -28,11 +28,13 @@ import neatlogic.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
 import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.exception.type.ParamIrregularException;
 import neatlogic.framework.exception.type.ParamNotExistsException;
 import neatlogic.framework.exception.type.ParamTypeNotFoundException;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
+import neatlogic.framework.util.I18nUtils;
 import neatlogic.framework.util.RegexUtils;
 import neatlogic.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
 import neatlogic.module.autoexec.service.AutoexecService;
@@ -182,7 +184,12 @@ public class RegisterAutoexecToolApi extends PrivateApiComponentBase {
                 }
                 param.put("description", value.getString("help"));
                 JSONObject config = null;
-                JSONArray validate = value.getJSONArray("validate");
+                JSONArray validate = null;
+                try {
+                    validate = value.getJSONArray("validate");
+                }catch (Exception ex){
+                    throw new ParamIrregularException("option.validate", I18nUtils.getMessage("nmaat.registerautoexectoolapi.getparamlist.array"));
+                }
                 if (CollectionUtils.isNotEmpty(validate)) {
                     config = new JSONObject();
                     List<Object> validateList = new ArrayList<>();
