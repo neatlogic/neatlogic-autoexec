@@ -16,19 +16,25 @@ limitations under the License.
 
 package neatlogic.module.autoexec.api.job;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.exception.type.ParamIrregularException;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 
 /**
  * @author lvzk
@@ -44,7 +50,7 @@ public class GetAutoexecJobStatusApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取作业状态";
+        return "nmaaj.getautoexecjobstatusapi.description.desc";
     }
 
     @Override
@@ -53,24 +59,42 @@ public class GetAutoexecJobStatusApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true)
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid"),
+            @Param(name = "jobIdList", type = ApiParamType.JSONARRAY, desc = "nmaaj.getautoexecjobstatusapi.input.param.desc.idlist"),
     })
     @Output({
-            @Param(explode = AutoexecJobVo.class, desc = "列表"),
+
     })
-    @Description(desc = "获取作业详情")
+    @Description(desc = "nmaaj.getautoexecjobstatusapi.description.desc")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        JSONObject result = new JSONObject();
         Long jobId = jsonObj.getLong("jobId");
-        //作业基本信息
-        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
-        if (jobVo == null) {
-            throw new AutoexecJobNotFoundException(jobId.toString());
+        JSONArray jobIdArray = jsonObj.getJSONArray("jobIdList");
+        if (jobId == null && jobIdArray == null) {
+            throw new ParamIrregularException("jobId | jobIdList");
         }
-        result.put("status",jobVo.getStatus());
-        result.put("statusName",jobVo.getStatusName());
-        return result;
+        if (jobId != null) {
+            JSONObject result = new JSONObject();
+            //作业基本信息
+            AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+            if (jobVo == null) {
+                throw new AutoexecJobNotFoundException(jobId.toString());
+            }
+            result.put("status", jobVo.getStatus());
+            result.put("statusName", jobVo.getStatusName());
+            return result;
+        } else {
+            Map<Long,JSONObject> resultMap = new HashMap<>();
+            List<Long> jobIdList = jobIdArray.toJavaList(Long.class);
+            List<AutoexecJobVo> jobList = autoexecJobMapper.getJobListByIdList(jobIdList);
+            for (AutoexecJobVo autoexecJobVo : jobList) {
+                JSONObject result = new JSONObject();
+                result.put("status", autoexecJobVo.getStatus());
+                result.put("statusName", autoexecJobVo.getStatusName());
+                resultMap.put(autoexecJobVo.getId(),result);
+            }
+            return resultMap;
+        }
     }
 
     @Override
