@@ -84,14 +84,14 @@ public class GetAutoexecJobStatusApi extends PrivateApiComponentBase {
             result.put("statusName", jobVo.getStatusName());
             return result;
         } else {
-            Map<Long,JSONObject> resultMap = new HashMap<>();
+            Map<String,JSONObject> resultMap = new HashMap<>();
             List<Long> jobIdList = jobIdArray.toJavaList(Long.class);
             List<AutoexecJobVo> jobList = autoexecJobMapper.getJobListByIdList(jobIdList);
             for (AutoexecJobVo autoexecJobVo : jobList) {
                 JSONObject result = new JSONObject();
                 result.put("status", autoexecJobVo.getStatus());
                 result.put("statusName", autoexecJobVo.getStatusName());
-                resultMap.put(autoexecJobVo.getId(),result);
+                resultMap.put(autoexecJobVo.getId().toString(),result);
             }
             return resultMap;
         }
