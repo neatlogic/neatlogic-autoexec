@@ -154,6 +154,17 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             }
         }
         autoexecJobMapper.insertIgnoreJobContent(new AutoexecJobContentVo(jobVo.getParamHash(), jobVo.getRunTimeParamListStr()));
+        //更新父节作业的parentId,-1代表父作业
+        if(jobVo.getParentId() != null){
+            AutoexecJobVo parentJobVo = autoexecJobMapper.getJobInfo(jobVo.getParentId());
+            if(parentJobVo == null){
+                throw  new AutoexecJobNotFoundException(jobVo.getParentId());
+            }
+            if(parentJobVo.getParentId() != null){
+                throw new AutoexecJobNotSupportMultiParentException(parentJobVo.getId());
+            }
+            autoexecJobMapper.updateJobParentIdById(parentJobVo.getId(),-1);
+        }
         autoexecJobMapper.insertJob(jobVo);
         //保存作业执行目标
         AutoexecCombopExecuteConfigVo combopExecuteConfigVo = config.getExecuteConfig();
