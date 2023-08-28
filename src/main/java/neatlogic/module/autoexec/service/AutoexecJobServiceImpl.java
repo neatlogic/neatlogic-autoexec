@@ -109,7 +109,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
 
     /**
      * 获取最终的执行用户
-     * @param executeUser 执行用户映射信息
+     *
+     * @param executeUser      执行用户映射信息
      * @param runTimeParamList 作业参数列表
      * @return
      */
@@ -155,15 +156,17 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
         autoexecJobMapper.insertIgnoreJobContent(new AutoexecJobContentVo(jobVo.getParamHash(), jobVo.getRunTimeParamListStr()));
         //更新父节作业的parentId,-1代表父作业
-        if(jobVo.getParentId() != null){
+        if (jobVo.getParentId() != null) {
             AutoexecJobVo parentJobVo = autoexecJobMapper.getJobInfo(jobVo.getParentId());
-            if(parentJobVo == null){
-                throw  new AutoexecJobNotFoundException(jobVo.getParentId());
+            if (parentJobVo == null) {
+                throw new AutoexecJobNotFoundException(jobVo.getParentId());
             }
-            if(parentJobVo.getParentId() != null){
+            if (parentJobVo.getParentId() != null && parentJobVo.getParentId() != -1) {
                 throw new AutoexecJobNotSupportMultiParentException(parentJobVo.getId());
             }
-            autoexecJobMapper.updateJobParentIdById(parentJobVo.getId(),-1);
+            if (parentJobVo.getParentId() == null) {
+                autoexecJobMapper.updateJobParentIdById(parentJobVo.getId(), -1);
+            }
         }
         autoexecJobMapper.insertJob(jobVo);
         //保存作业执行目标
@@ -693,7 +696,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         List<AutoexecCombopPhaseVo> combopRunnerPhaseList = configVo.getCombopPhaseList().stream().filter(o -> Objects.equals(ExecMode.RUNNER.getValue(), o.getExecMode())).collect(Collectors.toList());
         for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopRunnerPhaseList) {
             Optional<AutoexecJobPhaseVo> jobPhaseVoOptional = jobPhaseVoList.stream().filter(o -> Objects.equals(o.getName(), autoexecCombopPhaseVo.getName())).findFirst();
-            if(jobPhaseVoOptional.isPresent()) {
+            if (jobPhaseVoOptional.isPresent()) {
                 autoexecJobMapper.updateJobPhaseNodeStatusByJobPhaseIdAndIsDelete(jobPhaseVoOptional.get().getId(), JobNodeStatus.PENDING.getValue(), 0);
             }
         }
@@ -804,7 +807,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      */
     private boolean getJobNodeList(AutoexecCombopExecuteConfigVo combopExecuteConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
         //执行用户不能为空
-        if(StringUtils.isBlank(userName)){
+        if (StringUtils.isBlank(userName)) {
             logger.error("autoexec job username is blank!");
             throw new AutoexecUserNameNotFoundException();
         }
