@@ -101,7 +101,7 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
         idList.removeAll(existIdList);
         if (CollectionUtils.isNotEmpty(idList)) {
             int capacity = 17 * idList.size();
-            System.out.println(capacity);
+            //System.out.println(capacity);
             StringBuilder stringBuilder = new StringBuilder(capacity);
             for (Long id : idList) {
                 stringBuilder.append(id);
