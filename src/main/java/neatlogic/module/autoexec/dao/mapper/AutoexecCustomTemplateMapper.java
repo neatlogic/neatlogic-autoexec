@@ -27,6 +27,8 @@ public interface AutoexecCustomTemplateMapper {
 
     CustomTemplateVo getCustomTemplateById(Long id);
 
+    CustomTemplateVo getCustomTemplateByName(String name);
+
     int checkCustomTemplateIsExistsById(Long id);
 
     List<CustomTemplateVo> getReferenceCountListForTool(List<Long> idList);

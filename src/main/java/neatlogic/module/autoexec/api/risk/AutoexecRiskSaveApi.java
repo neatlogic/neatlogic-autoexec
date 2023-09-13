@@ -16,6 +16,8 @@ limitations under the License.
 
 package neatlogic.module.autoexec.api.risk;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecRiskMapper;
@@ -28,8 +30,7 @@ import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.IValid;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import neatlogic.module.autoexec.service.AutoexecRiskService;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -41,6 +42,8 @@ public class AutoexecRiskSaveApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecRiskMapper autoexecRiskMapper;
+    @Resource
+    private AutoexecRiskService autoexecRiskService;
 
     @Override
     public String getToken() {
@@ -79,13 +82,20 @@ public class AutoexecRiskSaveApi extends PrivateApiComponentBase {
             if (risk == null) {
                 throw new AutoexecRiskNotFoundException(id);
             }
-            vo.setSort(risk.getSort());
-            autoexecRiskMapper.updateRisk(vo);
-        } else {
-            Integer sort = autoexecRiskMapper.getMaxSort();
-            vo.setSort(sort != null ? sort + 1 : 1);
-            autoexecRiskMapper.insertRisk(vo);
         }
+        autoexecRiskService.saveRisk(vo);
+//        if (id != null) {
+//            AutoexecRiskVo risk = autoexecRiskMapper.getAutoexecRiskById(id);
+//            if (risk == null) {
+//                throw new AutoexecRiskNotFoundException(id);
+//            }
+//            vo.setSort(risk.getSort());
+//            autoexecRiskMapper.updateRisk(vo);
+//        } else {
+//            Integer sort = autoexecRiskMapper.getMaxSort();
+//            vo.setSort(sort != null ? sort + 1 : 1);
+//            autoexecRiskMapper.insertRisk(vo);
+//        }
         return null;
     }
 

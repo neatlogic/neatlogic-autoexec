@@ -21,4 +21,11 @@ import neatlogic.framework.autoexec.dto.catalog.AutoexecCatalogVo;
 public interface AutoexecCatalogService {
 
     AutoexecCatalogVo buildRootCatalog();
+
+    /**
+     * 保存工具目录
+     * @param autoexecCatalogVo
+     * @return
+     */
+    Long saveAutoexecCatalog(AutoexecCatalogVo autoexecCatalogVo);
 }

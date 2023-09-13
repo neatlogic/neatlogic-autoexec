@@ -111,6 +111,9 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService, IAuto
 
         //删除多余的profile参数
         if (CollectionUtils.isNotEmpty(needDeleteParamIdList)) {
+            for (Long paramId : needDeleteParamIdList) {
+                DependencyManager.delete(AutoexecGlobalParamProfileDependencyHandler.class, paramId);
+            }
             autoexecProfileMapper.deleteProfileParamByIdList(needDeleteParamIdList);
         }
         //保存profile和tool、script的关系

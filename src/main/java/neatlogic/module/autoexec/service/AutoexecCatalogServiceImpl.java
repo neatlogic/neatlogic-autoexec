@@ -18,6 +18,8 @@ package neatlogic.module.autoexec.service;
 
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import neatlogic.framework.autoexec.dto.catalog.AutoexecCatalogVo;
+import neatlogic.framework.autoexec.exception.AutoexecCatalogNotFoundException;
+import neatlogic.framework.lrcode.LRCodeManager;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -38,5 +40,21 @@ public class AutoexecCatalogServiceImpl implements AutoexecCatalogService {
         root.setLft(1);
         root.setRht(maxRhtCode == null ? 2 : maxRhtCode.intValue() + 1);
         return root;
+    }
+
+    @Override
+    public Long saveAutoexecCatalog(AutoexecCatalogVo autoexecCatalogVo) {
+        if (autoexecCatalogMapper.checkAutoexecCatalogIsExists(autoexecCatalogVo.getId()) > 0) {
+            autoexecCatalogMapper.updateAutoexecCatalogNameById(autoexecCatalogVo);
+        } else {
+            if (!AutoexecCatalogVo.ROOT_ID.equals(autoexecCatalogVo.getParentId()) && autoexecCatalogMapper.checkAutoexecCatalogIsExists(autoexecCatalogVo.getParentId()) == 0) {
+                throw new AutoexecCatalogNotFoundException(autoexecCatalogVo.getParentId());
+            }
+            int lft = LRCodeManager.beforeAddTreeNode("autoexec_catalog", "id", "parent_id", autoexecCatalogVo.getParentId());
+            autoexecCatalogVo.setLft(lft);
+            autoexecCatalogVo.setRht(lft + 1);
+            autoexecCatalogMapper.insertAutoexecCatalog(autoexecCatalogVo);
+        }
+        return autoexecCatalogVo.getId();
     }
 }

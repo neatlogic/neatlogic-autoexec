@@ -66,6 +66,21 @@ limitations under the License.
         WHERE id = #{value}
     </select>
 
+    <select id="getCustomTemplateByName" parameterType="java.lang.Long"
+            resultType="neatlogic.framework.autoexec.dto.customtemplate.CustomTemplateVo">
+        SELECT a.id,
+               a.name,
+               a.is_active as isActive,
+               a.config,
+               a.template,
+               a.fcd,
+               a.fcu,
+               a.lcd,
+               a.lcu
+        FROM autoexec_customtemplate a
+        WHERE a.name = #{value}
+    </select>
+
     <select id="checkCustomTemplateIsExistsById" parameterType="java.lang.Long" resultType="int">
         select count(1)
         from `autoexec_customtemplate`
