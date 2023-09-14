@@ -17,10 +17,10 @@
 package neatlogic.module.autoexec.importexport.handler;
 
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.autoexec.constvalue.AutoexecImportExportHandlerType;
 import neatlogic.framework.autoexec.constvalue.ParamMappingMode;
 import neatlogic.framework.autoexec.constvalue.ToolType;
 import neatlogic.framework.autoexec.dto.AutoexecOperationVo;
-import neatlogic.framework.autoexec.dto.profile.AutoexecProfileOperationVo;
 import neatlogic.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import neatlogic.framework.autoexec.dto.profile.AutoexecProfileVo;
 import neatlogic.framework.autoexec.exception.AutoexecProfileIsNotFoundException;
@@ -32,13 +32,11 @@ import neatlogic.framework.importexport.dto.ImportExportPrimaryChangeVo;
 import neatlogic.framework.importexport.dto.ImportExportVo;
 import neatlogic.module.autoexec.dao.mapper.AutoexecProfileMapper;
 import neatlogic.module.autoexec.dependency.AutoexecGlobalParamProfileDependencyHandler;
-import neatlogic.framework.autoexec.constvalue.AutoexecImportExportHandlerType;
 import neatlogic.module.autoexec.service.AutoexecProfileService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.zip.ZipOutputStream;
@@ -84,27 +82,19 @@ public class ProfileImportExportHandler extends ImportExportHandlerBase {
             }
         }
         Long updateTag = System.currentTimeMillis();
-        List<AutoexecOperationVo> autoexecOperationVoList = new ArrayList<>();
-        List<AutoexecProfileOperationVo> autoexecProfileOperationList = autoexecProfileVo.getProfileOperationList();
-        for (AutoexecProfileOperationVo autoexecProfileOperationVo : autoexecProfileOperationList) {
-            autoexecProfileOperationVo.setProfileId(autoexecProfileVo.getId());
-            if (Objects.equals(autoexecProfileOperationVo.getType(), ToolType.SCRIPT.getValue())) {
-                Object newPrimaryKey = getNewPrimaryKey(AutoexecImportExportHandlerType.AUTOEXEC_SCRIPT, autoexecProfileOperationVo.getOperationId(), primaryChangeList);
+        for (AutoexecOperationVo autoexecOperationVo : autoexecProfileVo.getAutoexecOperationVoList()) {
+            if (Objects.equals(autoexecOperationVo.getType(), ToolType.SCRIPT.getValue())) {
+                Object newPrimaryKey = getNewPrimaryKey(AutoexecImportExportHandlerType.AUTOEXEC_SCRIPT, autoexecOperationVo.getId(), primaryChangeList);
                 if (newPrimaryKey != null) {
-                    autoexecProfileOperationVo.setOperationId((Long) newPrimaryKey);
+                    autoexecOperationVo.setId((Long) newPrimaryKey);
                 }
-            } else if (Objects.equals(autoexecProfileOperationVo.getType(), ToolType.TOOL.getValue())) {
-                Object newPrimaryKey = getNewPrimaryKey(AutoexecImportExportHandlerType.AUTOEXEC_TOOL, autoexecProfileOperationVo.getOperationId(), primaryChangeList);
+            } else if (Objects.equals(autoexecOperationVo.getType(), ToolType.TOOL.getValue())) {
+                Object newPrimaryKey = getNewPrimaryKey(AutoexecImportExportHandlerType.AUTOEXEC_TOOL, autoexecOperationVo.getId(), primaryChangeList);
                 if (newPrimaryKey != null) {
-                    autoexecProfileOperationVo.setOperationId((Long) newPrimaryKey);
+                    autoexecOperationVo.setId((Long) newPrimaryKey);
                 }
             }
-            AutoexecOperationVo autoexecOperationVo = new AutoexecOperationVo();
-            autoexecOperationVo.setId(autoexecProfileOperationVo.getOperationId());
-            autoexecOperationVo.setType(autoexecProfileOperationVo.getType());
-            autoexecOperationVoList.add(autoexecOperationVo);
         }
-        autoexecProfileVo.setAutoexecOperationVoList(autoexecOperationVoList);
         List<AutoexecProfileParamVo> profileParamVoList = autoexecProfileVo.getProfileParamVoList();
         if (CollectionUtils.isNotEmpty(profileParamVoList)) {
             for (AutoexecProfileParamVo paramVo : profileParamVoList) {
@@ -140,13 +130,14 @@ public class ProfileImportExportHandler extends ImportExportHandlerBase {
                 doExportData(AutoexecImportExportHandlerType.AUTOEXEC_GLOBAL_PARAM, profileParamVo.getDefaultValue(), dependencyList, zipOutputStream);
             }
         }
-        List<AutoexecProfileOperationVo> autoexecProfileOperationList = autoexecProfileMapper.getAutoexecProfileOperationListByProfileId(id);
-        profileVo.setProfileOperationList(autoexecProfileOperationList);
-        for (AutoexecProfileOperationVo autoexecProfileOperationVo : autoexecProfileOperationList) {
-            if (Objects.equals(autoexecProfileOperationVo.getType(), ToolType.SCRIPT.getValue())) {
-                doExportData(AutoexecImportExportHandlerType.AUTOEXEC_SCRIPT, autoexecProfileOperationVo.getOperationId(), dependencyList, zipOutputStream);
-            } else if (Objects.equals(autoexecProfileOperationVo.getType(), ToolType.TOOL.getValue())) {
-                doExportData(AutoexecImportExportHandlerType.AUTOEXEC_TOOL, autoexecProfileOperationVo.getOperationId(), dependencyList, zipOutputStream);
+        List<AutoexecOperationVo> autoexecOperationVoList =  profileVo.getAutoexecOperationVoList();
+        if (CollectionUtils.isNotEmpty(autoexecOperationVoList)) {
+            for (AutoexecOperationVo autoexecOperationVo : autoexecOperationVoList) {
+                if (Objects.equals(autoexecOperationVo.getType(), ToolType.SCRIPT.getValue())) {
+                    doExportData(AutoexecImportExportHandlerType.AUTOEXEC_SCRIPT, autoexecOperationVo.getId(), dependencyList, zipOutputStream);
+                } else if (Objects.equals(autoexecOperationVo.getType(), ToolType.TOOL.getValue())) {
+                    doExportData(AutoexecImportExportHandlerType.AUTOEXEC_TOOL, autoexecOperationVo.getId(), dependencyList, zipOutputStream);
+                }
             }
         }
         ImportExportVo importExportVo = new ImportExportVo(this.getType().getValue(), primaryKey, profileVo.getName());

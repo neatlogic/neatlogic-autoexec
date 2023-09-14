@@ -362,16 +362,6 @@
         FROM autoexec_profile_param app
     </select>
 
-    <select id="getAutoexecProfileOperationListByProfileId" parameterType="java.lang.Long" resultType="neatlogic.framework.autoexec.dto.profile.AutoexecProfileOperationVo">
-        SELECT
-            `operation_id` AS operationId,
-            `profile_id` AS profileId,
-            `type`,
-            `update_tag` AS updateTag
-        FROM `autoexec_profile_operation`
-        WHERE `operation_id` = #{value}
-    </select>
-
     <delete id="deleteProfileById">
         DELETE
         FROM autoexec_profile

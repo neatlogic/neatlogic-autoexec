@@ -3,7 +3,6 @@ package neatlogic.module.autoexec.dao.mapper;
 
 import neatlogic.framework.autoexec.crossover.IAutoexecProfileCrossoverMapper;
 import neatlogic.framework.autoexec.dto.AutoexecOperationVo;
-import neatlogic.framework.autoexec.dto.profile.AutoexecProfileOperationVo;
 import neatlogic.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import neatlogic.framework.autoexec.dto.profile.AutoexecProfileVo;
 import org.apache.ibatis.annotations.Param;
@@ -39,8 +38,6 @@ public interface AutoexecProfileMapper extends IAutoexecProfileCrossoverMapper {
     AutoexecProfileVo getProfileVoById(Long id);
 
     AutoexecProfileVo getProfileVoByName(String name);
-
-    List<AutoexecProfileOperationVo> getAutoexecProfileOperationListByProfileId(Long profileId);
 
     int updateProfileParamPassword(@Param("param") AutoexecProfileParamVo autoexecProfileParamVo,@Param("password") String newPassword);
 
