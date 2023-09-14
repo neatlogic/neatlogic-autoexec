@@ -41,6 +41,7 @@ import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.zip.ZipOutputStream;
 
 @Component
 public class ProfileImportExportHandler extends ImportExportHandlerBase {
@@ -126,7 +127,7 @@ public class ProfileImportExportHandler extends ImportExportHandlerBase {
     }
 
     @Override
-    public ImportExportVo myExportData(Object primaryKey, List<ImportExportVo> dependencyList) {
+    public ImportExportVo myExportData(Object primaryKey, List<ImportExportBaseInfoVo> dependencyList, ZipOutputStream zipOutputStream) {
         Long id = (Long) primaryKey;
         AutoexecProfileVo profileVo = autoexecProfileMapper.getProfileVoById(id);
         if (profileVo == null) {
@@ -136,16 +137,16 @@ public class ProfileImportExportHandler extends ImportExportHandlerBase {
         profileVo.setProfileParamVoList(profileParamList);
         for (AutoexecProfileParamVo profileParamVo : profileParamList) {
             if (Objects.equals(profileParamVo.getMappingMode(), ParamMappingMode.GLOBAL_PARAM.getValue())) {
-                doExportData(AutoexecImportExportHandlerType.AUTOEXEC_GLOBAL_PARAM, profileParamVo.getDefaultValue(), dependencyList);
+                doExportData(AutoexecImportExportHandlerType.AUTOEXEC_GLOBAL_PARAM, profileParamVo.getDefaultValue(), dependencyList, zipOutputStream);
             }
         }
         List<AutoexecProfileOperationVo> autoexecProfileOperationList = autoexecProfileMapper.getAutoexecProfileOperationListByProfileId(id);
         profileVo.setProfileOperationList(autoexecProfileOperationList);
         for (AutoexecProfileOperationVo autoexecProfileOperationVo : autoexecProfileOperationList) {
             if (Objects.equals(autoexecProfileOperationVo.getType(), ToolType.SCRIPT.getValue())) {
-                doExportData(AutoexecImportExportHandlerType.AUTOEXEC_SCRIPT, autoexecProfileOperationVo.getOperationId(), dependencyList);
+                doExportData(AutoexecImportExportHandlerType.AUTOEXEC_SCRIPT, autoexecProfileOperationVo.getOperationId(), dependencyList, zipOutputStream);
             } else if (Objects.equals(autoexecProfileOperationVo.getType(), ToolType.TOOL.getValue())) {
-                doExportData(AutoexecImportExportHandlerType.AUTOEXEC_TOOL, autoexecProfileOperationVo.getOperationId(), dependencyList);
+                doExportData(AutoexecImportExportHandlerType.AUTOEXEC_TOOL, autoexecProfileOperationVo.getOperationId(), dependencyList, zipOutputStream);
             }
         }
         ImportExportVo importExportVo = new ImportExportVo(this.getType().getValue(), primaryKey, profileVo.getName());

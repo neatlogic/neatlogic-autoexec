@@ -40,6 +40,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.zip.ZipOutputStream;
 
 @Component
 public class ScriptImportExportHandler extends ImportExportHandlerBase {
@@ -115,23 +116,23 @@ public class ScriptImportExportHandler extends ImportExportHandlerBase {
     }
 
     @Override
-    public ImportExportVo myExportData(Object primaryKey, List<ImportExportVo> dependencyList) {
+    public ImportExportVo myExportData(Object primaryKey, List<ImportExportBaseInfoVo> dependencyList, ZipOutputStream zipOutputStream) {
         Long id = (Long) primaryKey;
         AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(id);
         if (autoexecScriptVo == null) {
             throw new AutoexecScriptNotFoundException(id);
         }
         if (autoexecScriptVo.getTypeId() != null) {
-            doExportData(AutoexecImportExportHandlerType.AUTOEXEC_TYPE, autoexecScriptVo.getTypeId(), dependencyList);
+            doExportData(AutoexecImportExportHandlerType.AUTOEXEC_TYPE, autoexecScriptVo.getTypeId(), dependencyList, zipOutputStream);
         }
         if (autoexecScriptVo.getRiskId() != null) {
-            doExportData(AutoexecImportExportHandlerType.AUTOEXEC_RISK, autoexecScriptVo.getRiskId(), dependencyList);
+            doExportData(AutoexecImportExportHandlerType.AUTOEXEC_RISK, autoexecScriptVo.getRiskId(), dependencyList, zipOutputStream);
         }
         if (autoexecScriptVo.getCustomTemplateId() != null) {
-            doExportData(AutoexecImportExportHandlerType.AUTOEXEC_CUSTOM_TEMPLATE, autoexecScriptVo.getCustomTemplateId(), dependencyList);
+            doExportData(AutoexecImportExportHandlerType.AUTOEXEC_CUSTOM_TEMPLATE, autoexecScriptVo.getCustomTemplateId(), dependencyList, zipOutputStream);
         }
         if (autoexecScriptVo.getDefaultProfileId() != null) {
-            doExportData(AutoexecImportExportHandlerType.AUTOEXEC_PROFILE, autoexecScriptVo.getDefaultProfileId(), dependencyList);
+            doExportData(AutoexecImportExportHandlerType.AUTOEXEC_PROFILE, autoexecScriptVo.getDefaultProfileId(), dependencyList, zipOutputStream);
         }
         AutoexecScriptVersionVo version = autoexecScriptMapper.getActiveVersionByScriptId(id);
         if (version == null) {
@@ -145,17 +146,14 @@ public class ScriptImportExportHandler extends ImportExportHandlerBase {
             version.setLineList(autoexecScriptMapper.getLineListByVersionId(version.getId()));
         }
         if (version.getPackageFileId() != null) {
-            doExportData(FrameworkImportExportHandlerType.FILE, version.getPackageFileId(), dependencyList);
+            doExportData(FrameworkImportExportHandlerType.FILE, version.getPackageFileId(), dependencyList, zipOutputStream);
         }
         //获取依赖工具
         List<Long> useLib = autoexecScriptMapper.getLibScriptIdListByVersionId(version.getId());
         version.setUseLib(useLib);
         if (CollectionUtils.isNotEmpty(useLib)) {
             for (Long useLibId : useLib) {
-                ImportExportVo importExportVo = this.exportData(useLibId, dependencyList);
-                if (importExportVo != null) {
-                    dependencyList.add(importExportVo);
-                }
+                doExportData(AutoexecImportExportHandlerType.AUTOEXEC_SCRIPT, useLibId, dependencyList, zipOutputStream);
             }
         }
         autoexecScriptVo.setCurrentVersionVo(version);

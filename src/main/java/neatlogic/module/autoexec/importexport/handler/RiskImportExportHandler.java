@@ -31,6 +31,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.zip.ZipOutputStream;
 
 @Component
 public class RiskImportExportHandler extends ImportExportHandlerBase {
@@ -69,7 +70,7 @@ public class RiskImportExportHandler extends ImportExportHandlerBase {
     }
 
     @Override
-    protected ImportExportVo myExportData(Object primaryKey, List<ImportExportVo> dependencyList) {
+    protected ImportExportVo myExportData(Object primaryKey, List<ImportExportBaseInfoVo> dependencyList, ZipOutputStream zipOutputStream) {
         Long id = (Long) primaryKey;
         AutoexecRiskVo autoexecRiskVo = autoexecRiskMapper.getAutoexecRiskById(id);
         if (autoexecRiskVo == null) {

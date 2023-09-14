@@ -31,6 +31,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.zip.ZipOutputStream;
 
 @Component
 public class CustomTemplateImportExportHandler extends ImportExportHandlerBase {
@@ -70,7 +71,7 @@ public class CustomTemplateImportExportHandler extends ImportExportHandlerBase {
     }
 
     @Override
-    protected ImportExportVo myExportData(Object primaryKey, List<ImportExportVo> dependencyList) {
+    protected ImportExportVo myExportData(Object primaryKey, List<ImportExportBaseInfoVo> dependencyList, ZipOutputStream zipOutputStream) {
         Long id = (Long) primaryKey;
         CustomTemplateVo customTemplateVo = autoexecCustomTemplateMapper.getCustomTemplateById(id);
         if (customTemplateVo == null) {

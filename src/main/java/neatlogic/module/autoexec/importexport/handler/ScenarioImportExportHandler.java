@@ -32,6 +32,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Objects;
+import java.util.zip.ZipOutputStream;
 
 @Component
 public class ScenarioImportExportHandler extends ImportExportHandlerBase {
@@ -75,7 +76,7 @@ public class ScenarioImportExportHandler extends ImportExportHandlerBase {
     }
 
     @Override
-    public ImportExportVo myExportData(Object primaryKey, List<ImportExportVo> dependencyList) {
+    public ImportExportVo myExportData(Object primaryKey, List<ImportExportBaseInfoVo> dependencyList, ZipOutputStream zipOutputStream) {
         Long id = (Long) primaryKey;
         AutoexecScenarioVo autoexecScenario = autoexecScenarioMapper.getScenarioById(id);
         if (autoexecScenario == null) {

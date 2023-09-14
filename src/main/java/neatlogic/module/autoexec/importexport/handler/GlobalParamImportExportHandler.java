@@ -31,6 +31,7 @@ import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.zip.ZipOutputStream;
 
 @Component
 public class GlobalParamImportExportHandler extends ImportExportHandlerBase {
@@ -74,7 +75,7 @@ public class GlobalParamImportExportHandler extends ImportExportHandlerBase {
     }
 
     @Override
-    public ImportExportVo myExportData(Object primaryKey, List<ImportExportVo> dependencyList) {
+    public ImportExportVo myExportData(Object primaryKey, List<ImportExportBaseInfoVo> dependencyList, ZipOutputStream zipOutputStream) {
         if (primaryKey instanceof Long) {
             Long id = (Long) primaryKey;
             AutoexecGlobalParamVo autoexecGlobalParamVo = autoexecGlobalParamMapper.getGlobalParamById(id);

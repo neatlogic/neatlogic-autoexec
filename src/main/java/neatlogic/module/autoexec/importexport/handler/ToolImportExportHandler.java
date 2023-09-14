@@ -34,6 +34,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Objects;
+import java.util.zip.ZipOutputStream;
 
 @Component
 public class ToolImportExportHandler extends ImportExportHandlerBase {
@@ -93,30 +94,30 @@ public class ToolImportExportHandler extends ImportExportHandlerBase {
     }
 
     @Override
-    public ImportExportVo myExportData(Object primaryKey, List<ImportExportVo> dependencyList) {
+    public ImportExportVo myExportData(Object primaryKey, List<ImportExportBaseInfoVo> dependencyList, ZipOutputStream zipOutputStream) {
         Long id = (Long) primaryKey;
         AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(id);
         if (autoexecToolVo == null) {
             throw new AutoexecToolNotFoundException(id);
         }
         if (autoexecToolVo.getTypeId() != null) {
-            doExportData(AutoexecImportExportHandlerType.AUTOEXEC_TYPE, autoexecToolVo.getTypeId(), dependencyList);
+            doExportData(AutoexecImportExportHandlerType.AUTOEXEC_TYPE, autoexecToolVo.getTypeId(), dependencyList, zipOutputStream);
         }
         if (autoexecToolVo.getRiskId() != null) {
-            doExportData(AutoexecImportExportHandlerType.AUTOEXEC_RISK, autoexecToolVo.getRiskId(), dependencyList);
+            doExportData(AutoexecImportExportHandlerType.AUTOEXEC_RISK, autoexecToolVo.getRiskId(), dependencyList, zipOutputStream);
         }
         if (autoexecToolVo.getCustomTemplateId() != null) {
-            doExportData(AutoexecImportExportHandlerType.AUTOEXEC_CUSTOM_TEMPLATE, autoexecToolVo.getCustomTemplateId(), dependencyList);
+            doExportData(AutoexecImportExportHandlerType.AUTOEXEC_CUSTOM_TEMPLATE, autoexecToolVo.getCustomTemplateId(), dependencyList, zipOutputStream);
         }
         if (autoexecToolVo.getDefaultProfileId() != null) {
-            doExportData(AutoexecImportExportHandlerType.AUTOEXEC_PROFILE, autoexecToolVo.getDefaultProfileId(), dependencyList);
+            doExportData(AutoexecImportExportHandlerType.AUTOEXEC_PROFILE, autoexecToolVo.getDefaultProfileId(), dependencyList, zipOutputStream);
         }
         List<AutoexecParamVo> inputParamList = autoexecToolVo.getInputParamList();
         if (CollectionUtils.isNotEmpty(inputParamList)) {
             for (AutoexecParamVo autoexecParamVo : inputParamList) {
                 if (Objects.equals(autoexecParamVo.getMappingMode(), AutoexecProfileParamInvokeType.GLOBAL_PARAM.getValue())) {
                     if (autoexecParamVo.getDefaultValue() != null) {
-                        doExportData(AutoexecImportExportHandlerType.AUTOEXEC_GLOBAL_PARAM, autoexecParamVo.getDefaultValue(), dependencyList);
+                        doExportData(AutoexecImportExportHandlerType.AUTOEXEC_GLOBAL_PARAM, autoexecParamVo.getDefaultValue(), dependencyList, zipOutputStream);
                     }
                 }
             }
