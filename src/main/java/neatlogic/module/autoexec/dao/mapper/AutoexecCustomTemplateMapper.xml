@@ -66,7 +66,7 @@ limitations under the License.
         WHERE id = #{value}
     </select>
 
-    <select id="getCustomTemplateByName" parameterType="java.lang.Long"
+    <select id="getCustomTemplateByName" parameterType="java.lang.String"
             resultType="neatlogic.framework.autoexec.dto.customtemplate.CustomTemplateVo">
         SELECT a.id,
                a.name,

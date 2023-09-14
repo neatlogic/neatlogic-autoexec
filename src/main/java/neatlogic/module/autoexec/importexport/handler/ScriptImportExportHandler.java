@@ -98,6 +98,12 @@ public class ScriptImportExportHandler extends ImportExportHandlerBase {
                 autoexecScriptVo.setDefaultProfileId((Long) newPrimaryKey);
             }
         }
+        if (autoexecScriptVo.getCatalogId() != null) {
+            Object newPrimaryKey = getNewPrimaryKey(AutoexecImportExportHandlerType.AUTOEXEC_CATALOG, autoexecScriptVo.getCatalogId(), primaryChangeList);
+            if (newPrimaryKey != null) {
+                autoexecScriptVo.setCatalogId((Long) newPrimaryKey);
+            }
+        }
         AutoexecScriptVersionVo version = autoexecScriptVo.getCurrentVersionVo();
         if (version.getPackageFileId() != null) {
             Object newPrimaryKey = getNewPrimaryKey(FrameworkImportExportHandlerType.FILE, version.getPackageFileId(), primaryChangeList);
@@ -133,6 +139,9 @@ public class ScriptImportExportHandler extends ImportExportHandlerBase {
         }
         if (autoexecScriptVo.getDefaultProfileId() != null) {
             doExportData(AutoexecImportExportHandlerType.AUTOEXEC_PROFILE, autoexecScriptVo.getDefaultProfileId(), dependencyList, zipOutputStream);
+        }
+        if (autoexecScriptVo.getCatalogId() != null) {
+            doExportData(AutoexecImportExportHandlerType.AUTOEXEC_CATALOG, autoexecScriptVo.getCatalogId(), dependencyList, zipOutputStream);
         }
         AutoexecScriptVersionVo version = autoexecScriptMapper.getActiveVersionByScriptId(id);
         if (version == null) {
