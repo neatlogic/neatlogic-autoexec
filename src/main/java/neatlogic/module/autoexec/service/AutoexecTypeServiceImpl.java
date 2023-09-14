@@ -64,7 +64,7 @@ public class AutoexecTypeServiceImpl implements AutoexecTypeService {
                     continue;
                 }
                 autoexecTypeAuthVo.setTypeId(typeVo.getId());
-                autoexecTypeAuthVo.setAction(AutoexecTypeAuthorityAction.REVIEW.getValue());
+                autoexecTypeAuthVo.setAction(AutoexecTypeAuthorityAction.ADD.getValue());
                 autoexecTypeAuthList.add(autoexecTypeAuthVo);
             }
             autoexecTypeMapper.insertTypeAuthList(autoexecTypeAuthList);
