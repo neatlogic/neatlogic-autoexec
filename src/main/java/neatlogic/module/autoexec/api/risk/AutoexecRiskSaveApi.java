@@ -52,7 +52,7 @@ public class AutoexecRiskSaveApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "保存操作级别";
+        return "nmaar.autoexecrisksaveapi.getname";
     }
 
     @Override
@@ -61,15 +61,15 @@ public class AutoexecRiskSaveApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "id"),
-            @Param(name = "name", type = ApiParamType.STRING, maxLength = 50, isRequired = true, desc = "名称"),
-            @Param(name = "isActive", type = ApiParamType.ENUM, rule = "0,1", isRequired = true, desc = "状态"),
-            @Param(name = "color", type = ApiParamType.STRING, isRequired = true, desc = "颜色"),
-            @Param(name = "description", type = ApiParamType.STRING, xss = true, desc = "描述"),
+            @Param(name = "id", type = ApiParamType.LONG, desc = "common.id"),
+            @Param(name = "name", type = ApiParamType.STRING, maxLength = 50, isRequired = true, desc = "common.name"),
+            @Param(name = "isActive", type = ApiParamType.ENUM, rule = "0,1", isRequired = true, desc = "common.isactive"),
+            @Param(name = "color", type = ApiParamType.STRING, isRequired = true, desc = "common.color"),
+            @Param(name = "description", type = ApiParamType.STRING, xss = true, desc = "common.description"),
     })
     @Output({
     })
-    @Description(desc = "保存操作级别")
+    @Description(desc = "nmaar.autoexecrisksaveapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecRiskVo vo = jsonObj.toJavaObject(AutoexecRiskVo.class);

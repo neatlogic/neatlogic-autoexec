@@ -68,7 +68,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "保存脚本";
+        return "nmaas.autoexecscriptsaveapi.getname";
     }
 
     @Override
@@ -77,32 +77,32 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "脚本ID(没有id和versionId,表示首次创建脚本;有id没有versionId,表示新增一个版本;没有id有versionId,表示编辑某个版本)"),
-            @Param(name = "versionId", type = ApiParamType.LONG, desc = "脚本版本ID"),
+            @Param(name = "id", type = ApiParamType.LONG, desc = "common.id", help = "没有id和versionId,表示首次创建脚本;有id没有versionId,表示新增一个版本;没有id有versionId,表示编辑某个版本"),
+            @Param(name = "versionId", type = ApiParamType.LONG, desc = "common.versionid"),
 //            @Param(name = "uk", type = ApiParamType.REGEX, rule = "^[A-Za-z]+$", isRequired = true, xss = true, desc = "唯一标识"),
-            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, maxLength = 50, isRequired = true, xss = true, desc = "名称"),
-            @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sqlfile,native,null", desc = "执行方式"),
-            @Param(name = "typeId", type = ApiParamType.LONG, desc = "脚本分类ID", isRequired = true),
-            @Param(name = "catalogId", type = ApiParamType.LONG, desc = "工具目录ID", isRequired = true),
-            @Param(name = "riskId", type = ApiParamType.LONG, desc = "操作级别ID"),
-            @Param(name = "isLib", type = ApiParamType.INTEGER, desc = "是否库文件（1：是，0：否，默认否）", isRequired = true),
-            @Param(name = "userLib", type = ApiParamType.JSONARRAY, desc = "依赖工具"),
-            @Param(name = "customTemplateId", type = ApiParamType.LONG, desc = "自定义模版ID"),
-            @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
-            @Param(name = "title", type = ApiParamType.REGEX, rule = RegexUtils.NAME, maxLength = 50, isRequired = true, xss = true, desc = "版本标题"),
-            @Param(name = "paramList", type = ApiParamType.JSONARRAY, desc = "参数列表"),
-            @Param(name = "argument", type = ApiParamType.JSONOBJECT, desc = "自由参数"),
-            @Param(name = "encoding", type = ApiParamType.ENUM, rule = "UTF-8,GBK", desc = "脚本编码"),
-            @Param(name = "parser", type = ApiParamType.ENUM, rule = "python,ruby,vbscript,perl,powershell,cmd,bash,ksh,csh,sh,javascript,package", desc = "脚本解析器"),
-            @Param(name = "packageFileId", type = ApiParamType.LONG, desc = "包文件id"),
-            @Param(name = "lineList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "脚本内容行数据列表,e.g:[{\"content\":\"#!/usr/bin/env bash\"},{\"content\":\"show_ascii_berry()\"}]"),
+            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, maxLength = 50, isRequired = true, xss = true, desc = "common.name"),
+            @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sqlfile,native,null", desc = "term.autoexec.execmode"),
+            @Param(name = "typeId", type = ApiParamType.LONG, desc = "term.autoexec.typeid", isRequired = true),
+            @Param(name = "catalogId", type = ApiParamType.LONG, desc = "term.autoexec.catalogid", isRequired = true),
+            @Param(name = "riskId", type = ApiParamType.LONG, desc = "term.autoexec.riskid"),
+            @Param(name = "isLib", type = ApiParamType.INTEGER, desc = "term.autoexec.islib", isRequired = true, help = "1：是，0：否，默认否"),
+            @Param(name = "userLib", type = ApiParamType.JSONARRAY, desc = "term.autoexec.userlib"),
+            @Param(name = "customTemplateId", type = ApiParamType.LONG, desc = "term.autoexec.customtemplateid"),
+            @Param(name = "description", type = ApiParamType.STRING, desc = "common.description"),
+            @Param(name = "title", type = ApiParamType.REGEX, rule = RegexUtils.NAME, maxLength = 50, isRequired = true, xss = true, desc = "common.title"),
+            @Param(name = "paramList", type = ApiParamType.JSONARRAY, desc = "nfdd.datasourcevo.entityfield.name.paramlist"),
+            @Param(name = "argument", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.freeparam"),
+            @Param(name = "encoding", type = ApiParamType.ENUM, rule = "UTF-8,GBK", desc = "common.encoding"),
+            @Param(name = "parser", type = ApiParamType.ENUM, rule = "python,ruby,vbscript,perl,powershell,cmd,bash,ksh,csh,sh,javascript,package", desc = "term.autoexec.scriptparser"),
+            @Param(name = "packageFileId", type = ApiParamType.LONG, desc = "common.fileid"),
+            @Param(name = "lineList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "term.autoexec.linelist", help = "e.g:[{\"content\":\"#!/usr/bin/env bash\"},{\"content\":\"show_ascii_berry()\"}]"),
     })
     @Output({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "脚本ID"),
-            @Param(name = "versionId", type = ApiParamType.LONG, desc = "版本id"),
-            @Param(name = "isReviewable", type = ApiParamType.ENUM, rule = "0,1", desc = "是否能审批(1:能;0:不能)"),
+            @Param(name = "id", type = ApiParamType.LONG, desc = "common.id"),
+            @Param(name = "versionId", type = ApiParamType.LONG, desc = "common.versionid"),
+            @Param(name = "isReviewable", type = ApiParamType.ENUM, rule = "0,1", desc = "common.isreviewable", help = "1:能;0:不能"),
     })
-    @Description(desc = "保存脚本")
+    @Description(desc = "nmaas.autoexecscriptsaveapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecScriptVo oldScriptVo = null;

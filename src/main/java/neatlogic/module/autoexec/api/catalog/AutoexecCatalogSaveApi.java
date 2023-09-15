@@ -40,7 +40,7 @@ public class AutoexecCatalogSaveApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "保存工具目录";
+        return "nmaac.autoexeccatalogsaveapi.getname";
     }
 
     @Override
@@ -49,12 +49,12 @@ public class AutoexecCatalogSaveApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "目录id"),
-            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, desc = "名称", maxLength = 50, isRequired = true, xss = true),
-            @Param(name = "parentId", type = ApiParamType.LONG, desc = "父目录id"),
+            @Param(name = "id", type = ApiParamType.LONG, desc = "common.id"),
+            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, desc = "common.name", maxLength = 50, isRequired = true, xss = true),
+            @Param(name = "parentId", type = ApiParamType.LONG, desc = "common.parentid"),
     })
-    @Output({@Param(name = "id", type = ApiParamType.LONG, desc = "目录id")})
-    @Description(desc = "保存工具目录")
+    @Output({@Param(name = "id", type = ApiParamType.LONG, desc = "common.id")})
+    @Description(desc = "nmaac.autoexeccatalogsaveapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");

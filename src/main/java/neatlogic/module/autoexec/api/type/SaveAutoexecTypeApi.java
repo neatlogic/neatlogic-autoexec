@@ -55,7 +55,7 @@ public class SaveAutoexecTypeApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "保存自动化工具分类";
+        return "nmaat.saveautoexectypeapi.getname";
     }
 
     @Override
@@ -64,14 +64,14 @@ public class SaveAutoexecTypeApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "类型ID"),
-            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, maxLength = 50, isRequired = true, desc = "名称"),
-            @Param(name = "description", type = ApiParamType.STRING, maxLength = 500, desc = "描述"),
-            @Param(name = "authList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "授权列表"),
-            @Param(name = "reviewAuthList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "审核授权列表")
+            @Param(name = "id", type = ApiParamType.LONG, desc = "common.id"),
+            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, maxLength = 50, isRequired = true, desc = "common.name"),
+            @Param(name = "description", type = ApiParamType.STRING, maxLength = 500, desc = "common.description"),
+            @Param(name = "authList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "common.authlist"),
+            @Param(name = "reviewAuthList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "common.authlist")
     })
     @Output({})
-    @Description(desc = "保存自动化工具分类")
+    @Description(desc = "nmaat.saveautoexectypeapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecTypeVo typeVo = JSON.toJavaObject(jsonObj, AutoexecTypeVo.class);

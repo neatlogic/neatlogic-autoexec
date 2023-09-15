@@ -54,7 +54,7 @@ public class AutoexecScriptReviewApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "审核脚本";
+        return "nmaas.autoexecscriptreviewapi.getname";
     }
 
     @Override
@@ -63,13 +63,13 @@ public class AutoexecScriptReviewApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "versionId", type = ApiParamType.LONG, isRequired = true, desc = "脚本版本ID"),
-            @Param(name = "action", type = ApiParamType.ENUM, rule = "pass,reject", isRequired = true, desc = "通过，驳回"),
-            @Param(name = "content", type = ApiParamType.STRING, desc = "驳回原因")
+            @Param(name = "versionId", type = ApiParamType.LONG, isRequired = true, desc = "common.versionid"),
+            @Param(name = "action", type = ApiParamType.ENUM, rule = "pass,reject", isRequired = true, desc = "nmaas.autoexecscriptreviewapi.input.param.desc"),
+            @Param(name = "content", type = ApiParamType.STRING, desc = "common.content")
     })
     @Output({
     })
-    @Description(desc = "审核脚本")
+    @Description(desc = "nmaas.autoexecscriptreviewapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long versionId = jsonObj.getLong("versionId");

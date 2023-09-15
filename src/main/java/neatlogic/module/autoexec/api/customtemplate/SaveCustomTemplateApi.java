@@ -47,13 +47,13 @@ public class SaveCustomTemplateApi extends PrivateApiComponentBase {
 
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "id，不提供代表新增"),
-            @Param(name = "name", type = ApiParamType.STRING, isRequired = true, desc = "名称"),
-            @Param(name = "isActive", type = ApiParamType.INTEGER, isRequired = true, desc = "是否激活"),
-            @Param(name = "template", type = ApiParamType.STRING, desc = "模板内容", isRequired = true),
-            @Param(name = "config", type = ApiParamType.STRING, desc = "配置内容，json格式的字符串")
+            @Param(name = "id", type = ApiParamType.LONG, desc = "common.id", help = "不提供代表新增"),
+            @Param(name = "name", type = ApiParamType.STRING, isRequired = true, desc = "common.name"),
+            @Param(name = "isActive", type = ApiParamType.INTEGER, isRequired = true, desc = "common.isactive"),
+            @Param(name = "template", type = ApiParamType.STRING, desc = "common.content", isRequired = true),
+            @Param(name = "config", type = ApiParamType.STRING, desc = "common.config", help = "json格式的字符串")
     })
-    @Description(desc = "保存自定义模板接口")
+    @Description(desc = "nmaac.savecustomtemplateapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");
@@ -70,7 +70,7 @@ public class SaveCustomTemplateApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "保存自定义模板";
+        return "nmaac.savecustomtemplateapi.getname";
     }
 
     @Override
