@@ -45,6 +45,16 @@ public class GlobalParamImportExportHandler extends ImportExportHandlerBase {
     }
 
     @Override
+    public boolean checkImportAuth(ImportExportVo importExportVo) {
+        return true;
+    }
+
+    @Override
+    public boolean checkExportAuth(Object primaryKey) {
+        return true;
+    }
+
+    @Override
     public boolean checkIsExists(ImportExportBaseInfoVo importExportBaseInfoVo) {
         return autoexecGlobalParamMapper.getGlobalParamByKey((String) importExportBaseInfoVo.getPrimaryKey()) != null;
     }

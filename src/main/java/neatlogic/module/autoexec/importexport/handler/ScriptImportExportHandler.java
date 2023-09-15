@@ -58,6 +58,16 @@ public class ScriptImportExportHandler extends ImportExportHandlerBase {
     }
 
     @Override
+    public boolean checkImportAuth(ImportExportVo importExportVo) {
+        return true;
+    }
+
+    @Override
+    public boolean checkExportAuth(Object primaryKey) {
+        return true;
+    }
+
+    @Override
     public boolean checkIsExists(ImportExportBaseInfoVo importExportBaseInfoVo) {
         return autoexecScriptMapper.getScriptBaseInfoByName(importExportBaseInfoVo.getName()) != null;
     }

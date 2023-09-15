@@ -46,6 +46,16 @@ public class CatalogImportExportHandler extends ImportExportHandlerBase {
     }
 
     @Override
+    public boolean checkImportAuth(ImportExportVo importExportVo) {
+        return true;
+    }
+
+    @Override
+    public boolean checkExportAuth(Object primaryKey) {
+        return true;
+    }
+
+    @Override
     public boolean checkIsExists(ImportExportBaseInfoVo importExportBaseInfoVo) {
         if (autoexecCatalogMapper.getAutoexecCatalogByName(importExportBaseInfoVo.getName()) != null) {
             return true;
