@@ -60,7 +60,7 @@ public class GlobalParamImportExportHandler extends ImportExportHandlerBase {
     }
 
     @Override
-    public Long importData(ImportExportVo importExportVo, List<ImportExportPrimaryChangeVo> primaryChangeList) {
+    public Object importData(ImportExportVo importExportVo, List<ImportExportPrimaryChangeVo> primaryChangeList) {
         // 导入前判断全局参数是否已经存在的标准是名称是否相同，如果存在则更新，如果不存在则新增。
         // 如果需要的数据，名称不存在但id已存在，则更新导入数据的id。
         JSONObject data = importExportVo.getData();
@@ -81,7 +81,7 @@ public class GlobalParamImportExportHandler extends ImportExportHandlerBase {
         autoexecGlobalParamVo.setFcu(UserContext.get().getUserUuid());
         autoexecGlobalParamVo.setLcu(UserContext.get().getUserUuid());
         autoexecGlobalParamMapper.insertGlobalParam(autoexecGlobalParamVo);
-        return autoexecGlobalParamVo.getId();
+        return autoexecGlobalParamVo.getKey();
     }
 
     @Override

@@ -27,13 +27,14 @@ import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
 import neatlogic.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecScriptVersionHasNoActivedException;
+import neatlogic.framework.importexport.constvalue.FrameworkImportExportHandlerType;
 import neatlogic.framework.importexport.core.ImportExportHandlerBase;
 import neatlogic.framework.importexport.core.ImportExportHandlerType;
 import neatlogic.framework.importexport.dto.ImportExportBaseInfoVo;
 import neatlogic.framework.importexport.dto.ImportExportPrimaryChangeVo;
 import neatlogic.framework.importexport.dto.ImportExportVo;
+import neatlogic.module.autoexec.dao.mapper.AutoexecProfileMapper;
 import neatlogic.module.autoexec.service.AutoexecScriptService;
-import neatlogic.framework.importexport.constvalue.FrameworkImportExportHandlerType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
@@ -51,6 +52,8 @@ public class ScriptImportExportHandler extends ImportExportHandlerBase {
     @Resource
     private AutoexecScriptService autoexecScriptService;
 
+    @Resource
+    private AutoexecProfileMapper autoexecProfileMapper;
 
     @Override
     public ImportExportHandlerType getType() {
@@ -148,7 +151,12 @@ public class ScriptImportExportHandler extends ImportExportHandlerBase {
             doExportData(AutoexecImportExportHandlerType.AUTOEXEC_CUSTOM_TEMPLATE, autoexecScriptVo.getCustomTemplateId(), dependencyList, zipOutputStream);
         }
         if (autoexecScriptVo.getDefaultProfileId() != null) {
-            doExportData(AutoexecImportExportHandlerType.AUTOEXEC_PROFILE, autoexecScriptVo.getDefaultProfileId(), dependencyList, zipOutputStream);
+            if (autoexecProfileMapper.getProfileIdByProfileIdAndOperationId(autoexecScriptVo.getDefaultProfileId(), id) != null) {
+                doExportData(AutoexecImportExportHandlerType.AUTOEXEC_PROFILE, autoexecScriptVo.getDefaultProfileId(), dependencyList, zipOutputStream);
+            } else {
+                autoexecScriptVo.setDefaultProfileId(null);
+                autoexecScriptVo.setDefaultProfileName(null);
+            }
         }
         if (autoexecScriptVo.getCatalogId() != null) {
             doExportData(AutoexecImportExportHandlerType.AUTOEXEC_CATALOG, autoexecScriptVo.getCatalogId(), dependencyList, zipOutputStream);
