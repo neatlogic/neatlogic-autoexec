@@ -706,11 +706,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
                 autoexecScriptMapper.updateScriptVersion(versionVo);
             }
         } else { // 新增版本
-//            if (autoexecScriptMapper.checkScriptIsExistsById(scriptVo.getId()) == 0) {
-//                throw new AutoexecScriptNotFoundException(scriptVo.getId());
-//            }
-            Integer maxVersion = autoexecScriptMapper.getMaxVersionByScriptId(scriptVo.getId());
-            versionVo.setVersion(maxVersion != null ? maxVersion + 1 : 1);
+            versionVo.setVersion(null);
             saveScript(scriptVo);
             versionVo.setScriptId(scriptVo.getId());
             versionVo.setIsActive(0);
