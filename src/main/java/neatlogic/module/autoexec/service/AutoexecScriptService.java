@@ -130,4 +130,25 @@ public interface AutoexecScriptService {
      * @param id 脚本ID
      */
     void deleteScriptById(Long id);
+
+    /**
+     * 保存自定义工具基本信息
+     * @param scriptVo
+     */
+    void saveScript(AutoexecScriptVo scriptVo);
+
+    /**
+     * 保存自定义基本信息和版本信息
+     * @param scriptVo
+     * @param versionVo
+     */
+    void saveScriptAndVersion(AutoexecScriptVo scriptVo, AutoexecScriptVersionVo versionVo);
+
+    /**
+     * 审批版本
+     * @param version
+     * @param action
+     * @param content
+     */
+    void reviewVersion(AutoexecScriptVersionVo version, String action, String content);
 }

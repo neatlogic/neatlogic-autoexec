@@ -38,10 +38,13 @@ import neatlogic.framework.dependency.dto.DependencyInfoVo;
 import neatlogic.framework.deploy.exception.DeployJobParamIrregularException;
 import neatlogic.framework.dto.OperateVo;
 import neatlogic.framework.file.dao.mapper.FileMapper;
+import neatlogic.framework.fulltextindex.core.FullTextIndexHandlerFactory;
+import neatlogic.framework.fulltextindex.core.IFullTextIndexHandler;
 import neatlogic.framework.lrcode.LRCodeManager;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCustomTemplateMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecProfileMapper;
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.module.autoexec.fulltextindex.AutoexecFullTextIndexType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -627,5 +630,157 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
             autoexecScriptMapper.deleteScriptVersionByScriptId(id);
             autoexecScriptMapper.deleteScriptById(id);
         }
+    }
+
+    @Override
+    public void saveScript(AutoexecScriptVo scriptVo) {
+        validateScriptBaseInfo(scriptVo);
+        AutoexecScriptVo oldScriptVo = autoexecScriptMapper.getScriptBaseInfoById(scriptVo.getId());
+        if (oldScriptVo == null) {
+            scriptVo.setFcu(UserContext.get().getUserUuid());
+            autoexecScriptMapper.insertScript(scriptVo);
+        } else {
+            if (Objects.equals(oldScriptVo.getName(), scriptVo.getName())) {
+                if (Objects.equals(oldScriptVo.getTypeId(), scriptVo.getTypeId())) {
+                    if (Objects.equals(oldScriptVo.getCatalogId(), scriptVo.getCatalogId())) {
+                        if (Objects.equals(oldScriptVo.getExecMode(), scriptVo.getExecMode())) {
+                            if (Objects.equals(oldScriptVo.getRiskId(), scriptVo.getRiskId())) {
+                                if (Objects.equals(oldScriptVo.getCustomTemplateId(), scriptVo.getCustomTemplateId())) {
+                                    if (Objects.equals(oldScriptVo.getDescription(), scriptVo.getDescription())) {
+                                        if (Objects.equals(oldScriptVo.getDefaultProfileId(), scriptVo.getDefaultProfileId())) {
+                                            if (Objects.equals(oldScriptVo.getIsLib(), scriptVo.getIsLib())) {
+                                                return;
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            autoexecScriptMapper.updateScriptBaseInfo(scriptVo);
+        }
+    }
+
+    @Override
+    public void saveScriptAndVersion(AutoexecScriptVo scriptVo, AutoexecScriptVersionVo versionVo) {
+        /**
+         * 没有id和versionId，表示首次创建脚本
+         * 有id没有versionId，表示新增一个版本，脚本基本信息不作修改
+         * 没有id有versionId，表示编辑某个版本，脚本基本信息不作修改
+         */
+        boolean needSave = true;
+        if (autoexecScriptMapper.checkScriptIsExistsById(scriptVo.getId()) == 0) {
+            AutoexecScriptVersionVo oldVersion = autoexecScriptMapper.getVersionByVersionId(versionVo.getId());
+            if (oldVersion == null) { // 首次创建脚本
+                saveScript(scriptVo);
+                versionVo.setScriptId(scriptVo.getId());
+                //versionVo.setVersion(1);
+                versionVo.setIsActive(0);
+                autoexecScriptMapper.insertScriptVersion(versionVo);
+                scriptVo.setVersionId(versionVo.getId());
+            } else {  // 编辑版本
+                AutoexecScriptVersionVo currentVersion = getScriptVersionDetailByVersionId(versionVo.getId());
+                scriptVo.setId(currentVersion.getScriptId());
+                // 处于待审批和已通过状态的版本，任何权限都无法编辑
+                if (ScriptVersionStatus.SUBMITTED.getValue().equals(currentVersion.getStatus())
+                        || ScriptVersionStatus.PASSED.getValue().equals(currentVersion.getStatus())) {
+                    throw new AutoexecScriptVersionCannotEditException();
+                }
+                // 检查内容是否有变更，没有则不执行更新
+                AutoexecScriptVersionVo newVersion = new AutoexecScriptVersionVo();
+                newVersion.setParser(versionVo.getParser());
+                newVersion.setParamList(versionVo.getParamList());
+                if (!StringUtils.equals(versionVo.getParser(), ScriptParser.PACKAGE.getValue())) {
+                    newVersion.setLineList(versionVo.getLineList());
+                }
+                newVersion.setArgument(versionVo.getArgument());
+                needSave = checkScriptVersionNeedToUpdate(currentVersion, newVersion);
+                if (needSave) {
+                    autoexecScriptMapper.deleteParamByVersionId(currentVersion.getId());
+                    autoexecScriptMapper.deleteScriptLineByVersionId(currentVersion.getId());
+                    autoexecScriptMapper.deleteArgumentByVersionId(currentVersion.getId());
+                }
+                versionVo.setId(currentVersion.getId());
+                autoexecScriptMapper.updateScriptVersion(versionVo);
+            }
+        } else { // 新增版本
+            versionVo.setVersion(null);
+            saveScript(scriptVo);
+            versionVo.setScriptId(scriptVo.getId());
+            versionVo.setIsActive(0);
+            autoexecScriptMapper.insertScriptVersion(versionVo);
+            scriptVo.setVersionId(versionVo.getId());
+        }
+        if (needSave) {
+            // 保存参数
+//            List<AutoexecScriptVersionParamVo> paramList = scriptVo.getVersionParamList();
+            List<AutoexecScriptVersionParamVo> paramList = versionVo.getParamList();
+            if (CollectionUtils.isNotEmpty(paramList)) {
+                autoexecService.validateParamList(paramList);
+                saveParamList(versionVo.getId(), paramList);
+            }
+//            AutoexecScriptArgumentVo argument = scriptVo.getVersionArgument();
+            AutoexecScriptArgumentVo argument = versionVo.getArgument();
+            if (argument != null) {
+                autoexecService.validateArgument(argument);
+                argument.setScriptVersionId(versionVo.getId());
+                autoexecScriptMapper.insertScriptVersionArgument(argument);
+            }
+            // 保存脚本内容
+//            if (!StringUtils.equals(scriptVo.getParser(), ScriptParser.PACKAGE.getValue())) {
+//                saveLineList(scriptVo.getId(), scriptVo.getVersionId(), scriptVo.getLineList());
+//            }
+            if (!StringUtils.equals(versionVo.getParser(), ScriptParser.PACKAGE.getValue())) {
+                saveLineList(scriptVo.getId(), versionVo.getId(), versionVo.getLineList());
+            }
+            // 创建全文索引
+            IFullTextIndexHandler fullTextIndexHandler = FullTextIndexHandlerFactory.getHandler(AutoexecFullTextIndexType.SCRIPT_DOCUMENT_VERSION);
+            if (fullTextIndexHandler != null) {
+                fullTextIndexHandler.createIndex(versionVo.getId());
+            }
+        }
+        //保存依赖工具
+        autoexecScriptMapper.deleteScriptVersionLibByScriptVersionId(versionVo.getId());
+        if (CollectionUtils.isNotEmpty(versionVo.getUseLib())) {
+            autoexecScriptMapper.insertScriptVersionUseLib(versionVo.getId(),versionVo.getUseLib());
+        }
+    }
+
+    @Override
+    public void reviewVersion(AutoexecScriptVersionVo version, String action, String content) {
+        if (autoexecScriptMapper.getScriptLockById(version.getScriptId()) == null) {
+            throw new AutoexecScriptNotFoundException(version.getScriptId());
+        }
+        boolean isPass = Objects.equals(ScriptAction.PASS.getValue(), action);
+        AutoexecScriptVersionVo updateVo = new AutoexecScriptVersionVo();
+        updateVo.setId(version.getId());
+        updateVo.setReviewer(UserContext.get().getUserUuid());
+        updateVo.setLcu(UserContext.get().getUserUuid());
+        // 如果审批通过，那么该版本成为当前激活版本，生成最新版本号
+        if (isPass) {
+            updateVo.setStatus(ScriptVersionStatus.PASSED.getValue());
+            Integer maxVersion = autoexecScriptMapper.getMaxVersionByScriptId(version.getScriptId());
+            updateVo.setVersion(maxVersion != null ? maxVersion + 1 : 1);
+            updateVo.setIsActive(1);
+            // 禁用之前的激活版本
+            AutoexecScriptVersionVo activeVersion = autoexecScriptMapper.getActiveVersionByScriptId(version.getScriptId());
+            if (activeVersion != null) {
+                activeVersion.setIsActive(0);
+                autoexecScriptMapper.updateScriptVersion(activeVersion);
+            }
+        } else {
+            updateVo.setStatus(ScriptVersionStatus.REJECTED.getValue());
+        }
+        autoexecScriptMapper.updateScriptVersion(updateVo);
+
+        JSONObject auditContent = new JSONObject();
+        auditContent.put("version", version.getVersion());
+        if (StringUtils.isNotBlank(content)) {
+            auditContent.put("content", content);
+        }
+        AutoexecScriptAuditVo auditVo = new AutoexecScriptAuditVo(version.getScriptId(), version.getId(), action, auditContent);
+        audit(auditVo);
     }
 }

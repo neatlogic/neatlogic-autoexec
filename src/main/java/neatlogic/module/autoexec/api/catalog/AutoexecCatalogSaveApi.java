@@ -1,5 +1,7 @@
 package neatlogic.module.autoexec.api.catalog;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
@@ -8,14 +10,12 @@ import neatlogic.framework.autoexec.exception.AutoexecCatalogNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecCatalogRepeatException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.dto.FieldValidResultVo;
-import neatlogic.framework.lrcode.LRCodeManager;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.IValid;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.framework.util.RegexUtils;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import neatlogic.module.autoexec.service.AutoexecCatalogService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +30,8 @@ public class AutoexecCatalogSaveApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCatalogMapper autoexecCatalogMapper;
+    @Resource
+    private AutoexecCatalogService autoexecCatalogService;
 
     @Override
     public String getToken() {
@@ -38,7 +40,7 @@ public class AutoexecCatalogSaveApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "保存工具目录";
+        return "nmaac.autoexeccatalogsaveapi.getname";
     }
 
     @Override
@@ -47,12 +49,12 @@ public class AutoexecCatalogSaveApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "目录id"),
-            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, desc = "名称", maxLength = 50, isRequired = true, xss = true),
-            @Param(name = "parentId", type = ApiParamType.LONG, desc = "父目录id"),
+            @Param(name = "id", type = ApiParamType.LONG, desc = "common.id"),
+            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, desc = "common.name", maxLength = 50, isRequired = true, xss = true),
+            @Param(name = "parentId", type = ApiParamType.LONG, desc = "common.parentid"),
     })
-    @Output({@Param(name = "id", type = ApiParamType.LONG, desc = "目录id")})
-    @Description(desc = "保存工具目录")
+    @Output({@Param(name = "id", type = ApiParamType.LONG, desc = "common.id")})
+    @Description(desc = "nmaac.autoexeccatalogsaveapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");
@@ -68,18 +70,24 @@ public class AutoexecCatalogSaveApi extends PrivateApiComponentBase {
             if (autoexecCatalogMapper.checkAutoexecCatalogIsExists(id) == 0) {
                 throw new AutoexecCatalogNotFoundException(id);
             }
-            autoexecCatalogMapper.updateAutoexecCatalogNameById(vo);
-        } else {
-            if (!AutoexecCatalogVo.ROOT_ID.equals(vo.getParentId()) && autoexecCatalogMapper.checkAutoexecCatalogIsExists(vo.getParentId()) == 0) {
-                throw new AutoexecCatalogNotFoundException(vo.getParentId());
-            }
-            int lft = LRCodeManager.beforeAddTreeNode("autoexec_catalog", "id", "parent_id", vo.getParentId());
-            vo.setParentId(vo.getParentId());
-            vo.setLft(lft);
-            vo.setRht(lft + 1);
-            autoexecCatalogMapper.insertAutoexecCatalog(vo);
         }
-        return vo.getId();
+        return autoexecCatalogService.saveAutoexecCatalog(vo);
+//        if (id != null) {
+//            if (autoexecCatalogMapper.checkAutoexecCatalogIsExists(id) == 0) {
+//                throw new AutoexecCatalogNotFoundException(id);
+//            }
+//            autoexecCatalogMapper.updateAutoexecCatalogNameById(vo);
+//        } else {
+//            if (!AutoexecCatalogVo.ROOT_ID.equals(vo.getParentId()) && autoexecCatalogMapper.checkAutoexecCatalogIsExists(vo.getParentId()) == 0) {
+//                throw new AutoexecCatalogNotFoundException(vo.getParentId());
+//            }
+//            int lft = LRCodeManager.beforeAddTreeNode("autoexec_catalog", "id", "parent_id", vo.getParentId());
+//            vo.setParentId(vo.getParentId());
+//            vo.setLft(lft);
+//            vo.setRht(lft + 1);
+//            autoexecCatalogMapper.insertAutoexecCatalog(vo);
+//        }
+//        return vo.getId();
     }
 
     public IValid name() {
