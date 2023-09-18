@@ -63,6 +63,15 @@ public class ToolImportExportHandler extends ImportExportHandlerBase {
     }
 
     @Override
+    public Object getPrimaryByName(ImportExportVo importExportVo) {
+        AutoexecToolVo oldAutoexecToolVo = autoexecToolMapper.getToolByName(importExportVo.getName());
+        if (oldAutoexecToolVo == null) {
+            throw new AutoexecToolNotFoundException(importExportVo.getName());
+        }
+        return oldAutoexecToolVo.getId();
+    }
+
+    @Override
     public Long importData(ImportExportVo importExportVo, List<ImportExportPrimaryChangeVo> primaryChangeList) {
         JSONObject data = importExportVo.getData();
         AutoexecToolVo autoexecToolVo = data.toJavaObject(AutoexecToolVo.class);

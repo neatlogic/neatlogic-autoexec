@@ -64,6 +64,15 @@ public class TypeImportExportHandler extends ImportExportHandlerBase {
     }
 
     @Override
+    public Object getPrimaryByName(ImportExportVo importExportVo) {
+        AutoexecTypeVo oldAutoexecTypeVo = autoexecTypeMapper.getTypeByName(importExportVo.getName());
+        if (oldAutoexecTypeVo == null) {
+            throw new AutoexecTypeNotFoundException(importExportVo.getName());
+        }
+        return oldAutoexecTypeVo.getId();
+    }
+
+    @Override
     public Long importData(ImportExportVo importExportVo, List<ImportExportPrimaryChangeVo> primaryChangeList) {
         AutoexecTypeVo autoexecTypeVo = importExportVo.getData().toJavaObject(AutoexecTypeVo.class);
         AutoexecTypeVo oldAutoexecTypeVo = autoexecTypeMapper.getTypeByName(autoexecTypeVo.getName());

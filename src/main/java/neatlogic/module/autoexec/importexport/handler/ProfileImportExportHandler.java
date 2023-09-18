@@ -71,6 +71,15 @@ public class ProfileImportExportHandler extends ImportExportHandlerBase {
     }
 
     @Override
+    public Object getPrimaryByName(ImportExportVo importExportVo) {
+        AutoexecProfileVo oldAutoexecProfileVo = autoexecProfileMapper.getProfileVoByName(importExportVo.getName());
+        if (oldAutoexecProfileVo == null) {
+            throw new AutoexecProfileIsNotFoundException(importExportVo.getName());
+        }
+        return oldAutoexecProfileVo.getId();
+    }
+
+    @Override
     public Long importData(ImportExportVo importExportVo, List<ImportExportPrimaryChangeVo> primaryChangeList) {
         JSONObject data = importExportVo.getData();
         AutoexecProfileVo autoexecProfileVo = data.toJavaObject(AutoexecProfileVo.class);

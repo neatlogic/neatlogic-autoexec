@@ -64,6 +64,15 @@ public class CatalogImportExportHandler extends ImportExportHandlerBase {
     }
 
     @Override
+    public Object getPrimaryByName(ImportExportVo importExportVo) {
+        AutoexecCatalogVo oldAutoexecCatalogVo = autoexecCatalogMapper.getAutoexecCatalogByName(importExportVo.getName());
+        if (oldAutoexecCatalogVo == null) {
+            throw new AutoexecCatalogNotFoundException(importExportVo.getName());
+        }
+        return oldAutoexecCatalogVo.getId();
+    }
+
+    @Override
     public Long importData(ImportExportVo importExportVo, List<ImportExportPrimaryChangeVo> primaryChangeList) {
         AutoexecCatalogVo autoexecCatalogVo = importExportVo.getData().toJavaObject(AutoexecCatalogVo.class);
         AutoexecCatalogVo oldAutoexecCatalogVo = autoexecCatalogMapper.getAutoexecCatalogByName(autoexecCatalogVo.getName());

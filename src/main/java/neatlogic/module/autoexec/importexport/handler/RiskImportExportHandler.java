@@ -62,6 +62,15 @@ public class RiskImportExportHandler extends ImportExportHandlerBase {
     }
 
     @Override
+    public Object getPrimaryByName(ImportExportVo importExportVo) {
+        AutoexecRiskVo oldAutoexecRiskVo = autoexecRiskMapper.getAutoexecRiskByName(importExportVo.getName());
+        if (oldAutoexecRiskVo == null) {
+            throw new AutoexecRiskNotFoundException(importExportVo.getName());
+        }
+        return oldAutoexecRiskVo.getId();
+    }
+
+    @Override
     public Long importData(ImportExportVo importExportVo, List<ImportExportPrimaryChangeVo> primaryChangeList) {
         AutoexecRiskVo autoexecRiskVo = importExportVo.getData().toJavaObject(AutoexecRiskVo.class);
         autoexecRiskVo.setFcu(UserContext.get().getUserUuid());

@@ -18,6 +18,7 @@ package neatlogic.module.autoexec.importexport.handler;
 
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.autoexec.dto.customtemplate.CustomTemplateVo;
+import neatlogic.framework.autoexec.exception.AutoexecCatalogNotFoundException;
 import neatlogic.framework.autoexec.exception.customtemplate.CustomTemplateNotFoundException;
 import neatlogic.framework.importexport.core.ImportExportHandlerBase;
 import neatlogic.framework.importexport.core.ImportExportHandlerType;
@@ -60,6 +61,15 @@ public class CustomTemplateImportExportHandler extends ImportExportHandlerBase {
     @Override
     public boolean checkIsExists(ImportExportBaseInfoVo importExportBaseInfoVo) {
         return autoexecCustomTemplateMapper.getCustomTemplateByName(importExportBaseInfoVo.getName()) != null;
+    }
+
+    @Override
+    public Object getPrimaryByName(ImportExportVo importExportVo) {
+        CustomTemplateVo oldCustomTemplateVo = autoexecCustomTemplateMapper.getCustomTemplateByName(importExportVo.getName());
+        if (oldCustomTemplateVo == null) {
+            throw new AutoexecCatalogNotFoundException(importExportVo.getName());
+        }
+        return oldCustomTemplateVo.getId();
     }
 
     @Override

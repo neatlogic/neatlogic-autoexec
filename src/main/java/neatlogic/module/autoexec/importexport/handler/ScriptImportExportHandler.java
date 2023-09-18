@@ -76,6 +76,15 @@ public class ScriptImportExportHandler extends ImportExportHandlerBase {
     }
 
     @Override
+    public Object getPrimaryByName(ImportExportVo importExportVo) {
+        AutoexecScriptVo oldAutoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoByName(importExportVo.getName());
+        if (oldAutoexecScriptVo == null) {
+            throw new AutoexecScriptNotFoundException(importExportVo.getName());
+        }
+        return oldAutoexecScriptVo.getId();
+    }
+
+    @Override
     public Long importData(ImportExportVo importExportVo, List<ImportExportPrimaryChangeVo> primaryChangeList) {
         JSONObject data = importExportVo.getData();
         AutoexecScriptVo autoexecScriptVo = data.toJavaObject(AutoexecScriptVo.class);
