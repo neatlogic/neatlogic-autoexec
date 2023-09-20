@@ -16,16 +16,14 @@
 
 package neatlogic.module.autoexec.script.paramtype;
 
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.ParamType;
 import neatlogic.framework.autoexec.script.paramtype.ScriptParamTypeBase;
 import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountVo;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
-import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-
-import javax.annotation.Resource;
 
 /**
  * @author lvzk
@@ -99,6 +97,28 @@ public class ScriptParamTypeAccount extends ScriptParamTypeBase {
             }
         }
         return value;
+    }
+
+    @Override
+    public Object getMyExchangeParamByValue(Object value) {
+        Long accountId = null;
+        if (value != null && StringUtils.isNotBlank(value.toString())) {
+            IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
+            try {
+                accountId = Long.valueOf(value.toString());
+            } catch (NumberFormatException ignored) {
+
+            }
+
+            if (accountId == null) {
+                AccountVo accountVo = resourceAccountCrossoverMapper.getPublicAccountByName(value.toString());
+                if(accountVo != null) {
+                    accountId = accountVo.getId();
+                }
+            }
+
+        }
+        return accountId;
     }
 
     @Override

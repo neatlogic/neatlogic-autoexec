@@ -20,11 +20,8 @@ import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.constvalue.CombopOperationType;
-import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.constvalue.JobTriggerType;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
-import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
-import neatlogic.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
@@ -88,32 +85,6 @@ public class CreateAutoexecJobFromCombopApi extends PrivateApiComponentBase {
         String triggerType = jsonObj.getString("triggerType");
         Long planStartTime = jsonObj.getLong("planStartTime");
         autoexecJobActionService.settingJobFireMode(triggerType, planStartTime, autoexecJobParam);
-
-//        //如果是自动开始且计划开始时间小于等于当前时间则直接激活作业
-//        if (Objects.equals(JobTriggerType.AUTO.getValue(), jsonObj.getString("triggerType")) && (jsonObj.containsKey("planStartTime") && jsonObj.getLong("planStartTime") <= System.currentTimeMillis())) {
-//            fireJob(autoexecJobParam);
-//            return new JSONObject() {{
-//                put("jobId", autoexecJobParam.getId());
-//            }};
-//        }
-//
-//
-//        if (jsonObj.containsKey("triggerType")) {
-//            // 保存之后，如果设置的人工触发，那只有点执行按钮才能触发；如果是自动触发，则启动一个定时作业；如果没到点就人工触发了，则取消定时作业，立即执行
-//            if (JobTriggerType.AUTO.getValue().equals(jsonObj.getString("triggerType"))) {
-//                if (!jsonObj.containsKey("planStartTime")) {
-//                    throw new ParamIrregularException("planStartTime");
-//                }
-//                IJob jobHandler = SchedulerManager.getHandler(AutoexecJobAutoFireJob.class.getName());
-//                if (jobHandler == null) {
-//                    throw new ScheduleHandlerNotFoundException(AutoexecJobAutoFireJob.class.getName());
-//                }
-//                JobObject.Builder jobObjectBuilder = new JobObject.Builder(autoexecJobParam.getId().toString(), jobHandler.getGroupName(), jobHandler.getClassName(), TenantContext.get().getTenantUuid());
-//                jobHandler.reloadJob(jobObjectBuilder.build());
-//            }
-//        } else {
-//            fireJob(autoexecJobParam);
-//        }
         return new JSONObject() {{
             put("jobId", autoexecJobParam.getId());
         }};
@@ -122,13 +93,5 @@ public class CreateAutoexecJobFromCombopApi extends PrivateApiComponentBase {
     @Override
     public String getToken() {
         return "/autoexec/job/from/combop/create";
-    }
-
-
-    private void fireJob(AutoexecJobVo autoexecJobParam) throws Exception {
-        IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
-        autoexecJobParam.setAction(JobAction.FIRE.getValue());
-        autoexecJobParam.setIsFirstFire(1);
-        fireAction.doService(autoexecJobParam);
     }
 }
