@@ -16,7 +16,7 @@ limitations under the License.
 
 package neatlogic.module.autoexec.api.job.exec;
 
-import neatlogic.framework.asynchronization.threadlocal.UserContext;
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.constvalue.JobStatus;
@@ -24,16 +24,11 @@ import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
-import neatlogic.framework.common.constvalue.SystemUser;
-import neatlogic.framework.dao.mapper.UserMapper;
-import neatlogic.framework.dto.AuthenticationInfoVo;
-import neatlogic.framework.dto.UserVo;
 import neatlogic.framework.exception.type.ParamIrregularException;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import com.alibaba.fastjson.JSONObject;
-import neatlogic.framework.service.AuthenticationInfoService;
+import neatlogic.module.autoexec.service.AutoexecJobActionService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -53,10 +48,7 @@ public class UpdateAutoexecJobStatusApi extends PrivateApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
     @Resource
-    UserMapper userMapper;
-
-    @Resource
-    private AuthenticationInfoService authenticationInfoService;
+    AutoexecJobActionService autoexecJobActionService;
 
     @Override
     public String getName() {
@@ -86,15 +78,7 @@ public class UpdateAutoexecJobStatusApi extends PrivateApiComponentBase {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
         //更新执行用户上下文
-        UserVo execUser;
-        AuthenticationInfoVo authenticationInfoVo = null;
-        if(Objects.equals(SystemUser.SYSTEM.getUserUuid(),jobVo.getExecUser())){
-            execUser = SystemUser.SYSTEM.getUserVo();
-        }else{
-            execUser = userMapper.getUserBaseInfoByUuid(jobVo.getExecUser());
-            authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(jobVo.getExecUser());
-        }
-        UserContext.init(execUser, authenticationInfoVo, "+8:00");
+        autoexecJobActionService.initExecuteUserContext(jobVo);
 
         if (Objects.equals(status, JobStatus.ABORTED.getValue())) {
             statusIng = JobStatus.ABORTING.getValue();

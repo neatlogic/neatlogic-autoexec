@@ -18,11 +18,13 @@ package neatlogic.module.autoexec.api.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
-import neatlogic.framework.autoexec.constvalue.*;
+import neatlogic.framework.autoexec.constvalue.CombopOperationType;
+import neatlogic.framework.autoexec.constvalue.JobSource;
+import neatlogic.framework.autoexec.constvalue.JobTriggerType;
+import neatlogic.framework.autoexec.constvalue.ServiceParamMappingMode;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
 import neatlogic.framework.autoexec.dto.combop.*;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
@@ -33,11 +35,8 @@ import neatlogic.framework.autoexec.exception.AutoexecCombopActiveVersionNotFoun
 import neatlogic.framework.autoexec.exception.AutoexecJobParamNotExistException;
 import neatlogic.framework.autoexec.exception.AutoexecServiceConfigExpiredException;
 import neatlogic.framework.autoexec.exception.AutoexecServiceNotFoundException;
-import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
-import neatlogic.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.dto.AuthenticationInfoVo;
-import neatlogic.framework.exception.type.ParamIrregularException;
 import neatlogic.framework.exception.type.ParamNotExistsException;
 import neatlogic.framework.exception.type.PermissionDeniedException;
 import neatlogic.framework.form.dao.mapper.FormMapper;
@@ -47,13 +46,8 @@ import neatlogic.framework.form.exception.FormAttributeRequiredException;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import neatlogic.framework.scheduler.core.IJob;
-import neatlogic.framework.scheduler.core.SchedulerManager;
-import neatlogic.framework.scheduler.dto.JobObject;
-import neatlogic.framework.scheduler.exception.ScheduleHandlerNotFoundException;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecServiceMapper;
-import neatlogic.module.autoexec.schedule.plugin.AutoexecJobAutoFireJob;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
 import org.apache.commons.collections4.CollectionUtils;
@@ -405,7 +399,7 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
             }
         }
         autoexecJobActionService.validateAndCreateJobFromCombop(autoexecJobVo);
-        autoexecJobActionService.settingJobFireMode(triggerType, planStartTime, autoexecJobVo);
+        autoexecJobActionService.settingJobFireMode(autoexecJobVo);
         JSONObject resultObj = new JSONObject();
         resultObj.put("jobId", autoexecJobVo.getId());
         return resultObj;

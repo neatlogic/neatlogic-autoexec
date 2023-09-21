@@ -18,7 +18,6 @@ package neatlogic.module.autoexec.api.job.exec;
 
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.thread.NeatLogicThread;
-import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.asynchronization.threadpool.TransactionSynchronizationPool;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
@@ -37,16 +36,11 @@ import neatlogic.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandle
 import neatlogic.framework.autoexec.source.AutoexecJobSourceFactory;
 import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.common.constvalue.ApiParamType;
-import neatlogic.framework.common.constvalue.SystemUser;
-import neatlogic.framework.dao.mapper.UserMapper;
-import neatlogic.framework.dto.AuthenticationInfoVo;
-import neatlogic.framework.dto.UserVo;
 import neatlogic.framework.exception.core.ApiRuntimeException;
-import neatlogic.framework.exception.user.UserNotFoundException;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import neatlogic.framework.service.AuthenticationInfoService;
+import neatlogic.module.autoexec.service.AutoexecJobActionService;
 import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
@@ -72,10 +66,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
     AutoexecJobService autoexecJobService;
 
     @Resource
-    UserMapper userMapper;
-
-    @Resource
-    private AuthenticationInfoService authenticationInfoService;
+    AutoexecJobActionService autoexecJobActionService;
 
     @Override
     public String getName() {
@@ -122,18 +113,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
         //更新执行用户上下文
-        UserVo execUser;
-        AuthenticationInfoVo authenticationInfoVo = null;
-        if (Objects.equals(SystemUser.SYSTEM.getUserUuid(), jobVo.getExecUser())) {
-            execUser = SystemUser.SYSTEM.getUserVo();
-        } else {
-            execUser = userMapper.getUserBaseInfoByUuid(jobVo.getExecUser());
-            authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(jobVo.getExecUser());
-        }
-        if (execUser == null) {
-            throw new UserNotFoundException(jobVo.getExecUser());
-        }
-        UserContext.init(execUser, authenticationInfoVo, "+8:00");
+        autoexecJobActionService.initExecuteUserContext(jobVo);
 
         AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseNameWithGroup(jobId, phaseName);
         if (jobPhaseVo == null) {

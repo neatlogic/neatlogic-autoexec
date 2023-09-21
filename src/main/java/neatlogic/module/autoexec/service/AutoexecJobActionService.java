@@ -63,9 +63,7 @@ public interface AutoexecJobActionService {
 
     /**
      * 设置作业的激活方式
-     * @param triggerType
-     * @param planStartTime
-     * @param jobVo
+     * @param jobVo 作业
      */
-    void settingJobFireMode(String triggerType, Long planStartTime, AutoexecJobVo jobVo) throws Exception;
+    void settingJobFireMode(AutoexecJobVo jobVo) throws Exception;
 }

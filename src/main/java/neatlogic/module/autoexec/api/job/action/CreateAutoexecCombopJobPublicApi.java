@@ -65,7 +65,7 @@ import java.util.stream.Collectors;
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.CREATE)
-public class CreateAutoexecJobFromCombopPublicApi extends PrivateApiComponentBase {
+public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
     @Resource
     AutoexecJobActionService autoexecJobActionService;
 
@@ -150,9 +150,7 @@ public class CreateAutoexecJobFromCombopPublicApi extends PrivateApiComponentBas
             }
         }
         autoexecJobActionService.validateAndCreateJobFromCombop(autoexecJobParam);
-        String triggerType = jsonObj.getString("triggerType");
-        Long planStartTime = jsonObj.getLong("planStartTime");
-        autoexecJobActionService.settingJobFireMode(triggerType, planStartTime, autoexecJobParam);
+        autoexecJobActionService.settingJobFireMode(autoexecJobParam);
         return new JSONObject() {{
             put("jobId", autoexecJobParam.getId());
         }};

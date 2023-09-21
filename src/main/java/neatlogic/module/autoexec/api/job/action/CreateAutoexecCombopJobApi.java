@@ -14,14 +14,12 @@
  * limitations under the License.
  */
 
-package neatlogic.module.autoexec.api.combop;
+package neatlogic.module.autoexec.api.job.action;
 
 import com.alibaba.fastjson.JSONObject;
-import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.constvalue.CombopOperationType;
-import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.constvalue.JobSource;
 import neatlogic.framework.autoexec.constvalue.JobTriggerType;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
@@ -31,25 +29,16 @@ import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecCombopActiveVersionNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecCombopVersionNotFoundException;
-import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
-import neatlogic.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import neatlogic.framework.common.constvalue.ApiParamType;
-import neatlogic.framework.exception.type.ParamIrregularException;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import neatlogic.framework.scheduler.core.IJob;
-import neatlogic.framework.scheduler.core.SchedulerManager;
-import neatlogic.framework.scheduler.dto.JobObject;
-import neatlogic.framework.scheduler.exception.ScheduleHandlerNotFoundException;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
-import neatlogic.module.autoexec.schedule.plugin.AutoexecJobAutoFireJob;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Objects;
 
 @Transactional
 @Service
@@ -122,9 +111,7 @@ public class CreateAutoexecCombopJobApi extends PrivateApiComponentBase {
             jobVo.setSource(JobSource.COMBOP.getValue());
         }
         autoexecJobActionService.validateAndCreateJobFromCombop(jobVo);
-        String triggerType = paramObj.getString("triggerType");
-        Long planStartTime = paramObj.getLong("planStartTime");
-        autoexecJobActionService.settingJobFireMode(triggerType, planStartTime, jobVo);
+        autoexecJobActionService.settingJobFireMode(jobVo);
         JSONObject resultObj = new JSONObject();
         resultObj.put("jobId", jobVo.getId());
         return resultObj;
