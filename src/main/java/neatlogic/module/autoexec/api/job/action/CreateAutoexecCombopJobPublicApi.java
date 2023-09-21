@@ -103,7 +103,7 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
             @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.executeconfig"),
             @Param(name = "planStartTime", type = ApiParamType.LONG, desc = "common.planstarttime"),
             @Param(name = "triggerType", type = ApiParamType.ENUM, member = JobTriggerType.class, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.triggertype"),
-            @Param(name = "assignExecUserId", type = ApiParamType.STRING, desc = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.assign")
+            @Param(name = "assignExecUser", type = ApiParamType.STRING, desc = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.assignuser"),
     })
     @Output({
     })
@@ -126,15 +126,17 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
         }
         AutoexecCombopVersionConfigVo versionConfig = autoexecCombopVersionVo.getConfig();
 
-        String assignExecUserUuid = UserContext.get().getUserUuid();
-        String assignExecUserId = jsonObj.getString("assignExecUserId");
-        UserVo assignExecUserVo = userMapper.getUserByUserId(assignExecUserId);
-        if (assignExecUserVo != null) {
-            assignExecUserUuid = assignExecUserVo.getUuid();
+        String assignExecUser = UserContext.get().getUserUuid();
+        String assignExecUserParam = jsonObj.getString("assignExecUser");
+        if(StringUtils.isNotBlank(assignExecUserParam)){
+            UserVo assignUserTmp = userMapper.getUserByUser(assignExecUserParam);
+            if(assignUserTmp != null) {
+                assignExecUser = assignUserTmp.getUuid();
+            }
         }
         JSONObject param = jsonObj.getJSONObject("param");
         jsonObj.put("param", initParam(param, versionConfig));
-        jsonObj.put("assignExecUser", assignExecUserUuid);
+        jsonObj.put("assignExecUser", assignExecUser);
         jsonObj.put("operationType", CombopOperationType.COMBOP.getValue());
         jsonObj.put("operationId", combopVo.getId());
         AutoexecJobVo autoexecJobParam = JSONObject.toJavaObject(jsonObj, AutoexecJobVo.class);
