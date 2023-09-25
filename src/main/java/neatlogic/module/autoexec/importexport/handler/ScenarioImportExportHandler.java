@@ -81,7 +81,6 @@ public class ScenarioImportExportHandler extends ImportExportHandlerBase {
             if (Objects.equals(autoexecScenarioVo.getDescription(), oldAutoexecScenarioVo.getDescription())) {
                 return autoexecScenarioVo.getId();
             }
-            autoexecScenarioVo.setDescription(oldAutoexecScenarioVo.getDescription());
         } else {
             if (autoexecScenarioMapper.checkScenarioIsExistsById(autoexecScenarioVo.getId()) > 0) {
                 // 更新id

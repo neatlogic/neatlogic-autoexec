@@ -73,10 +73,6 @@ public class GlobalParamImportExportHandler extends ImportExportHandlerBase {
         AutoexecGlobalParamVo oldAutoexecGlobalParamVo = autoexecGlobalParamMapper.getGlobalParamByKey(autoexecGlobalParamVo.getKey());
         if (oldAutoexecGlobalParamVo != null) {
             autoexecGlobalParamVo.setId(oldAutoexecGlobalParamVo.getId());
-            autoexecGlobalParamVo.setDescription(oldAutoexecGlobalParamVo.getDescription());
-            autoexecGlobalParamVo.setName(oldAutoexecGlobalParamVo.getName());
-            autoexecGlobalParamVo.setType(oldAutoexecGlobalParamVo.getType());
-            autoexecGlobalParamVo.setDefaultValue(oldAutoexecGlobalParamVo.getDefaultValue());
         } else {
             if (autoexecGlobalParamMapper.checkGlobalParamIsExistsById(autoexecGlobalParamVo.getId()) > 0) {
                 // 更新id
