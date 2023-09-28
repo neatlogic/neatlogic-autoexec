@@ -86,8 +86,7 @@ public class AutoexecCombopVersionGetApi extends PrivateApiComponentBase {
         if (autoexecCombopVersionVo == null) {
             throw new AutoexecCombopVersionNotFoundException(id);
         }
-        Integer isActive = autoexecCombopMapper.getAutoexecCombopIsActiveByIdForUpdate(autoexecCombopVersionVo.getCombopId());
-        if (Objects.equals(autoexecCombopVersionVo.getIsActive(), 1) && Objects.equals(isActive, 1)) {
+        if (Objects.equals(autoexecCombopVersionVo.getIsActive(), 1)) {
             try {
                 autoexecCombopService.verifyAutoexecCombopVersionConfig(autoexecCombopVersionVo.getConfig(), false);
             } catch (Exception e) {
