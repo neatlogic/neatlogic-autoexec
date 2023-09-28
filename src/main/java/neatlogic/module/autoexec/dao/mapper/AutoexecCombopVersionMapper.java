@@ -46,8 +46,6 @@ public interface AutoexecCombopVersionMapper {
 
     int updateAutoexecCombopVersionConfigById(@Param("id") Long id, @Param("configStr") String configStr);
 
-    int updateAutoexecCombopVersionConfigExpiredById(AutoexecCombopVersionVo autoexecCombopVersionVo);
-
     int disableAutoexecCombopVersionByCombopId(Long combopId);
 
     int enableAutoexecCombopVersionById(Long id);

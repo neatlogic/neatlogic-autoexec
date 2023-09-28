@@ -109,17 +109,6 @@ public class AutoexecCombopIsActiveUpdateApi extends PrivateApiComponentBase {
                 throw new AutoexecCombopVersionNotFoundEditTargetException(activeVersionId);
             }
             autoexecCombopService.verifyAutoexecCombopVersionConfig(autoexecCombopVersionVo.getConfig(), false);
-            autoexecCombopVersionVo.setConfigExpired(0);
-            autoexecCombopVersionVo.setConfigExpiredReason(null);
-            autoexecCombopVersionVo.setConfigExpiredReasonStr(null);
-            autoexecCombopVersionMapper.updateAutoexecCombopVersionConfigExpiredById(autoexecCombopVersionVo);
-//            List<AutoexecParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
-//            for (AutoexecParamVo autoexecParamVo : runtimeParamList) {
-//                autoexecService.mergeConfig(autoexecParamVo);
-//            }
-//            AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
-//            config.setRuntimeParamList(runtimeParamList);
-//            autoexecCombopService.verifyAutoexecCombopConfig(config, false);
         }
         autoexecCombopVo.setLcu(UserContext.get().getUserUuid(true));
         autoexecCombopMapper.updateAutoexecCombopIsActiveById(autoexecCombopVo);

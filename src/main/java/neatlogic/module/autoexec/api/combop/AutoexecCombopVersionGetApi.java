@@ -104,7 +104,6 @@ public class AutoexecCombopVersionGetApi extends PrivateApiComponentBase {
                 configExpiredReason.put("reasonList", reasonList);
                 autoexecCombopVersionVo.setConfigExpired(1);
                 autoexecCombopVersionVo.setConfigExpiredReason(configExpiredReason);
-                autoexecCombopVersionMapper.updateAutoexecCombopVersionConfigExpiredById(autoexecCombopVersionVo);
             }
         }
         return autoexecCombopVersionVo;

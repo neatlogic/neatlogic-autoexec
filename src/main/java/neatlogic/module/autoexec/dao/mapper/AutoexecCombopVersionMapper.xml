@@ -36,8 +36,6 @@ limitations under the License.
                `status`,
                `reviewer`,
                `config` AS configStr,
-               `config_expired` AS configExpired,
-               `config_expired_reason` AS configExpiredReason,
                `lcd`,
                `lcu`
         FROM `autoexec_combop_version`
@@ -160,8 +158,6 @@ limitations under the License.
                `status`,
                `reviewer`,
                `config` AS configStr,
-               `config_expired` AS configExpired,
-               `config_expired_reason` AS configExpiredReason,
                `lcd`,
                `lcu`
         FROM `autoexec_combop_version`
@@ -256,13 +252,6 @@ limitations under the License.
 
     <update id="updateAutoexecCombopVersionConfigById" parameterType="java.util.Map">
         UPDATE `autoexec_combop_version` SET `config` = #{configStr} WHERE `id` = #{id}
-    </update>
-
-    <update id="updateAutoexecCombopVersionConfigExpiredById" parameterType="neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo">
-        UPDATE `autoexec_combop_version`
-        SET `config_expired` = #{configExpired},
-            `config_expired_reason` = #{configExpiredReasonStr}
-        WHERE `id` = #{id}
     </update>
 
     <delete id="deleteAutoexecCombopVersionByCombopId" parameterType="java.lang.Long">

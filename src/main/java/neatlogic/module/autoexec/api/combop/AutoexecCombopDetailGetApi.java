@@ -110,7 +110,6 @@ public class AutoexecCombopDetailGetApi extends PrivateApiComponentBase {
                     configExpiredReason.put("reasonList", reasonList);
                     autoexecCombopVersionVo.setConfigExpired(1);
                     autoexecCombopVersionVo.setConfigExpiredReason(configExpiredReason);
-                    autoexecCombopVersionMapper.updateAutoexecCombopVersionConfigExpiredById(autoexecCombopVersionVo);
 
                     autoexecCombopVo.setIsActive(0);
                     autoexecCombopVo.setConfigExpired(1);
