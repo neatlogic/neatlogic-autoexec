@@ -16,13 +16,18 @@
 
 package neatlogic.module.autoexec.api.combop;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import neatlogic.framework.autoexec.dto.AutoexecTypeVo;
-import neatlogic.framework.autoexec.dto.combop.*;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionConfigVo;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
 import neatlogic.framework.autoexec.exception.combop.AutoexecCombopNotFoundEditTargetException;
 import neatlogic.framework.autoexec.exception.combop.AutoexecCombopVersionNotFoundEditTargetException;
 import neatlogic.framework.common.constvalue.ApiParamType;
@@ -32,12 +37,15 @@ import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Objects;
 
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
-@OperationType(type = OperationTypeEnum.SEARCH)
+@OperationType(type = OperationTypeEnum.UPDATE)
+@Transactional
 public class AutoexecCombopDetailGetApi extends PrivateApiComponentBase {
 
     @Resource
@@ -86,6 +94,28 @@ public class AutoexecCombopDetailGetApi extends PrivateApiComponentBase {
             AutoexecCombopVersionVo autoexecCombopVersionVo = autoexecCombopService.getAutoexecCombopVersionById(versionId);
             if (autoexecCombopVersionVo == null) {
                 throw new AutoexecCombopVersionNotFoundEditTargetException(versionId);
+            }
+            if (Objects.equals(versionId, activeVersionId)) {
+                try {
+                    autoexecCombopService.verifyAutoexecCombopVersionConfig(autoexecCombopVersionVo.getConfig(), false);
+                } catch (Exception e) {
+                    autoexecCombopVo.setLcu(UserContext.get().getUserUuid());
+                    autoexecCombopMapper.updateAutoexecCombopIsActiveById(autoexecCombopVo);
+
+                    JSONObject configExpiredReason = new JSONObject();
+                    JSONArray reasonList = new JSONArray();
+                    JSONObject errorMessageObj = new JSONObject();
+                    errorMessageObj.put("description", e.getMessage());
+                    reasonList.add(errorMessageObj);
+                    configExpiredReason.put("reasonList", reasonList);
+                    autoexecCombopVersionVo.setConfigExpired(1);
+                    autoexecCombopVersionVo.setConfigExpiredReason(configExpiredReason);
+                    autoexecCombopVersionMapper.updateAutoexecCombopVersionConfigExpiredById(autoexecCombopVersionVo);
+
+                    autoexecCombopVo.setIsActive(0);
+                    autoexecCombopVo.setConfigExpired(1);
+                    autoexecCombopVo.setConfigExpiredReason(configExpiredReason);
+                }
             }
             AutoexecCombopVersionConfigVo versionConfig = autoexecCombopVersionVo.getConfig();
             autoexecCombopService.needExecuteConfig(autoexecCombopVersionVo);

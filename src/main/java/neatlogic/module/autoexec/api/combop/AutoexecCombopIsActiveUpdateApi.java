@@ -21,9 +21,11 @@ import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
 import neatlogic.framework.autoexec.exception.AutoexecCombopActiveVersionNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecCombopNotFoundException;
+import neatlogic.framework.autoexec.exception.combop.AutoexecCombopVersionNotFoundEditTargetException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.exception.type.PermissionDeniedException;
 import neatlogic.framework.restful.annotation.*;
@@ -69,7 +71,7 @@ public class AutoexecCombopIsActiveUpdateApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "更新组合工具状态";
+        return "nmaac.autoexeccombopisactiveupdateapi.getname";
     }
 
     @Override
@@ -78,12 +80,12 @@ public class AutoexecCombopIsActiveUpdateApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "主键id")
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "common.id")
     })
     @Output({
-            @Param(name = "Return", type = ApiParamType.INTEGER, desc = "更新后的状态")
+            @Param(name = "Return", type = ApiParamType.INTEGER, desc = "common.isactive")
     })
-    @Description(desc = "更新组合工具状态")
+    @Description(desc = "nmaac.autoexeccombopisactiveupdateapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");
@@ -102,6 +104,15 @@ public class AutoexecCombopIsActiveUpdateApi extends PrivateApiComponentBase {
             if (activeVersionId == null) {
                 throw new AutoexecCombopActiveVersionNotFoundException(autoexecCombopVo.getName());
             }
+            AutoexecCombopVersionVo autoexecCombopVersionVo = autoexecCombopService.getAutoexecCombopVersionById(activeVersionId);
+            if (autoexecCombopVersionVo == null) {
+                throw new AutoexecCombopVersionNotFoundEditTargetException(activeVersionId);
+            }
+            autoexecCombopService.verifyAutoexecCombopVersionConfig(autoexecCombopVersionVo.getConfig(), false);
+            autoexecCombopVersionVo.setConfigExpired(0);
+            autoexecCombopVersionVo.setConfigExpiredReason(null);
+            autoexecCombopVersionVo.setConfigExpiredReasonStr(null);
+            autoexecCombopVersionMapper.updateAutoexecCombopVersionConfigExpiredById(autoexecCombopVersionVo);
 //            List<AutoexecParamVo> runtimeParamList = autoexecCombopMapper.getAutoexecCombopParamListByCombopId(id);
 //            for (AutoexecParamVo autoexecParamVo : runtimeParamList) {
 //                autoexecService.mergeConfig(autoexecParamVo);
