@@ -96,8 +96,6 @@ CREATE TABLE IF NOT EXISTS `autoexec_combop_version` (
   `status` enum('draft','rejected','passed','submitted') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '状态',
   `reviewer` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '审核人',
   `config` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '配置信息',
-  `config_expired` tinyint(1) DEFAULT NULL COMMENT '配置已失效',
-  `config_expired_reason` mediumtext COLLATE utf8mb4_general_ci COMMENT '配置失效原因',
   `lcd` timestamp NULL DEFAULT NULL COMMENT '最后修改时间',
   `lcu` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '最后修改人',
   PRIMARY KEY (`id`)
