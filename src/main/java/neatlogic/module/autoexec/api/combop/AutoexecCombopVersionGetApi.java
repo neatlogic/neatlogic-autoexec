@@ -16,32 +16,41 @@ limitations under the License.
 
 package neatlogic.module.autoexec.api.combop;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
-import neatlogic.framework.autoexec.dto.combop.*;
+import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
 import neatlogic.framework.autoexec.exception.AutoexecCombopVersionNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
+import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
-import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Objects;
 
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
-@OperationType(type = OperationTypeEnum.SEARCH)
+@OperationType(type = OperationTypeEnum.UPDATE)
+@Transactional
 public class AutoexecCombopVersionGetApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopService autoexecCombopService;
+
+    @Resource
+    private AutoexecCombopMapper autoexecCombopMapper;
+
+    @Resource
+    private AutoexecCombopVersionMapper autoexecCombopVersionMapper;
 
     @Override
     public String getToken() {
@@ -50,7 +59,7 @@ public class AutoexecCombopVersionGetApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "查询组合工具版本详情";
+        return "nmaac.autoexeccombopversiongetapi.getname";
     }
 
     @Override
@@ -64,18 +73,37 @@ public class AutoexecCombopVersionGetApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "主键id")
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "common.id")
     })
     @Output({
-            @Param(explode = AutoexecCombopVersionVo.class, desc = "组合工具版本详情")
+            @Param(explode = AutoexecCombopVersionVo.class, desc = "term.autoexec.combopdetailsinfo")
     })
-    @Description(desc = "查询组合工具版本详情")
+    @Description(desc = "nmaac.autoexeccombopversiongetapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");
         AutoexecCombopVersionVo autoexecCombopVersionVo = autoexecCombopService.getAutoexecCombopVersionById(id);
         if (autoexecCombopVersionVo == null) {
             throw new AutoexecCombopVersionNotFoundException(id);
+        }
+        if (Objects.equals(autoexecCombopVersionVo.getIsActive(), 1)) {
+            try {
+                autoexecCombopService.verifyAutoexecCombopVersionConfig(autoexecCombopVersionVo.getConfig(), false);
+            } catch (Exception e) {
+                AutoexecCombopVo autoexecCombopVo = new AutoexecCombopVo();
+                autoexecCombopVo.setId(autoexecCombopVersionVo.getCombopId());
+                autoexecCombopVo.setLcu(UserContext.get().getUserUuid());
+                autoexecCombopMapper.updateAutoexecCombopIsActiveById(autoexecCombopVo);
+
+                JSONObject configExpiredReason = new JSONObject();
+                JSONArray reasonList = new JSONArray();
+                JSONObject errorMessageObj = new JSONObject();
+                errorMessageObj.put("description", e.getMessage());
+                reasonList.add(errorMessageObj);
+                configExpiredReason.put("reasonList", reasonList);
+                autoexecCombopVersionVo.setConfigExpired(1);
+                autoexecCombopVersionVo.setConfigExpiredReason(configExpiredReason);
+            }
         }
         return autoexecCombopVersionVo;
     }
