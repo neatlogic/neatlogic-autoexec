@@ -19,26 +19,33 @@ package neatlogic.module.autoexec.api.combop;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.auth.core.AuthAction;
+import neatlogic.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import neatlogic.framework.autoexec.constvalue.ParamMappingMode;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
-import neatlogic.framework.autoexec.dto.combop.*;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionConfigVo;
+import neatlogic.framework.autoexec.dto.combop.ParamMappingVo;
 import neatlogic.framework.common.dto.BasePageVo;
 import neatlogic.framework.restful.annotation.Description;
+import neatlogic.framework.restful.annotation.OperationType;
 import neatlogic.framework.restful.annotation.Output;
+import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.framework.scheduler.annotation.Prop;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
 import java.util.Map;
 
-@Service
+//@Service
+@Deprecated
+@OperationType(type = OperationTypeEnum.UPDATE)
+@AuthAction(action = AUTOEXEC_MODIFY.class)
 @Transactional
 public class AutoexecCombopDataUpdateApi extends PrivateApiComponentBase {
 
