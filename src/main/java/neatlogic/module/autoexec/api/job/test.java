@@ -15,6 +15,9 @@
  */
 package neatlogic.module.autoexec.api.job;
 
+import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.auth.core.AuthAction;
+import neatlogic.framework.autoexec.auth.AUTOEXEC_JOB_MODIFY;
 import neatlogic.framework.restful.annotation.OperationType;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
@@ -24,8 +27,6 @@ import neatlogic.framework.util.word.enums.FontColor;
 import neatlogic.framework.util.word.enums.FontFamily;
 import neatlogic.framework.util.word.enums.ParagraphAlignmentType;
 import neatlogic.framework.util.word.enums.TitleType;
-import com.alibaba.fastjson.JSONObject;
-import org.springframework.stereotype.Service;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -38,7 +39,9 @@ import java.util.Map;
  * @author longrf
  * @date 2022/9/23 16:34
  */
-@Service
+//@Service
+@Deprecated
+@AuthAction(action = AUTOEXEC_JOB_MODIFY.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class test extends PrivateBinaryStreamApiComponentBase {
 
