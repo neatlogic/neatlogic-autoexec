@@ -1703,8 +1703,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             jobVo.setStatus(JobStatus.RUNNING.getValue());
             autoexecJobMapper.updateJobStatus(jobVo);
         }
-        //补充user_token,支持autoexec 当前执行用户的场景
-        jobVo.getEnvironment().put("EXECUSER_TOKEN", userMapper.getUserTokenByUser(UserContext.get().getUserId()));
         JSONObject paramJson = new JSONObject();
         paramJson.put("jobId", jobVo.getId());
         paramJson.put("tenant", TenantContext.get().getTenantUuid());
@@ -1740,6 +1738,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     passThroughEnv.put("phaseSort", jobVo.getExecuteJobPhaseList().get(0).getSort());
                 }
                 passThroughEnv.put("isFirstFire", jobVo.getIsFirstFire());
+                passThroughEnv.put("EXECUSER_TOKEN", userMapper.getUserTokenByUser(UserContext.get().getUserId()));
                 paramJson.put("passThroughEnv", passThroughEnv);
                 paramJson.put("environment", jobVo.getEnvironment());
                 restVo = new RestVo.Builder(url, AuthenticateType.BUILDIN.getValue()).setPayload(paramJson).build();
