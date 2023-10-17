@@ -16,6 +16,7 @@ limitations under the License.
 
 package neatlogic.module.autoexec.api.job.action;
 
+import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.constvalue.JobAction;
@@ -35,6 +36,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Objects;
 
 /**
  * @author laiwt
@@ -78,6 +80,9 @@ public class TakeOverAutoexecJobApi extends PrivateApiComponentBase {
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId);
+        }
+        if(Objects.equals(UserContext.get().getUserUuid(),jobVo.getExecUser())){
+            return null;
         }
         jobVo.setAction(JobAction.TAKE_OVER.getValue());
         jobVo.setIsTakeOver(1);
