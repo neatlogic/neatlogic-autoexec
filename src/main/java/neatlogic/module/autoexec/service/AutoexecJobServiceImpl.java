@@ -47,6 +47,7 @@ import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
 import neatlogic.framework.common.util.PageUtil;
 import neatlogic.framework.config.ConfigManager;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
+import neatlogic.framework.dao.mapper.UserMapper;
 import neatlogic.framework.dao.mapper.runner.RunnerMapper;
 import neatlogic.framework.deploy.crossover.IDeploySqlCrossoverMapper;
 import neatlogic.framework.dto.RestVo;
@@ -106,6 +107,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
 
     @Resource
     private MongoTemplate mongoTemplate;
+
+    @Resource
+    private UserMapper userMapper;
 
     /**
      * 获取最终的执行用户
@@ -1699,6 +1703,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             jobVo.setStatus(JobStatus.RUNNING.getValue());
             autoexecJobMapper.updateJobStatus(jobVo);
         }
+        //补充user_token,支持autoexec 当前执行用户的场景
+        jobVo.getEnvironment().put("EXECUSER_TOKEN", userMapper.getUserTokenByUser(UserContext.get().getUserId()));
         JSONObject paramJson = new JSONObject();
         paramJson.put("jobId", jobVo.getId());
         paramJson.put("tenant", TenantContext.get().getTenantUuid());
