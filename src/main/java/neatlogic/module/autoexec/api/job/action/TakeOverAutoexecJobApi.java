@@ -16,22 +16,19 @@ limitations under the License.
 
 package neatlogic.module.autoexec.api.job.action;
 
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.constvalue.JobAction;
-import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
-import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
-import neatlogic.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import neatlogic.module.autoexec.service.AutoexecCombopService;
-import com.alibaba.fastjson.JSONObject;
+import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -53,10 +50,7 @@ public class TakeOverAutoexecJobApi extends PrivateApiComponentBase {
     private AutoexecJobMapper autoexecJobMapper;
 
     @Resource
-    private AutoexecCombopMapper autoexecCombopMapper;
-
-    @Resource
-    private AutoexecCombopService autoexecCombopService;
+    private AutoexecJobService autoexecJobService;
 
     @Override
     public String getName() {
@@ -81,13 +75,13 @@ public class TakeOverAutoexecJobApi extends PrivateApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId);
         }
-        if(Objects.equals(UserContext.get().getUserUuid(),jobVo.getExecUser())){
+        if (Objects.equals(UserContext.get().getUserUuid(), jobVo.getExecUser())) {
             return null;
         }
         jobVo.setAction(JobAction.TAKE_OVER.getValue());
         jobVo.setIsTakeOver(1);
-        IAutoexecJobActionHandler refireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.TAKE_OVER.getValue());
-        return refireAction.doService(jobVo);
+        autoexecJobService.batchExecuteJobAction(jobVo, JobAction.TAKE_OVER);
+        return null;
     }
 
     @Override

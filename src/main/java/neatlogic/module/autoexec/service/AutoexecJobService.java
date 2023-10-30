@@ -16,6 +16,7 @@
 
 package neatlogic.module.autoexec.service;
 
+import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopPhaseConfigVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
@@ -233,5 +234,20 @@ public interface AutoexecJobService {
      * @return
      */
     Integer calculationCompletionRate(List<AutoexecJobPhaseVo> jobPhaseVoList);
+
+
+    /**
+     * 获取所有子作业
+     * @param jobId 父作业id
+     * @return 子作业列表
+     */
+    void getAllSubJobList(Long jobId,List<AutoexecJobVo> jobVoList);
+
+    /**
+     * 执行父作业以及所有子作业
+     * @param jobVo 父作业
+     * @throws Exception 异常
+     */
+    void batchExecuteJobAction(AutoexecJobVo jobVo, JobAction jobAction) throws Exception;
 
 }

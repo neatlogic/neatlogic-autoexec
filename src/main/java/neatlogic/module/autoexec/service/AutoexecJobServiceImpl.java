@@ -33,6 +33,8 @@ import neatlogic.framework.autoexec.dto.node.AutoexecNodeVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
 import neatlogic.framework.autoexec.exception.*;
+import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
+import neatlogic.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
 import neatlogic.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
 import neatlogic.framework.autoexec.source.AutoexecJobSourceFactory;
@@ -1760,5 +1762,30 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         autoexecJobMapper.updateJobPhaseStatus(jobPhaseVo);
         jobVo.setStatus(JobStatus.FAILED.getValue());
         autoexecJobMapper.updateJobStatus(jobVo);
+    }
+
+    @Override
+    public void getAllSubJobList(Long jobId, List<AutoexecJobVo> subJobList) {
+        List<AutoexecJobVo> subjobVoList = autoexecJobMapper.getJobListLockByParentId(jobId);
+        if (CollectionUtils.isNotEmpty(subjobVoList)) {
+            for (AutoexecJobVo subJobVo : subjobVoList) {
+                if(subJobList.stream().noneMatch(o-> Objects.equals(o.getId(), subJobVo.getId()))) {
+                    subJobList.add(subJobVo);
+                }
+                getAllSubJobList(subJobVo.getId(), subJobList);
+            }
+        }
+    }
+
+    @Override
+    public void batchExecuteJobAction(AutoexecJobVo jobVo,JobAction jobAction) throws Exception {
+        List<AutoexecJobVo> autoexecJobVos = Collections.singletonList(jobVo);
+        getAllSubJobList(jobVo.getId(), autoexecJobVos);
+        for (AutoexecJobVo job : autoexecJobVos) {
+            job.setAction(jobVo.getAction());
+            job.setIsTakeOver(jobVo.getIsTakeOver());
+            IAutoexecJobActionHandler refireAction = AutoexecJobActionHandlerFactory.getAction(jobAction.getValue());
+            refireAction.doService(job);
+        }
     }
 }

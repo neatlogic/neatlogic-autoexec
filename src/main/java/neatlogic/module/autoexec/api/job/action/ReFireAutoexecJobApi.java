@@ -16,26 +16,24 @@ limitations under the License.
 
 package neatlogic.module.autoexec.api.job.action;
 
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
-import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
-import neatlogic.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import com.alibaba.fastjson.JSONObject;
+import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 
 /**
- *
  * @author lvzk
  * @since 2021/6/2 15:20
  **/
@@ -48,6 +46,9 @@ public class ReFireAutoexecJobApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecJobMapper autoexecJobMapper;
+
+    @Resource
+    private AutoexecJobService autoexecJobService;
 
     @Override
     public String getName() {
@@ -75,8 +76,8 @@ public class ReFireAutoexecJobApi extends PrivateApiComponentBase {
             throw new AutoexecJobNotFoundException(jobId);
         }
         jobVo.setAction(jsonObj.getString("type"));
-        IAutoexecJobActionHandler refireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.REFIRE.getValue());
-        return refireAction.doService(jobVo);
+        autoexecJobService.batchExecuteJobAction(jobVo, JobAction.REFIRE);
+        return null;
     }
 
     @Override
