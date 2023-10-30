@@ -1779,7 +1779,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
 
     @Override
     public void batchExecuteJobAction(AutoexecJobVo jobVo,JobAction jobAction) throws Exception {
-        List<AutoexecJobVo> autoexecJobVos = Collections.singletonList(jobVo);
+        List<AutoexecJobVo> autoexecJobVos = com.google.common.collect.Lists.newArrayList(Collections.singletonList(jobVo));
         getAllSubJobList(jobVo.getId(), autoexecJobVos);
         for (AutoexecJobVo job : autoexecJobVos) {
             job.setAction(jobVo.getAction());
