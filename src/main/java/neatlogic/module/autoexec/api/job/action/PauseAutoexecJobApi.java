@@ -16,19 +16,18 @@ limitations under the License.
 
 package neatlogic.module.autoexec.api.job.action;
 
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
-import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
-import neatlogic.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import com.alibaba.fastjson.JSONObject;
+import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -47,6 +46,9 @@ public class PauseAutoexecJobApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecJobMapper autoexecJobMapper;
+
+    @Resource
+    private AutoexecJobService autoexecJobService;
 
     @Override
     public String getName() {
@@ -72,8 +74,8 @@ public class PauseAutoexecJobApi extends PrivateApiComponentBase {
             throw new AutoexecJobNotFoundException(jobId);
         }
         jobVo.setAction(JobAction.PAUSE.getValue());
-        IAutoexecJobActionHandler pauseAction = AutoexecJobActionHandlerFactory.getAction(JobAction.PAUSE.getValue());
-        return pauseAction.doService(jobVo);
+        autoexecJobService.batchExecuteJobAction(jobVo, JobAction.PAUSE);
+        return null;
     }
 
     @Override
