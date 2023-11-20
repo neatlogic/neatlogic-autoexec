@@ -15,9 +15,10 @@
  */
 package neatlogic.module.autoexec.api.tool;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
-import neatlogic.framework.autoexec.constvalue.ParamDataSource;
 import neatlogic.framework.autoexec.constvalue.ParamType;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import neatlogic.framework.autoexec.dto.AutoexecParamConfigVo;
@@ -27,17 +28,15 @@ import neatlogic.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import neatlogic.framework.autoexec.dto.profile.AutoexecProfileVo;
 import neatlogic.framework.autoexec.exception.AutoexecToolExportNotFoundToolException;
 import neatlogic.framework.autoexec.exception.AutoexecToolNotFoundException;
+import neatlogic.framework.autoexec.script.paramtype.IScriptParamType;
+import neatlogic.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
 import neatlogic.framework.common.constvalue.ApiParamType;
-import neatlogic.framework.common.dto.ValueTextVo;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.exception.type.ParamNotExistsException;
 import neatlogic.framework.file.dto.FileVo;
-import neatlogic.framework.matrix.core.MatrixPrivateDataSourceHandlerFactory;
-import neatlogic.framework.matrix.dao.mapper.MatrixMapper;
-import neatlogic.framework.matrix.dto.MatrixVo;
 import neatlogic.framework.restful.annotation.Description;
 import neatlogic.framework.restful.annotation.Input;
 import neatlogic.framework.restful.annotation.OperationType;
@@ -50,8 +49,6 @@ import neatlogic.framework.util.word.enums.FontFamily;
 import neatlogic.framework.util.word.enums.TableColor;
 import neatlogic.framework.util.word.enums.TitleType;
 import neatlogic.module.autoexec.dao.mapper.AutoexecProfileMapper;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.logging.Log;
@@ -82,9 +79,6 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
 
     @Resource
     private AutoexecProfileMapper autoexecProfileMapper;
-
-    @Resource
-    private MatrixMapper matrixMapper;
 
     @Override
     public String getName() {
@@ -234,85 +228,36 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
             if (config == null) {
                 return returnDefaultValue;
             }
-            String dataSource = config.getDataSource();
-            //静态数据源
-            if (StringUtils.equals(ParamDataSource.STATIC.getValue(), dataSource)) {
-                if (paramDefaultValue != null && !Objects.equals(paramDefaultValue.toString(), "")) {
-                    JSONArray dataArray = config.getDataList();
-                    if (CollectionUtils.isNotEmpty(dataArray)) {
-                        List<ValueTextVo> valueTextVoList = dataArray.toJavaList(ValueTextVo.class);
-                        Map<Object, String> valueTextMap = valueTextVoList.stream().collect(Collectors.toMap(ValueTextVo::getValue, ValueTextVo::getText));
-                        returnDefaultValue.append("  ").append(valueTextMap.get(paramDefaultValue));
-                    }
-                }
-                //矩阵数据源
-            } else if (StringUtils.equals(ParamDataSource.MATRIX.getValue(), dataSource)) {
-                String matrixUuid = config.getMatrixUuid();
-                if (StringUtils.isNotBlank(matrixUuid)) {
-                    MatrixVo matrixVo = matrixMapper.getMatrixByUuid(matrixUuid);
-                    if (matrixVo == null) {
-                        matrixVo = MatrixPrivateDataSourceHandlerFactory.getMatrixVo(matrixUuid);
-                    }
-                    if (matrixVo != null) {
-                        returnDefaultValue = new StringBuilder(matrixVo.getName());
-                        if (paramDefaultValue != null) {
-                            String valueString = String.valueOf(paramDefaultValue);
-                            returnDefaultValue.append("  ").append(valueString.substring(valueString.substring(0, valueString.indexOf("&=&")).length() + 3));
-                        }
-                    }
+            IScriptParamType paramType = ScriptParamTypeFactory.getHandler(paramVo.getType());
+            if (paramType != null) {
+                Object text = paramType.getTextByValue(paramDefaultValue, JSONObject.parseObject(JSONObject.toJSONString(config))).toString();
+                if (text != null) {
+                    returnDefaultValue.append("  ").append(text);
                 }
             }
-
             //复选、多选下拉
         } else if (StringUtils.equals(ParamType.CHECKBOX.getValue(), paramVo.getType()) || StringUtils.equals(ParamType.MULTISELECT.getValue(), paramVo.getType())) {
             AutoexecParamConfigVo config = paramVo.getConfig();
             if (config == null) {
                 return returnDefaultValue;
             }
-            String dataSource = config.getDataSource();
-            //静态数据源
-            if (StringUtils.equals(ParamDataSource.STATIC.getValue(), dataSource)) {
-                if (paramDefaultValue != null) {
-                    List<Object> valueList = (List<Object>) paramDefaultValue;
-                    JSONArray dataArray = config.getDataList();
-                    if (CollectionUtils.isNotEmpty(dataArray)) {
-                        List<ValueTextVo> valueTextVoList = dataArray.toJavaList(ValueTextVo.class);
-                        Map<Object, String> valueTextMap = valueTextVoList.stream().collect(Collectors.toMap(ValueTextVo::getValue, ValueTextVo::getText));
-                        for (int i = 0; i < valueList.size(); i++) {
-                            Object object = valueList.get(i);
-                            returnDefaultValue.append("  ").append(valueTextMap.get(object));
-                            if (i < valueList.size() - 1) {
+            IScriptParamType paramType = ScriptParamTypeFactory.getHandler(paramVo.getType());
+            if (paramType != null) {
+                Object text = paramType.getTextByValue(paramDefaultValue, JSONObject.parseObject(JSONObject.toJSONString(config))).toString();
+                if (text != null) {
+                    if (text instanceof List) {
+                        List textList = (List) text;
+                        returnDefaultValue.append("  ");
+                        for (int i = 0; i < textList.size(); i++) {
+                            Object textStr = textList.get(i);
+                            returnDefaultValue.append(textStr);
+                            if (i < textList.size() - 1) {
                                 returnDefaultValue.append("|");
                             }
                         }
                     }
                 }
-
-                //矩阵数据源
-            } else if (StringUtils.equals(ParamDataSource.MATRIX.getValue(), dataSource)) {
-                String matrixUuid = config.getMatrixUuid();
-                if (StringUtils.isNotBlank(matrixUuid)) {
-                    MatrixVo matrixVo = matrixMapper.getMatrixByUuid(matrixUuid);
-                    if (matrixVo == null) {
-                        matrixVo = MatrixPrivateDataSourceHandlerFactory.getMatrixVo(matrixUuid);
-                    }
-                    if (matrixVo != null) {
-                        returnDefaultValue = new StringBuilder(matrixVo.getName());
-                        if (paramDefaultValue != null) {
-                            List<Object> valueList = (List<Object>) paramDefaultValue;
-                            returnDefaultValue.append("  ");
-                            for (int i = 0; i < valueList.size(); i++) {
-                                String valueString = (String) valueList.get(i);
-                                returnDefaultValue.append(valueString.substring(valueString.substring(0, valueString.indexOf("&=&")).length() + 3));
-                                if (i < valueList.size() - 1) {
-                                    returnDefaultValue.append("|");
-                                }
-                            }
-                        }
-                    }
-                }
             }
-
             //文件
         } else if (StringUtils.equals(ParamType.FILE.getValue(), paramVo.getType())) {
             if (paramDefaultValue != null) {
