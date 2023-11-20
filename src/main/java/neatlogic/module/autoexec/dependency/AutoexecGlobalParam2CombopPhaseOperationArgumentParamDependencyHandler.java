@@ -107,6 +107,9 @@ public class AutoexecGlobalParam2CombopPhaseOperationArgumentParamDependencyHand
                     }
                     if (Objects.equals(paramMappingVo.getValue(), dependencyVo.getFrom())) {
                         AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(autoexecCombopVersionVo.getCombopId());
+                        if (autoexecCombopVo == null) {
+                            return null;
+                        }
                         String operationName = phaseOperationVo.getOperationName();
                         String phaseName = combopPhaseVo.getName();
                         String combopName = autoexecCombopVo.getName();

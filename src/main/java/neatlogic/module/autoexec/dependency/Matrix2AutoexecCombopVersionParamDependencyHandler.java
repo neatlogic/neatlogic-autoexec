@@ -71,6 +71,9 @@ public class Matrix2AutoexecCombopVersionParamDependencyHandler extends FixedTab
         for (AutoexecParamVo autoexecParamVo : runtimeParamList) {
             if (Objects.equals(dependencyVo.getTo(), autoexecParamVo.getId().toString())) {
                 AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(autoexecCombopVersionVo.getCombopId());
+                if (autoexecCombopVo == null) {
+                    return null;
+                }
                 JSONObject dependencyInfoConfig = new JSONObject();
                 dependencyInfoConfig.put("combopId", autoexecCombopVo.getId());
                 dependencyInfoConfig.put("versionId", autoexecCombopVersionVo.getId());
