@@ -16,9 +16,14 @@ limitations under the License.
 
 package neatlogic.module.autoexec.script.paramtype;
 
+import com.alibaba.fastjson.JSONArray;
 import neatlogic.framework.autoexec.constvalue.ParamType;
 import neatlogic.framework.autoexec.script.paramtype.ScriptParamTypeBase;
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.crossover.CrossoverServiceFactory;
+import neatlogic.framework.form.dto.AttributeDataVo;
+import neatlogic.framework.form.service.IFormCrossoverService;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -78,8 +83,6 @@ public class ScriptParamTypeRadio extends ScriptParamTypeBase {
             {
                 this.put("type", "radio");
                 this.put("placeholder", "请选择");
-                this.put("url", "/api/rest/matrix/column/data/search/forselect/new");
-                this.put("rootName", "tbodyList");
             }
         };
     }
@@ -90,17 +93,15 @@ public class ScriptParamTypeRadio extends ScriptParamTypeBase {
     }
 
     @Override
-    public Object getMyTextByValue(Object value) {
-        String valueStr = value.toString();
-        int tmpIndex = valueStr.indexOf("&=&");
-        if (tmpIndex > -1) {
-            return valueStr.substring(tmpIndex + 3);
+    public Object getMyTextByValue(Object value, JSONObject config) {
+        IFormCrossoverService formCrossoverService = CrossoverServiceFactory.getApi(IFormCrossoverService.class);
+        AttributeDataVo attributeDataVo = new AttributeDataVo();
+        attributeDataVo.setDataObj(value);
+        JSONObject resultObj = formCrossoverService.getMyDetailedDataForSelectHandler(attributeDataVo, config);
+        JSONArray textList = resultObj.getJSONArray("textList");
+        if (CollectionUtils.isNotEmpty(textList)) {
+            return textList.get(0);
         }
         return value;
-    }
-
-    @Override
-    public Object getMyAutoexecParamByValue(Object value){
-        return getMyTextByValue(value);
     }
 }

@@ -84,17 +84,12 @@ public class ScriptParamTypeNode extends ScriptParamTypeBase {
     }
 
     @Override
-    protected Object getMyTextByValue(Object value) {
+    protected Object getMyTextByValue(Object value, JSONObject config) {
         JSONArray nodeJsonArray = JSONObject.parseArray(value.toString());
         for (Object node : nodeJsonArray) {
             JSONObject nodeJson = (JSONObject) node;
             nodeJson.put("host", nodeJson.getString("ip"));
         }
         return nodeJsonArray;
-    }
-
-    @Override
-    public Object getMyAutoexecParamByValue(Object value){
-        return value;
     }
 }
