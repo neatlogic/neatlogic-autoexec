@@ -37,6 +37,7 @@ import neatlogic.framework.scheduler.core.JobBase;
 import neatlogic.framework.scheduler.dto.JobObject;
 import neatlogic.framework.service.AuthenticationInfoService;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
+import org.apache.commons.collections4.MapUtils;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.springframework.stereotype.Component;
@@ -127,9 +128,14 @@ public class AutoexecScheduleJob extends JobBase {
         AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
         if (autoexecCombopVo == null) {
             schedulerManager.unloadJob(jobObject);
-        }else {
+        } else {
 //        System.out.println(new Date() + "执行定时作业：'" + autoexecScheduleVo.getName() + "'");
-            AutoexecJobVo jobVo = new AutoexecJobVo();
+            AutoexecJobVo jobVo;
+            if (MapUtils.isNotEmpty(autoexecScheduleVo.getConfig())) {
+                jobVo = autoexecScheduleVo.getConfig().toJavaObject(AutoexecJobVo.class);
+            } else {
+                jobVo = new AutoexecJobVo();
+            }
             jobVo.setOperationId(combopId);
             jobVo.setSource(JobSource.AUTOEXEC_SCHEDULE.getValue());
             jobVo.setInvokeId(autoexecScheduleVo.getId());

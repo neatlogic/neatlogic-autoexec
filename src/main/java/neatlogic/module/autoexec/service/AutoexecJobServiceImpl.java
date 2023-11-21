@@ -1700,11 +1700,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         if (CollectionUtils.isEmpty(runnerVos)) {
             throw new RunnerNotMatchException();
         }
-        //如果作业第一次或重跑，更新作业状态为running 和 作业开始时间
-        if (Objects.equals(jobVo.getIsFirstFire(), 1)) {
-            jobVo.setStatus(JobStatus.RUNNING.getValue());
-            autoexecJobMapper.updateJobStatus(jobVo);
-        }
+        jobVo.setStatus(JobStatus.RUNNING.getValue());
+        autoexecJobMapper.updateJobStatus(jobVo);
+        
         JSONObject paramJson = new JSONObject();
         paramJson.put("jobId", jobVo.getId());
         paramJson.put("tenant", TenantContext.get().getTenantUuid());

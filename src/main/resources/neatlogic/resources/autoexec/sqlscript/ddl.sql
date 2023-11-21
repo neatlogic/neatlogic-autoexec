@@ -726,8 +726,8 @@ CREATE TABLE IF NOT EXISTS `autoexec_service_user` (
   `service_id` bigint NOT NULL COMMENT '服务ID',
   `user_uuid` char(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '收藏用户UUID',
   `lcd` timestamp NOT NULL COMMENT '收藏时间',
-  PRIMARY KEY (`user_uuid`,`service_id`),
-  KEY `idx_service_id` (`service_id`)
+  PRIMARY KEY (`service_id`,`user_uuid`),
+  KEY `idx_user_uuid` (`user_uuid`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='用户收藏服务';
 
 -- ----------------------------
@@ -786,3 +786,12 @@ CREATE TABLE IF NOT EXISTS `autoexec_type_authority` (
   `auth_uuid` varbinary(255) NOT NULL COMMENT '权限Uuid',
   PRIMARY KEY (`type_id`,`auth_uuid`,`auth_type`,`action`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='自动化分类权限表';
+
+-- ----------------------------
+-- Table structure for autoexec_job_processtask_step
+-- ----------------------------
+CREATE TABLE IF NOT EXISTS `autoexec_job_processtask_step`  (
+  `processtask_step_id` bigint NOT NULL COMMENT '步骤ID',
+  `job_id` bigint NOT NULL COMMENT '作业ID',
+  PRIMARY KEY (`processtask_step_id`, `job_id`) USING BTREE
+) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '自动化步骤最新批次作业ID' ROW_FORMAT = Dynamic;
