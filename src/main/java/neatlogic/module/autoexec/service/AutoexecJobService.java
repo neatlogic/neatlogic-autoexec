@@ -230,13 +230,6 @@ public interface AutoexecJobService {
     void updateJobNodeStatus(List<RunnerMapVo> runnerVos, AutoexecJobVo jobVo, String nodeStatus);
 
     /**
-     * 计算完成比例
-     * @return
-     */
-    Integer calculationCompletionRate(List<AutoexecJobPhaseVo> jobPhaseVoList);
-
-
-    /**
      * 获取所有子作业
      * @param jobId 父作业id
      * @return 子作业列表
