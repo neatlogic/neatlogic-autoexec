@@ -1734,6 +1734,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 }
             }
         } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
             throw new RunnerConnectRefusedException(url + " " + result);
         }
     }
