@@ -16,7 +16,10 @@ limitations under the License.
 
 package neatlogic.module.autoexec.stephandler.component;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.JSONPath;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.autoexec.constvalue.CombopOperationType;
 import neatlogic.framework.autoexec.constvalue.JobStatus;
@@ -34,6 +37,7 @@ import neatlogic.framework.common.constvalue.SystemUser;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.form.dto.FormAttributeVo;
 import neatlogic.framework.form.dto.FormVersionVo;
+import neatlogic.framework.form.service.IFormCrossoverService;
 import neatlogic.framework.process.constvalue.*;
 import neatlogic.framework.process.crossover.IProcessTaskCrossoverService;
 import neatlogic.framework.process.dao.mapper.ProcessTaskStepDataMapper;
@@ -46,9 +50,6 @@ import neatlogic.framework.process.stephandler.core.ProcessStepHandlerFactory;
 import neatlogic.framework.process.stephandler.core.ProcessStepThread;
 import neatlogic.module.autoexec.constvalue.FailPolicy;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.JSONPath;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -576,6 +577,14 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             JSONObject tbodyObj,
             Map<String, FormAttributeVo> formAttributeMap,
             Map<String, ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataMap) {
+        List<String> formSelectAttributeList = new ArrayList<>();
+        formSelectAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMSELECT.getHandler());
+        formSelectAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMCHECKBOX.getHandler());
+        formSelectAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMRADIO.getHandler());
+        List<String> formTextAttributeList = new ArrayList<>();
+        formTextAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMTEXT.getHandler());
+        formTextAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMTEXTAREA.getHandler());
+
         JSONObject param = new JSONObject();
         for (int i = 0; i < runtimeParamList.size(); i++) {
             JSONObject runtimeParamObj = runtimeParamList.getJSONObject(i);
@@ -608,9 +617,13 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             } else if (Objects.equals(mappingMode, "formCommonComponent")) {
                 ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
                 if (attributeDataVo != null) {
-                    if (Objects.equals(attributeDataVo.getType(), "formtext") || Objects.equals(attributeDataVo.getType(), "formtextarea")) {
+                    if (formTextAttributeList.contains(attributeDataVo.getType())) {
                         String type = runtimeParamObj.getString("type");
                         param.put(key, convertDateType(type, (String) attributeDataVo.getDataObj()));
+                    } else if (formSelectAttributeList.contains(attributeDataVo.getType())) {
+                        IFormCrossoverService formCrossoverService = CrossoverServiceFactory.getApi(IFormCrossoverService.class);
+                        Object valueObject = formCrossoverService.getFormSelectAttributeValueByOriginalValue(attributeDataVo.getDataObj());
+                        param.put(key, valueObject);
                     } else {
                         param.put(key, attributeDataVo.getDataObj());
                     }
@@ -634,6 +647,9 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             JSONObject tbodyObj,
             Map<String, FormAttributeVo> formAttributeMap,
             Map<String, ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataMap) {
+        List<String> formTextAttributeList = new ArrayList<>();
+        formTextAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMTEXT.getHandler());
+        formTextAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMTEXTAREA.getHandler());
         JSONObject executeConfig = new JSONObject();
         for (int i = 0; i < executeParamList.size(); i++) {
             JSONObject executeParamObj = executeParamList.getJSONObject(i);
@@ -695,7 +711,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                             if (Objects.equals(attributeDataVo.getType(), FormHandler.FORMRESOURECES.getHandler())) {
                                 // 映射的表单组件是执行目标
                                 executeNodeConfigVo = ((JSONObject) dataObj).toJavaObject(AutoexecCombopExecuteNodeConfigVo.class);
-                            } else if (Objects.equals(attributeDataVo.getType(), "formtext") || Objects.equals(attributeDataVo.getType(), "formtextarea")) {
+                            } else if (formTextAttributeList.contains(attributeDataVo.getType())) {
                                 // 映射的表单组件是文本框
                                 String dataStr = dataObj.toString();
                                 try {

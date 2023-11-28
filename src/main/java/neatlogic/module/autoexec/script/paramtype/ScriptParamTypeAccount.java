@@ -122,7 +122,7 @@ public class ScriptParamTypeAccount extends ScriptParamTypeBase {
     }
 
     @Override
-    protected Object getMyTextByValue(Object value) {
+    protected Object getMyTextByValue(Object value, JSONObject config) {
         String valueStr = value.toString();
         if (StringUtils.isNotBlank(valueStr)) {
             IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);

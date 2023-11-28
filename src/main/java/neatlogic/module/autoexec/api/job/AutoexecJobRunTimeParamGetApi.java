@@ -78,15 +78,16 @@ public class AutoexecJobRunTimeParamGetApi extends PrivateApiComponentBase {
             JSONArray runTimeParam = JSONObject.parseArray(paramContentVo.getContent());
             //集成数据特殊处理，截取text
             for (int i = 0; i < runTimeParam.size(); i++) {
-                String value = runTimeParam.getJSONObject(i).getString("value");
-                String defaultValue = runTimeParam.getJSONObject(i).getString("defaultValue");
+                Object value = runTimeParam.getJSONObject(i).get("value");
+                Object defaultValue = runTimeParam.getJSONObject(i).get("defaultValue");
                 String type = runTimeParam.getJSONObject(i).getString("type");
-                if (StringUtils.isNotBlank(type) && StringUtils.isNotBlank(value)) {
+                if (StringUtils.isNotBlank(type) && value != null) {
                     IScriptParamType paramType = ScriptParamTypeFactory.getHandler(type);
                     if (paramType != null) {
-                        runTimeParam.getJSONObject(i).put("value", paramType.getTextByValue(value));
-                        if (StringUtils.isNotBlank(defaultValue)) {
-                            runTimeParam.getJSONObject(i).put("defaultValue", paramType.getTextByValue(defaultValue));
+                        JSONObject config = runTimeParam.getJSONObject(i).getJSONObject("config");
+                        runTimeParam.getJSONObject(i).put("value", paramType.getTextByValue(value, config));
+                        if (defaultValue != null) {
+                            runTimeParam.getJSONObject(i).put("defaultValue", paramType.getTextByValue(defaultValue, config));
                         }
                     }
                 }

@@ -36,13 +36,16 @@ import neatlogic.framework.autoexec.exception.AutoexecJobParamNotExistException;
 import neatlogic.framework.autoexec.exception.AutoexecServiceConfigExpiredException;
 import neatlogic.framework.autoexec.exception.AutoexecServiceNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dto.AuthenticationInfoVo;
 import neatlogic.framework.exception.type.ParamNotExistsException;
 import neatlogic.framework.exception.type.PermissionDeniedException;
+import neatlogic.framework.form.constvalue.FormHandler;
 import neatlogic.framework.form.dao.mapper.FormMapper;
 import neatlogic.framework.form.dto.FormAttributeVo;
 import neatlogic.framework.form.dto.FormVersionVo;
 import neatlogic.framework.form.exception.FormAttributeRequiredException;
+import neatlogic.framework.form.service.IFormCrossoverService;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -190,10 +193,12 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
                 }
                 formAttributeDataMap.put(attributeUuid, dataList);
             }
+            Map<String, String> attributeUuid2HandlerMap = new HashMap<>();
             FormVersionVo formVersionVo = formMapper.getActionFormVersionByFormUuid(formUuid);
             List<FormAttributeVo> formAttributeVoList = formVersionVo.getFormAttributeList();
             for (FormAttributeVo formAttributeVo : formAttributeVoList) {
                 String uuid = formAttributeVo.getUuid();
+                attributeUuid2HandlerMap.put(uuid, formAttributeVo.getHandler());
                 if (formAttributeVo.isRequired()) {
                     if (hidecomponentList.contains(uuid)) {
                         continue;
@@ -204,6 +209,10 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
                     throw new FormAttributeRequiredException(formAttributeVo.getLabel());
                 }
             }
+            List<String> formSelectAttributeList = new ArrayList<>();
+            formSelectAttributeList.add(FormHandler.FORMSELECT.getHandler());
+            formSelectAttributeList.add(FormHandler.FORMCHECKBOX.getHandler());
+            formSelectAttributeList.add(FormHandler.FORMRADIO.getHandler());
             if (config != null) {
                 ParamMappingVo roundCountParamMappingVo = config.getRoundCount();
                 if (needRoundCount && roundCountParamMappingVo != null) {
@@ -277,7 +286,13 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
                             } else if (Objects.equals(paramMappingVo.getMappingMode(), ServiceParamMappingMode.FORMATTR.getValue())) {
                                 Object formAttrValue = formAttributeDataMap.get(value);
                                 if (formAttrValue != null) {
-                                    param.put(key, formAttrValue);
+                                    if (formSelectAttributeList.contains(attributeUuid2HandlerMap.get(value))) {
+                                        IFormCrossoverService formCrossoverService = CrossoverServiceFactory.getApi(IFormCrossoverService.class);
+                                        Object valueObject = formCrossoverService.getFormSelectAttributeValueByOriginalValue(formAttrValue);
+                                        param.put(key, valueObject);
+                                    } else {
+                                        param.put(key, formAttrValue);
+                                    }
                                 }
                             }
                         }

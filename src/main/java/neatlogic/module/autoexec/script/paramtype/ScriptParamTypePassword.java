@@ -86,13 +86,13 @@ public class ScriptParamTypePassword extends ScriptParamTypeBase {
     }
 
     @Override
-    protected Object getMyTextByValue(Object value) {
+    protected Object getMyTextByValue(Object value, JSONObject config) {
         String valueStr = value.toString();
         return RC4Util.encrypt(valueStr);
     }
 
     @Override
     public Object getMyAutoexecParamByValue(Object value){
-        return getMyTextByValue(value);
+        return getMyTextByValue(value, null);
     }
 }

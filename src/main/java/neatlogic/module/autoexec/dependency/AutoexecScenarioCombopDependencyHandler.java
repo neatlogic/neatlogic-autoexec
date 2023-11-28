@@ -60,7 +60,9 @@ public class AutoexecScenarioCombopDependencyHandler extends FixedTableDependenc
         }
         Long combopId = autoexecCombopVersionVo.getCombopId();
         AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
-
+        if (autoexecCombopVo == null) {
+            return null;
+        }
         JSONObject dependencyInfoConfig = new JSONObject();
         dependencyInfoConfig.put("combopId", combopId);
         dependencyInfoConfig.put("versionId", versionId);

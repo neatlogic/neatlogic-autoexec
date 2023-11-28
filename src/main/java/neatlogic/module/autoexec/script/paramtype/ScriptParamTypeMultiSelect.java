@@ -16,10 +16,14 @@ limitations under the License.
 
 package neatlogic.module.autoexec.script.paramtype;
 
-import neatlogic.framework.autoexec.constvalue.ParamType;
-import neatlogic.framework.autoexec.script.paramtype.ScriptParamTypeBase;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.autoexec.constvalue.ParamType;
+import neatlogic.framework.autoexec.script.paramtype.ScriptParamTypeBase;
+import neatlogic.framework.crossover.CrossoverServiceFactory;
+import neatlogic.framework.form.dto.AttributeDataVo;
+import neatlogic.framework.form.service.IFormCrossoverService;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -79,8 +83,6 @@ public class ScriptParamTypeMultiSelect extends ScriptParamTypeBase {
             {
                 this.put("type", "select");
                 this.put("placeholder", "请选择");
-                this.put("dynamicUrl", "/api/rest/matrix/column/data/search/forselect/new");
-                this.put("rootName", "tbodyList");
                 this.put("multiple", true);
             }
         };
@@ -92,20 +94,15 @@ public class ScriptParamTypeMultiSelect extends ScriptParamTypeBase {
     }
 
     @Override
-    public Object getMyTextByValue(Object value) {
-        JSONArray values = JSONArray.parseArray(value.toString());
-        for (int i = 0; i < values.size(); i++) {
-            String valueStr = values.getString(i);
-            int tmpIndex = valueStr.indexOf("&=&");
-            if (tmpIndex > -1) {
-                values.set(i,valueStr.substring(tmpIndex + 3));
-            }
+    public Object getMyTextByValue(Object value, JSONObject config) {
+        IFormCrossoverService formCrossoverService = CrossoverServiceFactory.getApi(IFormCrossoverService.class);
+        AttributeDataVo attributeDataVo = new AttributeDataVo();
+        attributeDataVo.setDataObj(value);
+        JSONObject resultObj = formCrossoverService.getMyDetailedDataForSelectHandler(attributeDataVo, config);
+        JSONArray textList = resultObj.getJSONArray("textList");
+        if (CollectionUtils.isNotEmpty(textList)) {
+            return textList;
         }
-        return values;
-    }
-
-    @Override
-    public Object getMyAutoexecParamByValue(Object value){
-        return getMyTextByValue(value);
+        return value;
     }
 }

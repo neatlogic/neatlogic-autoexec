@@ -87,14 +87,4 @@ public class ScriptParamTypePhase extends ScriptParamTypeBase {
     public Boolean myNeedDataSource() {
         return false;
     }
-
-    @Override
-    public Object getMyTextByValue(Object value) {
-        return value;
-    }
-
-    @Override
-    public Object getMyAutoexecParamByValue(Object value){
-        return getMyTextByValue(value);
-    }
 }

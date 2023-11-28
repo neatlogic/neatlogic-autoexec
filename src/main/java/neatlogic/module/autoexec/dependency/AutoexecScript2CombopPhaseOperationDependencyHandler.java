@@ -95,6 +95,9 @@ public class AutoexecScript2CombopPhaseOperationDependencyHandler extends FixedT
                     return null;
                 }
                 AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(autoexecCombopVersionVo.getCombopId());
+                if (autoexecCombopVo == null) {
+                    return null;
+                }
                 String operationName = phaseOperationVo.getOperationName();
                 String phaseName = combopPhaseVo.getName();
                 String combopName = autoexecCombopVo.getName();

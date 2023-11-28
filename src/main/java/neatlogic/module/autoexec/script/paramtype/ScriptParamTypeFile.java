@@ -87,7 +87,7 @@ public class ScriptParamTypeFile extends ScriptParamTypeBase {
     }
 
     @Override
-    protected Object getMyTextByValue(Object value) {
+    protected Object getMyTextByValue(Object value, JSONObject config) {
         return JSONObject.parseObject(value.toString());
     }
 
