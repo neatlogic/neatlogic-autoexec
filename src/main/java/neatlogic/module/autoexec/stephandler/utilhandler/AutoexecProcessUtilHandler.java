@@ -88,7 +88,6 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
             for (AutoexecJobVo autoexecJobVo : autoexecJobList) {
                 List<AutoexecJobPhaseVo> jobPhaseVoList = jobIdToAutoexecJobPhaseListMap.get(autoexecJobVo.getId());
                 autoexecJobVo.setPhaseList(jobPhaseVoList);
-                autoexecJobVo.setCompletionRate(autoexecJobService.calculationCompletionRate(jobPhaseVoList));
                 if (JobStatus.isRunningStatus(autoexecJobVo.getStatus())) {
                     running++;
                 } else if (JobStatus.isCompletedStatus(autoexecJobVo.getStatus())) {

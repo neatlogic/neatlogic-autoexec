@@ -1313,12 +1313,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             jobVoList.forEach(o -> {
                 operationIdMap.computeIfAbsent(o.getOperationType(), k -> new ArrayList<>());
                 operationIdMap.get(o.getOperationType()).add(o.getOperationId());
-                //计算完成率
-                o.setCompletionRate(calculationCompletionRate(o.getPhaseList()));
-//                if (CollectionUtils.isNotEmpty(o.getPhaseList())) {
-//                    List<AutoexecJobPhaseVo> completedPhaseList = o.getPhaseList().stream().filter(p -> Objects.equals(JobPhaseStatus.COMPLETED.getValue(), p.getStatus())).collect(Collectors.toList());
-//                    o.setCompletionRate((int) (Double.parseDouble(Integer.toString(completedPhaseList.size())) / Double.parseDouble(Integer.toString(o.getPhaseList().size())) * 100));
-//                }
             });
             if (CollectionUtils.isNotEmpty(operationIdMap.get(CombopOperationType.COMBOP.getValue()))) {
                 combopVoList = autoexecCombopMapper.getAutoexecCombopByIdList(operationIdMap.get(CombopOperationType.COMBOP.getValue()));
@@ -1623,15 +1617,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
     }
 
-    @Override
-    public Integer calculationCompletionRate(List<AutoexecJobPhaseVo> jobPhaseVoList) {
-        if (CollectionUtils.isNotEmpty(jobPhaseVoList)) {
-            List<AutoexecJobPhaseVo> completedPhaseList = jobPhaseVoList.stream().filter(p -> Objects.equals(JobPhaseStatus.COMPLETED.getValue(), p.getStatus())).collect(Collectors.toList());
-            return (int) (Double.parseDouble(Integer.toString(completedPhaseList.size())) / Double.parseDouble(Integer.toString(jobPhaseVoList.size())) * 100);
-        }
-        return null;
-    }
-
     /**
      * 检查runner联通性
      */
@@ -1749,6 +1734,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 }
             }
         } catch (Exception ex) {
+            logger.error(ex.getMessage(), ex);
             throw new RunnerConnectRefusedException(url + " " + result);
         }
     }
