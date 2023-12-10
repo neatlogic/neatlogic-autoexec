@@ -16,6 +16,8 @@ limitations under the License.
 
 package neatlogic.module.autoexec.api.tool;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import neatlogic.framework.autoexec.constvalue.*;
@@ -28,23 +30,23 @@ import neatlogic.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
 import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.exception.core.ApiRuntimeException;
 import neatlogic.framework.exception.type.ParamIrregularException;
 import neatlogic.framework.exception.type.ParamNotExistsException;
 import neatlogic.framework.exception.type.ParamTypeNotFoundException;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
+import neatlogic.framework.transaction.util.TransactionUtil;
 import neatlogic.framework.util.I18nUtils;
 import neatlogic.framework.util.RegexUtils;
 import neatlogic.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
 import neatlogic.module.autoexec.service.AutoexecService;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.TransactionStatus;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
@@ -54,7 +56,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
-@Transactional
 @AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.OPERATE)
 public class RegisterAutoexecToolApi extends PrivateApiComponentBase {
@@ -119,6 +120,11 @@ public class RegisterAutoexecToolApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         String opName = jsonObj.getString("opName");
+        AutoexecToolVo oldTool = autoexecToolMapper.getToolByName(opName);
+        //不管工具导入是否成功都需要优先更新importTime，否则在所有工具注册后，autoexec会额外掉autoexec/tool/batch/delete 删除所有没有更新importTime 的工具
+        if (oldTool != null) {
+            autoexecToolMapper.updateImportTime(oldTool.getId(), jsonObj.getLong("importTime"));
+        }
         String typeName = jsonObj.getString("typeName");
         String riskName = jsonObj.getString("riskName");
         String defaultProfile = jsonObj.getString("defaultProfile");
@@ -127,34 +133,43 @@ public class RegisterAutoexecToolApi extends PrivateApiComponentBase {
         JSONArray output = jsonObj.getJSONArray("output");
         Long typeId = autoexecTypeMapper.getTypeIdByName(typeName);
         Long riskId = autoexecRiskMapper.getRiskIdByName(riskName);
-        AutoexecToolVo oldTool = autoexecToolMapper.getToolByName(opName);
         if (typeId == null) {
             throw new AutoexecTypeNotFoundException(typeName);
         }
         if (riskId == null) {
             throw new AutoexecRiskNotFoundException(riskName);
         }
-        JSONArray paramList = getParamList(option, output);
-        AutoexecToolVo vo = new AutoexecToolVo(jsonObj);
-        if (oldTool != null) {
-            vo.setId(oldTool.getId());
-            vo.setIsActive(oldTool.getIsActive() != null ? oldTool.getIsActive() : 1);
-        } else {
-            vo.setIsActive(1);
+        //自己控制事务范围，因为要先更新importTime
+        TransactionStatus tx = TransactionUtil.openTx();
+        try {
+            JSONArray paramList = getParamList(option, output);
+            AutoexecToolVo vo = new AutoexecToolVo(jsonObj);
+            if (oldTool != null) {
+                vo.setId(oldTool.getId());
+                vo.setIsActive(oldTool.getIsActive() != null ? oldTool.getIsActive() : 1);
+            } else {
+                vo.setIsActive(1);
+            }
+            vo.setTypeId(typeId);
+            vo.setRiskId(riskId);
+            vo.setDefaultProfileId(autoexecService.saveProfileOperation(defaultProfile, vo.getId(), ToolType.TOOL.getValue()));
+            JSONObject config = new JSONObject();
+            if (CollectionUtils.isNotEmpty(paramList)) {
+                config.put("paramList", paramList);
+            }
+            if (MapUtils.isNotEmpty(argument)) {
+                config.put("argument", new AutoexecParamVo(argument));
+            }
+            vo.setConfigStr(config.toJSONString());
+            autoexecToolMapper.insertTool(vo);
+            TransactionUtil.commitTx(tx);
+        } catch (ApiRuntimeException ex) {
+            TransactionUtil.rollbackTx(tx);
+            throw new ApiRuntimeException(ex.getMessage());
+        } catch (Throwable ex) {
+            TransactionUtil.rollbackTx(tx);
+            throw new Exception(ex.getMessage(), ex);
         }
-        vo.setTypeId(typeId);
-        vo.setRiskId(riskId);
-        vo.setDefaultProfileId(autoexecService.saveProfileOperation(defaultProfile, vo.getId(), ToolType.TOOL.getValue()));
-        JSONObject config = new JSONObject();
-        if (CollectionUtils.isNotEmpty(paramList)) {
-            config.put("paramList", paramList);
-        }
-        if (MapUtils.isNotEmpty(argument)) {
-            config.put("argument", new AutoexecParamVo(argument));
-        }
-        vo.setConfigStr(config.toJSONString());
-        autoexecToolMapper.insertTool(vo);
-
         return null;
     }
 
@@ -187,7 +202,7 @@ public class RegisterAutoexecToolApi extends PrivateApiComponentBase {
                 JSONArray validate = null;
                 try {
                     validate = value.getJSONArray("validate");
-                }catch (Exception ex){
+                } catch (Exception ex) {
                     throw new ParamIrregularException("option.validate", I18nUtils.getMessage("nmaat.registerautoexectoolapi.getparamlist.array"));
                 }
                 if (CollectionUtils.isNotEmpty(validate)) {

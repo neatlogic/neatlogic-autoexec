@@ -479,6 +479,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 initIfBlockOperation(autoexecCombopPhaseOperationVo, jobPhaseOperationVo, jobPhaseVo, jobPhaseVoList, jobVo, preOperationNameMap);
             } else {
                 AutoexecToolVo toolVo = autoexecToolMapper.getToolById(id);
+                if(toolVo == null){
+                    throw new AutoexecToolNotFoundException(id);
+                }
                 jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, toolVo, jobPhaseVoList, preOperationNameMap);
                 initIfBlockOperation(autoexecCombopPhaseOperationVo, jobPhaseOperationVo, jobPhaseVo, jobPhaseVoList, jobVo, preOperationNameMap);
             }
