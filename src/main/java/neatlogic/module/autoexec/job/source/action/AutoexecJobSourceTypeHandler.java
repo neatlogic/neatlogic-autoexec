@@ -102,6 +102,7 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
             List<Long> sqlIdList = sqlIdArray.toJavaList(Long.class);
             //批量重置sql文件状态
             if (CollectionUtils.isNotEmpty(sqlIdList)) {
+                jobVo.setJobPhaseNodeSqlList(autoexecJobMapper.getJobPhaseNodeListBySqlIdList(sqlIdList));
                 autoexecJobMapper.resetJobSqlStatusBySqlIdList(sqlIdList);
             }
         }
@@ -117,6 +118,7 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
             List<Long> sqlIdList = sqlIdArray.toJavaList(Long.class);
             //批量重置sql文件状态
             if (CollectionUtils.isNotEmpty(sqlIdList)) {
+                jobVo.setJobPhaseNodeSqlList(autoexecJobMapper.getJobPhaseNodeListBySqlIdList(sqlIdList));
                 autoexecJobMapper.updateSqlStatusByIdList(sqlIdList, JobNodeStatus.IGNORED.getValue());
             }
         }

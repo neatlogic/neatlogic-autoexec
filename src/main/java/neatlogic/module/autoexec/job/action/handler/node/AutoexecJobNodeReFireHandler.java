@@ -76,6 +76,7 @@ public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
                 throw new AutoexecJobSourceInvalidException(jobVo.getSource());
             }
             nodeVoList = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType()).getJobNodeListBySqlIdList(sqlIdArray.toJavaList(Long.class));
+            jobVo.setJobPhaseNodeSqlList(nodeVoList);
         }else {
             nodeVoList = autoexecJobMapper.getJobPhaseNodeListByJobPhaseIdAndResourceIdList(jobVo.getCurrentPhaseId(), resourceIdList);
             //重置节点开始和结束时间,以防 失败节点直接"重跑"导致耗时异常
