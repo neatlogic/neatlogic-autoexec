@@ -480,7 +480,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 initIfBlockOperation(autoexecCombopPhaseOperationVo, jobPhaseOperationVo, jobPhaseVo, jobPhaseVoList, jobVo, preOperationNameMap);
             } else {
                 AutoexecToolVo toolVo = autoexecToolMapper.getToolById(id);
-                if(toolVo == null){
+                if (toolVo == null) {
                     throw new AutoexecToolNotFoundException(id);
                 }
                 jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, toolVo, jobPhaseVoList, preOperationNameMap);
@@ -1580,6 +1580,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             paramJson.put("phaseName", currentPhaseVo.getName());
             paramJson.put("execMode", currentPhaseVo.getExecMode());
             paramJson.put("phaseNodeList", jobVo.getExecuteJobNodeVoList());
+            paramJson.put("jobPhaseNodeSqlList", jobVo.getJobPhaseNodeSqlList());
             for (RunnerMapVo runner : runnerVos) {
                 String url = runner.getUrl() + "api/rest/job/phase/node/status/reset";
                 restVo = new RestVo.Builder(url, AuthenticateType.BUILDIN.getValue()).setPayload(paramJson).build();
@@ -1691,7 +1692,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
         jobVo.setStatus(JobStatus.RUNNING.getValue());
         autoexecJobMapper.updateJobStatus(jobVo);
-        
+
         JSONObject paramJson = new JSONObject();
         paramJson.put("jobId", jobVo.getId());
         paramJson.put("tenant", TenantContext.get().getTenantUuid());
@@ -1705,7 +1706,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
 
         if (jobVo.getCurrentPhase() != null && Objects.equals(jobVo.getCurrentPhase().getExecMode(), ExecMode.SQL.getValue())) {
-            paramJson.put("jobPhaseNodeSqlList", jobVo.getExecuteJobNodeVoList());
+            paramJson.put("jobPhaseNodeSqlList", jobVo.getJobPhaseNodeSqlList());
         } else {
             paramJson.put("jobPhaseResourceIdList", jobVo.getExecuteResourceIdList());
         }
@@ -1759,7 +1760,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         List<AutoexecJobVo> subjobVoList = autoexecJobMapper.getJobListLockByParentId(jobId);
         if (CollectionUtils.isNotEmpty(subjobVoList)) {
             for (AutoexecJobVo subJobVo : subjobVoList) {
-                if(subJobList.stream().noneMatch(o-> Objects.equals(o.getId(), subJobVo.getId()))) {
+                if (subJobList.stream().noneMatch(o -> Objects.equals(o.getId(), subJobVo.getId()))) {
                     subJobList.add(subJobVo);
                 }
                 getAllSubJobList(subJobVo.getId(), subJobList);
@@ -1768,7 +1769,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     }
 
     @Override
-    public void batchExecuteJobAction(AutoexecJobVo jobVo,JobAction jobAction) throws Exception {
+    public void batchExecuteJobAction(AutoexecJobVo jobVo, JobAction jobAction) throws Exception {
         List<AutoexecJobVo> autoexecJobVos = com.google.common.collect.Lists.newArrayList(Collections.singletonList(jobVo));
         getAllSubJobList(jobVo.getId(), autoexecJobVos);
         for (AutoexecJobVo job : autoexecJobVos) {

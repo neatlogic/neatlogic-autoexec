@@ -38,6 +38,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
@@ -91,7 +92,7 @@ public class UpdateAutoexecJobPhaseNodeStatusApi extends PrivateApiComponentBase
             throw new AutoexecJobPhaseNotFoundException(phaseName);
         }
         //获取node
-        if (Objects.equals(jobPhaseVo.getExecMode(), ExecMode.RUNNER.getValue())) {
+        if (Arrays.asList(ExecMode.RUNNER.getValue(), ExecMode.SQL.getValue()).contains(jobPhaseVo.getExecMode())) {
             List<AutoexecJobPhaseNodeVo> nodeList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseId(jobId, jobPhaseVo.getId());
             if (CollectionUtils.isNotEmpty(nodeList)) {
                 nodeVo = nodeList.get(0);

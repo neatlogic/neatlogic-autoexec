@@ -16,6 +16,7 @@ limitations under the License.
 
 package neatlogic.module.autoexec.job.action.handler.node;
 
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.ExecMode;
 import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.constvalue.JobNodeStatus;
@@ -29,7 +30,6 @@ import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandler
 import neatlogic.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
 import neatlogic.framework.deploy.constvalue.JobSourceType;
 import neatlogic.module.autoexec.service.AutoexecJobService;
-import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,6 +73,7 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         List<AutoexecJobPhaseNodeVo> nodeVoList;
+        Integer isAll = jobVo.getActionParam().getInteger("isAll");
         //更新状态
         AutoexecJobPhaseVo currentPhaseVo = jobVo.getCurrentPhase();
         if (Objects.equals(currentPhaseVo.getExecMode(), ExecMode.SQL.getValue())) {
@@ -84,20 +85,20 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
                 handler = AutoexecJobSourceTypeHandlerFactory.getAction(neatlogic.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
             }
             handler.resetSqlStatus(jobVo.getActionParam(), jobVo);
-        } else {
-            Integer isAll = jobVo.getActionParam().getInteger("isAll");
+        }  else {
             if (!Objects.equals(isAll, 1)) {
                 currentResourceIdListValid(jobVo);
                 //重置节点 (status、startTime、endTime)
                 autoexecJobMapper.updateJobPhaseNodeListStatus(jobVo.getExecuteJobNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()), JobNodeStatus.PENDING.getValue());
                 jobVo.setExecuteJobNodeVoList(autoexecJobMapper.getJobPhaseNodeRunnerListByNodeIdList(jobVo.getExecuteJobNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList())));
-            } else {
-                autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(currentPhaseVo.getId()), JobPhaseStatus.PENDING.getValue());
-                autoexecJobMapper.updateJobPhaseNodeStatusByJobPhaseIdAndIsDelete(currentPhaseVo.getId(), JobNodeStatus.PENDING.getValue(), 0);
-                //jobVo.setExecuteJobNodeVoList(autoexecJobMapper.getJobPhaseNodeListWithoutDeleteByJobIdAndPhaseId(jobVo.getId(), jobVo.getCurrentPhaseId()));
             }
-
         }
+
+        if (Objects.equals(isAll, 1)) {
+            autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(currentPhaseVo.getId()), JobPhaseStatus.PENDING.getValue());
+            autoexecJobMapper.updateJobPhaseNodeStatusByJobPhaseIdAndIsDelete(currentPhaseVo.getId(), JobNodeStatus.PENDING.getValue(), 0);
+        }
+
         autoexecJobService.resetJobNodeStatus(jobVo);
         return null;
     }

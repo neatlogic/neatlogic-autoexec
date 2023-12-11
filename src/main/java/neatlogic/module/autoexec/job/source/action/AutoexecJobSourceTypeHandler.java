@@ -110,10 +110,10 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
                 }
                 jobPhaseNodeVos.add(new AutoexecJobPhaseNodeVo(resetSql.getJobId(), resetSql.getPhaseName(), resetSql.getHost(), resetSql.getPort(), resetSql.getResourceId(), runnerMapVoOptional.get().getUrl(), resetSql.getRunnerId()));
             }
-            jobVo.setExecuteJobNodeVoList(jobPhaseNodeVos);
+            jobVo.setJobPhaseNodeSqlList(jobPhaseNodeVos);
         } else if (CollectionUtils.isNotEmpty(sqlIdArray)) {
             sqlIdList = sqlIdArray.toJavaList(Long.class);
-            jobVo.setExecuteJobNodeVoList(autoexecJobMapper.getJobPhaseNodeListBySqlIdList(sqlIdList));
+            jobVo.setJobPhaseNodeSqlList(autoexecJobMapper.getJobPhaseNodeListBySqlIdList(sqlIdList));
         }
         return sqlIdList;
     }
