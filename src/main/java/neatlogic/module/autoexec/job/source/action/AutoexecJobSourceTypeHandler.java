@@ -1,5 +1,8 @@
 package neatlogic.module.autoexec.job.source.action;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.nacos.common.utils.CollectionUtils;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthActionChecker;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_JOB_MODIFY;
@@ -25,16 +28,12 @@ import neatlogic.framework.util.HttpRequestUtil;
 import neatlogic.framework.util.TableResultUtil;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.nacos.common.utils.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author longrf
@@ -93,38 +92,33 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
         }
     }
 
-    public List<Long> getSqlIdsAndExecuteJobNodes(JSONObject paramObj, AutoexecJobVo jobVo) {
-        List<AutoexecSqlNodeDetailVo> sqlDetailList = null;
-        List<Long> sqlIdList = null;
-        JSONArray sqlIdArray = paramObj.getJSONArray("sqlIdList");
-        if (paramObj.getInteger("isAll") != null && paramObj.getInteger("isAll") == 1) {
-            //重置phase的所有sql文件状态
-            sqlDetailList = autoexecJobMapper.getJobSqlListByJobIdAndJobPhaseName(paramObj.getLong("jobId"), paramObj.getString("phaseName"));
-            sqlIdList = sqlDetailList.stream().map(AutoexecSqlNodeDetailVo::getId).collect(Collectors.toList());
-            List<AutoexecJobPhaseNodeVo> jobPhaseNodeVos = new ArrayList<>();
-            List<RunnerMapVo> runnerMapVos = runnerMapper.getRunnerByRunnerMapIdList(sqlDetailList.stream().map(AutoexecSqlNodeDetailVo::getRunnerId).collect(Collectors.toList()));
-            for (AutoexecSqlNodeDetailVo resetSql : sqlDetailList) {
-                Optional<RunnerMapVo> runnerMapVoOptional = runnerMapVos.stream().filter(o -> Objects.equals(o.getRunnerMapId(), resetSql.getRunnerId())).findFirst();
-                if (!runnerMapVoOptional.isPresent()) {
-                    throw new AutoexecJobRunnerNotFoundException(resetSql.getRunnerId().toString());
-                }
-                jobPhaseNodeVos.add(new AutoexecJobPhaseNodeVo(resetSql.getJobId(), resetSql.getPhaseName(), resetSql.getHost(), resetSql.getPort(), resetSql.getResourceId(), runnerMapVoOptional.get().getUrl(), resetSql.getRunnerId()));
-            }
-            jobVo.setJobPhaseNodeSqlList(jobPhaseNodeVos);
-        } else if (CollectionUtils.isNotEmpty(sqlIdArray)) {
-            sqlIdList = sqlIdArray.toJavaList(Long.class);
-            jobVo.setJobPhaseNodeSqlList(autoexecJobMapper.getJobPhaseNodeListBySqlIdList(sqlIdList));
-        }
-        return sqlIdList;
-    }
-
-
     @Override
     public void resetSqlStatus(JSONObject paramObj, AutoexecJobVo jobVo) {
-        List<Long> resetSqlIdList = getSqlIdsAndExecuteJobNodes(paramObj, jobVo);
-        //批量重置sql文件状态
-        if (CollectionUtils.isNotEmpty(resetSqlIdList)) {
-            autoexecJobMapper.resetJobSqlStatusBySqlIdList(resetSqlIdList);
+        JSONArray sqlIdArray = paramObj.getJSONArray("sqlIdList");
+        AutoexecJobPhaseVo currentPhase = jobVo.getCurrentPhase();
+        if (paramObj.getInteger("isAll") != null && paramObj.getInteger("isAll") == 1) {
+            autoexecJobMapper.updateJobSqlStatusByJobIdAndPhaseId(currentPhase.getJobId(), currentPhase.getId(), JobNodeStatus.PENDING.getValue());
+        } else {
+            List<Long> sqlIdList = sqlIdArray.toJavaList(Long.class);
+            //批量重置sql文件状态
+            if (CollectionUtils.isNotEmpty(sqlIdList)) {
+                autoexecJobMapper.resetJobSqlStatusBySqlIdList(sqlIdList);
+            }
+        }
+    }
+
+    @Override
+    public void ignoreSql(JSONObject paramObj, AutoexecJobVo jobVo) {
+        JSONArray sqlIdArray = paramObj.getJSONArray("sqlIdList");
+        AutoexecJobPhaseVo currentPhase = jobVo.getCurrentPhase();
+        if (paramObj.getInteger("isAll") != null && paramObj.getInteger("isAll") == 1) {
+            autoexecJobMapper.updateJobSqlStatusByJobIdAndPhaseId(currentPhase.getJobId(), currentPhase.getId(), JobNodeStatus.IGNORED.getValue());
+        } else {
+            List<Long> sqlIdList = sqlIdArray.toJavaList(Long.class);
+            //批量重置sql文件状态
+            if (CollectionUtils.isNotEmpty(sqlIdList)) {
+                autoexecJobMapper.updateSqlStatusByIdList(sqlIdList, JobNodeStatus.IGNORED.getValue());
+            }
         }
     }
 
@@ -198,9 +192,9 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
      * 工具库工具sqlfile/sqlexec会调用此方法
      * 若sql不存在，则insert
      * 若sql存在则更新
-     *  status为pending，start_time、end_time不更新
-     *  status为running，更新start_time为now(3)
-     *  status为其他状态时，更新end_time为now(3)
+     * status为pending，start_time、end_time不更新
+     * status为running，更新start_time为now(3)
+     * status为其他状态时，更新end_time为now(3)
      *
      * @param paramObj 单条sql的信息
      */

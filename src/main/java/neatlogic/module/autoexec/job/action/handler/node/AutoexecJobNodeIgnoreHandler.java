@@ -30,7 +30,6 @@ import neatlogic.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandle
 import neatlogic.framework.deploy.constvalue.JobSourceType;
 import neatlogic.framework.dto.runner.RunnerMapVo;
 import neatlogic.module.autoexec.service.AutoexecJobService;
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -85,29 +84,21 @@ public class AutoexecJobNodeIgnoreHandler extends AutoexecJobActionHandlerBase {
             } else {
                 handler = AutoexecJobSourceTypeHandlerFactory.getAction(neatlogic.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
             }
-            sqlIdList = handler.getSqlIdsAndExecuteJobNodes(jobVo.getActionParam(), jobVo);
-            nodeVoList = jobVo.getExecuteJobNodeVoList();
+            handler.ignoreSql(jobVo.getActionParam(), jobVo);
         } else {
             currentResourceIdListValid(jobVo);
             nodeVoList = autoexecJobMapper.getJobPhaseNodeRunnerListByNodeIdList(jobVo.getExecuteJobNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()));
-        }
-        for (AutoexecJobPhaseNodeVo nodeVo : nodeVoList) {
-            runnerVos.add(new RunnerMapVo(nodeVo.getRunnerUrl(), nodeVo.getRunnerMapId()));
-        }
-        runnerVos = runnerVos.stream().filter(o -> StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
-        autoexecJobService.updateJobNodeStatus(runnerVos, jobVo, JobNodeStatus.IGNORED.getValue());
-        //更新mysql
-        if (Objects.equals(currentPhaseVo.getExecMode(), ExecMode.SQL.getValue())) {
-            if (handler != null && CollectionUtils.isNotEmpty(sqlIdList)) {
-                handler.updateSqlStatus(sqlIdList, JobNodeStatus.IGNORED.getValue());
-            }
-        } else {
             for (AutoexecJobPhaseNodeVo nodeVo : jobVo.getExecuteJobNodeVoList()) {
                 nodeVo.setStatus(JobNodeStatus.IGNORED.getValue());
                 nodeVo.setStartTime(null);
                 nodeVo.setEndTime(null);
                 autoexecJobMapper.updateJobPhaseNodeById(nodeVo);
             }
+            for (AutoexecJobPhaseNodeVo nodeVo : nodeVoList) {
+                runnerVos.add(new RunnerMapVo(nodeVo.getRunnerUrl(), nodeVo.getRunnerMapId()));
+            }
+            runnerVos = runnerVos.stream().filter(o -> StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
+            autoexecJobService.updateJobNodeStatus(runnerVos, jobVo, JobNodeStatus.IGNORED.getValue());
         }
 
         return null;
