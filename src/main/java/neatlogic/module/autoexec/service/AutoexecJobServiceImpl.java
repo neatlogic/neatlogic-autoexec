@@ -64,6 +64,7 @@ import neatlogic.framework.util.RestUtil;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.AutoexecTenantConfig;
+import neatlogic.framework.util.SnowflakeUtil;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -1714,6 +1715,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         runnerVos = runnerVos.stream().filter(o -> StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
         checkRunnerHealth(runnerVos);
         try {
+            Long execid = SnowflakeUtil.uniqueLong();
             for (RunnerMapVo runner : runnerVos) {
                 jobVo.getEnvironment().put("RUNNER_ID", runner.getRunnerMapId());
                 url = runner.getUrl() + "api/rest/job/exec";
@@ -1729,6 +1731,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 passThroughEnv.put("EXECUSER_TOKEN", userMapper.getUserTokenByUser(UserContext.get().getUserId()));
                 paramJson.put("passThroughEnv", passThroughEnv);
                 paramJson.put("environment", jobVo.getEnvironment());
+                paramJson.put("execid", String.valueOf(execid));
                 restVo = new RestVo.Builder(url, AuthenticateType.BUILDIN.getValue()).setPayload(paramJson).build();
                 result = RestUtil.sendPostRequest(restVo);
                 JSONObject resultJson = JSONObject.parseObject(result);
