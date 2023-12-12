@@ -708,6 +708,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             Optional<AutoexecJobPhaseVo> jobPhaseVoOptional = jobPhaseVoList.stream().filter(o -> Objects.equals(o.getName(), autoexecCombopPhaseVo.getName())).findFirst();
             if (jobPhaseVoOptional.isPresent()) {
                 autoexecJobMapper.updateJobPhaseNodeStatusByJobPhaseIdAndIsDelete(jobPhaseVoOptional.get().getId(), JobNodeStatus.PENDING.getValue(), 0);
+                autoexecJobMapper.updateJobPhaseRunnerStatusByJobIdAndPhaseId(jobId, jobPhaseVoOptional.get().getId(), JobNodeStatus.PENDING.getValue());
             }
         }
     }
