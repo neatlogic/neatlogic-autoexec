@@ -42,15 +42,13 @@ import neatlogic.framework.common.constvalue.GroupSearch;
 import neatlogic.framework.common.constvalue.SystemUser;
 import neatlogic.framework.common.constvalue.UserType;
 import neatlogic.framework.common.util.RC4Util;
+import neatlogic.framework.config.ConfigManager;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dao.mapper.RoleMapper;
 import neatlogic.framework.dao.mapper.TeamMapper;
 import neatlogic.framework.dao.mapper.UserMapper;
 import neatlogic.framework.dependency.core.DependencyManager;
 import neatlogic.framework.dto.AuthenticationInfoVo;
-import neatlogic.framework.exception.role.RoleNotFoundException;
-import neatlogic.framework.exception.team.TeamNotFoundException;
-import neatlogic.framework.exception.user.UserNotFoundException;
 import neatlogic.framework.notify.dto.InvokeNotifyPolicyConfigVo;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
@@ -1449,15 +1447,18 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             String[] split = authority.split("#");
             if (GroupSearch.USER.getValue().equals(split[0])) {
                 if (userMapper.checkUserIsExists(split[1]) == 0) {
-                    throw new UserNotFoundException(split[1]);
+//                    throw new UserNotFoundException(split[1]);
+                    return null;
                 }
             } else if (GroupSearch.TEAM.getValue().equals(split[0])) {
                 if (teamMapper.checkTeamIsExists(split[1]) == 0) {
-                    throw new TeamNotFoundException(split[1]);
+//                    throw new TeamNotFoundException(split[1]);
+                    return null;
                 }
             } else if (GroupSearch.ROLE.getValue().equals(split[0])) {
                 if (roleMapper.checkRoleIsExists(split[1]) == 0) {
-                    throw new RoleNotFoundException(split[1]);
+//                    throw new RoleNotFoundException(split[1]);
+                    return null;
                 }
             } else if (GroupSearch.COMMON.getValue().equals(split[0])) {
                 if (!UserType.ALL.getValue().equals(split[1])) {
@@ -1573,5 +1574,112 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 }
             }
         }
+    }
+
+    @Override
+    public AutoexecCombopVo getAutoexecCombopById(Long id) {
+        AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
+        if (autoexecCombopVo == null) {
+            return null;
+        }
+        List<String> viewAuthorityList = new ArrayList<>();
+        List<String> editAuthorityList = new ArrayList<>();
+        List<String> executeAuthorityList = new ArrayList<>();
+        List<AutoexecCombopAuthorityVo> authorityList = autoexecCombopMapper.getAutoexecCombopAuthorityListByCombopId(id);
+        for (AutoexecCombopAuthorityVo authorityVo : authorityList) {
+            if ("view".equals(authorityVo.getAction())) {
+                viewAuthorityList.add(authorityVo.getType() + "#" + authorityVo.getUuid());
+            } else if ("edit".equals(authorityVo.getAction())) {
+                editAuthorityList.add(authorityVo.getType() + "#" + authorityVo.getUuid());
+            } else if ("execute".equals(authorityVo.getAction())) {
+                executeAuthorityList.add(authorityVo.getType() + "#" + authorityVo.getUuid());
+            }
+        }
+        autoexecCombopVo.setViewAuthorityList(viewAuthorityList);
+        autoexecCombopVo.setEditAuthorityList(editAuthorityList);
+        autoexecCombopVo.setExecuteAuthorityList(executeAuthorityList);
+        Long activeVersionId = autoexecCombopVersionMapper.getAutoexecCombopActiveVersionIdByCombopId(id);
+        autoexecCombopVo.setActiveVersionId(activeVersionId);
+        return autoexecCombopVo;
+    }
+
+    @Override
+    public void saveAutoexecCombop(AutoexecCombopVo autoexecCombopVo) {
+        Long id = autoexecCombopVo.getId();
+        AutoexecCombopVo oldAutoexecCombop = autoexecCombopMapper.getAutoexecCombopById(id);
+        if (oldAutoexecCombop == null) {
+            autoexecCombopVo.setConfigStr(null);
+            autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
+            saveDependency(autoexecCombopVo);
+            saveAuthority(autoexecCombopVo);
+        } else {
+            deleteDependency(oldAutoexecCombop);
+            autoexecCombopVo.setConfigStr(null);
+            autoexecCombopMapper.updateAutoexecCombopById(autoexecCombopVo);
+            saveDependency(autoexecCombopVo);
+            autoexecCombopMapper.deleteAutoexecCombopAuthorityByCombopId(id);
+            saveAuthority(autoexecCombopVo);
+        }
+    }
+
+    @Override
+    public void saveAutoexecCombopVersion(AutoexecCombopVersionVo autoexecCombopVersionVo) {
+        AutoexecCombopVersionVo oldAutoexecCombopVersion = autoexecCombopVersionMapper.getAutoexecCombopVersionById(autoexecCombopVersionVo.getId());
+        AutoexecCombopVersionConfigVo config = autoexecCombopVersionVo.getConfig();
+        String configStr = JSONObject.toJSONString(config);
+        /** 保存前，校验组合工具是否配置正确，不正确不可以保存 **/
+        verifyAutoexecCombopVersionConfig(config, false);
+        autoexecCombopVersionVo.setConfigStr(configStr);
+        config = autoexecCombopVersionVo.getConfig();
+        passwordParamEncrypt(config);
+        updateAutoexecCombopExecuteConfigProtocolAndProtocolPort(config);
+        if (oldAutoexecCombopVersion == null) {
+            resetIdAutoexecCombopVersionConfig(config);
+            setAutoexecCombopPhaseGroupId(config);
+            autoexecCombopVersionVo.setConfigStr(null);
+            Integer version = autoexecCombopVersionMapper.getAutoexecCombopMaxVersionByCombopId(autoexecCombopVersionVo.getCombopId());
+            if (version == null) {
+                version = 1;
+            } else {
+                version++;
+            }
+            autoexecCombopVersionVo.setVersion(version);
+            autoexecCombopVersionVo.setIsActive(0);
+            autoexecCombopVersionMapper.insertAutoexecCombopVersion(autoexecCombopVersionVo);
+            Integer maxNum = null;
+            String maxNumOfCombopVersion = ConfigManager.getConfig(AutoexecTenantConfig.MAX_NUM_OF_COMBOP_VERSION);
+            if (StringUtils.isNotBlank(maxNumOfCombopVersion)) {
+                try {
+                    maxNum = Integer.parseInt(maxNumOfCombopVersion);
+                } catch (NumberFormatException e) {
+
+                }
+            }
+            List<AutoexecCombopVersionVo> versionList = autoexecCombopVersionMapper.getAutoexecCombopVersionListByCombopId(autoexecCombopVersionVo.getCombopId());
+            if (versionList.size() > maxNum) {
+                // 需要删除个数
+                int deleteCount = versionList.size() - maxNum;
+                // 根据版本id升序排序
+                versionList.sort(Comparator.comparing(AutoexecCombopVersionVo::getId));
+                // 遍历版本列表，删除最旧的非激活版本
+                for (AutoexecCombopVersionVo versionVo : versionList) {
+                    if (Objects.equals(versionVo.getIsActive(), 1)) {
+                        continue;
+                    }
+                    autoexecCombopVersionMapper.deleteAutoexecCombopVersionById(versionVo.getId());
+                    deleteDependency(versionVo);
+                    deleteCount--;
+                    if (deleteCount == 0) {
+                        break;
+                    }
+                }
+            }
+        } else {
+            deleteDependency(oldAutoexecCombopVersion);
+            setAutoexecCombopPhaseGroupId(config);
+            autoexecCombopVersionVo.setConfigStr(null);
+            autoexecCombopVersionMapper.updateAutoexecCombopVersionById(autoexecCombopVersionVo);
+        }
+        saveDependency(autoexecCombopVersionVo);
     }
 }

@@ -72,7 +72,7 @@ public class AutoexecCombopDetailGetApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long id = paramObj.getLong("id");
         Long versionId = paramObj.getLong("versionId");
-        AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
+        AutoexecCombopVo autoexecCombopVo = autoexecCombopService.getAutoexecCombopById(id);
         if (autoexecCombopVo == null) {
             throw new AutoexecCombopNotFoundEditTargetException(id);
         }
@@ -83,12 +83,9 @@ public class AutoexecCombopDetailGetApi extends PrivateApiComponentBase {
             autoexecCombopVo.setTypeName(autoexecCombopVo.getTypeId().toString());
         }
         autoexecCombopService.setOperableButtonList(autoexecCombopVo);
-        Long activeVersionId = autoexecCombopVersionMapper.getAutoexecCombopActiveVersionIdByCombopId(id);
-        if (activeVersionId != null) {
-            autoexecCombopVo.setActiveVersionId(activeVersionId);
-            if (versionId == null) {
-                versionId = activeVersionId;
-            }
+        Long activeVersionId = autoexecCombopVo.getActiveVersionId();
+        if (activeVersionId != null && versionId == null) {
+            versionId = activeVersionId;
         }
         if (versionId != null) {
             AutoexecCombopVersionVo autoexecCombopVersionVo = autoexecCombopService.getAutoexecCombopVersionById(versionId);

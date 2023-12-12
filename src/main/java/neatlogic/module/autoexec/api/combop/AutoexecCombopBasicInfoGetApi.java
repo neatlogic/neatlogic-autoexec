@@ -16,17 +16,20 @@ limitations under the License.
 
 package neatlogic.module.autoexec.api.combop;
 
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.constvalue.ScriptVersionStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import neatlogic.framework.autoexec.dto.AutoexecTypeVo;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopAuthorityVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
-import neatlogic.framework.autoexec.exception.*;
+import neatlogic.framework.autoexec.exception.AutoexecCombopActiveVersionNotFoundException;
+import neatlogic.framework.autoexec.exception.AutoexecCombopDraftVersionNotFoundException;
+import neatlogic.framework.autoexec.exception.AutoexecCombopRejectedVersionNotFoundException;
+import neatlogic.framework.autoexec.exception.AutoexecCombopSubmittedVersionNotFoundException;
 import neatlogic.framework.autoexec.exception.combop.AutoexecCombopNotFoundEditTargetException;
 import neatlogic.framework.autoexec.exception.combop.AutoexecCombopVersionNotFoundEditTargetException;
 import neatlogic.framework.common.constvalue.ApiParamType;
@@ -40,13 +43,10 @@ import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.notify.handler.AutoexecCombopNotifyPolicyHandler;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
-import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Objects;
 
 @Service
@@ -98,7 +98,7 @@ public class AutoexecCombopBasicInfoGetApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");
-        AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
+        AutoexecCombopVo autoexecCombopVo = autoexecCombopService.getAutoexecCombopById(id);
         if (autoexecCombopVo == null) {
             throw new AutoexecCombopNotFoundEditTargetException(id);
         }
@@ -111,24 +111,7 @@ public class AutoexecCombopBasicInfoGetApi extends PrivateApiComponentBase {
         autoexecCombopService.setOperableButtonList(autoexecCombopVo);
         // owner字段必须在校验权限后，再加上前缀user#
         autoexecCombopVo.setOwner(GroupSearch.USER.getValuePlugin() + autoexecCombopVo.getOwner());
-        List<String> viewAuthorityList = new ArrayList<>();
-        List<String> editAuthorityList = new ArrayList<>();
-        List<String> executeAuthorityList = new ArrayList<>();
-        List<AutoexecCombopAuthorityVo> authorityList = autoexecCombopMapper.getAutoexecCombopAuthorityListByCombopId(id);
-        for (AutoexecCombopAuthorityVo authorityVo : authorityList) {
-            if ("view".equals(authorityVo.getAction())) {
-                viewAuthorityList.add(authorityVo.getType() + "#" + authorityVo.getUuid());
-            } else if ("edit".equals(authorityVo.getAction())) {
-                editAuthorityList.add(authorityVo.getType() + "#" + authorityVo.getUuid());
-            } else if ("execute".equals(authorityVo.getAction())) {
-                executeAuthorityList.add(authorityVo.getType() + "#" + authorityVo.getUuid());
-            }
-        }
-        autoexecCombopVo.setViewAuthorityList(viewAuthorityList);
-        autoexecCombopVo.setEditAuthorityList(editAuthorityList);
-        autoexecCombopVo.setExecuteAuthorityList(executeAuthorityList);
-        Long activeVersionId = autoexecCombopVersionMapper.getAutoexecCombopActiveVersionIdByCombopId(id);
-        autoexecCombopVo.setActiveVersionId(activeVersionId);
+        Long activeVersionId = autoexecCombopVo.getActiveVersionId();
         Long versionId = jsonObj.getLong("versionId");
         if (versionId != null) {
             AutoexecCombopVersionVo versionVo = autoexecCombopVersionMapper.getAutoexecCombopVersionById(versionId);
