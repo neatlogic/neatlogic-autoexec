@@ -16,6 +16,8 @@ limitations under the License.
 
 package neatlogic.module.autoexec.api.combop;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.auth.core.AuthActionChecker;
@@ -25,7 +27,10 @@ import neatlogic.framework.autoexec.constvalue.CombopOperationType;
 import neatlogic.framework.autoexec.constvalue.ScriptVersionStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecTypeMapper;
-import neatlogic.framework.autoexec.dto.combop.*;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionConfigVo;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
 import neatlogic.framework.autoexec.exception.AutoexecCombopNameRepeatException;
 import neatlogic.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecTypeNotFoundException;
@@ -47,8 +52,6 @@ import neatlogic.framework.util.RegexUtils;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.notify.handler.AutoexecCombopNotifyPolicyHandler;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -127,20 +130,6 @@ public class AutoexecCombopBasicInfoSaveApi extends PrivateApiComponentBase {
             autoexecCombopVo.setOperationType(CombopOperationType.COMBOP.getValue());
             autoexecCombopVo.setOwner(UserContext.get().getUserUuid(true));
             autoexecCombopVo.setIsActive(0);
-            autoexecCombopVo.setConfigStr(null);
-            autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
-            autoexecCombopService.saveDependency(autoexecCombopVo);
-            autoexecCombopService.saveAuthority(autoexecCombopVo);
-            // 创建一个新的组合工具的同时创建一个空草稿版本
-            AutoexecCombopVersionVo autoexecCombopVersionVo = new AutoexecCombopVersionVo();
-            autoexecCombopVersionVo.setCombopId(autoexecCombopVo.getId());
-            autoexecCombopVersionVo.setVersion(1);
-            autoexecCombopVersionVo.setStatus(ScriptVersionStatus.DRAFT.getValue());
-            autoexecCombopVersionVo.setIsActive(0);
-            autoexecCombopVersionVo.setName(autoexecCombopVo.getName());
-            autoexecCombopVersionVo.setConfig(new AutoexecCombopVersionConfigVo());
-            autoexecCombopVersionVo.setLcu(UserContext.get().getUserUuid());
-            autoexecCombopVersionMapper.insertAutoexecCombopVersion(autoexecCombopVersionVo);
         } else {
             String owner = autoexecCombopVo.getOwner();
             if (owner == null) {
@@ -159,14 +148,20 @@ public class AutoexecCombopBasicInfoSaveApi extends PrivateApiComponentBase {
             if (oldAutoexecCombopVo.getEditable() == 0) {
                 throw new PermissionDeniedException();
             }
-            autoexecCombopService.deleteDependency(oldAutoexecCombopVo);
-            autoexecCombopVo.setConfigStr(null);
-            autoexecCombopMapper.updateAutoexecCombopById(autoexecCombopVo);
-            autoexecCombopService.saveDependency(autoexecCombopVo);
-            autoexecCombopMapper.deleteAutoexecCombopAuthorityByCombopId(id);
-            autoexecCombopService.saveAuthority(autoexecCombopVo);
         }
-
+        autoexecCombopService.saveAutoexecCombop(autoexecCombopVo);
+        if (id == null) {
+            // 创建一个新的组合工具的同时创建一个空草稿版本
+            AutoexecCombopVersionVo autoexecCombopVersionVo = new AutoexecCombopVersionVo();
+            autoexecCombopVersionVo.setCombopId(autoexecCombopVo.getId());
+            autoexecCombopVersionVo.setVersion(1);
+            autoexecCombopVersionVo.setStatus(ScriptVersionStatus.DRAFT.getValue());
+            autoexecCombopVersionVo.setIsActive(0);
+            autoexecCombopVersionVo.setName(autoexecCombopVo.getName());
+            autoexecCombopVersionVo.setConfig(new AutoexecCombopVersionConfigVo());
+            autoexecCombopVersionVo.setLcu(UserContext.get().getUserUuid());
+            autoexecCombopVersionMapper.insertAutoexecCombopVersion(autoexecCombopVersionVo);
+        }
         return autoexecCombopVo.getId();
     }
 

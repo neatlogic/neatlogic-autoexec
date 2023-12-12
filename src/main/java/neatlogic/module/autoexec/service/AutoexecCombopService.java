@@ -167,4 +167,10 @@ public interface AutoexecCombopService {
      * @param config
      */
     void passwordParamEncrypt(AutoexecCombopVersionConfigVo config);
+
+    AutoexecCombopVo getAutoexecCombopById(Long id);
+
+    void saveAutoexecCombop(AutoexecCombopVo autoexecCombopVo);
+
+    void saveAutoexecCombopVersion(AutoexecCombopVersionVo autoexecCombopVersionVo);
 }

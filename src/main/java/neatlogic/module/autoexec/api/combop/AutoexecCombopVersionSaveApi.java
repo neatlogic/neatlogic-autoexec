@@ -16,6 +16,7 @@ limitations under the License.
 
 package neatlogic.module.autoexec.api.combop;
 
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.auth.core.AuthActionChecker;
@@ -23,29 +24,27 @@ import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import neatlogic.framework.autoexec.constvalue.ScriptVersionStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
-import neatlogic.framework.config.ConfigManager;
-import neatlogic.framework.autoexec.constvalue.AutoexecTenantConfig;
-import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
-import neatlogic.framework.autoexec.exception.*;
+import neatlogic.framework.autoexec.exception.AutoexecCombopHasSubmittedVersionException;
+import neatlogic.framework.autoexec.exception.AutoexecCombopNotFoundException;
+import neatlogic.framework.autoexec.exception.AutoexecCombopPhaseNameRepeatException;
+import neatlogic.framework.autoexec.exception.AutoexecCombopVersionNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.exception.type.PermissionDeniedException;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.framework.util.RegexUtils;
+import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
-import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 
@@ -93,10 +92,6 @@ public class AutoexecCombopVersionSaveApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecCombopVersionVo autoexecCombopVersionVo = jsonObj.toJavaObject(AutoexecCombopVersionVo.class);
-
-//        if (autoexecCombopVersionMapper.checkAutoexecCombopVersionNameIsRepeat(autoexecCombopVersionVo) != null) {
-//            throw new AutoexecCombopVersionNameRepeatException(autoexecCombopVersionVo.getName());
-//        }
         AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(autoexecCombopVersionVo.getCombopId());
         if (autoexecCombopVo == null) {
             throw new AutoexecCombopNotFoundException(autoexecCombopVersionVo.getCombopId());
@@ -116,84 +111,23 @@ public class AutoexecCombopVersionSaveApi extends PrivateApiComponentBase {
             if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(true), AUTOEXEC_COMBOP_ADD.class.getSimpleName())) {
                 throw new PermissionDeniedException(AUTOEXEC_COMBOP_ADD.class);
             }
-            AutoexecCombopVersionConfigVo config = autoexecCombopVersionVo.getConfig();
-            String configStr = JSONObject.toJSONString(config);
-            /** 保存前，校验组合工具是否配置正确，不正确不可以保存 **/
-            autoexecCombopService.verifyAutoexecCombopVersionConfig(config, false);
-            autoexecCombopVersionVo.setConfigStr(configStr);
-            config = autoexecCombopVersionVo.getConfig();
-            autoexecCombopService.resetIdAutoexecCombopVersionConfig(config);
-            autoexecCombopService.setAutoexecCombopPhaseGroupId(config);
-            autoexecCombopService.passwordParamEncrypt(config);
-            autoexecCombopVersionVo.setConfigStr(null);
-            Integer version = autoexecCombopVersionMapper.getAutoexecCombopMaxVersionByCombopId(autoexecCombopVersionVo.getCombopId());
-            if (version == null) {
-                version = 1;
-            } else {
-                version++;
-            }
-            autoexecCombopVersionVo.setVersion(version);
-            autoexecCombopVersionVo.setIsActive(0);
-            autoexecCombopVersionMapper.insertAutoexecCombopVersion(autoexecCombopVersionVo);
-            autoexecCombopService.saveDependency(autoexecCombopVersionVo);
-            Integer maxNum = null;
-            String maxNumOfCombopVersion = ConfigManager.getConfig(AutoexecTenantConfig.MAX_NUM_OF_COMBOP_VERSION);
-            if (StringUtils.isNotBlank(maxNumOfCombopVersion)) {
-                try {
-                    maxNum = Integer.parseInt(maxNumOfCombopVersion);
-                } catch (NumberFormatException e) {
-
-                }
-            }
-            List<AutoexecCombopVersionVo> versionList = autoexecCombopVersionMapper.getAutoexecCombopVersionListByCombopId(autoexecCombopVersionVo.getCombopId());
-            if (versionList.size() > maxNum) {
-                // 需要删除个数
-                int deleteCount = versionList.size() - maxNum;
-                // 根据版本id升序排序
-                versionList.sort(Comparator.comparing(AutoexecCombopVersionVo::getId));
-                // 遍历版本列表，删除最旧的非激活版本
-                for (AutoexecCombopVersionVo versionVo : versionList) {
-                    if (Objects.equals(versionVo.getIsActive(), 1)) {
-                        continue;
-                    }
-                    autoexecCombopVersionMapper.deleteAutoexecCombopVersionById(versionVo.getId());
-                    autoexecCombopService.deleteDependency(versionVo);
-                    deleteCount--;
-                    if (deleteCount == 0) {
-                        break;
-                    }
-                }
-            }
         } else {
             AutoexecCombopVersionVo oldAutoexecCombopVersionVo = autoexecCombopVersionMapper.getAutoexecCombopVersionById(id);
             if (oldAutoexecCombopVersionVo == null) {
                 throw new AutoexecCombopVersionNotFoundException(id);
             }
-            AutoexecCombopVersionConfigVo config = autoexecCombopVersionVo.getConfig();
-            List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
-            List<String> nameList = new ArrayList<>();
-            for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
-                String name = autoexecCombopPhaseVo.getName();
-                if (nameList.contains(name)) {
-                    throw new AutoexecCombopPhaseNameRepeatException(name);
-                }
-                nameList.add(name);
-            }
-
-            autoexecCombopService.updateAutoexecCombopExecuteConfigProtocolAndProtocolPort(config);
-            String configStr = JSONObject.toJSONString(config);
-            /** 保存前，校验组合工具是否配置正确，不正确不可以保存 **/
-            autoexecCombopService.verifyAutoexecCombopVersionConfig(config, false);
-            autoexecCombopVersionVo.setConfigStr(configStr);
-            autoexecCombopService.deleteDependency(oldAutoexecCombopVersionVo);
-            config = autoexecCombopVersionVo.getConfig();
-            autoexecCombopService.setAutoexecCombopPhaseGroupId(config);
-            autoexecCombopService.passwordParamEncrypt(config);
-//            autoexecCombopService.prepareAutoexecCombopVersionConfig(autoexecCombopVersionVo.getConfig(), false);
-            autoexecCombopVersionVo.setConfigStr(null);
-            autoexecCombopVersionMapper.updateAutoexecCombopVersionById(autoexecCombopVersionVo);
-            autoexecCombopService.saveDependency(autoexecCombopVersionVo);
         }
+        AutoexecCombopVersionConfigVo config = autoexecCombopVersionVo.getConfig();
+        List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
+        List<String> nameList = new ArrayList<>();
+        for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
+            String name = autoexecCombopPhaseVo.getName();
+            if (nameList.contains(name)) {
+                throw new AutoexecCombopPhaseNameRepeatException(name);
+            }
+            nameList.add(name);
+        }
+        autoexecCombopService.saveAutoexecCombopVersion(autoexecCombopVersionVo);
         JSONObject resultObj = new JSONObject();
         resultObj.put("id", autoexecCombopVersionVo.getId());
         if (Objects.equals(autoexecCombopVersionVo.getStatus(), ScriptVersionStatus.SUBMITTED.getValue())) {
@@ -201,15 +135,5 @@ public class AutoexecCombopVersionSaveApi extends PrivateApiComponentBase {
         }
         return resultObj;
     }
-
-//    public IValid name() {
-//        return jsonObj -> {
-//            AutoexecCombopVersionVo autoexecCombopVersionVo = JSON.toJavaObject(jsonObj, AutoexecCombopVersionVo.class);
-//            if (autoexecCombopVersionMapper.checkAutoexecCombopVersionNameIsRepeat(autoexecCombopVersionVo) != null) {
-//                return new FieldValidResultVo(new AutoexecCombopVersionNameRepeatException(autoexecCombopVersionVo.getName()));
-//            }
-//            return new FieldValidResultVo();
-//        };
-//    }
 
 }
