@@ -16,12 +16,18 @@
 
 package neatlogic.module.autoexec.api.combop;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.TypeReference;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import neatlogic.framework.autoexec.constvalue.CombopOperationType;
 import neatlogic.framework.autoexec.constvalue.ParamMappingMode;
-import neatlogic.framework.autoexec.dto.AutoexecParamVo;
+import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
+import neatlogic.framework.autoexec.dao.mapper.AutoexecScriptMapper;
+import neatlogic.framework.autoexec.dao.mapper.AutoexecToolMapper;
+import neatlogic.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import neatlogic.framework.autoexec.dto.AutoexecToolVo;
 import neatlogic.framework.autoexec.dto.combop.*;
 import neatlogic.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
@@ -41,23 +47,16 @@ import neatlogic.framework.notify.core.INotifyPolicyHandler;
 import neatlogic.framework.notify.core.NotifyPolicyHandlerFactory;
 import neatlogic.framework.notify.dao.mapper.NotifyMapper;
 import neatlogic.framework.notify.dto.InvokeNotifyPolicyConfigVo;
-import neatlogic.framework.notify.dto.NotifyPolicyHandlerVo;
 import neatlogic.framework.notify.dto.NotifyPolicyVo;
 import neatlogic.framework.notify.exception.NotifyPolicyHandlerNotFoundException;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
-import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
-import neatlogic.framework.autoexec.dao.mapper.AutoexecScriptMapper;
-import neatlogic.framework.autoexec.dao.mapper.AutoexecToolMapper;
-import neatlogic.framework.autoexec.dao.mapper.AutoexecTypeMapper;
+import neatlogic.framework.util.$;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecProfileMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecScenarioMapper;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -280,17 +279,16 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                     if (notifyPolicyHandler == null) {
                         throw new NotifyPolicyHandlerNotFoundException(notifyPolicyVo.getHandler());
                     }
-                    String moduleGroupName = "";
-                    List<NotifyPolicyHandlerVo> notifyPolicyHandlerList = NotifyPolicyHandlerFactory.getNotifyPolicyHandlerList();
-                    for (NotifyPolicyHandlerVo notifyPolicyHandlerVo : notifyPolicyHandlerList) {
-                        if (Objects.equals(notifyPolicyHandlerVo.getHandler(), notifyPolicyVo.getHandler())) {
-                            ModuleGroupVo moduleGroupVo = ModuleUtil.getModuleGroup(notifyPolicyHandlerVo.getModuleGroup());
-                            if (moduleGroupVo != null) {
-                                moduleGroupName = moduleGroupVo.getGroupName();
-                            }
-                        }
+                    String moduleGroup = NotifyPolicyHandlerFactory.getModuleGroupIdByHandler(notifyPolicyVo.getHandler());
+                    if (moduleGroup == null) {
+                        throw new NotifyPolicyHandlerNotFoundException(notifyPolicyVo.getHandler());
                     }
-                    String handlerName = notifyPolicyHandler.getName();
+                    String moduleGroupName = "";
+                    ModuleGroupVo moduleGroupVo = ModuleUtil.getModuleGroup(moduleGroup);
+                    if (moduleGroupVo != null) {
+                        moduleGroupName = moduleGroupVo.getGroupName();
+                    }
+                    String handlerName = $.t(notifyPolicyHandler.getName());
                     notifyPolicyConfigVo.setPolicyPath(moduleGroupName + "/" + handlerName + "/" + notifyPolicyVo.getName());
                     notifyPolicyConfigVo.setPolicyId(notifyPolicyVo.getId());
                 }
