@@ -21,12 +21,10 @@ import neatlogic.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import neatlogic.framework.autoexec.constvalue.AutoexecJobNotifyParam;
 import neatlogic.framework.autoexec.constvalue.AutoexecJobNotifyTriggerType;
 import neatlogic.framework.dto.ConditionParamVo;
-import neatlogic.framework.notify.core.INotifyPolicyHandlerGroup;
 import neatlogic.framework.notify.core.NotifyHandlerType;
 import neatlogic.framework.notify.core.NotifyPolicyHandlerBase;
 import neatlogic.framework.notify.dto.NotifyTriggerTemplateVo;
 import neatlogic.framework.notify.dto.NotifyTriggerVo;
-import neatlogic.framework.util.I18nUtils;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -40,7 +38,7 @@ import java.util.List;
 public class AutoexecCombopNotifyPolicyHandler extends NotifyPolicyHandlerBase {
     @Override
     public String getName() {
-        return "组合工具";
+        return "term.autoexec.combop";
     }
 
     /**
@@ -51,10 +49,10 @@ public class AutoexecCombopNotifyPolicyHandler extends NotifyPolicyHandlerBase {
         return AUTOEXEC_COMBOP_ADD.class.getSimpleName();
     }
 
-    @Override
-    public INotifyPolicyHandlerGroup getGroup() {
-        return null;
-    }
+//    @Override
+//    public INotifyPolicyHandlerGroup getGroup() {
+//        return null;
+//    }
 
     @Override
     protected List<NotifyTriggerVo> myNotifyTriggerList() {
