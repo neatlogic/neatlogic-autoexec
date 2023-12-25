@@ -1044,7 +1044,17 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 ipPortNameList.add(new ResourceVo(o.getIp(), o.getPort(), o.getName()));
             });
             IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
-            List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceListByResourceVoList(ipPortNameList);
+            //补充opType操作类型
+            JSONObject filterJson = new JSONObject();
+            if (Objects.equals(jobVo.getOperationType(), CombopOperationType.COMBOP.getValue())) {
+                AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(jobVo.getOperationId());
+                if (combopVo != null) {
+                    filterJson.put("cmdbGroupType", combopVo.getOpType());
+                }
+            }
+            IResourceCenterResourceCrossoverService resourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
+            ResourceSearchVo searchVo = resourceCrossoverService.assembleResourceSearchVo(filterJson);
+            List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceListByResourceVoList(ipPortNameList, searchVo);
             if (CollectionUtils.isNotEmpty(resourceVoList)) {
                 updateJobPhaseNode(jobVo, resourceVoList, userName, protocolId, false);
                 //重置节点状态
@@ -1073,7 +1083,17 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 ipPortNameList.add(new ResourceVo(o.getIp(), o.getPort(), o.getName()));
             });
             IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
-            List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceListByResourceVoList(ipPortNameList);
+            //补充opType操作类型
+            JSONObject filterJson = new JSONObject();
+            if (Objects.equals(jobVo.getOperationType(), CombopOperationType.COMBOP.getValue())) {
+                AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(jobVo.getOperationId());
+                if (combopVo != null) {
+                    filterJson.put("cmdbGroupType", combopVo.getOpType());
+                }
+            }
+            IResourceCenterResourceCrossoverService resourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
+            ResourceSearchVo searchVo = resourceCrossoverService.assembleResourceSearchVo(filterJson);
+            List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceListByResourceVoList(ipPortNameList, searchVo);
             if (CollectionUtils.isNotEmpty(resourceVoList)) {
                 updateJobPhaseNode(jobVo, resourceVoList, userName, protocolId);
                 return true;
@@ -1094,8 +1114,19 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     private boolean updateNodeResourceBySelect(AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
         List<AutoexecNodeVo> nodeVoList = executeNodeConfigVo.getSelectNodeList();
         if (CollectionUtils.isNotEmpty(nodeVoList)) {
+            IResourceCenterResourceCrossoverService resourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
             IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
-            List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceByIdList(nodeVoList.stream().map(AutoexecNodeVo::getId).collect(toList()));
+            JSONObject filterJson = new JSONObject();
+            //补充opType操作类型
+            if (Objects.equals(jobVo.getOperationType(), CombopOperationType.COMBOP.getValue())) {
+                AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(jobVo.getOperationId());
+                if (combopVo != null) {
+                    filterJson.put("cmdbGroupType", combopVo.getOpType());
+                }
+            }
+            ResourceSearchVo searchVo = resourceCrossoverService.assembleResourceSearchVo(filterJson);
+            searchVo.setIdList(nodeVoList.stream().map(AutoexecNodeVo::getId).collect(toList()));
+            List<ResourceVo> resourceVoList = resourceCrossoverMapper.getAuthResourceList(searchVo);
             if (CollectionUtils.isNotEmpty(resourceVoList)) {
                 updateJobPhaseNode(jobVo, resourceVoList, userName, protocolId);
                 return true;
@@ -1118,6 +1149,13 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         boolean isHasNode = false;
         if (MapUtils.isNotEmpty(filterJson)) {
             JSONObject resourceJson;
+            //补充opType操作类型
+            if (Objects.equals(jobVo.getOperationType(), CombopOperationType.COMBOP.getValue())) {
+                AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(jobVo.getOperationId());
+                if (combopVo != null) {
+                    filterJson.put("cmdbGroupType", combopVo.getOpType());
+                }
+            }
             IResourceCenterResourceCrossoverService resourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
             filterJson.put("pageSize", 100);
             ResourceSearchVo searchVo = resourceCrossoverService.assembleResourceSearchVo(filterJson);
