@@ -34,7 +34,6 @@ import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,10 +54,12 @@ public class AutoexecCombopDetailGetApi extends PrivateApiComponentBase {
     private AutoexecCombopMapper autoexecCombopMapper;
 
     @Resource
-    private AutoexecCombopVersionMapper autoexecCombopVersionMapper;
-
-    @Resource
     private AutoexecTypeMapper autoexecTypeMapper;
+
+    @Override
+    public boolean disableReturnCircularReferenceDetect() {
+        return true;
+    }
 
     @Input({
             @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "common.id"),
