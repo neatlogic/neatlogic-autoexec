@@ -17,11 +17,8 @@ limitations under the License.
 package neatlogic.module.autoexec.api.combop;
 
 import com.alibaba.fastjson.JSONObject;
-import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthAction;
-import neatlogic.framework.auth.core.AuthActionChecker;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
-import neatlogic.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import neatlogic.framework.autoexec.constvalue.ScriptVersionStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopPhaseVo;
@@ -107,11 +104,7 @@ public class AutoexecCombopVersionSaveApi extends PrivateApiComponentBase {
             throw new PermissionDeniedException();
         }
         Long id = jsonObj.getLong("id");
-        if (id == null) {
-            if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(true), AUTOEXEC_COMBOP_ADD.class.getSimpleName())) {
-                throw new PermissionDeniedException(AUTOEXEC_COMBOP_ADD.class);
-            }
-        } else {
+        if (id != null) {
             AutoexecCombopVersionVo oldAutoexecCombopVersionVo = autoexecCombopVersionMapper.getAutoexecCombopVersionById(id);
             if (oldAutoexecCombopVersionVo == null) {
                 throw new AutoexecCombopVersionNotFoundException(id);

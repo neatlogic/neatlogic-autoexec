@@ -80,7 +80,8 @@ public class UpdateAutoexecJobPhaseNodeStatusApi extends PrivateApiComponentBase
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
-        AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
+        //避免并发过大，导致性能问题，以下逻辑没必要控制串行
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
