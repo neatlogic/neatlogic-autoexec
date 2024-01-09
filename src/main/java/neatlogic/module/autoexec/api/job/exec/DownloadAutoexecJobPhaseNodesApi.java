@@ -319,13 +319,13 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                                     return k1;
                                 })));
                             }
-                            if (!Objects.equals(protocol, Protocol.TAGENT.getValue())) {
-                                accountByResourceList = resourceAccountCrossoverMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIncludeOsIdList, protocolId, account);
-                            } else {
+                            if (Objects.equals(protocol, Protocol.TAGENT.getValue()) || (protocol != null && protocol.startsWith(Protocol.TAGENT.getValue() + "."))) {
                                 List<AccountBaseVo> tagentAccountByIpList = tagentMapper.getAccountListByIpListAndProtocolId(autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getHost).collect(Collectors.toList()), protocolId);
                                 if (CollectionUtils.isNotEmpty(tagentAccountByIpList)) {
                                     tagentIpAccountMap = tagentAccountByIpList.stream().filter(distinctByKey(AccountBaseVo::getName)).collect(Collectors.toMap(AccountBaseVo::getIp, o -> o));
                                 }
+                            } else {
+                                accountByResourceList = resourceAccountCrossoverMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIncludeOsIdList, protocolId, account);
                             }
                         }
                         for (AutoexecJobPhaseNodeVo nodeVo : autoexecJobPhaseNodeVoList) {
