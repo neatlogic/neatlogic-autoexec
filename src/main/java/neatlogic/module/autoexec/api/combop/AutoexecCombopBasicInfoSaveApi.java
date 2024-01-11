@@ -98,6 +98,7 @@ public class AutoexecCombopBasicInfoSaveApi extends PrivateApiComponentBase {
             @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, isRequired = true, minLength = 1, maxLength = 70, desc = "common.name"),
             @Param(name = "description", type = ApiParamType.STRING, desc = "common.description"),
             @Param(name = "typeId", type = ApiParamType.LONG, isRequired = true, desc = "common.typeid"),
+            @Param(name = "opType", type = ApiParamType.STRING, isRequired = true, desc = "common.actiontype"),
             @Param(name = "typeName", type = ApiParamType.STRING, isRequired = true, desc = "common.typename"),
             @Param(name = "viewAuthorityList", type = ApiParamType.JSONARRAY, isRequired = true, minSize = 1, desc = "common.viewauthoritylist"),
             @Param(name = "editAuthorityList", type = ApiParamType.JSONARRAY, isRequired = true, minSize = 1, desc = "common.editauthoritylist"),
