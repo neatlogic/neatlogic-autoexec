@@ -22,8 +22,10 @@ import neatlogic.framework.autoexec.constvalue.ScriptVersionStatus;
 import neatlogic.framework.autoexec.dto.AutoexecTypeVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
 import neatlogic.framework.autoexec.exception.AutoexecTypeNotFoundException;
+import neatlogic.framework.cmdb.enums.CmdbTenantConfig;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.dto.BasePageVo;
+import neatlogic.framework.config.ConfigManager;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -144,6 +146,7 @@ public class AutoexecCombopListApi extends PrivateApiComponentBase {
         resultObj.put("currentPage", searchVo.getCurrentPage());
         resultObj.put("pageSize", searchVo.getPageSize());
         resultObj.put("versionStatusCountMap", versionStatusCountMap);
+        resultObj.put("isResourcecenterAuth", ConfigManager.getConfig(CmdbTenantConfig.IS_RESOURCECENTER_AUTH));
         return resultObj;
     }
 }
