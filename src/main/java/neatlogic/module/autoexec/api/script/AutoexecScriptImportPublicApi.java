@@ -15,7 +15,6 @@ import neatlogic.framework.autoexec.dto.script.AutoexecScriptArgumentVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
-import neatlogic.framework.common.config.Config;
 import neatlogic.framework.common.constvalue.SystemUser;
 import neatlogic.framework.common.util.FileUtil;
 import neatlogic.framework.exception.file.FileNotUploadException;
@@ -31,14 +30,11 @@ import neatlogic.framework.restful.core.privateapi.PrivateBinaryStreamApiCompone
 import neatlogic.module.autoexec.fulltextindex.AutoexecFullTextIndexType;
 import neatlogic.module.autoexec.service.AutoexecScriptService;
 import neatlogic.module.autoexec.service.AutoexecService;
-import neatlogic.module.framework.file.handler.LocalFileSystemHandler;
-import neatlogic.module.framework.file.handler.MinioFileSystemHandler;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -55,7 +51,6 @@ import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 
-@SuppressWarnings("deprecation")
 @Service
 @Transactional
 @AuthAction(action = AUTOEXEC_MODIFY.class)
@@ -79,7 +74,7 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
     @Resource
     private AutoexecScriptService autoexecScriptService;
 
-    @Autowired
+    @Resource
     private FileMapper fileMapper;
 
     @Override
@@ -223,26 +218,16 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
             if (MapUtils.isNotEmpty(scriptFileNameMap) && StringUtils.equals(newScriptVo.getParser(), ScriptParser.PACKAGE.getValue()) && newScriptVo.getPackageFileName() != null) {
                 FileVo packageFile = new FileVo();
                 //检验脚本信息
-                if (scriptFileNameMap.containsKey(newScriptVo.getPackageFileName() )) {
-                    MultipartFile multipartFile = scriptFileNameMap.get(newScriptVo.getPackageFileName() );
+                if (scriptFileNameMap.containsKey(newScriptVo.getPackageFileName())) {
+                    MultipartFile multipartFile = scriptFileNameMap.get(newScriptVo.getPackageFileName());
                     FileVo fileVo = new FileVo();
                     fileVo.setSize(multipartFile.getSize());
-                    fileVo.setName (multipartFile.getName());
+                    fileVo.setName(multipartFile.getName());
                     fileVo.setUserUuid(SystemUser.SYSTEM.getUserUuid());
                     fileVo.setType("autoexec");
                     fileVo.setContentType("application/x-tar");
                     newScriptVo.setPackageFileId(fileVo.getId());
-                    String filePath;
-                    try {
-                        filePath = FileUtil.saveData(MinioFileSystemHandler.NAME, tenantUuid, multipartFile.getInputStream(), fileVo.getId().toString(), fileVo.getContentType(), fileVo.getType());
-                    } catch (Exception ex) {
-                        //如果没有配置minioUrl，则表示不使用minio，无需抛异常
-                        if (StringUtils.isNotBlank(Config.MINIO_URL())) {
-                            logger.error(ex.getMessage(), ex);
-                        }
-                        // 如果minio出现异常，则上传到本地
-                        filePath = FileUtil.saveData(LocalFileSystemHandler.NAME, tenantUuid, multipartFile.getInputStream(), fileVo.getId().toString(), fileVo.getContentType(), fileVo.getType());
-                    }
+                    String filePath = FileUtil.saveData(tenantUuid, multipartFile.getInputStream(), fileVo.getId().toString(), fileVo.getContentType(), fileVo.getType());
                     fileVo.setPath(filePath);
                     fileMapper.insertFile(fileVo);
                 } else {
@@ -351,11 +336,9 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
     /**
      * 从autoexecscripts导入而来的脚本，参数中的config与系统的config结构不完全一致，
      * 可能导致对比时误判，故校正原有的config，使其与导入的config保持一致
-     *
-     * @param oldParamList
      */
     private void adjustParamConfig(List<AutoexecScriptVersionParamVo> oldParamList) {
-        if (oldParamList.size() > 0) {
+        if (!oldParamList.isEmpty()) {
             for (AutoexecScriptVersionParamVo paramVo : oldParamList) {
                 AutoexecParamConfigVo config = paramVo.getConfig();
                 if (config != null) {
@@ -376,7 +359,6 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
      *
      * @param newScriptVo 导入的脚本
      * @param oldScriptVo 系统中的脚本
-     * @return
      */
     private boolean checkBaseInfoHasBeenChanged(AutoexecScriptVo newScriptVo, AutoexecScriptVo oldScriptVo) {
         if (!Objects.equals(newScriptVo.getCatalogId(), oldScriptVo.getCatalogId())) {
@@ -402,10 +384,6 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
 
     /**
      * 构造AutoexecScriptVersionVo
-     *
-     * @param scriptVo
-     * @param version
-     * @return
      */
     private AutoexecScriptVersionVo getVersionVo(AutoexecScriptVo scriptVo, Integer version) {
         AutoexecScriptVersionVo versionVo = new AutoexecScriptVersionVo();
@@ -447,7 +425,7 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
             }
             return txtResult.toString();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error(e.getMessage(), e);
             return "";
         }
     }

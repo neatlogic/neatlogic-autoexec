@@ -39,7 +39,6 @@ import neatlogic.framework.autoexec.dto.script.AutoexecScriptAuditVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
 import neatlogic.framework.autoexec.exception.AutoexecScriptNotFoundException;
-import neatlogic.framework.common.config.Config;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.constvalue.SystemUser;
 import neatlogic.framework.common.util.FileUtil;
@@ -55,14 +54,9 @@ import neatlogic.framework.restful.core.privateapi.PrivateBinaryStreamApiCompone
 import neatlogic.module.autoexec.dao.mapper.AutoexecProfileMapper;
 import neatlogic.module.autoexec.service.AutoexecScriptService;
 import neatlogic.module.autoexec.service.AutoexecService;
-import neatlogic.module.framework.file.handler.LocalFileSystemHandler;
-import neatlogic.module.framework.file.handler.MinioFileSystemHandler;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -71,8 +65,12 @@ import org.springframework.web.multipart.MultipartHttpServletRequest;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.io.*;
+import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
@@ -86,7 +84,7 @@ import java.util.zip.ZipInputStream;
 @OperationType(type = OperationTypeEnum.OPERATE)
 public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase {
 
-    Logger logger = LoggerFactory.getLogger(AutoexecScriptImportApi.class);
+    //Logger logger = LoggerFactory.getLogger(AutoexecScriptImportApi.class);
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
@@ -109,7 +107,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
     @Resource
     private AutoexecService autoexecService;
 
-    @Autowired
+    @Resource
     private FileMapper fileMapper;
 
     @Override
@@ -248,23 +246,13 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
             for (Map.Entry<String, Long> entry : fileNameIdMap.entrySet()) {
                 File file = scriptVersionFileMap.get(entry.getKey());
                 FileVo fileVo = new FileVo();
-                String filePath;
                 fileVo.setId(entry.getValue());
                 fileVo.setName(entry.getKey());
                 fileVo.setSize(file.length());
                 fileVo.setUserUuid(SystemUser.SYSTEM.getUserUuid());
                 fileVo.setType("autoexec");
                 fileVo.setContentType("application/x-tar");
-                try {
-                    filePath = FileUtil.saveData(MinioFileSystemHandler.NAME, tenantUuid, new FileInputStream(file), fileVo.getId().toString(), fileVo.getContentType(), fileVo.getType());
-                } catch (Exception ex) {
-                    //如果没有配置minioUrl，则表示不使用minio，无需抛异常
-                    if (StringUtils.isNotBlank(Config.MINIO_URL())) {
-                        logger.error(ex.getMessage(), ex);
-                    }
-                    // 如果minio出现异常，则上传到本地
-                    filePath = FileUtil.saveData(LocalFileSystemHandler.NAME, tenantUuid, new FileInputStream(file), fileVo.getId().toString(), fileVo.getContentType(), fileVo.getType());
-                }
+                String filePath = FileUtil.saveData(tenantUuid, Files.newInputStream(file.toPath()), fileVo.getId().toString(), fileVo.getContentType(), fileVo.getType());
                 fileVo.setPath(filePath);
                 fileMapper.insertFile(fileVo);
             }
