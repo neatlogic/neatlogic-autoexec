@@ -78,12 +78,14 @@ public class MoveAutoexecServiceApi extends PrivateApiComponentBase {
             throw new MoveTargetNodeIllegalException();
         }
         AutoexecServiceNodeVo moveServiceNode = autoexecServiceMapper.getAutoexecServiceNodeById(id);
-        AutoexecServiceNodeVo targetServiceNode = autoexecServiceMapper.getAutoexecServiceNodeById(targetId);
         if (moveServiceNode == null) {
             throw new AutoexecServiceNotFoundException(id);
         }
-        if (targetServiceNode == null) {
-            throw new AutoexecServiceNotFoundException(targetId);
+        if (targetId != 0L) {
+            AutoexecServiceNodeVo targetServiceNode = autoexecServiceMapper.getAutoexecServiceNodeById(targetId);
+            if (targetServiceNode == null) {
+                throw new AutoexecServiceNotFoundException(targetId);
+            }
         }
 
         LRCodeManager.moveTreeNode("autoexec_service", "id", "parent_id", id, MoveType.getMoveType(moveType), targetId);
