@@ -1243,7 +1243,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 jobPhaseNodeVo.setPort(resourceVo.getPort());
                 jobPhaseNodeVo.setRunnerMapId(getRunnerByTargetIp(jobVo));
                 if (jobPhaseNodeVo.getRunnerMapId() == null) {
-                    throw new RunnerNotMatchException(jobPhaseNodeVo.getHost());
+                    throw new RunnerNotMatchException(jobPhaseNodeVo.getHost(),resourceVo.getId());
                 }
             } else {
                 jobPhaseNodeVo = jobPhaseNodeVoOptional.get();
