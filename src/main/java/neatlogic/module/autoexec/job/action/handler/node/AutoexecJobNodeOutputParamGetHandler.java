@@ -98,12 +98,14 @@ public class AutoexecJobNodeOutputParamGetHandler extends AutoexecJobActionHandl
                         if (Objects.equals(operationVo.getType(), CombopOperationType.TOOL.getValue()) && finalToolHashContentMap.containsKey(operationVo.getParamHash())) {
                             JSONObject json = JSONObject.parseObject(finalToolHashContentMap.get(operationVo.getParamHash()));
                             JSONArray outputArray = json.getJSONArray("outputParamList");
-                            for (Object output : outputArray) {
-                                AutoexecParamVo outputVo = JSONObject.parseObject(output.toString()).toJavaObject(AutoexecParamVo.class);
-                                if (valueJson != null) {
-                                    outputVo.setValue(valueJson.getString(outputVo.getKey()));
+                            if(CollectionUtils.isNotEmpty(outputArray)) {
+                                for (Object output : outputArray) {
+                                    AutoexecParamVo outputVo = JSONObject.parseObject(output.toString()).toJavaObject(AutoexecParamVo.class);
+                                    if (valueJson != null) {
+                                        outputVo.setValue(valueJson.getString(outputVo.getKey()));
+                                    }
+                                    outputParamList.add(outputVo);
                                 }
-                                outputParamList.add(outputVo);
                             }
                         }else if(Objects.equals(operationVo.getType(), CombopOperationType.SCRIPT.getValue())){
                             List<AutoexecScriptVersionParamVo> scriptVersionParamVos = autoexecScriptMapper.getOutputParamListByVersionId(operationVo.getVersionId());
