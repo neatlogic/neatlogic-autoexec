@@ -16,6 +16,8 @@
 
 package neatlogic.module.autoexec.service;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.autoexec.constvalue.*;
@@ -61,9 +63,6 @@ import neatlogic.framework.exception.runner.RunnerNotMatchException;
 import neatlogic.framework.integration.authentication.enums.AuthenticateType;
 import neatlogic.framework.util.HttpRequestUtil;
 import neatlogic.framework.util.RestUtil;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import neatlogic.framework.autoexec.constvalue.AutoexecTenantConfig;
 import neatlogic.framework.util.SnowflakeUtil;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import org.apache.commons.collections4.CollectionUtils;
@@ -82,8 +81,8 @@ import java.util.*;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import static neatlogic.framework.common.util.CommonUtil.distinctByKey;
 import static java.util.stream.Collectors.*;
+import static neatlogic.framework.common.util.CommonUtil.distinctByKey;
 
 /**
  * @since 2021/4/12 18:44
@@ -1073,12 +1072,37 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             nodeVoList.forEach(o -> {
                 ipPortNameList.add(new ResourceVo(o.getIp(), o.getPort(), o.getName()));
             });
+            //补充如果有前置filter
+            AutoexecCombopConfigVo config = jobVo.getConfig();
+            JSONObject preFilter = null;
+            if (config != null && config.getExecuteConfig() != null && config.getExecuteConfig().getCombopNodeConfig() != null && MapUtils.isNotEmpty(config.getExecuteConfig().getCombopNodeConfig().getFilter())) {
+                preFilter = config.getExecuteConfig().getCombopNodeConfig().getFilter();
+            }
+            ResourceSearchVo searchVo = getResourceSearchVoWithCmdbGroupType(jobVo, preFilter);
             IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
-            ResourceSearchVo searchVo = getResourceSearchVoWithCmdbGroupType(jobVo);
-            List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceListByResourceVoList(ipPortNameList, searchVo);
-            if (CollectionUtils.isNotEmpty(resourceVoList)) {
-                updateJobPhaseNode(jobVo, resourceVoList, userName, protocolId);
-                return true;
+            List<ResourceSearchVo> resourceSearchList = new ArrayList<>();
+            Set<Long> resourceIdSet = new HashSet<>();
+            ipPortNameList.forEach(o -> {
+                resourceSearchList.add(new ResourceSearchVo(o));
+            });
+            if (CollectionUtils.isNotEmpty(resourceSearchList)) {
+                for (ResourceSearchVo resourceSearchVo : resourceSearchList) {
+                    Long id = resourceCrossoverMapper.getResourceIdByIpAndPortAndName(resourceSearchVo);
+                    if (id != null) {
+                        resourceIdSet.add(id);
+                    }
+                }
+            }
+            if(CollectionUtils.isNotEmpty(resourceIdSet)) {
+                searchVo.setIdList(new ArrayList<>(resourceIdSet));
+                List<Long> idList = resourceCrossoverMapper.getResourceIdList(searchVo);
+                if (CollectionUtils.isNotEmpty(idList)) {
+                    List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIdList(idList);
+                    if (CollectionUtils.isNotEmpty(resourceList)) {
+                        updateJobPhaseNode(jobVo, resourceList, userName, protocolId);
+                        return true;
+                    }
+                }
             }
         }
         return false;
@@ -1097,12 +1121,21 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         List<AutoexecNodeVo> nodeVoList = executeNodeConfigVo.getSelectNodeList();
         if (CollectionUtils.isNotEmpty(nodeVoList)) {
             IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
-            ResourceSearchVo searchVo = getResourceSearchVoWithCmdbGroupType(jobVo);
+            //补充如果有前置filter
+            AutoexecCombopConfigVo config = jobVo.getConfig();
+            JSONObject preFilter = null;
+            if (config != null && config.getExecuteConfig() != null && config.getExecuteConfig().getCombopNodeConfig() != null && MapUtils.isNotEmpty(config.getExecuteConfig().getCombopNodeConfig().getFilter())) {
+                preFilter = config.getExecuteConfig().getCombopNodeConfig().getFilter();
+            }
+            ResourceSearchVo searchVo = getResourceSearchVoWithCmdbGroupType(jobVo, preFilter);
             searchVo.setIdList(nodeVoList.stream().map(AutoexecNodeVo::getId).collect(toList()));
-            List<ResourceVo> resourceVoList = resourceCrossoverMapper.getAuthResourceList(searchVo);
-            if (CollectionUtils.isNotEmpty(resourceVoList)) {
-                updateJobPhaseNode(jobVo, resourceVoList, userName, protocolId);
-                return true;
+            List<Long> idList = resourceCrossoverMapper.getResourceIdList(searchVo);
+            if (CollectionUtils.isNotEmpty(idList)) {
+                List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIdList(idList);
+                if (CollectionUtils.isNotEmpty(resourceList)) {
+                    updateJobPhaseNode(jobVo, resourceList, userName, protocolId);
+                    return true;
+                }
             }
         }
         return false;
@@ -1149,6 +1182,23 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         JSONObject filterJson = executeNodeConfigVo.getFilter();
         boolean isHasNode = false;
         if (MapUtils.isNotEmpty(filterJson)) {
+            //补充如果有前置filter
+            AutoexecCombopConfigVo config = jobVo.getConfig();
+            JSONObject preFilter = null;
+            if (config != null && config.getExecuteConfig() != null && config.getExecuteConfig().getCombopNodeConfig() != null && MapUtils.isNotEmpty(config.getExecuteConfig().getCombopNodeConfig().getFilter())) {
+                preFilter = config.getExecuteConfig().getCombopNodeConfig().getFilter();
+                //以preFilter为主
+                for (Map.Entry<String, Object> entry : preFilter.entrySet()) {
+                    String key = entry.getKey();
+                    Object value = entry.getValue();
+                    if (value == null || (value instanceof JSONArray && CollectionUtils.isEmpty((JSONArray) value))) {
+                        continue;
+                    }
+                    if (filterJson.containsKey(key)) {
+                        filterJson.put(key, value);
+                    }
+                }
+            }
             filterJson.put("pageSize", 100);
             ResourceSearchVo searchVo = getResourceSearchVoWithCmdbGroupType(jobVo, filterJson);
             IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
@@ -1243,7 +1293,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 jobPhaseNodeVo.setPort(resourceVo.getPort());
                 jobPhaseNodeVo.setRunnerMapId(getRunnerByTargetIp(jobVo));
                 if (jobPhaseNodeVo.getRunnerMapId() == null) {
-                    throw new RunnerNotMatchException(jobPhaseNodeVo.getHost(),resourceVo.getId());
+                    throw new RunnerNotMatchException(jobPhaseNodeVo.getHost(), resourceVo.getId());
                 }
             } else {
                 jobPhaseNodeVo = jobPhaseNodeVoOptional.get();
