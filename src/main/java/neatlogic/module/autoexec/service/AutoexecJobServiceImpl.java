@@ -1072,12 +1072,14 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             nodeVoList.forEach(o -> {
                 ipPortNameList.add(new ResourceVo(o.getIp(), o.getPort(), o.getName()));
             });
-            //补充如果有前置filter
-            AutoexecCombopConfigVo config = jobVo.getConfig();
             JSONObject preFilter = null;
-            if (config != null && config.getExecuteConfig() != null && config.getExecuteConfig().getCombopNodeConfig() != null && MapUtils.isNotEmpty(config.getExecuteConfig().getCombopNodeConfig().getFilter())) {
-                if(Objects.equals(config.getExecuteConfig().getWhenToSpecify(),CombopNodeSpecify.RUNTIME.getValue())) {
-                    preFilter = config.getExecuteConfig().getCombopNodeConfig().getFilter();
+            if (Objects.equals(jobVo.getNodeFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())) {
+                //如果作业层面的节点则补充前置filter
+                AutoexecCombopConfigVo config = jobVo.getConfig();
+                if (config != null && config.getExecuteConfig() != null && config.getExecuteConfig().getCombopNodeConfig() != null && MapUtils.isNotEmpty(config.getExecuteConfig().getCombopNodeConfig().getFilter())) {
+                    if (Objects.equals(config.getExecuteConfig().getWhenToSpecify(), CombopNodeSpecify.RUNTIME.getValue())) {
+                        preFilter = config.getExecuteConfig().getCombopNodeConfig().getFilter();
+                    }
                 }
             }
             ResourceSearchVo searchVo = getResourceSearchVoWithCmdbGroupType(jobVo, preFilter);
@@ -1095,7 +1097,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     }
                 }
             }
-            if(CollectionUtils.isNotEmpty(resourceIdSet)) {
+            if (CollectionUtils.isNotEmpty(resourceIdSet)) {
                 searchVo.setIdList(new ArrayList<>(resourceIdSet));
                 List<Long> idList = resourceCrossoverMapper.getResourceIdList(searchVo);
                 if (CollectionUtils.isNotEmpty(idList)) {
@@ -1123,12 +1125,14 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         List<AutoexecNodeVo> nodeVoList = executeNodeConfigVo.getSelectNodeList();
         if (CollectionUtils.isNotEmpty(nodeVoList)) {
             IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
-            //补充如果有前置filter
-            AutoexecCombopConfigVo config = jobVo.getConfig();
             JSONObject preFilter = null;
-            if (config != null && config.getExecuteConfig() != null && config.getExecuteConfig().getCombopNodeConfig() != null && MapUtils.isNotEmpty(config.getExecuteConfig().getCombopNodeConfig().getFilter())) {
-                if(Objects.equals(config.getExecuteConfig().getWhenToSpecify(),CombopNodeSpecify.RUNTIME.getValue())) {
-                    preFilter = config.getExecuteConfig().getCombopNodeConfig().getFilter();
+            if (Objects.equals(jobVo.getNodeFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())) {
+                //如果作业层面的节点则补充前置filter
+                AutoexecCombopConfigVo config = jobVo.getConfig();
+                if (config != null && config.getExecuteConfig() != null && config.getExecuteConfig().getCombopNodeConfig() != null && MapUtils.isNotEmpty(config.getExecuteConfig().getCombopNodeConfig().getFilter())) {
+                    if (Objects.equals(config.getExecuteConfig().getWhenToSpecify(), CombopNodeSpecify.RUNTIME.getValue())) {
+                        preFilter = config.getExecuteConfig().getCombopNodeConfig().getFilter();
+                    }
                 }
             }
             ResourceSearchVo searchVo = getResourceSearchVoWithCmdbGroupType(jobVo, preFilter);
@@ -1186,21 +1190,23 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         JSONObject filterJson = executeNodeConfigVo.getFilter();
         boolean isHasNode = false;
         if (MapUtils.isNotEmpty(filterJson)) {
-            //补充如果有前置filter
-            AutoexecCombopConfigVo config = jobVo.getConfig();
-            JSONObject preFilter = null;
-            if (config != null && config.getExecuteConfig() != null && config.getExecuteConfig().getCombopNodeConfig() != null && MapUtils.isNotEmpty(config.getExecuteConfig().getCombopNodeConfig().getFilter())) {
-                if(Objects.equals(config.getExecuteConfig().getWhenToSpecify(),CombopNodeSpecify.RUNTIME.getValue())) {
-                    preFilter = config.getExecuteConfig().getCombopNodeConfig().getFilter();
-                    //以preFilter为主
-                    for (Map.Entry<String, Object> entry : preFilter.entrySet()) {
-                        String key = entry.getKey();
-                        Object value = entry.getValue();
-                        if (value == null || (value instanceof JSONArray && CollectionUtils.isEmpty((JSONArray) value))) {
-                            continue;
-                        }
-                        if (filterJson.containsKey(key)) {
-                            filterJson.put(key, value);
+            //如果作业层面的节点则补充前置filter
+            if (Objects.equals(jobVo.getNodeFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())) {
+                AutoexecCombopConfigVo config = jobVo.getConfig();
+                JSONObject preFilter = null;
+                if (config != null && config.getExecuteConfig() != null && config.getExecuteConfig().getCombopNodeConfig() != null && MapUtils.isNotEmpty(config.getExecuteConfig().getCombopNodeConfig().getFilter())) {
+                    if (Objects.equals(config.getExecuteConfig().getWhenToSpecify(), CombopNodeSpecify.RUNTIME.getValue())) {
+                        preFilter = config.getExecuteConfig().getCombopNodeConfig().getFilter();
+                        //以preFilter为主
+                        for (Map.Entry<String, Object> entry : preFilter.entrySet()) {
+                            String key = entry.getKey();
+                            Object value = entry.getValue();
+                            if (value == null || (value instanceof JSONArray && CollectionUtils.isEmpty((JSONArray) value))) {
+                                continue;
+                            }
+                            if (filterJson.containsKey(key)) {
+                                filterJson.put(key, value);
+                            }
                         }
                     }
                 }
