@@ -1076,7 +1076,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             AutoexecCombopConfigVo config = jobVo.getConfig();
             JSONObject preFilter = null;
             if (config != null && config.getExecuteConfig() != null && config.getExecuteConfig().getCombopNodeConfig() != null && MapUtils.isNotEmpty(config.getExecuteConfig().getCombopNodeConfig().getFilter())) {
-                preFilter = config.getExecuteConfig().getCombopNodeConfig().getFilter();
+                if(Objects.equals(config.getExecuteConfig().getWhenToSpecify(),CombopNodeSpecify.RUNTIME.getValue())) {
+                    preFilter = config.getExecuteConfig().getCombopNodeConfig().getFilter();
+                }
             }
             ResourceSearchVo searchVo = getResourceSearchVoWithCmdbGroupType(jobVo, preFilter);
             IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
@@ -1125,7 +1127,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             AutoexecCombopConfigVo config = jobVo.getConfig();
             JSONObject preFilter = null;
             if (config != null && config.getExecuteConfig() != null && config.getExecuteConfig().getCombopNodeConfig() != null && MapUtils.isNotEmpty(config.getExecuteConfig().getCombopNodeConfig().getFilter())) {
-                preFilter = config.getExecuteConfig().getCombopNodeConfig().getFilter();
+                if(Objects.equals(config.getExecuteConfig().getWhenToSpecify(),CombopNodeSpecify.RUNTIME.getValue())) {
+                    preFilter = config.getExecuteConfig().getCombopNodeConfig().getFilter();
+                }
             }
             ResourceSearchVo searchVo = getResourceSearchVoWithCmdbGroupType(jobVo, preFilter);
             searchVo.setIdList(nodeVoList.stream().map(AutoexecNodeVo::getId).collect(toList()));
@@ -1186,16 +1190,18 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             AutoexecCombopConfigVo config = jobVo.getConfig();
             JSONObject preFilter = null;
             if (config != null && config.getExecuteConfig() != null && config.getExecuteConfig().getCombopNodeConfig() != null && MapUtils.isNotEmpty(config.getExecuteConfig().getCombopNodeConfig().getFilter())) {
-                preFilter = config.getExecuteConfig().getCombopNodeConfig().getFilter();
-                //以preFilter为主
-                for (Map.Entry<String, Object> entry : preFilter.entrySet()) {
-                    String key = entry.getKey();
-                    Object value = entry.getValue();
-                    if (value == null || (value instanceof JSONArray && CollectionUtils.isEmpty((JSONArray) value))) {
-                        continue;
-                    }
-                    if (filterJson.containsKey(key)) {
-                        filterJson.put(key, value);
+                if(Objects.equals(config.getExecuteConfig().getWhenToSpecify(),CombopNodeSpecify.RUNTIME.getValue())) {
+                    preFilter = config.getExecuteConfig().getCombopNodeConfig().getFilter();
+                    //以preFilter为主
+                    for (Map.Entry<String, Object> entry : preFilter.entrySet()) {
+                        String key = entry.getKey();
+                        Object value = entry.getValue();
+                        if (value == null || (value instanceof JSONArray && CollectionUtils.isEmpty((JSONArray) value))) {
+                            continue;
+                        }
+                        if (filterJson.containsKey(key)) {
+                            filterJson.put(key, value);
+                        }
                     }
                 }
             }
