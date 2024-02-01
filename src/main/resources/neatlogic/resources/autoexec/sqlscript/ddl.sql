@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS `autoexec_combop` (
   `name` varchar(100) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '名称',
   `description` text CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci COMMENT '描述',
   `type_id` bigint NOT NULL COMMENT '类型id',
+  `op_type` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL COMMENT '操作类型',
   `is_active` tinyint(1) NOT NULL DEFAULT '0' COMMENT '状态 1：启用 0：禁用',
   `operation_type` enum('script','tool','combop') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '工具/脚本/流水线',
   `notify_policy_id` bigint DEFAULT NULL COMMENT '通知策略id',
