@@ -874,7 +874,6 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                                 String value = formAttributeObj.getString("value");
                                 formAttributeNewDataMap.put(key, autoexecJobEnvMap.get(value));
                             }
-//                            List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskMapper.getProcessTaskStepFormAttributeDataByProcessTaskId(processTaskStepVo.getProcessTaskId());
                             IProcessTaskCrossoverService processTaskCrossoverService = CrossoverServiceFactory.getApi(IProcessTaskCrossoverService.class);
                             List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskId(processTaskStepVo.getProcessTaskId());
                             for (ProcessTaskFormAttributeDataVo processTaskFormAttributeDataVo : processTaskFormAttributeDataList) {
@@ -918,7 +917,6 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     private Object parseMappingValue(ProcessTaskStepVo currentProcessTaskStepVo, String mappingMode, Object value) {
         if ("form".equals(mappingMode)) {
-//            List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataVoList = processTaskMapper.getProcessTaskStepFormAttributeDataByProcessTaskId(currentProcessTaskStepVo.getProcessTaskId());
             IProcessTaskCrossoverService processTaskCrossoverService = CrossoverServiceFactory.getApi(IProcessTaskCrossoverService.class);
             List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataVoList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskId(currentProcessTaskStepVo.getProcessTaskId());
             for (ProcessTaskFormAttributeDataVo attributeDataVo : processTaskFormAttributeDataVoList) {
@@ -1083,7 +1081,6 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             formAttributeDataList = new JSONArray();
             List<String> hidecomponentList = formAttributeList.stream().map(FormAttributeVo::getUuid).collect(Collectors.toList());
             paramObj.put("hidecomponentList", hidecomponentList);
-//            List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskMapper.getProcessTaskStepFormAttributeDataByProcessTaskId(processTaskStepVo.getProcessTaskId());
             List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskId(processTaskStepVo.getProcessTaskId());
             Map<String, ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataMap = processTaskFormAttributeDataList.stream().collect(Collectors.toMap(e -> e.getAttributeUuid(), e -> e));
             for (Map.Entry<String, ProcessTaskFormAttributeDataVo> entry : processTaskFormAttributeDataMap.entrySet()) {
