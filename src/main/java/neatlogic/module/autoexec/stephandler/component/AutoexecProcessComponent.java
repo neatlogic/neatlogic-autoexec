@@ -493,8 +493,8 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         if (formAttributeDataVo == null) {
             return tbodyList;
         }
-        if (!Objects.equals(formAttributeDataVo.getType(), neatlogic.framework.form.constvalue.FormHandler.FORMTABLEINPUTER.getHandler())
-                && !Objects.equals(formAttributeDataVo.getType(), neatlogic.framework.form.constvalue.FormHandler.FORMTABLESELECTOR.getHandler())) {
+        if (!Objects.equals(formAttributeDataVo.getHandler(), neatlogic.framework.form.constvalue.FormHandler.FORMTABLEINPUTER.getHandler())
+                && !Objects.equals(formAttributeDataVo.getHandler(), neatlogic.framework.form.constvalue.FormHandler.FORMTABLESELECTOR.getHandler())) {
             return tbodyList;
         }
         if (formAttributeDataVo.getDataObj() == null) {
@@ -618,10 +618,10 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             } else if (Objects.equals(mappingMode, "formCommonComponent")) {
                 ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
                 if (attributeDataVo != null) {
-                    if (formTextAttributeList.contains(attributeDataVo.getType())) {
+                    if (formTextAttributeList.contains(attributeDataVo.getHandler())) {
                         String type = runtimeParamObj.getString("type");
                         param.put(key, convertDateType(type, (String) attributeDataVo.getDataObj()));
-                    } else if (formSelectAttributeList.contains(attributeDataVo.getType())) {
+                    } else if (formSelectAttributeList.contains(attributeDataVo.getHandler())) {
                         IFormCrossoverService formCrossoverService = CrossoverServiceFactory.getApi(IFormCrossoverService.class);
                         Object valueObject = formCrossoverService.getFormSelectAttributeValueByOriginalValue(attributeDataVo.getDataObj());
                         param.put(key, valueObject);
@@ -709,10 +709,10 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     if (attributeDataVo != null) {
                         Object dataObj = attributeDataVo.getDataObj();
                         if (dataObj != null) {
-                            if (Objects.equals(attributeDataVo.getType(), FormHandler.FORMRESOURECES.getHandler())) {
+                            if (Objects.equals(attributeDataVo.getHandler(), FormHandler.FORMRESOURECES.getHandler())) {
                                 // 映射的表单组件是执行目标
                                 executeNodeConfigVo = ((JSONObject) dataObj).toJavaObject(AutoexecCombopExecuteNodeConfigVo.class);
-                            } else if (formTextAttributeList.contains(attributeDataVo.getType())) {
+                            } else if (formTextAttributeList.contains(attributeDataVo.getHandler())) {
                                 // 映射的表单组件是文本框
                                 String dataStr = dataObj.toString();
                                 try {
@@ -880,7 +880,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                                 JSONObject formAttributeDataObj = new JSONObject();
                                 String attributeUuid = processTaskFormAttributeDataVo.getAttributeUuid();
                                 formAttributeDataObj.put("attributeUuid", attributeUuid);
-                                formAttributeDataObj.put("handler", processTaskFormAttributeDataVo.getType());
+                                formAttributeDataObj.put("handler", processTaskFormAttributeDataVo.getHandler());
                                 Object newData = formAttributeNewDataMap.get(attributeUuid);
                                 if (newData != null) {
                                     formAttributeDataObj.put("dataList", newData);
@@ -1087,7 +1087,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                 ProcessTaskFormAttributeDataVo processTaskFormAttributeDataVo = entry.getValue();
                 JSONObject formAttributeDataObj = new JSONObject();
                 formAttributeDataObj.put("attributeUuid", processTaskFormAttributeDataVo.getAttributeUuid());
-                formAttributeDataObj.put("handler", processTaskFormAttributeDataVo.getType());
+                formAttributeDataObj.put("handler", processTaskFormAttributeDataVo.getHandler());
                 formAttributeDataObj.put("dataList", processTaskFormAttributeDataVo.getDataObj());
                 formAttributeDataList.add(formAttributeDataObj);
             }
