@@ -16,8 +16,12 @@ limitations under the License.
 
 package neatlogic.module.autoexec.job.action.handler.node;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.CombopOperationType;
 import neatlogic.framework.autoexec.constvalue.JobAction;
+import neatlogic.framework.autoexec.constvalue.ParamType;
 import neatlogic.framework.autoexec.dto.AutoexecOperationBaseVo;
 import neatlogic.framework.autoexec.dto.AutoexecOperationVo;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
@@ -27,17 +31,21 @@ import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import neatlogic.framework.autoexec.util.AutoexecUtil;
 import neatlogic.module.autoexec.service.AutoexecJobService;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -125,7 +133,7 @@ public class AutoexecJobNodeOperationInputParamGetHandler extends AutoexecJobAct
                 }
                 argument.put("key", "arguments");
                 if (CollectionUtils.isNotEmpty(arguments)) {
-                    argument.put("valueList", arguments.stream().map(o -> o instanceof JSONObject ? JSONObject.parseObject(o.toString()).getString("value") : o.toString()).collect(Collectors.toList()));
+                    argument.put("valueList", arguments.stream().map(o -> o instanceof JSONObject ? JSON.parseObject(o.toString()).getString("value") : o.toString()).collect(Collectors.toList()));
                 }
                 operationParam.put("argument", argument);
             }
@@ -138,10 +146,22 @@ public class AutoexecJobNodeOperationInputParamGetHandler extends AutoexecJobAct
                         param.put("name", paramVo.getName());
                         param.put("key", paramVo.getKey());
                         if (MapUtils.isNotEmpty(inputParams)) {
-                            param.put("value", inputParams.get(paramVo.getKey()));
+                            if (Objects.equals(paramVo.getType(), ParamType.FILE.getValue())) {
+                                Object value = inputParams.get(paramVo.getKey());
+                                if (value != null) {
+                                    String valueStr = value.toString().replace("file/", StringUtils.EMPTY);
+                                    try {
+                                        param.put("value", JSON.parseArray(URLDecoder.decode(valueStr, StandardCharsets.UTF_8.toString())));
+                                    } catch (Exception ignored) {
+                                        param.put("value", value);
+                                    }
+                                }
+                            } else {
+                                param.put("value", inputParams.get(paramVo.getKey()));
+                            }
                         }
                         param.put("description", paramVo.getDescription());
-                        param.put("type",paramVo.getType());
+                        param.put("type", paramVo.getType());
                         paramList.add(param);
                     }
                 }

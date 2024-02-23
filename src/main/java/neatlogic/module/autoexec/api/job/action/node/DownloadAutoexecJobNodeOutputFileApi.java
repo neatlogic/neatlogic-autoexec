@@ -37,6 +37,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.util.Objects;
 
 /**
  * @author lvzk
@@ -65,6 +66,7 @@ public class DownloadAutoexecJobNodeOutputFileApi extends PrivateBinaryStreamApi
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
             @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本Id"),
             @Param(name = "path", type = ApiParamType.STRING, isRequired = true, desc = "附件出参相对路径"),
+            @Param(name = "type", type = ApiParamType.STRING, isRequired = true, desc = "类型，output、input"),
             @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id")
     })
     @Output({
@@ -75,6 +77,11 @@ public class DownloadAutoexecJobNodeOutputFileApi extends PrivateBinaryStreamApi
         Long jobId = jsonObj.getLong("jobId");
         Long jobPhaseId = jsonObj.getLong("jobPhaseId");
         Long resourceId = jsonObj.getLong("resourceId");
+        String path = neatlogic.framework.util.FileUtil.getEncodedFileName(jsonObj.getString("path"));
+        if(Objects.equals("input",jsonObj.getString("type"))){
+            path = "file/"+path;
+        }
+        jsonObj.put("path", path);
         AutoexecJobVo jobInfo = autoexecJobMapper.getJobInfo(jobId);
         if (jobInfo == null) {
             throw new AutoexecJobNotFoundException(jobId);
@@ -83,12 +90,12 @@ public class DownloadAutoexecJobNodeOutputFileApi extends PrivateBinaryStreamApi
         if (nodeVo == null) {
             throw new AutoexecJobPhaseNodeNotFoundException(jobPhaseId.toString(), resourceId);
         }
-            String url = String.format("%s/api/binary/job/output/file/download", nodeVo.getRunnerUrl());
-            HttpRequestUtil httpRequestUtil = HttpRequestUtil.download(url, "POST", response.getOutputStream()).setPayload(jsonObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
-            String error = httpRequestUtil.getError();
-            if (StringUtils.isNotBlank(error)) {
-                throw new RunnerHttpRequestException(url + ":" + error);
-            }
+        String url = String.format("%s/api/binary/job/output/file/download", nodeVo.getRunnerUrl());
+        HttpRequestUtil httpRequestUtil = HttpRequestUtil.download(url, "POST", response.getOutputStream()).setPayload(jsonObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
+        String error = httpRequestUtil.getError();
+        if (StringUtils.isNotBlank(error)) {
+            throw new RunnerHttpRequestException(url + ":" + error);
+        }
         return null;
     }
 
