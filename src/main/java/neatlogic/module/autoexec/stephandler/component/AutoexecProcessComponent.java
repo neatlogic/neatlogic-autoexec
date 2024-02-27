@@ -16,10 +16,7 @@ limitations under the License.
 
 package neatlogic.module.autoexec.stephandler.component;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONException;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.JSONPath;
+import com.alibaba.fastjson.*;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.autoexec.constvalue.CombopOperationType;
 import neatlogic.framework.autoexec.constvalue.JobStatus;
@@ -35,6 +32,7 @@ import neatlogic.framework.cmdb.enums.FormHandler;
 import neatlogic.framework.common.constvalue.Expression;
 import neatlogic.framework.common.constvalue.SystemUser;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
+import neatlogic.framework.form.dto.AttributeDataVo;
 import neatlogic.framework.form.dto.FormAttributeVo;
 import neatlogic.framework.form.dto.FormVersionVo;
 import neatlogic.framework.form.service.IFormCrossoverService;
@@ -267,7 +265,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             FormVersionVo formVersionVo = new FormVersionVo();
             formVersionVo.setFormUuid(processTaskFormVo.getFormUuid());
             formVersionVo.setFormName(processTaskFormVo.getFormName());
-            formVersionVo.setFormConfig(JSONObject.parseObject(formContent));
+            formVersionVo.setFormConfig(JSON.parseObject(formContent));
             List<FormAttributeVo> formAttributeList = formVersionVo.getFormAttributeList();
             if (CollectionUtils.isNotEmpty(formAttributeList)) {
                 formAttributeMap = formAttributeList.stream().collect(Collectors.toMap(e -> e.getUuid(), e -> e));
@@ -932,7 +930,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
     }
 
     private String getPreStepExportParamValue(Long processTaskId, String paramKey) {
-        String split[] = paramKey.split("&&", 2);
+        String[] split = paramKey.split("&&", 2);
         String processStepUuid = split[0];
         ProcessTaskStepVo processTaskStepVo = processTaskMapper.getProcessTaskStepBaseInfoByProcessTaskIdAndProcessStepUuid(processTaskId, processStepUuid);
         if (processTaskStepVo != null) {
@@ -971,14 +969,14 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
      * 把表单文本框组件数据转换成作业参数对应的数据
      * @param paramType 作业参数类型
      * @param source 数据
-     * @return
+     * @return Object
      */
     private Object convertDateType(String paramType, String source) {
         if (Objects.equals(paramType, ParamType.NODE.getValue())) {
             if (StringUtils.isNotBlank(source)) {
                 JSONArray inputNodeList = new JSONArray();
                 try {
-                    JSONArray array = JSONArray.parseArray(source);
+                    JSONArray array = JSON.parseArray(source);
                     for (int i = 0; i < array.size(); i++) {
                         String str = array.getString(i);
                         inputNodeList.add(new AutoexecNodeVo(str));
@@ -1082,7 +1080,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             List<String> hidecomponentList = formAttributeList.stream().map(FormAttributeVo::getUuid).collect(Collectors.toList());
             paramObj.put("hidecomponentList", hidecomponentList);
             List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskId(processTaskStepVo.getProcessTaskId());
-            Map<String, ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataMap = processTaskFormAttributeDataList.stream().collect(Collectors.toMap(e -> e.getAttributeUuid(), e -> e));
+            Map<String, ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataMap = processTaskFormAttributeDataList.stream().collect(Collectors.toMap(AttributeDataVo::getAttributeUuid, e -> e));
             for (Map.Entry<String, ProcessTaskFormAttributeDataVo> entry : processTaskFormAttributeDataMap.entrySet()) {
                 ProcessTaskFormAttributeDataVo processTaskFormAttributeDataVo = entry.getValue();
                 JSONObject formAttributeDataObj = new JSONObject();
@@ -1127,13 +1125,13 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                 JSONArray newDataArray = new JSONArray();
                 for (String newData : newDataList) {
                     try {
-                        JSONArray array = JSONArray.parseArray(newData);
+                        JSONArray array = JSON.parseArray(newData);
                         newDataArray.addAll(array);
                     } catch (JSONException e) {
                         newDataArray.add(newData);
                     }
                 }
-                formAttributeDataObj.put("dataList", JSONObject.toJSONString(newDataArray));
+                formAttributeDataObj.put("dataList", JSON.toJSONString(newDataArray));
             }
         }
         paramObj.put("formAttributeDataList", formAttributeDataList);
