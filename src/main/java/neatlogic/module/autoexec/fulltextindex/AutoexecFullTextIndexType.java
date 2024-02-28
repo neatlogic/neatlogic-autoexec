@@ -20,7 +20,7 @@ import neatlogic.framework.fulltextindex.core.IFullTextIndexType;
 import neatlogic.framework.util.$;
 
 public enum AutoexecFullTextIndexType implements IFullTextIndexType {
-    SCRIPT_DOCUMENT_VERSION("script_document_version", "自定义工具版本");
+    SCRIPT_DOCUMENT_VERSION("script_document_version", "nmaf.autoexecfulltextindextype.script_document_version");
 
     private final String type;
     private final String typeName;
