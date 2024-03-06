@@ -273,6 +273,7 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
                 config.setCombopGroupList(versionConfig.getCombopGroupList());
                 config.setCombopPhaseList(versionConfig.getCombopPhaseList());
                 config.setRuntimeParamList(versionConfig.getRuntimeParamList());
+                config.setScenarioList(versionConfig.getScenarioList());
             }
             if (autoexecJobParam.getInvokeId() == null) {
                 autoexecJobParam.setInvokeId(versionId);
