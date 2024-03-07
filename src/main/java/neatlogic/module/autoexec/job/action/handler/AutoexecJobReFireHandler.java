@@ -28,6 +28,7 @@ import neatlogic.framework.autoexec.exception.AutoexecJobActionInvalidException;
 import neatlogic.framework.autoexec.exception.AutoexecJobPhaseRunnerNotFoundException;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
+import neatlogic.framework.deploy.constvalue.JobSource;
 import neatlogic.framework.deploy.crossover.IDeployBatchJobCrossoverService;
 import neatlogic.framework.dto.runner.RunnerMapVo;
 import neatlogic.framework.exception.runner.RunnerHttpRequestException;
@@ -100,8 +101,10 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             }
             //如果都成功了则无须重跑
             if (CollectionUtils.isEmpty(autoexecJobPhaseVos)) {
-                IDeployBatchJobCrossoverService iDeployBatchJobCrossoverService = CrossoverServiceFactory.getApi(IDeployBatchJobCrossoverService.class);
-                iDeployBatchJobCrossoverService.checkAndFireLaneNextGroupByJobId(jobVo.getId(), jobVo.getPassThroughEnv());
+                if (Objects.equals(jobVo.getSource(), JobSource.BATCHDEPLOY.getValue())) {
+                    IDeployBatchJobCrossoverService iDeployBatchJobCrossoverService = CrossoverServiceFactory.getApi(IDeployBatchJobCrossoverService.class);
+                    iDeployBatchJobCrossoverService.checkAndFireLaneNextGroupByJobId(jobVo.getId(), jobVo.getPassThroughEnv());
+                }
                 jobVo.setStatus(JobStatus.COMPLETED.getValue());
                 autoexecJobMapper.updateJobStatus(jobVo);
                 return null;
@@ -116,7 +119,7 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
                 new AutoexecJobAuthActionManager.Builder().addReFireJob().build().setAutoexecJobAction(jobVo);
             }
             jobVo.setIsNoFireNext(0);
-        }else{
+        } else {
             throw new AutoexecJobActionInvalidException();
         }
         /*if (CollectionUtils.isNotEmpty(needSqlFileResetStatusPhaseNameList)) {
