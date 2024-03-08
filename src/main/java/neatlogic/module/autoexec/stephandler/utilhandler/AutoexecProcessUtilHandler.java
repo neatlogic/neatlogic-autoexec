@@ -386,6 +386,25 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
                     }
                     configObj.put("batchJobDataSource", batchJobDataSourceObj);
                 }
+                JSONArray scenarioParamList = config.getJSONArray("scenarioParamList");
+                if (scenarioParamList != null) {
+                    JSONArray scenarioParamArray = new JSONArray();
+                    for (int j = 0; j < scenarioParamList.size(); j++) {
+                        JSONObject scenarioParamObj = scenarioParamList.getJSONObject(j);
+                        if (MapUtils.isNotEmpty(scenarioParamObj)) {
+                            JSONObject scenarioParam = new JSONObject();
+                            scenarioParam.put("key", scenarioParamObj.getString("key"));
+                            scenarioParam.put("name", scenarioParamObj.getString("name"));
+                            scenarioParam.put("mappingMode", scenarioParamObj.getString("mappingMode"));
+                            scenarioParam.put("value", scenarioParamObj.get("value"));
+                            scenarioParam.put("column", scenarioParamObj.getString("column"));
+                            scenarioParam.put("filterList", scenarioParamObj.getJSONArray("filterList"));
+                            scenarioParam.put("isRequired", scenarioParamObj.getInteger("isRequired"));
+                            scenarioParamArray.add(scenarioParam);
+                        }
+                    }
+                    configObj.put("scenarioParamList", scenarioParamArray);
+                }
                 // 作业参数赋值列表
                 JSONArray runtimeParamList = config.getJSONArray("runtimeParamList");
                 if (runtimeParamList != null) {

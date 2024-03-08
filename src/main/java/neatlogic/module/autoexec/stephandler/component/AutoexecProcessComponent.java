@@ -36,16 +36,22 @@ import neatlogic.framework.form.dto.AttributeDataVo;
 import neatlogic.framework.form.dto.FormAttributeVo;
 import neatlogic.framework.form.dto.FormVersionVo;
 import neatlogic.framework.form.service.IFormCrossoverService;
+import neatlogic.framework.notify.core.INotifyParamHandler;
+import neatlogic.framework.notify.core.NotifyParamHandlerFactory;
 import neatlogic.framework.process.constvalue.*;
 import neatlogic.framework.process.crossover.IProcessTaskCrossoverService;
 import neatlogic.framework.process.dao.mapper.ProcessTaskStepDataMapper;
 import neatlogic.framework.process.dto.*;
 import neatlogic.framework.process.exception.processtask.ProcessTaskException;
 import neatlogic.framework.process.exception.processtask.ProcessTaskNoPermissionException;
+import neatlogic.framework.process.notify.constvalue.ProcessTaskNotifyParam;
+import neatlogic.framework.process.notify.constvalue.ProcessTaskStepNotifyParam;
+import neatlogic.framework.process.notify.constvalue.ProcessTaskStepNotifyTriggerType;
 import neatlogic.framework.process.stephandler.core.IProcessStepHandler;
 import neatlogic.framework.process.stephandler.core.ProcessStepHandlerBase;
 import neatlogic.framework.process.stephandler.core.ProcessStepHandlerFactory;
 import neatlogic.framework.process.stephandler.core.ProcessStepThread;
+import neatlogic.framework.util.FreemarkerUtil;
 import neatlogic.module.autoexec.constvalue.FailPolicy;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
 import org.apache.commons.collections4.CollectionUtils;
@@ -315,7 +321,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         // 作业参数赋值列表
         JSONArray runtimeParamList = autoexecConfig.getJSONArray("runtimeParamList");
         if (CollectionUtils.isNotEmpty(runtimeParamList)) {
-            JSONObject param = getParam(runtimeParamList, formAttributeMap, processTaskFormAttributeDataMap);
+            JSONObject param = getParam(currentProcessTaskStepVo, runtimeParamList, formAttributeMap, processTaskFormAttributeDataMap);
             jobVo.setParam(param);
         }
         // 目标参数赋值列表
@@ -390,7 +396,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             // 作业参数赋值列表
             JSONArray runtimeParamList = autoexecConfig.getJSONArray("runtimeParamList");
             if (CollectionUtils.isNotEmpty(runtimeParamList)) {
-                JSONObject param = getParam(runtimeParamList, tbodyObj, formAttributeMap, processTaskFormAttributeDataMap);
+                JSONObject param = getParam(currentProcessTaskStepVo, runtimeParamList, tbodyObj, formAttributeMap, processTaskFormAttributeDataMap);
                 jobVo.setParam(param);
             }
             String jobNamePrefixValue = getJobNamePrefixValue(jobNamePrefixKey, jobVo.getExecuteConfig(), jobVo.getParam());
@@ -566,12 +572,14 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
     }
 
     private JSONObject getParam(
+            ProcessTaskStepVo currentProcessTaskStepVo,
             JSONArray runtimeParamList,
             Map<String, FormAttributeVo> formAttributeMap,
             Map<String, ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataMap) {
-        return getParam(runtimeParamList, null, formAttributeMap, processTaskFormAttributeDataMap);
+        return getParam(currentProcessTaskStepVo, runtimeParamList, null, formAttributeMap, processTaskFormAttributeDataMap);
     }
     private JSONObject getParam(
+            ProcessTaskStepVo currentProcessTaskStepVo,
             JSONArray runtimeParamList,
             JSONObject tbodyObj,
             Map<String, FormAttributeVo> formAttributeMap,
@@ -584,6 +592,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         formTextAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMTEXT.getHandler());
         formTextAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMTEXTAREA.getHandler());
 
+        List<String> needFreemarkerReplaceKeyList = new ArrayList<>();
         JSONObject param = new JSONObject();
         for (int i = 0; i < runtimeParamList.size(); i++) {
             JSONObject runtimeParamObj = runtimeParamList.getJSONObject(i);
@@ -598,6 +607,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             if (value == null) {
                 continue;
             }
+            String type = runtimeParamObj.getString("type");
             String mappingMode = runtimeParamObj.getString("mappingMode");
             if (Objects.equals(mappingMode, "formTableComponent")) {
                 String column = runtimeParamObj.getString("column");
@@ -610,14 +620,14 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     JSONArray filterList = runtimeParamObj.getJSONArray("filterList");
                     JSONArray tbodyList = getTbodyList(attributeDataVo, filterList);
                     List<String> list = parseFormTableComponentMappingValue(formAttributeVo, tbodyList, column);
-                    String type = runtimeParamObj.getString("type");
+//                    String type = runtimeParamObj.getString("type");
                     param.put(key, convertDateType(type, list));
                 }
             } else if (Objects.equals(mappingMode, "formCommonComponent")) {
                 ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
                 if (attributeDataVo != null) {
                     if (formTextAttributeList.contains(attributeDataVo.getHandler())) {
-                        String type = runtimeParamObj.getString("type");
+//                        String type = runtimeParamObj.getString("type");
                         param.put(key, convertDateType(type, (String) attributeDataVo.getDataObj()));
                     } else if (formSelectAttributeList.contains(attributeDataVo.getHandler())) {
                         IFormCrossoverService formCrossoverService = CrossoverServiceFactory.getApi(IFormCrossoverService.class);
@@ -629,6 +639,51 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                 }
             } else if (Objects.equals(mappingMode, "constant")) {
                 param.put(key, value);
+            }
+
+            if (Objects.equals(type, ParamType.TEXT.getValue()) || Objects.equals(type, ParamType.TEXTAREA.getValue())) {
+                Object obj = param.get(key);
+                if (obj != null) {
+                    String str = obj.toString();
+                    if (str.contains("${DATA.stepId}") || str.contains("${DATA.stepWorker}") || str.contains("${DATA.serialNumber}")) {
+                        needFreemarkerReplaceKeyList.add(key);
+                    }
+                }
+            }
+        }
+        // 通过freemarker语法替换参数${DATA.stepId}、${DATA.stepWorker}、${DATA.serialNumber}
+        if (CollectionUtils.isNotEmpty(needFreemarkerReplaceKeyList)) {
+            for (String key : needFreemarkerReplaceKeyList) {
+                JSONObject paramObj = new JSONObject();
+                {
+                    INotifyParamHandler notifyParamHandler = NotifyParamHandlerFactory.getHandler(ProcessTaskStepNotifyParam.STEPWORKER.getValue());
+                    if (notifyParamHandler != null) {
+                        Object stepWorker = notifyParamHandler.getText(currentProcessTaskStepVo, ProcessTaskStepNotifyTriggerType.SUCCEED);
+                        paramObj.put(ProcessTaskStepNotifyParam.STEPWORKER.getValue(), stepWorker);
+                    }
+                }
+                {
+                    INotifyParamHandler notifyParamHandler = NotifyParamHandlerFactory.getHandler(ProcessTaskStepNotifyParam.STEPID.getValue());
+                    if (notifyParamHandler != null) {
+                        Object stepId = notifyParamHandler.getText(currentProcessTaskStepVo, ProcessTaskStepNotifyTriggerType.SUCCEED);
+                        paramObj.put(ProcessTaskStepNotifyParam.STEPID.getValue(), stepId);
+                    }
+                }
+                {
+                    INotifyParamHandler notifyParamHandler = NotifyParamHandlerFactory.getHandler(ProcessTaskNotifyParam.SERIALNUMBER.getValue());
+                    if (notifyParamHandler != null) {
+                        Object serialnumber = notifyParamHandler.getText(currentProcessTaskStepVo, null);
+                        paramObj.put(ProcessTaskNotifyParam.SERIALNUMBER.getValue(), serialnumber);
+                    }
+                }
+                Object obj = param.get(key);
+                if (obj == null) {
+                    continue;
+                }
+                String str = obj.toString();
+                if (str.contains("${DATA.stepId}") || str.contains("${DATA.stepWorker}") || str.contains("${DATA.serialNumber}")) {
+                    param.put(key, FreemarkerUtil.transform(paramObj, str));
+                }
             }
         }
         return param;

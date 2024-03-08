@@ -16,10 +16,13 @@ limitations under the License.
 
 package neatlogic.module.autoexec.api.combop;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.constvalue.CombopNodeSpecify;
 import neatlogic.framework.autoexec.constvalue.ParamMappingMode;
+import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
 import neatlogic.framework.autoexec.dto.combop.*;
 import neatlogic.framework.autoexec.exception.AutoexecCombopActiveVersionNotFoundException;
@@ -30,17 +33,17 @@ import neatlogic.framework.common.dto.ValueTextVo;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author linbq
@@ -167,6 +170,32 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
                 }
             }
         }
+        List<ValueTextVo> phaseList = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(phaseNameList)) {
+            for (String phaseName : phaseNameList) {
+                phaseList.add(new ValueTextVo(phaseName, phaseName));
+            }
+        }
+        resultObj.put("phaseList", phaseList);
+
+        List<AutoexecCombopScenarioVo> combopScenarioList = versionConfig.getScenarioList();
+        if (CollectionUtils.isNotEmpty(combopScenarioList)) {
+            List<ValueTextVo> scenarioList = new ArrayList<>();
+            for (AutoexecCombopScenarioVo combopScenarioVo : combopScenarioList) {
+                scenarioList.add(new ValueTextVo(combopScenarioVo.getScenarioId(), combopScenarioVo.getScenarioName()));
+            }
+            resultObj.put("scenarioList", scenarioList);
+            JSONArray scenarioParamList = new JSONArray();
+            JSONObject scenarioParam = new JSONObject();
+            scenarioParam.put("key", "scenarioId");
+            scenarioParam.put("name", "场景");
+            scenarioParam.put("isRequired", 1);
+            scenarioParam.put("mappingMode", "");
+            scenarioParam.put("value", "");
+            scenarioParamList.add(scenarioParam);
+            resultObj.put("scenarioParamList", scenarioParamList);
+        }
+
         autoexecCombopService.needExecuteConfig(autoexecCombopVersionVo);
         List<String> existedExportParamValueList = new ArrayList<>();
         JSONArray exportParamList = new JSONArray();
@@ -315,13 +344,7 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
             }
         }
         resultObj.put("executeParamList", executeParamList);
-        List<ValueTextVo> phaseList = new ArrayList<>();
-        if (CollectionUtils.isNotEmpty(phaseNameList)) {
-            for (String phaseName : phaseNameList) {
-                phaseList.add(new ValueTextVo(phaseName, phaseName));
-            }
-        }
-        resultObj.put("phaseList", phaseList);
+
         return resultObj;
     }
 }
