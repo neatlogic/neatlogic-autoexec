@@ -16,11 +16,13 @@ limitations under the License.
 
 package neatlogic.module.autoexec.api.job.action;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.constvalue.CombopOperationType;
+import neatlogic.framework.autoexec.constvalue.JobSource;
 import neatlogic.framework.autoexec.constvalue.JobTriggerType;
 import neatlogic.framework.autoexec.constvalue.ParamType;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
@@ -53,7 +55,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -95,7 +100,6 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
             @Param(name = "combopName", type = ApiParamType.STRING, isRequired = true, desc = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.combop"),
             @Param(name = "name", type = ApiParamType.STRING, isRequired = true, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.name"),
             @Param(name = "param", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "term.autoexec.executeparam"),
-            @Param(name = "source", type = ApiParamType.STRING, isRequired = true, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.source"),
             @Param(name = "invokeId", type = ApiParamType.LONG, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.invokeid"),
             @Param(name = "parentId", type = ApiParamType.LONG, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.parentid"),
             @Param(name = "scenarioName", type = ApiParamType.STRING, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.scenarioname"),
@@ -128,9 +132,9 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
 
         String assignExecUser = UserContext.get().getUserUuid();
         String assignExecUserParam = jsonObj.getString("assignExecUser");
-        if(StringUtils.isNotBlank(assignExecUserParam)){
+        if (StringUtils.isNotBlank(assignExecUserParam)) {
             UserVo assignUserTmp = userMapper.getUserByUser(assignExecUserParam);
-            if(assignUserTmp != null) {
+            if (assignUserTmp != null) {
                 assignExecUser = assignUserTmp.getUuid();
             }
         }
@@ -138,28 +142,54 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
         jsonObj.put("param", initParam(param, versionConfig));
         jsonObj.put("assignExecUser", assignExecUser);
         jsonObj.put("operationType", CombopOperationType.COMBOP.getValue());
+        jsonObj.put("source", JobSource.COMBOP.getValue());
         jsonObj.put("operationId", combopVo.getId());
-        AutoexecJobVo autoexecJobParam = JSONObject.toJavaObject(jsonObj, AutoexecJobVo.class);
+        getExecuteConfig(jsonObj);
+        AutoexecJobVo autoexecJobParam = JSON.toJavaObject(jsonObj, AutoexecJobVo.class);
         AutoexecCombopExecuteConfigVo executeConfigVo = autoexecJobParam.getExecuteConfig();
-        if (executeConfigVo != null) {
-            if (StringUtils.isNotBlank(executeConfigVo.getProtocol())) {
-                IResourceAccountCrossoverMapper accountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
-                AccountProtocolVo accountProtocolVo = accountCrossoverMapper.getAccountProtocolVoByProtocolName(executeConfigVo.getProtocol());
-                if (accountProtocolVo == null) {
-                    throw new ResourceCenterAccountProtocolNotFoundException(executeConfigVo.getProtocol());
-                }
-                executeConfigVo.setProtocolId(accountProtocolVo.getId());
+        if (executeConfigVo != null && StringUtils.isNotBlank(executeConfigVo.getProtocol())) {
+            IResourceAccountCrossoverMapper accountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
+            AccountProtocolVo accountProtocolVo = accountCrossoverMapper.getAccountProtocolVoByProtocolName(executeConfigVo.getProtocol());
+            if (accountProtocolVo == null) {
+                throw new ResourceCenterAccountProtocolNotFoundException(executeConfigVo.getProtocol());
             }
+            executeConfigVo.setProtocolId(accountProtocolVo.getId());
         }
         autoexecJobActionService.validateAndCreateJobFromCombop(autoexecJobParam);
         autoexecJobActionService.settingJobFireMode(autoexecJobParam);
-        return new JSONObject() {{
-            put("jobId", autoexecJobParam.getId());
-        }};
+        JSONObject result = new JSONObject();
+        result.put("jobId", autoexecJobParam.getId());
+        return result;
     }
 
+    /**
+     * 转换补充executeConfig结构
+     *
+     * @param jsonObj 接口如参数
+     */
+    private void getExecuteConfig(JSONObject jsonObj) {
+        if (!jsonObj.containsKey("executeConfig")) {
+            JSONObject executeConfig = new JSONObject();
+            jsonObj.put("executeConfig", executeConfig);
+            executeConfig.put("protocol", jsonObj.getString("protocol"));
+            JSONObject executeUser = new JSONObject();
+            executeUser.put("mappingMode", "constant");
+            executeUser.put("value", jsonObj.getString("executeUser"));
+            executeConfig.put("executeUser", executeUser);
+            JSONObject executeNodeConfig = new JSONObject();
+            executeNodeConfig.put("inputNodeList", jsonObj.getJSONArray("ipPortList"));
+            executeConfig.put("executeNodeConfig", executeNodeConfig);
+        }
+    }
+
+    /**
+     * 初始化作业参数
+     *
+     * @param param         接口入参
+     * @param versionConfig 组合工具版本配置
+     */
     private JSONObject initParam(JSONObject param, AutoexecCombopVersionConfigVo versionConfig) {
-        List<AutoexecParamVo> paramList = versionConfig.getRuntimeParamList().stream().filter(o -> !Arrays.asList(ParamType.FILE.getValue()).contains(o.getType())).collect(Collectors.toList());
+        List<AutoexecParamVo> paramList = versionConfig.getRuntimeParamList().stream().filter(o -> !Objects.equals(ParamType.FILE.getValue(), o.getType())).collect(Collectors.toList());
 
         JSONObject newParam = new JSONObject();
         for (Map.Entry<String, Object> entry : param.entrySet()) {
