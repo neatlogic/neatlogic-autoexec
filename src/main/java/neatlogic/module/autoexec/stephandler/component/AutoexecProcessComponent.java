@@ -28,6 +28,7 @@ import neatlogic.framework.autoexec.dto.combop.ParamMappingVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobEnvVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.dto.node.AutoexecNodeVo;
+import neatlogic.framework.autoexec.dto.scenario.AutoexecScenarioVo;
 import neatlogic.framework.cmdb.enums.FormHandler;
 import neatlogic.framework.common.constvalue.Expression;
 import neatlogic.framework.common.constvalue.SystemUser;
@@ -36,17 +37,24 @@ import neatlogic.framework.form.dto.AttributeDataVo;
 import neatlogic.framework.form.dto.FormAttributeVo;
 import neatlogic.framework.form.dto.FormVersionVo;
 import neatlogic.framework.form.service.IFormCrossoverService;
+import neatlogic.framework.notify.core.INotifyParamHandler;
+import neatlogic.framework.notify.core.NotifyParamHandlerFactory;
 import neatlogic.framework.process.constvalue.*;
 import neatlogic.framework.process.crossover.IProcessTaskCrossoverService;
 import neatlogic.framework.process.dao.mapper.ProcessTaskStepDataMapper;
 import neatlogic.framework.process.dto.*;
 import neatlogic.framework.process.exception.processtask.ProcessTaskException;
 import neatlogic.framework.process.exception.processtask.ProcessTaskNoPermissionException;
+import neatlogic.framework.process.notify.constvalue.ProcessTaskNotifyParam;
+import neatlogic.framework.process.notify.constvalue.ProcessTaskStepNotifyParam;
+import neatlogic.framework.process.notify.constvalue.ProcessTaskStepNotifyTriggerType;
 import neatlogic.framework.process.stephandler.core.IProcessStepHandler;
 import neatlogic.framework.process.stephandler.core.ProcessStepHandlerBase;
 import neatlogic.framework.process.stephandler.core.ProcessStepHandlerFactory;
 import neatlogic.framework.process.stephandler.core.ProcessStepThread;
+import neatlogic.framework.util.FreemarkerUtil;
 import neatlogic.module.autoexec.constvalue.FailPolicy;
+import neatlogic.module.autoexec.dao.mapper.AutoexecScenarioMapper;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -75,6 +83,9 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     @Resource
     private ProcessTaskStepDataMapper processTaskStepDataMapper;
+
+    @Resource
+    private AutoexecScenarioMapper autoexecScenarioMapper;
 
     @Override
     public String getHandler() {
@@ -312,10 +323,16 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         // 作业名称
         String jobName = autoexecConfig.getString("jobName");
         String jobNamePrefixKey = autoexecConfig.getString("jobNamePrefix");
+        // 场景
+        JSONArray scenarioParamList = autoexecConfig.getJSONArray("scenarioParamList");
+        if (CollectionUtils.isNotEmpty(scenarioParamList)) {
+            Long scenarioId = getScenarioId(scenarioParamList.getJSONObject(0), null, formAttributeMap, processTaskFormAttributeDataMap);
+            jobVo.setScenarioId(scenarioId);
+        }
         // 作业参数赋值列表
         JSONArray runtimeParamList = autoexecConfig.getJSONArray("runtimeParamList");
         if (CollectionUtils.isNotEmpty(runtimeParamList)) {
-            JSONObject param = getParam(runtimeParamList, formAttributeMap, processTaskFormAttributeDataMap);
+            JSONObject param = getParam(currentProcessTaskStepVo, runtimeParamList, formAttributeMap, processTaskFormAttributeDataMap);
             jobVo.setParam(param);
         }
         // 目标参数赋值列表
@@ -381,6 +398,12 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             jobVo.setIsFirstFire(1);
             jobVo.setAssignExecUser(SystemUser.SYSTEM.getUserUuid());
             JSONObject tbodyObj = tbodyList.getJSONObject(index);
+            // 场景
+            JSONArray scenarioParamList = autoexecConfig.getJSONArray("scenarioParamList");
+            if (CollectionUtils.isNotEmpty(scenarioParamList)) {
+                Long scenarioId = getScenarioId(scenarioParamList.getJSONObject(0), tbodyObj, formAttributeMap, processTaskFormAttributeDataMap);
+                jobVo.setScenarioId(scenarioId);
+            }
             // 目标参数赋值列表
             JSONArray executeParamList = autoexecConfig.getJSONArray("executeParamList");
             if (CollectionUtils.isNotEmpty(executeParamList)) {
@@ -390,7 +413,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             // 作业参数赋值列表
             JSONArray runtimeParamList = autoexecConfig.getJSONArray("runtimeParamList");
             if (CollectionUtils.isNotEmpty(runtimeParamList)) {
-                JSONObject param = getParam(runtimeParamList, tbodyObj, formAttributeMap, processTaskFormAttributeDataMap);
+                JSONObject param = getParam(currentProcessTaskStepVo, runtimeParamList, tbodyObj, formAttributeMap, processTaskFormAttributeDataMap);
                 jobVo.setParam(param);
             }
             String jobNamePrefixValue = getJobNamePrefixValue(jobNamePrefixKey, jobVo.getExecuteConfig(), jobVo.getParam());
@@ -398,6 +421,97 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             resultList.add(jobVo);
         }
         return resultList;
+    }
+
+    /**
+     * 获取场景ID
+     * @param scenarioParamObj
+     * @param tbodyObj
+     * @param formAttributeMap
+     * @param processTaskFormAttributeDataMap
+     * @return
+     */
+    private Long getScenarioId(JSONObject scenarioParamObj,
+                               JSONObject tbodyObj,
+                               Map<String, FormAttributeVo> formAttributeMap,
+                               Map<String, ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataMap) {
+        String key = scenarioParamObj.getString("key");
+        if (StringUtils.isBlank(key)) {
+            return null;
+        }
+        Object value = scenarioParamObj.get("value");
+        if (value == null) {
+            return null;
+        }
+        Object scenario = null;
+        String type = scenarioParamObj.getString("type");
+        String mappingMode = scenarioParamObj.getString("mappingMode");
+        if (Objects.equals(mappingMode, "formTableComponent")) {
+            String column = scenarioParamObj.getString("column");
+            if (tbodyObj != null) {
+                String columnValue = tbodyObj.getString(column);
+                scenario = columnValue;
+            } else {
+                FormAttributeVo formAttributeVo = formAttributeMap.get(value);
+                ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
+                JSONArray filterList = scenarioParamObj.getJSONArray("filterList");
+                JSONArray tbodyList = getTbodyList(attributeDataVo, filterList);
+                List<String> list = parseFormTableComponentMappingValue(formAttributeVo, tbodyList, column);
+                scenario = convertDateType(type, list);
+            }
+        } else if (Objects.equals(mappingMode, "formCommonComponent")) {
+            ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
+            if (attributeDataVo != null) {
+                List<String> formSelectAttributeList = new ArrayList<>();
+                formSelectAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMSELECT.getHandler());
+                formSelectAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMCHECKBOX.getHandler());
+                formSelectAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMRADIO.getHandler());
+                List<String> formTextAttributeList = new ArrayList<>();
+                formTextAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMTEXT.getHandler());
+                formTextAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMTEXTAREA.getHandler());
+                if (formTextAttributeList.contains(attributeDataVo.getHandler())) {
+                    scenario = convertDateType(type, (String) attributeDataVo.getDataObj());
+                } else if (formSelectAttributeList.contains(attributeDataVo.getHandler())) {
+                    IFormCrossoverService formCrossoverService = CrossoverServiceFactory.getApi(IFormCrossoverService.class);
+                    Object valueObject = formCrossoverService.getFormSelectAttributeValueByOriginalValue(attributeDataVo.getDataObj());
+                    scenario = valueObject;
+                } else {
+                    scenario = attributeDataVo.getDataObj();
+                }
+            }
+        } else if (Objects.equals(mappingMode, "constant")) {
+            scenario = value;
+        }
+        if (scenario != null) {
+            if (scenario instanceof List) {
+                List scenarioList = (List) scenario;
+                if (CollectionUtils.isNotEmpty(scenarioList)) {
+                    scenario = scenarioList.get(0);
+                }
+            }
+            if (scenario instanceof String) {
+                String scenarioName = (String) scenario;
+                AutoexecScenarioVo scenarioVo = autoexecScenarioMapper.getScenarioByName(scenarioName);
+                if (scenarioVo != null) {
+                    return scenarioVo.getId();
+                } else {
+                    try {
+                        Long scenarioId = Long.valueOf(scenarioName);
+                        if (autoexecScenarioMapper.checkScenarioIsExistsById(scenarioId) > 0) {
+                            return scenarioId;
+                        }
+                    } catch (NumberFormatException ignored) {
+
+                    }
+                }
+            } else if (scenario instanceof Long) {
+                Long scenarioId = (Long) scenario;
+                if (autoexecScenarioMapper.checkScenarioIsExistsById(scenarioId) > 0) {
+                    return scenarioId;
+                }
+            }
+        }
+        return null;
     }
 
     /**
@@ -566,12 +680,14 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
     }
 
     private JSONObject getParam(
+            ProcessTaskStepVo currentProcessTaskStepVo,
             JSONArray runtimeParamList,
             Map<String, FormAttributeVo> formAttributeMap,
             Map<String, ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataMap) {
-        return getParam(runtimeParamList, null, formAttributeMap, processTaskFormAttributeDataMap);
+        return getParam(currentProcessTaskStepVo, runtimeParamList, null, formAttributeMap, processTaskFormAttributeDataMap);
     }
     private JSONObject getParam(
+            ProcessTaskStepVo currentProcessTaskStepVo,
             JSONArray runtimeParamList,
             JSONObject tbodyObj,
             Map<String, FormAttributeVo> formAttributeMap,
@@ -584,6 +700,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         formTextAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMTEXT.getHandler());
         formTextAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMTEXTAREA.getHandler());
 
+        List<String> needFreemarkerReplaceKeyList = new ArrayList<>();
         JSONObject param = new JSONObject();
         for (int i = 0; i < runtimeParamList.size(); i++) {
             JSONObject runtimeParamObj = runtimeParamList.getJSONObject(i);
@@ -598,6 +715,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             if (value == null) {
                 continue;
             }
+            String type = runtimeParamObj.getString("type");
             String mappingMode = runtimeParamObj.getString("mappingMode");
             if (Objects.equals(mappingMode, "formTableComponent")) {
                 String column = runtimeParamObj.getString("column");
@@ -610,14 +728,12 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     JSONArray filterList = runtimeParamObj.getJSONArray("filterList");
                     JSONArray tbodyList = getTbodyList(attributeDataVo, filterList);
                     List<String> list = parseFormTableComponentMappingValue(formAttributeVo, tbodyList, column);
-                    String type = runtimeParamObj.getString("type");
                     param.put(key, convertDateType(type, list));
                 }
             } else if (Objects.equals(mappingMode, "formCommonComponent")) {
                 ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
                 if (attributeDataVo != null) {
                     if (formTextAttributeList.contains(attributeDataVo.getHandler())) {
-                        String type = runtimeParamObj.getString("type");
                         param.put(key, convertDateType(type, (String) attributeDataVo.getDataObj()));
                     } else if (formSelectAttributeList.contains(attributeDataVo.getHandler())) {
                         IFormCrossoverService formCrossoverService = CrossoverServiceFactory.getApi(IFormCrossoverService.class);
@@ -629,6 +745,51 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                 }
             } else if (Objects.equals(mappingMode, "constant")) {
                 param.put(key, value);
+            }
+
+            if (Objects.equals(type, ParamType.TEXT.getValue()) || Objects.equals(type, ParamType.TEXTAREA.getValue())) {
+                Object obj = param.get(key);
+                if (obj != null) {
+                    String str = obj.toString();
+                    if (str.contains("${DATA.stepId}") || str.contains("${DATA.stepWorker}") || str.contains("${DATA.serialNumber}")) {
+                        needFreemarkerReplaceKeyList.add(key);
+                    }
+                }
+            }
+        }
+        // 通过freemarker语法替换参数${DATA.stepId}、${DATA.stepWorker}、${DATA.serialNumber}
+        if (CollectionUtils.isNotEmpty(needFreemarkerReplaceKeyList)) {
+            for (String key : needFreemarkerReplaceKeyList) {
+                JSONObject paramObj = new JSONObject();
+                {
+                    INotifyParamHandler notifyParamHandler = NotifyParamHandlerFactory.getHandler(ProcessTaskStepNotifyParam.STEPWORKER.getValue());
+                    if (notifyParamHandler != null) {
+                        Object stepWorker = notifyParamHandler.getText(currentProcessTaskStepVo, ProcessTaskStepNotifyTriggerType.SUCCEED);
+                        paramObj.put(ProcessTaskStepNotifyParam.STEPWORKER.getValue(), stepWorker);
+                    }
+                }
+                {
+                    INotifyParamHandler notifyParamHandler = NotifyParamHandlerFactory.getHandler(ProcessTaskStepNotifyParam.STEPID.getValue());
+                    if (notifyParamHandler != null) {
+                        Object stepId = notifyParamHandler.getText(currentProcessTaskStepVo, ProcessTaskStepNotifyTriggerType.SUCCEED);
+                        paramObj.put(ProcessTaskStepNotifyParam.STEPID.getValue(), stepId);
+                    }
+                }
+                {
+                    INotifyParamHandler notifyParamHandler = NotifyParamHandlerFactory.getHandler(ProcessTaskNotifyParam.SERIALNUMBER.getValue());
+                    if (notifyParamHandler != null) {
+                        Object serialnumber = notifyParamHandler.getText(currentProcessTaskStepVo, null);
+                        paramObj.put(ProcessTaskNotifyParam.SERIALNUMBER.getValue(), serialnumber);
+                    }
+                }
+                Object obj = param.get(key);
+                if (obj == null) {
+                    continue;
+                }
+                String str = obj.toString();
+                if (str.contains("${DATA.stepId}") || str.contains("${DATA.stepWorker}") || str.contains("${DATA.serialNumber}")) {
+                    param.put(key, FreemarkerUtil.transform(paramObj, str));
+                }
             }
         }
         return param;
