@@ -728,14 +728,12 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     JSONArray filterList = runtimeParamObj.getJSONArray("filterList");
                     JSONArray tbodyList = getTbodyList(attributeDataVo, filterList);
                     List<String> list = parseFormTableComponentMappingValue(formAttributeVo, tbodyList, column);
-//                    String type = runtimeParamObj.getString("type");
                     param.put(key, convertDateType(type, list));
                 }
             } else if (Objects.equals(mappingMode, "formCommonComponent")) {
                 ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
                 if (attributeDataVo != null) {
                     if (formTextAttributeList.contains(attributeDataVo.getHandler())) {
-//                        String type = runtimeParamObj.getString("type");
                         param.put(key, convertDateType(type, (String) attributeDataVo.getDataObj()));
                     } else if (formSelectAttributeList.contains(attributeDataVo.getHandler())) {
                         IFormCrossoverService formCrossoverService = CrossoverServiceFactory.getApi(IFormCrossoverService.class);
