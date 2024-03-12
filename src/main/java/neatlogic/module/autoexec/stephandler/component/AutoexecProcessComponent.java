@@ -28,6 +28,7 @@ import neatlogic.framework.autoexec.dto.combop.ParamMappingVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobEnvVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.dto.node.AutoexecNodeVo;
+import neatlogic.framework.autoexec.dto.scenario.AutoexecScenarioVo;
 import neatlogic.framework.cmdb.enums.FormHandler;
 import neatlogic.framework.common.constvalue.Expression;
 import neatlogic.framework.common.constvalue.SystemUser;
@@ -53,6 +54,7 @@ import neatlogic.framework.process.stephandler.core.ProcessStepHandlerFactory;
 import neatlogic.framework.process.stephandler.core.ProcessStepThread;
 import neatlogic.framework.util.FreemarkerUtil;
 import neatlogic.module.autoexec.constvalue.FailPolicy;
+import neatlogic.module.autoexec.dao.mapper.AutoexecScenarioMapper;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -81,6 +83,9 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     @Resource
     private ProcessTaskStepDataMapper processTaskStepDataMapper;
+
+    @Resource
+    private AutoexecScenarioMapper autoexecScenarioMapper;
 
     @Override
     public String getHandler() {
@@ -318,6 +323,12 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         // 作业名称
         String jobName = autoexecConfig.getString("jobName");
         String jobNamePrefixKey = autoexecConfig.getString("jobNamePrefix");
+        // 场景
+        JSONArray scenarioParamList = autoexecConfig.getJSONArray("scenarioParamList");
+        if (CollectionUtils.isNotEmpty(scenarioParamList)) {
+            Long scenarioId = getScenarioId(scenarioParamList.getJSONObject(0), null, formAttributeMap, processTaskFormAttributeDataMap);
+            jobVo.setScenarioId(scenarioId);
+        }
         // 作业参数赋值列表
         JSONArray runtimeParamList = autoexecConfig.getJSONArray("runtimeParamList");
         if (CollectionUtils.isNotEmpty(runtimeParamList)) {
@@ -387,6 +398,12 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             jobVo.setIsFirstFire(1);
             jobVo.setAssignExecUser(SystemUser.SYSTEM.getUserUuid());
             JSONObject tbodyObj = tbodyList.getJSONObject(index);
+            // 场景
+            JSONArray scenarioParamList = autoexecConfig.getJSONArray("scenarioParamList");
+            if (CollectionUtils.isNotEmpty(scenarioParamList)) {
+                Long scenarioId = getScenarioId(scenarioParamList.getJSONObject(0), tbodyObj, formAttributeMap, processTaskFormAttributeDataMap);
+                jobVo.setScenarioId(scenarioId);
+            }
             // 目标参数赋值列表
             JSONArray executeParamList = autoexecConfig.getJSONArray("executeParamList");
             if (CollectionUtils.isNotEmpty(executeParamList)) {
@@ -404,6 +421,97 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             resultList.add(jobVo);
         }
         return resultList;
+    }
+
+    /**
+     * 获取场景ID
+     * @param scenarioParamObj
+     * @param tbodyObj
+     * @param formAttributeMap
+     * @param processTaskFormAttributeDataMap
+     * @return
+     */
+    private Long getScenarioId(JSONObject scenarioParamObj,
+                               JSONObject tbodyObj,
+                               Map<String, FormAttributeVo> formAttributeMap,
+                               Map<String, ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataMap) {
+        String key = scenarioParamObj.getString("key");
+        if (StringUtils.isBlank(key)) {
+            return null;
+        }
+        Object value = scenarioParamObj.get("value");
+        if (value == null) {
+            return null;
+        }
+        Object scenario = null;
+        String type = scenarioParamObj.getString("type");
+        String mappingMode = scenarioParamObj.getString("mappingMode");
+        if (Objects.equals(mappingMode, "formTableComponent")) {
+            String column = scenarioParamObj.getString("column");
+            if (tbodyObj != null) {
+                String columnValue = tbodyObj.getString(column);
+                scenario = columnValue;
+            } else {
+                FormAttributeVo formAttributeVo = formAttributeMap.get(value);
+                ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
+                JSONArray filterList = scenarioParamObj.getJSONArray("filterList");
+                JSONArray tbodyList = getTbodyList(attributeDataVo, filterList);
+                List<String> list = parseFormTableComponentMappingValue(formAttributeVo, tbodyList, column);
+                scenario = convertDateType(type, list);
+            }
+        } else if (Objects.equals(mappingMode, "formCommonComponent")) {
+            ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
+            if (attributeDataVo != null) {
+                List<String> formSelectAttributeList = new ArrayList<>();
+                formSelectAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMSELECT.getHandler());
+                formSelectAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMCHECKBOX.getHandler());
+                formSelectAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMRADIO.getHandler());
+                List<String> formTextAttributeList = new ArrayList<>();
+                formTextAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMTEXT.getHandler());
+                formTextAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMTEXTAREA.getHandler());
+                if (formTextAttributeList.contains(attributeDataVo.getHandler())) {
+                    scenario = convertDateType(type, (String) attributeDataVo.getDataObj());
+                } else if (formSelectAttributeList.contains(attributeDataVo.getHandler())) {
+                    IFormCrossoverService formCrossoverService = CrossoverServiceFactory.getApi(IFormCrossoverService.class);
+                    Object valueObject = formCrossoverService.getFormSelectAttributeValueByOriginalValue(attributeDataVo.getDataObj());
+                    scenario = valueObject;
+                } else {
+                    scenario = attributeDataVo.getDataObj();
+                }
+            }
+        } else if (Objects.equals(mappingMode, "constant")) {
+            scenario = value;
+        }
+        if (scenario != null) {
+            if (scenario instanceof List) {
+                List scenarioList = (List) scenario;
+                if (CollectionUtils.isNotEmpty(scenarioList)) {
+                    scenario = scenarioList.get(0);
+                }
+            }
+            if (scenario instanceof String) {
+                String scenarioName = (String) scenario;
+                AutoexecScenarioVo scenarioVo = autoexecScenarioMapper.getScenarioByName(scenarioName);
+                if (scenarioVo != null) {
+                    return scenarioVo.getId();
+                } else {
+                    try {
+                        Long scenarioId = Long.valueOf(scenarioName);
+                        if (autoexecScenarioMapper.checkScenarioIsExistsById(scenarioId) > 0) {
+                            return scenarioId;
+                        }
+                    } catch (NumberFormatException ignored) {
+
+                    }
+                }
+            } else if (scenario instanceof Long) {
+                Long scenarioId = (Long) scenario;
+                if (autoexecScenarioMapper.checkScenarioIsExistsById(scenarioId) > 0) {
+                    return scenarioId;
+                }
+            }
+        }
+        return null;
     }
 
     /**
