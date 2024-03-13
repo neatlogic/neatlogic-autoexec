@@ -190,8 +190,16 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
             scenarioParam.put("key", "scenarioId");
             scenarioParam.put("name", "场景");
             scenarioParam.put("isRequired", 1);
-            scenarioParam.put("mappingMode", "");
-            scenarioParam.put("value", "");
+            if (versionConfig.getDefaultScenarioId() != null) {
+                scenarioParam.put("mappingMode", ParamMappingMode.CONSTANT.getValue());
+                scenarioParam.put("value", versionConfig.getDefaultScenarioId());
+            } else if (combopScenarioList.size() == 1) {
+                scenarioParam.put("mappingMode", ParamMappingMode.CONSTANT.getValue());
+                scenarioParam.put("value", combopScenarioList.get(0).getScenarioId());
+            } else {
+                scenarioParam.put("mappingMode", "");
+                scenarioParam.put("value", "");
+            }
             scenarioParamList.add(scenarioParam);
             resultObj.put("scenarioParamList", scenarioParamList);
         }
