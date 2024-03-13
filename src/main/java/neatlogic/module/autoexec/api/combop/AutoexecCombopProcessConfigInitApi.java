@@ -197,7 +197,7 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
                 scenarioParam.put("mappingMode", ParamMappingMode.CONSTANT.getValue());
                 scenarioParam.put("value", combopScenarioList.get(0).getScenarioId());
             } else {
-                scenarioParam.put("mappingMode", "");
+                scenarioParam.put("mappingMode", ParamMappingMode.CONSTANT.getValue());
                 scenarioParam.put("value", "");
             }
             scenarioParamList.add(scenarioParam);
