@@ -167,7 +167,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 throw new AutoexecJobNotFoundException(jobVo.getParentId());
             }
             if (parentJobVo.getParentId() != null && parentJobVo.getParentId() != -1) {
-                throw new AutoexecJobNotSupportMultiParentException(parentJobVo.getId());
+                AutoexecJobVo grandParentJobVo = autoexecJobMapper.getJobInfo(parentJobVo.getParentId());
+                if (grandParentJobVo != null && grandParentJobVo.getParentId() != null && grandParentJobVo.getParentId() != -1) {
+                    throw new AutoexecJobNotSupportMultiParentException(grandParentJobVo.getId());
+                }
             }
             if (parentJobVo.getParentId() == null) {
                 autoexecJobMapper.updateJobParentIdById(parentJobVo.getId(), -1);
