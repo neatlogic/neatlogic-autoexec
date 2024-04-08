@@ -954,11 +954,14 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         AutoexecCombopVersionConfigVo versionConfig = autoexecCombopVersionVo.getConfig();
         List<AutoexecCombopGroupVo> combopGroupList = versionConfig.getCombopGroupList();
         if (CollectionUtils.isNotEmpty(combopGroupList)) {
-            groupMap = versionConfig.getCombopGroupList().stream().collect(Collectors.toMap(e -> e.getId(), e -> e));
+            groupMap = versionConfig.getCombopGroupList().stream().collect(Collectors.toMap(AutoexecCombopGroupVo::getId, e -> e));
         }
         List<AutoexecCombopPhaseVo> combopPhaseList = versionConfig.getCombopPhaseList();
         if (CollectionUtils.isNotEmpty(combopPhaseList)) {
             for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseList) {
+                if (Arrays.asList(ExecMode.RUNNER.getValue(), ExecMode.SQL.getValue()).contains(combopPhaseVo.getExecMode())) {
+                    autoexecCombopVersionVo.setExistRunnerOrSqlExecMode(true);
+                }
                 needExecuteConfig(autoexecCombopVersionVo, combopPhaseVo, groupMap.get(combopPhaseVo.getGroupId()));
             }
         }
@@ -1238,6 +1241,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
     public void deleteDependency(AutoexecCombopVo autoexecCombopVo) {
         DependencyManager.delete(Notify2AutoexecCombopDependencyHandler.class, autoexecCombopVo.getId());
     }
+
     /**
      * 删除阶段中操作工具对预置参数集和全局参数的引用关系、组合工具对场景的引用
      *
@@ -1397,7 +1401,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
     @Override
     public void saveAuthority(AutoexecCombopVo autoexecCombopVo) {
         Long combopId = autoexecCombopVo.getId();
-        List<String> viewAuthorityList =  autoexecCombopVo.getViewAuthorityList();
+        List<String> viewAuthorityList = autoexecCombopVo.getViewAuthorityList();
         if (CollectionUtils.isNotEmpty(viewAuthorityList)) {
             List<AutoexecCombopAuthorityVo> autoexecCombopAuthorityList = new ArrayList<>();
             for (String authorityStr : viewAuthorityList) {
@@ -1411,7 +1415,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             }
             autoexecCombopMapper.insertAutoexecCombopAuthorityVoList(autoexecCombopAuthorityList);
         }
-        List<String> editAuthorityList =  autoexecCombopVo.getEditAuthorityList();
+        List<String> editAuthorityList = autoexecCombopVo.getEditAuthorityList();
         if (CollectionUtils.isNotEmpty(editAuthorityList)) {
             List<AutoexecCombopAuthorityVo> autoexecCombopAuthorityList = new ArrayList<>();
             for (String authorityStr : editAuthorityList) {
@@ -1425,7 +1429,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             }
             autoexecCombopMapper.insertAutoexecCombopAuthorityVoList(autoexecCombopAuthorityList);
         }
-        List<String> executeAuthorityList =  autoexecCombopVo.getExecuteAuthorityList();
+        List<String> executeAuthorityList = autoexecCombopVo.getExecuteAuthorityList();
         if (CollectionUtils.isNotEmpty(executeAuthorityList)) {
             List<AutoexecCombopAuthorityVo> autoexecCombopAuthorityList = new ArrayList<>();
             for (String authorityStr : executeAuthorityList) {
@@ -1476,6 +1480,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
 
     /**
      * 根据protocolId补充protocol字段和protocolPort字段值
+     *
      * @param config 执行目标config
      */
     private void updateAutoexecCombopExecuteConfigProtocolAndProtocolPort(AutoexecCombopExecuteConfigVo config) {

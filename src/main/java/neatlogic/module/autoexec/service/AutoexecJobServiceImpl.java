@@ -113,22 +113,22 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     private UserMapper userMapper;
 
     /**
-     * 获取最终的执行用户
+     * 根据作业参数获取最终参数值
      *
-     * @param executeUser      执行用户映射信息
+     * @param paramMapping      映射信息
      * @param runTimeParamList 作业参数列表
-     * @return
      */
-    private String getFinalExecuteUser(ParamMappingVo executeUser, List<AutoexecParamVo> runTimeParamList) {
-        if (executeUser != null) {
-            String value = (String) executeUser.getValue();
+    @Override
+    public String getFinalParamValue(ParamMappingVo paramMapping, List<AutoexecParamVo> runTimeParamList) {
+        if (paramMapping != null) {
+            String value = paramMapping.getValue().toString();
             if (StringUtils.isNotBlank(value)) {
-                if (Objects.equals(executeUser.getMappingMode(), ParamMappingMode.CONSTANT.getValue())) {
+                if (Objects.equals(paramMapping.getMappingMode(), ParamMappingMode.CONSTANT.getValue())) {
                     return value;
-                } else if (Objects.equals(executeUser.getMappingMode(), ParamMappingMode.RUNTIME_PARAM.getValue())) {
+                } else if (Objects.equals(paramMapping.getMappingMode(), ParamMappingMode.RUNTIME_PARAM.getValue())) {
                     for (AutoexecParamVo runtimeParam : runTimeParamList) {
                         if (Objects.equals(value, runtimeParam.getKey())) {
-                            return (String) runtimeParam.getValue();
+                            return runtimeParam.getValue().toString();
                         }
                     }
                 }
@@ -183,7 +183,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         Long protocolId = null;
         if (combopExecuteConfigVo != null) {
             //先获取组合工具配置的执行用户和协议
-            userName = getFinalExecuteUser(combopExecuteConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
+            userName = getFinalParamValue(combopExecuteConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
             protocolId = combopExecuteConfigVo.getProtocolId();
         }
         //获取group Map
@@ -545,7 +545,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         Long protocolId = null;
         if (combopExecuteConfigVo != null) {
             //先获取组合工具配置的执行用户和协议
-            userName = getFinalExecuteUser(combopExecuteConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
+            userName = getFinalParamValue(combopExecuteConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
             protocolId = combopExecuteConfigVo.getProtocolId();
             if (StringUtils.isNotBlank(userName)) {
                 jobVo.setUserNameFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
@@ -563,7 +563,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 executeConfigVo = groupConfig.getExecuteConfig();
                 //判断组执行节点是否配置
                 if (executeConfigVo != null) {
-                    String userNameTmp = getFinalExecuteUser(executeConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
+                    String userNameTmp = getFinalParamValue(executeConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
                     if (StringUtils.isNotBlank(userNameTmp)) {
                         userName = userNameTmp;
                         jobVo.setUserNameFrom(AutoexecJobPhaseNodeFrom.GROUP.getValue());
@@ -582,7 +582,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         } else {
             executeConfigVo = combopPhaseExecuteConfigVo.getExecuteConfig();
             if (executeConfigVo != null && Objects.equals(executeConfigVo.getIsPresetExecuteConfig(), 1)) {
-                String userNameTmp = getFinalExecuteUser(executeConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
+                String userNameTmp = getFinalParamValue(executeConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
                 if (StringUtils.isNotBlank(userNameTmp)) {
                     userName = userNameTmp;
                     jobVo.setUserNameFrom(AutoexecJobPhaseNodeFrom.PHASE.getValue());

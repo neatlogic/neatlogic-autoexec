@@ -17,8 +17,10 @@ package neatlogic.module.autoexec.service;
 
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.JobAction;
+import neatlogic.framework.autoexec.dto.AutoexecParamVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopPhaseConfigVo;
+import neatlogic.framework.autoexec.dto.combop.ParamMappingVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
@@ -241,5 +243,13 @@ public interface AutoexecJobService {
      * @throws Exception 异常
      */
     void batchExecuteJobAction(AutoexecJobVo jobVo, JobAction jobAction) throws Exception;
+
+    /**
+     * 根据作业参数获取最终参数值
+     *
+     * @param executeUser      映射信息
+     * @param runTimeParamList 作业参数列表
+     */
+    String getFinalParamValue(ParamMappingVo executeUser, List<AutoexecParamVo> runTimeParamList);
 
 }

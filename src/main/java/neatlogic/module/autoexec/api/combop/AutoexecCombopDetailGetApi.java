@@ -116,6 +116,7 @@ public class AutoexecCombopDetailGetApi extends PrivateApiComponentBase {
             AutoexecCombopVersionConfigVo versionConfig = autoexecCombopVersionVo.getConfig();
             autoexecCombopService.needExecuteConfig(autoexecCombopVersionVo);
             autoexecCombopVo.setAllPhasesAreRunnerOrSqlExecMode(autoexecCombopVersionVo.getAllPhasesAreRunnerOrSqlExecMode());
+            autoexecCombopVo.setExistRunnerOrSqlExecMode(autoexecCombopVersionVo.getExistRunnerOrSqlExecMode());
             autoexecCombopVo.setNeedExecuteNode(autoexecCombopVersionVo.getNeedExecuteNode());
             autoexecCombopVo.setNeedExecuteUser(autoexecCombopVersionVo.getNeedExecuteUser());
             autoexecCombopVo.setNeedProtocol(autoexecCombopVersionVo.getNeedProtocol());

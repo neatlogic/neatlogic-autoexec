@@ -28,6 +28,7 @@ import neatlogic.framework.util.HttpRequestUtil;
 import neatlogic.framework.util.TableResultUtil;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
+import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -56,6 +57,9 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
 
     @Resource
     AutoexecCombopService autoexecCombopService;
+
+    @Resource
+    AutoexecJobService autoexecJobService;
 
     @Override
     public String getName() {
@@ -242,7 +246,23 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
                 }
             }
         } else {
-            runnerMapVos = runnerMapper.getAllRunnerMap();
+            ParamMappingVo runnerGroupParam = jobVo.getRunnerGroup();
+            if (runnerGroupParam == null && jobVo.getConfig() != null && jobVo.getConfig().getExecuteConfig() != null && jobVo.getConfig().getExecuteConfig().getRunnerGroup() != null) {
+                //尝试寻找组合工具中配置的runnerGroup
+                runnerGroupParam = jobVo.getConfig().getExecuteConfig().getRunnerGroup();
+            }
+            if (runnerGroupParam != null) {
+                String runnerGroupIdStr = autoexecJobService.getFinalParamValue(runnerGroupParam, jobVo.getRunTimeParamList());
+                if (StringUtils.isNotBlank(runnerGroupIdStr)) {
+                    if (runnerGroupIdStr.equals("-1")) {//-1 代表 “随机匹配”
+                        runnerMapVos = runnerMapper.getAllRunnerMap();
+                    } else {
+                        runnerMapVos = runnerMapper.getRunnerMapListByRunnerGroupId(Long.valueOf(runnerGroupIdStr));
+                    }
+                }
+            } else {
+                runnerMapVos = runnerMapper.getAllRunnerMap();
+            }
         }
         return runnerMapVos;
     }
