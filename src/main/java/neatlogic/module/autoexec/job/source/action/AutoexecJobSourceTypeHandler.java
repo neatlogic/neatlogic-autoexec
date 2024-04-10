@@ -239,8 +239,8 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
             for (GroupNetworkVo networkVo : networkVoList) {
                 if (IpUtil.isBelongSegment(jobPhaseVo.getCurrentNode().getHost(), networkVo.getNetworkIp(), networkVo.getMask())) {
                     RunnerGroupVo groupVo = runnerMapper.getRunnerMapGroupById(networkVo.getGroupId());
-                    if (CollectionUtils.isEmpty(groupVo.getRunnerMapList())) {
-                        throw new RunnerGroupRunnerNotFoundException(groupVo.getName() + "(" + networkVo.getGroupId() + ") ");
+                    if (groupVo == null || CollectionUtils.isEmpty(groupVo.getRunnerMapList())) {
+                        throw new RunnerGroupRunnerNotFoundException(networkVo.getName() + "(" + networkVo.getGroupId() + ") ");
                     }
                     runnerMapVos = groupVo.getRunnerMapList();
                 }
