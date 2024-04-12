@@ -477,6 +477,9 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
                     }
                     configObj.put("formAttributeList", formAttributeArray);
                 }
+
+                //执行器组
+                configObj.put("runnerGroup",config.getJSONObject("runnerGroup"));
                 configArray.add(configObj);
             }
         }

@@ -39,10 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author linbq
@@ -216,6 +213,7 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
             exportParamList.add(exportParamObj);
         }
         resultObj.put("exportParamList", exportParamList);
+        resultObj.put("existRunnerOrSqlExecMode", autoexecCombopVersionVo.getExistRunnerOrSqlExecMode());
         // 判断该组合工具的所有阶段是否都是Runner或SQL执行方式，如果是，直接返回，因为不需要设置执行目标
         if (autoexecCombopVersionVo.getAllPhasesAreRunnerOrSqlExecMode()) {
             resultObj.put("allPhasesAreRunnerOrSqlExecMode", true);
@@ -237,6 +235,13 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
         JSONArray executeParamList = new JSONArray();
         AutoexecCombopExecuteConfigVo executeConfigVo = versionConfig.getExecuteConfig();
         if (executeConfigVo != null) {
+            //补充runnerGroup
+            ParamMappingVo runnerGroupParam = executeConfigVo.getRunnerGroup();
+            if (runnerGroupParam != null) {
+                runnerGroupParam.setMappingMode(runnerGroupParam.getMappingMode() == null ? ParamMappingMode.CONSTANT.getValue() : runnerGroupParam.getMappingMode());
+                runnerGroupParam.setValue(runnerGroupParam.getValue() == null ? "-1" : runnerGroupParam.getValue());
+                resultObj.put("runnerGroup", runnerGroupParam);
+            }
             if (needExecuteNode) {
                 JSONObject executeNode = new JSONObject();
                 executeNode.put("key", "executeNodeConfig");
@@ -349,6 +354,12 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
                 roundCountObj.put("value", "");
                 executeParamList.add(roundCountObj);
             }
+
+            //补充runnerGroup
+            ParamMappingVo runnerGroupParam = new ParamMappingVo();
+            runnerGroupParam.setMappingMode(ParamMappingMode.CONSTANT.getValue());
+            runnerGroupParam.setValue("-1");
+            resultObj.put("runnerGroup", runnerGroupParam);
         }
         resultObj.put("executeParamList", executeParamList);
 

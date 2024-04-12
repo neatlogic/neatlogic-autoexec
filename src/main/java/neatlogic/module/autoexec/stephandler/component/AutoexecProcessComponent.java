@@ -19,6 +19,7 @@ import com.alibaba.fastjson.*;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.autoexec.constvalue.CombopOperationType;
 import neatlogic.framework.autoexec.constvalue.JobStatus;
+import neatlogic.framework.autoexec.constvalue.ParamMappingMode;
 import neatlogic.framework.autoexec.constvalue.ParamType;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
@@ -28,10 +29,14 @@ import neatlogic.framework.autoexec.dto.job.AutoexecJobEnvVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.dto.node.AutoexecNodeVo;
 import neatlogic.framework.autoexec.dto.scenario.AutoexecScenarioVo;
+import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
+import neatlogic.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
 import neatlogic.framework.cmdb.enums.FormHandler;
 import neatlogic.framework.common.constvalue.Expression;
 import neatlogic.framework.common.constvalue.SystemUser;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
+import neatlogic.framework.dao.mapper.runner.RunnerMapper;
+import neatlogic.framework.dto.runner.RunnerGroupVo;
 import neatlogic.framework.form.dto.AttributeDataVo;
 import neatlogic.framework.form.dto.FormAttributeVo;
 import neatlogic.framework.form.dto.FormVersionVo;
@@ -85,6 +90,10 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     @Resource
     private AutoexecScenarioMapper autoexecScenarioMapper;
+
+    @Resource
+    private RunnerMapper runnerMapper;
+
 
     @Override
     public String getHandler() {
@@ -260,6 +269,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     /**
      * 根据工单步骤配置信息创建AutoexecJobVo对象
+     *
      * @param currentProcessTaskStepVo
      * @param autoexecConfig
      * @return
@@ -305,6 +315,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     /**
      * 单次创建作业
+     *
      * @param currentProcessTaskStepVo
      * @param autoexecConfig
      * @param formAttributeMap
@@ -340,6 +351,38 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             AutoexecCombopExecuteConfigVo executeConfig = getAutoexecCombopExecuteConfig(executeParamList, formAttributeMap, processTaskFormAttributeDataMap);
             jobVo.setExecuteConfig(executeConfig);
         }
+        //执行器组
+        JSONObject runnerGroupJson = autoexecConfig.getJSONObject("runnerGroup");
+        if (MapUtils.isNotEmpty(runnerGroupJson)) {
+            String mappingMode = runnerGroupJson.getString("mappingMode");
+            String mappingValue = runnerGroupJson.getString("value");
+            Long runnerGroupId = -1L;
+            ParamMappingVo runnerGroup = new ParamMappingVo();
+            runnerGroup.setMappingMode(ParamMappingMode.CONSTANT.getValue());
+            if (Objects.equals(mappingMode, "formCommonComponent")) {
+                ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(mappingValue);
+                if (attributeDataVo != null) {
+                    JSONObject formData = JSON.parseObject(attributeDataVo.getDataObj().toString());
+                    if(MapUtils.isNotEmpty(formData)) {
+                        String formValue = formData.getString("value");
+                        try {
+                            runnerGroupId = Long.valueOf(formValue);
+                        } catch (NumberFormatException ex) {
+                            RunnerGroupVo runnerGroupVo = runnerMapper.getRunnerGroupByName(formValue);
+                            if (runnerGroupVo != null) {
+                                runnerGroupId = runnerGroupVo.getId();
+                            }
+                        }
+                        runnerGroup.setValue(runnerGroupId);
+                        jobVo.setRunnerGroup(runnerGroup);
+                    }
+                }
+            } else if (Objects.equals(mappingMode, ParamMappingMode.CONSTANT.getValue())) {
+                runnerGroupId = Long.valueOf(mappingValue);
+                runnerGroup.setValue(runnerGroupId);
+                jobVo.setRunnerGroup(runnerGroup);
+            }
+        }
 
         String jobNamePrefixValue = getJobNamePrefixValue(jobNamePrefixKey, jobVo.getExecuteConfig(), jobVo.getParam());
         jobVo.setSource(AutoExecJobProcessSource.ITSM.getValue());
@@ -356,6 +399,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     /**
      * 批量创建作业
+     *
      * @param currentProcessTaskStepVo
      * @param autoexecConfig
      * @param formAttributeMap
@@ -424,6 +468,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     /**
      * 获取场景ID
+     *
      * @param scenarioParamObj
      * @param tbodyObj
      * @param formAttributeMap
@@ -515,9 +560,10 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     /**
      * 根据设置找到作业名称前缀值
+     *
      * @param jobNamePrefixKey 作业名称前缀key
-     * @param executeConfig 目标参数
-     * @param param 作业参数
+     * @param executeConfig    目标参数
+     * @param param            作业参数
      * @return 返回作业名称前缀值
      */
     private String getJobNamePrefixValue(String jobNamePrefixKey, AutoexecCombopExecuteConfigVo executeConfig, JSONObject param) {
@@ -685,6 +731,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             Map<String, ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataMap) {
         return getParam(currentProcessTaskStepVo, runtimeParamList, null, formAttributeMap, processTaskFormAttributeDataMap);
     }
+
     private JSONObject getParam(
             ProcessTaskStepVo currentProcessTaskStepVo,
             JSONArray runtimeParamList,
@@ -895,6 +942,18 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                         }
                     }
                     executeConfig.put(key, executeNodeConfigVo);
+                } else if (Objects.equals(key, "protocolId")) {
+                    ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
+                    Object formData = attributeDataVo.getDataObj();
+                    try {
+                        executeConfig.put(key, Long.valueOf(formData.toString()));
+                    } catch (NumberFormatException ex) {
+                        IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
+                        AccountProtocolVo protocolVo = resourceAccountCrossoverMapper.getAccountProtocolVoByProtocolName(formData.toString());
+                        if (protocolVo != null) {
+                            executeConfig.put(key, protocolVo.getId());
+                        }
+                    }
                 } else {
                     ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
                     if (attributeDataVo != null) {
@@ -1108,7 +1167,8 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     /**
      * 把表单表格组件中某列数据集合转换成作业参数对应的数据
-     * @param paramType 作业参数类型
+     *
+     * @param paramType  作业参数类型
      * @param sourceList 某列数据集合
      * @return
      */
@@ -1127,8 +1187,9 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     /**
      * 把表单文本框组件数据转换成作业参数对应的数据
+     *
      * @param paramType 作业参数类型
-     * @param source 数据
+     * @param source    数据
      * @return Object
      */
     private Object convertDateType(String paramType, String source) {
@@ -1149,6 +1210,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         }
         return source;
     }
+
     @Override
     protected int myAssign(ProcessTaskStepVo currentProcessTaskStepVo, Set<ProcessTaskStepWorkerVo> workerSet) throws ProcessTaskException {
         return defaultAssign(currentProcessTaskStepVo, workerSet);
