@@ -36,7 +36,6 @@ import neatlogic.framework.common.constvalue.Expression;
 import neatlogic.framework.common.constvalue.SystemUser;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dao.mapper.runner.RunnerMapper;
-import neatlogic.framework.dto.runner.RunnerGroupVo;
 import neatlogic.framework.form.dto.AttributeDataVo;
 import neatlogic.framework.form.dto.FormAttributeVo;
 import neatlogic.framework.form.dto.FormVersionVo;
@@ -300,17 +299,48 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         String createJobPolicy = autoexecConfig.getString("createJobPolicy");
         if (Objects.equals(createJobPolicy, "single")) {
             AutoexecJobVo jobVo = createSingleAutoexecJobVo(currentProcessTaskStepVo, autoexecConfig, formAttributeMap, processTaskFormAttributeDataMap);
-            if (jobVo != null) {
-                List<AutoexecJobVo> resultList = new ArrayList<>();
-                resultList.add(jobVo);
-                return resultList;
-            }
-            return null;
+            jobVo.setRunnerGroup(getRunnerGroup(jobVo.getParam(), autoexecConfig));
+            List<AutoexecJobVo> resultList = new ArrayList<>();
+            resultList.add(jobVo);
+            return resultList;
         } else if (Objects.equals(createJobPolicy, "batch")) {
-            return createBatchAutoexecJobVo(currentProcessTaskStepVo, autoexecConfig, formAttributeMap, processTaskFormAttributeDataMap);
+            List<AutoexecJobVo> jobVoList = createBatchAutoexecJobVo(currentProcessTaskStepVo, autoexecConfig, formAttributeMap, processTaskFormAttributeDataMap);
+            if (CollectionUtils.isNotEmpty(jobVoList)) {
+                jobVoList.forEach(jobVo -> jobVo.setRunnerGroup(getRunnerGroup(jobVo.getParam(), autoexecConfig)));
+            }
+            return jobVoList;
         } else {
             return null;
         }
+    }
+
+    /**
+     * 获取执行器组的值
+     * @param jobParamJson 作业参数的值
+     * @param autoexecConfig 流程自动化节点配置
+     */
+    private ParamMappingVo getRunnerGroup(JSONObject jobParamJson, JSONObject autoexecConfig) {
+        //执行器组
+        ParamMappingVo runnerGroup = new ParamMappingVo();
+        JSONObject runnerGroupJson = autoexecConfig.getJSONObject("runnerGroup");
+        if (MapUtils.isNotEmpty(runnerGroupJson)) {
+            String mappingMode = runnerGroupJson.getString("mappingMode");
+            String mappingValue = runnerGroupJson.getString("value");
+            long runnerGroupId = -1L;
+            runnerGroup.setMappingMode(ParamMappingMode.CONSTANT.getValue());
+            if (Objects.equals(mappingMode, "runtimeparam")) {
+                mappingValue = jobParamJson.getString(mappingValue);
+                try {
+                    JSONObject jsonObject = JSON.parseObject(mappingValue);
+                    mappingValue = jsonObject.getString("value");
+                }catch (RuntimeException ignored){}
+            }
+            try {
+                runnerGroupId = Long.parseLong(mappingValue);
+            } catch (Exception ignored) {}
+            runnerGroup.setValue(runnerGroupId);
+        }
+        return runnerGroup;
     }
 
     /**
@@ -350,38 +380,6 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         if (CollectionUtils.isNotEmpty(executeParamList)) {
             AutoexecCombopExecuteConfigVo executeConfig = getAutoexecCombopExecuteConfig(executeParamList, formAttributeMap, processTaskFormAttributeDataMap);
             jobVo.setExecuteConfig(executeConfig);
-        }
-        //执行器组
-        JSONObject runnerGroupJson = autoexecConfig.getJSONObject("runnerGroup");
-        if (MapUtils.isNotEmpty(runnerGroupJson)) {
-            String mappingMode = runnerGroupJson.getString("mappingMode");
-            String mappingValue = runnerGroupJson.getString("value");
-            Long runnerGroupId = -1L;
-            ParamMappingVo runnerGroup = new ParamMappingVo();
-            runnerGroup.setMappingMode(ParamMappingMode.CONSTANT.getValue());
-            if (Objects.equals(mappingMode, "formCommonComponent")) {
-                ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(mappingValue);
-                if (attributeDataVo != null) {
-                    JSONObject formData = JSON.parseObject(attributeDataVo.getDataObj().toString());
-                    if(MapUtils.isNotEmpty(formData)) {
-                        String formValue = formData.getString("value");
-                        try {
-                            runnerGroupId = Long.valueOf(formValue);
-                        } catch (NumberFormatException ex) {
-                            RunnerGroupVo runnerGroupVo = runnerMapper.getRunnerGroupByName(formValue);
-                            if (runnerGroupVo != null) {
-                                runnerGroupId = runnerGroupVo.getId();
-                            }
-                        }
-                        runnerGroup.setValue(runnerGroupId);
-                        jobVo.setRunnerGroup(runnerGroup);
-                    }
-                }
-            } else if (Objects.equals(mappingMode, ParamMappingMode.CONSTANT.getValue())) {
-                runnerGroupId = Long.valueOf(mappingValue);
-                runnerGroup.setValue(runnerGroupId);
-                jobVo.setRunnerGroup(runnerGroup);
-            }
         }
 
         String jobNamePrefixValue = getJobNamePrefixValue(jobNamePrefixKey, jobVo.getExecuteConfig(), jobVo.getParam());
