@@ -36,6 +36,7 @@ import neatlogic.framework.common.constvalue.Expression;
 import neatlogic.framework.common.constvalue.SystemUser;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dao.mapper.runner.RunnerMapper;
+import neatlogic.framework.dto.runner.RunnerGroupVo;
 import neatlogic.framework.form.dto.AttributeDataVo;
 import neatlogic.framework.form.dto.FormAttributeVo;
 import neatlogic.framework.form.dto.FormVersionVo;
@@ -316,7 +317,8 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     /**
      * 获取执行器组的值
-     * @param jobParamJson 作业参数的值
+     *
+     * @param jobParamJson   作业参数的值
      * @param autoexecConfig 流程自动化节点配置
      */
     private ParamMappingVo getRunnerGroup(JSONObject jobParamJson, JSONObject autoexecConfig) {
@@ -333,11 +335,24 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                 try {
                     JSONObject jsonObject = JSON.parseObject(mappingValue);
                     mappingValue = jsonObject.getString("value");
-                }catch (RuntimeException ignored){}
+                } catch (RuntimeException ignored) {
+                }
             }
             try {
                 runnerGroupId = Long.parseLong(mappingValue);
-            } catch (Exception ignored) {}
+                RunnerGroupVo runnerGroupVo = runnerMapper.getRunnerGroupById(runnerGroupId);
+                if (runnerGroupVo == null) {
+                    runnerGroupVo = runnerMapper.getRunnerGroupByName(mappingValue);
+                    if (runnerGroupVo != null) {
+                        runnerGroupId = runnerGroupVo.getId();
+                    }
+                }
+            } catch (NumberFormatException ex) {
+                RunnerGroupVo runnerGroupVo = runnerMapper.getRunnerGroupByName(mappingValue);
+                if (runnerGroupVo != null) {
+                    runnerGroupId = runnerGroupVo.getId();
+                }
+            }
             runnerGroup.setValue(runnerGroupId);
         }
         return runnerGroup;
