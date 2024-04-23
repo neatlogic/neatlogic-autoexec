@@ -227,7 +227,7 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
                     fileVo.setType("autoexec");
                     fileVo.setContentType("application/x-tar");
                     newScriptVo.setPackageFileId(fileVo.getId());
-                    String filePath = FileUtil.saveData(tenantUuid, multipartFile.getInputStream(), fileVo.getId().toString(), fileVo.getContentType(), fileVo.getType());
+                    String filePath = FileUtil.saveData(tenantUuid, multipartFile.getInputStream(), fileVo);
                     fileVo.setPath(filePath);
                     fileMapper.insertFile(fileVo);
                 } else {
