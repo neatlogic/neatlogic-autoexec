@@ -47,7 +47,7 @@ import static java.util.stream.Collectors.toCollection;
 
 @Component
 public class AutoexecJobCleaner extends AuditCleanerBase {
-    private final static Logger logger = LoggerFactory.getLogger(AutoexecJobCleaner.class);
+    private static final Logger logger = LoggerFactory.getLogger(AutoexecJobCleaner.class);
     @Resource
     AutoexecJobMapper autoexecJobMapper;
 
