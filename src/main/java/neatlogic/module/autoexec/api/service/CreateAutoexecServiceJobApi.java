@@ -35,7 +35,6 @@ import neatlogic.framework.autoexec.exception.AutoexecJobParamNotExistException;
 import neatlogic.framework.autoexec.exception.AutoexecServiceConfigExpiredException;
 import neatlogic.framework.autoexec.exception.AutoexecServiceNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
-import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dto.AuthenticationInfoVo;
 import neatlogic.framework.exception.type.ParamNotExistsException;
 import neatlogic.framework.exception.type.PermissionDeniedException;
@@ -44,10 +43,10 @@ import neatlogic.framework.form.dao.mapper.FormMapper;
 import neatlogic.framework.form.dto.FormAttributeVo;
 import neatlogic.framework.form.dto.FormVersionVo;
 import neatlogic.framework.form.exception.FormAttributeRequiredException;
-import neatlogic.framework.form.service.IFormCrossoverService;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
+import neatlogic.framework.util.FormUtil;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecServiceMapper;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
@@ -286,8 +285,7 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
                                 Object formAttrValue = formAttributeDataMap.get(value);
                                 if (formAttrValue != null) {
                                     if (formSelectAttributeList.contains(attributeUuid2HandlerMap.get(value))) {
-                                        IFormCrossoverService formCrossoverService = CrossoverServiceFactory.getApi(IFormCrossoverService.class);
-                                        Object valueObject = formCrossoverService.getFormSelectAttributeValueByOriginalValue(formAttrValue);
+                                        Object valueObject = FormUtil.getFormSelectAttributeValueByOriginalValue(formAttrValue);
                                         param.put(key, valueObject);
                                     } else {
                                         param.put(key, formAttrValue);

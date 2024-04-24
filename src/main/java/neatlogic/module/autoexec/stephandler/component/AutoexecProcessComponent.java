@@ -40,7 +40,6 @@ import neatlogic.framework.dto.runner.RunnerGroupVo;
 import neatlogic.framework.form.dto.AttributeDataVo;
 import neatlogic.framework.form.dto.FormAttributeVo;
 import neatlogic.framework.form.dto.FormVersionVo;
-import neatlogic.framework.form.service.IFormCrossoverService;
 import neatlogic.framework.notify.core.INotifyParamHandler;
 import neatlogic.framework.notify.core.NotifyParamHandlerFactory;
 import neatlogic.framework.process.constvalue.*;
@@ -56,6 +55,7 @@ import neatlogic.framework.process.stephandler.core.IProcessStepHandler;
 import neatlogic.framework.process.stephandler.core.ProcessStepHandlerBase;
 import neatlogic.framework.process.stephandler.core.ProcessStepHandlerFactory;
 import neatlogic.framework.process.stephandler.core.ProcessStepThread;
+import neatlogic.framework.util.FormUtil;
 import neatlogic.framework.util.FreemarkerUtil;
 import neatlogic.module.autoexec.constvalue.FailPolicy;
 import neatlogic.module.autoexec.dao.mapper.AutoexecScenarioMapper;
@@ -529,8 +529,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                 if (formTextAttributeList.contains(attributeDataVo.getHandler())) {
                     scenario = convertDateType(type, (String) attributeDataVo.getDataObj());
                 } else if (formSelectAttributeList.contains(attributeDataVo.getHandler())) {
-                    IFormCrossoverService formCrossoverService = CrossoverServiceFactory.getApi(IFormCrossoverService.class);
-                    Object valueObject = formCrossoverService.getFormSelectAttributeValueByOriginalValue(attributeDataVo.getDataObj());
+                    Object valueObject = FormUtil.getFormSelectAttributeValueByOriginalValue(attributeDataVo.getDataObj());
                     scenario = valueObject;
                 } else {
                     scenario = attributeDataVo.getDataObj();
@@ -795,8 +794,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     if (formTextAttributeList.contains(attributeDataVo.getHandler())) {
                         param.put(key, convertDateType(type, (String) attributeDataVo.getDataObj()));
                     } else if (formSelectAttributeList.contains(attributeDataVo.getHandler())) {
-                        IFormCrossoverService formCrossoverService = CrossoverServiceFactory.getApi(IFormCrossoverService.class);
-                        Object valueObject = formCrossoverService.getFormSelectAttributeValueByOriginalValue(attributeDataVo.getDataObj());
+                        Object valueObject = FormUtil.getFormSelectAttributeValueByOriginalValue(attributeDataVo.getDataObj());
                         param.put(key, valueObject);
                     } else {
                         param.put(key, attributeDataVo.getDataObj());
