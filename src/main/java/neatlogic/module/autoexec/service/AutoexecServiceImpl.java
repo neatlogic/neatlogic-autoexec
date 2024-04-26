@@ -640,7 +640,6 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
             return true;
         }
         for (int i = 0; i < validateList.size(); i++) {
-//            JSONObject validateObj = validateList.getJSONObject(i);
             Object validate = validateList.get(i);
             if (validate == null) {
                 continue;
