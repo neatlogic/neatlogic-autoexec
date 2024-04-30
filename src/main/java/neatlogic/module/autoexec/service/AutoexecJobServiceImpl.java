@@ -115,20 +115,24 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     /**
      * 根据作业参数获取最终参数值
      *
-     * @param paramMapping      映射信息
+     * @param paramMapping     映射信息
      * @param runTimeParamList 作业参数列表
      */
     @Override
     public String getFinalParamValue(ParamMappingVo paramMapping, List<AutoexecParamVo> runTimeParamList) {
         if (paramMapping != null) {
-            String value = paramMapping.getValue().toString();
-            if (StringUtils.isNotBlank(value)) {
-                if (Objects.equals(paramMapping.getMappingMode(), ParamMappingMode.CONSTANT.getValue())) {
-                    return value;
-                } else if (Objects.equals(paramMapping.getMappingMode(), ParamMappingMode.RUNTIME_PARAM.getValue())) {
-                    for (AutoexecParamVo runtimeParam : runTimeParamList) {
-                        if (Objects.equals(value, runtimeParam.getKey())) {
-                            return runtimeParam.getValue().toString();
+            if (paramMapping.getValue() != null) {
+                String value = paramMapping.getValue().toString();
+                if (StringUtils.isNotBlank(value)) {
+                    if (Objects.equals(paramMapping.getMappingMode(), ParamMappingMode.CONSTANT.getValue())) {
+                        return value;
+                    } else if (Objects.equals(paramMapping.getMappingMode(), ParamMappingMode.RUNTIME_PARAM.getValue())) {
+                        for (AutoexecParamVo runtimeParam : runTimeParamList) {
+                            if (Objects.equals(value, runtimeParam.getKey())) {
+                                if(runtimeParam.getValue() != null) {
+                                    return runtimeParam.getValue().toString();
+                                }
+                            }
                         }
                     }
                 }

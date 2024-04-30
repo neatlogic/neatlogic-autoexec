@@ -247,7 +247,7 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
             }
         } else {
             ParamMappingVo runnerGroupParam = null;
-            if(jobVo.getConfig().getExecuteConfig() != null) {
+            if (jobVo.getConfig().getExecuteConfig() != null) {
                 //只有组合工具中的执行器组设置为作业参数才使用jobVo中的runnerGroup
                 runnerGroupParam = jobVo.getConfig().getExecuteConfig().getRunnerGroup();
                 if (runnerGroupParam != null && Objects.equals(runnerGroupParam.getMappingMode(), ParamMappingMode.RUNTIME_PARAM.getValue())) {
@@ -263,7 +263,8 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
                         runnerMapVos = runnerMapper.getRunnerMapListByRunnerGroupId(Long.valueOf(runnerGroupIdStr));
                     }
                 }
-            } else {
+            }
+            if (runnerMapVos == null) {
                 runnerMapVos = runnerMapper.getAllRunnerMap();
             }
         }
