@@ -43,8 +43,7 @@ import neatlogic.framework.form.dto.FormVersionVo;
 import neatlogic.framework.notify.core.INotifyParamHandler;
 import neatlogic.framework.notify.core.NotifyParamHandlerFactory;
 import neatlogic.framework.process.constvalue.*;
-import neatlogic.framework.process.crossover.IProcessTaskCrossoverService;
-import neatlogic.framework.process.dao.mapper.ProcessTaskStepDataMapper;
+import neatlogic.framework.process.crossover.*;
 import neatlogic.framework.process.dto.*;
 import neatlogic.framework.process.exception.processtask.ProcessTaskException;
 import neatlogic.framework.process.exception.processtask.ProcessTaskNoPermissionException;
@@ -84,9 +83,6 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     @Resource
     private AutoexecJobActionService autoexecJobActionService;
-
-    @Resource
-    private ProcessTaskStepDataMapper processTaskStepDataMapper;
 
     @Resource
     private AutoexecScenarioMapper autoexecScenarioMapper;
@@ -144,15 +140,18 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     @Override
     protected int myActive(ProcessTaskStepVo currentProcessTaskStepVo) throws ProcessTaskException {
+        IProcessTaskCrossoverMapper processTaskCrossoverMapper = CrossoverServiceFactory.getApi(IProcessTaskCrossoverMapper.class);
+        ISelectContentByHashCrossoverMapper selectContentByHashCrossoverMapper = CrossoverServiceFactory.getApi(ISelectContentByHashCrossoverMapper.class);
+        IProcessTaskStepDataCrossoverMapper processTaskStepDataCrossoverMapper = CrossoverServiceFactory.getApi(IProcessTaskStepDataCrossoverMapper.class);
         try {
             String configHash = currentProcessTaskStepVo.getConfigHash();
             if (StringUtils.isBlank(configHash)) {
-                ProcessTaskStepVo processTaskStepVo = processTaskMapper.getProcessTaskStepBaseInfoById(currentProcessTaskStepVo.getId());
+                ProcessTaskStepVo processTaskStepVo = processTaskCrossoverMapper.getProcessTaskStepBaseInfoById(currentProcessTaskStepVo.getId());
                 configHash = processTaskStepVo.getConfigHash();
                 currentProcessTaskStepVo.setProcessStepUuid(processTaskStepVo.getProcessStepUuid());
             }
             // 获取工单当前步骤配置信息
-            String config = selectContentByHashMapper.getProcessTaskStepConfigByHash(configHash);
+            String config = selectContentByHashCrossoverMapper.getProcessTaskStepConfigByHash(configHash);
 //        if (StringUtils.isNotBlank(config)) {
 //            JSONObject autoexecConfig = (JSONObject) JSONPath.read(config, "autoexecConfig");
 //            if (MapUtils.isNotEmpty(autoexecConfig)) {
@@ -196,7 +195,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             processTaskStepData.setProcessTaskId(currentProcessTaskStepVo.getProcessTaskId());
             processTaskStepData.setProcessTaskStepId(currentProcessTaskStepVo.getId());
             processTaskStepData.setType("autoexecCreateJobError");
-            processTaskStepDataMapper.deleteProcessTaskStepData(processTaskStepData);
+            processTaskStepDataCrossoverMapper.deleteProcessTaskStepData(processTaskStepData);
             JSONArray configList = autoexecConfig.getJSONArray("configList");
             if (CollectionUtils.isEmpty(configList)) {
                 return 0;
@@ -241,7 +240,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                 dataObj.put("errorList", errorMessageList);
                 processTaskStepDataVo.setData(dataObj.toJSONString());
                 processTaskStepDataVo.setFcu(UserContext.get().getUserUuid());
-                processTaskStepDataMapper.replaceProcessTaskStepData(processTaskStepDataVo);
+                processTaskStepDataCrossoverMapper.replaceProcessTaskStepData(processTaskStepDataVo);
                 String failPolicy = autoexecConfig.getString("failPolicy");
                 if (FailPolicy.KEEP_ON.getValue().equals(failPolicy)) {
                     if (CollectionUtils.isNotEmpty(jobIdList)) {
@@ -275,13 +274,15 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
      * @return
      */
     private List<AutoexecJobVo> createAutoexecJobList(ProcessTaskStepVo currentProcessTaskStepVo, JSONObject autoexecConfig) {
+        IProcessTaskCrossoverMapper processTaskCrossoverMapper = CrossoverServiceFactory.getApi(IProcessTaskCrossoverMapper.class);
+        ISelectContentByHashCrossoverMapper selectContentByHashCrossoverMapper = CrossoverServiceFactory.getApi(ISelectContentByHashCrossoverMapper.class);
         Map<String, ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataMap = new HashMap<>();
         Map<String, FormAttributeVo> formAttributeMap = new HashMap<>();
         Long processTaskId = currentProcessTaskStepVo.getProcessTaskId();
         // 如果工单有表单信息，则查询出表单配置及数据
-        ProcessTaskFormVo processTaskFormVo = processTaskMapper.getProcessTaskFormByProcessTaskId(processTaskId);
+        ProcessTaskFormVo processTaskFormVo = processTaskCrossoverMapper.getProcessTaskFormByProcessTaskId(processTaskId);
         if (processTaskFormVo != null) {
-            String formContent = selectContentByHashMapper.getProcessTaskFromContentByHash(processTaskFormVo.getFormContentHash());
+            String formContent = selectContentByHashCrossoverMapper.getProcessTaskFromContentByHash(processTaskFormVo.getFormContentHash());
             FormVersionVo formVersionVo = new FormVersionVo();
             formVersionVo.setFormUuid(processTaskFormVo.getFormUuid());
             formVersionVo.setFormName(processTaskFormVo.getFormName());
@@ -1075,7 +1076,9 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
     }
 
     private void processTaskStepComplete(Long processTaskStepId, Long autoexecJobId) {
-        List<Long> toProcessTaskStepIdList = processTaskMapper.getToProcessTaskStepIdListByFromIdAndType(processTaskStepId, ProcessFlowDirection.FORWARD.getValue());
+        IProcessTaskCrossoverMapper processTaskCrossoverMapper = CrossoverServiceFactory.getApi(IProcessTaskCrossoverMapper.class);
+        ISelectContentByHashCrossoverMapper selectContentByHashCrossoverMapper = CrossoverServiceFactory.getApi(ISelectContentByHashCrossoverMapper.class);
+        List<Long> toProcessTaskStepIdList = processTaskCrossoverMapper.getToProcessTaskStepIdListByFromIdAndType(processTaskStepId, ProcessFlowDirection.FORWARD.getValue());
         if (toProcessTaskStepIdList.size() == 1) {
             Long nextStepId = toProcessTaskStepIdList.get(0);
             IProcessStepHandler handler = ProcessStepHandlerFactory.getHandler(AutoexecProcessStepHandlerType.AUTOEXEC.getHandler());
@@ -1083,8 +1086,8 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                 try {
                     List<String> hidecomponentList = new ArrayList<>();
                     JSONArray formAttributeDataList = new JSONArray();
-                    ProcessTaskStepVo processTaskStepVo = processTaskMapper.getProcessTaskStepBaseInfoById(processTaskStepId);
-                    String config = selectContentByHashMapper.getProcessTaskStepConfigByHash(processTaskStepVo.getConfigHash());
+                    ProcessTaskStepVo processTaskStepVo = processTaskCrossoverMapper.getProcessTaskStepBaseInfoById(processTaskStepId);
+                    String config = selectContentByHashCrossoverMapper.getProcessTaskStepConfigByHash(processTaskStepVo.getConfigHash());
                     if (StringUtils.isNotBlank(config)) {
                         JSONArray formAttributeList = (JSONArray) JSONPath.read(config, "autoexecConfig.formAttributeList");
                         if (CollectionUtils.isNotEmpty(formAttributeList)) {
@@ -1160,9 +1163,10 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
     }
 
     private String getPreStepExportParamValue(Long processTaskId, String paramKey) {
+        IProcessTaskCrossoverMapper processTaskCrossoverMapper = CrossoverServiceFactory.getApi(IProcessTaskCrossoverMapper.class);
         String[] split = paramKey.split("&&", 2);
         String processStepUuid = split[0];
-        ProcessTaskStepVo processTaskStepVo = processTaskMapper.getProcessTaskStepBaseInfoByProcessTaskIdAndProcessStepUuid(processTaskId, processStepUuid);
+        ProcessTaskStepVo processTaskStepVo = processTaskCrossoverMapper.getProcessTaskStepBaseInfoByProcessTaskIdAndProcessStepUuid(processTaskId, processStepUuid);
         if (processTaskStepVo != null) {
             Long autoexecJobId = autoexecJobMapper.getJobIdByInvokeIdLimitOne(processTaskStepVo.getId());
             if (autoexecJobId != null) {
@@ -1249,9 +1253,11 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     @Override
     protected int myBeforeComplete(ProcessTaskStepVo currentProcessTaskStepVo) throws ProcessTaskException {
+        IProcessTaskCrossoverMapper processTaskCrossoverMapper = CrossoverServiceFactory.getApi(IProcessTaskCrossoverMapper.class);
+        ISelectContentByHashCrossoverMapper selectContentByHashCrossoverMapper = CrossoverServiceFactory.getApi(ISelectContentByHashCrossoverMapper.class);
         Long processTaskStepId = currentProcessTaskStepVo.getId();
-        ProcessTaskStepVo processTaskStepVo = processTaskMapper.getProcessTaskStepBaseInfoById(processTaskStepId);
-        String config = selectContentByHashMapper.getProcessTaskStepConfigByHash(processTaskStepVo.getConfigHash());
+        ProcessTaskStepVo processTaskStepVo = processTaskCrossoverMapper.getProcessTaskStepBaseInfoById(processTaskStepId);
+        String config = selectContentByHashCrossoverMapper.getProcessTaskStepConfigByHash(processTaskStepVo.getConfigHash());
         if (StringUtils.isBlank(config)) {
             return 0;
         }
@@ -1378,7 +1384,8 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         }
         /** 处理历史记录 **/
         String action = currentProcessTaskStepVo.getParamObj().getString("action");
-        IProcessStepHandlerUtil.audit(currentProcessTaskStepVo, ProcessTaskAuditType.getProcessTaskAuditType(action));
+        IProcessStepHandlerCrossoverUtil processStepHandlerCrossoverUtil = CrossoverServiceFactory.getApi(IProcessStepHandlerCrossoverUtil.class);
+        processStepHandlerCrossoverUtil.audit(currentProcessTaskStepVo, ProcessTaskAuditType.getProcessTaskAuditType(action));
         return 1;
     }
 

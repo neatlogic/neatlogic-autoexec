@@ -26,7 +26,7 @@ import neatlogic.framework.notify.crossover.INotifyServiceCrossoverService;
 import neatlogic.framework.notify.dto.InvokeNotifyPolicyConfigVo;
 import neatlogic.framework.process.constvalue.AutoexecProcessStepHandlerType;
 import neatlogic.framework.process.constvalue.ProcessTaskOperationType;
-import neatlogic.framework.process.dao.mapper.ProcessTaskStepDataMapper;
+import neatlogic.framework.process.crossover.IProcessTaskStepDataCrossoverMapper;
 import neatlogic.framework.process.dto.ProcessStepVo;
 import neatlogic.framework.process.dto.ProcessStepWorkerPolicyVo;
 import neatlogic.framework.process.dto.ProcessTaskStepDataVo;
@@ -55,9 +55,6 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
 
     @Resource
     private AutoexecJobMapper autoexecJobMapper;
-
-    @Resource
-    private ProcessTaskStepDataMapper processTaskStepDataMapper;
 
     @Resource
     AutoexecJobService autoexecJobService;
@@ -105,11 +102,12 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
             }
             resultObj.put("jobList", autoexecJobList);
         }
+        IProcessTaskStepDataCrossoverMapper processTaskStepDataCrossoverMapper = CrossoverServiceFactory.getApi(IProcessTaskStepDataCrossoverMapper.class);
         ProcessTaskStepDataVo searchVo = new ProcessTaskStepDataVo();
         searchVo.setProcessTaskId(currentProcessTaskStepVo.getProcessTaskId());
         searchVo.setProcessTaskStepId(currentProcessTaskStepVo.getId());
         searchVo.setType("autoexecCreateJobError");
-        ProcessTaskStepDataVo processTaskStepDataVo = processTaskStepDataMapper.getProcessTaskStepData(searchVo);
+        ProcessTaskStepDataVo processTaskStepDataVo = processTaskStepDataCrossoverMapper.getProcessTaskStepData(searchVo);
         if (processTaskStepDataVo != null) {
             JSONObject dataObj = processTaskStepDataVo.getData();
             if (MapUtils.isNotEmpty(dataObj)) {
