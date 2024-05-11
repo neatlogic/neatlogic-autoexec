@@ -39,12 +39,14 @@ import neatlogic.framework.dao.mapper.runner.RunnerMapper;
 import neatlogic.framework.dto.runner.RunnerGroupVo;
 import neatlogic.framework.form.dto.AttributeDataVo;
 import neatlogic.framework.form.dto.FormAttributeVo;
-import neatlogic.framework.form.dto.FormVersionVo;
 import neatlogic.framework.notify.core.INotifyParamHandler;
 import neatlogic.framework.notify.core.NotifyParamHandlerFactory;
 import neatlogic.framework.process.constvalue.*;
 import neatlogic.framework.process.crossover.*;
-import neatlogic.framework.process.dto.*;
+import neatlogic.framework.process.dto.ProcessTaskFormAttributeDataVo;
+import neatlogic.framework.process.dto.ProcessTaskStepDataVo;
+import neatlogic.framework.process.dto.ProcessTaskStepVo;
+import neatlogic.framework.process.dto.ProcessTaskStepWorkerVo;
 import neatlogic.framework.process.exception.processtask.ProcessTaskException;
 import neatlogic.framework.process.exception.processtask.ProcessTaskNoPermissionException;
 import neatlogic.framework.process.notify.constvalue.ProcessTaskNotifyParam;
@@ -78,6 +80,8 @@ import java.util.stream.Collectors;
 public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     private final static Logger logger = LoggerFactory.getLogger(AutoexecProcessComponent.class);
+
+    private final String FORM_EXTEND_ATTRIBUTE_TAG = "autoexecProcessComponent";
     @Resource
     private AutoexecJobMapper autoexecJobMapper;
 
@@ -280,22 +284,29 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         Map<String, FormAttributeVo> formAttributeMap = new HashMap<>();
         Long processTaskId = currentProcessTaskStepVo.getProcessTaskId();
         // 如果工单有表单信息，则查询出表单配置及数据
-        ProcessTaskFormVo processTaskFormVo = processTaskCrossoverMapper.getProcessTaskFormByProcessTaskId(processTaskId);
-        if (processTaskFormVo != null) {
-            String formContent = selectContentByHashCrossoverMapper.getProcessTaskFromContentByHash(processTaskFormVo.getFormContentHash());
-            FormVersionVo formVersionVo = new FormVersionVo();
-            formVersionVo.setFormUuid(processTaskFormVo.getFormUuid());
-            formVersionVo.setFormName(processTaskFormVo.getFormName());
-            formVersionVo.setFormConfig(JSON.parseObject(formContent));
-            List<FormAttributeVo> formAttributeList = formVersionVo.getFormAttributeList();
-            if (CollectionUtils.isNotEmpty(formAttributeList)) {
-                formAttributeMap = formAttributeList.stream().collect(Collectors.toMap(e -> e.getUuid(), e -> e));
-            }
-            IProcessTaskCrossoverService processTaskCrossoverService = CrossoverServiceFactory.getApi(IProcessTaskCrossoverService.class);
-            List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskId(processTaskId);
-            if (CollectionUtils.isNotEmpty(processTaskFormAttributeDataList)) {
-                processTaskFormAttributeDataMap = processTaskFormAttributeDataList.stream().collect(Collectors.toMap(e -> e.getAttributeUuid(), e -> e));
-            }
+//        ProcessTaskFormVo processTaskFormVo = processTaskCrossoverMapper.getProcessTaskFormByProcessTaskId(processTaskId);
+//        if (processTaskFormVo != null) {
+//            String formContent = selectContentByHashCrossoverMapper.getProcessTaskFromContentByHash(processTaskFormVo.getFormContentHash());
+//            FormVersionVo formVersionVo = new FormVersionVo();
+//            formVersionVo.setFormUuid(processTaskFormVo.getFormUuid());
+//            formVersionVo.setFormName(processTaskFormVo.getFormName());
+//            formVersionVo.setFormConfig(JSON.parseObject(formContent));
+//            List<FormAttributeVo> formAttributeList = formVersionVo.getFormAttributeList();
+//            if (CollectionUtils.isNotEmpty(formAttributeList)) {
+//                formAttributeMap = formAttributeList.stream().collect(Collectors.toMap(e -> e.getUuid(), e -> e));
+//            }
+//            IProcessTaskCrossoverService processTaskCrossoverService = CrossoverServiceFactory.getApi(IProcessTaskCrossoverService.class);
+//            List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskId(processTaskId);
+//            if (CollectionUtils.isNotEmpty(processTaskFormAttributeDataList)) {
+//                processTaskFormAttributeDataMap = processTaskFormAttributeDataList.stream().collect(Collectors.toMap(e -> e.getAttributeUuid(), e -> e));
+//            }
+//        }
+        IProcessTaskCrossoverService processTaskCrossoverService = CrossoverServiceFactory.getApi(IProcessTaskCrossoverService.class);
+        List<FormAttributeVo> formAttributeList = processTaskCrossoverService.getFormAttributeListByProcessTaskIdAngTag(processTaskId, FORM_EXTEND_ATTRIBUTE_TAG);
+        if (CollectionUtils.isNotEmpty(formAttributeList)) {
+            formAttributeMap = formAttributeList.stream().collect(Collectors.toMap(e -> e.getUuid(), e -> e));
+            List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskIdAndTag(processTaskId, FORM_EXTEND_ATTRIBUTE_TAG);
+            processTaskFormAttributeDataMap = processTaskFormAttributeDataList.stream().collect(Collectors.toMap(e -> e.getAttributeUuid(), e -> e));
         }
         // 作业策略createJobPolicy为single时表示单次创建作业，createJobPolicy为batch时表示批量创建作业
         String createJobPolicy = autoexecConfig.getString("createJobPolicy");
