@@ -81,7 +81,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     private final static Logger logger = LoggerFactory.getLogger(AutoexecProcessComponent.class);
 
-    private final String FORM_EXTEND_ATTRIBUTE_TAG = "autoexecProcessComponent";
+    private final String FORM_EXTEND_ATTRIBUTE_TAG = "common";
     @Resource
     private AutoexecJobMapper autoexecJobMapper;
 
