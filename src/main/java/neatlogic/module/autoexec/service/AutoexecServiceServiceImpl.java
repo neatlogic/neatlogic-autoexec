@@ -94,6 +94,8 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                     return reasonList;
                 }
             }
+            String mainSceneUuid = formVersionVo.getFormConfig().getString("uuid");
+            formVersionVo.setSceneUuid(mainSceneUuid);
             List<FormAttributeVo> formAttributeList = formVersionVo.getFormAttributeList();
             if (CollectionUtils.isNotEmpty(formAttributeList)) {
                 formAttributeMap = formAttributeList.stream().collect(Collectors.toMap(e -> e.getUuid(), e -> e));

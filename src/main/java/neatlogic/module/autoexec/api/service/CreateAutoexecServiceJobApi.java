@@ -193,6 +193,8 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
             }
             Map<String, String> attributeUuid2HandlerMap = new HashMap<>();
             FormVersionVo formVersionVo = formMapper.getActionFormVersionByFormUuid(formUuid);
+            String mainSceneUuid = formVersionVo.getFormConfig().getString("uuid");
+            formVersionVo.setSceneUuid(mainSceneUuid);
             List<FormAttributeVo> formAttributeVoList = formVersionVo.getFormAttributeList();
             for (FormAttributeVo formAttributeVo : formAttributeVoList) {
                 String uuid = formAttributeVo.getUuid();
