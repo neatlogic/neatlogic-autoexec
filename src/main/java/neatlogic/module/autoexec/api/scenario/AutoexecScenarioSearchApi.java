@@ -1,7 +1,9 @@
 package neatlogic.module.autoexec.api.scenario;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
-import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
+import neatlogic.framework.autoexec.auth.AUTOEXEC;
 import neatlogic.framework.autoexec.constvalue.AutoexecFromType;
 import neatlogic.framework.autoexec.dto.scenario.AutoexecScenarioVo;
 import neatlogic.framework.common.constvalue.ApiParamType;
@@ -14,8 +16,6 @@ import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.framework.util.TableResultUtil;
 import neatlogic.module.autoexec.dao.mapper.AutoexecScenarioMapper;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
  * @date 2022/4/15 3:04 下午
  */
 @Service
-@AuthAction(action = AUTOEXEC_BASE.class)
+@AuthAction(action = AUTOEXEC.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecScenarioSearchApi extends PrivateApiComponentBase {
 

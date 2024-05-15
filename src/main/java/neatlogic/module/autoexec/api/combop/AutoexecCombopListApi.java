@@ -18,7 +18,7 @@ package neatlogic.module.autoexec.api.combop;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
-import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
+import neatlogic.framework.autoexec.auth.AUTOEXEC;
 import neatlogic.framework.autoexec.constvalue.ScriptVersionStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecTypeMapper;
@@ -48,7 +48,7 @@ import java.util.*;
  * @since 2021/4/13 15:29
  **/
 @Service
-@AuthAction(action = AUTOEXEC_BASE.class)
+@AuthAction(action = AUTOEXEC.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecCombopListApi extends PrivateApiComponentBase {
 
