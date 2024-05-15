@@ -791,7 +791,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                 String column = runtimeParamObj.getString("column");
                 if (tbodyObj != null) {
                     String columnValue = tbodyObj.getString(column);
-                    param.put(key, columnValue);
+                    param.put(key, convertDateType(type, columnValue));
                 } else {
                     FormAttributeVo formAttributeVo = formAttributeMap.get(value);
                     ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
@@ -1222,13 +1222,18 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         if (Objects.equals(paramType, ParamType.NODE.getValue())) {
             if (StringUtils.isNotBlank(source)) {
                 JSONArray inputNodeList = new JSONArray();
-                try {
+                if (source.startsWith("[") && source.endsWith("]")) {
                     JSONArray array = JSON.parseArray(source);
                     for (int i = 0; i < array.size(); i++) {
                         String str = array.getString(i);
                         inputNodeList.add(new AutoexecNodeVo(str));
                     }
-                } catch (JSONException e) {
+                } else if (source.contains("\n")) {
+                    String[] split = source.split("\n");
+                    for (String str : split) {
+                        inputNodeList.add(new AutoexecNodeVo(str));
+                    }
+                } else {
                     inputNodeList.add(new AutoexecNodeVo(source));
                 }
                 return inputNodeList;
