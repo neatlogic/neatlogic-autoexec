@@ -1073,6 +1073,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      */
     private boolean updateNodeResourceByInput(AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
         List<AutoexecNodeVo> nodeVoList = executeNodeConfigVo.getInputNodeList();
+        boolean isHasNode = false;
         List<ResourceVo> ipPortNameList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(nodeVoList)) {
             nodeVoList.forEach(o -> {
@@ -1105,17 +1106,24 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             }
             if (CollectionUtils.isNotEmpty(resourceIdSet)) {
                 searchVo.setIdList(new ArrayList<>(resourceIdSet));
-                List<Long> idList = resourceCrossoverMapper.getResourceIdList(searchVo);
-                if (CollectionUtils.isNotEmpty(idList)) {
-                    List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIdList(idList);
-                    if (CollectionUtils.isNotEmpty(resourceList)) {
-                        updateJobPhaseNode(jobVo, resourceList, userName, protocolId);
-                        return true;
+                int count = resourceCrossoverMapper.getResourceCount(searchVo);
+                if (count > 0) {
+                    int pageCount = PageUtil.getPageCount(count, searchVo.getPageSize());
+                    for (int i = 1; i <= pageCount; i++) {
+                        searchVo.setCurrentPage(i);
+                        List<Long> idList = resourceCrossoverMapper.getResourceIdList(searchVo);
+                        if (CollectionUtils.isNotEmpty(idList)) {
+                            List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIdList(idList);
+                            if (CollectionUtils.isNotEmpty(resourceList)) {
+                                updateJobPhaseNode(jobVo, resourceList, userName, protocolId);
+                                isHasNode = true;
+                            }
+                        }
                     }
                 }
             }
         }
-        return false;
+        return isHasNode;
     }
 
     /**
