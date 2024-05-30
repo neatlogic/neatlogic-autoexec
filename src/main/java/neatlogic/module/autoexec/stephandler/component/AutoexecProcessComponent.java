@@ -37,6 +37,8 @@ import neatlogic.framework.common.constvalue.SystemUser;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dao.mapper.runner.RunnerMapper;
 import neatlogic.framework.dto.runner.RunnerGroupVo;
+import neatlogic.framework.form.attribute.core.FormAttributeDataConversionHandlerFactory;
+import neatlogic.framework.form.attribute.core.IFormAttributeDataConversionHandler;
 import neatlogic.framework.form.dto.AttributeDataVo;
 import neatlogic.framework.form.dto.FormAttributeVo;
 import neatlogic.framework.notify.core.INotifyParamHandler;
@@ -304,8 +306,36 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         IProcessTaskCrossoverService processTaskCrossoverService = CrossoverServiceFactory.getApi(IProcessTaskCrossoverService.class);
         List<FormAttributeVo> formAttributeList = processTaskCrossoverService.getFormAttributeListByProcessTaskIdAngTag(processTaskId, FORM_EXTEND_ATTRIBUTE_TAG);
         if (CollectionUtils.isNotEmpty(formAttributeList)) {
-            formAttributeMap = formAttributeList.stream().collect(Collectors.toMap(e -> e.getUuid(), e -> e));
             List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskIdAndTag(processTaskId, FORM_EXTEND_ATTRIBUTE_TAG);
+            // 添加表格组件中的子组件到组件列表中
+            List<FormAttributeVo> allDownwardFormAttributeList = new ArrayList<>();
+            for (FormAttributeVo formAttributeVo : formAttributeList) {
+                JSONObject componentObj = new JSONObject();
+                componentObj.put("handler", formAttributeVo.getHandler());
+                componentObj.put("uuid", formAttributeVo.getUuid());
+                componentObj.put("label", formAttributeVo.getLabel());
+                componentObj.put("config", formAttributeVo.getConfig());
+                componentObj.put("type", formAttributeVo.getType());
+                List<FormAttributeVo> downwardFormAttributeList = FormUtil.getFormAttributeList(componentObj, null);
+                for (FormAttributeVo downwardFormAttribute : downwardFormAttributeList) {
+                    if (Objects.equals(formAttributeVo.getUuid(), downwardFormAttribute.getUuid())) {
+                        continue;
+                    }
+                    allDownwardFormAttributeList.add(downwardFormAttribute);
+                }
+            }
+            formAttributeList.addAll(allDownwardFormAttributeList);
+            formAttributeMap = formAttributeList.stream().collect(Collectors.toMap(FormAttributeVo::getUuid, e -> e));
+            for (ProcessTaskFormAttributeDataVo attributeDataVo : processTaskFormAttributeDataList) {
+                FormAttributeVo formAttributeVo = formAttributeMap.get(attributeDataVo.getAttributeUuid());
+                if (formAttributeVo != null) {
+                    IFormAttributeDataConversionHandler formAttributeDataConversionHandler = FormAttributeDataConversionHandlerFactory.getHandler(formAttributeVo.getHandler());
+                    if (formAttributeDataConversionHandler != null) {
+                        Object simpleValue = formAttributeDataConversionHandler.getSimpleValue(attributeDataVo.getDataObj());
+                        attributeDataVo.setDataObj(simpleValue);
+                    }
+                }
+            }
             processTaskFormAttributeDataMap = processTaskFormAttributeDataList.stream().collect(Collectors.toMap(e -> e.getAttributeUuid(), e -> e));
         }
         // 作业策略createJobPolicy为single时表示单次创建作业，createJobPolicy为batch时表示批量创建作业
@@ -450,7 +480,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         String attributeUuid = batchJobDataSource.getString("attributeUuid");
         ProcessTaskFormAttributeDataVo formAttributeDataVo = processTaskFormAttributeDataMap.get(attributeUuid);
         JSONArray filterList = batchJobDataSource.getJSONArray("filterList");
-        JSONArray tbodyList = getTbodyList(formAttributeDataVo, filterList);
+        JSONArray tbodyList = getTbodyList(formAttributeDataVo, filterList, formAttributeMap);
         if (CollectionUtils.isEmpty(tbodyList)) {
             return resultList;
         }
@@ -524,25 +554,18 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                 FormAttributeVo formAttributeVo = formAttributeMap.get(value);
                 ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
                 JSONArray filterList = scenarioParamObj.getJSONArray("filterList");
-                JSONArray tbodyList = getTbodyList(attributeDataVo, filterList);
+                JSONArray tbodyList = getTbodyList(attributeDataVo, filterList, formAttributeMap);
                 List<String> list = parseFormTableComponentMappingValue(formAttributeVo, tbodyList, column);
                 scenario = convertDateType(type, list);
             }
         } else if (Objects.equals(mappingMode, "formCommonComponent")) {
             ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
             if (attributeDataVo != null) {
-                List<String> formSelectAttributeList = new ArrayList<>();
-                formSelectAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMSELECT.getHandler());
-                formSelectAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMCHECKBOX.getHandler());
-                formSelectAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMRADIO.getHandler());
                 List<String> formTextAttributeList = new ArrayList<>();
                 formTextAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMTEXT.getHandler());
                 formTextAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMTEXTAREA.getHandler());
                 if (formTextAttributeList.contains(attributeDataVo.getHandler())) {
                     scenario = convertDateType(type, (String) attributeDataVo.getDataObj());
-                } else if (formSelectAttributeList.contains(attributeDataVo.getHandler())) {
-                    Object valueObject = FormUtil.getFormSelectAttributeValueByOriginalValue(attributeDataVo.getDataObj());
-                    scenario = valueObject;
                 } else {
                     scenario = attributeDataVo.getDataObj();
                 }
@@ -669,7 +692,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         return jobNamePrefixValue;
     }
 
-    private JSONArray getTbodyList(ProcessTaskFormAttributeDataVo formAttributeDataVo, JSONArray filterList) {
+    private JSONArray getTbodyList(ProcessTaskFormAttributeDataVo formAttributeDataVo, JSONArray filterList, Map<String, FormAttributeVo> formAttributeMap) {
         JSONArray tbodyList = new JSONArray();
         if (formAttributeDataVo == null) {
             return tbodyList;
@@ -681,7 +704,26 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         if (formAttributeDataVo.getDataObj() == null) {
             return tbodyList;
         }
-        JSONArray dataList = (JSONArray) formAttributeDataVo.getDataObj();
+        JSONArray dataList = new JSONArray();
+        JSONArray tempList = (JSONArray) formAttributeDataVo.getDataObj();
+        for (int i = 0; i < tempList.size(); i++) {
+            JSONObject newRowData = new JSONObject();
+            JSONObject rowData = tempList.getJSONObject(i);
+            for (Map.Entry<String, Object> entry : rowData.entrySet()) {
+                FormAttributeVo formAttributeVo = formAttributeMap.get(entry.getKey());
+                if (formAttributeVo != null) {
+                    IFormAttributeDataConversionHandler formAttributeDataConversionHandler = FormAttributeDataConversionHandlerFactory.getHandler(formAttributeVo.getHandler());
+                    if (formAttributeDataConversionHandler != null) {
+                        newRowData.put(entry.getKey(), formAttributeDataConversionHandler.getSimpleValue(entry.getValue()));
+                    } else {
+                        newRowData.put(entry.getKey(), entry.getValue());
+                    }
+                } else {
+                    newRowData.put(entry.getKey(), entry.getValue());
+                }
+            }
+            dataList.add(newRowData);
+        }
         // 数据过滤
         if (CollectionUtils.isNotEmpty(filterList)) {
             for (int i = 0; i < dataList.size(); i++) {
@@ -796,7 +838,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     FormAttributeVo formAttributeVo = formAttributeMap.get(value);
                     ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
                     JSONArray filterList = runtimeParamObj.getJSONArray("filterList");
-                    JSONArray tbodyList = getTbodyList(attributeDataVo, filterList);
+                    JSONArray tbodyList = getTbodyList(attributeDataVo, filterList, formAttributeMap);
                     List<String> list = parseFormTableComponentMappingValue(formAttributeVo, tbodyList, column);
                     param.put(key, convertDateType(type, list));
                 }
@@ -806,8 +848,11 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     if (formTextAttributeList.contains(attributeDataVo.getHandler())) {
                         param.put(key, convertDateType(type, (String) attributeDataVo.getDataObj()));
                     } else if (formSelectAttributeList.contains(attributeDataVo.getHandler())) {
-                        Object valueObject = FormUtil.getFormSelectAttributeValueByOriginalValue(attributeDataVo.getDataObj());
-                        param.put(key, valueObject);
+                        if (attributeDataVo.getDataObj() instanceof String) {
+                            param.put(key, convertDateType(type, (String) attributeDataVo.getDataObj()));
+                        } else if (attributeDataVo.getDataObj() instanceof JSONArray) {
+                            param.put(key, convertDateType(type, JSONObject.toJSONString(attributeDataVo.getDataObj())));
+                        }
                     } else {
                         param.put(key, attributeDataVo.getDataObj());
                     }
@@ -907,7 +952,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                         FormAttributeVo formAttributeVo = formAttributeMap.get(value);
                         ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
                         JSONArray filterList = executeParamObj.getJSONArray("filterList");
-                        JSONArray tbodyList = getTbodyList(attributeDataVo, filterList);
+                        JSONArray tbodyList = getTbodyList(attributeDataVo, filterList, formAttributeMap);
                         List<String> list = parseFormTableComponentMappingValue(formAttributeVo, tbodyList, column);
                         if (CollectionUtils.isNotEmpty(list)) {
                             List<AutoexecNodeVo> inputNodeList = new ArrayList<>();
@@ -1203,7 +1248,10 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             if (CollectionUtils.isNotEmpty(sourceList)) {
                 JSONArray inputNodeList = new JSONArray();
                 for (String str : sourceList) {
-                    inputNodeList.add(new AutoexecNodeVo(str));
+                    if (StringUtils.isNotBlank(str)) {
+                        JSONArray inputNodeArray = (JSONArray) convertDateType(paramType, str);
+                        inputNodeList.addAll(inputNodeArray);
+                    }
                 }
                 return inputNodeList;
             }
