@@ -482,19 +482,53 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     script = autoexecCombopService.getOperationActiveVersionScriptByOperationId(id);
                 }
                 jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, scriptVo, scriptVersionVo, script, jobPhaseVoList, preOperationNameMap);
-                initIfBlockOperation(autoexecCombopPhaseOperationVo, jobPhaseOperationVo, jobPhaseVo, jobPhaseVoList, jobVo, preOperationNameMap);
+//                initIfBlockOperation(autoexecCombopPhaseOperationVo, jobPhaseOperationVo, jobPhaseVo, jobPhaseVoList, jobVo, preOperationNameMap);
             } else {
                 AutoexecToolVo toolVo = autoexecToolMapper.getToolById(id);
                 if (toolVo == null) {
                     throw new AutoexecToolNotFoundException(id);
                 }
                 jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, toolVo, jobPhaseVoList, preOperationNameMap);
-                initIfBlockOperation(autoexecCombopPhaseOperationVo, jobPhaseOperationVo, jobPhaseVo, jobPhaseVoList, jobVo, preOperationNameMap);
+//                initIfBlockOperation(autoexecCombopPhaseOperationVo, jobPhaseOperationVo, jobPhaseVo, jobPhaseVoList, jobVo, preOperationNameMap);
             }
             //用于
             if (jobPhaseOperationVo.getParentOperationId() == null) {
                 jobPhaseVo.getOperationList().add(jobPhaseOperationVo);
             }
+            if (autoexecCombopPhaseOperationVo.getParentOperationId() != null) {
+                AutoexecJobPhaseOperationVo parentJobPhaseOperationVo2 = null;
+                List<AutoexecJobPhaseOperationVo> operationList = jobPhaseVo.getOperationList();
+                if (CollectionUtils.isNotEmpty(operationList)) {
+                    for (AutoexecJobPhaseOperationVo jobPhaseOperationVo1 : operationList) {
+                        if (Objects.equals(jobPhaseOperationVo1.getId(), autoexecCombopPhaseOperationVo.getParentOperationId())) {
+                            parentJobPhaseOperationVo2 = jobPhaseOperationVo1;
+                        }
+                    }
+                }
+                if (parentJobPhaseOperationVo2 != null) {
+                    JSONObject paramObj = parentJobPhaseOperationVo2.getParam();
+                    if (paramObj == null) {
+                        paramObj = new JSONObject();
+                    }
+                    if (Objects.equals(autoexecCombopPhaseOperationVo.getParentOperationType(), "if")) {
+                        JSONArray ifList = paramObj.getJSONArray("ifList");
+                        if (ifList == null) {
+                            ifList = new JSONArray();
+                            paramObj.put("ifList", ifList);
+                        }
+                        ifList.add(jobPhaseOperationVo);
+                    } else if (Objects.equals(autoexecCombopPhaseOperationVo.getParentOperationType(), "else")) {
+                        JSONArray elseList = paramObj.getJSONArray("elseList");
+                        if (elseList == null) {
+                            elseList = new JSONArray();
+                            paramObj.put("elseList", elseList);
+                        }
+                        elseList.add(jobPhaseOperationVo);
+                    }
+                    parentJobPhaseOperationVo2.setParamStr(paramObj.toJSONString());
+                }
+            }
+            initIfBlockOperation(autoexecCombopPhaseOperationVo, jobPhaseOperationVo, jobPhaseVo, jobPhaseVoList, jobVo, preOperationNameMap);
             jobPhaseOperationVoList.add(jobPhaseOperationVo);
             autoexecJobMapper.insertJobPhaseOperation(jobPhaseOperationVo);
             autoexecJobMapper.insertIgnoreJobContent(new AutoexecJobContentVo(jobPhaseOperationVo.getParamHash(), jobPhaseOperationVo.getParamStr()));
