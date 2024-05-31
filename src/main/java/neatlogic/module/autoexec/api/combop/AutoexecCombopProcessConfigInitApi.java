@@ -214,6 +214,16 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
         }
         resultObj.put("exportParamList", exportParamList);
         resultObj.put("existRunnerOrSqlExecMode", autoexecCombopVersionVo.getExistRunnerOrSqlExecMode());
+        AutoexecCombopExecuteConfigVo executeConfigVo = versionConfig.getExecuteConfig();
+        if (executeConfigVo != null) {
+            //补充runnerGroup
+            ParamMappingVo runnerGroupParam = executeConfigVo.getRunnerGroup();
+            if (runnerGroupParam != null) {
+                runnerGroupParam.setMappingMode(runnerGroupParam.getMappingMode() == null ? ParamMappingMode.CONSTANT.getValue() : runnerGroupParam.getMappingMode());
+                runnerGroupParam.setValue(runnerGroupParam.getValue() == null ? "-1" : runnerGroupParam.getValue());
+                resultObj.put("runnerGroup", runnerGroupParam);
+            }
+        }
         // 判断该组合工具的所有阶段是否都是Runner或SQL执行方式，如果是，直接返回，因为不需要设置执行目标
         if (autoexecCombopVersionVo.getAllPhasesAreRunnerOrSqlExecMode()) {
             resultObj.put("allPhasesAreRunnerOrSqlExecMode", true);
@@ -233,15 +243,7 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
         }
 
         JSONArray executeParamList = new JSONArray();
-        AutoexecCombopExecuteConfigVo executeConfigVo = versionConfig.getExecuteConfig();
         if (executeConfigVo != null) {
-            //补充runnerGroup
-            ParamMappingVo runnerGroupParam = executeConfigVo.getRunnerGroup();
-            if (runnerGroupParam != null) {
-                runnerGroupParam.setMappingMode(runnerGroupParam.getMappingMode() == null ? ParamMappingMode.CONSTANT.getValue() : runnerGroupParam.getMappingMode());
-                runnerGroupParam.setValue(runnerGroupParam.getValue() == null ? "-1" : runnerGroupParam.getValue());
-                resultObj.put("runnerGroup", runnerGroupParam);
-            }
             if (needExecuteNode) {
                 JSONObject executeNode = new JSONObject();
                 executeNode.put("key", "executeNodeConfig");
