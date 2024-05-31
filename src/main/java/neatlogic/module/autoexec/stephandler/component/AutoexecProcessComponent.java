@@ -43,6 +43,7 @@ import neatlogic.framework.form.dto.AttributeDataVo;
 import neatlogic.framework.form.dto.FormAttributeVo;
 import neatlogic.framework.notify.core.INotifyParamHandler;
 import neatlogic.framework.notify.core.NotifyParamHandlerFactory;
+import neatlogic.framework.process.condition.core.ProcessTaskConditionFactory;
 import neatlogic.framework.process.constvalue.*;
 import neatlogic.framework.process.crossover.*;
 import neatlogic.framework.process.dto.ProcessTaskFormAttributeDataVo;
@@ -338,16 +339,18 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             }
             processTaskFormAttributeDataMap = processTaskFormAttributeDataList.stream().collect(Collectors.toMap(e -> e.getAttributeUuid(), e -> e));
         }
+
+        JSONObject processTaskParam = ProcessTaskConditionFactory.getConditionParamData(Arrays.stream(ConditionProcessTaskOptions.values()).map(ConditionProcessTaskOptions::getValue).collect(Collectors.toList()), currentProcessTaskStepVo);
         // 作业策略createJobPolicy为single时表示单次创建作业，createJobPolicy为batch时表示批量创建作业
         String createJobPolicy = autoexecConfig.getString("createJobPolicy");
         if (Objects.equals(createJobPolicy, "single")) {
-            AutoexecJobVo jobVo = createSingleAutoexecJobVo(currentProcessTaskStepVo, autoexecConfig, formAttributeMap, processTaskFormAttributeDataMap);
+            AutoexecJobVo jobVo = createSingleAutoexecJobVo(currentProcessTaskStepVo, autoexecConfig, formAttributeMap, processTaskFormAttributeDataMap, processTaskParam);
             jobVo.setRunnerGroup(getRunnerGroup(jobVo.getParam(), autoexecConfig));
             List<AutoexecJobVo> resultList = new ArrayList<>();
             resultList.add(jobVo);
             return resultList;
         } else if (Objects.equals(createJobPolicy, "batch")) {
-            List<AutoexecJobVo> jobVoList = createBatchAutoexecJobVo(currentProcessTaskStepVo, autoexecConfig, formAttributeMap, processTaskFormAttributeDataMap);
+            List<AutoexecJobVo> jobVoList = createBatchAutoexecJobVo(currentProcessTaskStepVo, autoexecConfig, formAttributeMap, processTaskFormAttributeDataMap, processTaskParam);
             if (CollectionUtils.isNotEmpty(jobVoList)) {
                 jobVoList.forEach(jobVo -> jobVo.setRunnerGroup(getRunnerGroup(jobVo.getParam(), autoexecConfig)));
             }
@@ -407,13 +410,15 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
      * @param autoexecConfig
      * @param formAttributeMap
      * @param processTaskFormAttributeDataMap
+     * @param processTaskParam
      * @return
      */
     private AutoexecJobVo createSingleAutoexecJobVo(
             ProcessTaskStepVo currentProcessTaskStepVo,
             JSONObject autoexecConfig,
             Map<String, FormAttributeVo> formAttributeMap,
-            Map<String, ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataMap) {
+            Map<String, ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataMap,
+            JSONObject processTaskParam) {
         AutoexecJobVo jobVo = new AutoexecJobVo();
         // 组合工具ID
         Long combopId = autoexecConfig.getLong("autoexecCombopId");
@@ -429,7 +434,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         // 作业参数赋值列表
         JSONArray runtimeParamList = autoexecConfig.getJSONArray("runtimeParamList");
         if (CollectionUtils.isNotEmpty(runtimeParamList)) {
-            JSONObject param = getParam(currentProcessTaskStepVo, runtimeParamList, formAttributeMap, processTaskFormAttributeDataMap);
+            JSONObject param = getParam(currentProcessTaskStepVo, runtimeParamList, formAttributeMap, processTaskFormAttributeDataMap, processTaskParam);
             jobVo.setParam(param);
         }
         // 目标参数赋值列表
@@ -459,13 +464,15 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
      * @param autoexecConfig
      * @param formAttributeMap
      * @param processTaskFormAttributeDataMap
+     * @param processTaskParam
      * @return
      */
     private List<AutoexecJobVo> createBatchAutoexecJobVo(
             ProcessTaskStepVo currentProcessTaskStepVo,
             JSONObject autoexecConfig,
             Map<String, FormAttributeVo> formAttributeMap,
-            Map<String, ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataMap) {
+            Map<String, ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataMap,
+            JSONObject processTaskParam) {
         // 组合工具ID
         Long combopId = autoexecConfig.getLong("autoexecCombopId");
         // 作业名称
@@ -511,7 +518,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             // 作业参数赋值列表
             JSONArray runtimeParamList = autoexecConfig.getJSONArray("runtimeParamList");
             if (CollectionUtils.isNotEmpty(runtimeParamList)) {
-                JSONObject param = getParam(currentProcessTaskStepVo, runtimeParamList, tbodyObj, formAttributeMap, processTaskFormAttributeDataMap);
+                JSONObject param = getParam(currentProcessTaskStepVo, runtimeParamList, tbodyObj, formAttributeMap, processTaskFormAttributeDataMap, processTaskParam);
                 jobVo.setParam(param);
             }
             String jobNamePrefixValue = getJobNamePrefixValue(jobNamePrefixKey, jobVo.getExecuteConfig(), jobVo.getParam());
@@ -794,8 +801,9 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             ProcessTaskStepVo currentProcessTaskStepVo,
             JSONArray runtimeParamList,
             Map<String, FormAttributeVo> formAttributeMap,
-            Map<String, ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataMap) {
-        return getParam(currentProcessTaskStepVo, runtimeParamList, null, formAttributeMap, processTaskFormAttributeDataMap);
+            Map<String, ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataMap,
+            JSONObject processTaskParam) {
+        return getParam(currentProcessTaskStepVo, runtimeParamList, null, formAttributeMap, processTaskFormAttributeDataMap, processTaskParam);
     }
 
     private JSONObject getParam(
@@ -803,7 +811,8 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             JSONArray runtimeParamList,
             JSONObject tbodyObj,
             Map<String, FormAttributeVo> formAttributeMap,
-            Map<String, ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataMap) {
+            Map<String, ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataMap,
+            JSONObject processTaskParam) {
         List<String> formSelectAttributeList = new ArrayList<>();
         formSelectAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMSELECT.getHandler());
         formSelectAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMCHECKBOX.getHandler());
@@ -859,6 +868,14 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                 }
             } else if (Objects.equals(mappingMode, "constant")) {
                 param.put(key, value);
+            } else if (Objects.equals(mappingMode, "processTaskParam")) {
+                param.put(key, processTaskParam.get(value));
+            } else if (Objects.equals(mappingMode, "expression")) {
+                if (value instanceof JSONArray) {
+                    param.put(key, parseExpression((JSONArray) value, tbodyObj, processTaskFormAttributeDataMap, processTaskParam));
+                } else {
+                    param.put(key, value);
+                }
             }
 
             if (Objects.equals(type, ParamType.TEXT.getValue()) || Objects.equals(type, ParamType.TEXTAREA.getValue())) {
@@ -907,6 +924,65 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             }
         }
         return param;
+    }
+
+    /**
+     * 解析出表达式的值
+     * @param valueList
+     * @param tbodyObj
+     * @param processTaskFormAttributeDataMap
+     * @param processTaskParam
+     * @return
+     */
+    private String parseExpression(JSONArray valueList, JSONObject tbodyObj, Map<String, ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataMap, JSONObject processTaskParam) {
+        StringBuilder stringBuilder = new StringBuilder();
+        for (int i = 0; i < valueList.size(); i++) {
+            JSONObject valueObj = valueList.getJSONObject(i);
+            if (MapUtils.isEmpty(valueObj)) {
+                continue;
+            }
+            String value = valueObj.getString("value");
+            String mappingMode = valueObj.getString("mappingMode");
+            if (Objects.equals(mappingMode, "formTableComponent")) {
+                if (tbodyObj != null) {
+                    String column = valueObj.getString("column");
+                    Object valueObject = tbodyObj.get(column);
+                    if (valueObject == null) {
+                        continue;
+                    }
+                    if (valueObject instanceof JSONArray) {
+                        List<String> list = new ArrayList<>();
+                        JSONArray valueObjectArray = (JSONArray) valueObject;
+                        for (int j = 0; j < valueObjectArray.size(); j++) {
+                            list.add(valueObjectArray.getString(j));
+                        }
+                        stringBuilder.append(String.join(",", list));
+                    } else {
+                        stringBuilder.append(valueObject);
+                    }
+                }
+            } else if (Objects.equals(mappingMode, "formCommonComponent")) {
+                ProcessTaskFormAttributeDataVo attributeDataVo = processTaskFormAttributeDataMap.get(value);
+                if (attributeDataVo != null && attributeDataVo.getDataObj() != null) {
+                    Object dataObject = attributeDataVo.getDataObj();
+                    if (dataObject instanceof JSONArray) {
+                        List<String> list = new ArrayList<>();
+                        JSONArray dataObjectArray = (JSONArray) dataObject;
+                        for (int j = 0; j < dataObjectArray.size(); j++) {
+                            list.add(dataObjectArray.getString(j));
+                        }
+                        stringBuilder.append(String.join(",", list));
+                    } else {
+                        stringBuilder.append(dataObject);
+                    }
+                }
+            } else if (Objects.equals(mappingMode, "constant")) {
+                stringBuilder.append(value);
+            } else if (Objects.equals(mappingMode, "processTaskParam")) {
+                stringBuilder.append(processTaskParam.get(value));
+            }
+        }
+        return stringBuilder.toString();
     }
 
     private AutoexecCombopExecuteConfigVo getAutoexecCombopExecuteConfig(
