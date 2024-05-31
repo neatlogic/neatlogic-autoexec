@@ -309,8 +309,8 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         if (CollectionUtils.isNotEmpty(formAttributeList)) {
             List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskIdAndTag(processTaskId, FORM_EXTEND_ATTRIBUTE_TAG);
             // 添加表格组件中的子组件到组件列表中
-            List<FormAttributeVo> allDownwardFormAttributeList = new ArrayList<>();
             for (FormAttributeVo formAttributeVo : formAttributeList) {
+                formAttributeMap.put(formAttributeVo.getUuid(), formAttributeVo);
                 JSONObject componentObj = new JSONObject();
                 componentObj.put("handler", formAttributeVo.getHandler());
                 componentObj.put("uuid", formAttributeVo.getUuid());
@@ -322,11 +322,9 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     if (Objects.equals(formAttributeVo.getUuid(), downwardFormAttribute.getUuid())) {
                         continue;
                     }
-                    allDownwardFormAttributeList.add(downwardFormAttribute);
+                    formAttributeMap.put(downwardFormAttribute.getUuid(), downwardFormAttribute);
                 }
             }
-            formAttributeList.addAll(allDownwardFormAttributeList);
-            formAttributeMap = formAttributeList.stream().collect(Collectors.toMap(FormAttributeVo::getUuid, e -> e));
             for (ProcessTaskFormAttributeDataVo attributeDataVo : processTaskFormAttributeDataList) {
                 FormAttributeVo formAttributeVo = formAttributeMap.get(attributeDataVo.getAttributeUuid());
                 if (formAttributeVo != null) {
