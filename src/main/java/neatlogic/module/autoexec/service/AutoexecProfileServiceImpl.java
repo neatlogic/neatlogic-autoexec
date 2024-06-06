@@ -94,7 +94,7 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService, IAuto
                 DependencyManager.delete(AutoexecGlobalParamProfileDependencyHandler.class, paramVo.getId());
                 //保存profile参数和globalParam的关系
                 if (StringUtils.equals(AutoexecProfileParamInvokeType.GLOBAL_PARAM.getValue(), paramVo.getMappingMode())) {
-                    String globalParamKey = paramVo.getDefaultValueStr();
+                    String globalParamKey = paramVo.getKey();
                     if (StringUtils.isNotEmpty(globalParamKey)) {
                         JSONObject dependencyConfig = new JSONObject();
                         dependencyConfig.put("profileId", profileVo.getId());
