@@ -103,14 +103,14 @@ public class CreateAutoexecJobFromOperationApi extends PrivateApiComponentBase {
         } else if (Objects.equals(CombopOperationType.TOOL.getValue(), type)) {
             jsonObj.put("source", JobSource.TOOL_TEST.getValue());
         }
-        AutoexecJobVo jobVo = JSONObject.toJavaObject(jsonObj, AutoexecJobVo.class);
+        AutoexecJobVo jobVo = JSON.toJavaObject(jsonObj, AutoexecJobVo.class);
         jobVo.setRunTimeParamList(combopVo.getConfig().getRuntimeParamList() == null ? new ArrayList<>() : combopVo.getConfig().getRuntimeParamList());
         jobVo.setOperationType(type);
         jobVo.setIsFirstFire(1);
         jobVo.setAction(JobAction.FIRE.getValue());
         jobVo.setInvokeId(jobVo.getOperationId());
         jobVo.setRouteId(jobVo.getOperationId().toString());
-        jobVo.setConfigStr(JSONObject.toJSONString(combopVo.getConfig()));
+        jobVo.setConfigStr(JSON.toJSONString(combopVo.getConfig()));
         autoexecJobService.saveAutoexecCombopJob(jobVo);
         IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
         fireAction.doService(jobVo);
@@ -149,7 +149,7 @@ public class CreateAutoexecJobFromOperationApi extends PrivateApiComponentBase {
             phaseOperationParam = new AutoexecPhaseOperationParamVo(toolVo);
         }
         if (jsonObj.containsKey("argumentMappingList")) {
-            phaseOperationParam.setArgumentMappingList(JSONObject.parseArray(jsonObj.getString("argumentMappingList"), ParamMappingVo.class));
+            phaseOperationParam.setArgumentMappingList(JSON.parseArray(jsonObj.getString("argumentMappingList"), ParamMappingVo.class));
         }
         checkJobExist(phaseOperationParam);
         AutoexecCombopGroupVo combopGroupVo = new AutoexecCombopGroupVo();
