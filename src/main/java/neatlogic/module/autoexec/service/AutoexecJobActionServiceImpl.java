@@ -173,7 +173,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                                 put("phaseType", jobPhase.getExecMode());
                                 put("execRound", jobPhase.getExecutePolicy());
                                 put("roundCount", jobPhase.getRoundCount());
-                                put("operations", getOperationFireParam(jobPhase, jobPhase.getOperationList()));
+                                put("operations", getOperationFireParam(jobVo, jobPhase, jobPhase.getOperationList()));
                             }});
                         }
                     }});
@@ -195,7 +195,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
      * @param jobOperationVoList 作业工具列表
      * @return 作业工具param
      */
-    private JSONArray getOperationFireParam(AutoexecJobPhaseVo jobPhaseVo, List<AutoexecJobPhaseOperationVo> jobOperationVoList) {
+    private JSONArray getOperationFireParam(AutoexecJobVo jobVo, AutoexecJobPhaseVo jobPhaseVo, List<AutoexecJobPhaseOperationVo> jobOperationVoList) {
         return new JSONArray() {{
             for (AutoexecJobPhaseOperationVo operationVo : jobOperationVoList) {
                 JSONObject param = operationVo.getParam();
@@ -217,7 +217,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                         }
                     }
                     if (operationVo.getProfileId() != null) {
-                        profileKeyValueMap = autoexecProfileService.getAutoexecProfileParamListByKeyListAndProfileId(profileKeyList, operationVo.getProfileId());
+                        profileKeyValueMap = autoexecProfileService.getAutoexecProfileParamListByKeyListAndProfileId(jobVo, profileKeyList, operationVo.getProfileId());
                     }
                 }
                 //批量查询 自由参数的全局参数
@@ -311,12 +311,12 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                         JSONArray ifArray = param.getJSONArray("ifList");
                         if (CollectionUtils.isNotEmpty(ifArray)) {
                             List<AutoexecJobPhaseOperationVo> ifJobOperationList = JSONObject.parseArray(ifArray.toJSONString(), AutoexecJobPhaseOperationVo.class);
-                            put("if", getOperationFireParam(jobPhaseVo, ifJobOperationList));
+                            put("if", getOperationFireParam(jobVo, jobPhaseVo, ifJobOperationList));
                         }
                         JSONArray elseArray = param.getJSONArray("elseList");
                         if (CollectionUtils.isNotEmpty(elseArray)) {
                             List<AutoexecJobPhaseOperationVo> elseJobOperationList = JSONObject.parseArray(elseArray.toJSONString(), AutoexecJobPhaseOperationVo.class);
-                            put("else", getOperationFireParam(jobPhaseVo, elseJobOperationList));
+                            put("else", getOperationFireParam(jobVo, jobPhaseVo, elseJobOperationList));
                         }
                     }
                 }});
@@ -342,7 +342,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             }
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
-            throw new AutoexecJobOperationParamValueInvalidException(jobPhaseVo.getName(), operationVo.getName(), param.getString("name"),param.getString("value"));
+            throw new AutoexecJobOperationParamValueInvalidException(jobPhaseVo.getName(), operationVo.getName(), param.getString("name"), param.getString("value"));
         }
         return value;
     }
@@ -365,7 +365,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             }
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
-            throw new AutoexecJobParamValueInvalidException(runtimeParam.getKey(),runtimeParam.getValue());
+            throw new AutoexecJobParamValueInvalidException(runtimeParam.getKey(), runtimeParam.getValue());
         }
         return value;
     }

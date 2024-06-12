@@ -9,10 +9,16 @@ import neatlogic.framework.autoexec.crossover.IAutoexecProfileCrossoverService;
 import neatlogic.framework.autoexec.dto.AutoexecOperationVo;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
 import neatlogic.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
+import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import neatlogic.framework.autoexec.dto.profile.AutoexecProfileVo;
+import neatlogic.framework.autoexec.exception.AutoexecJobSourceInvalidException;
 import neatlogic.framework.autoexec.exception.AutoexecProfileHasBeenReferredException;
 import neatlogic.framework.autoexec.exception.AutoexecProfileIsNotFoundException;
+import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
+import neatlogic.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
+import neatlogic.framework.autoexec.source.AutoexecJobSourceFactory;
+import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.common.util.RC4Util;
 import neatlogic.framework.dependency.core.DependencyManager;
 import neatlogic.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
@@ -161,7 +167,7 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService, IAuto
      * @return
      */
     @Override
-    public Map<String, Object> getAutoexecProfileParamListByKeyListAndProfileId(List<String> keyList, Long profileId) {
+    public Map<String, Object> getAutoexecProfileParamListByKeyListAndProfileId(AutoexecJobVo jobVo, List<String> keyList, Long profileId) {
         AutoexecProfileVo profileVo = autoexecProfileMapper.getProfileVoById(profileId);
         if (profileVo == null) {
             throw new AutoexecProfileIsNotFoundException(profileId);
@@ -185,7 +191,7 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService, IAuto
             if (StringUtils.equals(paramVo.getMappingMode(), AutoexecProfileParamInvokeType.GLOBAL_PARAM.getValue())) {
                 //获取引用的全局参数值
                 AutoexecGlobalParamVo globalParamVo = autoexecGlobalParamMapper.getGlobalParamByKey(paramVo.getDefaultValueStr());
-                if(globalParamVo != null) {
+                if (globalParamVo != null) {
                     if (StringUtils.equals(AutoexecGlobalParamType.PASSWORD.getValue(), globalParamVo.getType()) && globalParamVo.getDefaultValue() != null) {
                         String pwd = RC4Util.encrypt(globalParamVo.getDefaultValueStr());
                         paramVo.setDefaultValue(pwd);
@@ -194,6 +200,17 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService, IAuto
                     }
                 }
             }
+            if (jobVo != null) {
+                IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
+                if (jobSource == null) {
+                    throw new AutoexecJobSourceInvalidException(jobVo.getSource());
+                }
+                IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
+                if (autoexecJobSourceActionHandler != null) {
+                    autoexecJobSourceActionHandler.overrideProfile(jobVo, returnMap, profileId);
+                }
+            }
+
             returnMap.put(paramVo.getKey(), paramVo.getDefaultValue());
         }
         return returnMap;

@@ -1,6 +1,7 @@
 package neatlogic.module.autoexec.service;
 
 import neatlogic.framework.autoexec.dto.AutoexecOperationVo;
+import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import neatlogic.framework.autoexec.dto.profile.AutoexecProfileVo;
 
@@ -48,11 +49,12 @@ public interface AutoexecProfileService {
     /**
      * 通过key列表和profileId获取对应的值列表
      *
+     * @param jobVo   作业（兼容其他数据源profile重载，比如发布流水线）
      * @param keyList   key列表
      * @param profileId profile id
      * @return profile的key、value的map
      */
-    Map<String, Object> getAutoexecProfileParamListByKeyListAndProfileId(List<String> keyList, Long profileId);
+    Map<String, Object> getAutoexecProfileParamListByKeyListAndProfileId(AutoexecJobVo jobVo, List<String> keyList, Long profileId);
 
 
     /**
