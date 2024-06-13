@@ -396,7 +396,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
                         paramVo.setDefaultValue(RC4Util.encrypt((String) paramVo.getDefaultValue()));
                     }
                     paramVo.setSort(i);
-                    if (paramVo.getConfig() == null) {
+                    if (paramVo.getConfig() == null || paramVo.getConfig().getType() == null) {
                         autoexecService.mergeConfig(paramVo);
                     }
                 }
@@ -743,7 +743,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
         //保存依赖工具
         autoexecScriptMapper.deleteScriptVersionLibByScriptVersionId(versionVo.getId());
         if (CollectionUtils.isNotEmpty(versionVo.getUseLib())) {
-            autoexecScriptMapper.insertScriptVersionUseLib(versionVo.getId(),versionVo.getUseLib());
+            autoexecScriptMapper.insertScriptVersionUseLib(versionVo.getId(), versionVo.getUseLib());
         }
     }
 
