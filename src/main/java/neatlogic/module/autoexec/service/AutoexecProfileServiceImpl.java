@@ -1,6 +1,7 @@
 package neatlogic.module.autoexec.service;
 
 
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.AutoexecFromType;
 import neatlogic.framework.autoexec.constvalue.AutoexecGlobalParamType;
 import neatlogic.framework.autoexec.constvalue.AutoexecProfileParamInvokeType;
@@ -24,13 +25,15 @@ import neatlogic.framework.dependency.core.DependencyManager;
 import neatlogic.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecProfileMapper;
 import neatlogic.module.autoexec.dependency.AutoexecGlobalParamProfileDependencyHandler;
-import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 /**
@@ -179,14 +182,24 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService, IAuto
         if (CollectionUtils.isEmpty(profileParamList)) {
             return null;
         }
-        Map<String, AutoexecProfileParamVo> nowParamMap = profileParamList.stream().collect(Collectors.toMap(AutoexecProfileParamVo::getKey, e -> e));
-
+        Map<String, AutoexecParamVo> nowParamMap = profileParamList.stream().collect(Collectors.toMap(AutoexecProfileParamVo::getKey, e -> e));
+        //替换profile
+        if (jobVo != null) {
+            IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
+            if (jobSource == null) {
+                throw new AutoexecJobSourceInvalidException(jobVo.getSource());
+            }
+            IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
+            if (autoexecJobSourceActionHandler != null) {
+                autoexecJobSourceActionHandler.overrideProfile(jobVo, nowParamMap, profileId);
+            }
+        }
         Map<String, Object> returnMap = new HashMap<>();
         for (String key : keyList) {
             if (!nowParamMap.containsKey(key)) {
                 continue;
             }
-            AutoexecProfileParamVo paramVo = nowParamMap.get(key);
+            AutoexecParamVo paramVo = nowParamMap.get(key);
 
             if (StringUtils.equals(paramVo.getMappingMode(), AutoexecProfileParamInvokeType.GLOBAL_PARAM.getValue())) {
                 //获取引用的全局参数值
@@ -200,17 +213,6 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService, IAuto
                     }
                 }
             }
-            if (jobVo != null) {
-                IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
-                if (jobSource == null) {
-                    throw new AutoexecJobSourceInvalidException(jobVo.getSource());
-                }
-                IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
-                if (autoexecJobSourceActionHandler != null) {
-                    autoexecJobSourceActionHandler.overrideProfile(jobVo, returnMap, profileId);
-                }
-            }
-
             returnMap.put(paramVo.getKey(), paramVo.getDefaultValue());
         }
         return returnMap;
