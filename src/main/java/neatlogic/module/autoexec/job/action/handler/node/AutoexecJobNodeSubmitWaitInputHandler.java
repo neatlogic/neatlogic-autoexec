@@ -16,6 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 package neatlogic.module.autoexec.job.action.handler.node;
 
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
@@ -85,6 +86,10 @@ public class AutoexecJobNodeSubmitWaitInputHandler extends AutoexecJobActionHand
             throw new AutoexecJobInteractException("pipeFile is blank");
         }
         paramObj.put("pipeFile", interactJson.getString("pipeFile"));
+        String option = paramObj.getString("option");
+        if (StringUtils.isNotBlank(option)) {
+            paramObj.put("option", String.format("[%s]# ", UserContext.get().getUserUuid(true)) + option);
+        }
         String url = String.format("%s/api/rest/job/phase/node/submit/waitInput", nodeVo.getRunnerUrl());
         String result = HttpRequestUtil.post(url)
                 .setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(5000).setReadTimeout(5000)
