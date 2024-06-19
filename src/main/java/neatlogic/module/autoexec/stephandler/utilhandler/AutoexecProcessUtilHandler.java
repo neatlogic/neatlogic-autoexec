@@ -274,6 +274,11 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
                     id = SnowflakeUtil.uniqueLong();
                 }
                 configObj.put("id", id);
+                String formTag = config.getString("formTag");
+                if (StringUtils.isBlank(formTag)) {
+                    formTag = StringUtils.EMPTY;
+                }
+                configObj.put("formTag", formTag);
                 Long autoexecCombopId = config.getLong("autoexecCombopId");
                 if (autoexecCombopId != null) {
                     configObj.put("autoexecCombopId", autoexecCombopId);
