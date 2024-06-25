@@ -33,7 +33,7 @@ import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.process.dto.CreateJobConfigConfigVo;
-import neatlogic.module.autoexec.process.util.ParseCreateJobConfigUtil;
+import neatlogic.module.autoexec.process.util.CreateJobConfigUtil;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
 import org.springframework.stereotype.Service;
 
@@ -75,7 +75,7 @@ public class CreateJobStepTestApi extends PrivateApiComponentBase {
         if (autoexecCombopVersionVo == null) {
             throw new AutoexecCombopVersionNotFoundException(activeVersionId);
         }
-        List<AutoexecJobVo> autoexecJobList = ParseCreateJobConfigUtil.createAutoexecJobList(processTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo);
+        List<AutoexecJobVo> autoexecJobList = CreateJobConfigUtil.createAutoexecJobList(processTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo);
         JSONArray jobArray = new JSONArray();
         for (AutoexecJobVo jobVo : autoexecJobList) {
             JSONObject jobObj = new JSONObject();

@@ -51,7 +51,7 @@ import neatlogic.module.autoexec.process.dto.CreateJobConfigConfigVo;
 import neatlogic.module.autoexec.process.dto.CreateJobConfigMappingGroupVo;
 import neatlogic.module.autoexec.process.dto.CreateJobConfigMappingVo;
 import neatlogic.module.autoexec.process.dto.CreateJobConfigVo;
-import neatlogic.module.autoexec.process.util.ParseCreateJobConfigUtil;
+import neatlogic.module.autoexec.process.util.CreateJobConfigUtil;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
 import org.apache.commons.collections4.CollectionUtils;
@@ -190,7 +190,7 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                     throw new AutoexecCombopVersionNotFoundException(activeVersionId);
                 }
                 // 根据配置信息创建AutoexecJobVo对象
-                List<AutoexecJobVo> list = ParseCreateJobConfigUtil.createAutoexecJobList(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo);
+                List<AutoexecJobVo> list = CreateJobConfigUtil.createAutoexecJobList(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo);
                 jobList.addAll(list);
 
             }

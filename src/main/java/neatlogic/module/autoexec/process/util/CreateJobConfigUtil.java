@@ -56,7 +56,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.*;
 import java.util.stream.Collectors;
 
-public class ParseCreateJobConfigUtil {
+public class CreateJobConfigUtil {
 
     /**
      * 根据工单步骤配置信息创建AutoexecJobVo对象
