@@ -20,17 +20,13 @@ package neatlogic.module.autoexec.process.stephandler;
 import com.alibaba.fastjson.*;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.autoexec.constvalue.JobStatus;
-import neatlogic.framework.autoexec.constvalue.ParamMappingMode;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
-import neatlogic.framework.autoexec.dto.combop.ParamMappingVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobEnvVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecCombopActiveVersionNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecCombopVersionNotFoundException;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
-import neatlogic.framework.dao.mapper.runner.RunnerMapper;
-import neatlogic.framework.dto.runner.RunnerGroupVo;
 import neatlogic.framework.form.dto.AttributeDataVo;
 import neatlogic.framework.form.dto.FormAttributeVo;
 import neatlogic.framework.process.constvalue.*;
@@ -48,8 +44,6 @@ import neatlogic.module.autoexec.constvalue.FailPolicy;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.process.constvalue.CreateJobProcessStepHandlerType;
 import neatlogic.module.autoexec.process.dto.CreateJobConfigConfigVo;
-import neatlogic.module.autoexec.process.dto.CreateJobConfigMappingGroupVo;
-import neatlogic.module.autoexec.process.dto.CreateJobConfigMappingVo;
 import neatlogic.module.autoexec.process.dto.CreateJobConfigVo;
 import neatlogic.module.autoexec.process.util.CreateJobConfigUtil;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
@@ -78,9 +72,6 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
 
     @Resource
     private AutoexecJobActionService autoexecJobActionService;
-
-    @Resource
-    private RunnerMapper runnerMapper;
 
     @Resource
     private AutoexecCombopVersionMapper autoexecCombopVersionMapper;
@@ -235,10 +226,10 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                             }
                         }
                         if (running == 0) {
-                            processTaskStepComplete(currentProcessTaskStepVo.getId(), null);
+                            processTaskStepComplete(currentProcessTaskStepVo.getId());
                         }
                     } else {
-                        processTaskStepComplete(currentProcessTaskStepVo.getId(), null);
+                        processTaskStepComplete(currentProcessTaskStepVo.getId());
                     }
                 }
             }
@@ -249,115 +240,16 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
         return 1;
     }
 
-
-
-    /**
-     * 获取执行器组的值
-     *
-     * @param mappingGroupVo
-     * @param jobParamJson   作业参数的值
-     */
-    private ParamMappingVo parseRunnerGroupMapping(CreateJobConfigMappingGroupVo mappingGroupVo, JSONObject jobParamJson) {
-        //执行器组
-        ParamMappingVo runnerGroup = new ParamMappingVo();
-        List<CreateJobConfigMappingVo> mappingList = mappingGroupVo.getMappingList();
-        if (CollectionUtils.isEmpty(mappingList)) {
-            return runnerGroup;
-        }
-        for (CreateJobConfigMappingVo mappingVo : mappingList) {
-            if (mappingVo != null) {
-                String mappingMode = mappingVo.getMappingMode();
-                long runnerGroupId = -1L;
-                String mappingValue = null;
-                mappingValue = mappingVo.getValue().toString();
-                runnerGroup.setMappingMode(ParamMappingMode.CONSTANT.getValue());
-                if (Objects.equals(mappingMode, "runtimeparam")) {
-                    mappingValue = jobParamJson.getString(mappingValue);
-                    try {
-                        JSONObject jsonObject = JSON.parseObject(mappingValue);
-                        mappingValue = jsonObject.getString("value");
-                    } catch (RuntimeException ignored) {
-                    }
-                }
-                try {
-                    runnerGroupId = Long.parseLong(mappingValue);
-                    RunnerGroupVo runnerGroupVo = runnerMapper.getRunnerGroupById(runnerGroupId);
-                    if (runnerGroupVo == null) {
-                        runnerGroupVo = runnerMapper.getRunnerGroupByName(mappingValue);
-                        if (runnerGroupVo != null) {
-                            runnerGroupId = runnerGroupVo.getId();
-                        }
-                    }
-                } catch (NumberFormatException ex) {
-                    RunnerGroupVo runnerGroupVo = runnerMapper.getRunnerGroupByName(mappingValue);
-                    if (runnerGroupVo != null) {
-                        runnerGroupId = runnerGroupVo.getId();
-                    }
-                }
-                runnerGroup.setValue(runnerGroupId);
-            }
-        }
-
-        return runnerGroup;
-    }
-
-
-
-    private void processTaskStepComplete(Long processTaskStepId, Long autoexecJobId) {
+    private void processTaskStepComplete(Long processTaskStepId) {
         IProcessTaskCrossoverMapper processTaskCrossoverMapper = CrossoverServiceFactory.getApi(IProcessTaskCrossoverMapper.class);
-        ISelectContentByHashCrossoverMapper selectContentByHashCrossoverMapper = CrossoverServiceFactory.getApi(ISelectContentByHashCrossoverMapper.class);
         List<Long> toProcessTaskStepIdList = processTaskCrossoverMapper.getToProcessTaskStepIdListByFromIdAndType(processTaskStepId, ProcessFlowDirection.FORWARD.getValue());
         if (toProcessTaskStepIdList.size() == 1) {
             Long nextStepId = toProcessTaskStepIdList.get(0);
             try {
-                List<String> hidecomponentList = new ArrayList<>();
-                JSONArray formAttributeDataList = new JSONArray();
                 ProcessTaskStepVo processTaskStepVo = processTaskCrossoverMapper.getProcessTaskStepBaseInfoById(processTaskStepId);
-                String config = selectContentByHashCrossoverMapper.getProcessTaskStepConfigByHash(processTaskStepVo.getConfigHash());
-                if (StringUtils.isNotBlank(config)) {
-                    JSONArray formAttributeList = (JSONArray) JSONPath.read(config, "autoexecConfig.formAttributeList");
-                    if (CollectionUtils.isNotEmpty(formAttributeList)) {
-                        Map<String, String> autoexecJobEnvMap = new HashMap<>();
-                        if (autoexecJobId != null) {
-                            List<AutoexecJobEnvVo> autoexecJobEnvList = autoexecJobMapper.getAutoexecJobEnvListByJobId(autoexecJobId);
-                            for (AutoexecJobEnvVo autoexecJobEnvVo : autoexecJobEnvList) {
-                                autoexecJobEnvMap.put(autoexecJobEnvVo.getName(), autoexecJobEnvVo.getValue());
-                            }
-                        }
-                        Map<String, Object> formAttributeNewDataMap = new HashMap<>();
-                        for (int i = 0; i < formAttributeList.size(); i++) {
-                            JSONObject formAttributeObj = formAttributeList.getJSONObject(i);
-                            String key = formAttributeObj.getString("key");
-                            String value = formAttributeObj.getString("value");
-                            formAttributeNewDataMap.put(key, autoexecJobEnvMap.get(value));
-                        }
-                        IProcessTaskCrossoverService processTaskCrossoverService = CrossoverServiceFactory.getApi(IProcessTaskCrossoverService.class);
-                        List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskId(processTaskStepVo.getProcessTaskId());
-                        for (ProcessTaskFormAttributeDataVo processTaskFormAttributeDataVo : processTaskFormAttributeDataList) {
-                            JSONObject formAttributeDataObj = new JSONObject();
-                            String attributeUuid = processTaskFormAttributeDataVo.getAttributeUuid();
-                            formAttributeDataObj.put("attributeUuid", attributeUuid);
-                            formAttributeDataObj.put("handler", processTaskFormAttributeDataVo.getHandler());
-                            Object newData = formAttributeNewDataMap.get(attributeUuid);
-                            if (newData != null) {
-                                formAttributeDataObj.put("dataList", newData);
-                            } else {
-                                formAttributeDataObj.put("dataList", processTaskFormAttributeDataVo.getDataObj());
-                                hidecomponentList.add(attributeUuid);
-                            }
-                            formAttributeDataList.add(formAttributeDataObj);
-                        }
-                    }
-                }
                 JSONObject paramObj = processTaskStepVo.getParamObj();
                 paramObj.put("nextStepId", nextStepId);
                 paramObj.put("action", ProcessTaskOperationType.STEP_COMPLETE.getValue());
-                if (CollectionUtils.isNotEmpty(formAttributeDataList)) {
-                    paramObj.put("formAttributeDataList", formAttributeDataList);
-                }
-                if (CollectionUtils.isNotEmpty(hidecomponentList)) {
-                    paramObj.put("hidecomponentList", hidecomponentList);
-                }
                 /* 自动处理 **/
                 IProcessStepHandler handler = this;
                 doNext(ProcessTaskOperationType.STEP_COMPLETE, new ProcessStepThread(processTaskStepVo) {
@@ -408,7 +300,13 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
         if (StringUtils.isBlank(config)) {
             return 0;
         }
-        JSONArray configList = (JSONArray) JSONPath.read(config, "autoexecConfig.configList");
+        JSONObject createJobConfig = (JSONObject) JSONPath.read(config, "createJobConfig");
+        if (MapUtils.isEmpty(createJobConfig)) {
+            return 0;
+        }
+        CreateJobConfigVo createJobConfigVo = createJobConfig.toJavaObject(CreateJobConfigVo.class);
+        List<CreateJobConfigConfigVo> configList = createJobConfigVo.getConfigList();
+//        JSONArray configList = (JSONArray) JSONPath.read(config, "createJobConfig.configList");
         if (CollectionUtils.isEmpty(configList)) {
             return 0;
         }
@@ -423,12 +321,13 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
             autoexecJobEnvMap.computeIfAbsent(autoexecJobEnvVo.getName(), k -> new ArrayList<>()).add(autoexecJobEnvVo.getValue());
         }
         Map<String, List<String>> formAttributeNewDataMap = new HashMap<>();
-        for (int j = 0; j < configList.size(); j++) {
-            JSONObject configObj = configList.getJSONObject(j);
-            if (MapUtils.isEmpty(configObj)) {
-                continue;
-            }
-            JSONArray formAttributeList = configObj.getJSONArray("formAttributeList");
+        for (CreateJobConfigConfigVo createJobConfigConfigVo : configList) {
+//            JSONObject configObj = configList.getJSONObject(j);
+//            if (MapUtils.isEmpty(configObj)) {
+//                continue;
+//            }
+//            JSONArray formAttributeList = configObj.getJSONArray("formAttributeList");
+            JSONArray formAttributeList = createJobConfigConfigVo.getFormAttributeMappingList();
             if (CollectionUtils.isEmpty(formAttributeList)) {
                 continue;
             }
@@ -458,7 +357,7 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
         }
 
 
-        Map<String, FormAttributeVo> formAttributeMap = formAttributeList.stream().collect(Collectors.toMap(e -> e.getUuid(), e -> e));
+        Map<String, FormAttributeVo> formAttributeMap = formAttributeList.stream().collect(Collectors.toMap(FormAttributeVo::getUuid, e -> e));
         JSONObject paramObj = currentProcessTaskStepVo.getParamObj();
         JSONArray formAttributeDataList = paramObj.getJSONArray("formAttributeDataList");
         if (formAttributeDataList == null) {

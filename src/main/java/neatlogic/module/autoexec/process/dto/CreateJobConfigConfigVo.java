@@ -17,6 +17,8 @@
 
 package neatlogic.module.autoexec.process.dto;
 
+import com.alibaba.fastjson.JSONArray;
+
 import java.util.List;
 
 public class CreateJobConfigConfigVo {
@@ -42,17 +44,9 @@ public class CreateJobConfigConfigVo {
 
     private CreateJobConfigMappingVo batchDataSourceMapping;
 
-    private List<CreateJobConfigMappingGroupVo> formAttributeMappingGroupList;
+    private JSONArray formAttributeMappingList;
 
     private List<CreateJobConfigMappingGroupVo> scenarioParamMappingGroupList;
-
-//    public Long getId() {
-//        return id;
-//    }
-//
-//    public void setId(Long id) {
-//        this.id = id;
-//    }
 
     public Long getCombopId() {
         return combopId;
@@ -94,14 +88,6 @@ public class CreateJobConfigConfigVo {
         this.jobName = jobName;
     }
 
-//    public CreateJobConfigMappingGroupVo getRunnerGroupMappingGroup() {
-//        return runnerGroupMappingGroup;
-//    }
-//
-//    public void setRunnerGroupMappingGroup(CreateJobConfigMappingGroupVo runnerGroupMappingGroup) {
-//        this.runnerGroupMappingGroup = runnerGroupMappingGroup;
-//    }
-
     public List<CreateJobConfigMappingGroupVo> getJopParamMappingGroupList() {
         return jopParamMappingGroupList;
     }
@@ -126,12 +112,12 @@ public class CreateJobConfigConfigVo {
         this.batchDataSourceMapping = batchDataSourceMapping;
     }
 
-    public List<CreateJobConfigMappingGroupVo> getFormAttributeMappingGroupList() {
-        return formAttributeMappingGroupList;
+    public JSONArray getFormAttributeMappingList() {
+        return formAttributeMappingList;
     }
 
-    public void setFormAttributeMappingGroupList(List<CreateJobConfigMappingGroupVo> formAttributeMappingGroupList) {
-        this.formAttributeMappingGroupList = formAttributeMappingGroupList;
+    public void setFormAttributeMappingList(JSONArray formAttributeMappingList) {
+        this.formAttributeMappingList = formAttributeMappingList;
     }
 
     public List<CreateJobConfigMappingGroupVo> getScenarioParamMappingGroupList() {
