@@ -22,9 +22,12 @@ import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.autoexec.constvalue.JobStatus;
 import neatlogic.framework.autoexec.constvalue.ParamMappingMode;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
 import neatlogic.framework.autoexec.dto.combop.ParamMappingVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobEnvVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
+import neatlogic.framework.autoexec.exception.AutoexecCombopActiveVersionNotFoundException;
+import neatlogic.framework.autoexec.exception.AutoexecCombopVersionNotFoundException;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dao.mapper.runner.RunnerMapper;
 import neatlogic.framework.dto.runner.RunnerGroupVo;
@@ -42,13 +45,14 @@ import neatlogic.framework.process.stephandler.core.IProcessStepHandler;
 import neatlogic.framework.process.stephandler.core.ProcessStepHandlerBase;
 import neatlogic.framework.process.stephandler.core.ProcessStepThread;
 import neatlogic.module.autoexec.constvalue.FailPolicy;
-import neatlogic.module.autoexec.dao.mapper.AutoexecScenarioMapper;
+import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.process.constvalue.CreateJobProcessStepHandlerType;
 import neatlogic.module.autoexec.process.dto.CreateJobConfigConfigVo;
 import neatlogic.module.autoexec.process.dto.CreateJobConfigMappingGroupVo;
 import neatlogic.module.autoexec.process.dto.CreateJobConfigMappingVo;
 import neatlogic.module.autoexec.process.dto.CreateJobConfigVo;
 import neatlogic.module.autoexec.process.util.ParseCreateJobConfigUtil;
+import neatlogic.module.autoexec.service.AutoexecCombopService;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -69,8 +73,6 @@ import java.util.stream.Collectors;
 public class CreateJobProcessComponent extends ProcessStepHandlerBase {
 
     private final static Logger logger = LoggerFactory.getLogger(CreateJobProcessComponent.class);
-
-    private final String FORM_EXTEND_ATTRIBUTE_TAG = "common";
     @Resource
     private AutoexecJobMapper autoexecJobMapper;
 
@@ -78,10 +80,12 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
     private AutoexecJobActionService autoexecJobActionService;
 
     @Resource
-    private AutoexecScenarioMapper autoexecScenarioMapper;
+    private RunnerMapper runnerMapper;
 
     @Resource
-    private RunnerMapper runnerMapper;
+    private AutoexecCombopVersionMapper autoexecCombopVersionMapper;
+    @Resource
+    private AutoexecCombopService autoexecCombopService;
 
 
     @Override
@@ -177,8 +181,16 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                 if (createJobConfigConfigVo == null) {
                     continue;
                 }
+                Long activeVersionId = autoexecCombopVersionMapper.getAutoexecCombopActiveVersionIdByCombopId(createJobConfigConfigVo.getCombopId());
+                if (activeVersionId == null) {
+                    throw new AutoexecCombopActiveVersionNotFoundException(createJobConfigConfigVo.getCombopId());
+                }
+                AutoexecCombopVersionVo autoexecCombopVersionVo = autoexecCombopService.getAutoexecCombopVersionById(activeVersionId);
+                if (autoexecCombopVersionVo == null) {
+                    throw new AutoexecCombopVersionNotFoundException(activeVersionId);
+                }
                 // 根据配置信息创建AutoexecJobVo对象
-                List<AutoexecJobVo> list = ParseCreateJobConfigUtil.createAutoexecJobList(currentProcessTaskStepVo, createJobConfigConfigVo);
+                List<AutoexecJobVo> list = ParseCreateJobConfigUtil.createAutoexecJobList(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo);
                 jobList.addAll(list);
 
             }

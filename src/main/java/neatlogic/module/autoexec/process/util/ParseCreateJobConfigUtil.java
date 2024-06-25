@@ -19,21 +19,21 @@ package neatlogic.module.autoexec.process.util;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.autoexec.constvalue.CombopNodeSpecify;
 import neatlogic.framework.autoexec.constvalue.CombopOperationType;
 import neatlogic.framework.autoexec.constvalue.ParamType;
+import neatlogic.framework.autoexec.crossover.IAutoexecCombopCrossoverService;
 import neatlogic.framework.autoexec.crossover.IAutoexecScenarioCrossoverMapper;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteNodeConfigVo;
-import neatlogic.framework.autoexec.dto.combop.ParamMappingVo;
+import neatlogic.framework.autoexec.dto.combop.*;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.dto.node.AutoexecNodeVo;
 import neatlogic.framework.autoexec.dto.scenario.AutoexecScenarioVo;
 import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
-import neatlogic.framework.cmdb.enums.FormHandler;
+import neatlogic.framework.cmdb.dto.resourcecenter.AccountVo;
 import neatlogic.framework.common.constvalue.Expression;
+import neatlogic.framework.common.constvalue.GroupSearch;
 import neatlogic.framework.common.constvalue.SystemUser;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.form.attribute.core.FormAttributeDataConversionHandlerFactory;
@@ -65,7 +65,7 @@ public class ParseCreateJobConfigUtil {
      * @param createJobConfigConfigVo
      * @return
      */
-    public static List<AutoexecJobVo> createAutoexecJobList(ProcessTaskStepVo currentProcessTaskStepVo, CreateJobConfigConfigVo createJobConfigConfigVo) {
+    public static List<AutoexecJobVo> createAutoexecJobList(ProcessTaskStepVo currentProcessTaskStepVo, CreateJobConfigConfigVo createJobConfigConfigVo, AutoexecCombopVersionVo autoexecCombopVersionVo) {
         Long processTaskId = currentProcessTaskStepVo.getProcessTaskId();
         // 如果工单有表单信息，则查询出表单配置及数据
         Map<String, Object> formAttributeDataMap = new HashMap<>();
@@ -75,12 +75,12 @@ public class ParseCreateJobConfigUtil {
         if (CollectionUtils.isNotEmpty(formAttributeList)) {
             List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskIdAndTag(processTaskId, createJobConfigConfigVo.getFormTag());
             for (ProcessTaskFormAttributeDataVo attributeDataVo : processTaskFormAttributeDataList) {
-                originalFormAttributeDataMap.put(attributeDataVo.getAttributeUuid(), attributeDataVo.getDataObj());
+                originalFormAttributeDataMap.put(attributeDataVo.getAttributeKey(), attributeDataVo.getDataObj());
                 // 放入表单普通组件数据
                 if (!Objects.equals(attributeDataVo.getHandler(), neatlogic.framework.form.constvalue.FormHandler.FORMTABLEINPUTER.getHandler())
                         && !Objects.equals(attributeDataVo.getHandler(), neatlogic.framework.form.constvalue.FormHandler.FORMSUBASSEMBLY.getHandler())
                         && !Objects.equals(attributeDataVo.getHandler(), neatlogic.framework.form.constvalue.FormHandler.FORMTABLESELECTOR.getHandler())) {
-                    formAttributeDataMap.put(attributeDataVo.getAttributeUuid(), attributeDataVo.getDataObj());
+                    formAttributeDataMap.put(attributeDataVo.getAttributeKey(), attributeDataVo.getDataObj());
                 }
             }
             // 添加表格组件中的子组件到组件列表中
@@ -107,302 +107,16 @@ public class ParseCreateJobConfigUtil {
         // 作业策略createJobPolicy为single时表示单次创建作业，createJobPolicy为batch时表示批量创建作业
         String createPolicy = createJobConfigConfigVo.getCreatePolicy();
         if (Objects.equals(createPolicy, "single")) {
-            AutoexecJobVo jobVo = createSingleAutoexecJobVo(currentProcessTaskStepVo, createJobConfigConfigVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
-//            jobVo.setRunnerGroup(getRunnerGroup(jobVo.getParam(), autoexecConfig));
+            AutoexecJobVo jobVo = createSingleAutoexecJobVo(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
             List<AutoexecJobVo> resultList = new ArrayList<>();
             resultList.add(jobVo);
             return resultList;
         } else if (Objects.equals(createPolicy, "batch")) {
-            List<AutoexecJobVo> jobVoList = createBatchAutoexecJobVo(currentProcessTaskStepVo, createJobConfigConfigVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
-//            if (CollectionUtils.isNotEmpty(jobVoList)) {
-//                jobVoList.forEach(jobVo -> jobVo.setRunnerGroup(getRunnerGroup(jobVo.getParam(), autoexecConfig)));
-//            }
+            List<AutoexecJobVo> jobVoList = createBatchAutoexecJobVo(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
             return jobVoList;
         } else {
             return null;
         }
-    }
-
-    /**
-     * 单次创建作业
-     *
-     * @param currentProcessTaskStepVo
-     * @param createJobConfigConfigVo
-     * @param formAttributeList
-     * @param originalFormAttributeDataMap
-     * @param formAttributeDataMap
-     * @param processTaskParam
-     * @return
-     */
-    private static AutoexecJobVo createSingleAutoexecJobVo(
-            ProcessTaskStepVo currentProcessTaskStepVo,
-            CreateJobConfigConfigVo createJobConfigConfigVo,
-            List<FormAttributeVo> formAttributeList,
-            Map<String, Object> originalFormAttributeDataMap,
-            Map<String, Object> formAttributeDataMap,
-            JSONObject processTaskParam) {
-        AutoexecJobVo jobVo = new AutoexecJobVo();
-        // 组合工具ID
-        Long combopId = createJobConfigConfigVo.getCombopId();
-        // 作业名称
-        String jobName = createJobConfigConfigVo.getJobName();
-        // 场景
-        List<CreateJobConfigMappingGroupVo> scenarioParamMappingList = createJobConfigConfigVo.getScenarioParamMappingGroupList();
-        if (CollectionUtils.isNotEmpty(scenarioParamMappingList)) {
-            Long scenarioId = getScenarioId(scenarioParamMappingList.get(0), formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
-            jobVo.setScenarioId(scenarioId);
-        }
-        // 作业参数赋值列表
-        List<CreateJobConfigMappingGroupVo> runtimeParamMappingGroupList = createJobConfigConfigVo.getJopParamMappingGroupList();
-        if (CollectionUtils.isNotEmpty(runtimeParamMappingGroupList)) {
-            JSONObject param = new JSONObject();
-            for(CreateJobConfigMappingGroupVo mappingGroupVo : runtimeParamMappingGroupList) {
-                Object value = parseRuntimeParamMapping(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
-                param.put(mappingGroupVo.getKey(), value);
-            }
-            jobVo.setParam(param);
-        }
-        // 目标参数赋值列表
-//        JSONArray executeParamList = autoexecConfig.getJSONArray("executeParamList");
-        List<CreateJobConfigMappingGroupVo> executeParamMappingGroupList = createJobConfigConfigVo.getExecuteParamMappingGroupList();
-        if (CollectionUtils.isNotEmpty(executeParamMappingGroupList)) {
-            AutoexecCombopExecuteConfigVo executeConfig = new AutoexecCombopExecuteConfigVo();
-//            AutoexecCombopExecuteConfigVo executeConfig = getAutoexecCombopExecuteConfig(executeParamList, formAttributeMap, processTaskFormAttributeDataMap);
-            for (CreateJobConfigMappingGroupVo mappingGroupVo : executeParamMappingGroupList) {
-                String key = mappingGroupVo.getKey();
-                if (Objects.equals(key, "executeNodeConfig")) {
-                    Object value = parseExecuteNodeConfigMapping(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
-                } else if (Objects.equals(key, "protocolId")) {
-                    Object value = parseProtocolIdMapping(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
-                } else if (Objects.equals(key, "executeUser")) {
-                    Object value = parseExecuteUserParamMapping(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
-                } else if (Objects.equals(key, "roundCount")) {
-                    Object value = parseRoundCountMapping(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
-                }
-            }
-            jobVo.setExecuteConfig(executeConfig);
-        }
-//        String jobNamePrefixKey = autoexecConfig.getString("jobNamePrefix");
-
-        String jobNamePrefixMappingKey = createJobConfigConfigVo.getJobNamePrefixMappingValue();
-        String jobNamePrefixValue = getJobNamePrefixValue(jobNamePrefixMappingKey, jobVo.getExecuteConfig(), jobVo.getParam());
-
-//        CreateJobConfigMappingGroupVo runnerGroupMapping = createJobConfigConfigVo.getRunnerGroupMappingGroup();
-//        ParamMappingVo runnerGroupMappingVo = parseRunnerGroupMapping(runnerGroupMapping, jobVo.getParam());
-        jobVo.setSource(AutoExecJobProcessSource.ITSM.getValue());
-        jobVo.setRoundCount(32);
-        jobVo.setOperationId(combopId);
-        jobVo.setName(jobNamePrefixValue + jobName);
-        jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
-        jobVo.setInvokeId(currentProcessTaskStepVo.getId());
-        jobVo.setRouteId(currentProcessTaskStepVo.getId().toString());
-        jobVo.setIsFirstFire(1);
-        jobVo.setAssignExecUser(SystemUser.SYSTEM.getUserUuid());
-//        jobVo.setRunnerGroup(runnerGroupMappingVo);
-        return jobVo;
-    }
-
-
-    private static Integer parseRoundCountMapping(
-            CreateJobConfigMappingGroupVo mappingGroupVo,
-            List<FormAttributeVo> formAttributeList,
-            Map<String, Object> originalFormAttributeDataMap,
-            Map<String, Object> formAttributeDataMap,
-            JSONObject processTaskParam
-    ) {
-        Integer roundCount = null;
-        List<CreateJobConfigMappingVo> mappingList = mappingGroupVo.getMappingList();
-        if (CollectionUtils.isEmpty(mappingList)) {
-            return null;
-        }
-        for (CreateJobConfigMappingVo mappingVo : mappingList) {
-            String mappingMode = mappingVo.getMappingMode();
-            Object value = mappingVo.getValue();
-            if (Objects.equals(mappingMode, "formTableComponent")) {
-                // 映射模式为表单表格组件
-
-            } else if (Objects.equals(mappingMode, "formCommonComponent")) {
-                // 映射模式为表单普通组件
-                Object obj = formAttributeDataMap.get(value);
-                roundCount = Integer.getInteger(obj.toString());
-            } else if (Objects.equals(mappingMode, "constant")) {
-                // 映射模式为常量
-                roundCount = Integer.getInteger(value.toString());
-            } else if (Objects.equals(mappingMode, "runtimeparam")) {
-                // 映射模式为作业参数，只读
-
-            }
-        }
-        return roundCount;
-    }
-
-    private static ParamMappingVo parseExecuteUserParamMapping(
-            CreateJobConfigMappingGroupVo mappingGroupVo,
-            List<FormAttributeVo> formAttributeList,
-            Map<String, Object> originalFormAttributeDataMap,
-            Map<String, Object> formAttributeDataMap,
-            JSONObject processTaskParam
-    ) {
-        List<CreateJobConfigMappingVo> mappingList = mappingGroupVo.getMappingList();
-        if (CollectionUtils.isEmpty(mappingList)) {
-            return null;
-        }
-        for (CreateJobConfigMappingVo mappingVo : mappingList) {
-            String mappingMode = mappingVo.getMappingMode();
-            Object value = mappingVo.getValue();
-            if (Objects.equals(mappingMode, "formTableComponent")) {
-                // 映射模式为表单表格组件
-
-            } else if (Objects.equals(mappingMode, "formCommonComponent")) {
-                // 映射模式为表单普通组件
-                Object obj = formAttributeDataMap.get(value);
-                if (obj != null) {
-                    ParamMappingVo paramMappingVo = new ParamMappingVo();
-                    paramMappingVo.setMappingMode("constant");
-                    paramMappingVo.setValue(obj);
-                    return paramMappingVo;
-                }
-            } else if (Objects.equals(mappingMode, "constant")) {
-                // 映射模式为常量
-                ParamMappingVo paramMappingVo = new ParamMappingVo();
-                paramMappingVo.setMappingMode("constant");
-                paramMappingVo.setValue(value);
-                return paramMappingVo;
-            } else if (Objects.equals(mappingMode, "runtimeparam")) {
-                // 映射模式为作业参数，只读
-                ParamMappingVo paramMappingVo = new ParamMappingVo();
-                paramMappingVo.setMappingMode("runtimeparam");
-                paramMappingVo.setValue(value);
-                return paramMappingVo;
-            }
-        }
-        return null;
-    }
-
-    private static Long parseProtocolIdMapping(
-            CreateJobConfigMappingGroupVo mappingGroupVo,
-            List<FormAttributeVo> formAttributeList,
-            Map<String, Object> originalFormAttributeDataMap,
-            Map<String, Object> formAttributeDataMap,
-            JSONObject processTaskParam
-    ) {
-        Long protocolId = null;
-        List<CreateJobConfigMappingVo> mappingList = mappingGroupVo.getMappingList();
-        if (CollectionUtils.isEmpty(mappingList)) {
-            return protocolId;
-        }
-        for (CreateJobConfigMappingVo mappingVo : mappingList) {
-            String mappingMode = mappingVo.getMappingMode();
-            Object value = mappingVo.getValue();
-            if (Objects.equals(mappingMode, "formTableComponent")) {
-                // 映射模式为表单表格组件
-
-            } else if (Objects.equals(mappingMode, "formCommonComponent")) {
-                // 映射模式为表单普通组件
-                Object obj = formAttributeDataMap.get(value);
-                try {
-                    protocolId = Long.valueOf(obj.toString());
-                } catch (NumberFormatException ex) {
-                    IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
-                    AccountProtocolVo protocolVo = resourceAccountCrossoverMapper.getAccountProtocolVoByProtocolName(obj.toString());
-                    if (protocolVo != null) {
-                        protocolId = protocolVo.getId();
-                    }
-                }
-            } else if (Objects.equals(mappingMode, "constant")) {
-                // 映射模式为常量
-                protocolId = Long.valueOf(value.toString());
-            } else if (Objects.equals(mappingMode, "runtimeparam")) {
-                // 映射模式为作业参数，只读
-
-            }
-        }
-        return protocolId;
-    }
-
-    private static AutoexecCombopExecuteNodeConfigVo parseExecuteNodeConfigMapping(
-            CreateJobConfigMappingGroupVo mappingGroupVo,
-            List<FormAttributeVo> formAttributeList,
-            Map<String, Object> originalFormAttributeDataMap,
-            Map<String, Object> formAttributeDataMap,
-            JSONObject processTaskParam
-    ) {
-        List<String> formTextAttributeList = new ArrayList<>();
-        formTextAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMTEXT.getHandler());
-        formTextAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMTEXTAREA.getHandler());
-        List<CreateJobConfigMappingVo> mappingList = mappingGroupVo.getMappingList();
-        if (CollectionUtils.isEmpty(mappingList)) {
-            return null;
-        }
-        for (CreateJobConfigMappingVo mappingVo : mappingList) {
-            String mappingMode = mappingVo.getMappingMode();
-            Object value = mappingVo.getValue();
-            if (Objects.equals(mappingMode, "formTableComponent")) {
-                // 映射模式为表单表格组件
-                JSONArray array = parseFormTableComponentMappingMode(mappingVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
-                if (CollectionUtils.isNotEmpty(array)) {
-                    AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = new AutoexecCombopExecuteNodeConfigVo();
-                    List<AutoexecNodeVo> inputNodeList = new ArrayList<>();
-                    for (int i = 0; i < array.size(); i++) {
-                        String str = array.getString(i);
-                        inputNodeList.add(new AutoexecNodeVo(str));
-                    }
-                    executeNodeConfigVo.setInputNodeList(inputNodeList);
-                    return executeNodeConfigVo;
-                }
-            } else if (Objects.equals(mappingMode, "formCommonComponent")) {
-                // 映射模式为表单普通组件
-                Object dataObj = formAttributeDataMap.get(value);
-                if (dataObj != null) {
-                    AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = new AutoexecCombopExecuteNodeConfigVo();
-                    String handler = null;
-                    Optional<FormAttributeVo> first = formAttributeList.stream().filter(e -> Objects.equals(e.getUuid(), value)).findFirst();
-                    if (first.isPresent()) {
-                        FormAttributeVo formAttributeVo = first.get();
-                        handler = formAttributeVo.getHandler();
-                    }
-                    if (Objects.equals(handler, FormHandler.FORMRESOURECES.getHandler())) {
-                        // 映射的表单组件是执行目标
-                        executeNodeConfigVo = ((JSONObject) dataObj).toJavaObject(AutoexecCombopExecuteNodeConfigVo.class);
-                    } else if (formTextAttributeList.contains(handler)) {
-                        // 映射的表单组件是文本框
-                        String dataStr = dataObj.toString();
-                        try {
-                            List<AutoexecNodeVo> inputNodeList = new ArrayList<>();
-                            JSONArray array = JSONArray.parseArray(dataStr);
-                            for (int j = 0; j < array.size(); j++) {
-                                String str = array.getString(j);
-                                inputNodeList.add(new AutoexecNodeVo(str));
-                            }
-                            executeNodeConfigVo.setInputNodeList(inputNodeList);
-                        } catch (JSONException e) {
-                            List<AutoexecNodeVo> inputNodeList = new ArrayList<>();
-                            inputNodeList.add(new AutoexecNodeVo(dataObj.toString()));
-                            executeNodeConfigVo.setInputNodeList(inputNodeList);
-                        }
-                    } else {
-                        // 映射的表单组件不是执行目标
-                        List<AutoexecNodeVo> inputNodeList = new ArrayList<>();
-                        inputNodeList.add(new AutoexecNodeVo(dataObj.toString()));
-                        executeNodeConfigVo.setInputNodeList(inputNodeList);
-                    }
-                    return executeNodeConfigVo;
-                }
-            } else if (Objects.equals(mappingMode, "constant")) {
-                // 映射模式为常量
-//            value;
-            } else if (Objects.equals(mappingMode, "runtimeparam")) {
-                // 映射模式为作业参数，只读
-//            if (Objects.equals(key, "executeUser")) {
-//                ParamMappingVo paramMappingVo = new ParamMappingVo();
-//                paramMappingVo.setMappingMode("runtimeparam");
-//                paramMappingVo.setValue(value);
-//                executeConfig.put(key, paramMappingVo);
-//            }
-            }
-        }
-
-        return null;
     }
 
     /**
@@ -419,6 +133,7 @@ public class ParseCreateJobConfigUtil {
     private static List<AutoexecJobVo> createBatchAutoexecJobVo(
             ProcessTaskStepVo currentProcessTaskStepVo,
             CreateJobConfigConfigVo createJobConfigConfigVo,
+            AutoexecCombopVersionVo autoexecCombopVersionVo,
             List<FormAttributeVo> formAttributeList,
             Map<String, Object> originalFormAttributeDataMap,
             Map<String, Object> formAttributeDataMap,
@@ -437,281 +152,464 @@ public class ParseCreateJobConfigUtil {
         // 遍历表格数据，创建AutoexecJobVo对象列表
         for (Object obj : tbodyList) {
             formAttributeDataMap.put(batchDataSourceMapping.getValue().toString(), Collections.singletonList(obj));
-            AutoexecJobVo jobVo = createSingleAutoexecJobVo(currentProcessTaskStepVo, createJobConfigConfigVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
+            AutoexecJobVo jobVo = createSingleAutoexecJobVo(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
             resultList.add(jobVo);
         }
         return resultList;
     }
 
     /**
-     * 获取场景ID
+     * 单次创建作业
      *
-     * @param mappingGroupVo
+     * @param currentProcessTaskStepVo
+     * @param createJobConfigConfigVo
      * @param formAttributeList
      * @param originalFormAttributeDataMap
      * @param formAttributeDataMap
      * @param processTaskParam
      * @return
      */
-    private static Long getScenarioId(CreateJobConfigMappingGroupVo mappingGroupVo,
-                               List<FormAttributeVo> formAttributeList,
-                               Map<String, Object> originalFormAttributeDataMap,
-                               Map<String, Object> formAttributeDataMap,
-                               JSONObject processTaskParam) {
-
-        String key = mappingGroupVo.getKey();
-        if (StringUtils.isBlank(key)) {
-            return null;
-        }
-        String type = mappingGroupVo.getType();
-        List<CreateJobConfigMappingVo> mappingList = mappingGroupVo.getMappingList();
-        if (CollectionUtils.isEmpty(mappingList)) {
-            return null;
-        }
-        for (CreateJobConfigMappingVo mappingVo : mappingList) {
-            Object value = mappingVo.getValue();
-            if (value == null) {
-                return null;
+    private static AutoexecJobVo createSingleAutoexecJobVo(
+            ProcessTaskStepVo currentProcessTaskStepVo,
+            CreateJobConfigConfigVo createJobConfigConfigVo,
+            AutoexecCombopVersionVo autoexecCombopVersionVo,
+            List<FormAttributeVo> formAttributeList,
+            Map<String, Object> originalFormAttributeDataMap,
+            Map<String, Object> formAttributeDataMap,
+            JSONObject processTaskParam) {
+        AutoexecJobVo jobVo = new AutoexecJobVo();
+        // 组合工具ID
+        Long combopId = createJobConfigConfigVo.getCombopId();
+        // 作业名称
+        String jobName = createJobConfigConfigVo.getJobName();
+        AutoexecCombopVersionConfigVo versionConfig = autoexecCombopVersionVo.getConfig();
+        // 场景
+        if (CollectionUtils.isNotEmpty(versionConfig.getScenarioList())) {
+            List<CreateJobConfigMappingGroupVo> scenarioParamMappingGroupList = createJobConfigConfigVo.getScenarioParamMappingGroupList();
+            if (CollectionUtils.isNotEmpty(scenarioParamMappingGroupList)) {
+                JSONArray jsonArray = parseCreateJobConfigMappingGroup(scenarioParamMappingGroupList.get(0), formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
+                Long scenarioId = getScenarioId(jsonArray);
+                jobVo.setScenarioId(scenarioId);
             }
-            Object scenario = null;
-            String mappingMode = mappingVo.getMappingMode();
-            if (Objects.equals(mappingMode, "formTableComponent")) {
-                scenario = parseFormTableComponentMappingMode(mappingVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
-            } else if (Objects.equals(mappingMode, "formCommonComponent")) {
-                scenario = formAttributeDataMap.get(value);
-            } else if (Objects.equals(mappingMode, "constant")) {
-                scenario = value;
-            }
-            if (scenario != null) {
-                if (scenario instanceof List) {
-                    List scenarioList = (List) scenario;
-                    if (CollectionUtils.isNotEmpty(scenarioList)) {
-                        scenario = scenarioList.get(0);
+        }
+        if (CollectionUtils.isNotEmpty(versionConfig.getRuntimeParamList())) {
+            // 作业参数赋值列表
+            List<CreateJobConfigMappingGroupVo> runtimeParamMappingGroupList = createJobConfigConfigVo.getJopParamMappingGroupList();
+            if (CollectionUtils.isNotEmpty(runtimeParamMappingGroupList)) {
+                JSONObject param = new JSONObject();
+                for (CreateJobConfigMappingGroupVo mappingGroupVo : runtimeParamMappingGroupList) {
+                    JSONArray jsonArray = parseCreateJobConfigMappingGroup(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
+                    if (CollectionUtils.isEmpty(jsonArray)) {
+                        continue;
                     }
+                    Object value = convertDateType(mappingGroupVo.getType(), jsonArray);
+                    param.put(mappingGroupVo.getKey(), value);
                 }
-                IAutoexecScenarioCrossoverMapper autoexecScenarioCrossoverMapper = CrossoverServiceFactory.getApi(IAutoexecScenarioCrossoverMapper.class);
-                if (scenario instanceof String) {
-                    String scenarioName = (String) scenario;
-                    AutoexecScenarioVo scenarioVo = autoexecScenarioCrossoverMapper.getScenarioByName(scenarioName);
-                    if (scenarioVo != null) {
-                        return scenarioVo.getId();
-                    } else {
-                        try {
-                            Long scenarioId = Long.valueOf(scenarioName);
-                            if (autoexecScenarioCrossoverMapper.getScenarioById(scenarioId) != null) {
-                                return scenarioId;
-                            }
-                        } catch (NumberFormatException ignored) {
+                jobVo.setParam(param);
+            }
+        }
 
+        // 目标参数赋值列表
+        Map<String, CreateJobConfigMappingGroupVo> executeParamMappingGroupMap = new HashMap<>();
+        List<CreateJobConfigMappingGroupVo> executeParamMappingGroupList = createJobConfigConfigVo.getExecuteParamMappingGroupList();
+        if (CollectionUtils.isNotEmpty(executeParamMappingGroupList)) {
+            executeParamMappingGroupMap = executeParamMappingGroupList.stream().collect(Collectors.toMap(CreateJobConfigMappingGroupVo::getKey, e -> e));
+        }
+        IAutoexecCombopCrossoverService autoexecCombopCrossoverService = CrossoverServiceFactory.getApi(IAutoexecCombopCrossoverService.class);
+        autoexecCombopCrossoverService.needExecuteConfig(autoexecCombopVersionVo);
+        // 流程图自动化节点是否需要设置执行用户，只有当有某个非runner类型的阶段，没有设置执行用户时，needExecuteUser=true
+        boolean needExecuteUser = autoexecCombopVersionVo.getNeedExecuteUser();
+        // 流程图自动化节点是否需要设置连接协议，只有当有某个非runner类型的阶段，没有设置连接协议时，needProtocol=true
+        boolean needProtocol = autoexecCombopVersionVo.getNeedProtocol();
+        // 流程图自动化节点是否需要设置执行目标，只有当有某个非runner类型的阶段，没有设置执行目标时，needExecuteNode=true
+        boolean needExecuteNode = autoexecCombopVersionVo.getNeedExecuteNode();
+        // 流程图自动化节点是否需要设置分批数量，只有当有某个非runner类型的阶段，没有设置分批数量时，needRoundCount=true
+        boolean needRoundCount = autoexecCombopVersionVo.getNeedRoundCount();
+        AutoexecCombopExecuteConfigVo combopExecuteConfig = versionConfig.getExecuteConfig();
+        AutoexecCombopExecuteConfigVo executeConfig = new AutoexecCombopExecuteConfigVo();
+        if (needExecuteNode) {
+            String whenToSpecify = combopExecuteConfig.getWhenToSpecify();
+            if (Objects.equals(CombopNodeSpecify.NOW.getValue(), whenToSpecify)) {
+                AutoexecCombopExecuteNodeConfigVo executeNodeConfig = combopExecuteConfig.getExecuteNodeConfig();
+                if (executeNodeConfig != null) {
+                    executeConfig.setExecuteNodeConfig(executeNodeConfig);
+                }
+            } else if (Objects.equals(CombopNodeSpecify.RUNTIMEPARAM.getValue(), whenToSpecify)) {
+                AutoexecCombopExecuteNodeConfigVo executeNodeConfig = combopExecuteConfig.getExecuteNodeConfig();
+                if (executeNodeConfig != null) {
+                    List<String> paramList = executeNodeConfig.getParamList();
+                    if (CollectionUtils.isNotEmpty(paramList)) {
+                        List<AutoexecNodeVo> inputNodeList = new ArrayList<>();
+                        JSONObject paramObj = jobVo.getParam();
+                        for (String paramKey : paramList) {
+                            JSONArray jsonArray = paramObj.getJSONArray(paramKey);
+                            if (CollectionUtils.isNotEmpty(jsonArray)) {
+                                List<AutoexecNodeVo> list = jsonArray.toJavaList(AutoexecNodeVo.class);
+                                inputNodeList.addAll(list);
+                            }
+                        }
+                        if (CollectionUtils.isNotEmpty(inputNodeList)) {
+                            AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = new AutoexecCombopExecuteNodeConfigVo();
+                            executeNodeConfigVo.setInputNodeList(inputNodeList);
+                            executeConfig.setExecuteNodeConfig(executeNodeConfigVo);
                         }
                     }
-                } else if (scenario instanceof Long) {
-                    Long scenarioId = (Long) scenario;
+                }
+            } else if (Objects.equals(CombopNodeSpecify.RUNTIME.getValue(), whenToSpecify)) {
+                CreateJobConfigMappingGroupVo mappingGroupVo = executeParamMappingGroupMap.get("executeNodeConfig");
+                if (mappingGroupVo != null) {
+                    JSONArray jsonArray = parseCreateJobConfigMappingGroup(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
+                    List<AutoexecNodeVo> inputNodeList = getInputNodeList(jsonArray);
+                    if (CollectionUtils.isNotEmpty(inputNodeList)) {
+                        AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = new AutoexecCombopExecuteNodeConfigVo();
+                        executeNodeConfigVo.setInputNodeList(inputNodeList);
+                        executeConfig.setExecuteNodeConfig(executeNodeConfigVo);
+                    }
+                }
+            }
+        }
+        if (needProtocol) {
+            if (combopExecuteConfig.getProtocolId() != null) {
+                executeConfig.setProtocolId(combopExecuteConfig.getProtocolId());
+            } else {
+                CreateJobConfigMappingGroupVo mappingGroupVo = executeParamMappingGroupMap.get("protocolId");
+                if (mappingGroupVo != null) {
+                    JSONArray jsonArray = parseCreateJobConfigMappingGroup(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
+                    Long protocolId = getProtocolId(jsonArray);
+                    executeConfig.setProtocolId(protocolId);
+                }
+            }
+        }
+        if (needExecuteUser) {
+            ParamMappingVo executeUserMappingVo = combopExecuteConfig.getExecuteUser();
+            if (executeUserMappingVo != null && StringUtils.isNotBlank((String) executeUserMappingVo.getValue())) {
+                executeConfig.setExecuteUser(executeUserMappingVo);
+            } else {
+                CreateJobConfigMappingGroupVo mappingGroupVo = executeParamMappingGroupMap.get("executeUser");
+                if (mappingGroupVo != null) {
+                    JSONArray jsonArray = parseCreateJobConfigMappingGroup(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
+                    String executeUser = getFirstNotBlankString(jsonArray);
+                    if (StringUtils.isNotBlank(executeUser)) {
+                        ParamMappingVo paramMappingVo = new ParamMappingVo();
+                        paramMappingVo.setMappingMode("constant");
+                        paramMappingVo.setValue(executeUser);
+                        executeConfig.setExecuteUser(paramMappingVo);
+                    }
+                }
+            }
+        }
+        if (needRoundCount) {
+            if (combopExecuteConfig.getRoundCount() != null) {
+                executeConfig.setRoundCount(combopExecuteConfig.getRoundCount());
+            } else {
+                CreateJobConfigMappingGroupVo mappingGroupVo = executeParamMappingGroupMap.get("roundCount");
+                if (mappingGroupVo != null) {
+                    JSONArray jsonArray = parseCreateJobConfigMappingGroup(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
+                    Integer roundCount = getFirstNotBlankInteger(jsonArray);
+                    if (roundCount != null) {
+                        executeConfig.setRoundCount(roundCount);
+                    }
+                }
+            }
+        }
+        jobVo.setExecuteConfig(executeConfig);
+
+        // 执行器组
+        ParamMappingVo runnerGroup = combopExecuteConfig.getRunnerGroup();
+        if (runnerGroup != null) {
+            jobVo.setRunnerGroup(runnerGroup);
+        }
+
+        String jobNamePrefixMappingValue = createJobConfigConfigVo.getJobNamePrefixMappingValue();
+        String jobNamePrefixValue = getJobNamePrefix(jobNamePrefixMappingValue, jobVo.getExecuteConfig(), jobVo.getParam());
+
+        jobVo.setSource(AutoExecJobProcessSource.ITSM.getValue());
+        jobVo.setRoundCount(32);
+        jobVo.setOperationId(combopId);
+        jobVo.setName(jobNamePrefixValue + jobName);
+        jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
+        jobVo.setInvokeId(currentProcessTaskStepVo.getId());
+        jobVo.setRouteId(currentProcessTaskStepVo.getId().toString());
+        jobVo.setIsFirstFire(1);
+        jobVo.setAssignExecUser(SystemUser.SYSTEM.getUserUuid());
+
+        return jobVo;
+    }
+
+    private static Long getScenarioId(JSONArray jsonArray) {
+        if (CollectionUtils.isEmpty(jsonArray)) {
+            return null;
+        }
+        IAutoexecScenarioCrossoverMapper autoexecScenarioCrossoverMapper = CrossoverServiceFactory.getApi(IAutoexecScenarioCrossoverMapper.class);
+        for (Object obj : jsonArray) {
+            if (obj instanceof Long) {
+                Long scenarioId = (Long) obj;
+                if (autoexecScenarioCrossoverMapper.getScenarioById(scenarioId) != null) {
+                    return scenarioId;
+                }
+            } else if (obj instanceof String) {
+                String scenario = (String) obj;
+                try {
+                    Long scenarioId = Long.valueOf(scenario);
                     if (autoexecScenarioCrossoverMapper.getScenarioById(scenarioId) != null) {
                         return scenarioId;
                     }
+                } catch (NumberFormatException ignored) {
+                    AutoexecScenarioVo scenarioVo = autoexecScenarioCrossoverMapper.getScenarioByName(scenario);
+                    if (scenarioVo != null) {
+                        return scenarioVo.getId();
+                    }
+                }
+            } else if (obj instanceof JSONArray) {
+                JSONArray array = (JSONArray) obj;
+                Long scenarioId = getScenarioId(array);
+                if (scenarioId != null) {
+                    return scenarioId;
                 }
             }
         }
         return null;
     }
 
-    /**
-     * 根据设置找到作业名称前缀值
-     *
-     * @param jobNamePrefixKey 作业名称前缀key
-     * @param executeConfig    目标参数
-     * @param param            作业参数
-     * @return 返回作业名称前缀值
-     */
-    private static String getJobNamePrefixValue2(String jobNamePrefixKey, AutoexecCombopExecuteConfigVo executeConfig, JSONObject param) {
-        String jobNamePrefixValue = StringUtils.EMPTY;
-        if (StringUtils.isBlank(jobNamePrefixKey)) {
-            return jobNamePrefixValue;
-        }
-        if (Objects.equals(jobNamePrefixKey, "executeNodeConfig")) {
-            AutoexecCombopExecuteNodeConfigVo executeNodeConfig = executeConfig.getExecuteNodeConfig();
-            List<AutoexecNodeVo> inputNodeList = executeNodeConfig.getInputNodeList();
-            List<AutoexecNodeVo> selectNodeList = executeNodeConfig.getSelectNodeList();
-            List<String> paramList = executeNodeConfig.getParamList();
-            if (CollectionUtils.isNotEmpty(inputNodeList)) {
-                List<String> list = new ArrayList<>();
-                for (AutoexecNodeVo node : inputNodeList) {
-                    list.add(node.toString());
-                }
-                jobNamePrefixValue = String.join("", list);
-            } else if (CollectionUtils.isNotEmpty(selectNodeList)) {
-                List<String> list = new ArrayList<>();
-                for (AutoexecNodeVo node : selectNodeList) {
-                    list.add(node.toString());
-                }
-                jobNamePrefixValue = String.join("", list);
-            } else if (CollectionUtils.isNotEmpty(paramList)) {
-                List<String> list = new ArrayList<>();
-                for (String paramKey : paramList) {
-                    Object value = param.get(paramKey);
-                    if (value != null) {
-                        if (value instanceof String) {
-                            list.add((String) value);
-                        } else {
-                            list.add(JSONObject.toJSONString(value));
-                        }
-                    }
-                }
-                jobNamePrefixValue = String.join("", list);
-            }
-        } else if (Objects.equals(jobNamePrefixKey, "executeUser")) {
-            ParamMappingVo executeUser = executeConfig.getExecuteUser();
-            if (executeUser != null) {
-                Object value = executeUser.getValue();
-                if (value != null) {
-                    if (Objects.equals(executeUser.getMappingMode(), "runtimeparam")) {
-                        value = param.get(value);
-                    }
-                    if (value != null) {
-                        if (value instanceof String) {
-                            jobNamePrefixValue = (String) value;
-                        } else {
-                            jobNamePrefixValue = JSONObject.toJSONString(value);
-                        }
-                    }
-                }
-            }
-        } else if (Objects.equals(jobNamePrefixKey, "protocolId")) {
-            Long protocolId = executeConfig.getProtocolId();
-            if (protocolId != null) {
-                jobNamePrefixValue = protocolId.toString();
-            }
-        } else if (Objects.equals(jobNamePrefixKey, "roundCount")) {
-            Integer roundCount = executeConfig.getRoundCount();
-            if (roundCount != null) {
-                jobNamePrefixValue = roundCount.toString();
-            }
-        } else {
-            Object jobNamePrefixObj = param.get(jobNamePrefixKey);
-            if (jobNamePrefixObj instanceof String) {
-                jobNamePrefixValue = (String) jobNamePrefixObj;
-            } else {
-                jobNamePrefixValue = JSONObject.toJSONString(jobNamePrefixObj);
-            }
-        }
-        if (StringUtils.isBlank(jobNamePrefixValue)) {
-            return StringUtils.EMPTY;
-        } else if (jobNamePrefixValue.length() > 32) {
-            return jobNamePrefixValue.substring(0, 32);
-        }
-        return jobNamePrefixValue;
-    }
-
-    /**
-     * 根据设置找到作业名称前缀值
-     *
-     * @param jobNamePrefixKey 作业名称前缀key
-     * @param executeConfig    目标参数
-     * @param param            作业参数
-     * @return 返回作业名称前缀值
-     */
-    private static String getJobNamePrefixValue(String jobNamePrefixKey, AutoexecCombopExecuteConfigVo executeConfig, JSONObject param) {
-        String jobNamePrefixValue = StringUtils.EMPTY;
-        if (StringUtils.isBlank(jobNamePrefixKey)) {
-            return jobNamePrefixValue;
-        }
-        if (Objects.equals(jobNamePrefixKey, "executeNodeConfig")) {
-            AutoexecCombopExecuteNodeConfigVo executeNodeConfig = executeConfig.getExecuteNodeConfig();
-            List<AutoexecNodeVo> inputNodeList = executeNodeConfig.getInputNodeList();
-            List<AutoexecNodeVo> selectNodeList = executeNodeConfig.getSelectNodeList();
-            List<String> paramList = executeNodeConfig.getParamList();
-            if (CollectionUtils.isNotEmpty(inputNodeList)) {
-                List<String> list = new ArrayList<>();
-                for (AutoexecNodeVo node : inputNodeList) {
-                    list.add(node.toString());
-                }
-                jobNamePrefixValue = String.join("", list);
-            } else if (CollectionUtils.isNotEmpty(selectNodeList)) {
-                List<String> list = new ArrayList<>();
-                for (AutoexecNodeVo node : selectNodeList) {
-                    list.add(node.toString());
-                }
-                jobNamePrefixValue = String.join("", list);
-            } else if (CollectionUtils.isNotEmpty(paramList)) {
-                List<String> list = new ArrayList<>();
-                for (String paramKey : paramList) {
-                    Object value = param.get(paramKey);
-                    if (value != null) {
-                        if (value instanceof String) {
-                            list.add((String) value);
-                        } else {
-                            list.add(JSONObject.toJSONString(value));
-                        }
-                    }
-                }
-                jobNamePrefixValue = String.join("", list);
-            }
-        } else if (Objects.equals(jobNamePrefixKey, "executeUser")) {
-            ParamMappingVo executeUser = executeConfig.getExecuteUser();
-            if (executeUser != null) {
-                Object value = executeUser.getValue();
-                if (value != null) {
-                    if (Objects.equals(executeUser.getMappingMode(), "runtimeparam")) {
-                        value = param.get(value);
-                    }
-                    if (value != null) {
-                        if (value instanceof String) {
-                            jobNamePrefixValue = (String) value;
-                        } else {
-                            jobNamePrefixValue = JSONObject.toJSONString(value);
-                        }
-                    }
-                }
-            }
-        } else if (Objects.equals(jobNamePrefixKey, "protocolId")) {
-            Long protocolId = executeConfig.getProtocolId();
-            if (protocolId != null) {
-                jobNamePrefixValue = protocolId.toString();
-            }
-        } else if (Objects.equals(jobNamePrefixKey, "roundCount")) {
-            Integer roundCount = executeConfig.getRoundCount();
-            if (roundCount != null) {
-                jobNamePrefixValue = roundCount.toString();
-            }
-        } else {
-            Object jobNamePrefixObj = param.get(jobNamePrefixKey);
-            if (jobNamePrefixObj instanceof String) {
-                jobNamePrefixValue = (String) jobNamePrefixObj;
-            } else {
-                jobNamePrefixValue = JSONObject.toJSONString(jobNamePrefixObj);
-            }
-        }
-        if (StringUtils.isBlank(jobNamePrefixValue)) {
-            return StringUtils.EMPTY;
-        } else if (jobNamePrefixValue.length() > 32) {
-            return jobNamePrefixValue.substring(0, 32);
-        }
-        return jobNamePrefixValue;
-    }
-
-    private static Object parseRuntimeParamMapping(CreateJobConfigMappingGroupVo mappingGroupVo,
-                                            List<FormAttributeVo> formAttributeList,
-                                            Map<String, Object> originalFormAttributeDataMap,
-                                            Map<String, Object> formAttributeDataMap,
-                                            JSONObject processTaskParam) {
-        List<String> formSelectAttributeList = new ArrayList<>();
-        formSelectAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMSELECT.getHandler());
-        formSelectAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMCHECKBOX.getHandler());
-        formSelectAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMRADIO.getHandler());
-        List<String> formTextAttributeList = new ArrayList<>();
-        formTextAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMTEXT.getHandler());
-        formTextAttributeList.add(neatlogic.framework.form.constvalue.FormHandler.FORMTEXTAREA.getHandler());
-        String key = mappingGroupVo.getKey();
-        if (StringUtils.isBlank(key)) {
+    private static Long getProtocolId(JSONArray jsonArray) {
+        if (CollectionUtils.isEmpty(jsonArray)) {
             return null;
         }
-        String type = mappingGroupVo.getType();
+        IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
+        for (Object obj : jsonArray) {
+            if (obj instanceof Long) {
+                Long protocolId = (Long) obj;
+                AccountProtocolVo accountProtocolVo = resourceAccountCrossoverMapper.getAccountProtocolVoByProtocolId(protocolId);
+                if (accountProtocolVo != null) {
+                    return protocolId;
+                }
+            } else if (obj instanceof String) {
+                String protocol = (String) obj;
+                try {
+                    Long protocolId = Long.valueOf(protocol);
+                    AccountProtocolVo accountProtocolVo = resourceAccountCrossoverMapper.getAccountProtocolVoByProtocolId(protocolId);
+                    if (accountProtocolVo != null) {
+                        return protocolId;
+                    }
+                } catch (NumberFormatException ex) {
+                    AccountProtocolVo accountProtocolVo = resourceAccountCrossoverMapper.getAccountProtocolVoByProtocolName(protocol);
+                    if (accountProtocolVo != null) {
+                        return accountProtocolVo.getId();
+                    }
+                }
+            } else if (obj instanceof JSONArray) {
+                JSONArray array = (JSONArray) obj;
+                Long protocolId = getProtocolId(array);
+                if (protocolId != null) {
+                    return protocolId;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static Long getAccountId(JSONArray jsonArray) {
+        if (CollectionUtils.isEmpty(jsonArray)) {
+            return null;
+        }
+        IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
+        for (Object obj : jsonArray) {
+            if (obj instanceof Long) {
+                Long accountId = (Long) obj;
+                AccountVo accountVo = resourceAccountCrossoverMapper.getAccountById(accountId);
+                if (accountVo != null) {
+                    return accountId;
+                }
+            } else if (obj instanceof String) {
+                String account = (String) obj;
+                try {
+                    Long accountId = Long.valueOf(account);
+                    AccountVo accountVo = resourceAccountCrossoverMapper.getAccountById(accountId);
+                    if (accountVo != null) {
+                        return accountId;
+                    }
+                } catch (NumberFormatException ex) {
+                    AccountVo accountVo = resourceAccountCrossoverMapper.getPublicAccountByName(account);
+                    if (accountVo != null) {
+                        return accountVo.getId();
+                    }
+                }
+            } else if (obj instanceof JSONArray) {
+                JSONArray array = (JSONArray) obj;
+                Long accountId = getAccountId(array);
+                if (accountId != null) {
+                    return accountId;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static List<AutoexecNodeVo> getInputNodeList(JSONArray jsonArray) {
+        List<AutoexecNodeVo> resultList = new ArrayList<>();
+        if (CollectionUtils.isEmpty(jsonArray)) {
+            return resultList;
+        }
+        for (Object obj : jsonArray) {
+            if (obj instanceof String) {
+                String str = (String) obj;
+                if (str.startsWith("{") && str.endsWith("}")) {
+                    JSONObject jsonObj = JSON.parseObject(str);
+                    String ip = jsonObj.getString("ip");
+                    if (StringUtils.isNotBlank(ip)) {
+                        Long id = jsonObj.getLong("id");
+                        Integer port = jsonObj.getInteger("port");
+                        String name = jsonObj.getString("name");
+                        AutoexecNodeVo autoexecNodeVo = new AutoexecNodeVo();
+                        autoexecNodeVo.setIp(ip);
+                        if (id != null) {
+                            autoexecNodeVo.setId(id);
+                        }
+                        if (port != null) {
+                            autoexecNodeVo.setPort(port);
+                        }
+                        if (StringUtils.isNotBlank(name)) {
+                            autoexecNodeVo.setName(name);
+                        }
+                        resultList.add(autoexecNodeVo);
+                    }
+                } else if (str.startsWith("[") && str.endsWith("]")) {
+                    JSONArray array = JSON.parseArray(str);
+                    List<AutoexecNodeVo> list = getInputNodeList(array);
+                    if (CollectionUtils.isNotEmpty(list)) {
+                        resultList.addAll(list);
+                    }
+                } else if (str.contains("\n")) {
+                    String[] split = str.split("\n");
+                    for (String e : split) {
+                        resultList.add(new AutoexecNodeVo(e));
+                    }
+                } else {
+                    resultList.add(new AutoexecNodeVo(str));
+                }
+            } else if (obj instanceof JSONObject) {
+                JSONObject jsonObj = (JSONObject) obj;
+                String ip = jsonObj.getString("ip");
+                if (StringUtils.isNotBlank(ip)) {
+                    Integer port = jsonObj.getInteger("port");
+                    String name = jsonObj.getString("name");
+                    AutoexecNodeVo autoexecNodeVo = new AutoexecNodeVo();
+                    autoexecNodeVo.setIp(ip);
+                    if (port != null) {
+                        autoexecNodeVo.setPort(port);
+                    }
+                    if (StringUtils.isNotBlank(name)) {
+                        autoexecNodeVo.setName(name);
+                    }
+                }
+            } else if (obj instanceof JSONArray) {
+                JSONArray array = (JSONArray) obj;
+                List<AutoexecNodeVo> list = getInputNodeList(array);
+                if (CollectionUtils.isNotEmpty(list)) {
+                    resultList.addAll(list);
+                }
+            }
+        }
+        return resultList;
+    }
+
+    /**
+     * 根据设置找到作业名称前缀值
+     *
+     * @param jobNamePrefixMappingValue 作业名称前缀映射值
+     * @param executeConfig    目标参数
+     * @param param            作业参数
+     * @return 返回作业名称前缀值
+     */
+    private static String getJobNamePrefix(String jobNamePrefixMappingValue, AutoexecCombopExecuteConfigVo executeConfig, JSONObject param) {
+        String jobNamePrefixValue = StringUtils.EMPTY;
+        if (StringUtils.isBlank(jobNamePrefixMappingValue)) {
+            return jobNamePrefixValue;
+        }
+        if (Objects.equals(jobNamePrefixMappingValue, "executeNodeConfig")) {
+            AutoexecCombopExecuteNodeConfigVo executeNodeConfig = executeConfig.getExecuteNodeConfig();
+            List<AutoexecNodeVo> inputNodeList = executeNodeConfig.getInputNodeList();
+            List<AutoexecNodeVo> selectNodeList = executeNodeConfig.getSelectNodeList();
+            List<String> paramList = executeNodeConfig.getParamList();
+            if (CollectionUtils.isNotEmpty(inputNodeList)) {
+                List<String> list = new ArrayList<>();
+                for (AutoexecNodeVo node : inputNodeList) {
+                    list.add(node.toString());
+                }
+                jobNamePrefixValue = String.join("", list);
+            } else if (CollectionUtils.isNotEmpty(selectNodeList)) {
+                List<String> list = new ArrayList<>();
+                for (AutoexecNodeVo node : selectNodeList) {
+                    list.add(node.toString());
+                }
+                jobNamePrefixValue = String.join("", list);
+            } else if (CollectionUtils.isNotEmpty(paramList)) {
+                List<String> list = new ArrayList<>();
+                for (String paramKey : paramList) {
+                    Object value = param.get(paramKey);
+                    if (value != null) {
+                        if (value instanceof String) {
+                            list.add((String) value);
+                        } else {
+                            list.add(JSONObject.toJSONString(value));
+                        }
+                    }
+                }
+                jobNamePrefixValue = String.join("", list);
+            }
+        } else if (Objects.equals(jobNamePrefixMappingValue, "executeUser")) {
+            ParamMappingVo executeUser = executeConfig.getExecuteUser();
+            if (executeUser != null) {
+                Object value = executeUser.getValue();
+                if (value != null) {
+                    if (Objects.equals(executeUser.getMappingMode(), "runtimeparam")) {
+                        value = param.get(value);
+                    }
+                    if (value != null) {
+                        if (value instanceof String) {
+                            jobNamePrefixValue = (String) value;
+                        } else {
+                            jobNamePrefixValue = JSONObject.toJSONString(value);
+                        }
+                    }
+                }
+            }
+        } else if (Objects.equals(jobNamePrefixMappingValue, "protocolId")) {
+            Long protocolId = executeConfig.getProtocolId();
+            if (protocolId != null) {
+                jobNamePrefixValue = protocolId.toString();
+            }
+        } else if (Objects.equals(jobNamePrefixMappingValue, "roundCount")) {
+            Integer roundCount = executeConfig.getRoundCount();
+            if (roundCount != null) {
+                jobNamePrefixValue = roundCount.toString();
+            }
+        } else {
+            Object jobNamePrefixObj = param.get(jobNamePrefixMappingValue);
+            if (jobNamePrefixObj instanceof String) {
+                jobNamePrefixValue = (String) jobNamePrefixObj;
+            } else {
+                jobNamePrefixValue = JSONObject.toJSONString(jobNamePrefixObj);
+            }
+        }
+        if (StringUtils.isBlank(jobNamePrefixValue)) {
+            return StringUtils.EMPTY;
+        } else if (jobNamePrefixValue.length() > 32) {
+            return jobNamePrefixValue.substring(0, 32);
+        }
+        return jobNamePrefixValue;
+    }
+
+    private static JSONArray parseCreateJobConfigMappingGroup(CreateJobConfigMappingGroupVo mappingGroupVo,
+                                                              List<FormAttributeVo> formAttributeList,
+                                                              Map<String, Object> originalFormAttributeDataMap,
+                                                              Map<String, Object> formAttributeDataMap,
+                                                              JSONObject processTaskParam) {
+        JSONArray resultList = new JSONArray();
         List<CreateJobConfigMappingVo> mappingList = mappingGroupVo.getMappingList();
         if (CollectionUtils.isEmpty(mappingList)) {
-            return null;
+            return resultList;
         }
-        JSONArray resultList = new JSONArray();
         for (CreateJobConfigMappingVo mappingVo : mappingList) {
             Object value = mappingVo.getValue();
             if (value == null) {
@@ -721,23 +619,7 @@ public class ParseCreateJobConfigUtil {
             if (Objects.equals(mappingMode, "formTableComponent")) {
                 resultList.add(parseFormTableComponentMappingMode(mappingVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam));
             } else if (Objects.equals(mappingMode, "formCommonComponent")) {
-                Object obj = formAttributeDataMap.get(value);
-                if (obj != null) {
-                    String handler = null;
-                    FormAttributeVo formAttributeVo = getFormAttributeVo(formAttributeList, value.toString());
-                    if (formAttributeVo != null) {
-                        handler = formAttributeVo.getHandler();
-                    }
-                    if (formTextAttributeList.contains(handler)) {
-                        resultList.add(convertDateType(type, (String) obj));
-                    } else if (formSelectAttributeList.contains(handler)) {
-                        if (obj instanceof String) {
-                            resultList.add(convertDateType(type, (String) obj));
-                        } else if (obj instanceof JSONArray) {
-                            resultList.add(convertDateType(type, JSONObject.toJSONString(obj)));
-                        }
-                    }
-                }
+                resultList.add(formAttributeDataMap.get(value));
             } else if (Objects.equals(mappingMode, "constant")) {
                 resultList.add(value);
             } else if (Objects.equals(mappingMode, "processTaskParam")) {
@@ -747,9 +629,6 @@ public class ParseCreateJobConfigUtil {
                     resultList.add(parseExpression((JSONArray) value, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam));
                 }
             }
-        }
-        if (mappingList.size() == 1) {
-            return resultList.get(0);
         }
         return resultList;
     }
@@ -874,7 +753,7 @@ public class ParseCreateJobConfigUtil {
                         newRowData.put(key, entry.getValue());
                     }
                 }
-                if (!derivedTableDataList.contains(newRowData)) {// TODO 这里需要验证HashMap的equals方法
+                if (!derivedTableDataList.contains(newRowData)) {
                     derivedTableDataList.add(newRowData);
                 }
             }
@@ -956,7 +835,7 @@ public class ParseCreateJobConfigUtil {
      * 获取表单表格组件的数据
      * @param formAttributeList
      * @param originalFormAttributeDataMap
-     * @param attributeUuid
+     * @param attributeKey
      * @return
      */
     @SuppressWarnings("unchecked")
@@ -964,13 +843,13 @@ public class ParseCreateJobConfigUtil {
             List<FormAttributeVo> formAttributeList,
             Map<String, Object> originalFormAttributeDataMap,
             Map<String, Object> formAttributeDataMap,
-            String attributeUuid) {
+            String attributeKey) {
         List<JSONObject> resultList = new ArrayList<>();
-        Object object = formAttributeDataMap.get(attributeUuid);
+        Object object = formAttributeDataMap.get(attributeKey);
         if (object != null) {
             return (List<JSONObject>) object;
         }
-        Object obj = originalFormAttributeDataMap.get(attributeUuid);
+        Object obj = originalFormAttributeDataMap.get(attributeKey);
         if (obj == null) {
             return resultList;
         }
@@ -983,19 +862,21 @@ public class ParseCreateJobConfigUtil {
         }
 
         for (int i = 0; i < array.size(); i++) {
-            JSONObject newJsonObj = array.getJSONObject(i);
+            JSONObject newJsonObj = new JSONObject();
             JSONObject jsonObj = array.getJSONObject(i);
             for (Map.Entry<String, Object> entry : jsonObj.entrySet()) {
                 String key = entry.getKey();
                 Object value = entry.getValue();
-                FormAttributeVo formAttributeVo = getFormAttributeVo(formAttributeList, key);
-                if (formAttributeVo != null) {
-                    IFormAttributeDataConversionHandler handler = FormAttributeDataConversionHandlerFactory.getHandler(formAttributeVo.getHandler());
+                FormAttributeVo formAttributeVo2 = getFormAttributeVo(formAttributeList, key);
+                if (formAttributeVo2 != null) {
+                    IFormAttributeDataConversionHandler handler = FormAttributeDataConversionHandlerFactory.getHandler(formAttributeVo2.getHandler());
                     if (handler != null) {
                         value = handler.getSimpleValue(value);
                     }
+                    newJsonObj.put(formAttributeVo2.getKey(), value);
+                } else {
+                    newJsonObj.put(key, value);
                 }
-                newJsonObj.put(key, value);
             }
             resultList.add(newJsonObj);
         }
@@ -1007,6 +888,22 @@ public class ParseCreateJobConfigUtil {
             for (FormAttributeVo formAttributeVo : formAttributeList) {
                 if (Objects.equals(formAttributeVo.getUuid(), uuid)) {
                     return formAttributeVo;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static FormAttributeVo getFormAttributeVoByKeyAndParentUuid(List<FormAttributeVo> formAttributeList, String key, String parentUuid) {
+        if (CollectionUtils.isNotEmpty(formAttributeList)) {
+            for (FormAttributeVo formAttributeVo : formAttributeList) {
+                if (Objects.equals(formAttributeVo.getKey(), key)) {
+                    if (parentUuid == null) {
+                        return formAttributeVo;
+                    }
+                    if (formAttributeVo.getParent() != null && Objects.equals(formAttributeVo.getParent().getUuid(), parentUuid)) {
+                        return formAttributeVo;
+                    }
                 }
             }
         }
@@ -1066,53 +963,218 @@ public class ParseCreateJobConfigUtil {
      * 把表单表格组件中某列数据集合转换成作业参数对应的数据
      *
      * @param paramType  作业参数类型
-     * @param sourceList 某列数据集合
+     * @param jsonArray 某列数据集合
      * @return
      */
-    private static Object convertDateType(String paramType, List<String> sourceList) {
-        if (Objects.equals(paramType, ParamType.NODE.getValue())) {
-            if (CollectionUtils.isNotEmpty(sourceList)) {
-                JSONArray inputNodeList = new JSONArray();
-                for (String str : sourceList) {
-                    if (StringUtils.isNotBlank(str)) {
-                        JSONArray inputNodeArray = (JSONArray) convertDateType(paramType, str);
-                        inputNodeList.addAll(inputNodeArray);
-                    }
-                }
-                return inputNodeList;
-            }
+    private static Object convertDateType(String paramType, JSONArray jsonArray) {
+        if (CollectionUtils.isEmpty(jsonArray)) {
+            return null;
         }
-        return sourceList;
-    }
-
-    /**
-     * 把表单文本框组件数据转换成作业参数对应的数据
-     *
-     * @param paramType 作业参数类型
-     * @param source    数据
-     * @return Object
-     */
-    private static Object convertDateType(String paramType, String source) {
-        if (Objects.equals(paramType, ParamType.NODE.getValue())) {
-            if (StringUtils.isNotBlank(source)) {
-                JSONArray inputNodeList = new JSONArray();
-                if (source.startsWith("[") && source.endsWith("]")) {
-                    JSONArray array = JSON.parseArray(source);
-                    for (int i = 0; i < array.size(); i++) {
-                        String str = array.getString(i);
-                        inputNodeList.add(new AutoexecNodeVo(str));
-                    }
-                } else if (source.contains("\n")) {
-                    String[] split = source.split("\n");
-                    for (String str : split) {
-                        inputNodeList.add(new AutoexecNodeVo(str));
+        if (Objects.equals(paramType, ParamType.TEXT.getValue())) {
+            return String.join(",", getStringList(jsonArray));
+        } else if (Objects.equals(paramType, ParamType.PASSWORD.getValue())) {
+            return String.join(",", getStringList(jsonArray));
+        } else if (Objects.equals(paramType, ParamType.FILE.getValue())) {
+            // 多选
+            return jsonArray;
+        } else if (Objects.equals(paramType, ParamType.DATE.getValue())) {
+            return getFirstNotBlankString(jsonArray);
+        } else if (Objects.equals(paramType, ParamType.DATETIME.getValue())) {
+            return getFirstNotBlankString(jsonArray);
+        } else if (Objects.equals(paramType, ParamType.TIME.getValue())) {
+            return getFirstNotBlankString(jsonArray);
+        } else if (Objects.equals(paramType, ParamType.JSON.getValue())) {
+            if (jsonArray.size() == 1) {
+                return jsonArray.get(0);
+            } else {
+                return jsonArray;
+            }
+        } else if (Objects.equals(paramType, ParamType.SELECT.getValue())) {
+            return getFirstNotNullObject(jsonArray);
+        } else if (Objects.equals(paramType, ParamType.MULTISELECT.getValue())) {
+            return getObjectList(jsonArray);
+        } else if (Objects.equals(paramType, ParamType.RADIO.getValue())) {
+            return getFirstNotNullObject(jsonArray);
+        } else if (Objects.equals(paramType, ParamType.CHECKBOX.getValue())) {
+            return getObjectList(jsonArray);
+        } else if (Objects.equals(paramType, ParamType.NODE.getValue())) {
+            return getInputNodeList(jsonArray);
+        } else if (Objects.equals(paramType, ParamType.ACCOUNT.getValue())) {
+            // 账号id，单选
+            return getAccountId(jsonArray);
+        } else if (Objects.equals(paramType, ParamType.USERSELECT.getValue())) {
+            // 单选或多选都是数组
+            List<String> resultList = new ArrayList<>();
+            for (Object obj : jsonArray) {
+                if (obj == null) {
+                    continue;
+                }
+                if (obj instanceof JSONArray) {
+                    JSONArray array = (JSONArray) obj;
+                    for (Object obj2 : array) {
+                        String str = obj2.toString();
+                        if (str.length() == 37) {
+                            if (str.startsWith(GroupSearch.USER.getValuePlugin())
+                                    || str.startsWith(GroupSearch.TEAM.getValuePlugin())
+                                    || str.startsWith(GroupSearch.ROLE.getValuePlugin())) {
+                                resultList.add(str);
+                            }
+                        }
                     }
                 } else {
-                    inputNodeList.add(new AutoexecNodeVo(source));
+                    String str = obj.toString();
+                    if (str.length() == 37) {
+                        if (str.startsWith(GroupSearch.USER.getValuePlugin())
+                                || str.startsWith(GroupSearch.TEAM.getValuePlugin())
+                                || str.startsWith(GroupSearch.ROLE.getValuePlugin())) {
+                            resultList.add(str);
+                        }
+                    }
                 }
-                return inputNodeList;
+            }
+            return resultList;
+        } else if (Objects.equals(paramType, ParamType.TEXTAREA.getValue())) {
+            return String.join(",", getStringList(jsonArray));
+        } else if (Objects.equals(paramType, ParamType.PHASE.getValue())) {
+            // 阶段名称，单选
+            return getFirstNotBlankString(jsonArray);
+        } else if (Objects.equals(paramType, ParamType.SWITCH.getValue())) {
+            // true或false
+            Boolean bool = getFirstNotNullBoolean(jsonArray);
+            if (Boolean.TRUE == bool) {
+                return Boolean.TRUE;
+            } else {
+                return Boolean.FALSE;
+            }
+        } else if (Objects.equals(paramType, ParamType.FILEPATH.getValue())) {
+            return getFirstNotBlankString(jsonArray);
+        } else if (Objects.equals(paramType, ParamType.RUNNERGROUP.getValue())) {
+            // 组id，单选
+            return getFirstNotNullObject(jsonArray);
+        }
+        return null;
+    }
+
+    private static List<String> getStringList(JSONArray jsonArray) {
+        List<String> resultList = new ArrayList<>();
+        for (Object obj : jsonArray) {
+            if (obj == null) {
+                continue;
+            }
+            if (obj instanceof JSONArray) {
+                JSONArray array = (JSONArray) obj;
+                resultList.addAll(getStringList(array));
+            } else {
+                resultList.add(obj.toString());
             }
         }
-        return source;
+        return resultList;
+    }
+
+    private static List<Object> getObjectList(JSONArray jsonArray) {
+        List<Object> resultList = new ArrayList<>();
+        for (Object obj : jsonArray) {
+            if (obj == null) {
+                continue;
+            }
+            if (obj instanceof JSONArray) {
+                JSONArray array = (JSONArray) obj;
+                resultList.addAll(getObjectList(array));
+            } else {
+                resultList.add(obj);
+            }
+        }
+        return resultList;
+    }
+
+    private static Integer getFirstNotBlankInteger(JSONArray jsonArray) {
+        for (Object obj : jsonArray) {
+            if (obj == null) {
+                continue;
+            }
+            if (obj instanceof JSONArray) {
+                JSONArray array = (JSONArray) obj;
+                Integer integer = getFirstNotBlankInteger(array);
+                if (integer != null) {
+                    return integer;
+                }
+            } else if (obj instanceof Integer) {
+                return (Integer) obj;
+            } else {
+                String str = obj.toString();
+                if (StringUtils.isNotBlank(str)) {
+                    try {
+                        return Integer.valueOf(str);
+                    } catch (NumberFormatException e) {
+
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
+    private static String getFirstNotBlankString(JSONArray jsonArray) {
+        for (Object obj : jsonArray) {
+            if (obj == null) {
+                continue;
+            }
+            if (obj instanceof JSONArray) {
+                JSONArray array = (JSONArray) obj;
+                String str = getFirstNotBlankString(array);
+                if (StringUtils.isNotBlank(str)) {
+                    return str;
+                }
+            } else {
+                String str = obj.toString();
+                if (StringUtils.isNotBlank(str)) {
+                    return str;
+                }
+            }
+        }
+        return null;
+    }
+
+    private static Object getFirstNotNullObject(JSONArray jsonArray) {
+        for (Object obj : jsonArray) {
+            if (obj == null) {
+                continue;
+            }
+            if (obj instanceof JSONArray) {
+                JSONArray array = (JSONArray) obj;
+                Object obj2 = getFirstNotNullObject(array);
+                if (obj2 != null) {
+                    return obj2;
+                }
+            } else {
+                return obj;
+            }
+        }
+        return null;
+    }
+
+    private static Boolean getFirstNotNullBoolean(JSONArray jsonArray) {
+        for (Object obj : jsonArray) {
+            if (obj == null) {
+                continue;
+            }
+            if (obj instanceof JSONArray) {
+                JSONArray array = (JSONArray) obj;
+                Boolean bool = getFirstNotNullBoolean(array);
+                if (bool != null) {
+                    return bool;
+                }
+            } else if (obj instanceof Boolean) {
+                return (Boolean) obj;
+            } else {
+                String str = obj.toString();
+                if (Objects.equals(str, Boolean.TRUE.toString())) {
+                    return Boolean.TRUE;
+                } else if (Objects.equals(str, Boolean.FALSE.toString())) {
+                    return Boolean.FALSE;
+                }
+            }
+        }
+        return null;
     }
 }
