@@ -17,10 +17,8 @@
 
 package neatlogic.module.autoexec.api.process;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
-import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecCombopActiveVersionNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecCombopVersionNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
@@ -32,6 +30,7 @@ import neatlogic.framework.restful.annotation.Param;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
+import neatlogic.module.autoexec.process.dto.AutoexecJobBuilder;
 import neatlogic.module.autoexec.process.dto.CreateJobConfigConfigVo;
 import neatlogic.module.autoexec.process.util.CreateJobConfigUtil;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
@@ -75,29 +74,10 @@ public class CreateJobStepTestApi extends PrivateApiComponentBase {
         if (autoexecCombopVersionVo == null) {
             throw new AutoexecCombopVersionNotFoundException(activeVersionId);
         }
-        List<AutoexecJobVo> autoexecJobList = CreateJobConfigUtil.createAutoexecJobList(processTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo);
-        JSONArray jobArray = new JSONArray();
-        for (AutoexecJobVo jobVo : autoexecJobList) {
-            JSONObject jobObj = new JSONObject();
-            jobObj.put("param", jobVo.getParam());
-            jobObj.put("scenarioId", jobVo.getScenarioId());
-            jobObj.put("executeConfig", jobVo.getExecuteConfig());
-            jobObj.put("runnerGroup", jobVo.getRunnerGroup());
-            jobObj.put("id", jobVo.getId());
-            jobObj.put("name", jobVo.getName());
-            jobObj.put("source", jobVo.getSource());
-            jobObj.put("roundCount", jobVo.getRoundCount());
-            jobObj.put("operationId", jobVo.getOperationId());
-            jobObj.put("operationType", jobVo.getOperationType());
-            jobObj.put("invokeId", jobVo.getInvokeId());
-            jobObj.put("routeId", jobVo.getRouteId());
-            jobObj.put("isFirstFire", jobVo.getIsFirstFire());
-            jobObj.put("assignExecUser", jobVo.getAssignExecUser());
-            jobArray.add(jobObj);
-        }
-        System.out.println("autoexecJobList = " + jobArray.toJSONString());
+        List<AutoexecJobBuilder> builderList = CreateJobConfigUtil.createAutoexecJobBuilderList(processTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo);
+        System.out.println("builderList = " + JSONObject.toJSONString(builderList));
         JSONObject resultObj = new JSONObject();
-        resultObj.put("autoexecJobList", jobArray);
+        resultObj.put("builderList", builderList);
         return resultObj;
     }
 

@@ -43,6 +43,7 @@ import neatlogic.framework.process.stephandler.core.ProcessStepThread;
 import neatlogic.module.autoexec.constvalue.FailPolicy;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.process.constvalue.CreateJobProcessStepHandlerType;
+import neatlogic.module.autoexec.process.dto.AutoexecJobBuilder;
 import neatlogic.module.autoexec.process.dto.CreateJobConfigConfigVo;
 import neatlogic.module.autoexec.process.dto.CreateJobConfigVo;
 import neatlogic.module.autoexec.process.util.CreateJobConfigUtil;
@@ -167,7 +168,7 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
             if (CollectionUtils.isEmpty(configList)) {
                 return 0;
             }
-            List<AutoexecJobVo> jobList = new ArrayList<>();
+            List<AutoexecJobBuilder> builderList = new ArrayList<>();
             for (CreateJobConfigConfigVo createJobConfigConfigVo : configList) {
                 if (createJobConfigConfigVo == null) {
                     continue;
@@ -180,33 +181,19 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                 if (autoexecCombopVersionVo == null) {
                     throw new AutoexecCombopVersionNotFoundException(activeVersionId);
                 }
-                // 根据配置信息创建AutoexecJobVo对象
-                List<AutoexecJobVo> list = CreateJobConfigUtil.createAutoexecJobList(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo);
-                for (AutoexecJobVo jobVo : list) {
-                    JSONObject jobObj = new JSONObject();
-                    jobObj.put("param", jobVo.getParam());
-                    jobObj.put("scenarioId", jobVo.getScenarioId());
-                    jobObj.put("executeConfig", jobVo.getExecuteConfig());
-                    jobObj.put("runnerGroup", jobVo.getRunnerGroup());
-                    jobObj.put("id", jobVo.getId());
-                    jobObj.put("name", jobVo.getName());
-                    jobObj.put("source", jobVo.getSource());
-                    jobObj.put("roundCount", jobVo.getRoundCount());
-                    jobObj.put("operationId", jobVo.getOperationId());
-                    jobObj.put("operationType", jobVo.getOperationType());
-                    jobObj.put("invokeId", jobVo.getInvokeId());
-                    jobObj.put("routeId", jobVo.getRouteId());
-                    jobObj.put("isFirstFire", jobVo.getIsFirstFire());
-                    jobObj.put("assignExecUser", jobVo.getAssignExecUser());
-                    System.out.println("jobObj = " + jobObj);
+                // 根据配置信息创建AutoexecJobBuilder对象
+                List<AutoexecJobBuilder> list = CreateJobConfigUtil.createAutoexecJobBuilderList(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo);
+                for (AutoexecJobBuilder builder : list) {
+                    System.out.println("builder = " + JSON.toJSONString(builder));
                 }
-                jobList.addAll(list);
+                builderList.addAll(list);
 
             }
             JSONArray errorMessageList = new JSONArray();
             boolean flag = false;
             List<Long> jobIdList = new ArrayList<>();
-            for (AutoexecJobVo jobVo : jobList) {
+            for (AutoexecJobBuilder builder : builderList) {
+                AutoexecJobVo jobVo = builder.build();
                 try {
                     autoexecJobActionService.validateCreateJob(jobVo);
                     autoexecJobMapper.insertAutoexecJobProcessTaskStep(jobVo.getId(), currentProcessTaskStepVo.getId());
@@ -214,26 +201,11 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                 } catch (Exception e) {
                     // 增加提醒
                     logger.error(e.getMessage(), e);
-                    JSONObject jobObj = new JSONObject();
-                    jobObj.put("param", jobVo.getParam());
-                    jobObj.put("scenarioId", jobVo.getScenarioId());
-                    jobObj.put("executeConfig", jobVo.getExecuteConfig());
-                    jobObj.put("runnerGroup", jobVo.getRunnerGroup());
-                    jobObj.put("id", jobVo.getId());
-                    jobObj.put("name", jobVo.getName());
-                    jobObj.put("source", jobVo.getSource());
-                    jobObj.put("roundCount", jobVo.getRoundCount());
-                    jobObj.put("operationId", jobVo.getOperationId());
-                    jobObj.put("operationType", jobVo.getOperationType());
-                    jobObj.put("invokeId", jobVo.getInvokeId());
-                    jobObj.put("routeId", jobVo.getRouteId());
-                    jobObj.put("isFirstFire", jobVo.getIsFirstFire());
-                    jobObj.put("assignExecUser", jobVo.getAssignExecUser());
-                    logger.error(jobObj.toJSONString());
+                    logger.error(JSON.toJSONString(builder));
                     JSONObject errorMessageObj = new JSONObject();
                     errorMessageObj.put("jobId", jobVo.getId());
                     errorMessageObj.put("jobName", jobVo.getName());
-                    errorMessageObj.put("error", e.getMessage() + " jobVo=" + jobObj.toJSONString());
+                    errorMessageObj.put("error", e.getMessage() + " jobVo=" + JSON.toJSONString(builder));
                     errorMessageList.add(errorMessageObj);
                     flag = true;
                 }

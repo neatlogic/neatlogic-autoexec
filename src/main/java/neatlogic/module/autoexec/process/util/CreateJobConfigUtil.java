@@ -21,34 +21,27 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.CombopNodeSpecify;
-import neatlogic.framework.autoexec.constvalue.CombopOperationType;
 import neatlogic.framework.autoexec.constvalue.ParamType;
 import neatlogic.framework.autoexec.crossover.IAutoexecCombopCrossoverService;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
 import neatlogic.framework.autoexec.dto.combop.*;
-import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.dto.node.AutoexecNodeVo;
 import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountVo;
 import neatlogic.framework.common.constvalue.Expression;
 import neatlogic.framework.common.constvalue.GroupSearch;
-import neatlogic.framework.common.constvalue.SystemUser;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.form.attribute.core.FormAttributeDataConversionHandlerFactory;
 import neatlogic.framework.form.attribute.core.IFormAttributeDataConversionHandler;
 import neatlogic.framework.form.dto.FormAttributeVo;
 import neatlogic.framework.process.condition.core.ProcessTaskConditionFactory;
-import neatlogic.framework.process.constvalue.AutoExecJobProcessSource;
 import neatlogic.framework.process.constvalue.ConditionProcessTaskOptions;
 import neatlogic.framework.process.crossover.IProcessTaskCrossoverService;
 import neatlogic.framework.process.dto.ProcessTaskFormAttributeDataVo;
 import neatlogic.framework.process.dto.ProcessTaskStepVo;
 import neatlogic.framework.util.FormUtil;
-import neatlogic.module.autoexec.process.dto.CreateJobConfigConfigVo;
-import neatlogic.module.autoexec.process.dto.CreateJobConfigFilterVo;
-import neatlogic.module.autoexec.process.dto.CreateJobConfigMappingGroupVo;
-import neatlogic.module.autoexec.process.dto.CreateJobConfigMappingVo;
+import neatlogic.module.autoexec.process.dto.*;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -65,7 +58,7 @@ public class CreateJobConfigUtil {
      * @param createJobConfigConfigVo
      * @return
      */
-    public static List<AutoexecJobVo> createAutoexecJobList(ProcessTaskStepVo currentProcessTaskStepVo, CreateJobConfigConfigVo createJobConfigConfigVo, AutoexecCombopVersionVo autoexecCombopVersionVo) {
+    public static List<AutoexecJobBuilder> createAutoexecJobBuilderList(ProcessTaskStepVo currentProcessTaskStepVo, CreateJobConfigConfigVo createJobConfigConfigVo, AutoexecCombopVersionVo autoexecCombopVersionVo) {
         Long processTaskId = currentProcessTaskStepVo.getProcessTaskId();
         // 如果工单有表单信息，则查询出表单配置及数据
         Map<String, Object> formAttributeDataMap = new HashMap<>();
@@ -113,13 +106,13 @@ public class CreateJobConfigUtil {
         // 作业策略createJobPolicy为single时表示单次创建作业，createJobPolicy为batch时表示批量创建作业
         String createPolicy = createJobConfigConfigVo.getCreatePolicy();
         if (Objects.equals(createPolicy, "single")) {
-            AutoexecJobVo jobVo = createSingleAutoexecJobVo(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
-            List<AutoexecJobVo> resultList = new ArrayList<>();
-            resultList.add(jobVo);
-            return resultList;
+            AutoexecJobBuilder builder = createSingleAutoexecJobBuilder(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
+            List<AutoexecJobBuilder> builderList = new ArrayList<>();
+            builderList.add(builder);
+            return builderList;
         } else if (Objects.equals(createPolicy, "batch")) {
-            List<AutoexecJobVo> jobVoList = createBatchAutoexecJobVo(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
-            return jobVoList;
+            List<AutoexecJobBuilder> builderList = createBatchAutoexecJobBuilder(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
+            return builderList;
         } else {
             return null;
         }
@@ -136,7 +129,7 @@ public class CreateJobConfigUtil {
      * @param processTaskParam
      * @return
      */
-    private static List<AutoexecJobVo> createBatchAutoexecJobVo(
+    private static List<AutoexecJobBuilder> createBatchAutoexecJobBuilder(
             ProcessTaskStepVo currentProcessTaskStepVo,
             CreateJobConfigConfigVo createJobConfigConfigVo,
             AutoexecCombopVersionVo autoexecCombopVersionVo,
@@ -145,7 +138,7 @@ public class CreateJobConfigUtil {
             Map<String, Object> formAttributeDataMap,
             JSONObject processTaskParam) {
 
-        List<AutoexecJobVo> resultList = new ArrayList<>();
+        List<AutoexecJobBuilder> resultList = new ArrayList<>();
         // 批量遍历表格
         CreateJobConfigMappingVo batchDataSourceMapping = createJobConfigConfigVo.getBatchDataSourceMapping();
         if (batchDataSourceMapping == null) {
@@ -158,8 +151,8 @@ public class CreateJobConfigUtil {
         // 遍历表格数据，创建AutoexecJobVo对象列表
         for (Object obj : tbodyList) {
             formAttributeDataMap.put(batchDataSourceMapping.getValue().toString(), Collections.singletonList(obj));
-            AutoexecJobVo jobVo = createSingleAutoexecJobVo(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
-            resultList.add(jobVo);
+            AutoexecJobBuilder builder = createSingleAutoexecJobBuilder(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
+            resultList.add(builder);
         }
         return resultList;
     }
@@ -175,7 +168,7 @@ public class CreateJobConfigUtil {
      * @param processTaskParam
      * @return
      */
-    private static AutoexecJobVo createSingleAutoexecJobVo(
+    private static AutoexecJobBuilder createSingleAutoexecJobBuilder(
             ProcessTaskStepVo currentProcessTaskStepVo,
             CreateJobConfigConfigVo createJobConfigConfigVo,
             AutoexecCombopVersionVo autoexecCombopVersionVo,
@@ -183,9 +176,9 @@ public class CreateJobConfigUtil {
             Map<String, Object> originalFormAttributeDataMap,
             Map<String, Object> formAttributeDataMap,
             JSONObject processTaskParam) {
-        AutoexecJobVo jobVo = new AutoexecJobVo();
         // 组合工具ID
         Long combopId = createJobConfigConfigVo.getCombopId();
+        AutoexecJobBuilder builder = new AutoexecJobBuilder(currentProcessTaskStepVo.getId(), combopId);
         // 作业名称
         String jobName = createJobConfigConfigVo.getJobName();
         AutoexecCombopVersionConfigVo versionConfig = autoexecCombopVersionVo.getConfig();
@@ -195,7 +188,7 @@ public class CreateJobConfigUtil {
             if (CollectionUtils.isNotEmpty(scenarioParamMappingGroupList)) {
                 JSONArray jsonArray = parseCreateJobConfigMappingGroup(scenarioParamMappingGroupList.get(0), formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
                 Long scenarioId = getScenarioId(jsonArray, versionConfig.getScenarioList());
-                jobVo.setScenarioId(scenarioId);
+                builder.setScenarioId(scenarioId);
             }
         }
         if (CollectionUtils.isNotEmpty(versionConfig.getRuntimeParamList())) {
@@ -217,7 +210,7 @@ public class CreateJobConfigUtil {
                     Object value = convertDateType(autoexecParamVo, jsonArray);
                     param.put(mappingGroupVo.getKey(), value);
                 }
-                jobVo.setParam(param);
+                builder.setParam(param);
             }
         }
 
@@ -324,33 +317,23 @@ public class CreateJobConfigUtil {
                     JSONArray jsonArray = parseCreateJobConfigMappingGroup(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
                     Integer roundCount = getFirstNotBlankInteger(jsonArray);
                     if (roundCount != null) {
-                        executeConfig.setRoundCount(roundCount);
+                        builder.setRoundCount(roundCount);
                     }
                 }
             }
         }
-        jobVo.setExecuteConfig(executeConfig);
+        builder.setExecuteConfig(executeConfig);
 
         // 执行器组
         ParamMappingVo runnerGroup = combopExecuteConfig.getRunnerGroup();
         if (runnerGroup != null) {
-            jobVo.setRunnerGroup(runnerGroup);
+            builder.setRunnerGroup(runnerGroup);
         }
 
         String jobNamePrefixMappingValue = createJobConfigConfigVo.getJobNamePrefixMappingValue();
-        String jobNamePrefixValue = getJobNamePrefix(jobNamePrefixMappingValue, jobVo.getExecuteConfig(), jobVo.getParam());
-
-        jobVo.setSource(AutoExecJobProcessSource.ITSM.getValue());
-        jobVo.setRoundCount(32);
-        jobVo.setOperationId(combopId);
-        jobVo.setName(jobNamePrefixValue + jobName);
-        jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
-        jobVo.setInvokeId(currentProcessTaskStepVo.getId());
-        jobVo.setRouteId(currentProcessTaskStepVo.getId().toString());
-        jobVo.setIsFirstFire(1);
-        jobVo.setAssignExecUser(SystemUser.SYSTEM.getUserUuid());
-
-        return jobVo;
+        String jobNamePrefixValue = getJobNamePrefix(jobNamePrefixMappingValue, builder.getExecuteConfig(), builder.getParam());
+        builder.setJobName(jobNamePrefixValue + jobName);
+        return builder;
     }
 
     private static Long getScenarioId(JSONArray jsonArray, List<AutoexecCombopScenarioVo> scenarioList) {
