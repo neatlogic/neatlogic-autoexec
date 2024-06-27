@@ -36,9 +36,7 @@ public class CreateJobConfigConfigVo {
 
     private String formTag;
 
-//    private CreateJobConfigMappingGroupVo runnerGroupMappingGroup;
-
-    private List<CreateJobConfigMappingGroupVo> jopParamMappingGroupList;
+    private List<CreateJobConfigMappingGroupVo> jobParamMappingGroupList;
 
     private List<CreateJobConfigMappingGroupVo> executeParamMappingGroupList;
 
@@ -88,12 +86,12 @@ public class CreateJobConfigConfigVo {
         this.jobName = jobName;
     }
 
-    public List<CreateJobConfigMappingGroupVo> getJopParamMappingGroupList() {
-        return jopParamMappingGroupList;
+    public List<CreateJobConfigMappingGroupVo> getJobParamMappingGroupList() {
+        return jobParamMappingGroupList;
     }
 
-    public void setJopParamMappingGroupList(List<CreateJobConfigMappingGroupVo> jopParamMappingGroupList) {
-        this.jopParamMappingGroupList = jopParamMappingGroupList;
+    public void setJobParamMappingGroupList(List<CreateJobConfigMappingGroupVo> jobParamMappingGroupList) {
+        this.jobParamMappingGroupList = jobParamMappingGroupList;
     }
 
     public List<CreateJobConfigMappingGroupVo> getExecuteParamMappingGroupList() {

@@ -24,6 +24,7 @@ import neatlogic.framework.autoexec.constvalue.CombopNodeSpecify;
 import neatlogic.framework.autoexec.constvalue.CombopOperationType;
 import neatlogic.framework.autoexec.constvalue.ParamType;
 import neatlogic.framework.autoexec.crossover.IAutoexecCombopCrossoverService;
+import neatlogic.framework.autoexec.dto.AutoexecParamVo;
 import neatlogic.framework.autoexec.dto.combop.*;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.dto.node.AutoexecNodeVo;
@@ -75,16 +76,16 @@ public class CreateJobConfigUtil {
             List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskIdAndTag(processTaskId, createJobConfigConfigVo.getFormTag());
             System.out.println("processTaskFormAttributeDataList = " + JSON.toJSONString(processTaskFormAttributeDataList));
             for (ProcessTaskFormAttributeDataVo attributeDataVo : processTaskFormAttributeDataList) {
-                originalFormAttributeDataMap.put(attributeDataVo.getAttributeKey(), attributeDataVo.getDataObj());
+                originalFormAttributeDataMap.put(attributeDataVo.getAttributeUuid(), attributeDataVo.getDataObj());
                 // 放入表单普通组件数据
                 if (!Objects.equals(attributeDataVo.getHandler(), neatlogic.framework.form.constvalue.FormHandler.FORMTABLEINPUTER.getHandler())
                         && !Objects.equals(attributeDataVo.getHandler(), neatlogic.framework.form.constvalue.FormHandler.FORMSUBASSEMBLY.getHandler())
                         && !Objects.equals(attributeDataVo.getHandler(), neatlogic.framework.form.constvalue.FormHandler.FORMTABLESELECTOR.getHandler())) {
                     IFormAttributeDataConversionHandler handler = FormAttributeDataConversionHandlerFactory.getHandler(attributeDataVo.getHandler());
                     if (handler != null) {
-                        formAttributeDataMap.put(attributeDataVo.getAttributeKey(), handler.getSimpleValue(attributeDataVo.getDataObj()));
+                        formAttributeDataMap.put(attributeDataVo.getAttributeUuid(), handler.getSimpleValue(attributeDataVo.getDataObj()));
                     } else {
-                        formAttributeDataMap.put(attributeDataVo.getAttributeKey(), attributeDataVo.getDataObj());
+                        formAttributeDataMap.put(attributeDataVo.getAttributeUuid(), attributeDataVo.getDataObj());
                     }
                 }
             }
@@ -198,16 +199,22 @@ public class CreateJobConfigUtil {
             }
         }
         if (CollectionUtils.isNotEmpty(versionConfig.getRuntimeParamList())) {
+            List<AutoexecParamVo> jobParamList = versionConfig.getRuntimeParamList();
+            Map<String, AutoexecParamVo> jobParamMap = jobParamList.stream().collect(Collectors.toMap(AutoexecParamVo::getKey, e -> e));
             // 作业参数赋值列表
-            List<CreateJobConfigMappingGroupVo> runtimeParamMappingGroupList = createJobConfigConfigVo.getJopParamMappingGroupList();
-            if (CollectionUtils.isNotEmpty(runtimeParamMappingGroupList)) {
+            List<CreateJobConfigMappingGroupVo> jopParamMappingGroupList = createJobConfigConfigVo.getJobParamMappingGroupList();
+            if (CollectionUtils.isNotEmpty(jopParamMappingGroupList)) {
                 JSONObject param = new JSONObject();
-                for (CreateJobConfigMappingGroupVo mappingGroupVo : runtimeParamMappingGroupList) {
+                for (CreateJobConfigMappingGroupVo mappingGroupVo : jopParamMappingGroupList) {
+                    AutoexecParamVo autoexecParamVo = jobParamMap.get(mappingGroupVo.getKey());
+                    if (autoexecParamVo == null) {
+                        continue;
+                    }
                     JSONArray jsonArray = parseCreateJobConfigMappingGroup(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
                     if (CollectionUtils.isEmpty(jsonArray)) {
                         continue;
                     }
-                    Object value = convertDateType(mappingGroupVo.getType(), jsonArray);
+                    Object value = convertDateType(autoexecParamVo, jsonArray);
                     param.put(mappingGroupVo.getKey(), value);
                 }
                 jobVo.setParam(param);
@@ -449,6 +456,13 @@ public class CreateJobConfigUtil {
                         return accountVo.getId();
                     }
                 }
+            } else if (obj instanceof JSONObject) {
+                JSONObject jsonObj = (JSONObject) obj;
+                Long accountId = jsonObj.getLong("accountId");
+                AccountVo accountVo = resourceAccountCrossoverMapper.getAccountById(accountId);
+                if (accountVo != null) {
+                    return accountId;
+                }
             } else if (obj instanceof JSONArray) {
                 JSONArray array = (JSONArray) obj;
                 Long accountId = getAccountId(array);
@@ -553,6 +567,14 @@ public class CreateJobConfigUtil {
                 }
             } else if (obj instanceof JSONObject) {
                 JSONObject jsonObj = (JSONObject) obj;
+                JSONArray selectNodeArray = jsonObj.getJSONArray("selectNodeList");
+                if (CollectionUtils.isNotEmpty(selectNodeArray)) {
+                    resultList.addAll(selectNodeArray.toJavaList(AutoexecNodeVo.class));
+                }
+                JSONArray inputNodeArray = jsonObj.getJSONArray("inputNodeList");
+                if (CollectionUtils.isNotEmpty(inputNodeArray)) {
+                    resultList.addAll(inputNodeArray.toJavaList(AutoexecNodeVo.class));
+                }
                 String ip = jsonObj.getString("ip");
                 if (StringUtils.isNotBlank(ip)) {
                     resultList.add(convertToAutoexecNodeVo(jsonObj));
@@ -909,7 +931,7 @@ public class CreateJobConfigUtil {
      * 获取表单表格组件的数据
      * @param formAttributeList
      * @param originalFormAttributeDataMap
-     * @param attributeKey
+     * @param attributeUuid
      * @return
      */
     @SuppressWarnings("unchecked")
@@ -917,13 +939,13 @@ public class CreateJobConfigUtil {
             List<FormAttributeVo> formAttributeList,
             Map<String, Object> originalFormAttributeDataMap,
             Map<String, Object> formAttributeDataMap,
-            String attributeKey) {
+            String attributeUuid) {
         List<JSONObject> resultList = new ArrayList<>();
-        Object object = formAttributeDataMap.get(attributeKey);
+        Object object = formAttributeDataMap.get(attributeUuid);
         if (object != null) {
             return (List<JSONObject>) object;
         }
-        Object obj = originalFormAttributeDataMap.get(attributeKey);
+        Object obj = originalFormAttributeDataMap.get(attributeUuid);
         if (obj == null) {
             return resultList;
         }
@@ -947,7 +969,7 @@ public class CreateJobConfigUtil {
                     if (handler != null) {
                         value = handler.getSimpleValue(value);
                     }
-                    newJsonObj.put(formAttributeVo.getKey(), value);
+                    newJsonObj.put(key, value);
                 } else {
                     newJsonObj.put(key, value);
                 }
@@ -1036,21 +1058,22 @@ public class CreateJobConfigUtil {
     /**
      * 把表单表格组件中某列数据集合转换成作业参数对应的数据
      *
-     * @param paramType  作业参数类型
+     * @param autoexecParamVo  作业参数信息
      * @param jsonArray 某列数据集合
      * @return
      */
-    private static Object convertDateType(String paramType, JSONArray jsonArray) {
+    private static Object convertDateType(AutoexecParamVo autoexecParamVo, JSONArray jsonArray) {
         if (CollectionUtils.isEmpty(jsonArray)) {
             return null;
         }
+        String paramType = autoexecParamVo.getType();
         if (Objects.equals(paramType, ParamType.TEXT.getValue())) {
             return String.join(",", getStringList(jsonArray));
         } else if (Objects.equals(paramType, ParamType.PASSWORD.getValue())) {
             return String.join(",", getStringList(jsonArray));
         } else if (Objects.equals(paramType, ParamType.FILE.getValue())) {
             // 多选
-            return jsonArray;
+            return getFileInfo(jsonArray);
         } else if (Objects.equals(paramType, ParamType.DATE.getValue())) {
             return getFirstNotBlankString(jsonArray);
         } else if (Objects.equals(paramType, ParamType.DATETIME.getValue())) {
@@ -1058,11 +1081,7 @@ public class CreateJobConfigUtil {
         } else if (Objects.equals(paramType, ParamType.TIME.getValue())) {
             return getFirstNotBlankString(jsonArray);
         } else if (Objects.equals(paramType, ParamType.JSON.getValue())) {
-            if (jsonArray.size() == 1) {
-                return jsonArray.get(0);
-            } else {
-                return jsonArray;
-            }
+            return getJSONObjectOrJSONArray(jsonArray);
         } else if (Objects.equals(paramType, ParamType.SELECT.getValue())) {
             return getFirstNotNullObject(jsonArray);
         } else if (Objects.equals(paramType, ParamType.MULTISELECT.getValue())) {
@@ -1078,35 +1097,7 @@ public class CreateJobConfigUtil {
             return getAccountId(jsonArray);
         } else if (Objects.equals(paramType, ParamType.USERSELECT.getValue())) {
             // 单选或多选都是数组
-            List<String> resultList = new ArrayList<>();
-            for (Object obj : jsonArray) {
-                if (obj == null) {
-                    continue;
-                }
-                if (obj instanceof JSONArray) {
-                    JSONArray array = (JSONArray) obj;
-                    for (Object obj2 : array) {
-                        String str = obj2.toString();
-                        if (str.length() == 37) {
-                            if (str.startsWith(GroupSearch.USER.getValuePlugin())
-                                    || str.startsWith(GroupSearch.TEAM.getValuePlugin())
-                                    || str.startsWith(GroupSearch.ROLE.getValuePlugin())) {
-                                resultList.add(str);
-                            }
-                        }
-                    }
-                } else {
-                    String str = obj.toString();
-                    if (str.length() == 37) {
-                        if (str.startsWith(GroupSearch.USER.getValuePlugin())
-                                || str.startsWith(GroupSearch.TEAM.getValuePlugin())
-                                || str.startsWith(GroupSearch.ROLE.getValuePlugin())) {
-                            resultList.add(str);
-                        }
-                    }
-                }
-            }
-            return resultList;
+            return getUserSelectInfo(jsonArray);
         } else if (Objects.equals(paramType, ParamType.TEXTAREA.getValue())) {
             return String.join(",", getStringList(jsonArray));
         } else if (Objects.equals(paramType, ParamType.PHASE.getValue())) {
@@ -1250,5 +1241,128 @@ public class CreateJobConfigUtil {
             }
         }
         return null;
+    }
+
+    private static Object getJSONObjectOrJSONArray(JSONArray jsonArray) {
+        JSONArray jsonList = new JSONArray();
+        for (Object obj : jsonArray) {
+            if (obj instanceof JSONObject) {
+                jsonList.add(obj);
+            } else if (obj instanceof JSONArray) {
+                jsonList.add(obj);
+            } else if (obj instanceof Number) {
+                jsonList.add(obj);
+            } else {
+                String str = obj.toString();
+                if (str.startsWith("{") && str.endsWith("}")) {
+                    JSONObject jsonObj = JSON.parseObject(str);
+                    jsonList.add(jsonObj);
+                } else if (str.startsWith("[") && str.endsWith("]")) {
+                    JSONArray array = JSON.parseArray(str);
+                    jsonList.add(array);
+                } else {
+                    jsonList.add(str);
+                }
+            }
+        }
+        if (jsonList.size() == 1) {
+            Object obj = jsonList.get(0);
+            if (obj instanceof JSONObject) {
+                return obj;
+            }
+        }
+        return jsonList;
+    }
+
+    private static JSONObject getFileInfo(JSONArray jsonArray) {
+        JSONObject resultObj = new JSONObject();
+        JSONArray fileIdList = new JSONArray();
+        JSONArray fileList = new JSONArray();
+        for (Object obj : jsonArray) {
+            if (obj == null) {
+                continue;
+            }
+            if (obj instanceof JSONObject) {
+                JSONObject jsonObj = (JSONObject) obj;
+                JSONArray fileIdArray = jsonObj.getJSONArray("fileIdList");
+                if (CollectionUtils.isNotEmpty(fileIdArray)) {
+                    fileIdList.addAll(fileIdArray);
+                }
+                JSONArray fileArray = jsonObj.getJSONArray("fileList");
+                if (CollectionUtils.isNotEmpty(fileArray)) {
+                    fileList.addAll(fileArray);
+                }
+            } else if (obj instanceof JSONArray) {
+                JSONArray array = (JSONArray) obj;
+                JSONObject jsonObj = getFileInfo(array);
+                JSONArray fileIdArray = jsonObj.getJSONArray("fileIdList");
+                if (CollectionUtils.isNotEmpty(fileIdArray)) {
+                    fileIdList.addAll(fileIdArray);
+                }
+                JSONArray fileArray = jsonObj.getJSONArray("fileList");
+                if (CollectionUtils.isNotEmpty(fileArray)) {
+                    fileList.addAll(fileArray);
+                }
+            } else {
+                String str = obj.toString();
+                if (str.startsWith("{") && str.endsWith("}")) {
+                    JSONObject jsonObj = JSONObject.parseObject(str);
+                    JSONArray fileIdArray = jsonObj.getJSONArray("fileIdList");
+                    if (CollectionUtils.isNotEmpty(fileIdArray)) {
+                        fileIdList.addAll(fileIdArray);
+                    }
+                    JSONArray fileArray = jsonObj.getJSONArray("fileList");
+                    if (CollectionUtils.isNotEmpty(fileArray)) {
+                        fileList.addAll(fileArray);
+                    }
+                } else if (str.startsWith("[") && str.endsWith("]")) {
+                    JSONArray array = JSONArray.parseArray(str);
+                    JSONObject jsonObj = getFileInfo(array);
+                    JSONArray fileIdArray = jsonObj.getJSONArray("fileIdList");
+                    if (CollectionUtils.isNotEmpty(fileIdArray)) {
+                        fileIdList.addAll(fileIdArray);
+                    }
+                    JSONArray fileArray = jsonObj.getJSONArray("fileList");
+                    if (CollectionUtils.isNotEmpty(fileArray)) {
+                        fileList.addAll(fileArray);
+                    }
+                }
+            }
+        }
+        resultObj.put("fileIdList", fileIdList);
+        resultObj.put("fileList", fileList);
+        return resultObj;
+    }
+
+    private static List<String> getUserSelectInfo(JSONArray jsonArray) {
+        List<String> resultList = new ArrayList<>();
+        for (Object obj : jsonArray) {
+            if (obj == null) {
+                continue;
+            }
+            if (obj instanceof JSONArray) {
+                JSONArray array = (JSONArray) obj;
+                for (Object obj2 : array) {
+                    String str = obj2.toString();
+                    if (str.length() == 37) {
+                        if (str.startsWith(GroupSearch.USER.getValuePlugin())
+                                || str.startsWith(GroupSearch.TEAM.getValuePlugin())
+                                || str.startsWith(GroupSearch.ROLE.getValuePlugin())) {
+                            resultList.add(str);
+                        }
+                    }
+                }
+            } else {
+                String str = obj.toString();
+                if (str.length() == 37) {
+                    if (str.startsWith(GroupSearch.USER.getValuePlugin())
+                            || str.startsWith(GroupSearch.TEAM.getValuePlugin())
+                            || str.startsWith(GroupSearch.ROLE.getValuePlugin())) {
+                        resultList.add(str);
+                    }
+                }
+            }
+        }
+        return resultList;
     }
 }
