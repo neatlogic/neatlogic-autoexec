@@ -84,7 +84,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     private final static Logger logger = LoggerFactory.getLogger(AutoexecProcessComponent.class);
 
-    private final String FORM_EXTEND_ATTRIBUTE_TAG = "common";
+//    private final String FORM_EXTEND_ATTRIBUTE_TAG = "common";
     @Resource
     private AutoexecJobMapper autoexecJobMapper;
 
@@ -320,10 +320,13 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 //                processTaskFormAttributeDataMap = processTaskFormAttributeDataList.stream().collect(Collectors.toMap(e -> e.getAttributeUuid(), e -> e));
 //            }
 //        }
+        String formTag = autoexecConfig.getString("formTag");
         IProcessTaskCrossoverService processTaskCrossoverService = CrossoverServiceFactory.getApi(IProcessTaskCrossoverService.class);
-        List<FormAttributeVo> formAttributeList = processTaskCrossoverService.getFormAttributeListByProcessTaskIdAngTag(processTaskId, FORM_EXTEND_ATTRIBUTE_TAG);
+//        List<FormAttributeVo> formAttributeList = processTaskCrossoverService.getFormAttributeListByProcessTaskIdAngTag(processTaskId, FORM_EXTEND_ATTRIBUTE_TAG);
+        List<FormAttributeVo> formAttributeList = processTaskCrossoverService.getFormAttributeListByProcessTaskIdAngTagNew(processTaskId, formTag);
         if (CollectionUtils.isNotEmpty(formAttributeList)) {
-            List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskIdAndTag(processTaskId, FORM_EXTEND_ATTRIBUTE_TAG);
+//            List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskIdAndTag(processTaskId, FORM_EXTEND_ATTRIBUTE_TAG);
+            List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskIdAndTagNew(processTaskId, formTag);
             // 添加表格组件中的子组件到组件列表中
             for (FormAttributeVo formAttributeVo : formAttributeList) {
                 formAttributeMap.put(formAttributeVo.getUuid(), formAttributeVo);
