@@ -196,10 +196,26 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                 } catch (Exception e) {
                     // 增加提醒
                     logger.error(e.getMessage(), e);
+                    JSONObject jobObj = new JSONObject();
+                    jobObj.put("param", jobVo.getParam());
+                    jobObj.put("scenarioId", jobVo.getScenarioId());
+                    jobObj.put("executeConfig", jobVo.getExecuteConfig());
+                    jobObj.put("runnerGroup", jobVo.getRunnerGroup());
+                    jobObj.put("id", jobVo.getId());
+                    jobObj.put("name", jobVo.getName());
+                    jobObj.put("source", jobVo.getSource());
+                    jobObj.put("roundCount", jobVo.getRoundCount());
+                    jobObj.put("operationId", jobVo.getOperationId());
+                    jobObj.put("operationType", jobVo.getOperationType());
+                    jobObj.put("invokeId", jobVo.getInvokeId());
+                    jobObj.put("routeId", jobVo.getRouteId());
+                    jobObj.put("isFirstFire", jobVo.getIsFirstFire());
+                    jobObj.put("assignExecUser", jobVo.getAssignExecUser());
+                    logger.error(jobObj.toJSONString());
                     JSONObject errorMessageObj = new JSONObject();
                     errorMessageObj.put("jobId", jobVo.getId());
                     errorMessageObj.put("jobName", jobVo.getName());
-                    errorMessageObj.put("error", e.getMessage());
+                    errorMessageObj.put("error", e.getMessage() + " jobVo=" + jobObj.toJSONString());
                     errorMessageList.add(errorMessageObj);
                     flag = true;
                 }

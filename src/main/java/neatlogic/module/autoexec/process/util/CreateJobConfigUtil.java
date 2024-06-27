@@ -24,11 +24,9 @@ import neatlogic.framework.autoexec.constvalue.CombopNodeSpecify;
 import neatlogic.framework.autoexec.constvalue.CombopOperationType;
 import neatlogic.framework.autoexec.constvalue.ParamType;
 import neatlogic.framework.autoexec.crossover.IAutoexecCombopCrossoverService;
-import neatlogic.framework.autoexec.crossover.IAutoexecScenarioCrossoverMapper;
 import neatlogic.framework.autoexec.dto.combop.*;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.dto.node.AutoexecNodeVo;
-import neatlogic.framework.autoexec.dto.scenario.AutoexecScenarioVo;
 import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountVo;
@@ -51,6 +49,7 @@ import neatlogic.module.autoexec.process.dto.CreateJobConfigFilterVo;
 import neatlogic.module.autoexec.process.dto.CreateJobConfigMappingGroupVo;
 import neatlogic.module.autoexec.process.dto.CreateJobConfigMappingVo;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
@@ -74,13 +73,19 @@ public class CreateJobConfigUtil {
         List<FormAttributeVo> formAttributeList = processTaskCrossoverService.getFormAttributeListByProcessTaskIdAngTag(processTaskId, createJobConfigConfigVo.getFormTag());
         if (CollectionUtils.isNotEmpty(formAttributeList)) {
             List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskIdAndTag(processTaskId, createJobConfigConfigVo.getFormTag());
+            System.out.println("processTaskFormAttributeDataList = " + JSON.toJSONString(processTaskFormAttributeDataList));
             for (ProcessTaskFormAttributeDataVo attributeDataVo : processTaskFormAttributeDataList) {
                 originalFormAttributeDataMap.put(attributeDataVo.getAttributeKey(), attributeDataVo.getDataObj());
                 // 放入表单普通组件数据
                 if (!Objects.equals(attributeDataVo.getHandler(), neatlogic.framework.form.constvalue.FormHandler.FORMTABLEINPUTER.getHandler())
                         && !Objects.equals(attributeDataVo.getHandler(), neatlogic.framework.form.constvalue.FormHandler.FORMSUBASSEMBLY.getHandler())
                         && !Objects.equals(attributeDataVo.getHandler(), neatlogic.framework.form.constvalue.FormHandler.FORMTABLESELECTOR.getHandler())) {
-                    formAttributeDataMap.put(attributeDataVo.getAttributeKey(), attributeDataVo.getDataObj());
+                    IFormAttributeDataConversionHandler handler = FormAttributeDataConversionHandlerFactory.getHandler(attributeDataVo.getHandler());
+                    if (handler != null) {
+                        formAttributeDataMap.put(attributeDataVo.getAttributeKey(), handler.getSimpleValue(attributeDataVo.getDataObj()));
+                    } else {
+                        formAttributeDataMap.put(attributeDataVo.getAttributeKey(), attributeDataVo.getDataObj());
+                    }
                 }
             }
             // 添加表格组件中的子组件到组件列表中
@@ -188,7 +193,7 @@ public class CreateJobConfigUtil {
             List<CreateJobConfigMappingGroupVo> scenarioParamMappingGroupList = createJobConfigConfigVo.getScenarioParamMappingGroupList();
             if (CollectionUtils.isNotEmpty(scenarioParamMappingGroupList)) {
                 JSONArray jsonArray = parseCreateJobConfigMappingGroup(scenarioParamMappingGroupList.get(0), formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
-                Long scenarioId = getScenarioId(jsonArray);
+                Long scenarioId = getScenarioId(jsonArray, versionConfig.getScenarioList());
                 jobVo.setScenarioId(scenarioId);
             }
         }
@@ -237,34 +242,39 @@ public class CreateJobConfigUtil {
             } else if (Objects.equals(CombopNodeSpecify.RUNTIMEPARAM.getValue(), whenToSpecify)) {
                 AutoexecCombopExecuteNodeConfigVo executeNodeConfig = combopExecuteConfig.getExecuteNodeConfig();
                 if (executeNodeConfig != null) {
-                    List<String> paramList = executeNodeConfig.getParamList();
-                    if (CollectionUtils.isNotEmpty(paramList)) {
-                        List<AutoexecNodeVo> inputNodeList = new ArrayList<>();
-                        JSONObject paramObj = jobVo.getParam();
-                        for (String paramKey : paramList) {
-                            JSONArray jsonArray = paramObj.getJSONArray(paramKey);
-                            if (CollectionUtils.isNotEmpty(jsonArray)) {
-                                List<AutoexecNodeVo> list = jsonArray.toJavaList(AutoexecNodeVo.class);
-                                inputNodeList.addAll(list);
-                            }
-                        }
-                        if (CollectionUtils.isNotEmpty(inputNodeList)) {
-                            AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = new AutoexecCombopExecuteNodeConfigVo();
-                            executeNodeConfigVo.setInputNodeList(inputNodeList);
-                            executeConfig.setExecuteNodeConfig(executeNodeConfigVo);
-                        }
-                    }
+                    executeConfig.setExecuteNodeConfig(executeNodeConfig);
+//                    List<String> paramList = executeNodeConfig.getParamList();
+//                    if (CollectionUtils.isNotEmpty(paramList)) {
+//                        List<AutoexecNodeVo> inputNodeList = new ArrayList<>();
+//                        JSONObject paramObj = jobVo.getParam();
+//                        for (String paramKey : paramList) {
+//                            JSONArray jsonArray = paramObj.getJSONArray(paramKey);
+//                            if (CollectionUtils.isNotEmpty(jsonArray)) {
+//                                List<AutoexecNodeVo> list = jsonArray.toJavaList(AutoexecNodeVo.class);
+//                                inputNodeList.addAll(list);
+//                            }
+//                        }
+//                        if (CollectionUtils.isNotEmpty(inputNodeList)) {
+//                            AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = new AutoexecCombopExecuteNodeConfigVo();
+//                            executeNodeConfigVo.setInputNodeList(inputNodeList);
+//                            executeConfig.setExecuteNodeConfig(executeNodeConfigVo);
+//                        }
+//                    }
                 }
             } else if (Objects.equals(CombopNodeSpecify.RUNTIME.getValue(), whenToSpecify)) {
                 CreateJobConfigMappingGroupVo mappingGroupVo = executeParamMappingGroupMap.get("executeNodeConfig");
                 if (mappingGroupVo != null) {
                     JSONArray jsonArray = parseCreateJobConfigMappingGroup(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
-                    List<AutoexecNodeVo> inputNodeList = getInputNodeList(jsonArray);
-                    if (CollectionUtils.isNotEmpty(inputNodeList)) {
-                        AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = new AutoexecCombopExecuteNodeConfigVo();
-                        executeNodeConfigVo.setInputNodeList(inputNodeList);
+                    AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = getExecuteNodeConfig(jsonArray);
+                    if (executeNodeConfigVo != null) {
                         executeConfig.setExecuteNodeConfig(executeNodeConfigVo);
                     }
+//                    List<AutoexecNodeVo> inputNodeList = getInputNodeList(jsonArray);
+//                    if (CollectionUtils.isNotEmpty(inputNodeList)) {
+//                        AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = new AutoexecCombopExecuteNodeConfigVo();
+//                        executeNodeConfigVo.setInputNodeList(inputNodeList);
+//                        executeConfig.setExecuteNodeConfig(executeNodeConfigVo);
+//                    }
                 }
             }
         }
@@ -336,33 +346,38 @@ public class CreateJobConfigUtil {
         return jobVo;
     }
 
-    private static Long getScenarioId(JSONArray jsonArray) {
+    private static Long getScenarioId(JSONArray jsonArray, List<AutoexecCombopScenarioVo> scenarioList) {
         if (CollectionUtils.isEmpty(jsonArray)) {
             return null;
         }
-        IAutoexecScenarioCrossoverMapper autoexecScenarioCrossoverMapper = CrossoverServiceFactory.getApi(IAutoexecScenarioCrossoverMapper.class);
+        List<Long> scenarioIdList = new ArrayList<>();
+        Map<String, Long> scenarioNameToIdMap = new HashMap<>();
+        for (AutoexecCombopScenarioVo combopScenarioVo : scenarioList) {
+            scenarioIdList.add(combopScenarioVo.getScenarioId());
+            scenarioNameToIdMap.put(combopScenarioVo.getScenarioName(), combopScenarioVo.getScenarioId());
+        }
         for (Object obj : jsonArray) {
             if (obj instanceof Long) {
                 Long scenarioId = (Long) obj;
-                if (autoexecScenarioCrossoverMapper.getScenarioById(scenarioId) != null) {
+                if (scenarioIdList.contains(scenarioId)) {
                     return scenarioId;
                 }
             } else if (obj instanceof String) {
                 String scenario = (String) obj;
                 try {
                     Long scenarioId = Long.valueOf(scenario);
-                    if (autoexecScenarioCrossoverMapper.getScenarioById(scenarioId) != null) {
+                    if (scenarioIdList.contains(scenarioId)) {
                         return scenarioId;
                     }
                 } catch (NumberFormatException ignored) {
-                    AutoexecScenarioVo scenarioVo = autoexecScenarioCrossoverMapper.getScenarioByName(scenario);
-                    if (scenarioVo != null) {
-                        return scenarioVo.getId();
+                    Long scenarioId = scenarioNameToIdMap.get(scenario);
+                    if (scenarioId != null) {
+                        return scenarioId;
                     }
                 }
             } else if (obj instanceof JSONArray) {
                 JSONArray array = (JSONArray) obj;
-                Long scenarioId = getScenarioId(array);
+                Long scenarioId = getScenarioId(array, scenarioList);
                 if (scenarioId != null) {
                     return scenarioId;
                 }
@@ -445,6 +460,69 @@ public class CreateJobConfigUtil {
         return null;
     }
 
+    private static AutoexecCombopExecuteNodeConfigVo getExecuteNodeConfig(JSONArray jsonArray) {
+        if (CollectionUtils.isEmpty(jsonArray)) {
+            return null;
+        }
+        AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = new AutoexecCombopExecuteNodeConfigVo();
+        List<AutoexecNodeVo> selectNodeList = new ArrayList<>();
+        List<AutoexecNodeVo> inputNodeList = new ArrayList<>();
+        JSONObject filter = new JSONObject();
+        for (Object obj : jsonArray) {
+            if (obj instanceof String) {
+                String str = (String) obj;
+                if (str.startsWith("{") && str.endsWith("}")) {
+                    JSONObject jsonObj = JSON.parseObject(str);
+                    String ip = jsonObj.getString("ip");
+                    if (StringUtils.isNotBlank(ip)) {
+                        inputNodeList.add(convertToAutoexecNodeVo(jsonObj));
+                    }
+                } else if (str.startsWith("[") && str.endsWith("]")) {
+                    JSONArray array = JSON.parseArray(str);
+                    List<AutoexecNodeVo> list = getInputNodeList(array);
+                    if (CollectionUtils.isNotEmpty(list)) {
+                        inputNodeList.addAll(list);
+                    }
+                } else if (str.contains("\n")) {
+                    String[] split = str.split("\n");
+                    for (String e : split) {
+                        inputNodeList.add(new AutoexecNodeVo(e));
+                    }
+                } else {
+                    inputNodeList.add(new AutoexecNodeVo(str));
+                }
+            } else if (obj instanceof JSONObject) {
+                JSONObject jsonObj = (JSONObject) obj;
+                JSONArray selectNodeArray = jsonObj.getJSONArray("selectNodeList");
+                if (CollectionUtils.isNotEmpty(selectNodeArray)) {
+                    selectNodeList.addAll(selectNodeArray.toJavaList(AutoexecNodeVo.class));
+                }
+                JSONArray inputNodeArray = jsonObj.getJSONArray("inputNodeList");
+                if (CollectionUtils.isNotEmpty(inputNodeArray)) {
+                    inputNodeList.addAll(inputNodeArray.toJavaList(AutoexecNodeVo.class));
+                }
+                JSONObject filterObj = jsonObj.getJSONObject("filter");
+                if (MapUtils.isNotEmpty(filterObj)) {
+                    filter.putAll(filterObj);
+                }
+                String ip = jsonObj.getString("ip");
+                if (StringUtils.isNotBlank(ip)) {
+                    inputNodeList.add(convertToAutoexecNodeVo(jsonObj));
+                }
+            } else if (obj instanceof JSONArray) {
+                JSONArray array = (JSONArray) obj;
+                List<AutoexecNodeVo> list = getInputNodeList(array);
+                if (CollectionUtils.isNotEmpty(list)) {
+                    inputNodeList.addAll(list);
+                }
+            }
+        }
+        executeNodeConfigVo.setSelectNodeList(selectNodeList);
+        executeNodeConfigVo.setInputNodeList(inputNodeList);
+        executeNodeConfigVo.setFilter(filter);
+        return executeNodeConfigVo;
+    }
+
     private static List<AutoexecNodeVo> getInputNodeList(JSONArray jsonArray) {
         List<AutoexecNodeVo> resultList = new ArrayList<>();
         if (CollectionUtils.isEmpty(jsonArray)) {
@@ -457,21 +535,7 @@ public class CreateJobConfigUtil {
                     JSONObject jsonObj = JSON.parseObject(str);
                     String ip = jsonObj.getString("ip");
                     if (StringUtils.isNotBlank(ip)) {
-                        Long id = jsonObj.getLong("id");
-                        Integer port = jsonObj.getInteger("port");
-                        String name = jsonObj.getString("name");
-                        AutoexecNodeVo autoexecNodeVo = new AutoexecNodeVo();
-                        autoexecNodeVo.setIp(ip);
-                        if (id != null) {
-                            autoexecNodeVo.setId(id);
-                        }
-                        if (port != null) {
-                            autoexecNodeVo.setPort(port);
-                        }
-                        if (StringUtils.isNotBlank(name)) {
-                            autoexecNodeVo.setName(name);
-                        }
-                        resultList.add(autoexecNodeVo);
+                        resultList.add(convertToAutoexecNodeVo(jsonObj));
                     }
                 } else if (str.startsWith("[") && str.endsWith("]")) {
                     JSONArray array = JSON.parseArray(str);
@@ -491,16 +555,7 @@ public class CreateJobConfigUtil {
                 JSONObject jsonObj = (JSONObject) obj;
                 String ip = jsonObj.getString("ip");
                 if (StringUtils.isNotBlank(ip)) {
-                    Integer port = jsonObj.getInteger("port");
-                    String name = jsonObj.getString("name");
-                    AutoexecNodeVo autoexecNodeVo = new AutoexecNodeVo();
-                    autoexecNodeVo.setIp(ip);
-                    if (port != null) {
-                        autoexecNodeVo.setPort(port);
-                    }
-                    if (StringUtils.isNotBlank(name)) {
-                        autoexecNodeVo.setName(name);
-                    }
+                    resultList.add(convertToAutoexecNodeVo(jsonObj));
                 }
             } else if (obj instanceof JSONArray) {
                 JSONArray array = (JSONArray) obj;
@@ -511,6 +566,25 @@ public class CreateJobConfigUtil {
             }
         }
         return resultList;
+    }
+
+    private static AutoexecNodeVo convertToAutoexecNodeVo(JSONObject jsonObj) {
+        Long id = jsonObj.getLong("id");
+        String ip = jsonObj.getString("ip");
+        Integer port = jsonObj.getInteger("port");
+        String name = jsonObj.getString("name");
+        AutoexecNodeVo autoexecNodeVo = new AutoexecNodeVo();
+        autoexecNodeVo.setIp(ip);
+        if (id != null) {
+            autoexecNodeVo.setId(id);
+        }
+        if (port != null) {
+            autoexecNodeVo.setPort(port);
+        }
+        if (StringUtils.isNotBlank(name)) {
+            autoexecNodeVo.setName(name);
+        }
+        return autoexecNodeVo;
     }
 
     /**
@@ -867,13 +941,13 @@ public class CreateJobConfigUtil {
             for (Map.Entry<String, Object> entry : jsonObj.entrySet()) {
                 String key = entry.getKey();
                 Object value = entry.getValue();
-                FormAttributeVo formAttributeVo2 = getFormAttributeVo(formAttributeList, key);
-                if (formAttributeVo2 != null) {
-                    IFormAttributeDataConversionHandler handler = FormAttributeDataConversionHandlerFactory.getHandler(formAttributeVo2.getHandler());
+                FormAttributeVo formAttributeVo = getFormAttributeVo(formAttributeList, key);
+                if (formAttributeVo != null) {
+                    IFormAttributeDataConversionHandler handler = FormAttributeDataConversionHandlerFactory.getHandler(formAttributeVo.getHandler());
                     if (handler != null) {
                         value = handler.getSimpleValue(value);
                     }
-                    newJsonObj.put(formAttributeVo2.getKey(), value);
+                    newJsonObj.put(formAttributeVo.getKey(), value);
                 } else {
                     newJsonObj.put(key, value);
                 }
