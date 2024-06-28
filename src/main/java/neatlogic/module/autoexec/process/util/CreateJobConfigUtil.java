@@ -67,7 +67,6 @@ public class CreateJobConfigUtil {
         List<FormAttributeVo> formAttributeList = processTaskCrossoverService.getFormAttributeListByProcessTaskIdAngTag(processTaskId, createJobConfigConfigVo.getFormTag());
         if (CollectionUtils.isNotEmpty(formAttributeList)) {
             List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskIdAndTag(processTaskId, createJobConfigConfigVo.getFormTag());
-            System.out.println("processTaskFormAttributeDataList = " + JSON.toJSONString(processTaskFormAttributeDataList));
             for (ProcessTaskFormAttributeDataVo attributeDataVo : processTaskFormAttributeDataList) {
                 originalFormAttributeDataMap.put(attributeDataVo.getAttributeUuid(), attributeDataVo.getDataObj());
                 // 放入表单普通组件数据
