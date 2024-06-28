@@ -18,25 +18,31 @@
 package neatlogic.module.autoexec.api.process;
 
 import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson.JSONPath;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
 import neatlogic.framework.autoexec.exception.AutoexecCombopActiveVersionNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecCombopVersionNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.crossover.CrossoverServiceFactory;
+import neatlogic.framework.process.crossover.IProcessTaskCrossoverMapper;
+import neatlogic.framework.process.crossover.ISelectContentByHashCrossoverMapper;
 import neatlogic.framework.process.dto.ProcessTaskStepVo;
-import neatlogic.framework.restful.annotation.Input;
-import neatlogic.framework.restful.annotation.OperationType;
-import neatlogic.framework.restful.annotation.Output;
-import neatlogic.framework.restful.annotation.Param;
+import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.process.dto.AutoexecJobBuilder;
 import neatlogic.module.autoexec.process.dto.CreateJobConfigConfigVo;
+import neatlogic.module.autoexec.process.dto.CreateJobConfigVo;
 import neatlogic.module.autoexec.process.util.CreateJobConfigUtil;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -48,36 +54,63 @@ public class CreateJobStepTestApi extends PrivateApiComponentBase {
     private AutoexecCombopService autoexecCombopService;
     @Override
     public String getName() {
-        return "测试新自动化节点";
+        return "nmaap.createjobsteptestapi.getname";
     }
 
     @Input({
-            @Param(name = "processTaskId", type = ApiParamType.LONG, isRequired = true, desc = "工单ID"),
-            @Param(name = "createJobConfigConfig", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "配置信息")
+            @Param(name = "processTaskId", type = ApiParamType.LONG, isRequired = true, desc = "term.itsm.processtaskid"),
+            @Param(name = "processTaskStepId", type = ApiParamType.LONG, desc = "term.itsm.processtaskstepid"),
+            @Param(name = "createJobConfig", type = ApiParamType.JSONOBJECT, desc = "common.config")
     })
     @Output({
-            @Param(name = "Return", type = ApiParamType.JSONOBJECT)
+            @Param(name = "tbodyList", explode = AutoexecJobBuilder[].class, desc = "common.tbodylist")
     })
+    @Description(desc = "nmaap.createjobsteptestapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
+        ProcessTaskStepVo processTaskStep = new ProcessTaskStepVo();
         Long processTaskId = paramObj.getLong("processTaskId");
-        JSONObject createJobConfigConfig = paramObj.getJSONObject("createJobConfigConfig");
-        ProcessTaskStepVo processTaskStepVo = new ProcessTaskStepVo();
-        processTaskStepVo.setProcessTaskId(processTaskId);
-        processTaskStepVo.setId(1L);
-        CreateJobConfigConfigVo createJobConfigConfigVo = createJobConfigConfig.toJavaObject(CreateJobConfigConfigVo.class);
-        Long activeVersionId = autoexecCombopVersionMapper.getAutoexecCombopActiveVersionIdByCombopId(createJobConfigConfigVo.getCombopId());
-        if (activeVersionId == null) {
-            throw new AutoexecCombopActiveVersionNotFoundException(createJobConfigConfigVo.getCombopId());
+        processTaskStep.setProcessTaskId(processTaskId);
+        processTaskStep.setId(1L);
+        JSONObject createJobConfig = paramObj.getJSONObject("createJobConfig");
+        if (MapUtils.isEmpty(createJobConfig)) {
+            Long processTaskStepId = paramObj.getLong("processTaskStepId");
+            if (processTaskStepId == null) {
+                return null;
+            }
+            processTaskStep.setId(processTaskStepId);
+            IProcessTaskCrossoverMapper processTaskCrossoverMapper = CrossoverServiceFactory.getApi(IProcessTaskCrossoverMapper.class);
+            ISelectContentByHashCrossoverMapper selectContentByHashCrossoverMapper = CrossoverServiceFactory.getApi(ISelectContentByHashCrossoverMapper.class);
+            ProcessTaskStepVo processTaskStepVo = processTaskCrossoverMapper.getProcessTaskStepBaseInfoById(processTaskStepId);
+            // 获取工单当前步骤配置信息
+            String config = selectContentByHashCrossoverMapper.getProcessTaskStepConfigByHash(processTaskStepVo.getConfigHash());
+            if (StringUtils.isBlank(config)) {
+                return null;
+            }
+            createJobConfig = (JSONObject) JSONPath.read(config, "createJobConfig");
         }
-        AutoexecCombopVersionVo autoexecCombopVersionVo = autoexecCombopService.getAutoexecCombopVersionById(activeVersionId);
-        if (autoexecCombopVersionVo == null) {
-            throw new AutoexecCombopVersionNotFoundException(activeVersionId);
+        CreateJobConfigVo createJobConfigVo = createJobConfig.toJavaObject(CreateJobConfigVo.class);
+        List<CreateJobConfigConfigVo> configList = createJobConfigVo.getConfigList();
+        if (CollectionUtils.isEmpty(configList)) {
+            return null;
         }
-        List<AutoexecJobBuilder> builderList = CreateJobConfigUtil.createAutoexecJobBuilderList(processTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo);
-        System.out.println("builderList = " + JSONObject.toJSONString(builderList));
+        List<AutoexecJobBuilder> tbodyList = new ArrayList<>();
+        for (CreateJobConfigConfigVo createJobConfigConfigVo : configList) {
+            Long activeVersionId = autoexecCombopVersionMapper.getAutoexecCombopActiveVersionIdByCombopId(createJobConfigConfigVo.getCombopId());
+            if (activeVersionId == null) {
+                throw new AutoexecCombopActiveVersionNotFoundException(createJobConfigConfigVo.getCombopId());
+            }
+            AutoexecCombopVersionVo autoexecCombopVersionVo = autoexecCombopService.getAutoexecCombopVersionById(activeVersionId);
+            if (autoexecCombopVersionVo == null) {
+                throw new AutoexecCombopVersionNotFoundException(activeVersionId);
+            }
+            List<AutoexecJobBuilder> builderList = CreateJobConfigUtil.createAutoexecJobBuilderList(processTaskStep, createJobConfigConfigVo, autoexecCombopVersionVo);
+            if (CollectionUtils.isNotEmpty(builderList)) {
+                tbodyList.addAll(builderList);
+            }
+        }
         JSONObject resultObj = new JSONObject();
-        resultObj.put("builderList", builderList);
+        resultObj.put("tbodyList", tbodyList);
         return resultObj;
     }
 

@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package neatlogic.module.autoexec.process.stephandler;
+package neatlogic.module.autoexec.process.stephandler.component;
 
 import com.alibaba.fastjson.*;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
@@ -163,7 +163,10 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
             processTaskStepData.setProcessTaskId(currentProcessTaskStepVo.getProcessTaskId());
             processTaskStepData.setProcessTaskStepId(currentProcessTaskStepVo.getId());
             processTaskStepData.setType("autoexecCreateJobError");
-            processTaskStepDataCrossoverMapper.deleteProcessTaskStepData(processTaskStepData);
+            processTaskStepData = processTaskStepDataCrossoverMapper.getProcessTaskStepData(processTaskStepData);
+            if (processTaskStepData != null) {
+                processTaskStepDataCrossoverMapper.deleteProcessTaskStepData(processTaskStepData);
+            }
             List<CreateJobConfigConfigVo> configList = createJobConfigVo.getConfigList();
             if (CollectionUtils.isEmpty(configList)) {
                 return 0;
@@ -183,9 +186,6 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                 }
                 // 根据配置信息创建AutoexecJobBuilder对象
                 List<AutoexecJobBuilder> list = CreateJobConfigUtil.createAutoexecJobBuilderList(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo);
-                for (AutoexecJobBuilder builder : list) {
-                    System.out.println("builder = " + JSON.toJSONString(builder));
-                }
                 builderList.addAll(list);
 
             }
