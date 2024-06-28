@@ -35,6 +35,7 @@ import neatlogic.framework.process.stephandler.core.ProcessStepInternalHandlerBa
 import neatlogic.framework.process.util.ProcessConfigUtil;
 import neatlogic.module.autoexec.notify.handler.AutoexecCombopNotifyPolicyHandler;
 import neatlogic.module.autoexec.process.constvalue.CreateJobProcessStepHandlerType;
+import neatlogic.module.autoexec.process.dto.CreateJobConfigVo;
 import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -217,8 +218,8 @@ public class CreateJobProcessUtilHandler extends ProcessStepInternalHandlerBase 
 
         /* 自动化配置 **/
         JSONObject createJobConfig = configObj.getJSONObject("createJobConfig");
-        JSONObject createJobConfigObj = regulateCreateJobConfig(createJobConfig);
-        resultObj.put("createJobConfig", createJobConfigObj);
+        CreateJobConfigVo createJobConfigVo = regulateCreateJobConfig(createJobConfig);
+        resultObj.put("createJobConfig", createJobConfigVo);
 
         /** 分配处理人 **/
         JSONObject workerPolicyConfig = configObj.getJSONObject("workerPolicyConfig");
@@ -238,12 +239,10 @@ public class CreateJobProcessUtilHandler extends ProcessStepInternalHandlerBase 
         return resultObj;
     }
 
-    private JSONObject regulateCreateJobConfig(JSONObject createJobConfig) {
-        JSONObject createJobConfigObj = new JSONObject();
+    private CreateJobConfigVo regulateCreateJobConfig(JSONObject createJobConfig) {
         if (createJobConfig == null) {
             createJobConfig = new JSONObject();
         }
-        createJobConfigObj.putAll(createJobConfig);
-        return createJobConfigObj;
+        return createJobConfig.toJavaObject(CreateJobConfigVo.class);
     }
 }
