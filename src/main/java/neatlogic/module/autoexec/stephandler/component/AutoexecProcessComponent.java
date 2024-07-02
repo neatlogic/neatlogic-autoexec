@@ -879,6 +879,15 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                         } else if (attributeDataVo.getDataObj() instanceof JSONArray) {
                             param.put(key, convertDateType(type, JSONObject.toJSONString(attributeDataVo.getDataObj())));
                         }
+                    } else if (Objects.equals(attributeDataVo.getHandler(), neatlogic.framework.form.constvalue.FormHandler.FORMUSERSELECT.getHandler()) && Objects.equals(type, ParamType.USERSELECT.getValue())) {
+                        Object dataObj = attributeDataVo.getDataObj();
+                        if (dataObj instanceof JSONArray) {
+                            param.put(key, dataObj);
+                        } else {
+                            JSONArray array = new JSONArray();
+                            array.add(dataObj);
+                            param.put(key, array);
+                        }
                     } else {
                         param.put(key, attributeDataVo.getDataObj());
                     }
