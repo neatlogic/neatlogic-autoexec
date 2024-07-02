@@ -234,33 +234,19 @@ public class CreateJobConfigUtil {
         if (needExecuteNode) {
             String whenToSpecify = combopExecuteConfig.getWhenToSpecify();
             if (Objects.equals(CombopNodeSpecify.NOW.getValue(), whenToSpecify)) {
+                executeConfig.setWhenToSpecify(CombopNodeSpecify.NOW.getValue());
                 AutoexecCombopExecuteNodeConfigVo executeNodeConfig = combopExecuteConfig.getExecuteNodeConfig();
                 if (executeNodeConfig != null) {
                     executeConfig.setExecuteNodeConfig(executeNodeConfig);
                 }
             } else if (Objects.equals(CombopNodeSpecify.RUNTIMEPARAM.getValue(), whenToSpecify)) {
+                executeConfig.setWhenToSpecify(CombopNodeSpecify.RUNTIMEPARAM.getValue());
                 AutoexecCombopExecuteNodeConfigVo executeNodeConfig = combopExecuteConfig.getExecuteNodeConfig();
                 if (executeNodeConfig != null) {
                     executeConfig.setExecuteNodeConfig(executeNodeConfig);
-//                    List<String> paramList = executeNodeConfig.getParamList();
-//                    if (CollectionUtils.isNotEmpty(paramList)) {
-//                        List<AutoexecNodeVo> inputNodeList = new ArrayList<>();
-//                        JSONObject paramObj = jobVo.getParam();
-//                        for (String paramKey : paramList) {
-//                            JSONArray jsonArray = paramObj.getJSONArray(paramKey);
-//                            if (CollectionUtils.isNotEmpty(jsonArray)) {
-//                                List<AutoexecNodeVo> list = jsonArray.toJavaList(AutoexecNodeVo.class);
-//                                inputNodeList.addAll(list);
-//                            }
-//                        }
-//                        if (CollectionUtils.isNotEmpty(inputNodeList)) {
-//                            AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = new AutoexecCombopExecuteNodeConfigVo();
-//                            executeNodeConfigVo.setInputNodeList(inputNodeList);
-//                            executeConfig.setExecuteNodeConfig(executeNodeConfigVo);
-//                        }
-//                    }
                 }
             } else if (Objects.equals(CombopNodeSpecify.RUNTIME.getValue(), whenToSpecify)) {
+                executeConfig.setWhenToSpecify(CombopNodeSpecify.RUNTIME.getValue());
                 CreateJobConfigMappingGroupVo mappingGroupVo = executeParamMappingGroupMap.get("executeNodeConfig");
                 if (mappingGroupVo != null) {
                     JSONArray jsonArray = parseCreateJobConfigMappingGroup(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
@@ -268,12 +254,6 @@ public class CreateJobConfigUtil {
                     if (executeNodeConfigVo != null) {
                         executeConfig.setExecuteNodeConfig(executeNodeConfigVo);
                     }
-//                    List<AutoexecNodeVo> inputNodeList = getInputNodeList(jsonArray);
-//                    if (CollectionUtils.isNotEmpty(inputNodeList)) {
-//                        AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = new AutoexecCombopExecuteNodeConfigVo();
-//                        executeNodeConfigVo.setInputNodeList(inputNodeList);
-//                        executeConfig.setExecuteNodeConfig(executeNodeConfigVo);
-//                    }
                 }
             }
         }
@@ -1073,7 +1053,10 @@ public class CreateJobConfigUtil {
         } else if (Objects.equals(paramType, ParamType.CHECKBOX.getValue())) {
             return getObjectList(jsonArray);
         } else if (Objects.equals(paramType, ParamType.NODE.getValue())) {
-            return getInputNodeList(jsonArray);
+            List<AutoexecNodeVo> list = getInputNodeList(jsonArray);
+            JSONArray array = new JSONArray(list.size());
+            array.addAll(list);
+            return array;
         } else if (Objects.equals(paramType, ParamType.ACCOUNT.getValue())) {
             // 账号id，单选
             return getAccountId(jsonArray);
