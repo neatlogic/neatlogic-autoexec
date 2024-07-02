@@ -24,11 +24,13 @@ import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
+import neatlogic.framework.notify.core.INotifyPolicyHandler;
 import neatlogic.framework.process.constvalue.ProcessTaskOperationType;
 import neatlogic.framework.process.crossover.IProcessTaskStepDataCrossoverMapper;
 import neatlogic.framework.process.dto.ProcessTaskStepDataVo;
 import neatlogic.framework.process.dto.ProcessTaskStepVo;
 import neatlogic.framework.process.stephandler.core.ProcessStepInternalHandlerBase;
+import neatlogic.module.autoexec.notify.handler.AutoexecCombopNotifyPolicyHandler;
 import neatlogic.module.autoexec.process.constvalue.CreateJobProcessStepHandlerType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -142,6 +144,10 @@ public class CreateJobProcessUtilHandler extends ProcessStepInternalHandlerBase 
         };
     }
 
+    @Override
+    public Class<? extends INotifyPolicyHandler> getNotifyPolicyHandlerClass() {
+        return AutoexecCombopNotifyPolicyHandler.class;
+    }
 
     @Override
     public String[] getRegulateKeyList() {
