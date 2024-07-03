@@ -37,6 +37,8 @@ import neatlogic.framework.common.constvalue.SystemUser;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dao.mapper.runner.RunnerMapper;
 import neatlogic.framework.dto.runner.RunnerGroupVo;
+import neatlogic.framework.file.dao.mapper.FileMapper;
+import neatlogic.framework.file.dto.FileVo;
 import neatlogic.framework.form.attribute.core.FormAttributeDataConversionHandlerFactory;
 import neatlogic.framework.form.attribute.core.IFormAttributeDataConversionHandler;
 import neatlogic.framework.form.dto.AttributeDataVo;
@@ -96,6 +98,9 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     @Resource
     private RunnerMapper runnerMapper;
+
+    @Resource
+    private FileMapper fileMapper;
 
 
     @Override
@@ -888,7 +893,10 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                             array.add(dataObj);
                             param.put(key, array);
                         }
-                    } else {
+                    } else if (Objects.equals(type, ParamType.FILE.getValue())) {
+                        param.put(key, convertDateTypeForFile(attributeDataVo.getDataObj()));
+                    }
+                    else {
                         param.put(key, attributeDataVo.getDataObj());
                     }
                 }
@@ -1392,6 +1400,65 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         return source;
     }
 
+    /**
+     * 将数据转换成文件类型参数需要的格式
+     * @param dataObj
+     * @return
+     */
+    private JSONObject convertDateTypeForFile(Object dataObj) {
+        if (dataObj == null) {
+            return null;
+        }
+        if (dataObj instanceof JSONObject) {
+            JSONObject jsonObject = (JSONObject) dataObj;
+            Long fileId = jsonObject.getLong("id");
+            return convertDateTypeForFile(fileId);
+        } else if (dataObj instanceof JSONArray) {
+            JSONArray jsonArray = (JSONArray) dataObj;
+            if (!jsonArray.isEmpty()) {
+                JSONObject resultObj = new JSONObject();
+                JSONArray fileIdList = new JSONArray();
+                JSONArray fileList = new JSONArray();
+                for (Object obj : jsonArray) {
+                    JSONObject jsonObj = convertDateTypeForFile(obj);
+                    if (jsonObj != null) {
+                        JSONArray fileIdArray = jsonObj.getJSONArray("fileIdList");
+                        fileIdList.addAll(fileIdArray);
+                        JSONArray fileArray = jsonObj.getJSONArray("fileList");
+                        fileList.addAll(fileArray);
+                    }
+                }
+                resultObj.put("fileIdList", fileIdList);
+                resultObj.put("fileList", fileList);
+                return resultObj;
+            }
+        } else if (dataObj instanceof Long) {
+            Long fileId = (Long) dataObj;
+            FileVo file = fileMapper.getFileById(fileId);
+            if (file != null) {
+                JSONObject resultObj = new JSONObject();
+                JSONArray fileIdList = new JSONArray();
+                fileIdList.add(fileId);
+                JSONArray fileList = new JSONArray();
+                JSONObject fileObj = new JSONObject();
+                fileObj.put("id", fileId);
+                fileObj.put("name", file.getName());
+                fileList.add(fileObj);
+                resultObj.put("fileIdList", fileIdList);
+                resultObj.put("fileList", fileList);
+                return resultObj;
+            }
+        } else {
+            String str = dataObj.toString();
+            try {
+                Long fileId = Long.valueOf(str);
+                return convertDateTypeForFile(fileId);
+            } catch (NumberFormatException e) {
+
+            }
+        }
+        return null;
+    }
     @Override
     protected int myAssign(ProcessTaskStepVo currentProcessTaskStepVo, Set<ProcessTaskStepWorkerVo> workerSet) throws ProcessTaskException {
         return defaultAssign(currentProcessTaskStepVo, workerSet);
