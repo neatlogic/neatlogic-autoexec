@@ -108,8 +108,6 @@ public class CreateJobConfigUtil {
             }
             formAttributeList.addAll(allDownwardFormAttributeList);
         }
-        System.out.println("formAttributeDataMap = " + JSONObject.toJSONString(formAttributeDataMap));
-        System.out.println("originalFormAttributeDataMap = " + JSONObject.toJSONString(originalFormAttributeDataMap));
         JSONObject processTaskParam = ProcessTaskConditionFactory.getConditionParamData(Arrays.stream(ConditionProcessTaskOptions.values()).map(ConditionProcessTaskOptions::getValue).collect(Collectors.toList()), currentProcessTaskStepVo);
         // 作业策略createJobPolicy为single时表示单次创建作业，createJobPolicy为batch时表示批量创建作业
         String createPolicy = createJobConfigConfigVo.getCreatePolicy();
@@ -967,7 +965,6 @@ public class CreateJobConfigUtil {
             }
             resultList.add(newJsonObj);
         }
-        System.out.println("resultList = " + JSONObject.toJSONString(resultList));
         return resultList;
     }
 
