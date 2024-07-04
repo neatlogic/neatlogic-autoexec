@@ -27,10 +27,12 @@ import neatlogic.framework.dto.runner.RunnerMapVo;
 import neatlogic.framework.filter.core.LoginAuthHandlerBase;
 import neatlogic.framework.healthcheck.dao.mapper.DatabaseFragmentMapper;
 import neatlogic.framework.integration.authentication.enums.AuthenticateType;
+import neatlogic.framework.util.$;
 import neatlogic.framework.util.HttpRequestUtil;
 import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -86,7 +88,8 @@ public class AutoexecJobCleaner extends AuditCleanerBase {
                         }});
                         JSONObject resultJson = HttpRequestUtil.post(url).setConnectTimeout(5000).setReadTimeout(10000).setAuthType(AuthenticateType.BUILDIN).setPayload(paramJson.toJSONString()).sendRequest().getResultJson();
                         if (MapUtils.isEmpty(resultJson) || !resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                            logger.debug("清除作业异常：" + url + ":" + resultJson.getString("Message"));
+                            String errorMsg = $.t("nmaah.autoexecjobcleaner.myclean.error", url, (MapUtils.isEmpty(resultJson) ? StringUtils.EMPTY : resultJson.toJSONString()));
+                            logger.error(errorMsg);
                         }
                     } catch (Exception ex) {
                         logger.error(ex.getMessage(), ex);

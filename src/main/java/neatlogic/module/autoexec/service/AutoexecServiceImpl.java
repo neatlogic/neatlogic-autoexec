@@ -565,8 +565,6 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                         paramVo.setOperationId(operationVo.getId());
                         paramVo.setOperationType(operationVo.getType());
                     }
-                }
-                if (CollectionUtils.isNotEmpty(inputParamList)) {
                     newOperationParamVoList.addAll(inputParamList);
                 }
             }
