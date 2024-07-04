@@ -32,6 +32,8 @@ import neatlogic.framework.cmdb.dto.resourcecenter.AccountVo;
 import neatlogic.framework.common.constvalue.Expression;
 import neatlogic.framework.common.constvalue.GroupSearch;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
+import neatlogic.framework.crossover.IFileCrossoverService;
+import neatlogic.framework.file.dto.FileVo;
 import neatlogic.framework.form.attribute.core.FormAttributeDataConversionHandlerFactory;
 import neatlogic.framework.form.attribute.core.IFormAttributeDataConversionHandler;
 import neatlogic.framework.form.dto.FormAttributeVo;
@@ -68,18 +70,24 @@ public class CreateJobConfigUtil {
         if (CollectionUtils.isNotEmpty(formAttributeList)) {
             List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskIdAndTag(processTaskId, createJobConfigConfigVo.getFormTag());
             for (ProcessTaskFormAttributeDataVo attributeDataVo : processTaskFormAttributeDataList) {
-                originalFormAttributeDataMap.put(attributeDataVo.getAttributeUuid(), attributeDataVo.getDataObj());
                 // 放入表单普通组件数据
                 if (!Objects.equals(attributeDataVo.getHandler(), neatlogic.framework.form.constvalue.FormHandler.FORMTABLEINPUTER.getHandler())
                         && !Objects.equals(attributeDataVo.getHandler(), neatlogic.framework.form.constvalue.FormHandler.FORMSUBASSEMBLY.getHandler())
                         && !Objects.equals(attributeDataVo.getHandler(), neatlogic.framework.form.constvalue.FormHandler.FORMTABLESELECTOR.getHandler())) {
                     IFormAttributeDataConversionHandler handler = FormAttributeDataConversionHandlerFactory.getHandler(attributeDataVo.getHandler());
                     if (handler != null) {
-                        formAttributeDataMap.put(attributeDataVo.getAttributeUuid(), handler.getSimpleValue(attributeDataVo.getDataObj()));
+                        Object simpleValue = handler.getSimpleValue(attributeDataVo.getDataObj());
+                        formAttributeDataMap.put(attributeDataVo.getAttributeUuid(), simpleValue);
+                        formAttributeDataMap.put(attributeDataVo.getAttributeKey(), simpleValue);
                     } else {
-                        formAttributeDataMap.put(attributeDataVo.getAttributeUuid(), attributeDataVo.getDataObj());
+                        Object dataObj = attributeDataVo.getDataObj();
+                        formAttributeDataMap.put(attributeDataVo.getAttributeUuid(), dataObj);
+                        formAttributeDataMap.put(attributeDataVo.getAttributeKey(), dataObj);
                     }
                 }
+                Object dataObj = attributeDataVo.getDataObj();
+                originalFormAttributeDataMap.put(attributeDataVo.getAttributeUuid(), dataObj);
+                originalFormAttributeDataMap.put(attributeDataVo.getAttributeKey(), dataObj);
             }
             // 添加表格组件中的子组件到组件列表中
             List<FormAttributeVo> allDownwardFormAttributeList = new ArrayList<>();
@@ -100,7 +108,6 @@ public class CreateJobConfigUtil {
             }
             formAttributeList.addAll(allDownwardFormAttributeList);
         }
-
         JSONObject processTaskParam = ProcessTaskConditionFactory.getConditionParamData(Arrays.stream(ConditionProcessTaskOptions.values()).map(ConditionProcessTaskOptions::getValue).collect(Collectors.toList()), currentProcessTaskStepVo);
         // 作业策略createJobPolicy为single时表示单次创建作业，createJobPolicy为batch时表示批量创建作业
         String createPolicy = createJobConfigConfigVo.getCreatePolicy();
@@ -147,9 +154,18 @@ public class CreateJobConfigUtil {
         if (CollectionUtils.isEmpty(tbodyList)) {
             return resultList;
         }
+        FormAttributeVo formAttributeVo = getFormAttributeVo(formAttributeList, batchDataSourceMapping.getValue().toString());
+        if (formAttributeVo == null) {
+            formAttributeVo = getFormAttributeVoByKeyAndParentUuid(formAttributeList, batchDataSourceMapping.getValue().toString(), null);
+        }
+        if (formAttributeVo == null) {
+            return resultList;
+        }
         // 遍历表格数据，创建AutoexecJobVo对象列表
         for (Object obj : tbodyList) {
-            formAttributeDataMap.put(batchDataSourceMapping.getValue().toString(), Collections.singletonList(obj));
+            List<Object> list = Collections.singletonList(obj);
+            formAttributeDataMap.put(formAttributeVo.getUuid(), list);
+            formAttributeDataMap.put(formAttributeVo.getKey(), list);
             AutoexecJobBuilder builder = createSingleAutoexecJobBuilder(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
             resultList.add(builder);
         }
@@ -893,7 +909,7 @@ public class CreateJobConfigUtil {
      * 获取表单表格组件的数据
      * @param formAttributeList
      * @param originalFormAttributeDataMap
-     * @param attributeUuid
+     * @param attribute
      * @return
      */
     @SuppressWarnings("unchecked")
@@ -901,13 +917,20 @@ public class CreateJobConfigUtil {
             List<FormAttributeVo> formAttributeList,
             Map<String, Object> originalFormAttributeDataMap,
             Map<String, Object> formAttributeDataMap,
-            String attributeUuid) {
+            String attribute) {
         List<JSONObject> resultList = new ArrayList<>();
-        Object object = formAttributeDataMap.get(attributeUuid);
+        FormAttributeVo formAttributeVo = getFormAttributeVo(formAttributeList, attribute);
+        if (formAttributeVo == null) {
+            formAttributeVo = getFormAttributeVoByKeyAndParentUuid(formAttributeList, attribute, null);
+        }
+        if (formAttributeVo == null) {
+            return resultList;
+        }
+        Object object = formAttributeDataMap.get(attribute);
         if (object != null) {
             return (List<JSONObject>) object;
         }
-        Object obj = originalFormAttributeDataMap.get(attributeUuid);
+        Object obj = originalFormAttributeDataMap.get(attribute);
         if (obj == null) {
             return resultList;
         }
@@ -918,20 +941,24 @@ public class CreateJobConfigUtil {
         if (CollectionUtils.isEmpty(array)) {
             return resultList;
         }
-
+        // 将表格组件中下拉框属性数据值由{"value": "a", "text": "A"}转换为"a"
         for (int i = 0; i < array.size(); i++) {
             JSONObject newJsonObj = new JSONObject();
             JSONObject jsonObj = array.getJSONObject(i);
             for (Map.Entry<String, Object> entry : jsonObj.entrySet()) {
                 String key = entry.getKey();
                 Object value = entry.getValue();
-                FormAttributeVo formAttributeVo = getFormAttributeVo(formAttributeList, key);
-                if (formAttributeVo != null) {
-                    IFormAttributeDataConversionHandler handler = FormAttributeDataConversionHandlerFactory.getHandler(formAttributeVo.getHandler());
+                FormAttributeVo columnFormAttributeVo = getFormAttributeVo(formAttributeList, key);
+                if (columnFormAttributeVo == null) {
+                    columnFormAttributeVo = getFormAttributeVoByKeyAndParentUuid(formAttributeList, key, formAttributeVo.getUuid());
+                }
+                if (columnFormAttributeVo != null) {
+                    IFormAttributeDataConversionHandler handler = FormAttributeDataConversionHandlerFactory.getHandler(columnFormAttributeVo.getHandler());
                     if (handler != null) {
                         value = handler.getSimpleValue(value);
                     }
-                    newJsonObj.put(key, value);
+                    newJsonObj.put(columnFormAttributeVo.getUuid(), value);
+                    newJsonObj.put(columnFormAttributeVo.getKey(), value);
                 } else {
                     newJsonObj.put(key, value);
                 }
@@ -1243,19 +1270,28 @@ public class CreateJobConfigUtil {
         JSONObject resultObj = new JSONObject();
         JSONArray fileIdList = new JSONArray();
         JSONArray fileList = new JSONArray();
+        IFileCrossoverService fileCrossoverService = CrossoverServiceFactory.getApi(IFileCrossoverService.class);
         for (Object obj : jsonArray) {
             if (obj == null) {
                 continue;
             }
             if (obj instanceof JSONObject) {
                 JSONObject jsonObj = (JSONObject) obj;
+                Long fileId = jsonObj.getLong("id");
                 JSONArray fileIdArray = jsonObj.getJSONArray("fileIdList");
-                if (CollectionUtils.isNotEmpty(fileIdArray)) {
-                    fileIdList.addAll(fileIdArray);
-                }
                 JSONArray fileArray = jsonObj.getJSONArray("fileList");
-                if (CollectionUtils.isNotEmpty(fileArray)) {
+                if (CollectionUtils.isNotEmpty(fileIdArray) && CollectionUtils.isNotEmpty(fileArray)) {
+                    fileIdList.addAll(fileIdArray);
                     fileList.addAll(fileArray);
+                } else if (fileId != null) {
+                    FileVo file = fileCrossoverService.getFileById(fileId);
+                    if (file != null) {
+                        fileIdList.add(fileId);
+                        JSONObject fileObj = new JSONObject();
+                        fileObj.put("id", fileId);
+                        fileObj.put("name", file.getName());
+                        fileList.add(fileObj);
+                    }
                 }
             } else if (obj instanceof JSONArray) {
                 JSONArray array = (JSONArray) obj;
@@ -1268,17 +1304,35 @@ public class CreateJobConfigUtil {
                 if (CollectionUtils.isNotEmpty(fileArray)) {
                     fileList.addAll(fileArray);
                 }
+            } else if (obj instanceof Long) {
+                Long fileId = (Long) obj;
+                FileVo file = fileCrossoverService.getFileById(fileId);
+                if (file != null) {
+                    fileIdList.add(fileId);
+                    JSONObject fileObj = new JSONObject();
+                    fileObj.put("id", fileId);
+                    fileObj.put("name", file.getName());
+                    fileList.add(fileObj);
+                }
             } else {
                 String str = obj.toString();
                 if (str.startsWith("{") && str.endsWith("}")) {
                     JSONObject jsonObj = JSONObject.parseObject(str);
+                    Long fileId = jsonObj.getLong("id");
                     JSONArray fileIdArray = jsonObj.getJSONArray("fileIdList");
-                    if (CollectionUtils.isNotEmpty(fileIdArray)) {
-                        fileIdList.addAll(fileIdArray);
-                    }
                     JSONArray fileArray = jsonObj.getJSONArray("fileList");
-                    if (CollectionUtils.isNotEmpty(fileArray)) {
+                    if (CollectionUtils.isNotEmpty(fileIdArray) && CollectionUtils.isNotEmpty(fileArray)) {
+                        fileIdList.addAll(fileIdArray);
                         fileList.addAll(fileArray);
+                    } else if (fileId != null) {
+                        FileVo file = fileCrossoverService.getFileById(fileId);
+                        if (file != null) {
+                            fileIdList.add(fileId);
+                            JSONObject fileObj = new JSONObject();
+                            fileObj.put("id", fileId);
+                            fileObj.put("name", file.getName());
+                            fileList.add(fileObj);
+                        }
                     }
                 } else if (str.startsWith("[") && str.endsWith("]")) {
                     JSONArray array = JSONArray.parseArray(str);
@@ -1290,6 +1344,20 @@ public class CreateJobConfigUtil {
                     JSONArray fileArray = jsonObj.getJSONArray("fileList");
                     if (CollectionUtils.isNotEmpty(fileArray)) {
                         fileList.addAll(fileArray);
+                    }
+                } else {
+                    try {
+                        Long fileId = Long.valueOf(str);
+                        FileVo file = fileCrossoverService.getFileById(fileId);
+                        if (file != null) {
+                            fileIdList.add(fileId);
+                            JSONObject fileObj = new JSONObject();
+                            fileObj.put("id", fileId);
+                            fileObj.put("name", file.getName());
+                            fileList.add(fileObj);
+                        }
+                    } catch (NumberFormatException e) {
+
                     }
                 }
             }
