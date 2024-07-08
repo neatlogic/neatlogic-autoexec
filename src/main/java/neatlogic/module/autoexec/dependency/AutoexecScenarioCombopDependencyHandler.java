@@ -21,7 +21,7 @@ import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
-import neatlogic.framework.dependency.core.FixedTableDependencyHandlerBase;
+import neatlogic.framework.dependency.core.DefaultDependencyHandlerBase;
 import neatlogic.framework.dependency.core.IFromType;
 import neatlogic.framework.dependency.dto.DependencyInfoVo;
 import neatlogic.framework.dependency.dto.DependencyVo;
@@ -38,7 +38,7 @@ import java.util.List;
  */
 
 @Component
-public class AutoexecScenarioCombopDependencyHandler extends FixedTableDependencyHandlerBase {
+public class AutoexecScenarioCombopDependencyHandler extends DefaultDependencyHandlerBase {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;

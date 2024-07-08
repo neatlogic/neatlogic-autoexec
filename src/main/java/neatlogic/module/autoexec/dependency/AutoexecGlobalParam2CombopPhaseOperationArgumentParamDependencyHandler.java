@@ -20,7 +20,7 @@ import neatlogic.framework.autoexec.constvalue.AutoexecFromType;
 import neatlogic.framework.autoexec.constvalue.ParamMappingMode;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dto.combop.*;
-import neatlogic.framework.dependency.core.FixedTableDependencyHandlerBase;
+import neatlogic.framework.dependency.core.DefaultDependencyHandlerBase;
 import neatlogic.framework.dependency.core.IFromType;
 import neatlogic.framework.dependency.dto.DependencyInfoVo;
 import neatlogic.framework.dependency.dto.DependencyVo;
@@ -38,7 +38,7 @@ import java.util.Objects;
  * 组合工具阶段操作自由参数映射引用全局参数处理器
  */
 @Component
-public class AutoexecGlobalParam2CombopPhaseOperationArgumentParamDependencyHandler extends FixedTableDependencyHandlerBase {
+public class AutoexecGlobalParam2CombopPhaseOperationArgumentParamDependencyHandler extends DefaultDependencyHandlerBase {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;

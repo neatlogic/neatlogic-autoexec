@@ -1,7 +1,7 @@
 package neatlogic.module.autoexec.dependency;
 
 import neatlogic.framework.autoexec.constvalue.AutoexecFromType;
-import neatlogic.framework.dependency.core.CustomTableDependencyHandlerBase;
+import neatlogic.framework.dependency.core.CustomDependencyHandlerBase;
 import neatlogic.framework.dependency.core.IFromType;
 import neatlogic.framework.dependency.dto.DependencyInfoVo;
 import org.springframework.stereotype.Service;
@@ -14,7 +14,7 @@ import java.util.List;
  * 预制参数集引用自定义工具处理器
  */
 @Service
-public class AutoexecScript2ProfileDependencyHandler extends CustomTableDependencyHandlerBase {
+public class AutoexecScript2ProfileDependencyHandler extends CustomDependencyHandlerBase {
     @Override
     protected String getTableName() {
         return "autoexec_profile_operation";

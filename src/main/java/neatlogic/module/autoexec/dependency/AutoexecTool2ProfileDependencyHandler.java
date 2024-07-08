@@ -1,13 +1,13 @@
 package neatlogic.module.autoexec.dependency;
 
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.autoexec.constvalue.AutoexecFromType;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import neatlogic.framework.autoexec.dto.AutoexecToolVo;
-import neatlogic.framework.dependency.core.CustomTableDependencyHandlerBase;
+import neatlogic.framework.dependency.core.CustomDependencyHandlerBase;
 import neatlogic.framework.dependency.core.IFromType;
 import neatlogic.framework.dependency.dto.DependencyInfoVo;
-import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -21,7 +21,7 @@ import java.util.Map;
  * 预制参数集引用工具库处理器
  */
 @Service
-public class AutoexecTool2ProfileDependencyHandler extends CustomTableDependencyHandlerBase {
+public class AutoexecTool2ProfileDependencyHandler extends CustomDependencyHandlerBase {
 
     @Resource
     AutoexecToolMapper autoexecToolMapper;

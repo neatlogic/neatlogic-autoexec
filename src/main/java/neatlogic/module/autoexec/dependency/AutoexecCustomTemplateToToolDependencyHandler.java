@@ -1,11 +1,11 @@
 package neatlogic.module.autoexec.dependency;
 
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.autoexec.constvalue.AutoexecFromType;
-import neatlogic.framework.dependency.core.CustomTableDependencyHandlerBase;
+import neatlogic.framework.dependency.core.CustomDependencyHandlerBase;
 import neatlogic.framework.dependency.core.IFromType;
 import neatlogic.framework.dependency.dto.DependencyInfoVo;
-import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class AutoexecCustomTemplateToToolDependencyHandler extends CustomTableDependencyHandlerBase {
+public class AutoexecCustomTemplateToToolDependencyHandler extends CustomDependencyHandlerBase {
 
     @Override
     public IFromType getFromType() {

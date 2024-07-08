@@ -1,7 +1,7 @@
 package neatlogic.module.autoexec.dependency;
 
 import neatlogic.framework.autoexec.constvalue.AutoexecFromType;
-import neatlogic.framework.dependency.core.CustomTableDependencyHandlerBase;
+import neatlogic.framework.dependency.core.CustomDependencyHandlerBase;
 import neatlogic.framework.dependency.core.IFromType;
 import neatlogic.framework.dependency.dto.DependencyInfoVo;
 import neatlogic.module.autoexec.service.AutoexecScriptService;
@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.Map;
 
 @Service
-public class AutoexecCustomTemplateToScriptDependencyHandler extends CustomTableDependencyHandlerBase {
+public class AutoexecCustomTemplateToScriptDependencyHandler extends CustomDependencyHandlerBase {
 
     @Resource
     AutoexecScriptService autoexecScriptService;

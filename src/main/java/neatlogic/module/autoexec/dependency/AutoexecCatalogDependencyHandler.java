@@ -2,7 +2,7 @@ package neatlogic.module.autoexec.dependency;
 
 import neatlogic.framework.autoexec.constvalue.AutoexecFromType;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecScriptMapper;
-import neatlogic.framework.dependency.core.CustomTableDependencyHandlerBase;
+import neatlogic.framework.dependency.core.CustomDependencyHandlerBase;
 import neatlogic.framework.dependency.core.IFromType;
 import neatlogic.framework.dependency.dto.DependencyInfoVo;
 import neatlogic.module.autoexec.service.AutoexecScriptService;
@@ -19,7 +19,7 @@ import java.util.Map;
  * @date 2021/12/15 3:59 下午
  */
 @Service
-public class AutoexecCatalogDependencyHandler extends CustomTableDependencyHandlerBase {
+public class AutoexecCatalogDependencyHandler extends CustomDependencyHandlerBase {
 
     @Resource
     AutoexecScriptMapper autoexecScriptMapper;

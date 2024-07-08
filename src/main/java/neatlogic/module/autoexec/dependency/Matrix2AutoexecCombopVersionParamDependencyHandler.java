@@ -23,7 +23,7 @@ import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
 import neatlogic.framework.dependency.constvalue.FrameworkFromType;
-import neatlogic.framework.dependency.core.FixedTableDependencyHandlerBase;
+import neatlogic.framework.dependency.core.DefaultDependencyHandlerBase;
 import neatlogic.framework.dependency.core.IFromType;
 import neatlogic.framework.dependency.dto.DependencyInfoVo;
 import neatlogic.framework.dependency.dto.DependencyVo;
@@ -43,7 +43,7 @@ import java.util.Objects;
  * @since 2021/6/21 16:31
  **/
 @Service
-public class Matrix2AutoexecCombopVersionParamDependencyHandler extends FixedTableDependencyHandlerBase {
+public class Matrix2AutoexecCombopVersionParamDependencyHandler extends DefaultDependencyHandlerBase {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;

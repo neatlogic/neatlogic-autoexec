@@ -19,7 +19,7 @@ import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.autoexec.constvalue.AutoexecFromType;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceNodeVo;
-import neatlogic.framework.dependency.core.FixedTableDependencyHandlerBase;
+import neatlogic.framework.dependency.core.DefaultDependencyHandlerBase;
 import neatlogic.framework.dependency.core.IFromType;
 import neatlogic.framework.dependency.dto.DependencyInfoVo;
 import neatlogic.framework.dependency.dto.DependencyVo;
@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Component
-public class AutoexecCombop2AutoexecServiceDependencyHandler extends FixedTableDependencyHandlerBase {
+public class AutoexecCombop2AutoexecServiceDependencyHandler extends DefaultDependencyHandlerBase {
 
     @Resource
     private AutoexecServiceMapper autoexecServiceMapper;

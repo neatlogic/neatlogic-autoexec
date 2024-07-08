@@ -20,7 +20,7 @@ import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.autoexec.constvalue.AutoexecFromType;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dto.combop.*;
-import neatlogic.framework.dependency.core.FixedTableDependencyHandlerBase;
+import neatlogic.framework.dependency.core.DefaultDependencyHandlerBase;
 import neatlogic.framework.dependency.core.IFromType;
 import neatlogic.framework.dependency.dto.DependencyInfoVo;
 import neatlogic.framework.dependency.dto.DependencyVo;
@@ -37,7 +37,7 @@ import java.util.Objects;
  * 组合工具阶段操作引用预置参数集处理器
  */
 @Component
-public class AutoexecProfile2CombopPhaseOperationDependencyHandler extends FixedTableDependencyHandlerBase {
+public class AutoexecProfile2CombopPhaseOperationDependencyHandler extends DefaultDependencyHandlerBase {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;

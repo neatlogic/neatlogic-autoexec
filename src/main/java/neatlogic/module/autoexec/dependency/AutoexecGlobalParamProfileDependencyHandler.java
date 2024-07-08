@@ -1,14 +1,14 @@
 package neatlogic.module.autoexec.dependency;
 
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.autoexec.constvalue.AutoexecFromType;
 import neatlogic.framework.autoexec.dto.profile.AutoexecProfileVo;
-import neatlogic.framework.dependency.core.FixedTableDependencyHandlerBase;
+import neatlogic.framework.dependency.core.DefaultDependencyHandlerBase;
 import neatlogic.framework.dependency.core.IFromType;
 import neatlogic.framework.dependency.dto.DependencyInfoVo;
 import neatlogic.framework.dependency.dto.DependencyVo;
 import neatlogic.module.autoexec.dao.mapper.AutoexecProfileMapper;
-import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +22,7 @@ import java.util.List;
  * 预制参数集引用全局参数处理器
  */
 @Service
-public class AutoexecGlobalParamProfileDependencyHandler extends FixedTableDependencyHandlerBase {
+public class AutoexecGlobalParamProfileDependencyHandler extends DefaultDependencyHandlerBase {
 
     @Resource
     AutoexecProfileMapper autoexecProfileMapper;
