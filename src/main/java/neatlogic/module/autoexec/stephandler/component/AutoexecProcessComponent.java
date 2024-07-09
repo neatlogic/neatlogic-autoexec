@@ -285,6 +285,15 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     } else {
                         processTaskStepComplete(currentProcessTaskStepVo.getId(), null);
                     }
+                } else {
+                    IProcessStepHandler processStepHandler = ProcessStepHandlerFactory.getHandler(currentProcessTaskStepVo.getHandler());
+                    if (processStepHandler != null) {
+                        try {
+                            processStepHandler.assign(currentProcessTaskStepVo);
+                        } catch (ProcessTaskException e) {
+                            logger.error(e.getMessage(), e);
+                        }
+                    }
                 }
             }
         } catch (Exception e) {
@@ -1680,5 +1689,10 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
     @Override
     protected int myRedo(ProcessTaskStepVo currentProcessTaskStepVo) throws ProcessTaskException {
         return 0;
+    }
+
+    @Override
+    public boolean disableAssign() {
+        return true;
     }
 }
