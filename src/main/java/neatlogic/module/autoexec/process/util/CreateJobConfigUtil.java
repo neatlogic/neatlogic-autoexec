@@ -691,7 +691,7 @@ public class CreateJobConfigUtil {
             }
             String mappingMode = mappingVo.getMappingMode();
             if (Objects.equals(mappingMode, "formTableComponent")) {
-                resultList.add(parseFormTableComponentMappingMode(mappingVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam));
+                resultList.addAll(parseFormTableComponentMappingMode(mappingVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam));
             } else if (Objects.equals(mappingMode, "formCommonComponent")) {
                 resultList.add(formAttributeDataMap.get(value));
             } else if (Objects.equals(mappingMode, "constant")) {
@@ -1260,6 +1260,8 @@ public class CreateJobConfigUtil {
         if (jsonList.size() == 1) {
             Object obj = jsonList.get(0);
             if (obj instanceof JSONObject) {
+                return obj;
+            } else if (obj instanceof JSONArray) {
                 return obj;
             }
         }
