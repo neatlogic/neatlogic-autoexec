@@ -39,6 +39,7 @@ import neatlogic.framework.process.exception.processtask.ProcessTaskException;
 import neatlogic.framework.process.exception.processtask.ProcessTaskNoPermissionException;
 import neatlogic.framework.process.stephandler.core.IProcessStepHandler;
 import neatlogic.framework.process.stephandler.core.ProcessStepHandlerBase;
+import neatlogic.framework.process.stephandler.core.ProcessStepHandlerFactory;
 import neatlogic.framework.process.stephandler.core.ProcessStepThread;
 import neatlogic.module.autoexec.constvalue.FailPolicy;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
@@ -236,6 +237,15 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                         }
                     } else {
                         processTaskStepComplete(currentProcessTaskStepVo.getId());
+                    }
+                } else {
+                    IProcessStepHandler processStepHandler = ProcessStepHandlerFactory.getHandler(currentProcessTaskStepVo.getHandler());
+                    if (processStepHandler != null) {
+                        try {
+                            processStepHandler.assign(currentProcessTaskStepVo);
+                        } catch (ProcessTaskException e) {
+                            logger.error(e.getMessage(), e);
+                        }
                     }
                 }
             }
@@ -499,5 +509,10 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
     @Override
     protected int myRedo(ProcessTaskStepVo currentProcessTaskStepVo) throws ProcessTaskException {
         return 0;
+    }
+
+    @Override
+    public boolean disableAssign() {
+        return true;
     }
 }

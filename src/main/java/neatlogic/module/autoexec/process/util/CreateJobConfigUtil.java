@@ -66,9 +66,9 @@ public class CreateJobConfigUtil {
         Map<String, Object> formAttributeDataMap = new HashMap<>();
         Map<String, Object> originalFormAttributeDataMap = new HashMap<>();
         IProcessTaskCrossoverService processTaskCrossoverService = CrossoverServiceFactory.getApi(IProcessTaskCrossoverService.class);
-        List<FormAttributeVo> formAttributeList = processTaskCrossoverService.getFormAttributeListByProcessTaskIdAngTag(processTaskId, createJobConfigConfigVo.getFormTag());
+        List<FormAttributeVo> formAttributeList = processTaskCrossoverService.getFormAttributeListByProcessTaskIdAngTagNew(processTaskId, createJobConfigConfigVo.getFormTag());
         if (CollectionUtils.isNotEmpty(formAttributeList)) {
-            List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskIdAndTag(processTaskId, createJobConfigConfigVo.getFormTag());
+            List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskIdAndTagNew(processTaskId, createJobConfigConfigVo.getFormTag());
             for (ProcessTaskFormAttributeDataVo attributeDataVo : processTaskFormAttributeDataList) {
                 // 放入表单普通组件数据
                 if (!Objects.equals(attributeDataVo.getHandler(), neatlogic.framework.form.constvalue.FormHandler.FORMTABLEINPUTER.getHandler())
