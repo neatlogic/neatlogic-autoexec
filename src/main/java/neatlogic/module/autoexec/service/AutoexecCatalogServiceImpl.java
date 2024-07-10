@@ -19,15 +19,23 @@ import neatlogic.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import neatlogic.framework.autoexec.dto.catalog.AutoexecCatalogVo;
 import neatlogic.framework.autoexec.exception.AutoexecCatalogNotFoundException;
 import neatlogic.framework.lrcode.LRCodeManager;
+import neatlogic.framework.lrcode.dao.mapper.TreeMapper;
+import neatlogic.framework.lrcode.dto.TreeNodeVo;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class AutoexecCatalogServiceImpl implements AutoexecCatalogService {
 
     @Resource
     private AutoexecCatalogMapper autoexecCatalogMapper;
+
+    @Resource
+    private TreeMapper treeMapper;
 
     @Override
     public AutoexecCatalogVo buildRootCatalog() {
@@ -52,6 +60,18 @@ public class AutoexecCatalogServiceImpl implements AutoexecCatalogService {
             int lft = LRCodeManager.beforeAddTreeNode("autoexec_catalog", "id", "parent_id", autoexecCatalogVo.getParentId());
             autoexecCatalogVo.setLft(lft);
             autoexecCatalogVo.setRht(lft + 1);
+            List<Long> upwardRegionIdList = new ArrayList<>();
+            List<String> upwardRegionNameList = new ArrayList<>();
+            TreeNodeVo treeNodeVo = new TreeNodeVo("autoexec_catalog", "id", "name","parent_id", autoexecCatalogVo.getLft(), autoexecCatalogVo.getRht());
+            List<TreeNodeVo> upwardRegionList = treeMapper.getAncestorsAndSelfByLftRht(treeNodeVo);
+            for (TreeNodeVo upwardRegion : upwardRegionList) {
+                upwardRegionIdList.add(Long.parseLong(upwardRegion.getIdKey()));
+                upwardRegionNameList.add(upwardRegion.getNameKey());
+            }
+            upwardRegionIdList.add(autoexecCatalogVo.getId());
+            upwardRegionNameList.add(autoexecCatalogVo.getName());
+            autoexecCatalogVo.setUpwardIdPath(upwardRegionIdList.stream().map(Object::toString).collect(Collectors.joining(",")));
+            autoexecCatalogVo.setUpwardNamePath(String.join("/", upwardRegionNameList));
             autoexecCatalogMapper.insertAutoexecCatalog(autoexecCatalogVo);
         }
         return autoexecCatalogVo.getId();

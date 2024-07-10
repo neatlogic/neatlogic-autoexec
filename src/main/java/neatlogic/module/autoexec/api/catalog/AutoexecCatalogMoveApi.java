@@ -9,6 +9,8 @@ import neatlogic.framework.autoexec.exception.AutoexecCatalogRepeatException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.lrcode.LRCodeManager;
 import neatlogic.framework.lrcode.constvalue.MoveType;
+import neatlogic.framework.lrcode.dao.mapper.TreeMapper;
+import neatlogic.framework.lrcode.dto.TreeNodeVo;
 import neatlogic.framework.lrcode.exception.MoveTargetNodeIllegalException;
 import neatlogic.framework.restful.annotation.Description;
 import neatlogic.framework.restful.annotation.Input;
@@ -31,6 +33,9 @@ public class AutoexecCatalogMoveApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCatalogMapper autoexecCatalogMapper;
+
+    @Resource
+    private TreeMapper treeMapper;
 
     @Override
     public String getToken() {
@@ -99,7 +104,12 @@ public class AutoexecCatalogMoveApi extends PrivateApiComponentBase {
                 }
             }
         }
-        LRCodeManager.moveTreeNode("autoexec_catalog", "id", "parent_id", id, moveType, targetId);
+        int[] lftRht = LRCodeManager.moveTreeNode("autoexec_catalog", "id", "parent_id", id, moveType, targetId);
+        if (!targetId.equals(autoexecCatalog.getParentId()) && lftRht != null) {
+            TreeNodeVo treeNodeVo = new TreeNodeVo("autoexec_catalog", lftRht[0], lftRht[1]);
+            treeMapper.updateUpwardIdPathByLftRht(treeNodeVo);
+            treeMapper.updateUpwardNamePathByLftRht(treeNodeVo);
+        }
         return null;
     }
 

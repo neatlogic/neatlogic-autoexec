@@ -72,22 +72,6 @@ public class AutoexecCatalogSaveApi extends PrivateApiComponentBase {
             }
         }
         return autoexecCatalogService.saveAutoexecCatalog(vo);
-//        if (id != null) {
-//            if (autoexecCatalogMapper.checkAutoexecCatalogIsExists(id) == 0) {
-//                throw new AutoexecCatalogNotFoundException(id);
-//            }
-//            autoexecCatalogMapper.updateAutoexecCatalogNameById(vo);
-//        } else {
-//            if (!AutoexecCatalogVo.ROOT_ID.equals(vo.getParentId()) && autoexecCatalogMapper.checkAutoexecCatalogIsExists(vo.getParentId()) == 0) {
-//                throw new AutoexecCatalogNotFoundException(vo.getParentId());
-//            }
-//            int lft = LRCodeManager.beforeAddTreeNode("autoexec_catalog", "id", "parent_id", vo.getParentId());
-//            vo.setParentId(vo.getParentId());
-//            vo.setLft(lft);
-//            vo.setRht(lft + 1);
-//            autoexecCatalogMapper.insertAutoexecCatalog(vo);
-//        }
-//        return vo.getId();
     }
 
     public IValid name() {

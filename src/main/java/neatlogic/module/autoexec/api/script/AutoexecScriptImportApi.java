@@ -166,9 +166,9 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
         for (Map.Entry<String, MultipartFile> entry : multipartFileMap.entrySet()) {
             MultipartFile multipartFile = entry.getValue();
             try (ZipInputStream zis = new ZipInputStream(multipartFile.getInputStream())) {
-                try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
-                    ZipEntry ze = null;
-                    while ((ze = zis.getNextEntry()) != null) {
+                ZipEntry ze;
+                while ((ze = zis.getNextEntry()) != null) {
+                    try (ByteArrayOutputStream out = new ByteArrayOutputStream()) {
                         int len;
                         while ((len = zis.read(buf)) != -1) {
                             out.write(buf, 0, len);
@@ -177,11 +177,13 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                         try {
                             scriptVo = JSONObject.parseObject(new String(out.toByteArray(), StandardCharsets.UTF_8), new TypeReference<AutoexecScriptVo>() {
                             });
+                            //System.out.println(scriptVo.getName());
                             if (StringUtils.equals(scriptVo.getParser(), ScriptParser.PACKAGE.getValue()) && scriptVo.getPackageFile() != null) {
                                 FileVo packageFile = scriptVo.getPackageFile();
                                 packageFile.setId(null);
                             }
                         } catch (JSONException e) {
+                            System.out.println(ze.getName());
                             File file = new File(ze.getName());
                             FileOutputStream fos = new FileOutputStream(file);
                             fos.write(out.toByteArray());
@@ -200,7 +202,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                         } else if (result.containsKey("hasSubmittedVersion") && result.getBoolean("hasSubmittedVersion")) {
                             result.put("isWarn", 1);
                             result.put("id", scriptVo.getId());
-                            result.put("warnItem", scriptVo.getName());
+                            result.put("item", scriptVo.getName());
                             result.put("fileName", multipartFile.getOriginalFilename());
                             failReasonList.add(result);
                             failureCount++;
@@ -258,7 +260,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
         }
 
         resultObj.put("successCount", successCount);
-        resultObj.put("failureCount", failureCount);
+        resultObj.put("failed", failureCount);
         if (CollectionUtils.isNotEmpty(failReasonList)) {
             resultObj.put("failureReasonList", failReasonList);
         }
@@ -270,7 +272,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
         List<String> failReasonList = new ArrayList<>();
         Long id = scriptVo.getId();
         String name = scriptVo.getName();
-        String catalogName = scriptVo.getCatalogName();
+        String fullCatalogName = scriptVo.getFullCatalogName();
         AutoexecScriptVersionVo submittedVersionVo = autoexecScriptMapper.getVersionByScriptIdAndVersionStatus(id, ScriptVersionStatus.SUBMITTED.getValue());
         if (submittedVersionVo != null) {
             if (isReplace == 1) {
@@ -307,10 +309,10 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
         if (typeId == null) {
             failReasonList.add("不存在的工具类型：" + scriptVo.getTypeName());
         }
-        // 根据目录名称匹配，只有当目录存在时才保存目录id，目录名称为空或目录不存在时，不保存目录id
+        // 根据全目录名称匹配，只有当目录存在时才保存目录id，目录名称为空或目录不存在时，挂在所有下
         scriptVo.setCatalogId(AutoexecCatalogVo.ROOT_ID);
-        if (StringUtils.isNotBlank(catalogName)) {
-            AutoexecCatalogVo catalog = autoexecCatalogMapper.getAutoexecCatalogByName(catalogName);
+        if (StringUtils.isNotBlank(fullCatalogName)) {
+            AutoexecCatalogVo catalog = autoexecCatalogMapper.getAutoexecCatalogByFullName(fullCatalogName);
             if (catalog != null) {
                 scriptVo.setCatalogId(catalog.getId());
             }
