@@ -468,8 +468,8 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 }
             }
             //如果runnerGroup的值不合法则默认给常量“随意分配”
-            ParamMappingVo paramMappingVo =  config.getExecuteConfig().getRunnerGroup();
-            if(paramMappingVo == null || paramMappingVo.getValue() == null || StringUtils.isBlank(paramMappingVo.getValue().toString())){
+            ParamMappingVo paramMappingVo = config.getExecuteConfig().getRunnerGroup();
+            if (paramMappingVo == null || paramMappingVo.getValue() == null || StringUtils.isBlank(paramMappingVo.getValue().toString())) {
                 paramMappingVo = new ParamMappingVo();
                 config.getExecuteConfig().setRunnerGroup(paramMappingVo);
                 paramMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
@@ -786,7 +786,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 }
                 String mappingMode = paramMappingVo.getMappingMode();
                 Object valueObj = paramMappingVo.getValue();
-                if (Objects.equals(mappingMode, ParamMappingMode.CONSTANT.getValue())) {
+                if (Objects.equals(mappingMode, ParamMappingMode.CONSTANT.getValue()) || Objects.equals(mappingMode, ParamMappingMode.PROFILE.getValue())) {
                     if (valueObj == null) {
                         throw new AutoexecParamCannotBeEmptyException(phaseName, operationName, key);
                     }

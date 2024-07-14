@@ -30,10 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -288,6 +285,9 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService, IAuto
                 }
             }
         }
+
+        //补充argument
+        newProfileParamList.addAll(oldProfileParamList.stream().filter(p-> Objects.equals(p.getType(),"argument")).peek(o -> o.setName(o.getKey())).collect(Collectors.toList()));
         return newProfileParamList;
     }
 }
