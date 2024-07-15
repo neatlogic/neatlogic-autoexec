@@ -204,9 +204,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                 Map<String, Object> profileKeyValueMap = new HashMap<>();
                 Map<String, Object> globalParamKeyValueMap = new HashMap<>();
                 List<String> globalParamKeyList = new ArrayList<>();
+                List<String> profileKeyList = new ArrayList<>();
                 //批量查询 inputParam profile 和 全局参数的值
                 if (CollectionUtils.isNotEmpty(inputParamArray)) {
-                    List<String> profileKeyList = new ArrayList<>();
                     for (int i = 0; i < inputParamArray.size(); i++) {
                         JSONObject inputParam = inputParamArray.getJSONObject(i);
                         if (Objects.equals(ParamMappingMode.PROFILE.getValue(), inputParam.getString("mappingMode"))) {
@@ -216,9 +216,6 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                             globalParamKeyList.add(inputParam.getString("value"));
                         }
                     }
-                    if (operationVo.getProfileId() != null) {
-                        profileKeyValueMap = autoexecProfileService.getAutoexecProfileParamListByKeyListAndProfileId(jobVo, profileKeyList, operationVo.getProfileId());
-                    }
                 }
                 //批量查询 自由参数的全局参数
                 if (CollectionUtils.isNotEmpty(argumentList)) {
@@ -226,8 +223,14 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                         JSONObject argumentJson = argumentList.getJSONObject(i);
                         if (Objects.equals(ParamMappingMode.GLOBAL_PARAM.getValue(), argumentJson.getString("mappingMode"))) {
                             globalParamKeyList.add(argumentJson.getString("value"));
+                        } else if (Objects.equals(ParamMappingMode.PROFILE.getValue(), argumentJson.getString("mappingMode"))) {
+                            profileKeyList.add("argument" + argumentJson.getString("key"));
                         }
                     }
+                }
+
+                if ((CollectionUtils.isNotEmpty(inputParamArray) || CollectionUtils.isNotEmpty(argumentList)) && operationVo.getProfileId() != null) {
+                    profileKeyValueMap = autoexecProfileService.getAutoexecProfileParamListByKeyListAndProfileId(jobVo, profileKeyList, operationVo.getProfileId());
                 }
 
                 if (CollectionUtils.isNotEmpty(globalParamKeyList)) {
@@ -260,6 +263,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                             }
                             if (Objects.equals(ParamMappingMode.GLOBAL_PARAM.getValue(), argumentJson.getString("mappingMode"))) {
                                 argumentJson.put("value", finalGlobalParamKeyValueMap.get(argumentJson.getString("value")));
+                            }
+                            if (Objects.equals(ParamMappingMode.PROFILE.getValue(), argumentJson.getString("mappingMode"))) {
+                                argumentJson.put("value", finalProfileKeyValueMap.get("argument" + argumentJson.getString("value")));
                             }
                             argumentJson.remove("mappingMode");
                         }

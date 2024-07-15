@@ -179,7 +179,7 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService, IAuto
         if (CollectionUtils.isEmpty(profileParamList)) {
             return null;
         }
-        Map<String, AutoexecParamVo> nowParamMap = profileParamList.stream().collect(Collectors.toMap(AutoexecProfileParamVo::getKey, e -> e));
+        Map<String, AutoexecParamVo> nowParamMap = profileParamList.stream().collect(Collectors.toMap(e -> Objects.equals(e.getType(), "argument") ? ("argument" + e.getKey()) : e.getKey(), e -> e));
         //替换profile
         if (jobVo != null) {
             IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
@@ -210,7 +210,7 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService, IAuto
                     }
                 }
             }
-            returnMap.put(paramVo.getKey(), paramVo.getDefaultValue());
+            returnMap.put(key, paramVo.getDefaultValue());
         }
         return returnMap;
     }
@@ -287,7 +287,7 @@ public class AutoexecProfileServiceImpl implements AutoexecProfileService, IAuto
         }
 
         //补充argument
-        newProfileParamList.addAll(oldProfileParamList.stream().filter(p-> Objects.equals(p.getType(),"argument")).peek(o -> o.setName(o.getKey())).collect(Collectors.toList()));
+        newProfileParamList.addAll(oldProfileParamList.stream().filter(p -> Objects.equals(p.getType(), "argument")).peek(o -> o.setName(o.getKey())).collect(Collectors.toList()));
         return newProfileParamList;
     }
 }
