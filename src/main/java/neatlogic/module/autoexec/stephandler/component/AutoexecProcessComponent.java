@@ -187,10 +187,12 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 //            }
 //        }
             if (StringUtils.isBlank(config)) {
+                processTaskStepComplete(currentProcessTaskStepVo.getId(), null);
                 return 0;
             }
             JSONObject autoexecConfig = (JSONObject) JSONPath.read(config, "autoexecConfig");
             if (MapUtils.isEmpty(autoexecConfig)) {
+                processTaskStepComplete(currentProcessTaskStepVo.getId(), null);
                 return 0;
             }
             // rerunStepToCreateNewJob为1时表示重新激活自动化步骤时创建新作业，rerunStepToCreateNewJob为0时表示重新激活自动化步骤时不创建新作业，也不重跑旧作业，即什么都不做
@@ -198,6 +200,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             if (!Objects.equals(rerunStepToCreateNewJob, 1)) {
                 Long autoexecJobId = autoexecJobMapper.getJobIdByInvokeIdLimitOne(currentProcessTaskStepVo.getId());
                 if (autoexecJobId != null) {
+                    processTaskStepComplete(currentProcessTaskStepVo.getId(), null);
                     return 1;
                 }
             }
@@ -210,6 +213,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             processTaskStepDataCrossoverMapper.deleteProcessTaskStepData(processTaskStepData);
             JSONArray configList = autoexecConfig.getJSONArray("configList");
             if (CollectionUtils.isEmpty(configList)) {
+                processTaskStepComplete(currentProcessTaskStepVo.getId(), null);
                 return 0;
             }
             JSONArray errorMessageList = new JSONArray();
@@ -257,6 +261,9 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                         flag = true;
                     }
                 }
+            }
+            if (CollectionUtils.isEmpty(jobIdList)) {
+                processTaskStepComplete(currentProcessTaskStepVo.getId(), null);
             }
             // 如果有一个作业创建有异常，则根据失败策略执行操作
             if (flag) {
@@ -1311,10 +1318,21 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     doNext(ProcessTaskOperationType.STEP_COMPLETE, new ProcessStepThread(processTaskStepVo) {
                         @Override
                         public void myExecute() {
+                            UserContext.init(SystemUser.SYSTEM);
                             handler.autoComplete(processTaskStepVo);
                         }
                     });
                 } catch (ProcessTaskNoPermissionException e) {
+                    logger.error(e.getMessage(), e);
+                }
+            }
+        } else {
+            ProcessTaskStepVo processTaskStepVo = processTaskCrossoverMapper.getProcessTaskStepBaseInfoById(processTaskStepId);
+            IProcessStepHandler processStepHandler = ProcessStepHandlerFactory.getHandler(processTaskStepVo.getHandler());
+            if (processStepHandler != null) {
+                try {
+                    processStepHandler.assign(processTaskStepVo);
+                } catch (ProcessTaskException e) {
                     logger.error(e.getMessage(), e);
                 }
             }
