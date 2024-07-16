@@ -26,6 +26,7 @@ import neatlogic.framework.autoexec.dto.job.AutoexecJobEnvVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecCombopActiveVersionNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecCombopVersionNotFoundException;
+import neatlogic.framework.common.constvalue.SystemUser;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.form.dto.AttributeDataVo;
 import neatlogic.framework.form.dto.FormAttributeVo;
@@ -143,10 +144,12 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
             // 获取工单当前步骤配置信息
             String config = selectContentByHashCrossoverMapper.getProcessTaskStepConfigByHash(configHash);
             if (StringUtils.isBlank(config)) {
+                processTaskStepComplete(currentProcessTaskStepVo.getId());
                 return 0;
             }
             JSONObject createJobConfig = (JSONObject) JSONPath.read(config, "createJobConfig");
             if (MapUtils.isEmpty(createJobConfig)) {
+                processTaskStepComplete(currentProcessTaskStepVo.getId());
                 return 0;
             }
             CreateJobConfigVo createJobConfigVo = createJobConfig.toJavaObject(CreateJobConfigVo.class);
@@ -155,6 +158,7 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
             if (!Objects.equals(rerunStepToCreateNewJob, 1)) {
                 Long autoexecJobId = autoexecJobMapper.getJobIdByInvokeIdLimitOne(currentProcessTaskStepVo.getId());
                 if (autoexecJobId != null) {
+                    processTaskStepComplete(currentProcessTaskStepVo.getId());
                     return 1;
                 }
             }
@@ -170,6 +174,7 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
             }
             List<CreateJobConfigConfigVo> configList = createJobConfigVo.getConfigList();
             if (CollectionUtils.isEmpty(configList)) {
+                processTaskStepComplete(currentProcessTaskStepVo.getId());
                 return 0;
             }
             List<AutoexecJobBuilder> builderList = new ArrayList<>();
@@ -189,6 +194,9 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                 List<AutoexecJobBuilder> list = CreateJobConfigUtil.createAutoexecJobBuilderList(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo);
                 builderList.addAll(list);
 
+            }
+            if (CollectionUtils.isEmpty(builderList)) {
+                processTaskStepComplete(currentProcessTaskStepVo.getId());
             }
             JSONArray errorMessageList = new JSONArray();
             boolean flag = false;
@@ -271,11 +279,22 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                 doNext(ProcessTaskOperationType.STEP_COMPLETE, new ProcessStepThread(processTaskStepVo) {
                     @Override
                     public void myExecute() {
+                        UserContext.init(SystemUser.SYSTEM);
                         handler.autoComplete(processTaskStepVo);
                     }
                 });
             } catch (ProcessTaskNoPermissionException e) {
                 logger.error(e.getMessage(), e);
+            }
+        } else {
+            ProcessTaskStepVo processTaskStepVo = processTaskCrossoverMapper.getProcessTaskStepBaseInfoById(processTaskStepId);
+            IProcessStepHandler processStepHandler = ProcessStepHandlerFactory.getHandler(processTaskStepVo.getHandler());
+            if (processStepHandler != null) {
+                try {
+                    processStepHandler.assign(processTaskStepVo);
+                } catch (ProcessTaskException e) {
+                    logger.error(e.getMessage(), e);
+                }
             }
         }
     }
