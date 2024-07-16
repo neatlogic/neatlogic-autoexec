@@ -5,6 +5,7 @@ import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.dto.profile.AutoexecProfileVo;
 import neatlogic.framework.autoexec.exception.AutoexecProfileIsNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.deploy.auth.DEPLOY_MODIFY;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -21,6 +22,7 @@ import javax.annotation.Resource;
  */
 
 @Service
+@AuthAction(action = DEPLOY_MODIFY.class)
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecProfileGetApi extends PrivateApiComponentBase {

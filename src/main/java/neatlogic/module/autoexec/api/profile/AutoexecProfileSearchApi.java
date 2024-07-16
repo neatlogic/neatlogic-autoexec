@@ -7,6 +7,7 @@ import neatlogic.framework.autoexec.dto.profile.AutoexecProfileVo;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.dto.BasePageVo;
 import neatlogic.framework.dependency.core.DependencyManager;
+import neatlogic.framework.deploy.auth.DEPLOY_MODIFY;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -29,6 +30,7 @@ import java.util.stream.Collectors;
  */
 
 @Service
+@AuthAction(action = DEPLOY_MODIFY.class)
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecProfileSearchApi extends PrivateApiComponentBase {
