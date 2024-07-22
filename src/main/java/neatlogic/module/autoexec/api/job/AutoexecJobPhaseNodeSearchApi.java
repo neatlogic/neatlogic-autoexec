@@ -20,11 +20,14 @@ import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.constvalue.JobStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import neatlogic.framework.autoexec.dto.job.AutoexecJobInvokeVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
+import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
+import neatlogic.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.dto.BasePageVo;
 import neatlogic.framework.restful.annotation.*;
@@ -91,6 +94,14 @@ public class AutoexecJobPhaseNodeSearchApi extends PrivateApiComponentBase {
         jobPhaseNodeVo.setRowNum(rowNum);
         if (rowNum > 0) {
             jobPhaseNodeVoList = autoexecJobMapper.searchJobPhaseNodeWithResource(jobPhaseNodeVo);
+        }
+        // 补充剧本节点额外信息
+        AutoexecJobInvokeVo invokeVo = autoexecJobMapper.getJobInvokeByJobId(phaseVo.getJobId());
+        if (invokeVo != null) {
+            IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(invokeVo.getType());
+            if (autoexecJobSourceActionHandler != null) {
+                autoexecJobSourceActionHandler.addExtraJobPhaseNodeInfoByList(phaseVo.getJobId(), jobPhaseNodeVoList);
+            }
         }
         JSONObject result = TableResultUtil.getResult(jobPhaseNodeVoList, jobPhaseNodeVo);
         result.put("status", jobVo.getStatus());
