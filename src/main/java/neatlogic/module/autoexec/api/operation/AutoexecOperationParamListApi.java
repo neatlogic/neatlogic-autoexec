@@ -4,6 +4,7 @@ import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.dto.AutoexecOperationVo;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.deploy.auth.DEPLOY_BASE;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -17,6 +18,7 @@ import javax.annotation.Resource;
  * @author longrf
  * @date 2022/3/23 5:45 下午
  */
+@AuthAction(action = DEPLOY_BASE.class)
 @AuthAction(action = AUTOEXEC_BASE.class)
 @Service
 @OperationType(type = OperationTypeEnum.SEARCH)

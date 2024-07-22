@@ -30,6 +30,7 @@ import neatlogic.framework.autoexec.dto.AutoexecParamVo;
 import neatlogic.framework.autoexec.dto.catalog.AutoexecCatalogVo;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.util.PageUtil;
+import neatlogic.framework.deploy.auth.DEPLOY_BASE;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -43,6 +44,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@AuthAction(action = DEPLOY_BASE.class)
 @AuthAction(action = AUTOEXEC.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
