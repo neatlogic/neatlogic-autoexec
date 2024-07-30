@@ -15,6 +15,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 package neatlogic.module.autoexec.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
@@ -252,7 +253,6 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                     put("scriptId", operationVo.getScriptId() == null ? operationVo.getOperationId() : operationVo.getScriptId());
                     put("interpreter", operationVo.getParser());
                     put("help", operationVo.getDescription());
-                    //put("script", operationVo.getScript());
                     if (CollectionUtils.isNotEmpty(argumentList)) {
                         for (int i = 0; i < argumentList.size(); i++) {
                             JSONObject argumentJson = argumentList.getJSONObject(i);
@@ -274,7 +274,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                     put("opt", new JSONObject() {{
                         if (CollectionUtils.isNotEmpty(inputParamArray)) {
                             for (Object arg : inputParamArray) {
-                                JSONObject argJson = JSONObject.parseObject(arg.toString());
+                                JSONObject argJson = JSON.parseObject(arg.toString());
                                 String value = argJson.getString("value");
                                 if (Objects.equals(ParamMappingMode.CONSTANT.getValue(), argJson.getString("mappingMode"))) {
                                     put(argJson.getString("key"), getValueByParamType(argJson, jobPhaseVo, operationVo));
@@ -295,7 +295,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                     put("desc", new JSONObject() {{
                         if (CollectionUtils.isNotEmpty(param.getJSONArray("inputParamList"))) {
                             for (Object arg : param.getJSONArray("inputParamList")) {
-                                JSONObject argJson = JSONObject.parseObject(arg.toString());
+                                JSONObject argJson = JSON.parseObject(arg.toString());
                                 put(argJson.getString("key"), argJson.getString("type"));
                             }
                         }
@@ -303,7 +303,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                     put("output", new JSONObject() {{
                         if (CollectionUtils.isNotEmpty(param.getJSONArray("outputParamList"))) {
                             for (Object arg : param.getJSONArray("outputParamList")) {
-                                JSONObject argJson = JSONObject.parseObject(arg.toString());
+                                JSONObject argJson = JSON.parseObject(arg.toString());
                                 JSONObject outputParamJson = new JSONObject();
                                 put(argJson.getString("key"), outputParamJson);
                                 outputParamJson.put("opt", argJson.getString("key"));
@@ -316,13 +316,21 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                         put("condition", param.getString("condition"));
                         JSONArray ifArray = param.getJSONArray("ifList");
                         if (CollectionUtils.isNotEmpty(ifArray)) {
-                            List<AutoexecJobPhaseOperationVo> ifJobOperationList = JSONObject.parseArray(ifArray.toJSONString(), AutoexecJobPhaseOperationVo.class);
+                            List<AutoexecJobPhaseOperationVo> ifJobOperationList = JSON.parseArray(ifArray.toJSONString(), AutoexecJobPhaseOperationVo.class);
                             put("if", getOperationFireParam(jobVo, jobPhaseVo, ifJobOperationList));
                         }
                         JSONArray elseArray = param.getJSONArray("elseList");
                         if (CollectionUtils.isNotEmpty(elseArray)) {
-                            List<AutoexecJobPhaseOperationVo> elseJobOperationList = JSONObject.parseArray(elseArray.toJSONString(), AutoexecJobPhaseOperationVo.class);
+                            List<AutoexecJobPhaseOperationVo> elseJobOperationList = JSON.parseArray(elseArray.toJSONString(), AutoexecJobPhaseOperationVo.class);
                             put("else", getOperationFireParam(jobVo, jobPhaseVo, elseJobOperationList));
+                        }
+                    }
+                    if (StringUtils.isNotBlank(param.getString("loopItems"))) {
+                        put("loopItems", param.getString("loopItems"));
+                        JSONArray operations = param.getJSONArray("operations");
+                        if (CollectionUtils.isNotEmpty(operations)) {
+                            List<AutoexecJobPhaseOperationVo> loopJobOperationList = JSON.parseArray(operations.toJSONString(), AutoexecJobPhaseOperationVo.class);
+                            put("operations", getOperationFireParam(jobVo, jobPhaseVo, loopJobOperationList));
                         }
                     }
                 }});

@@ -490,6 +490,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, toolVo, jobPhaseVoList, preOperationNameMap);
             }
             initIfBlockOperation(autoexecCombopPhaseOperationVo, jobPhaseOperationVo, jobPhaseVo, jobPhaseVoList, jobVo, preOperationNameMap);
+            initLOOPBlockOperation(autoexecCombopPhaseOperationVo, jobPhaseOperationVo, jobPhaseVo, jobPhaseVoList, jobVo, preOperationNameMap);
             jobPhaseOperationVoList.add(jobPhaseOperationVo);
             jobPhaseVo.getOperationList().add(jobPhaseOperationVo);
             autoexecJobMapper.insertJobPhaseOperation(jobPhaseOperationVo);
@@ -530,6 +531,35 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     });
                     List<AutoexecJobPhaseOperationVo> elseJobOperation = convertCombOperation2JobOperation(jobPhaseVo, jobPhaseVoList, elseOperationList, jobVo, preOperationNameMap);
                     paramObj.put("elseList", elseJobOperation);
+                }
+                jobPhaseOperationVo.setParamStr(paramObj.toString());
+            }
+        }
+    }
+
+    /**
+     * @param autoexecCombopPhaseOperationVo 组合工具阶段工具列表
+     * @param jobPhaseOperationVo            作业工具
+     * @param jobPhaseVo                     当前作业阶段
+     * @param jobPhaseVoList                 作业所有阶段列表
+     * @param jobVo                          作业
+     * @param preOperationNameMap            记录上游阶段工具uuid对应的名称
+     */
+    private void initLOOPBlockOperation(AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo, AutoexecJobPhaseOperationVo jobPhaseOperationVo, AutoexecJobPhaseVo jobPhaseVo, List<AutoexecJobPhaseVo> jobPhaseVoList, AutoexecJobVo jobVo, Map<String, String> preOperationNameMap) {
+        AutoexecCombopPhaseOperationConfigVo combopPhaseOperationConfigVo = autoexecCombopPhaseOperationVo.getConfig();
+        if (combopPhaseOperationConfigVo != null) {
+            String loopItems = combopPhaseOperationConfigVo.getLoopItems();
+            if (StringUtils.isNotBlank(loopItems)) {
+                JSONObject paramObj = jobPhaseOperationVo.getParam();
+                paramObj.put("loopItems", combopPhaseOperationConfigVo.getLoopItems());
+                if (CollectionUtils.isNotEmpty(combopPhaseOperationConfigVo.getOperations())) {
+                    List<AutoexecCombopPhaseOperationVo> operations = combopPhaseOperationConfigVo.getOperations();
+                    operations.forEach(o -> {
+                        o.setParentOperationId(jobPhaseOperationVo.getId());
+                        o.setParentOperationType("loop");
+                    });
+                    List<AutoexecJobPhaseOperationVo> loopJobOperation = convertCombOperation2JobOperation(jobPhaseVo, jobPhaseVoList, operations, jobVo, preOperationNameMap);
+                    paramObj.put("operations", loopJobOperation);
                 }
                 jobPhaseOperationVo.setParamStr(paramObj.toString());
             }
