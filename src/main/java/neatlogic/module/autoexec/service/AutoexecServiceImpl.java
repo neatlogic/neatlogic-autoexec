@@ -265,69 +265,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 if (CollectionUtils.isEmpty(phaseOperationList)) {
                     continue;
                 }
-                for (AutoexecCombopPhaseOperationVo phaseOperationVo : phaseOperationList) {
-                    if (phaseOperationVo == null) {
-                        continue;
-                    }
-                    getAutoexecOperationBaseVoByIdAndType(combopPhaseVo.getName(), phaseOperationVo, false);
-                    AutoexecCombopPhaseOperationConfigVo operationConfigVo = phaseOperationVo.getConfig();
-                    if (operationConfigVo == null) {
-                        continue;
-                    }
-                    Long profileId = operationConfigVo.getProfileId();
-                    if (profileId != null) {
-                        AutoexecProfileVo autoexecProfileVo = autoexecProfileMapper.getProfileVoById(profileId);
-                        if (autoexecProfileVo != null) {
-                            operationConfigVo.setProfileName(autoexecProfileVo.getName());
-                            List<AutoexecProfileParamVo> profileParamList = autoexecProfileService.getProfileParamListById(profileId);
-                            operationConfigVo.setProfileParamList(profileParamList);
-                        }
-                    }
-                    List<AutoexecCombopPhaseOperationVo> ifList = operationConfigVo.getIfList();
-                    if (CollectionUtils.isNotEmpty(ifList)) {
-                        for (AutoexecCombopPhaseOperationVo operationVo : ifList) {
-                            if (operationVo == null) {
-                                continue;
-                            }
-                            getAutoexecOperationBaseVoByIdAndType(combopPhaseVo.getName(), operationVo, false);
-                            AutoexecCombopPhaseOperationConfigVo operationConfig = operationVo.getConfig();
-                            if (operationConfig == null) {
-                                continue;
-                            }
-                            Long operationConfigProfileId = operationConfig.getProfileId();
-                            if (operationConfigProfileId != null) {
-                                AutoexecProfileVo autoexecProfileVo = autoexecProfileMapper.getProfileVoById(operationConfigProfileId);
-                                if (autoexecProfileVo != null) {
-                                    operationConfig.setProfileName(autoexecProfileVo.getName());
-                                    List<AutoexecProfileParamVo> profileParamList = autoexecProfileService.getProfileParamListById(operationConfigProfileId);
-                                    operationConfig.setProfileParamList(profileParamList);
-                                }
-                            }
-                        }
-                    }
-                    List<AutoexecCombopPhaseOperationVo> elseList = operationConfigVo.getElseList();
-                    if (CollectionUtils.isNotEmpty(elseList)) {
-                        for (AutoexecCombopPhaseOperationVo operationVo : elseList) {
-                            if (operationVo == null) {
-                                continue;
-                            }
-                            getAutoexecOperationBaseVoByIdAndType(combopPhaseVo.getName(), operationVo, false);
-                            AutoexecCombopPhaseOperationConfigVo operationConfig = operationVo.getConfig();
-                            if (operationConfig == null) {
-                                continue;
-                            }
-                            Long operationConfigProfileId = operationConfig.getProfileId();
-                            if (operationConfigProfileId != null) {
-                                AutoexecProfileVo autoexecProfileVo = autoexecProfileMapper.getProfileVoById(operationConfigProfileId);
-                                if (autoexecProfileVo != null) {
-                                    operationConfig.setProfileName(autoexecProfileVo.getName());
-                                    List<AutoexecProfileParamVo> profileParamList = autoexecProfileService.getProfileParamListById(operationConfigProfileId);
-                                    operationConfig.setProfileParamList(profileParamList);
-                                }
-                            }
-                        }
-                    }
-                }
+                getOperationAndProfile(combopPhaseVo,phaseOperationList);
             }
         }
     }
@@ -363,69 +301,39 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 if (CollectionUtils.isEmpty(phaseOperationList)) {
                     continue;
                 }
-                for (AutoexecCombopPhaseOperationVo phaseOperationVo : phaseOperationList) {
-                    if (phaseOperationVo == null) {
-                        continue;
-                    }
-                    getAutoexecOperationBaseVoByIdAndType(combopPhaseVo.getName(), phaseOperationVo, false);
-                    AutoexecCombopPhaseOperationConfigVo operationConfigVo = phaseOperationVo.getConfig();
-                    if (operationConfigVo == null) {
-                        continue;
-                    }
-                    Long profileId = operationConfigVo.getProfileId();
-                    if (profileId != null) {
-                        AutoexecProfileVo autoexecProfileVo = autoexecProfileMapper.getProfileVoById(profileId);
-                        if (autoexecProfileVo != null) {
-                            operationConfigVo.setProfileName(autoexecProfileVo.getName());
-                            List<AutoexecProfileParamVo> profileParamList = autoexecProfileService.getProfileParamListById(profileId);
-                            operationConfigVo.setProfileParamList(profileParamList);
-                        }
-                    }
-                    List<AutoexecCombopPhaseOperationVo> ifList = operationConfigVo.getIfList();
-                    if (CollectionUtils.isNotEmpty(ifList)) {
-                        for (AutoexecCombopPhaseOperationVo operationVo : ifList) {
-                            if (operationVo == null) {
-                                continue;
-                            }
-                            getAutoexecOperationBaseVoByIdAndType(combopPhaseVo.getName(), operationVo, false);
-                            AutoexecCombopPhaseOperationConfigVo operationConfig = operationVo.getConfig();
-                            if (operationConfig == null) {
-                                continue;
-                            }
-                            Long operationConfigProfileId = operationConfig.getProfileId();
-                            if (operationConfigProfileId != null) {
-                                AutoexecProfileVo autoexecProfileVo = autoexecProfileMapper.getProfileVoById(operationConfigProfileId);
-                                if (autoexecProfileVo != null) {
-                                    operationConfig.setProfileName(autoexecProfileVo.getName());
-                                    List<AutoexecProfileParamVo> profileParamList = autoexecProfileService.getProfileParamListById(operationConfigProfileId);
-                                    operationConfig.setProfileParamList(profileParamList);
-                                }
-                            }
-                        }
-                    }
-                    List<AutoexecCombopPhaseOperationVo> elseList = operationConfigVo.getElseList();
-                    if (CollectionUtils.isNotEmpty(elseList)) {
-                        for (AutoexecCombopPhaseOperationVo operationVo : elseList) {
-                            if (operationVo == null) {
-                                continue;
-                            }
-                            getAutoexecOperationBaseVoByIdAndType(combopPhaseVo.getName(), operationVo, false);
-                            AutoexecCombopPhaseOperationConfigVo operationConfig = operationVo.getConfig();
-                            if (operationConfig == null) {
-                                continue;
-                            }
-                            Long operationConfigProfileId = operationConfig.getProfileId();
-                            if (operationConfigProfileId != null) {
-                                AutoexecProfileVo autoexecProfileVo = autoexecProfileMapper.getProfileVoById(operationConfigProfileId);
-                                if (autoexecProfileVo != null) {
-                                    operationConfig.setProfileName(autoexecProfileVo.getName());
-                                    List<AutoexecProfileParamVo> profileParamList = autoexecProfileService.getProfileParamListById(operationConfigProfileId);
-                                    operationConfig.setProfileParamList(profileParamList);
-                                }
-                            }
-                        }
+                getOperationAndProfile(combopPhaseVo,phaseOperationList);
+            }
+        }
+    }
+
+    /**
+     * 补充operationConfig中的operation和profile
+     * @param combopPhaseVo 阶段
+     * @param phaseOperationVos 工具列表
+     */
+    private void getOperationAndProfile(AutoexecCombopPhaseVo combopPhaseVo,List<AutoexecCombopPhaseOperationVo> phaseOperationVos){
+        if (CollectionUtils.isNotEmpty(phaseOperationVos)) {
+            for (AutoexecCombopPhaseOperationVo operationVo : phaseOperationVos) {
+                if (operationVo == null) {
+                    continue;
+                }
+                getAutoexecOperationBaseVoByIdAndType(combopPhaseVo.getName(), operationVo, false);
+                AutoexecCombopPhaseOperationConfigVo operationConfig = operationVo.getConfig();
+                if (operationConfig == null) {
+                    continue;
+                }
+                Long operationConfigProfileId = operationConfig.getProfileId();
+                if (operationConfigProfileId != null) {
+                    AutoexecProfileVo autoexecProfileVo = autoexecProfileMapper.getProfileVoById(operationConfigProfileId);
+                    if (autoexecProfileVo != null) {
+                        operationConfig.setProfileName(autoexecProfileVo.getName());
+                        List<AutoexecProfileParamVo> profileParamList = autoexecProfileService.getProfileParamListById(operationConfigProfileId);
+                        operationConfig.setProfileParamList(profileParamList);
                     }
                 }
+                getOperationAndProfile(combopPhaseVo,operationConfig.getIfList());
+                getOperationAndProfile(combopPhaseVo,operationConfig.getElseList());
+                getOperationAndProfile(combopPhaseVo,operationConfig.getOperations());
             }
         }
     }
