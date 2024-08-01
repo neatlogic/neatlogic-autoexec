@@ -181,7 +181,8 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                     while ((len = zipis.read(buf)) != -1) {
                         out.write(buf, 0, len);
                     }
-                    AutoexecCombopVo autoexecCombopVo = JSONObject.parseObject(new String(out.toByteArray(), StandardCharsets.UTF_8), new TypeReference<AutoexecCombopVo>() {});
+                    AutoexecCombopVo autoexecCombopVo = JSONObject.parseObject(new String(out.toByteArray(), StandardCharsets.UTF_8), new TypeReference<AutoexecCombopVo>() {
+                    });
                     JSONObject resultObj = save(autoexecCombopVo);
                     int isSucceed = resultObj.getIntValue("isSucceed");
                     if (isSucceed == 0) {
@@ -206,6 +207,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
 
     /**
      * 保存一个组合工具信息
+     *
      * @param autoexecCombopVo
      * @return
      */
@@ -215,16 +217,16 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         if (StringUtils.isBlank(oldName)) {
             throw new ClassCastException();
         }
-        if (autoexecCombopVo.getTypeId() == null){
+        if (autoexecCombopVo.getTypeId() == null) {
             throw new ClassCastException();
         }
-        if (autoexecCombopVo.getIsActive() == null){
+        if (autoexecCombopVo.getIsActive() == null) {
             throw new ClassCastException();
         }
-        if (StringUtils.isBlank(autoexecCombopVo.getOperationType())){
+        if (StringUtils.isBlank(autoexecCombopVo.getOperationType())) {
             throw new ClassCastException();
         }
-        if (autoexecCombopVo.getConfig() == null){
+        if (autoexecCombopVo.getConfig() == null) {
             throw new ClassCastException();
         }
         AutoexecCombopVo oldAutoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
@@ -325,56 +327,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                         continue;
                     }
                     AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
-                    List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
-                    if (CollectionUtils.isEmpty(phaseOperationList)) {
-                        continue;
-                    }
-                    for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
-                        if (autoexecCombopPhaseOperationVo == null) {
-                            continue;
-                        }
-                        collectOperationIdAndName(autoexecCombopPhaseOperationVo, scriptIdList, scriptNameList, toolIdList, toolNameList);
-                        AutoexecCombopPhaseOperationConfigVo operationConfig = autoexecCombopPhaseOperationVo.getConfig();
-                        if (operationConfig == null) {
-                            continue;
-                        }
-                        if (operationConfig.getProfileId() != null) {
-                            profileIdList.add(operationConfig.getProfileId());
-                        }
-                        collectGlobalParamKeyList(operationConfig, globalParamKeyList);
-                        List<AutoexecCombopPhaseOperationVo> ifList = operationConfig.getIfList();
-                        if (CollectionUtils.isNotEmpty(ifList)) {
-                            for (AutoexecCombopPhaseOperationVo operationVo : ifList) {
-                                if (operationVo == null) {
-                                    continue;
-                                }
-                                collectOperationIdAndName(operationVo, scriptIdList, scriptNameList, toolIdList, toolNameList);
-                                AutoexecCombopPhaseOperationConfigVo ifListOperationConfig = operationVo.getConfig();
-                                if (ifListOperationConfig != null) {
-                                    if (ifListOperationConfig.getProfileId() != null) {
-                                        profileIdList.add(ifListOperationConfig.getProfileId());
-                                    }
-                                    collectGlobalParamKeyList(ifListOperationConfig, globalParamKeyList);
-                                }
-                            }
-                        }
-                        List<AutoexecCombopPhaseOperationVo> elseList = operationConfig.getElseList();
-                        if (CollectionUtils.isNotEmpty(elseList)) {
-                            for (AutoexecCombopPhaseOperationVo operationVo : elseList) {
-                                if (operationVo == null) {
-                                    continue;
-                                }
-                                collectOperationIdAndName(operationVo, scriptIdList, scriptNameList, toolIdList, toolNameList);
-                                AutoexecCombopPhaseOperationConfigVo elseListOperationConfig = operationVo.getConfig();
-                                if (elseListOperationConfig != null) {
-                                    if (elseListOperationConfig.getProfileId() != null) {
-                                        profileIdList.add(elseListOperationConfig.getProfileId());
-                                    }
-                                    collectGlobalParamKeyList(elseListOperationConfig, globalParamKeyList);
-                                }
-                            }
-                        }
-                    }
+                    collectOperationIdAndName(phaseConfig.getPhaseOperationList(), profileIdList, scriptIdList, scriptNameList, toolIdList, toolNameList, globalParamKeyList);
                 }
             }
         }
@@ -461,42 +414,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                     if (autoexecCombopPhaseVo != null) {
                         autoexecCombopPhaseVo.setId(null);
                         AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
-                        List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
-                        if (CollectionUtils.isNotEmpty(phaseOperationList)) {
-                            for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
-                                if (autoexecCombopPhaseOperationVo != null) {
-                                    checkOperation(autoexecCombopPhaseOperationVo, failureReasonSet, idKeyScriptMap, nameKeyScriptMap, scriptIdKeyScriptActiveVersionMap, idKeyToolMap, nameKeyToolMap);
-                                    AutoexecCombopPhaseOperationConfigVo operationConfig = autoexecCombopPhaseOperationVo.getConfig();
-                                    if (operationConfig != null) {
-                                        checkOperationConfig(operationConfig, warnReasonSet, idKeyProfileMap, globalParamMap);
-                                        List<AutoexecCombopPhaseOperationVo> ifList = operationConfig.getIfList();
-                                        if (CollectionUtils.isNotEmpty(ifList)) {
-                                            for (AutoexecCombopPhaseOperationVo operationVo : ifList) {
-                                                if (operationVo != null) {
-                                                    checkOperation(operationVo, failureReasonSet, idKeyScriptMap, nameKeyScriptMap, scriptIdKeyScriptActiveVersionMap, idKeyToolMap, nameKeyToolMap);
-                                                    AutoexecCombopPhaseOperationConfigVo ifListOperationConfig = operationVo.getConfig();
-                                                    if (ifListOperationConfig != null) {
-                                                        checkOperationConfig(ifListOperationConfig, warnReasonSet, idKeyProfileMap, globalParamMap);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                        List<AutoexecCombopPhaseOperationVo> elseList = operationConfig.getElseList();
-                                        if (CollectionUtils.isNotEmpty(elseList)) {
-                                            for (AutoexecCombopPhaseOperationVo operationVo : elseList) {
-                                                if (operationVo != null) {
-                                                    checkOperation(operationVo, failureReasonSet, idKeyScriptMap, nameKeyScriptMap, scriptIdKeyScriptActiveVersionMap, idKeyToolMap, nameKeyToolMap);
-                                                    AutoexecCombopPhaseOperationConfigVo elseListOperationConfig = operationVo.getConfig();
-                                                    if (elseListOperationConfig != null) {
-                                                        checkOperationConfig(elseListOperationConfig, warnReasonSet, idKeyProfileMap, globalParamMap);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
+                        checkOperation(phaseConfig.getPhaseOperationList(), failureReasonSet, idKeyScriptMap, nameKeyScriptMap, scriptIdKeyScriptActiveVersionMap, idKeyToolMap, nameKeyToolMap, warnReasonSet, idKeyProfileMap, globalParamMap);
                     }
                 }
             }
@@ -535,12 +453,85 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
     }
 
     /**
+     * 收集操作对应工具的Id、Name和全局参数的key
+     *
+     * @param operationVos       工具列表
+     * @param profileIdList      预置参数集id
+     * @param scriptIdList       保存自定义工具ID
+     * @param scriptNameList     保存自定义工具名称
+     * @param toolIdList         保存工具ID
+     * @param toolNameList       保存工具名称
+     * @param globalParamKeyList 全局参数列表
+     */
+    private void collectOperationIdAndName(List<AutoexecCombopPhaseOperationVo> operationVos, List<Long> profileIdList, List<Long> scriptIdList, List<String> scriptNameList, List<Long> toolIdList, List<String> toolNameList, List<String> globalParamKeyList) {
+        if (CollectionUtils.isNotEmpty(operationVos)) {
+            for (AutoexecCombopPhaseOperationVo operationVo : operationVos) {
+                if (operationVo == null) {
+                    continue;
+                }
+                collectOperationIdAndName(operationVo, scriptIdList, scriptNameList, toolIdList, toolNameList);
+                AutoexecCombopPhaseOperationConfigVo operationConfig = operationVo.getConfig();
+                if (operationConfig == null) {
+                    continue;
+                }
+                if (operationConfig.getProfileId() != null) {
+                    profileIdList.add(operationConfig.getProfileId());
+                }
+                collectGlobalParamKeyList(operationConfig, globalParamKeyList);
+                collectOperationIdAndName(operationConfig.getIfList(), profileIdList, scriptIdList, scriptNameList, toolIdList, toolNameList, globalParamKeyList);
+                collectOperationIdAndName(operationConfig.getElseList(), profileIdList, scriptIdList, scriptNameList, toolIdList, toolNameList, globalParamKeyList);
+                collectOperationIdAndName(operationConfig.getOperations(), profileIdList, scriptIdList, scriptNameList, toolIdList, toolNameList, globalParamKeyList);
+            }
+        }
+    }
+
+    /**
+     * 检查操作对应的工具是否存在&检查引用的预置参数集是否存在，引用的全局参数是否存在
+     *
+     * @param operationVos                      指定的操作数据
+     * @param failureReasonSet                  收集失败原因集合
+     * @param idKeyScriptMap                    自定义工具数据映射列表
+     * @param nameKeyScriptMap                  自定义工具数据映射列表
+     * @param scriptIdKeyScriptActiveVersionMap 自定义工具激活版本数据映射列表
+     * @param idKeyToolMap                      工具数据映射列表
+     * @param nameKeyToolMap                    工具数据映射列表
+     * @param warnReasonSet                     收集警告原因集合
+     * @param idKeyProfileMap                   阈值参数集数据映射列表
+     * @param globalParamMap                    全局参数数据映射列表
+     */
+    private void checkOperation(List<AutoexecCombopPhaseOperationVo> operationVos, Set<String> failureReasonSet,
+                                Map<Long, AutoexecScriptVo> idKeyScriptMap,
+                                Map<String, AutoexecScriptVo> nameKeyScriptMap,
+                                Map<Long, AutoexecScriptVersionVo> scriptIdKeyScriptActiveVersionMap,
+                                Map<Long, AutoexecToolVo> idKeyToolMap,
+                                Map<String, AutoexecToolVo> nameKeyToolMap,
+                                Set<String> warnReasonSet,
+                                Map<Long, AutoexecProfileVo> idKeyProfileMap,
+                                Map<String, AutoexecGlobalParamVo> globalParamMap) {
+        if (CollectionUtils.isNotEmpty(operationVos)) {
+            for (AutoexecCombopPhaseOperationVo operationVo : operationVos) {
+                if (operationVo != null) {
+                    checkOperation(operationVo, failureReasonSet, idKeyScriptMap, nameKeyScriptMap, scriptIdKeyScriptActiveVersionMap, idKeyToolMap, nameKeyToolMap);
+                    AutoexecCombopPhaseOperationConfigVo operationConfig = operationVo.getConfig();
+                    if (operationConfig != null) {
+                        checkOperationConfig(operationConfig, warnReasonSet, idKeyProfileMap, globalParamMap);
+                        checkOperation(operationConfig.getIfList(), failureReasonSet, idKeyScriptMap, nameKeyScriptMap, scriptIdKeyScriptActiveVersionMap, idKeyToolMap, nameKeyToolMap, warnReasonSet, idKeyProfileMap, globalParamMap);
+                        checkOperation(operationConfig.getElseList(), failureReasonSet, idKeyScriptMap, nameKeyScriptMap, scriptIdKeyScriptActiveVersionMap, idKeyToolMap, nameKeyToolMap, warnReasonSet, idKeyProfileMap, globalParamMap);
+                        checkOperation(operationConfig.getOperations(), failureReasonSet, idKeyScriptMap, nameKeyScriptMap, scriptIdKeyScriptActiveVersionMap, idKeyToolMap, nameKeyToolMap, warnReasonSet, idKeyProfileMap, globalParamMap);
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * 收集操作对应工具的Id和Name
+     *
      * @param autoexecCombopPhaseOperationVo 指定的操作数据
-     * @param scriptIdList 保存自定义工具ID
-     * @param scriptNameList 保存自定义工具名称
-     * @param toolIdList 保存工具ID
-     * @param toolNameList 保存工具名称
+     * @param scriptIdList                   保存自定义工具ID
+     * @param scriptNameList                 保存自定义工具名称
+     * @param toolIdList                     保存工具ID
+     * @param toolNameList                   保存工具名称
      */
     private void collectOperationIdAndName(AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo, List<Long> scriptIdList, List<String> scriptNameList, List<Long> toolIdList, List<String> toolNameList) {
         if (Objects.equals(autoexecCombopPhaseOperationVo.getOperationType(), CombopOperationType.SCRIPT.getValue())) {
@@ -554,7 +545,8 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
 
     /**
      * 收集操作配置中全局变量key
-     * @param config 指定操作配置信息
+     *
+     * @param config             指定操作配置信息
      * @param globalParamKeyList 保存全局变量key
      */
     private void collectGlobalParamKeyList(AutoexecCombopPhaseOperationConfigVo config, List<String> globalParamKeyList) {
@@ -562,7 +554,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         if (CollectionUtils.isNotEmpty(paramMappingList)) {
             for (ParamMappingVo paramMappingVo : paramMappingList) {
                 if (ParamMappingMode.GLOBAL_PARAM.getValue().equals(paramMappingVo.getMappingMode())) {
-                    globalParamKeyList.add((String)paramMappingVo.getValue());
+                    globalParamKeyList.add((String) paramMappingVo.getValue());
                 }
             }
         }
@@ -570,7 +562,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         if (CollectionUtils.isNotEmpty(argumentMappingList)) {
             for (ParamMappingVo paramMappingVo : argumentMappingList) {
                 if (ParamMappingMode.GLOBAL_PARAM.getValue().equals(paramMappingVo.getMappingMode())) {
-                    globalParamKeyList.add((String)paramMappingVo.getValue());
+                    globalParamKeyList.add((String) paramMappingVo.getValue());
                 }
             }
         }
@@ -578,13 +570,14 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
 
     /**
      * 检查操作对应的工具是否存在
+     *
      * @param autoexecCombopPhaseOperationVo 指定的操作数据
-     * @param failureReasonSet 收集失败原因集合
-     * @param idKeyScriptMap 自定义工具数据映射列表
-     * @param nameKeyScriptMap 自定义工具数据映射列表
-     * @param idKeyScriptActiveVersionMap 自定义工具激活版本数据映射列表
-     * @param idKeyToolMap 工具数据映射列表
-     * @param nameKeyToolMap 工具数据映射列表
+     * @param failureReasonSet               收集失败原因集合
+     * @param idKeyScriptMap                 自定义工具数据映射列表
+     * @param nameKeyScriptMap               自定义工具数据映射列表
+     * @param idKeyScriptActiveVersionMap    自定义工具激活版本数据映射列表
+     * @param idKeyToolMap                   工具数据映射列表
+     * @param nameKeyToolMap                 工具数据映射列表
      */
     private void checkOperation(AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo, Set<String> failureReasonSet,
                                 Map<Long, AutoexecScriptVo> idKeyScriptMap,
@@ -625,10 +618,11 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
 
     /**
      * 检查引用的预置参数集是否存在，引用的全局参数是否存在
-     * @param config 指定操作配置信息
-     * @param warnReasonSet 收集警告原因集合
+     *
+     * @param config          指定操作配置信息
+     * @param warnReasonSet   收集警告原因集合
      * @param idKeyProfileMap 阈值参数集数据映射列表
-     * @param globalParamMap 全局参数数据映射列表
+     * @param globalParamMap  全局参数数据映射列表
      */
     private void checkOperationConfig(AutoexecCombopPhaseOperationConfigVo config, Set<String> warnReasonSet,
                                       Map<Long, AutoexecProfileVo> idKeyProfileMap,
@@ -650,7 +644,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                     paramMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
                     paramMappingVo.setValue(null);
                 } else if (ParamMappingMode.GLOBAL_PARAM.getValue().equals(paramMappingVo.getMappingMode())) {
-                    AutoexecGlobalParamVo autoexecGlobalParamVo = globalParamMap.get((String)paramMappingVo.getValue());
+                    AutoexecGlobalParamVo autoexecGlobalParamVo = globalParamMap.get((String) paramMappingVo.getValue());
                     if (autoexecGlobalParamVo == null) {
                         warnReasonSet.add("缺少全局参数：'" + paramMappingVo.getValue() + "'");
                         paramMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
@@ -666,7 +660,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                     paramMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
                     paramMappingVo.setValue(null);
                 } else if (ParamMappingMode.GLOBAL_PARAM.getValue().equals(paramMappingVo.getMappingMode())) {
-                    AutoexecGlobalParamVo autoexecGlobalParamVo = globalParamMap.get((String)paramMappingVo.getValue());
+                    AutoexecGlobalParamVo autoexecGlobalParamVo = globalParamMap.get((String) paramMappingVo.getValue());
                     if (autoexecGlobalParamVo == null) {
                         warnReasonSet.add("缺少全局参数：'" + paramMappingVo.getValue() + "'");
                         paramMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
@@ -679,9 +673,10 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
 
     /**
      * 根据protocol字段和protocolPort字段值更新protocolId字段值
+     *
      * @param config 组合工具config
      */
-    private void updateAutoexecCombopExecuteConfigProtocolId(AutoexecCombopConfigVo config){
+    private void updateAutoexecCombopExecuteConfigProtocolId(AutoexecCombopConfigVo config) {
         if (config == null) {
             return;
         }
@@ -725,6 +720,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
 
     /**
      * 根据protocol字段和protocolPort字段值更新protocolId字段值
+     *
      * @param config 执行目标config
      */
     private void updateAutoexecCombopExecuteConfigProtocolId(AutoexecCombopExecuteConfigVo config) {
@@ -743,7 +739,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         config.setProtocolId(protocolVo.getId());
     }
 
-    private boolean equals(AutoexecCombopVo obj1, AutoexecCombopVo obj2){
+    private boolean equals(AutoexecCombopVo obj1, AutoexecCombopVo obj2) {
         if (!Objects.equals(obj1.getName(), obj2.getName())) {
             return false;
         }

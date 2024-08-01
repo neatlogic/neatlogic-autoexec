@@ -148,108 +148,52 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
             if (CollectionUtils.isEmpty(phaseOperationList)) {
                 continue;
             }
-            for (AutoexecCombopPhaseOperationVo phaseOperationVo : phaseOperationList) {
-                if (phaseOperationVo == null) {
+            getOperationData(phaseOperationList);
+        }
+    }
+
+    /**
+     * 补充工具 id/name
+     * @param operationVos 工具列表
+     */
+    private void getOperationData(List<AutoexecCombopPhaseOperationVo> operationVos){
+        if (CollectionUtils.isNotEmpty(operationVos)) {
+            for (AutoexecCombopPhaseOperationVo operationVo : operationVos) {
+                if (operationVo == null) {
                     continue;
                 }
                 //对于旧数据，id代表自定义工具id或工具id，operationId代表新增的唯一标识，现在就是要把两者互换
-                Long id = phaseOperationVo.getId();
-                Long operationId = phaseOperationVo.getOperationId();
-                String operationType = phaseOperationVo.getOperationType();
+                Long id = operationVo.getId();
+                Long operationId = operationVo.getOperationId();
+                String operationType = operationVo.getOperationType();
                 if (Objects.equals(operationType, CombopOperationType.SCRIPT.getValue())) {
                     AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(id);
                     if (autoexecScriptVo != null) {
                         if (Objects.equals(id, operationId)) {
-                            phaseOperationVo.setId(null);
+                            operationVo.setId(null);
                         } else {
-                            phaseOperationVo.setId(operationId);
+                            operationVo.setId(operationId);
                         }
-                        phaseOperationVo.setOperationId(autoexecScriptVo.getId());
-                        phaseOperationVo.setOperationName(autoexecScriptVo.getName());
+                        operationVo.setOperationId(autoexecScriptVo.getId());
+                        operationVo.setOperationName(autoexecScriptVo.getName());
                     }
                 } else if (Objects.equals(operationType, CombopOperationType.TOOL.getValue())) {
                     AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(id);
                     if (autoexecToolVo != null) {
                         if (Objects.equals(id, operationId)) {
-                            phaseOperationVo.setId(null);
+                            operationVo.setId(null);
                         } else {
-                            phaseOperationVo.setId(operationId);
+                            operationVo.setId(operationId);
                         }
-                        phaseOperationVo.setOperationId(autoexecToolVo.getId());
-                        phaseOperationVo.setOperationName(autoexecToolVo.getName());
+                        operationVo.setOperationId(autoexecToolVo.getId());
+                        operationVo.setOperationName(autoexecToolVo.getName());
                     }
                 }
-                AutoexecCombopPhaseOperationConfigVo operationConfig = phaseOperationVo.getConfig();
-                List<AutoexecCombopPhaseOperationVo> ifList = operationConfig.getIfList();
-                if (CollectionUtils.isNotEmpty(ifList)) {
-                    for (AutoexecCombopPhaseOperationVo operationVo : ifList) {
-                        if (operationVo == null) {
-                            continue;
-                        }
-                        //对于旧数据，id代表自定义工具id或工具id，operationId代表新增的唯一标识，现在就是要把两者互换
-                        id = operationVo.getId();
-                        operationId = operationVo.getOperationId();
-                        operationType = operationVo.getOperationType();
-                        if (Objects.equals(operationType, CombopOperationType.SCRIPT.getValue())) {
-                            AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(id);
-                            if (autoexecScriptVo != null) {
-                                if (Objects.equals(id, operationId)) {
-                                    operationVo.setId(null);
-                                } else {
-                                    operationVo.setId(operationId);
-                                }
-                                operationVo.setOperationId(autoexecScriptVo.getId());
-                                operationVo.setOperationName(autoexecScriptVo.getName());
-                            }
-                        } else if (Objects.equals(operationType, CombopOperationType.TOOL.getValue())) {
-                            AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(id);
-                            if (autoexecToolVo != null) {
-                                if (Objects.equals(id, operationId)) {
-                                    operationVo.setId(null);
-                                } else {
-                                    operationVo.setId(operationId);
-                                }
-                                operationVo.setOperationId(autoexecToolVo.getId());
-                                operationVo.setOperationName(autoexecToolVo.getName());
-                            }
-                        }
-                    }
-                }
-                List<AutoexecCombopPhaseOperationVo> elseList = operationConfig.getElseList();
-                if (CollectionUtils.isNotEmpty(elseList)) {
-                    for (AutoexecCombopPhaseOperationVo operationVo : elseList) {
-                        if (operationVo == null) {
-                            continue;
-                        }
-                        //对于旧数据，id代表自定义工具id或工具id，operationId代表新增的唯一标识，现在就是要把两者互换
-                        id = operationVo.getId();
-                        operationId = operationVo.getOperationId();
-                        operationType = operationVo.getOperationType();
-                        if (Objects.equals(operationType, CombopOperationType.SCRIPT.getValue())) {
-                            AutoexecScriptVo autoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoById(id);
-                            if (autoexecScriptVo != null) {
-                                if (Objects.equals(id, operationId)) {
-                                    operationVo.setId(null);
-                                } else {
-                                    operationVo.setId(operationId);
-                                }
-                                operationVo.setOperationId(autoexecScriptVo.getId());
-                                operationVo.setOperationName(autoexecScriptVo.getName());
-                            }
-                        } else if (Objects.equals(operationType, CombopOperationType.TOOL.getValue())) {
-                            AutoexecToolVo autoexecToolVo = autoexecToolMapper.getToolById(id);
-                            if (autoexecToolVo != null) {
-                                if (Objects.equals(id, operationId)) {
-                                    operationVo.setId(null);
-                                } else {
-                                    operationVo.setId(operationId);
-                                }
-                                operationVo.setOperationId(autoexecToolVo.getId());
-                                operationVo.setOperationName(autoexecToolVo.getName());
-                            }
-                        }
-                    }
-                }
+
+                AutoexecCombopPhaseOperationConfigVo operationConfig = operationVo.getConfig();
+                getOperationData(operationConfig.getIfList());
+                getOperationData(operationConfig.getElseList());
+                getOperationData(operationConfig.getOperations());
             }
         }
     }

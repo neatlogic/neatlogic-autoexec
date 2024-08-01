@@ -358,6 +358,12 @@ public class CombopImportExportHandler extends ImportExportHandlerBase {
                     handlerCombopPhaseOperation(action, elsePhaseOperationVo, dependencyList, zipOutputStream, primaryChangeList);
                 }
             }
+            List<AutoexecCombopPhaseOperationVo> operations = phaseOperationConfig.getOperations();
+            if (CollectionUtils.isNotEmpty(operations)) {
+                for (AutoexecCombopPhaseOperationVo loopPhaseOperationVo : operations) {
+                    handlerCombopPhaseOperation(action, loopPhaseOperationVo, dependencyList, zipOutputStream, primaryChangeList);
+                }
+            }
         }
     }
 }

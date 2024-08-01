@@ -124,60 +124,37 @@ public class AutoexecCombopProfileListApi extends PrivateApiComponentBase {
                 if (phaseConfigVo == null) {
                     continue;
                 }
-                List<AutoexecCombopPhaseOperationVo> combopPhaseOperationList = phaseConfigVo.getPhaseOperationList();
-                if (CollectionUtils.isEmpty(combopPhaseOperationList)) {
-                    continue;
-                }
-                for (AutoexecCombopPhaseOperationVo combopPhaseOperationVo : combopPhaseOperationList) {
-                    if (combopPhaseOperationVo == null) {
-                        continue;
-                    }
-                    AutoexecCombopPhaseOperationConfigVo operationConfigVo = combopPhaseOperationVo.getConfig();
-                    if (operationConfigVo == null) {
-                        continue;
-                    }
-                    Long profileId = operationConfigVo.getProfileId();
-                    if (profileId != null) {
-                        profileIdSet.add(profileId);
-                    }
-                    List<AutoexecCombopPhaseOperationVo> ifList = operationConfigVo.getIfList();
-                    if (CollectionUtils.isNotEmpty(ifList)) {
-                        for (AutoexecCombopPhaseOperationVo operationVo : ifList) {
-                            if (operationVo == null) {
-                                continue;
-                            }
-                            AutoexecCombopPhaseOperationConfigVo operationConfig = operationVo.getConfig();
-                            if (operationConfig == null) {
-                                continue;
-                            }
-                            if (operationConfig.getProfileId() != null) {
-                                profileIdSet.add(operationConfig.getProfileId());
-                            }
-                        }
-                    }
-                    List<AutoexecCombopPhaseOperationVo> elseList = operationConfigVo.getElseList();
-                    if (CollectionUtils.isNotEmpty(elseList)) {
-                        for (AutoexecCombopPhaseOperationVo operationVo : elseList) {
-                            if (operationVo == null) {
-                                continue;
-                            }
-                            AutoexecCombopPhaseOperationConfigVo operationConfig = operationVo.getConfig();
-                            if (operationConfig == null) {
-                                continue;
-                            }
-                            if (operationConfig.getProfileId() != null) {
-                                profileIdSet.add(operationConfig.getProfileId());
-                            }
-                        }
-                    }
-                }
+                getProfileIdSet(phaseConfigVo.getPhaseOperationList(), profileIdSet);
             }
         }
 
         if (CollectionUtils.isEmpty(profileIdSet)) {
             return new ArrayList<>();
         }
-        List<AutoexecProfileVo> profileList = autoexecProfileService.getProfileVoListByIdList(new ArrayList<>(profileIdSet));
-        return profileList;
+        return autoexecProfileService.getProfileVoListByIdList(new ArrayList<>(profileIdSet));
+    }
+
+    /**
+     * 获取预置参数集id set
+     *
+     * @param operationVos 工具列表
+     * @param profileIdSet 预置参数及id列表
+     */
+    private void getProfileIdSet(List<AutoexecCombopPhaseOperationVo> operationVos, Set<Long> profileIdSet) {
+        if (CollectionUtils.isNotEmpty(operationVos)) {
+            for (AutoexecCombopPhaseOperationVo operationVo : operationVos) {
+                if (operationVo == null || operationVo.getConfig() == null) {
+                    continue;
+                }
+                AutoexecCombopPhaseOperationConfigVo operationConfigVo = operationVo.getConfig();
+                Long profileId = operationConfigVo.getProfileId();
+                if (profileId != null) {
+                    profileIdSet.add(profileId);
+                }
+                getProfileIdSet(operationConfigVo.getIfList(), profileIdSet);
+                getProfileIdSet(operationConfigVo.getElseList(), profileIdSet);
+                getProfileIdSet(operationConfigVo.getOperations(), profileIdSet);
+            }
+        }
     }
 }
