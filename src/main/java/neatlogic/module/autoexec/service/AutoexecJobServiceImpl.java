@@ -1507,7 +1507,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     throw new AutoexecJobSourceInvalidException(vo.getSource());
                 }
                 IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
-                autoexecJobSourceActionHandler.getJobActionAuth(vo);
+                if(autoexecJobSourceActionHandler != null) {
+                    autoexecJobSourceActionHandler.getJobActionAuth(vo);
+                }
                 //补充warnCount和ignore tooltips
                 AutoexecJobVo jobWarnCountStatus = autoexecJobVoMap.get(vo.getId());
                 if (jobWarnCountStatus != null) {
