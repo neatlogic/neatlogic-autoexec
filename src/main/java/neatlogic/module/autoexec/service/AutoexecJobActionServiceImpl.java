@@ -327,6 +327,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                     }
                     if (StringUtils.isNotBlank(param.getString("loopItems"))) {
                         put("loopItems", param.getString("loopItems"));
+                        put("loopItemVar", param.getString("loopItemVar"));
                         JSONArray operations = param.getJSONArray("operations");
                         if (CollectionUtils.isNotEmpty(operations)) {
                             List<AutoexecJobPhaseOperationVo> loopJobOperationList = JSON.parseArray(operations.toJSONString(), AutoexecJobPhaseOperationVo.class);

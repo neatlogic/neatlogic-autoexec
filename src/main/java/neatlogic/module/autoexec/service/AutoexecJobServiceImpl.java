@@ -60,6 +60,7 @@ import neatlogic.framework.exception.runner.RunnerHttpRequestException;
 import neatlogic.framework.exception.runner.RunnerMapNotMatchRunnerException;
 import neatlogic.framework.exception.runner.RunnerNotMatchException;
 import neatlogic.framework.integration.authentication.enums.AuthenticateType;
+import neatlogic.framework.util.$;
 import neatlogic.framework.util.HttpRequestUtil;
 import neatlogic.framework.util.RestUtil;
 import neatlogic.framework.util.SnowflakeUtil;
@@ -129,7 +130,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     } else if (Objects.equals(paramMapping.getMappingMode(), ParamMappingMode.RUNTIME_PARAM.getValue())) {
                         for (AutoexecParamVo runtimeParam : runTimeParamList) {
                             if (Objects.equals(value, runtimeParam.getKey())) {
-                                if(runtimeParam.getValue() != null) {
+                                if (runtimeParam.getValue() != null) {
                                     return runtimeParam.getValue().toString();
                                 }
                             }
@@ -547,22 +548,29 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      */
     private void initLOOPBlockOperation(AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo, AutoexecJobPhaseOperationVo jobPhaseOperationVo, AutoexecJobPhaseVo jobPhaseVo, List<AutoexecJobPhaseVo> jobPhaseVoList, AutoexecJobVo jobVo, Map<String, String> preOperationNameMap) {
         AutoexecCombopPhaseOperationConfigVo combopPhaseOperationConfigVo = autoexecCombopPhaseOperationVo.getConfig();
-        if (combopPhaseOperationConfigVo != null) {
+        if (combopPhaseOperationConfigVo != null && Objects.equals(autoexecCombopPhaseOperationVo.getOperationName(),"native/LOOP-Block")) {
             String loopItems = combopPhaseOperationConfigVo.getLoopItems();
-            if (StringUtils.isNotBlank(loopItems)) {
-                JSONObject paramObj = jobPhaseOperationVo.getParam();
-                paramObj.put("loopItems", combopPhaseOperationConfigVo.getLoopItems());
-                if (CollectionUtils.isNotEmpty(combopPhaseOperationConfigVo.getOperations())) {
-                    List<AutoexecCombopPhaseOperationVo> operations = combopPhaseOperationConfigVo.getOperations();
-                    operations.forEach(o -> {
-                        o.setParentOperationId(jobPhaseOperationVo.getId());
-                        o.setParentOperationType("loop");
-                    });
-                    List<AutoexecJobPhaseOperationVo> loopJobOperation = convertCombOperation2JobOperation(jobPhaseVo, jobPhaseVoList, operations, jobVo, preOperationNameMap);
-                    paramObj.put("operations", loopJobOperation);
-                }
-                jobPhaseOperationVo.setParamStr(paramObj.toString());
+            String loopItemVar = combopPhaseOperationConfigVo.getLoopItemVar();
+            if (StringUtils.isBlank(loopItems)) {
+                throw new AutoexecParamValueIrregularException(jobPhaseVo.getName(), jobPhaseOperationVo.getName(), $.t("nmas.autoexec.loopitems"), "loopItems", loopItems);
             }
+            if (StringUtils.isBlank(loopItemVar)) {
+                throw new AutoexecParamValueIrregularException(jobPhaseVo.getName(), jobPhaseOperationVo.getName(), $.t("nmas.autoexec.loopitemvar"), "loopItemVar", loopItemVar);
+            }
+
+            JSONObject paramObj = jobPhaseOperationVo.getParam();
+            paramObj.put("loopItems", loopItems);
+            paramObj.put("loopItemVar", loopItemVar);
+            if (CollectionUtils.isNotEmpty(combopPhaseOperationConfigVo.getOperations())) {
+                List<AutoexecCombopPhaseOperationVo> operations = combopPhaseOperationConfigVo.getOperations();
+                operations.forEach(o -> {
+                    o.setParentOperationId(jobPhaseOperationVo.getId());
+                    o.setParentOperationType("loop");
+                });
+                List<AutoexecJobPhaseOperationVo> loopJobOperation = convertCombOperation2JobOperation(jobPhaseVo, jobPhaseVoList, operations, jobVo, preOperationNameMap);
+                paramObj.put("operations", loopJobOperation);
+            }
+            jobPhaseOperationVo.setParamStr(paramObj.toString());
         }
     }
 
@@ -1507,7 +1515,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     throw new AutoexecJobSourceInvalidException(vo.getSource());
                 }
                 IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
-                if(autoexecJobSourceActionHandler != null) {
+                if (autoexecJobSourceActionHandler != null) {
                     autoexecJobSourceActionHandler.getJobActionAuth(vo);
                 }
                 //补充warnCount和ignore tooltips
@@ -1792,7 +1800,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      */
     @Override
     public void executeGroup(AutoexecJobVo jobVo) {
-        if(jobVo.getExecuteJobGroupVo() == null || jobVo.getExecuteJobGroupVo().getId() == null){
+        if (jobVo.getExecuteJobGroupVo() == null || jobVo.getExecuteJobGroupVo().getId() == null) {
             throw new AutoexecCombopPhaseGroupIdIsNullException();
         }
         List<RunnerMapVo> runnerVos = autoexecJobMapper.getJobRunnerListByJobIdAndGroupId(jobVo.getId(), jobVo.getExecuteJobGroupVo().getId());

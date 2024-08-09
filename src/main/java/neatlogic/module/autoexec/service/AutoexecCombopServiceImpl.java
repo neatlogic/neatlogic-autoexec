@@ -49,6 +49,7 @@ import neatlogic.framework.dao.mapper.UserMapper;
 import neatlogic.framework.dependency.core.DependencyManager;
 import neatlogic.framework.dto.AuthenticationInfoVo;
 import neatlogic.framework.notify.dto.InvokeNotifyPolicyConfigVo;
+import neatlogic.framework.util.$;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
 import neatlogic.module.autoexec.dependency.*;
@@ -229,7 +230,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             }
             String uuid = autoexecCombopPhaseVo.getUuid();
             preNodeNameMap.put(uuid, autoexecCombopPhaseVo.getName());
-            verifyOperationConfig(uuid, phaseOperationList, preNodeOutputParamMap, runtimeParamMap, preNodeNameMap, preOperationNameMap);
+            verifyOperationConfig(autoexecCombopPhaseVo, phaseOperationList, preNodeOutputParamMap, runtimeParamMap, preNodeNameMap, preOperationNameMap);
         }
         AutoexecCombopExecuteConfigVo executeConfigVo = config.getExecuteConfig();
         if (executeConfigVo != null) {
@@ -265,14 +266,40 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
     /**
      * 验证输入参数映射和自由参数映射
      *
-     * @param phaseUuid             阶段uuid
+     * @param autoexecCombopPhaseVo 阶段
      * @param phaseOperationList    工具列表
      * @param preNodeOutputParamMap 前置步骤输出参数
      * @param runtimeParamMap       作业参数
      * @param preNodeNameMap        前置步骤名称
      * @param preOperationNameMap   前置工具名称
      */
-    private void verifyOperationConfig(String phaseUuid, List<AutoexecCombopPhaseOperationVo> phaseOperationList, Map<String, AutoexecParamVo> preNodeOutputParamMap, Map<String, AutoexecParamVo> runtimeParamMap, Map<String, String> preNodeNameMap, Map<String, String> preOperationNameMap) {
+    private void verifyOperationConfig(AutoexecCombopPhaseVo autoexecCombopPhaseVo, List<AutoexecCombopPhaseOperationVo> phaseOperationList,
+                                       Map<String, AutoexecParamVo> preNodeOutputParamMap,
+                                       Map<String, AutoexecParamVo> runtimeParamMap,
+                                       Map<String, String> preNodeNameMap,
+                                       Map<String, String> preOperationNameMap
+    ) {
+        verifyOperationConfig(autoexecCombopPhaseVo, phaseOperationList, preNodeOutputParamMap, runtimeParamMap, preNodeNameMap, preOperationNameMap, new ArrayList<>());
+    }
+
+    /**
+     * 验证输入参数映射和自由参数映射
+     *
+     * @param autoexecCombopPhaseVo 阶段
+     * @param phaseOperationList    工具列表
+     * @param preNodeOutputParamMap 前置步骤输出参数
+     * @param runtimeParamMap       作业参数
+     * @param preNodeNameMap        前置步骤名称
+     * @param preOperationNameMap   前置工具名称
+     * @param loopItemVarList       LOOP-BLOCK 循环项列表
+     */
+    private void verifyOperationConfig(AutoexecCombopPhaseVo autoexecCombopPhaseVo, List<AutoexecCombopPhaseOperationVo> phaseOperationList,
+                                       Map<String, AutoexecParamVo> preNodeOutputParamMap,
+                                       Map<String, AutoexecParamVo> runtimeParamMap,
+                                       Map<String, String> preNodeNameMap,
+                                       Map<String, String> preOperationNameMap,
+                                       List<String> loopItemVarList
+    ) {
         if (CollectionUtils.isNotEmpty(phaseOperationList)) {
             for (AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo : phaseOperationList) {
                 if (autoexecCombopPhaseOperationVo == null) {
@@ -284,11 +311,15 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                     phaseOperationName = phaseOperationName + "_" + operationLetter;
                 }
                 preOperationNameMap.put(autoexecCombopPhaseOperationVo.getUuid(), phaseOperationName);
-                verifyAutoexecCombopPhaseOperationConfig(phaseUuid, autoexecCombopPhaseOperationVo, preNodeOutputParamMap, runtimeParamMap, preNodeNameMap, preOperationNameMap);
+                verifyAutoexecCombopPhaseOperationConfig(autoexecCombopPhaseVo.getUuid(), autoexecCombopPhaseOperationVo, preNodeOutputParamMap, runtimeParamMap, preNodeNameMap, preOperationNameMap);
                 AutoexecCombopPhaseOperationConfigVo operationConfig = autoexecCombopPhaseOperationVo.getConfig();
-                verifyOperationConfig(phaseUuid, operationConfig.getIfList(), preNodeOutputParamMap, runtimeParamMap, preNodeNameMap, preOperationNameMap);
-                verifyOperationConfig(phaseUuid, operationConfig.getElseList(), preNodeOutputParamMap, runtimeParamMap, preNodeNameMap, preOperationNameMap);
-                verifyOperationConfig(phaseUuid, operationConfig.getOperations(), preNodeOutputParamMap, runtimeParamMap, preNodeNameMap, preOperationNameMap);
+
+                verifyOperationConfig(autoexecCombopPhaseVo, operationConfig.getIfList(), preNodeOutputParamMap, runtimeParamMap, preNodeNameMap, preOperationNameMap, loopItemVarList);
+                verifyOperationConfig(autoexecCombopPhaseVo, operationConfig.getElseList(), preNodeOutputParamMap, runtimeParamMap, preNodeNameMap, preOperationNameMap, loopItemVarList);
+                if (StringUtils.isNotBlank(operationConfig.getLoopItemVar()) && loopItemVarList.contains(operationConfig.getLoopItemVar())) {
+                    throw new AutoexecParamValueRepeatException(autoexecCombopPhaseVo.getName(), phaseOperationName, $.t("nmas.autoexec.loopitemvar"), "loopItemVar", operationConfig.getLoopItemVar());
+                }
+                verifyOperationConfig(autoexecCombopPhaseVo, operationConfig.getOperations(), preNodeOutputParamMap, runtimeParamMap, preNodeNameMap, preOperationNameMap, loopItemVarList);
             }
         }
     }
@@ -351,7 +382,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             }
             String uuid = autoexecCombopPhaseVo.getUuid();
             preNodeNameMap.put(uuid, autoexecCombopPhaseVo.getName());
-            verifyOperationConfig(uuid, phaseOperationList, preNodeOutputParamMap, runtimeParamMap, preNodeNameMap, preOperationNameMap);
+            verifyOperationConfig(autoexecCombopPhaseVo, phaseOperationList, preNodeOutputParamMap, runtimeParamMap, preNodeNameMap, preOperationNameMap);
         }
         List<AutoexecCombopGroupVo> combopGroupList = config.getCombopGroupList();
         if (CollectionUtils.isNotEmpty(combopGroupList)) {
@@ -1225,6 +1256,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
 
     /**
      * 删除工具依赖
+     *
      * @param phaseOperationList 工具列表
      */
     private void deleteOperationDependency(List<AutoexecCombopPhaseOperationVo> phaseOperationList) {
