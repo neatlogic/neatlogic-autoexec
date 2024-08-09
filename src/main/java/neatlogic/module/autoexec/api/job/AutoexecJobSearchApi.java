@@ -15,6 +15,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 package neatlogic.module.autoexec.api.job;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
@@ -98,7 +99,7 @@ public class AutoexecJobSearchApi extends PrivateApiComponentBase {
         }
         jsonObj.put("operationId", jsonObj.getLong("combopId"));
         jsonObj.put("invokeId", jsonObj.getLong("scheduleId"));
-        AutoexecJobVo jobVo = JSONObject.toJavaObject(jsonObj, AutoexecJobVo.class);
+        AutoexecJobVo jobVo = JSON.toJavaObject(jsonObj, AutoexecJobVo.class);
         if (parentId != null) {
             List<Long> idList = autoexecJobMapper.getJobIdListByParentId(parentId);
             jobVo.setIdList(idList);
