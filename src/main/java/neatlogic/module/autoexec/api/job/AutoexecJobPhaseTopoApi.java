@@ -89,13 +89,27 @@ public class AutoexecJobPhaseTopoApi extends PrivateApiComponentBase {
                     groupIdList.add(phase.getGroupId());
                 }
             }
+            //输出开始节点
+            Layer.Builder startLayer = new Layer.Builder("GroupStart");
+            startLayer.withLabel("");
+
+            Node.Builder startBuilder = new Node.Builder("Start");
+            startBuilder.withLabel("")
+                    .withHeight("0.5")
+                    .withWidth("0.5")
+                    .withShape("circle")
+                    .addClass("start");
+            startLayer.addNode(startBuilder.build());
+            gb.addLayer(startLayer.build());
             //输出分组图层
             for (int i = 0; i < groupIdList.size(); i++) {
+
                 Long groupId = groupIdList.get(i);
                 Layer.Builder phaseLayer = new Layer.Builder("Group" + groupId);
                 phaseLayer.withLabel("");
                 groupMap.put(groupId, phaseLayer);
                 gb.addLayer(phaseLayer.build());
+
 
                 if (i < groupIdList.size() - 1) {
                     //如果分组中的phase大于1，增加汇聚点
@@ -113,6 +127,14 @@ public class AutoexecJobPhaseTopoApi extends PrivateApiComponentBase {
             }
             for (AutoexecJobPhaseVo phase : phaseList) {
                 int index = groupIdList.indexOf(phase.getGroupId());
+                if (index == 0) {
+                    Link.Builder linkBuilder = new Link.Builder("Start", "Phase_" + phase.getId());
+                    gb.addLink(linkBuilder.build());
+                }
+                if (index == groupIdList.size() - 1) {
+                    Link.Builder linkBuilder = new Link.Builder("Phase_" + phase.getId(), "End");
+                    gb.addLink(linkBuilder.build());
+                }
                 if (index > 0) {
                     Link.Builder linkBuilder = new Link.Builder("Converge_" + groupIdList.get(index - 1), "Phase_" + phase.getId());
                     gb.addLink(linkBuilder.build());
@@ -134,6 +156,21 @@ public class AutoexecJobPhaseTopoApi extends PrivateApiComponentBase {
                     gb.addLink(linkBuilder.build());
                 }
             }
+
+            //输出结束节点
+            Layer.Builder endLayer = new Layer.Builder("GroupEnd");
+            endLayer.withLabel("");
+
+            Node.Builder endBuilder = new Node.Builder("End");
+            endBuilder.withLabel("")
+                    .withHeight("0.5")
+                    .withWidth("0.5")
+                    .withShape("circle")
+                    .addClass("end");
+            endLayer.addNode(endBuilder.build());
+            gb.addLayer(endLayer.build());
+
+
             Graphviz graphviz = gb.build();
             for (int i = graphviz.getNodeList().size() - 1; i >= 0; i--) {
                 Node node = graphviz.getNodeList().get(i);
