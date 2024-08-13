@@ -81,7 +81,7 @@ public class AutoexecJobPhaseTopoApi extends PrivateApiComponentBase {
         List<AutoexecJobPhaseVo> phaseList = autoexecJobMapper.getJobPhaseListWithGroupByJobId(jobId);
         Map<Long, Layer.Builder> groupMap = new LinkedHashMap<>();
         if (CollectionUtils.isNotEmpty(phaseList)) {
-            Graphviz.Builder gb = new Graphviz.Builder(LayoutType.get("dot")).withRankdir("LR");
+            Graphviz.Builder gb = new Graphviz.Builder(LayoutType.get("dot")).withRankdir("LR").withEnforceLayerOrder(false);//如果启动强制控制层次顺序，整个图会变歪
             List<Long> groupIdList = new ArrayList<>();
             //获取分组列表
             for (AutoexecJobPhaseVo phase : phaseList) {
