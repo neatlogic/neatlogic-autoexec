@@ -119,7 +119,7 @@ public class AutoexecJobPhaseTopoApi extends PrivateApiComponentBase {
                     nb.withLabel("")
                             .withHeight("0.2")
                             .withWidth("0.2")
-                            .withShape("point")
+                            .withShape("diamond")
                             .addClass("converge");
                     convergeLayer.addNode(nb.build());
                     gb.addLayer(convergeLayer.build());
