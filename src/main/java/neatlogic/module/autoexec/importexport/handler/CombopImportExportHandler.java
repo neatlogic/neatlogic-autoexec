@@ -305,7 +305,7 @@ public class CombopImportExportHandler extends ImportExportHandlerBase {
             }
         }
         AutoexecCombopPhaseOperationConfigVo phaseOperationConfig = phaseOperationVo.getConfig();
-        if (phaseOperationConfig == null) {
+        if (phaseOperationConfig != null) {
             if (phaseOperationConfig.getProfileId() != null) {
                 if (action == IMPORT) {
                     Object newPrimaryKey = getNewPrimaryKey(AutoexecImportExportHandlerType.AUTOEXEC_PROFILE, phaseOperationConfig.getProfileId(), primaryChangeList);
