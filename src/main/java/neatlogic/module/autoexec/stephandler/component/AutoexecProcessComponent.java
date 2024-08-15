@@ -1713,4 +1713,9 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
     public boolean disableAssign() {
         return true;
     }
+
+    @Override
+    public boolean allowDispatchStepWorker() {
+        return false;
+    }
 }
