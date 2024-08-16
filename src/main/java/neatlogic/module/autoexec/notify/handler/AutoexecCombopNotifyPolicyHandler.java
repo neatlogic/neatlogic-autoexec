@@ -20,8 +20,10 @@ import neatlogic.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import neatlogic.framework.autoexec.constvalue.AutoexecJobNotifyParam;
 import neatlogic.framework.autoexec.constvalue.AutoexecJobNotifyTriggerType;
 import neatlogic.framework.dto.ConditionParamVo;
-import neatlogic.framework.notify.core.NotifyPolicyHandlerBase;
 import neatlogic.framework.notify.dto.NotifyTriggerVo;
+import neatlogic.framework.process.constvalue.ProcessTaskGroupSearch;
+import neatlogic.framework.process.constvalue.ProcessUserType;
+import neatlogic.framework.process.notify.core.ProcessTaskNotifyHandlerBase;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -32,7 +34,7 @@ import java.util.List;
  * @since: 2021/4/15 9:47
  **/
 @Component
-public class AutoexecCombopNotifyPolicyHandler extends NotifyPolicyHandlerBase {
+public class AutoexecCombopNotifyPolicyHandler extends ProcessTaskNotifyHandlerBase {
     @Override
     public String getName() {
         return "term.autoexec.combop";
@@ -47,7 +49,7 @@ public class AutoexecCombopNotifyPolicyHandler extends NotifyPolicyHandlerBase {
     }
 
     @Override
-    protected List<NotifyTriggerVo> myNotifyTriggerList() {
+    protected List<NotifyTriggerVo> myCustomNotifyTriggerList() {
         List<NotifyTriggerVo> returnList = new ArrayList<>();
         for (AutoexecJobNotifyTriggerType triggerType : AutoexecJobNotifyTriggerType.values()) {
             returnList.add(new NotifyTriggerVo(triggerType));
@@ -56,28 +58,18 @@ public class AutoexecCombopNotifyPolicyHandler extends NotifyPolicyHandlerBase {
     }
 
     @Override
-    protected List<ConditionParamVo> mySystemParamList() {
+    protected List<ConditionParamVo> myCustomSystemParamList() {
         List<ConditionParamVo> notifyPolicyParamList = new ArrayList<>();
         for (AutoexecJobNotifyParam param : AutoexecJobNotifyParam.values()) {
-            ConditionParamVo paramVo = new ConditionParamVo();
-            paramVo.setName(param.getValue());
-            paramVo.setLabel(param.getText());
-            paramVo.setParamType(param.getParamType().getName());
-            paramVo.setParamTypeName(param.getParamType().getText());
-            paramVo.setFreemarkerTemplate(param.getFreemarkerTemplate());
-            paramVo.setIsEditable(0);
-            notifyPolicyParamList.add(paramVo);
+            notifyPolicyParamList.add(createConditionParam(param));
         }
         return notifyPolicyParamList;
     }
 
     @Override
-    protected List<ConditionParamVo> mySystemConditionOptionList() {
-        return new ArrayList<>();
-    }
-
-    @Override
-    protected void myAuthorityConfig(JSONObject config) {
-
+    protected void myCustomAuthorityConfig(JSONObject config) {
+        List<String> excludeList = config.getJSONArray("excludeList").toJavaList(String.class);
+        excludeList.add(ProcessTaskGroupSearch.PROCESSUSERTYPE.getValue() + "#" + ProcessUserType.MINOR.getValue());
+        config.put("excludeList", excludeList);
     }
 }
