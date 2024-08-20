@@ -51,15 +51,6 @@ public class AutoexecNotifyPolicyHandler extends ProcessTaskNotifyHandlerBase {
         return returnList;
     }
 
-//    @Override
-//    protected List<ConditionParamVo> myCustomSystemParamList() {
-//        List<ConditionParamVo> notifyPolicyParamList = new ArrayList<>();
-//        for (AutoexecJobNotifyParam param : AutoexecJobNotifyParam.values()) {
-//            notifyPolicyParamList.add(createConditionParam(param));
-//        }
-//        return notifyPolicyParamList;
-//    }
-
     @Override
     protected void myCustomAuthorityConfig(JSONObject config) {
         List<String> excludeList = config.getJSONArray("excludeList").toJavaList(String.class);
