@@ -30,7 +30,7 @@ import neatlogic.framework.process.crossover.IProcessTaskStepDataCrossoverMapper
 import neatlogic.framework.process.dto.ProcessTaskStepDataVo;
 import neatlogic.framework.process.dto.ProcessTaskStepVo;
 import neatlogic.framework.process.stephandler.core.ProcessStepInternalHandlerBase;
-import neatlogic.module.autoexec.notify.handler.AutoexecCombopNotifyPolicyHandler;
+import neatlogic.module.autoexec.notify.handler.AutoexecNotifyPolicyHandler;
 import neatlogic.module.autoexec.process.constvalue.CreateJobProcessStepHandlerType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -146,7 +146,7 @@ public class CreateJobProcessUtilHandler extends ProcessStepInternalHandlerBase 
 
     @Override
     public Class<? extends INotifyPolicyHandler> getNotifyPolicyHandlerClass() {
-        return AutoexecCombopNotifyPolicyHandler.class;
+        return AutoexecNotifyPolicyHandler.class;
     }
 
     @Override

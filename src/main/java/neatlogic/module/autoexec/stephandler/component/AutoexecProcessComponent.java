@@ -17,10 +17,7 @@ package neatlogic.module.autoexec.stephandler.component;
 
 import com.alibaba.fastjson.*;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
-import neatlogic.framework.autoexec.constvalue.CombopOperationType;
-import neatlogic.framework.autoexec.constvalue.JobStatus;
-import neatlogic.framework.autoexec.constvalue.ParamMappingMode;
-import neatlogic.framework.autoexec.constvalue.ParamType;
+import neatlogic.framework.autoexec.constvalue.*;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteNodeConfigVo;
@@ -302,6 +299,9 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                         }
                     }
                 }
+                IProcessStepHandlerCrossoverUtil processStepHandlerCrossoverUtil = CrossoverServiceFactory.getApi(IProcessStepHandlerCrossoverUtil.class);
+                /* 触发通知 **/
+                processStepHandlerCrossoverUtil.notify(currentProcessTaskStepVo, AutoexecNotifyTriggerType.CREATE_JOB_FAILED);
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);
