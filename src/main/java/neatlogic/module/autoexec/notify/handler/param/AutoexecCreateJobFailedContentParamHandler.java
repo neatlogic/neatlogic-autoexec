@@ -30,7 +30,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Component;
 
 @Component
-public class AutoexecCreateJobErrorParamHandler extends ProcessTaskNotifyParamHandlerBase {
+public class AutoexecCreateJobFailedContentParamHandler extends ProcessTaskNotifyParamHandlerBase {
     @Override
     public String getValue() {
         return AutoexecNotifyParam.CREATE_JOB_FAILED_CONTENT.getValue();
