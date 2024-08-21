@@ -17,10 +17,7 @@ package neatlogic.module.autoexec.stephandler.component;
 
 import com.alibaba.fastjson.*;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
-import neatlogic.framework.autoexec.constvalue.CombopOperationType;
-import neatlogic.framework.autoexec.constvalue.JobStatus;
-import neatlogic.framework.autoexec.constvalue.ParamMappingMode;
-import neatlogic.framework.autoexec.constvalue.ParamType;
+import neatlogic.framework.autoexec.constvalue.*;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteNodeConfigVo;
@@ -262,9 +259,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     }
                 }
             }
-            if (CollectionUtils.isEmpty(jobIdList)) {
-                processTaskStepComplete(currentProcessTaskStepVo.getId(), null);
-            }
+
             // 如果有一个作业创建有异常，则根据失败策略执行操作
             if (flag) {
                 ProcessTaskStepDataVo processTaskStepDataVo = new ProcessTaskStepDataVo();
@@ -302,6 +297,11 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                         }
                     }
                 }
+                IProcessStepHandlerCrossoverUtil processStepHandlerCrossoverUtil = CrossoverServiceFactory.getApi(IProcessStepHandlerCrossoverUtil.class);
+                /* 触发通知 **/
+                processStepHandlerCrossoverUtil.notify(currentProcessTaskStepVo, AutoexecNotifyTriggerType.CREATE_JOB_FAILED);
+            } else if (CollectionUtils.isEmpty(jobIdList)) {
+                processTaskStepComplete(currentProcessTaskStepVo.getId(), null);
             }
         } catch (Exception e) {
             logger.error(e.getMessage(), e);

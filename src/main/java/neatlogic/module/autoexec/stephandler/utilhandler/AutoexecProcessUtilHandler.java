@@ -33,7 +33,7 @@ import neatlogic.framework.process.dto.processconfig.ActionConfigVo;
 import neatlogic.framework.process.stephandler.core.ProcessStepInternalHandlerBase;
 import neatlogic.framework.process.util.ProcessConfigUtil;
 import neatlogic.framework.util.SnowflakeUtil;
-import neatlogic.module.autoexec.notify.handler.AutoexecCombopNotifyPolicyHandler;
+import neatlogic.module.autoexec.notify.handler.AutoexecNotifyPolicyHandler;
 import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -69,7 +69,8 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
     @Override
     public Object getNonStartStepInfo(ProcessTaskStepVo currentProcessTaskStepVo) {
         JSONObject resultObj = new JSONObject();
-        List<Long> jobIdList = autoexecJobMapper.getJobIdListByInvokeId(currentProcessTaskStepVo.getId());
+//        List<Long> jobIdList = autoexecJobMapper.getJobIdListByInvokeId(currentProcessTaskStepVo.getId());
+        List<Long> jobIdList = autoexecJobMapper.getJobIdListByProcessTaskStepId(currentProcessTaskStepVo.getId());
         if (CollectionUtils.isNotEmpty(jobIdList)) {
             int completed = 0, failed = 0, running = 0;
             Map<Long, List<AutoexecJobPhaseVo>> jobIdToAutoexecJobPhaseListMap = new HashMap<>();
@@ -185,7 +186,7 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
         /* 通知 **/
         JSONObject notifyPolicyConfig = configObj.getJSONObject("notifyPolicyConfig");
         INotifyServiceCrossoverService notifyServiceCrossoverService = CrossoverServiceFactory.getApi(INotifyServiceCrossoverService.class);
-        InvokeNotifyPolicyConfigVo invokeNotifyPolicyConfigVo = notifyServiceCrossoverService.regulateNotifyPolicyConfig(notifyPolicyConfig, AutoexecCombopNotifyPolicyHandler.class);
+        InvokeNotifyPolicyConfigVo invokeNotifyPolicyConfigVo = notifyServiceCrossoverService.regulateNotifyPolicyConfig(notifyPolicyConfig, AutoexecNotifyPolicyHandler.class);
         resultObj.put("notifyPolicyConfig", invokeNotifyPolicyConfigVo);
 
         /** 动作 **/
@@ -194,7 +195,7 @@ public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
         if (actionConfigVo == null) {
             actionConfigVo = new ActionConfigVo();
         }
-        actionConfigVo.setHandler(AutoexecCombopNotifyPolicyHandler.class.getName());
+        actionConfigVo.setHandler(AutoexecNotifyPolicyHandler.class.getName());
         resultObj.put("actionConfig", actionConfigVo);
 
         /* 按钮映射列表 **/
