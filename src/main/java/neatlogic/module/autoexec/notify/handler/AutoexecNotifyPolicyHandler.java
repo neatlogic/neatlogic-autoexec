@@ -17,7 +17,9 @@ package neatlogic.module.autoexec.notify.handler;
 
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
+import neatlogic.framework.autoexec.constvalue.AutoexecNotifyParam;
 import neatlogic.framework.autoexec.constvalue.AutoexecNotifyTriggerType;
+import neatlogic.framework.dto.ConditionParamVo;
 import neatlogic.framework.notify.dto.NotifyTriggerVo;
 import neatlogic.framework.process.constvalue.ProcessTaskGroupSearch;
 import neatlogic.framework.process.constvalue.ProcessUserType;
@@ -49,6 +51,15 @@ public class AutoexecNotifyPolicyHandler extends ProcessTaskNotifyHandlerBase {
             returnList.add(new NotifyTriggerVo(triggerType));
         }
         return returnList;
+    }
+
+    @Override
+    protected List<ConditionParamVo> myCustomSystemParamList() {
+        List<ConditionParamVo> notifyPolicyParamList = new ArrayList<>();
+        for (AutoexecNotifyParam param : AutoexecNotifyParam.values()) {
+            notifyPolicyParamList.add(createConditionParam(param));
+        }
+        return notifyPolicyParamList;
     }
 
     @Override

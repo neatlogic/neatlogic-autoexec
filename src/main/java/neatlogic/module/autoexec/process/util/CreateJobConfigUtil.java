@@ -342,6 +342,9 @@ public class CreateJobConfigUtil {
             scenarioNameToIdMap.put(combopScenarioVo.getScenarioName(), combopScenarioVo.getScenarioId());
         }
         for (Object obj : jsonArray) {
+            if (obj == null) {
+                continue;
+            }
             if (obj instanceof Long) {
                 Long scenarioId = (Long) obj;
                 if (scenarioIdList.contains(scenarioId)) {
@@ -377,6 +380,9 @@ public class CreateJobConfigUtil {
         }
         IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
         for (Object obj : jsonArray) {
+            if (obj == null) {
+                continue;
+            }
             if (obj instanceof Long) {
                 Long protocolId = (Long) obj;
                 AccountProtocolVo accountProtocolVo = resourceAccountCrossoverMapper.getAccountProtocolVoByProtocolId(protocolId);
@@ -414,6 +420,9 @@ public class CreateJobConfigUtil {
         }
         IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
         for (Object obj : jsonArray) {
+            if (obj == null) {
+                continue;
+            }
             if (obj instanceof Long) {
                 Long accountId = (Long) obj;
                 AccountVo accountVo = resourceAccountCrossoverMapper.getAccountById(accountId);
@@ -461,6 +470,9 @@ public class CreateJobConfigUtil {
         List<AutoexecNodeVo> inputNodeList = new ArrayList<>();
         JSONObject filter = new JSONObject();
         for (Object obj : jsonArray) {
+            if (obj == null) {
+                continue;
+            }
             if (obj instanceof String) {
                 String str = (String) obj;
                 if (str.startsWith("{") && str.endsWith("}")) {
@@ -521,6 +533,9 @@ public class CreateJobConfigUtil {
             return resultList;
         }
         for (Object obj : jsonArray) {
+            if (obj == null) {
+                continue;
+            }
             if (obj instanceof String) {
                 String str = (String) obj;
                 if (str.startsWith("{") && str.endsWith("}")) {
@@ -1238,6 +1253,9 @@ public class CreateJobConfigUtil {
     private static Object getJSONObjectOrJSONArray(JSONArray jsonArray) {
         JSONArray jsonList = new JSONArray();
         for (Object obj : jsonArray) {
+            if (obj == null) {
+                continue;
+            }
             if (obj instanceof JSONObject) {
                 jsonList.add(obj);
             } else if (obj instanceof JSONArray) {
