@@ -68,7 +68,6 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -78,7 +77,8 @@ import java.util.stream.Collectors;
  * @author linbq
  * @since 2021/9/2 14:22
  **/
-@Service
+//@Service
+@Deprecated
 public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
     private final static Logger logger = LoggerFactory.getLogger(AutoexecProcessComponent.class);

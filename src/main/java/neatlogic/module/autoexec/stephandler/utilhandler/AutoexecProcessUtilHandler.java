@@ -34,11 +34,9 @@ import neatlogic.framework.process.stephandler.core.ProcessStepInternalHandlerBa
 import neatlogic.framework.process.util.ProcessConfigUtil;
 import neatlogic.framework.util.SnowflakeUtil;
 import neatlogic.module.autoexec.notify.handler.AutoexecNotifyPolicyHandler;
-import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.*;
@@ -47,14 +45,12 @@ import java.util.*;
  * @author linbq
  * @since 2021/9/2 14:30
  **/
-@Service
+//@Service
+@Deprecated
 public class AutoexecProcessUtilHandler extends ProcessStepInternalHandlerBase {
 
     @Resource
     private AutoexecJobMapper autoexecJobMapper;
-
-    @Resource
-    AutoexecJobService autoexecJobService;
 
     @Override
     public String getHandler() {
