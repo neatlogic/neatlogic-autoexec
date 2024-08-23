@@ -15,10 +15,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 package neatlogic.module.autoexec.notify.handler;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import neatlogic.framework.autoexec.constvalue.AutoexecJobNotifyParam;
 import neatlogic.framework.autoexec.constvalue.AutoexecJobNotifyTriggerType;
+import neatlogic.framework.autoexec.constvalue.JobGroupSearch;
 import neatlogic.framework.dto.ConditionParamVo;
 import neatlogic.framework.notify.core.NotifyPolicyHandlerBase;
 import neatlogic.framework.notify.dto.NotifyTriggerVo;
@@ -71,6 +73,8 @@ public class AutoexecCombopNotifyPolicyHandler extends NotifyPolicyHandlerBase {
 
     @Override
     protected void myAuthorityConfig(JSONObject config) {
-
+        List<String> groupList = JSON.parseArray(config.getJSONArray("groupList").toJSONString(), String.class);
+        groupList.add(JobGroupSearch.JOBUSERTYPE.getValue());
+        config.put("groupList", groupList);
     }
 }

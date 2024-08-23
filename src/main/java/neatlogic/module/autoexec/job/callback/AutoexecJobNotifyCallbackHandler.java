@@ -17,17 +17,21 @@ package neatlogic.module.autoexec.job.callback;
 
 import neatlogic.framework.autoexec.constvalue.AutoexecJobNotifyTriggerType;
 import neatlogic.framework.autoexec.constvalue.CombopOperationType;
+import neatlogic.framework.autoexec.constvalue.JobUserType;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.job.callback.core.AutoexecJobCallbackBase;
+import neatlogic.framework.common.constvalue.GroupSearch;
+import neatlogic.framework.common.constvalue.SystemUser;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.notify.crossover.INotifyServiceCrossoverService;
 import neatlogic.framework.notify.dao.mapper.NotifyMapper;
 import neatlogic.framework.notify.dto.InvokeNotifyPolicyConfigVo;
 import neatlogic.framework.notify.dto.NotifyPolicyVo;
+import neatlogic.framework.notify.dto.NotifyReceiverVo;
 import neatlogic.framework.transaction.util.TransactionUtil;
 import neatlogic.framework.util.NotifyPolicyUtil;
 import neatlogic.module.autoexec.message.handler.AutoexecJobMessageHandler;
@@ -38,8 +42,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.TransactionStatus;
 
 import javax.annotation.Resource;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author laiwt
@@ -128,9 +131,14 @@ public class AutoexecJobNotifyCallbackHandler extends AutoexecJobCallbackBase {
             return;
         }
         try {
+            Map<String, List<NotifyReceiverVo>> receiverMap = new HashMap<>();
+            if (!Objects.equals(jobInfo.getExecUser(), SystemUser.SYSTEM.getUserUuid())) {
+                receiverMap.computeIfAbsent(JobUserType.EXEC_USER.getValue(), k -> new ArrayList<>())
+                        .add(new NotifyReceiverVo(GroupSearch.USER.getValue(), jobInfo.getExecUser()));
+            }
             String notifyAuditMessage = jobInfo.getId() + "-" + jobInfo.getName();
             NotifyPolicyUtil.execute(notifyPolicyVo.getHandler(), trigger, AutoexecJobMessageHandler.class
-                    , notifyPolicyVo, null, null, null
+                    , notifyPolicyVo, null, null, receiverMap
                     , jobInfo, null, notifyAuditMessage);
         } catch (Exception ex) {
             logger.error("自动化作业：" + jobInfo.getId() + "-" + jobInfo.getName() + "通知失败");
