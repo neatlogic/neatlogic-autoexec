@@ -73,32 +73,34 @@ public class AutoexecJobCleaner extends AuditCleanerBase {
         List<AutoexecJobVo> autoexecJobVos = autoexecJobMapper.getJobByExpiredDays(dayBefore);
         if (CollectionUtils.isNotEmpty(autoexecJobVos)) {
             List<Long> runnerMapIdList = autoexecJobMapper.getJobPhaseRunnerMapIdListByJobIdList(autoexecJobVos.stream().map(AutoexecJobVo::getId).collect(Collectors.toList()));
-            List<RunnerMapVo> runnerVos = runnerMapper.getRunnerByRunnerMapIdList(runnerMapIdList);
-            if (CollectionUtils.isNotEmpty(runnerVos)) {
-                runnerVos = runnerVos.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getId))), ArrayList::new));
-                UserContext.init(SystemUser.SYSTEM);
-                UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(SystemUser.SYSTEM.getUserVo()).getCc());
-                for (RunnerMapVo runner : runnerVos) {
-                    String url = runner.getUrl() + "api/rest/job/data/purge";
-                    try {
-                        JSONObject paramJson = new JSONObject();
-                        paramJson.put("expiredDays", dayBefore);
-                        paramJson.put("passThroughEnv", new JSONObject() {{
-                            put("runnerId", runner.getRunnerMapId());
-                        }});
-                        JSONObject resultJson = HttpRequestUtil.post(url).setConnectTimeout(5000).setReadTimeout(10000).setAuthType(AuthenticateType.BUILDIN).setPayload(paramJson.toJSONString()).sendRequest().getResultJson();
-                        if (MapUtils.isEmpty(resultJson) || !resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                            String errorMsg = $.t("nmaah.autoexecjobcleaner.myclean.error", url, (MapUtils.isEmpty(resultJson) ? StringUtils.EMPTY : resultJson.toJSONString()));
-                            logger.error(errorMsg);
+            if(CollectionUtils.isNotEmpty(runnerMapIdList)) {
+                List<RunnerMapVo> runnerVos = runnerMapper.getRunnerByRunnerMapIdList(runnerMapIdList);
+                if (CollectionUtils.isNotEmpty(runnerVos)) {
+                    runnerVos = runnerVos.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getId))), ArrayList::new));
+                    UserContext.init(SystemUser.SYSTEM);
+                    UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(SystemUser.SYSTEM.getUserVo()).getCc());
+                    for (RunnerMapVo runner : runnerVos) {
+                        String url = runner.getUrl() + "api/rest/job/data/purge";
+                        try {
+                            JSONObject paramJson = new JSONObject();
+                            paramJson.put("expiredDays", dayBefore);
+                            paramJson.put("passThroughEnv", new JSONObject() {{
+                                put("runnerId", runner.getRunnerMapId());
+                            }});
+                            JSONObject resultJson = HttpRequestUtil.post(url).setConnectTimeout(5000).setReadTimeout(10000).setAuthType(AuthenticateType.BUILDIN).setPayload(paramJson.toJSONString()).sendRequest().getResultJson();
+                            if (MapUtils.isEmpty(resultJson) || !resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
+                                String errorMsg = $.t("nmaah.autoexecjobcleaner.myclean.error", url, (MapUtils.isEmpty(resultJson) ? StringUtils.EMPTY : resultJson.toJSONString()));
+                                logger.error(errorMsg);
+                            }
+                        } catch (Exception ex) {
+                            logger.error(ex.getMessage(), ex);
                         }
-                    } catch (Exception ex) {
-                        logger.error(ex.getMessage(), ex);
                     }
                 }
-                //删除超时的自定化作业
-                for (AutoexecJobVo autoexecJobVo : autoexecJobVos) {
-                    autoexecJobService.deleteJob(autoexecJobVo);
-                }
+            }
+            //删除超时的自定化作业
+            for (AutoexecJobVo autoexecJobVo : autoexecJobVos) {
+                autoexecJobService.deleteJob(autoexecJobVo);
             }
             databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job");
             databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_phase");
