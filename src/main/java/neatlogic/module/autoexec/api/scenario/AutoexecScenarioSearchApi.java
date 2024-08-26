@@ -60,7 +60,7 @@ public class AutoexecScenarioSearchApi extends PrivateApiComponentBase {
             @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "默认值"),
             @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true")
     })
-    @Description(desc = "查询场景列表接口")
+    @Description(desc = "查询场景列表")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecScenarioVo paramScenarioVo = new AutoexecScenarioVo();
