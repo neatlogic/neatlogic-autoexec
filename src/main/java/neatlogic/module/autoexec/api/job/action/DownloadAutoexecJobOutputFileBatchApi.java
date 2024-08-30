@@ -15,22 +15,22 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 package neatlogic.module.autoexec.api.job.action;
 
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
-import neatlogic.framework.exception.runner.RunnerHttpRequestException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.constvalue.SystemUser;
 import neatlogic.framework.dto.runner.RunnerVo;
+import neatlogic.framework.exception.runner.RunnerHttpRequestException;
 import neatlogic.framework.integration.authentication.enums.AuthenticateType;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
-import neatlogic.framework.restful.core.publicapi.PublicBinaryStreamApiComponentBase;
+import neatlogic.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
 import neatlogic.framework.util.HttpRequestUtil;
-import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -47,7 +47,7 @@ import java.util.List;
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.OPERATE)
-public class DownloadAutoexecJobOutputFileBatchApi extends PublicBinaryStreamApiComponentBase {
+public class DownloadAutoexecJobOutputFileBatchApi extends PrivateBinaryStreamApiComponentBase {
 
     @Resource
     private AutoexecJobMapper autoexecJobMapper;
