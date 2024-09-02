@@ -6,6 +6,7 @@ import neatlogic.framework.autoexec.dto.profile.AutoexecProfileVo;
 import neatlogic.framework.autoexec.exception.AutoexecProfileIsNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecProfileNameRepeatsException;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.deploy.auth.DEPLOY_MODIFY;
 import neatlogic.framework.dto.FieldValidResultVo;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
@@ -27,6 +28,7 @@ import javax.annotation.Resource;
 @Service
 @Transactional
 @AuthAction(action = AUTOEXEC_MODIFY.class)
+@AuthAction(action = DEPLOY_MODIFY.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class AutoexecProfileSaveApi extends PrivateApiComponentBase {
 
