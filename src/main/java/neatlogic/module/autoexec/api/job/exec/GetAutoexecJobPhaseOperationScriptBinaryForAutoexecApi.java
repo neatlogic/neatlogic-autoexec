@@ -172,7 +172,7 @@ public class GetAutoexecJobPhaseOperationScriptBinaryForAutoexecApi extends Priv
         if (response != null) {
             response.setHeader("ScriptCatalog", scriptCatalog);
             response.setHeader("ScriptId", scriptVo.getId().toString());
-            response.setHeader("ScriptName", scriptVo.getName());
+            response.setHeader("ScriptName", neatlogic.framework.util.FileUtil.getEncodedFileName(scriptVo.getName()));
             response.setHeader("ScriptVersionId", scriptVersionVo.getId().toString());
             response.setHeader("ScriptInterpreter", scriptVersionVo.getParser());
             response.setHeader("ScriptIsLib", CollectionUtils.isEmpty(libScriptIdList) ? "0" : "1");
