@@ -246,6 +246,9 @@ public class CreateJobConfigUtil {
         // 流程图自动化节点是否需要设置分批数量，只有当有某个非runner类型的阶段，没有设置分批数量时，needRoundCount=true
         boolean needRoundCount = autoexecCombopVersionVo.getNeedRoundCount();
         AutoexecCombopExecuteConfigVo combopExecuteConfig = versionConfig.getExecuteConfig();
+        if (combopExecuteConfig == null) {
+            combopExecuteConfig = new AutoexecCombopExecuteConfigVo();
+        }
         AutoexecCombopExecuteConfigVo executeConfig = new AutoexecCombopExecuteConfigVo();
         if (needExecuteNode) {
             String whenToSpecify = combopExecuteConfig.getWhenToSpecify();
