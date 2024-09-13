@@ -1171,6 +1171,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      */
     private boolean updateNodeResourceBySelect(AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
         List<AutoexecNodeVo> nodeVoList = executeNodeConfigVo.getSelectNodeList();
+        boolean isHasNode = false;
         if (CollectionUtils.isNotEmpty(nodeVoList)) {
             IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
             JSONObject preFilter = null;
@@ -1185,16 +1186,23 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             }
             ResourceSearchVo searchVo = getResourceSearchVoWithCmdbGroupType(jobVo, preFilter);
             searchVo.setIdList(nodeVoList.stream().map(AutoexecNodeVo::getId).collect(toList()));
-            List<Long> idList = resourceCrossoverMapper.getResourceIdList(searchVo);
-            if (CollectionUtils.isNotEmpty(idList)) {
-                List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIdList(idList);
-                if (CollectionUtils.isNotEmpty(resourceList)) {
-                    updateJobPhaseNode(jobVo, resourceList, userName, protocolId);
-                    return true;
+            int count = resourceCrossoverMapper.getResourceCount(searchVo);
+            if (count > 0) {
+                int pageCount = PageUtil.getPageCount(count, searchVo.getPageSize());
+                for (int i = 1; i <= pageCount; i++) {
+                    searchVo.setCurrentPage(i);
+                    List<Long> idList = resourceCrossoverMapper.getResourceIdList(searchVo);
+                    if (CollectionUtils.isNotEmpty(idList)) {
+                        List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIdList(idList);
+                        if (CollectionUtils.isNotEmpty(resourceList)) {
+                            updateJobPhaseNode(jobVo, resourceList, userName, protocolId);
+                            isHasNode = true;
+                        }
+                    }
                 }
             }
         }
-        return false;
+        return isHasNode;
     }
 
     /**
