@@ -19,7 +19,6 @@ import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.constvalue.ScriptVersionStatus;
-import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import neatlogic.framework.autoexec.dto.AutoexecTypeVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
@@ -56,8 +55,6 @@ public class AutoexecCombopBasicInfoGetApi extends PrivateApiComponentBase {
     @Resource
     private AutoexecCombopService autoexecCombopService;
 
-    @Resource
-    private AutoexecCombopMapper autoexecCombopMapper;
 
     @Resource
     private AutoexecCombopVersionMapper autoexecCombopVersionMapper;
@@ -103,7 +100,7 @@ public class AutoexecCombopBasicInfoGetApi extends PrivateApiComponentBase {
         }
         AutoexecTypeVo autoexecTypeVo = autoexecTypeMapper.getTypeById(autoexecCombopVo.getTypeId());
         if (autoexecTypeVo != null) {
-            autoexecCombopVo.setTypeName(autoexecTypeVo.getName() + "[" + autoexecTypeVo.getDescription()+ "]");
+            autoexecCombopVo.setTypeName(autoexecTypeVo.getName() + "[" + autoexecTypeVo.getDescription() + "]");
         } else {
             autoexecCombopVo.setTypeName(autoexecCombopVo.getTypeId().toString());
         }
