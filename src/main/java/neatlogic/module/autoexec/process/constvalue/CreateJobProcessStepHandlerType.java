@@ -24,7 +24,7 @@ import neatlogic.framework.process.stephandler.core.IProcessStepHandlerType;
  * @since 2021/9/2 14:40
  **/
 public enum CreateJobProcessStepHandlerType implements IProcessStepHandlerType {
-    CREATE_JOB("createjob", "process", "创建作业"),
+    CREATE_JOB("createjob", "process", "自动化"),
     ;
     private String handler;
     private String name;
