@@ -242,9 +242,9 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
         if (runnerGroupTagParam != null) {
             String runnerGroupTagIdStr = autoexecJobService.getFinalParamValue(runnerGroupTagParam, jobVo.getRunTimeParamList());
             if (StringUtils.isNotBlank(runnerGroupTagIdStr) && runnerGroupTagIdStr.startsWith("[")) {
-                List<Long> runnerGroupTagIdList = JSON.parseArray(runnerGroupTagIdStr, Long.class);
+                List<String> runnerGroupTagIdList = JSON.parseArray(runnerGroupTagIdStr, String.class);
                 if (CollectionUtils.isNotEmpty(runnerGroupTagIdList)) {
-                    List<RunnerGroupVo> runnerGroupVos = runnerMapper.getRunnerGroupByTagIdList(runnerGroupTagIdList);
+                    List<RunnerGroupVo> runnerGroupVos = runnerMapper.getRunnerGroupByTagIdOrNameList(runnerGroupTagIdList);
                     if (CollectionUtils.isNotEmpty(runnerGroupVos)) {
                         runnerGroupIdListWithTag = runnerGroupVos.stream().map(RunnerGroupVo::getId).collect(Collectors.toList());
                     }
