@@ -223,6 +223,13 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
                 runnerGroupParam.setValue(runnerGroupParam.getValue() == null ? "-1" : runnerGroupParam.getValue());
                 resultObj.put("runnerGroup", runnerGroupParam);
             }
+            //补充runnerGroupTag
+            ParamMappingVo runnerGroupTagParam = executeConfigVo.getRunnerGroupTag();
+            if (runnerGroupTagParam != null) {
+                runnerGroupTagParam.setMappingMode(runnerGroupTagParam.getMappingMode() == null ? ParamMappingMode.CONSTANT.getValue() : runnerGroupTagParam.getMappingMode());
+                runnerGroupTagParam.setValue(runnerGroupTagParam.getValue());
+                resultObj.put("runnerGroupTag", runnerGroupTagParam);
+            }
         }
         // 判断该组合工具的所有阶段是否都是Runner或SQL执行方式，如果是，直接返回，因为不需要设置执行目标
         if (autoexecCombopVersionVo.getAllPhasesAreRunnerOrSqlExecMode()) {
@@ -362,6 +369,9 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
             runnerGroupParam.setMappingMode(ParamMappingMode.CONSTANT.getValue());
             runnerGroupParam.setValue("-1");
             resultObj.put("runnerGroup", runnerGroupParam);
+            ParamMappingVo runnerGroupTagParam = new ParamMappingVo();
+            runnerGroupTagParam.setMappingMode(ParamMappingMode.CONSTANT.getValue());
+            resultObj.put("runnerGroupTag", runnerGroupTagParam);
         }
         resultObj.put("executeParamList", executeParamList);
 

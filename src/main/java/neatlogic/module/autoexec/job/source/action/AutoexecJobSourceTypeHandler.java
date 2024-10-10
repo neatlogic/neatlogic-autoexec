@@ -1,5 +1,6 @@
 package neatlogic.module.autoexec.job.source.action;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.nacos.common.utils.CollectionUtils;
@@ -35,6 +36,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * @author longrf
@@ -234,8 +236,23 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
     public List<RunnerMapVo> getRunnerMapList(AutoexecJobVo jobVo) {
         AutoexecJobPhaseVo jobPhaseVo = jobVo.getCurrentPhase();
         List<RunnerMapVo> runnerMapVos = null;
+        ParamMappingVo runnerGroupTagParam = jobVo.getRunnerGroupTag();
+        //满足标签的执行器组id列表
+        List<Long> runnerGroupIdListWithTag = new ArrayList<>();
+        if (runnerGroupTagParam != null) {
+            String runnerGroupTagIdStr = autoexecJobService.getFinalParamValue(runnerGroupTagParam, jobVo.getRunTimeParamList());
+            if (StringUtils.isNotBlank(runnerGroupTagIdStr) && runnerGroupTagIdStr.startsWith("[")) {
+                List<Long> runnerGroupTagIdList = JSON.parseArray(runnerGroupTagIdStr, Long.class);
+                if (CollectionUtils.isNotEmpty(runnerGroupTagIdList)) {
+                    List<RunnerGroupVo> runnerGroupVos = runnerMapper.getRunnerGroupByTagIdList(runnerGroupTagIdList);
+                    if (CollectionUtils.isNotEmpty(runnerGroupVos)) {
+                        runnerGroupIdListWithTag = runnerGroupVos.stream().map(RunnerGroupVo::getId).collect(Collectors.toList());
+                    }
+                }
+            }
+        }
         if (Arrays.asList(ExecMode.TARGET.getValue(), ExecMode.RUNNER_TARGET.getValue()).contains(jobPhaseVo.getExecMode())) {
-            List<GroupNetworkVo> networkVoList = runnerMapper.getAllNetworkMask();
+            List<GroupNetworkVo> networkVoList = runnerMapper.getAllNetworkMask(runnerGroupIdListWithTag);
             for (GroupNetworkVo networkVo : networkVoList) {
                 if (IpUtil.isBelongSegment(jobPhaseVo.getCurrentNode().getHost(), networkVo.getNetworkIp(), networkVo.getMask())) {
                     RunnerGroupVo groupVo = runnerMapper.getRunnerMapGroupById(networkVo.getGroupId());
@@ -251,14 +268,17 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
                 String runnerGroupIdStr = autoexecJobService.getFinalParamValue(runnerGroupParam, jobVo.getRunTimeParamList());
                 if (StringUtils.isNotBlank(runnerGroupIdStr)) {
                     if (runnerGroupIdStr.equals("-1")) {//-1 代表 “随机匹配”
-                        runnerMapVos = runnerMapper.getAllRunnerMap();
+                        runnerMapVos = runnerMapper.getAllRunnerMap(runnerGroupIdListWithTag);
                     } else {
-                        runnerMapVos = runnerMapper.getRunnerMapListByRunnerGroupId(Long.valueOf(runnerGroupIdStr));
+                        Long runnerGroupId = Long.valueOf(runnerGroupIdStr);
+                        if (CollectionUtils.isEmpty(runnerGroupIdListWithTag) || runnerGroupIdListWithTag.contains(runnerGroupId)) {
+                            runnerMapVos = runnerMapper.getRunnerMapListByRunnerGroupId(runnerGroupId);
+                        }
                     }
                 }
             }
             if (runnerMapVos == null) {
-                runnerMapVos = runnerMapper.getAllRunnerMap();
+                runnerMapVos = runnerMapper.getAllRunnerMap(runnerGroupIdListWithTag);
             }
         }
         return runnerMapVos;

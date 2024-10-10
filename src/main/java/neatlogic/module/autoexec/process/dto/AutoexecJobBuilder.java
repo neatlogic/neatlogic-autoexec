@@ -44,6 +44,9 @@ public class AutoexecJobBuilder {
     @EntityField(name = "runner执行组", type = ApiParamType.JSONOBJECT)
     private ParamMappingVo runnerGroup;
 
+    @EntityField(name = "runner执行组标签", type = ApiParamType.JSONOBJECT)
+    private ParamMappingVo runnerGroupTag;
+
     @EntityField(name = "并发线程数", type = ApiParamType.INTEGER)
     private Integer roundCount;
 
@@ -90,6 +93,14 @@ public class AutoexecJobBuilder {
         this.runnerGroup = runnerGroup;
     }
 
+    public ParamMappingVo getRunnerGroupTag() {
+        return runnerGroupTag;
+    }
+
+    public void setRunnerGroupTag(ParamMappingVo runnerGroupTag) {
+        this.runnerGroupTag = runnerGroupTag;
+    }
+
     public Integer getRoundCount() {
         return roundCount;
     }
@@ -115,6 +126,7 @@ public class AutoexecJobBuilder {
         AutoexecJobVo jobVo = new AutoexecJobVo();
         jobVo.setParam(param);
         jobVo.setRunnerGroup(runnerGroup);
+        jobVo.setRunnerGroupTag(runnerGroupTag);
         jobVo.setScenarioId(scenarioId);
         jobVo.setExecuteConfig(executeConfig);
         if (roundCount != null) {

@@ -328,6 +328,12 @@ public class CreateJobConfigUtil {
             builder.setRunnerGroup(runnerGroup);
         }
 
+        // 执行器组标签
+        ParamMappingVo runnerGroupTag = combopExecuteConfig.getRunnerGroupTag();
+        if (runnerGroupTag != null) {
+            builder.setRunnerGroupTag(runnerGroupTag);
+        }
+
         String jobNamePrefixMappingValue = createJobConfigConfigVo.getJobNamePrefixMappingValue();
         String jobNamePrefixValue = getJobNamePrefix(jobNamePrefixMappingValue, builder.getExecuteConfig(), builder.getParam());
         builder.setJobName(jobNamePrefixValue + jobName);
@@ -1126,6 +1132,9 @@ public class CreateJobConfigUtil {
         } else if (Objects.equals(paramType, ParamType.RUNNERGROUP.getValue())) {
             // 组id，单选
             return getFirstNotNullObject(jsonArray);
+        } else if (Objects.equals(paramType, ParamType.RUNNERGROUPTAG.getValue())) {
+            // 组id，单选
+            return jsonArray;
         }
         return null;
     }

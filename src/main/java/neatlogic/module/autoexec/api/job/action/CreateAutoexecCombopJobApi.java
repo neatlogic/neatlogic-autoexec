@@ -54,7 +54,7 @@ public class CreateAutoexecCombopJobApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "组合工具创建作业";
+        return "nmaaja.createautoexeccombopjobapi.getname";
     }
 
     @Override
@@ -63,21 +63,23 @@ public class CreateAutoexecCombopJobApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "组合工具ID"),
-            @Param(name = "combopVersionId", type = ApiParamType.LONG, desc = "组合工具版本ID"),
-            @Param(name = "name", type = ApiParamType.STRING, isRequired = true, desc = "作业名"),
-            @Param(name = "param", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "执行参数"),
-            @Param(name = "scenarioId", type = ApiParamType.LONG, desc = "场景id"),
-            @Param(name = "scenarioName", type = ApiParamType.STRING, desc = "场景名, 如果入参也有scenarioId，则会以scenarioName为准"),
-            @Param(name = "roundCount", type = ApiParamType.LONG, desc = "分组数 "),
-            @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, desc = "执行目标"),
-            @Param(name = "planStartTime", type = ApiParamType.LONG, desc = "计划时间"),
-            @Param(name = "triggerType", type = ApiParamType.ENUM, member = JobTriggerType.class, desc = "触发方式")
+            @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.combopid"),
+            @Param(name = "combopVersionId", type = ApiParamType.LONG, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.versionid"),
+            @Param(name = "name", type = ApiParamType.STRING, isRequired = true, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.name"),
+            @Param(name = "param", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "term.autoexec.executeparam"),
+            @Param(name = "scenarioId", type = ApiParamType.LONG, desc = "term.autoexec.scenarioid"),
+            @Param(name = "scenarioName", type = ApiParamType.STRING, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.scenarioname"),
+            @Param(name = "roundCount", type = ApiParamType.LONG, desc = "nmaaja.createautoexeccombopjobapi.input.param.roundcount "),
+            @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.executeconfig"),
+            @Param(name = "planStartTime", type = ApiParamType.LONG, desc = "common.planstarttime"),
+            @Param(name = "triggerType", type = ApiParamType.ENUM, member = JobTriggerType.class, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.triggertype"),
+            @Param(name = "runnerGroup", type = ApiParamType.JSONOBJECT, desc = "nfac.paramtype.runnergroup"),
+            @Param(name = "runnerGroupTag", type = ApiParamType.JSONOBJECT, desc = "nfac.paramtype.runnergrouptag"),
     })
     @Output({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业ID")
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid")
     })
-    @Description(desc = "组合工具创建作业")
+    @Description(desc = "nmaaja.createautoexeccombopjobapi.getname")
     @ResubmitInterval(value = 2)
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
