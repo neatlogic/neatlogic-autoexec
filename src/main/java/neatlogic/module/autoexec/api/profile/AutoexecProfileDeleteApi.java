@@ -8,6 +8,7 @@ import neatlogic.framework.autoexec.exception.AutoexecProfileIsHasReferenceExcep
 import neatlogic.framework.autoexec.exception.AutoexecProfileIsNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.dependency.core.DependencyManager;
+import neatlogic.framework.deploy.auth.DEPLOY_MODIFY;
 import neatlogic.framework.restful.annotation.Description;
 import neatlogic.framework.restful.annotation.Input;
 import neatlogic.framework.restful.annotation.OperationType;
@@ -29,6 +30,7 @@ import javax.annotation.Resource;
 @Service
 @Transactional
 @AuthAction(action = AUTOEXEC_MODIFY.class)
+@AuthAction(action = DEPLOY_MODIFY.class)
 @OperationType(type = OperationTypeEnum.DELETE)
 public class AutoexecProfileDeleteApi extends PrivateApiComponentBase {
 
