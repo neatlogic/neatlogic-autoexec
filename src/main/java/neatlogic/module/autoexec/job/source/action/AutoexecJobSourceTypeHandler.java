@@ -18,12 +18,13 @@ import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerBase;
 import neatlogic.framework.autoexec.util.AutoexecUtil;
 import neatlogic.framework.common.util.IpUtil;
+import neatlogic.framework.dao.mapper.TagMapper;
 import neatlogic.framework.dao.mapper.runner.RunnerMapper;
+import neatlogic.framework.dto.TagVo;
 import neatlogic.framework.dto.runner.GroupNetworkVo;
 import neatlogic.framework.dto.runner.RunnerGroupVo;
 import neatlogic.framework.dto.runner.RunnerMapVo;
-import neatlogic.framework.exception.runner.RunnerGroupRunnerNotFoundException;
-import neatlogic.framework.exception.runner.RunnerHttpRequestException;
+import neatlogic.framework.exception.runner.*;
 import neatlogic.framework.integration.authentication.enums.AuthenticateType;
 import neatlogic.framework.util.HttpRequestUtil;
 import neatlogic.framework.util.TableResultUtil;
@@ -62,6 +63,9 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
 
     @Resource
     AutoexecJobService autoexecJobService;
+
+    @Resource
+    TagMapper tagMapper;
 
     @Override
     public String getName() {
@@ -232,23 +236,51 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
         return autoexecJobMapper.getJobSqlByJobPhaseIdAndResourceIdAndSqlName(jobVo.getActionParam().getLong("jobPhaseId"), jobVo.getActionParam().getLong("resourceId"), jobVo.getActionParam().getString("sqlName"));
     }
 
+    /**
+     * 执行器匹配规则：
+     * 1、标签非比填，如果设置了标签且不存在打了该标签的执行器组则抛异常
+     * 2、target类型
+     * - 如果设置了标签，则必须同时满足标签和网段，否则抛异常
+     * - 如果没设置标签，则必须满足网段，否则抛异常
+     * 3、runner类型（如果指定执行器组为“随机分配”，则表示任意runner）
+     * - 如果设置了标签，则必须同时满足指定执行组和标签，否则抛异常
+     * - 如果没设置标签，则必须满足指定执行组，否则抛异常
+     * 4、匹配到的执行器组如果没有执行器则抛异常
+     *
+     * @param jobVo 作业参数
+     */
     @Override
     public List<RunnerMapVo> getRunnerMapList(AutoexecJobVo jobVo) {
         AutoexecJobPhaseVo jobPhaseVo = jobVo.getCurrentPhase();
         List<RunnerMapVo> runnerMapVos = null;
         ParamMappingVo runnerGroupTagParam = jobVo.getRunnerGroupTag();
+        String runnerGroupTagStr;
+        String runnerGroupTagNameStr = StringUtils.EMPTY;
         //满足标签的执行器组id列表
         List<Long> runnerGroupIdListWithTag = new ArrayList<>();
+        List<String> runnerGroupIdNameListWithTag = new ArrayList<>();
         if (runnerGroupTagParam != null) {
-            String runnerGroupTagIdStr = autoexecJobService.getFinalParamValue(runnerGroupTagParam, jobVo.getRunTimeParamList());
-            if (StringUtils.isNotBlank(runnerGroupTagIdStr) && runnerGroupTagIdStr.startsWith("[")) {
-                List<String> runnerGroupTagIdList = JSON.parseArray(runnerGroupTagIdStr, String.class);
-                if (CollectionUtils.isNotEmpty(runnerGroupTagIdList)) {
-                    List<RunnerGroupVo> runnerGroupVos = runnerMapper.getRunnerGroupByTagIdOrNameList(runnerGroupTagIdList);
+            runnerGroupTagStr = autoexecJobService.getFinalParamValue(runnerGroupTagParam, jobVo.getRunTimeParamList());
+            if (StringUtils.isNotBlank(runnerGroupTagStr) && runnerGroupTagStr.startsWith("[")) {
+                List<String> runnerGroupTagList = JSON.parseArray(runnerGroupTagStr, String.class);
+                if (CollectionUtils.isNotEmpty(runnerGroupTagList)) {
+                    List<TagVo> tagVoList = tagMapper.getTagListByIdOrNameList(runnerGroupTagList);
+                    if (CollectionUtils.isEmpty(tagVoList)) {
+                        throw new AutoexecRunnerGroupTagInvalidException(runnerGroupTagStr);
+                    }
+                    runnerGroupTagNameStr = tagVoList.stream().map(TagVo::getName).collect(Collectors.joining("、"));
+                    List<RunnerGroupVo> runnerGroupVos = runnerMapper.getRunnerGroupByTagIdOrNameList(runnerGroupTagList);
                     if (CollectionUtils.isNotEmpty(runnerGroupVos)) {
                         runnerGroupIdListWithTag = runnerGroupVos.stream().map(RunnerGroupVo::getId).collect(Collectors.toList());
+                        List<String> runnerGroupIdStrListWithTag = runnerGroupIdListWithTag.stream().map(Object::toString).collect(Collectors.toList());
+                        runnerGroupIdNameListWithTag = runnerGroupVos.stream().map(RunnerGroupVo::getName).collect(Collectors.toList());
+                        runnerGroupIdNameListWithTag.addAll(runnerGroupIdStrListWithTag);
+                    } else {
+                        throw new AutoexecRunnerGroupNotFoundByTagException(runnerGroupTagStr);
                     }
                 }
+            } else {
+                throw new AutoexecRunnerGroupTagInvalidException(runnerGroupTagStr);
             }
         }
         if (Arrays.asList(ExecMode.TARGET.getValue(), ExecMode.RUNNER_TARGET.getValue()).contains(jobPhaseVo.getExecMode())) {
@@ -256,30 +288,56 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
             for (GroupNetworkVo networkVo : networkVoList) {
                 if (IpUtil.isBelongSegment(jobPhaseVo.getCurrentNode().getHost(), networkVo.getNetworkIp(), networkVo.getMask())) {
                     RunnerGroupVo groupVo = runnerMapper.getRunnerMapGroupById(networkVo.getGroupId());
-                    if (groupVo == null || CollectionUtils.isEmpty(groupVo.getRunnerMapList())) {
-                        throw new RunnerGroupRunnerNotFoundException(networkVo.getName() + "(" + networkVo.getGroupId() + ") ");
+                    if (groupVo == null) {
+                        throw new RunnerGroupRunnerNotFoundException(networkVo.getGroupId());
+                    }
+                    if (CollectionUtils.isEmpty(groupVo.getRunnerMapList())) {
+                        throw new RunnerGroupRunnerNotFoundException(groupVo.getName(), networkVo.getName() + "(" + networkVo.getGroupId() + ") ");
                     }
                     runnerMapVos = groupVo.getRunnerMapList();
+                    break;
+                }
+            }
+            if (CollectionUtils.isEmpty(runnerMapVos)) {
+                if (CollectionUtils.isNotEmpty(runnerGroupIdListWithTag)) {
+                    throw new RunnerNotMatchException(jobPhaseVo.getCurrentNode().getHost(), jobPhaseVo.getCurrentNode().getResourceId(), runnerGroupTagNameStr);
+                } else {
+                    throw new RunnerNotMatchException(jobPhaseVo.getCurrentNode().getHost(), jobPhaseVo.getCurrentNode().getResourceId());
                 }
             }
         } else {
             ParamMappingVo runnerGroupParam = jobVo.getRunnerGroup();
+            //默认随机分配
+            String runnerGroup = "-1";
             if (runnerGroupParam != null) {
                 String runnerGroupIdStr = autoexecJobService.getFinalParamValue(runnerGroupParam, jobVo.getRunTimeParamList());
                 if (StringUtils.isNotBlank(runnerGroupIdStr)) {
-                    if (runnerGroupIdStr.equals("-1")) {//-1 代表 “随机匹配”
-                        runnerMapVos = runnerMapper.getAllRunnerMap(runnerGroupIdListWithTag);
-                    } else {
-                        Long runnerGroupId = Long.valueOf(runnerGroupIdStr);
-                        if (CollectionUtils.isEmpty(runnerGroupIdListWithTag) || runnerGroupIdListWithTag.contains(runnerGroupId)) {
-                            runnerMapVos = runnerMapper.getRunnerMapListByRunnerGroupId(runnerGroupId);
-                        }
-                    }
+                    runnerGroup = runnerGroupIdStr;
                 }
             }
-            if (runnerMapVos == null) {
+
+            if (Objects.equals(runnerGroup, "-1")) {//-1 代表 “随机匹配”
                 runnerMapVos = runnerMapper.getAllRunnerMap(runnerGroupIdListWithTag);
+                if (CollectionUtils.isEmpty(runnerMapVos)) {
+                    if (CollectionUtils.isNotEmpty(runnerGroupIdListWithTag)) {
+                        throw new AutoexecRunnerGroupTagNotMatchException(runnerGroupTagNameStr);
+                    }
+                    throw new RunnerNotFoundException();
+                }
+            } else {
+                RunnerGroupVo runnerGroupVo = runnerMapper.getRunnerGroupByIdOrName(runnerGroup);
+                if (runnerGroupVo == null) {
+                    throw new RunnerGroupNotFoundException(runnerGroup);
+                }
+                if (CollectionUtils.isNotEmpty(runnerGroupIdListWithTag) && !runnerGroupIdNameListWithTag.contains(runnerGroup)) {
+                    throw new AutoexecRunnerGroupTagNotMatchException(runnerGroupVo.getName(), runnerGroupTagNameStr);
+                }
+                runnerMapVos = runnerMapper.getRunnerMapListByRunnerGroupId(runnerGroupVo.getId());
+                if (CollectionUtils.isEmpty(runnerMapVos)) {
+                    throw new RunnerGroupRunnerNotFoundException(runnerGroup);
+                }
             }
+
         }
         return runnerMapVos;
     }
