@@ -259,7 +259,7 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
         //满足标签的执行器组id列表
         List<Long> runnerGroupIdListWithTag = new ArrayList<>();
         List<String> runnerGroupIdNameListWithTag = new ArrayList<>();
-        if (runnerGroupTagParam != null) {
+        if (runnerGroupTagParam != null && runnerGroupTagParam.getValue() != null) {
             runnerGroupTagStr = autoexecJobService.getFinalParamValue(runnerGroupTagParam, jobVo.getRunTimeParamList());
             if (StringUtils.isNotBlank(runnerGroupTagStr) && runnerGroupTagStr.startsWith("[")) {
                 List<String> runnerGroupTagList = JSON.parseArray(runnerGroupTagStr, String.class);
