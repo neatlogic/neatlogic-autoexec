@@ -21,19 +21,16 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.CombopNodeSpecify;
-import neatlogic.framework.autoexec.constvalue.ParamType;
 import neatlogic.framework.autoexec.crossover.IAutoexecCombopCrossoverService;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
 import neatlogic.framework.autoexec.dto.combop.*;
 import neatlogic.framework.autoexec.dto.node.AutoexecNodeVo;
+import neatlogic.framework.autoexec.script.paramtype.IScriptParamType;
+import neatlogic.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
-import neatlogic.framework.cmdb.dto.resourcecenter.AccountVo;
 import neatlogic.framework.common.constvalue.Expression;
-import neatlogic.framework.common.constvalue.GroupSearch;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
-import neatlogic.framework.crossover.IFileCrossoverService;
-import neatlogic.framework.file.dto.FileVo;
 import neatlogic.framework.form.attribute.core.FormAttributeDataConversionHandlerFactory;
 import neatlogic.framework.form.attribute.core.IFormAttributeDataConversionHandler;
 import neatlogic.framework.form.dto.FormAttributeVo;
@@ -222,8 +219,11 @@ public class CreateJobConfigUtil {
                     if (CollectionUtils.isEmpty(jsonArray)) {
                         continue;
                     }
-                    Object value = convertDateType(autoexecParamVo, jsonArray);
-                    param.put(mappingGroupVo.getKey(), value);
+                    IScriptParamType handler = ScriptParamTypeFactory.getHandler(autoexecParamVo.getType());
+                    if (handler != null) {
+                        Object value = handler.convertDataForProcessComponent(jsonArray);
+                        param.put(mappingGroupVo.getKey(), value);
+                    }
                 }
                 builder.setParam(param);
             }
@@ -417,53 +417,6 @@ public class CreateJobConfigUtil {
                 Long protocolId = getProtocolId(array);
                 if (protocolId != null) {
                     return protocolId;
-                }
-            }
-        }
-        return null;
-    }
-
-    private static Long getAccountId(JSONArray jsonArray) {
-        if (CollectionUtils.isEmpty(jsonArray)) {
-            return null;
-        }
-        IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
-        for (Object obj : jsonArray) {
-            if (obj == null) {
-                continue;
-            }
-            if (obj instanceof Long) {
-                Long accountId = (Long) obj;
-                AccountVo accountVo = resourceAccountCrossoverMapper.getAccountById(accountId);
-                if (accountVo != null) {
-                    return accountId;
-                }
-            } else if (obj instanceof String) {
-                String account = (String) obj;
-                try {
-                    Long accountId = Long.valueOf(account);
-                    AccountVo accountVo = resourceAccountCrossoverMapper.getAccountById(accountId);
-                    if (accountVo != null) {
-                        return accountId;
-                    }
-                } catch (NumberFormatException ex) {
-                    AccountVo accountVo = resourceAccountCrossoverMapper.getPublicAccountByName(account);
-                    if (accountVo != null) {
-                        return accountVo.getId();
-                    }
-                }
-            } else if (obj instanceof JSONObject) {
-                JSONObject jsonObj = (JSONObject) obj;
-                Long accountId = jsonObj.getLong("accountId");
-                AccountVo accountVo = resourceAccountCrossoverMapper.getAccountById(accountId);
-                if (accountVo != null) {
-                    return accountId;
-                }
-            } else if (obj instanceof JSONArray) {
-                JSONArray array = (JSONArray) obj;
-                Long accountId = getAccountId(array);
-                if (accountId != null) {
-                    return accountId;
                 }
             }
         }
@@ -1068,109 +1021,6 @@ public class CreateJobConfigUtil {
         return stringBuilder.toString();
     }
 
-    /**
-     * 把表单表格组件中某列数据集合转换成作业参数对应的数据
-     *
-     * @param autoexecParamVo  作业参数信息
-     * @param jsonArray 某列数据集合
-     * @return
-     */
-    private static Object convertDateType(AutoexecParamVo autoexecParamVo, JSONArray jsonArray) {
-        if (CollectionUtils.isEmpty(jsonArray)) {
-            return null;
-        }
-        String paramType = autoexecParamVo.getType();
-        if (Objects.equals(paramType, ParamType.TEXT.getValue())) {
-            return String.join(",", getStringList(jsonArray));
-        } else if (Objects.equals(paramType, ParamType.PASSWORD.getValue())) {
-            return String.join(",", getStringList(jsonArray));
-        } else if (Objects.equals(paramType, ParamType.FILE.getValue())) {
-            // 多选
-            return getFileInfo(jsonArray);
-        } else if (Objects.equals(paramType, ParamType.DATE.getValue())) {
-            return getFirstNotBlankString(jsonArray);
-        } else if (Objects.equals(paramType, ParamType.DATETIME.getValue())) {
-            return getFirstNotBlankString(jsonArray);
-        } else if (Objects.equals(paramType, ParamType.TIME.getValue())) {
-            return getFirstNotBlankString(jsonArray);
-        } else if (Objects.equals(paramType, ParamType.JSON.getValue())) {
-            return getJSONObjectOrJSONArray(jsonArray);
-        } else if (Objects.equals(paramType, ParamType.SELECT.getValue())) {
-            return getFirstNotNullObject(jsonArray);
-        } else if (Objects.equals(paramType, ParamType.MULTISELECT.getValue())) {
-            return getObjectList(jsonArray);
-        } else if (Objects.equals(paramType, ParamType.RADIO.getValue())) {
-            return getFirstNotNullObject(jsonArray);
-        } else if (Objects.equals(paramType, ParamType.CHECKBOX.getValue())) {
-            return getObjectList(jsonArray);
-        } else if (Objects.equals(paramType, ParamType.NODE.getValue())) {
-            List<AutoexecNodeVo> list = getInputNodeList(jsonArray);
-            JSONArray array = new JSONArray(list.size());
-            array.addAll(list);
-            return array;
-        } else if (Objects.equals(paramType, ParamType.ACCOUNT.getValue())) {
-            // 账号id，单选
-            return getAccountId(jsonArray);
-        } else if (Objects.equals(paramType, ParamType.USERSELECT.getValue())) {
-            // 单选或多选都是数组
-            return getUserSelectInfo(jsonArray);
-        } else if (Objects.equals(paramType, ParamType.TEXTAREA.getValue())) {
-            return String.join(",", getStringList(jsonArray));
-        } else if (Objects.equals(paramType, ParamType.PHASE.getValue())) {
-            // 阶段名称，单选
-            return getFirstNotBlankString(jsonArray);
-        } else if (Objects.equals(paramType, ParamType.SWITCH.getValue())) {
-            // true或false
-            Boolean bool = getFirstNotNullBoolean(jsonArray);
-            if (Boolean.TRUE == bool) {
-                return Boolean.TRUE;
-            } else {
-                return Boolean.FALSE;
-            }
-        } else if (Objects.equals(paramType, ParamType.FILEPATH.getValue())) {
-            return getFirstNotBlankString(jsonArray);
-        } else if (Objects.equals(paramType, ParamType.RUNNERGROUP.getValue())) {
-            // 组id，单选
-            return getFirstNotNullObject(jsonArray);
-        } else if (Objects.equals(paramType, ParamType.RUNNERGROUPTAG.getValue())) {
-            // 组id，单选
-            return jsonArray;
-        }
-        return null;
-    }
-
-    private static List<String> getStringList(JSONArray jsonArray) {
-        List<String> resultList = new ArrayList<>();
-        for (Object obj : jsonArray) {
-            if (obj == null) {
-                continue;
-            }
-            if (obj instanceof JSONArray) {
-                JSONArray array = (JSONArray) obj;
-                resultList.addAll(getStringList(array));
-            } else {
-                resultList.add(obj.toString());
-            }
-        }
-        return resultList;
-    }
-
-    private static List<Object> getObjectList(JSONArray jsonArray) {
-        List<Object> resultList = new ArrayList<>();
-        for (Object obj : jsonArray) {
-            if (obj == null) {
-                continue;
-            }
-            if (obj instanceof JSONArray) {
-                JSONArray array = (JSONArray) obj;
-                resultList.addAll(getObjectList(array));
-            } else {
-                resultList.add(obj);
-            }
-        }
-        return resultList;
-    }
-
     private static Integer getFirstNotBlankInteger(JSONArray jsonArray) {
         for (Object obj : jsonArray) {
             if (obj == null) {
@@ -1219,215 +1069,4 @@ public class CreateJobConfigUtil {
         return null;
     }
 
-    private static Object getFirstNotNullObject(JSONArray jsonArray) {
-        for (Object obj : jsonArray) {
-            if (obj == null) {
-                continue;
-            }
-            if (obj instanceof JSONArray) {
-                JSONArray array = (JSONArray) obj;
-                Object obj2 = getFirstNotNullObject(array);
-                if (obj2 != null) {
-                    return obj2;
-                }
-            } else {
-                return obj;
-            }
-        }
-        return null;
-    }
-
-    private static Boolean getFirstNotNullBoolean(JSONArray jsonArray) {
-        for (Object obj : jsonArray) {
-            if (obj == null) {
-                continue;
-            }
-            if (obj instanceof JSONArray) {
-                JSONArray array = (JSONArray) obj;
-                Boolean bool = getFirstNotNullBoolean(array);
-                if (bool != null) {
-                    return bool;
-                }
-            } else if (obj instanceof Boolean) {
-                return (Boolean) obj;
-            } else {
-                String str = obj.toString();
-                if (Objects.equals(str, Boolean.TRUE.toString())) {
-                    return Boolean.TRUE;
-                } else if (Objects.equals(str, Boolean.FALSE.toString())) {
-                    return Boolean.FALSE;
-                }
-            }
-        }
-        return null;
-    }
-
-    private static Object getJSONObjectOrJSONArray(JSONArray jsonArray) {
-        JSONArray jsonList = new JSONArray();
-        for (Object obj : jsonArray) {
-            if (obj == null) {
-                continue;
-            }
-            if (obj instanceof JSONObject) {
-                jsonList.add(obj);
-            } else if (obj instanceof JSONArray) {
-                jsonList.add(obj);
-            } else if (obj instanceof Number) {
-                jsonList.add(obj);
-            } else {
-                String str = obj.toString();
-                if (str.startsWith("{") && str.endsWith("}")) {
-                    JSONObject jsonObj = JSON.parseObject(str);
-                    jsonList.add(jsonObj);
-                } else if (str.startsWith("[") && str.endsWith("]")) {
-                    JSONArray array = JSON.parseArray(str);
-                    jsonList.add(array);
-                } else {
-                    jsonList.add(str);
-                }
-            }
-        }
-        if (jsonList.size() == 1) {
-            Object obj = jsonList.get(0);
-            if (obj instanceof JSONObject) {
-                return obj;
-            } else if (obj instanceof JSONArray) {
-                return obj;
-            }
-        }
-        return jsonList;
-    }
-
-    private static JSONObject getFileInfo(JSONArray jsonArray) {
-        JSONObject resultObj = new JSONObject();
-        JSONArray fileIdList = new JSONArray();
-        JSONArray fileList = new JSONArray();
-        IFileCrossoverService fileCrossoverService = CrossoverServiceFactory.getApi(IFileCrossoverService.class);
-        for (Object obj : jsonArray) {
-            if (obj == null) {
-                continue;
-            }
-            if (obj instanceof JSONObject) {
-                JSONObject jsonObj = (JSONObject) obj;
-                Long fileId = jsonObj.getLong("id");
-                JSONArray fileIdArray = jsonObj.getJSONArray("fileIdList");
-                JSONArray fileArray = jsonObj.getJSONArray("fileList");
-                if (CollectionUtils.isNotEmpty(fileIdArray) && CollectionUtils.isNotEmpty(fileArray)) {
-                    fileIdList.addAll(fileIdArray);
-                    fileList.addAll(fileArray);
-                } else if (fileId != null) {
-                    FileVo file = fileCrossoverService.getFileById(fileId);
-                    if (file != null) {
-                        fileIdList.add(fileId);
-                        JSONObject fileObj = new JSONObject();
-                        fileObj.put("id", fileId);
-                        fileObj.put("name", file.getName());
-                        fileList.add(fileObj);
-                    }
-                }
-            } else if (obj instanceof JSONArray) {
-                JSONArray array = (JSONArray) obj;
-                JSONObject jsonObj = getFileInfo(array);
-                JSONArray fileIdArray = jsonObj.getJSONArray("fileIdList");
-                if (CollectionUtils.isNotEmpty(fileIdArray)) {
-                    fileIdList.addAll(fileIdArray);
-                }
-                JSONArray fileArray = jsonObj.getJSONArray("fileList");
-                if (CollectionUtils.isNotEmpty(fileArray)) {
-                    fileList.addAll(fileArray);
-                }
-            } else if (obj instanceof Long) {
-                Long fileId = (Long) obj;
-                FileVo file = fileCrossoverService.getFileById(fileId);
-                if (file != null) {
-                    fileIdList.add(fileId);
-                    JSONObject fileObj = new JSONObject();
-                    fileObj.put("id", fileId);
-                    fileObj.put("name", file.getName());
-                    fileList.add(fileObj);
-                }
-            } else {
-                String str = obj.toString();
-                if (str.startsWith("{") && str.endsWith("}")) {
-                    JSONObject jsonObj = JSONObject.parseObject(str);
-                    Long fileId = jsonObj.getLong("id");
-                    JSONArray fileIdArray = jsonObj.getJSONArray("fileIdList");
-                    JSONArray fileArray = jsonObj.getJSONArray("fileList");
-                    if (CollectionUtils.isNotEmpty(fileIdArray) && CollectionUtils.isNotEmpty(fileArray)) {
-                        fileIdList.addAll(fileIdArray);
-                        fileList.addAll(fileArray);
-                    } else if (fileId != null) {
-                        FileVo file = fileCrossoverService.getFileById(fileId);
-                        if (file != null) {
-                            fileIdList.add(fileId);
-                            JSONObject fileObj = new JSONObject();
-                            fileObj.put("id", fileId);
-                            fileObj.put("name", file.getName());
-                            fileList.add(fileObj);
-                        }
-                    }
-                } else if (str.startsWith("[") && str.endsWith("]")) {
-                    JSONArray array = JSONArray.parseArray(str);
-                    JSONObject jsonObj = getFileInfo(array);
-                    JSONArray fileIdArray = jsonObj.getJSONArray("fileIdList");
-                    if (CollectionUtils.isNotEmpty(fileIdArray)) {
-                        fileIdList.addAll(fileIdArray);
-                    }
-                    JSONArray fileArray = jsonObj.getJSONArray("fileList");
-                    if (CollectionUtils.isNotEmpty(fileArray)) {
-                        fileList.addAll(fileArray);
-                    }
-                } else {
-                    try {
-                        Long fileId = Long.valueOf(str);
-                        FileVo file = fileCrossoverService.getFileById(fileId);
-                        if (file != null) {
-                            fileIdList.add(fileId);
-                            JSONObject fileObj = new JSONObject();
-                            fileObj.put("id", fileId);
-                            fileObj.put("name", file.getName());
-                            fileList.add(fileObj);
-                        }
-                    } catch (NumberFormatException e) {
-
-                    }
-                }
-            }
-        }
-        resultObj.put("fileIdList", fileIdList);
-        resultObj.put("fileList", fileList);
-        return resultObj;
-    }
-
-    private static List<String> getUserSelectInfo(JSONArray jsonArray) {
-        List<String> resultList = new ArrayList<>();
-        for (Object obj : jsonArray) {
-            if (obj == null) {
-                continue;
-            }
-            if (obj instanceof JSONArray) {
-                JSONArray array = (JSONArray) obj;
-                for (Object obj2 : array) {
-                    String str = obj2.toString();
-                    if (str.length() == 37) {
-                        if (str.startsWith(GroupSearch.USER.getValuePlugin())
-                                || str.startsWith(GroupSearch.TEAM.getValuePlugin())
-                                || str.startsWith(GroupSearch.ROLE.getValuePlugin())) {
-                            resultList.add(str);
-                        }
-                    }
-                }
-            } else {
-                String str = obj.toString();
-                if (str.length() == 37) {
-                    if (str.startsWith(GroupSearch.USER.getValuePlugin())
-                            || str.startsWith(GroupSearch.TEAM.getValuePlugin())
-                            || str.startsWith(GroupSearch.ROLE.getValuePlugin())) {
-                        resultList.add(str);
-                    }
-                }
-            }
-        }
-        return resultList;
-    }
 }

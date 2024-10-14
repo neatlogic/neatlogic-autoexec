@@ -103,4 +103,9 @@ public class ScriptParamTypeCheckbox extends ScriptParamTypeBase {
         }
         return value;
     }
+
+    @Override
+    public Object convertDataForProcessComponent(JSONArray jsonArray) {
+        return getObjectList(jsonArray);
+    }
 }

@@ -104,4 +104,9 @@ public class ScriptParamTypeSelect extends ScriptParamTypeBase {
         }
         return value;
     }
+
+    @Override
+    public Object convertDataForProcessComponent(JSONArray jsonArray) {
+        return getFirstNotNullObject(jsonArray);
+    }
 }

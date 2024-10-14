@@ -103,4 +103,9 @@ public class ScriptParamTypeRadio extends ScriptParamTypeBase {
         }
         return value;
     }
+
+    @Override
+    public Object convertDataForProcessComponent(JSONArray jsonArray) {
+        return getFirstNotNullObject(jsonArray);
+    }
 }

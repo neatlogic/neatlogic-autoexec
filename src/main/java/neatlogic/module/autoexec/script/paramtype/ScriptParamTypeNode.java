@@ -18,8 +18,11 @@ package neatlogic.module.autoexec.script.paramtype;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.ParamType;
+import neatlogic.framework.autoexec.dto.node.AutoexecNodeVo;
 import neatlogic.framework.autoexec.script.paramtype.ScriptParamTypeBase;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 /**
  * @author lvzk
@@ -90,5 +93,13 @@ public class ScriptParamTypeNode extends ScriptParamTypeBase {
             nodeJson.put("host", nodeJson.getString("ip"));
         }
         return nodeJsonArray;
+    }
+
+    @Override
+    public Object convertDataForProcessComponent(JSONArray jsonArray) {
+        List<AutoexecNodeVo> list = getInputNodeList(jsonArray);
+        JSONArray array = new JSONArray(list.size());
+        array.addAll(list);
+        return array;
     }
 }
