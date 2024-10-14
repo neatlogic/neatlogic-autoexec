@@ -15,6 +15,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 package neatlogic.module.autoexec.script.paramtype;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.OutputParamType;
 import neatlogic.framework.autoexec.script.paramtype.ScriptParamTypeBase;
@@ -80,5 +81,10 @@ public class ScriptParamTypeFilePath extends ScriptParamTypeBase {
                 this.put("placeholder", "请输入");
             }
         };
+    }
+
+    @Override
+    public Object convertDataForProcessComponent(JSONArray jsonArray) {
+        return getFirstNotBlankString(jsonArray);
     }
 }

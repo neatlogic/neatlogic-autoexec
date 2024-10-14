@@ -153,4 +153,10 @@ public class ScriptParamTypeUserSelect extends ScriptParamTypeBase {
         }
         return valueStr;
     }
+
+    @Override
+    public Object convertDataForProcessComponent(JSONArray jsonArray) {
+        // 单选或多选都是数组
+        return getUserSelectInfo(jsonArray);
+    }
 }

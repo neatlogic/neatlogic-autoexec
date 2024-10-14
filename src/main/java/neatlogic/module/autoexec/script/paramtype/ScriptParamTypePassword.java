@@ -15,6 +15,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 package neatlogic.module.autoexec.script.paramtype;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.ParamType;
 import neatlogic.framework.autoexec.script.paramtype.ScriptParamTypeBase;
@@ -93,5 +94,10 @@ public class ScriptParamTypePassword extends ScriptParamTypeBase {
     @Override
     public Object getMyAutoexecParamByValue(Object value){
         return getMyTextByValue(value, null);
+    }
+
+    @Override
+    public Object convertDataForProcessComponent(JSONArray jsonArray) {
+        return String.join(",", getStringList(jsonArray));
     }
 }
