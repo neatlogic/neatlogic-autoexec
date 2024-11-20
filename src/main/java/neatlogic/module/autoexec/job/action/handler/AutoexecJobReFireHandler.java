@@ -73,14 +73,12 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
 
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
-        //List<String> needSqlFileResetStatusPhaseNameList = new ArrayList<>();
         if (Objects.equals(jobVo.getAction(), JobAction.RESET_REFIRE.getValue())) {
             new AutoexecJobAuthActionManager.Builder().addReFireJob().build().setAutoexecJobAction(jobVo);
             jobVo.setStatus(JobStatus.PENDING.getValue());
             autoexecJobMapper.updateJobStatus(jobVo);
             resetAll(jobVo);
             autoexecJobMapper.updateJobPhaseStatusByJobId(jobVo.getId(), JobPhaseStatus.PENDING.getValue());//重置phase状态为pending
-            //autoexecJobService.getAutoexecJobDetail(jobVo, 0);
             //获取group
             jobVo.setExecuteJobGroupVo(autoexecJobMapper.getJobGroupByJobIdAndSort(jobVo.getId(), 0));
             //重刷所有phase node
@@ -88,7 +86,6 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             //更新没有删除的节点为"未开始"状态
             autoexecJobMapper.updateJobPhaseNodeStatusByJobIdAndIsDelete(jobVo.getId(), JobNodeStatus.PENDING.getValue(), 0);
             jobVo.setIsFirstFire(1);
-            //needSqlFileResetStatusPhaseNameList = autoexecJobMapper.getJobPhaseListByJobId(jobVo.getId()).stream().filter(o -> Objects.equals(o.getExecMode(), ExecMode.SQL.getValue())).map(AutoexecJobPhaseVo::getName).collect(Collectors.toList());
         } else if (Objects.equals(jobVo.getAction(), JobAction.REFIRE.getValue())) {
             /*寻找中止|暂停|失败的phase
              * 1、寻找pending|aborted|paused|failed phaseList
@@ -110,7 +107,6 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             }
             jobVo.setStatus(JobStatus.PENDING.getValue());
             autoexecJobMapper.updateJobStatus(jobVo);
-            //needSqlFileResetStatusPhaseNameList = autoexecJobPhaseVos.stream().filter(o -> Objects.equals(o.getExecMode(), ExecMode.SQL.getValue())).map(AutoexecJobPhaseVo::getName).collect(Collectors.toList());
             autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(autoexecJobPhaseVos.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()), JobPhaseStatus.PENDING.getValue());
             jobVo.setExecuteJobGroupVo(autoexecJobPhaseVos.get(0).getJobGroupVo());
             autoexecJobService.getAutoexecJobDetail(jobVo);
@@ -121,9 +117,6 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
         } else {
             throw new AutoexecJobActionInvalidException();
         }
-        /*if (CollectionUtils.isNotEmpty(needSqlFileResetStatusPhaseNameList)) {
-            autoexecJobService.resetAutoexecJobSqlStatusByJobIdAndJobPhaseNameList(jobVo.getId(), needSqlFileResetStatusPhaseNameList);
-        }*/
         autoexecJobService.executeGroup(jobVo);
         return null;
     }

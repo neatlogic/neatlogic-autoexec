@@ -194,7 +194,7 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
             BigDecimal lastModifiedDec = new BigDecimal(Double.toString(paramObj.getDouble("lastModified")));
             lastModifiedLong = lastModifiedDec.multiply(new BigDecimal("1000")).longValue();
         }
-        nodeParamVo.setStatusBlackList(Collections.singletonList(JobNodeStatus.IGNORED.getValue()));
+        nodeParamVo.setStatusBlackList(Arrays.asList(JobNodeStatus.IGNORED.getValue(),JobNodeStatus.INVALID.getValue()));
 
         //获取是不是巡检类型的作业
         boolean isInspect = isInspect(jobVo);

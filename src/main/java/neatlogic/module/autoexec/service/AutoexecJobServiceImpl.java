@@ -55,12 +55,8 @@ import neatlogic.framework.dao.mapper.runner.RunnerMapper;
 import neatlogic.framework.deploy.crossover.IDeploySqlCrossoverMapper;
 import neatlogic.framework.dto.RestVo;
 import neatlogic.framework.dto.runner.RunnerMapVo;
-import neatlogic.framework.exception.runner.RunnerConnectRefusedException;
-import neatlogic.framework.exception.runner.RunnerHttpRequestException;
-import neatlogic.framework.exception.runner.RunnerMapNotMatchRunnerException;
-import neatlogic.framework.exception.runner.RunnerNotMatchException;
+import neatlogic.framework.exception.runner.*;
 import neatlogic.framework.integration.authentication.enums.AuthenticateType;
-import neatlogic.framework.transaction.util.TransactionUtil;
 import neatlogic.framework.util.$;
 import neatlogic.framework.util.HttpRequestUtil;
 import neatlogic.framework.util.RestUtil;
@@ -74,7 +70,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.data.mongodb.core.MongoTemplate;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -184,6 +179,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             }
         }
         autoexecJobMapper.insertJob(jobVo);
+        jobVo.setIsFirstInit(1);
         //保存作业执行目标
         AutoexecCombopExecuteConfigVo combopExecuteConfigVo = config.getExecuteConfig();
         String userName = StringUtils.EMPTY;
@@ -256,10 +252,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 Date nowTime = new Date(System.currentTimeMillis());
                 jobPhaseVo.setLcd(nowTime);
                 AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), jobPhaseVo, "runner", JobNodeStatus.PENDING.getValue(), userName, protocolId);
-                autoexecJobMapper.insertJobPhaseNode(nodeVo);
                 nodeVo.setRunnerMapId(runnerMapVo.getRunnerMapId());
+                autoexecJobMapper.insertJobPhaseNode(nodeVo);
                 runnerMapper.insertRunnerMap(runnerMapVo);
-                autoexecJobMapper.insertIgnoreJobPhaseNodeRunner(new AutoexecJobPhaseNodeRunnerVo(nodeVo));
                 autoexecJobMapper.insertJobPhaseRunner(nodeVo.getJobId(), nodeVo.getJobGroupId(), nodeVo.getJobPhaseId(), nodeVo.getRunnerMapId(), nodeVo.getLcd());
                 autoexecJobSourceActionHandler.updateJobRunnerMap(jobVo.getId(), runnerMapVo.getRunnerMapId());
             }
@@ -877,6 +872,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         if (MapUtils.isNotEmpty(executeNodeConfigVo.getFilter())) {
             long updateNodeResourceByFilter = System.currentTimeMillis();
             isHasNode = updateNodeResourceByFilter(executeNodeConfigVo, jobVo, userName, protocolId);
+            System.out.println((System.currentTimeMillis() - updateNodeResourceByFilter) + " ##updateNodeResourceByFilter:-------------------------------------------------------------------------------");
             logger.debug((System.currentTimeMillis() - updateNodeResourceByFilter) + " ##updateNodeResourceByFilter:-------------------------------------------------------------------------------");
 
         }
@@ -896,7 +892,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getPreOutputList())) {
             isHasNode = updateNodeResourceByPrePhaseOutput(jobVo, executeNodeConfigVo, userName, protocolId);
         }
-
+        long ccc = System.currentTimeMillis();
         AutoexecJobPhaseVo jobPhaseVo = jobVo.getCurrentPhase();
         //检查当前阶段是否需要更新别的阶段执行目标，如果是则该阶段只能存在一个节点
         if (jobPhaseVo.getIsPreOutputUpdateNode() == 1) {
@@ -907,15 +903,19 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 throw new AutoexecJobUpdateNodeByPreOutPutListException(jobPhaseVo, combopPhaseVoList);
             }
         }
-        boolean isNeedLncd;//用于判断是否需要更新lncd（用于判断是否需要重新下载节点）
-        //删除没有跑过的历史节点 runnerMap
-        autoexecJobMapper.deleteJobPhaseNodeRunnerByJobPhaseIdAndLcdAndStatus(jobPhaseVo.getId(), nowTime, JobNodeStatus.PENDING.getValue());
-        //删除没有跑过的历史节点
-        Integer deleteCount = autoexecJobMapper.deleteJobPhaseNodeByJobPhaseIdAndLcdAndStatus(jobPhaseVo.getId(), nowTime, JobNodeStatus.PENDING.getValue());
-        isNeedLncd = deleteCount > 0;
-        //更新该阶段所有不是最近更新的节点为已删除，即非法历史节点
-        Integer updateCount = autoexecJobMapper.updateJobPhaseNodeIsDeleteByJobPhaseIdAndLcd(jobPhaseVo.getId(), jobPhaseVo.getLcd());
-        isNeedLncd = isNeedLncd || updateCount > 0;
+        boolean isNeedLncd = true;//用于判断是否需要更新lncd（用于判断是否需要重新下载节点）
+        if (jobVo.getIsFirstInit() == 0) {
+            //删除没有跑过的历史节点
+            long deleteJobPhaseNodeByJobPhaseIdAndLcdAndStatus = System.currentTimeMillis();
+            Integer deleteCount = autoexecJobMapper.deleteJobPhaseNodeByJobPhaseIdAndUpdateTagAndStatus(jobPhaseVo.getId(), nowTime.getTime(), JobNodeStatus.PENDING.getValue());
+            System.out.println((System.currentTimeMillis() - deleteJobPhaseNodeByJobPhaseIdAndLcdAndStatus) + " ##deleteJobPhaseNodeByJobPhaseIdAndLcdAndStatus:-------------------------------------------------------------------------------");
+            isNeedLncd = deleteCount > 0;
+            //更新该阶段所有不是最近更新的节点为已删除，即非法历史节点
+            long cvv = System.currentTimeMillis();
+            Integer updateCount = autoexecJobMapper.updateJobPhaseNodeIsDeleteByJobPhaseIdAndUpdateTag(jobPhaseVo.getId(), nowTime.getTime());
+            System.out.println((System.currentTimeMillis() - cvv) + " ##cvv:-------------------------------------------------------------------------------");
+            isNeedLncd = isNeedLncd || updateCount > 0;
+        }
         //阶段节点被真删除||伪删除（is_delete=1），则更新上一次修改日期(plcd),需重新下载
         if (isNeedLncd) {
             if (Objects.equals(AutoexecJobPhaseNodeFrom.JOB.getValue(), jobVo.getNodeFrom())) {
@@ -929,7 +929,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         //更新最近一次修改时间lcd
         autoexecJobMapper.updateJobPhaseLcdById(jobPhaseVo.getId(), jobPhaseVo.getLcd());
         //更新phase runner
+        long refreshPhaseRunnerList = System.currentTimeMillis();
         refreshPhaseRunnerList(jobPhaseVo);
+        System.out.println((System.currentTimeMillis() - refreshPhaseRunnerList) + " ##refreshPhaseRunnerList:-------------------------------------------------------------------------------");
+        System.out.println((System.currentTimeMillis() - ccc) + " ##ccc:-------------------------------------------------------------------------------");
         return isHasNode;
     }
 
@@ -949,7 +952,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         for (RunnerMapVo deleteRunnerVo : deleteRunnerList) {
             autoexecJobMapper.deleteJobPhaseRunnerByJobPhaseIdAndRunnerMapId(jobPhaseVo.getId(), deleteRunnerVo.getRunnerMapId());
         }
-        List<RunnerMapVo> insertRunnerList = jobPhaseNodeRunnerList.stream().filter(j -> originPhaseRunnerVoList.stream().noneMatch(o -> Objects.equals(o.getRunnerMapId(), j.getRunnerMapId()))).collect(Collectors.toList());
+        List<RunnerMapVo> insertRunnerList = jobPhaseNodeRunnerList.stream().filter(j -> j != null && originPhaseRunnerVoList.stream().noneMatch(o -> Objects.equals(o.getRunnerMapId(), j.getRunnerMapId()))).collect(Collectors.toList());
         for (RunnerMapVo insertRunnerVo : insertRunnerList) {
             autoexecJobMapper.insertJobPhaseRunner(jobPhaseVo.getJobId(), jobPhaseVo.getGroupId(), jobPhaseVo.getId(), insertRunnerVo.getRunnerMapId(), jobPhaseVo.getLcd());
         }
@@ -1091,7 +1094,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             ResourceSearchVo searchVo = getResourceSearchVoWithCmdbGroupType(jobVo);
             List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceListByResourceVoList(ipPortNameList, searchVo);
             if (CollectionUtils.isNotEmpty(resourceVoList)) {
-                updateJobPhaseNode(jobVo, resourceVoList, userName, protocolId, false);
+                updateJobPhaseNode(jobVo, resourceVoList, userName, protocolId);
                 //重置节点状态
                 //List<AutoexecJobPhaseNodeVo> jobNodeVoList = autoexecJobMapper.getJobPhaseNodeListWithRunnerByJobPhaseIdAndExceptStatusList(jobVo.getCurrentPhase().getId(), Collections.singletonList(JobNodeStatus.IGNORED.getValue()));
                 //resetJobNodeStatus(jobVo, jobNodeVoList);
@@ -1276,46 +1279,54 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 }
             }
             ResourceSearchVo searchVo = getResourceSearchVoWithCmdbGroupType(jobVo, filterJson);
-            searchVo.setPageSizeBatch(1000);
+            searchVo.setMaxPageSize(50000);
+            searchVo.setPageSize(50000);
             IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
-            int count;
+            List<Long> idList;
             StringBuilder sqlSb = new StringBuilder();
             if (searchVo.isCustomCondition()) {
                 searchVo.buildConditionWhereSql(sqlSb, searchVo);
-                count = resourceCrossoverMapper.getResourceCountByDynamicCondition(searchVo, sqlSb.toString());
+                idList = resourceCrossoverMapper.getResourceIdListByDynamicCondition(searchVo, sqlSb.toString());
             } else {
-                count = resourceCrossoverMapper.getResourceCount(searchVo);
+                idList = resourceCrossoverMapper.getResourceIdList(searchVo);
             }
-
+            int count = idList.size();
             if (count > 0) {
-                int pageCount = PageUtil.getPageCount(count, searchVo.getPageSize());
-                TransactionStatus transactionStatus = null;
-                try {
-                    transactionStatus = TransactionUtil.openTx();
-                    for (int i = 1; i <= pageCount; i++) {
-                        searchVo.setCurrentPage(i);
-                        List<Long> idList;
-                        if (searchVo.isCustomCondition()) {
-                            idList = resourceCrossoverMapper.getResourceIdListByDynamicCondition(searchVo, sqlSb.toString());
-                        } else {
-                            idList = resourceCrossoverMapper.getResourceIdList(searchVo);
-                        }
-                        if (CollectionUtils.isEmpty(idList)) {
-                            continue;
-                        }
-                        List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIdList(idList);
-                        if (CollectionUtils.isNotEmpty(resourceList)) {
-                            long updateJobPhaseNode = System.currentTimeMillis();
-                            updateJobPhaseNode(jobVo, resourceList, userName, protocolId);
-                            logger.debug((System.currentTimeMillis() - updateJobPhaseNode) + " ##updateJobPhaseNode:-------------------------------------------------------------------------------");
-                        }
+                int index = 0;
+                List<Long> idPageList = new ArrayList<>();
+                for (int i = 0; i < count; i++) {
+                    if (index < 1000) {
+                        idPageList.add(idList.get(i));
+                        index++;
+                        continue;
                     }
-                    isHasNode = true;
-                    TransactionUtil.commitTx(transactionStatus);
-                } catch (Exception e) {
-                    TransactionUtil.rollbackTx(transactionStatus);
-                    throw e;
+                    i--;
+                    long bbb = System.currentTimeMillis();
+                    List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIdList(idPageList);
+                    System.out.println((System.currentTimeMillis() - bbb) + " ##bbb:-------------------------------------------------------------------------------");
+                    if (CollectionUtils.isNotEmpty(resourceList)) {
+                        long updateJobPhaseNode = System.currentTimeMillis();
+                        updateJobPhaseNode(jobVo, resourceList, userName, protocolId);
+                        System.out.println((System.currentTimeMillis() - updateJobPhaseNode) + " ##updateJobPhaseNode:-------------------------------------------------------------------------------");
+                        logger.debug((System.currentTimeMillis() - updateJobPhaseNode) + " ##updateJobPhaseNode:-------------------------------------------------------------------------------");
+                    }
+                    index = 0;
+                    idPageList.clear();
                 }
+                //补充最后一次循环数据
+                if (CollectionUtils.isNotEmpty(idPageList)) {
+                    long bbb = System.currentTimeMillis();
+                    List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIdList(idPageList);
+                    System.out.println((System.currentTimeMillis() - bbb) + " ##bbb:-------------------------------------------------------------------------------");
+                    if (CollectionUtils.isNotEmpty(resourceList)) {
+                        long updateJobPhaseNode = System.currentTimeMillis();
+                        updateJobPhaseNode(jobVo, resourceList, userName, protocolId);
+                        System.out.println((System.currentTimeMillis() - updateJobPhaseNode) + " ##updateJobPhaseNode:-------------------------------------------------------------------------------");
+                        logger.debug((System.currentTimeMillis() - updateJobPhaseNode) + " ##updateJobPhaseNode:-------------------------------------------------------------------------------");
+                    }
+                    idPageList.clear();
+                }
+                isHasNode = true;
             }
             //针对巡检补充os 资产
             if (Objects.equals(jobVo.getSource(), neatlogic.framework.inspect.constvalue.JobSource.INSPECT_APP.getValue())) {
@@ -1331,9 +1342,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                         searchVo.setRowNum(rowNum);
                         for (int currentPage = 1; currentPage <= searchVo.getPageCount(); currentPage++) {
                             searchVo.setCurrentPage(currentPage);
-                            List<Long> idList = resourceCrossoverMapper.getOsResourceIdListByAppSystemIdAndAppModuleIdAndEnvIdAndTypeId(searchVo);
-                            if (CollectionUtils.isNotEmpty(idList)) {
-                                List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceByIdList(idList);
+                            List<Long> idOsList = resourceCrossoverMapper.getOsResourceIdListByAppSystemIdAndAppModuleIdAndEnvIdAndTypeId(searchVo);
+                            if (CollectionUtils.isNotEmpty(idOsList)) {
+                                List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceByIdList(idOsList);
                                 if (CollectionUtils.isNotEmpty(resourceList)) {
                                     updateJobPhaseNode(jobVo, resourceList, userName, protocolId);
                                     isHasNode = true;
@@ -1356,56 +1367,49 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      * @param protocolId     协议id
      */
     private void updateJobPhaseNode(AutoexecJobVo jobVo, List<ResourceVo> resourceVoList, String userName, Long protocolId) {
-        updateJobPhaseNode(jobVo, resourceVoList, userName, protocolId, true);
-    }
-
-    /**
-     * 跟新作业阶段阶段
-     *
-     * @param jobVo          作业
-     * @param resourceVoList 最新阶段资产列表
-     * @param userName       账号
-     * @param protocolId     协议id
-     * @param isResetNode    是否需要重置节点状态
-     */
-    private void updateJobPhaseNode(AutoexecJobVo jobVo, List<ResourceVo> resourceVoList, String userName, Long protocolId, Boolean isResetNode) {
         AutoexecJobPhaseVo jobPhaseVo = jobVo.getCurrentPhase();
         List<AutoexecJobPhaseNodeVo> nodeList = new ArrayList<>();
-        List<AutoexecJobPhaseNodeRunnerVo> nodeRunnerList = new ArrayList<>();
+        //List<AutoexecJobPhaseNodeRunnerVo> nodeRunnerList = new ArrayList<>();
+        //List<Long> resourceIdList = new ArrayList<>();
         boolean isNeedLncd;//用于判断是否需要更新lncd（用于判断是否需要重新下载节点）
         //新增节点需重新下载
         List<Long> resourceIdList = resourceVoList.stream().map(ResourceVo::getId).collect(Collectors.toList());
-        List<AutoexecJobPhaseNodeVo> originNodeList = autoexecJobMapper.getJobPhaseNodeListByJobPhaseIdAndResourceIdList(jobPhaseVo.getId(), resourceIdList);
-        isNeedLncd = originNodeList.size() != resourceVoList.size();
-        //恢复删除节点需重新下载
-        if (!isNeedLncd) {
-            List<AutoexecJobPhaseNodeVo> originDeleteNodeList = autoexecJobMapper.getJobPhaseNodeListByJobPhaseIdAndResourceIdListAndIsDelete(jobPhaseVo.getId(), resourceVoList.stream().map(ResourceVo::getId).collect(Collectors.toList()));
-            isNeedLncd = !originDeleteNodeList.isEmpty();
-        }
-        if (isNeedLncd) {
-            //重新下载
-            autoexecJobMapper.updateJobPhaseLncdById(jobPhaseVo.getId(), jobPhaseVo.getLcd());
-        }
+//        List<AutoexecJobPhaseNodeVo> originNodeList = autoexecJobMapper.getJobPhaseNodeListByJobPhaseIdAndResourceIdList(jobPhaseVo.getId(), resourceIdList);
+//        isNeedLncd = originNodeList.size() != resourceVoList.size();
+//        //恢复删除节点需重新下载
+//        if (!isNeedLncd) {
+//            List<AutoexecJobPhaseNodeVo> originDeleteNodeList = autoexecJobMapper.getJobPhaseNodeListByJobPhaseIdAndResourceIdListAndIsDelete(jobPhaseVo.getId(), resourceVoList.stream().map(ResourceVo::getId).collect(Collectors.toList()));
+//            isNeedLncd = !originDeleteNodeList.isEmpty();
+//        }
+//        if (isNeedLncd) {
+//            //重新下载
+//            autoexecJobMapper.updateJobPhaseLncdById(jobPhaseVo.getId(), jobPhaseVo.getLcd());
+//        }
         resourceVoList.forEach(resourceVo -> {
             AutoexecJobPhaseNodeVo jobPhaseNodeVo;
-            Optional<AutoexecJobPhaseNodeVo> jobPhaseNodeVoOptional = originNodeList.stream().filter(o -> Objects.equals(o.getResourceId(), resourceVo.getId())).findFirst();
-            if (!jobPhaseNodeVoOptional.isPresent()) {
-                jobPhaseNodeVo = new AutoexecJobPhaseNodeVo(resourceVo, jobPhaseVo.getJobId(), jobPhaseVo, JobNodeStatus.PENDING.getValue(), userName, protocolId);
-                jobPhaseVo.setCurrentNode(jobPhaseNodeVo);
-                jobPhaseNodeVo.setPort(resourceVo.getPort());
+            // Optional<AutoexecJobPhaseNodeVo> jobPhaseNodeVoOptional = originNodeList.stream().filter(o -> Objects.equals(o.getResourceId(), resourceVo.getId())).findFirst();
+            //if (!jobPhaseNodeVoOptional.isPresent()) {
+            jobPhaseNodeVo = new AutoexecJobPhaseNodeVo(resourceVo, jobPhaseVo.getJobId(), jobPhaseVo, JobNodeStatus.PENDING.getValue(), userName, protocolId);
+            jobPhaseVo.setCurrentNode(jobPhaseNodeVo);
+            try {
                 jobPhaseNodeVo.setRunnerMapId(getRunnerByTargetIp(jobVo));
-                if (jobPhaseNodeVo.getRunnerMapId() == null) {
-                    throw new RunnerNotMatchException(jobPhaseNodeVo.getHost(), resourceVo.getId());
-                }
-            } else {
-                jobPhaseNodeVo = jobPhaseNodeVoOptional.get();
-                jobPhaseNodeVo.setLcd(jobPhaseVo.getLcd());
-                if (Boolean.TRUE.equals(isResetNode)) {
-                    jobPhaseNodeVo.setStatus(JobNodeStatus.PENDING.getValue());
-                }
+            }catch (IPIsIncorrectException e){
+                jobPhaseNodeVo.setErrorType(AutoexecJobPhaseNodeErrorType.IP_INVALID.getValue());
+                jobPhaseNodeVo.setStatus(JobNodeStatus.INVALID.getValue());
             }
+            if (jobPhaseNodeVo.getErrorType() == null && jobPhaseNodeVo.getRunnerMapId() == null) {
+                jobPhaseNodeVo.setErrorType(AutoexecJobPhaseNodeErrorType.RUNNER_NOT_MATCH.getValue());
+                jobPhaseNodeVo.setStatus(JobNodeStatus.INVALID.getValue());
+            }
+//            } else {
+//                jobPhaseNodeVo = jobPhaseNodeVoOptional.get();
+//                jobPhaseNodeVo.setLcd(jobPhaseVo.getLcd());
+//            if (Boolean.TRUE.equals(isResetNode)) {
+//                jobPhaseNodeVo.setStatus(JobNodeStatus.PENDING.getValue());
+//            }
+//            }
             nodeList.add(jobPhaseNodeVo);
-            nodeRunnerList.add(new AutoexecJobPhaseNodeRunnerVo(jobPhaseNodeVo));
+            //nodeRunnerList.add(new AutoexecJobPhaseNodeRunnerVo(jobPhaseNodeVo));
             //如果大于 0,说明存在旧数据
 //            Integer result = autoexecJobMapper.updateJobPhaseNodeByJobIdAndPhaseIdAndResourceId(jobPhaseNodeVo);
 //            if (result == null || result == 0) {
@@ -1413,10 +1417,15 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
 //                //防止旧resource 所以ignore insert
 //                autoexecJobMapper.insertIgnoreJobPhaseNodeRunner(new AutoexecJobPhaseNodeRunnerVo(jobPhaseNodeVo));
 //            }
+            //resourceIdList.add(resourceVo.getId());
         });
 
-        autoexecJobMapper.batchInsertJobPhaseNode(nodeList);
-        autoexecJobMapper.batchInsertJobPhaseNodeRunner(nodeRunnerList);
+        if (jobVo.getIsFirstInit() == 1) {
+            autoexecJobMapper.batchInsertJobPhaseNode(nodeList);
+        } else {
+            autoexecJobMapper.updateJobPhaseNodeBatch(jobPhaseVo.getId(), resourceIdList, JobNodeStatus.PENDING.getValue(), jobPhaseVo.getLcd().getTime());
+            autoexecJobMapper.batchInsertIgnoreJobPhaseNode(nodeList);
+        }
     }
 
     @Override
@@ -1476,7 +1485,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         autoexecJobMapper.deleteJobInvokeByJobId(jobId);
         autoexecJobMapper.deleteJobResourceInspectByJobId(jobId);
         autoexecJobMapper.deleteJobPhaseRunnerByJobId(jobId);
-        autoexecJobMapper.deleteJobPhaseNodeRunnerByJobId(jobId);
         autoexecJobMapper.deleteJobPhaseOperationByJobId(jobId);
         autoexecJobMapper.deleteJobPhaseNodeByJobId(jobId);
         autoexecJobMapper.deleteJobPhaseByJobId(jobId);
@@ -1518,8 +1526,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 toolVoList = autoexecToolMapper.getToolListByIdList(operationIdMap.get(CombopOperationType.TOOL.getValue()));
                 toolVoList.forEach(o -> operationIdNameMap.put(o.getId(), o.getName()));
             }
-            List<AutoexecJobVo> autoexecJobVos = autoexecJobMapper.getJobWarnCountAndStatus(jobIdList);
-            Map<Long, AutoexecJobVo> autoexecJobVoMap = autoexecJobVos.stream().collect(toMap(AutoexecJobVo::getId, o -> o));
+            //TODO 性能问题 待优化
+            //List<AutoexecJobVo> autoexecJobVos = autoexecJobMapper.getJobWarnCountAndStatus(jobIdList);
+            //Map<Long, AutoexecJobVo> autoexecJobVoMap = autoexecJobVos.stream().collect(toMap(AutoexecJobVo::getId, o -> o));
 
             Map<Long, List<AutoexecJobVo>> parentJobChildrenListMap = new HashMap<>();
             if (StringUtils.isNotBlank(jobVo.getKeyword()) && CollectionUtils.isNotEmpty(jobVoList)) {
@@ -1566,13 +1575,13 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     autoexecJobSourceActionHandler.getJobActionAuth(vo);
                 }
                 //补充warnCount和ignore tooltips
-                AutoexecJobVo jobWarnCountStatus = autoexecJobVoMap.get(vo.getId());
-                if (jobWarnCountStatus != null) {
-                    vo.setWarnCount(jobWarnCountStatus.getWarnCount());
-                    if (jobWarnCountStatus.getStatus().contains(JobNodeStatus.IGNORED.getValue())) {
-                        vo.setIsHasIgnored(1);
-                    }
-                }
+//                AutoexecJobVo jobWarnCountStatus = autoexecJobVoMap.get(vo.getId());
+//                if (jobWarnCountStatus != null) {
+//                    vo.setWarnCount(jobWarnCountStatus.getWarnCount());
+//                    if (jobWarnCountStatus.getStatus().contains(JobNodeStatus.IGNORED.getValue())) {
+//                        vo.setIsHasIgnored(1);
+//                    }
+//                }
                 if (vo.getParentId() != null) {
                     vo.setChildren(parentJobChildrenListMap.get(vo.getId()));
                 }
