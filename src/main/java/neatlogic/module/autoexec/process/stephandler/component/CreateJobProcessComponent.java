@@ -341,10 +341,10 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                 ProcessTaskStepVo processTaskStepVo = processTaskCrossoverMapper.getProcessTaskStepBaseInfoById(processTaskStepId);
                 JSONObject paramObj = processTaskStepVo.getParamObj();
                 paramObj.put("nextStepId", nextStepId);
-                paramObj.put("action", ProcessTaskOperationType.STEP_COMPLETE.getValue());
+                paramObj.put("action", ProcessTaskStepOperationType.STEP_COMPLETE.getValue());
                 /* 自动处理 **/
                 IProcessStepHandler handler = this;
-                doNext(ProcessTaskOperationType.STEP_COMPLETE, new ProcessStepThread(processTaskStepVo) {
+                doNext(ProcessTaskStepOperationType.STEP_COMPLETE, new ProcessStepThread(processTaskStepVo) {
                     @Override
                     public void myExecute() {
                         UserContext.init(SystemUser.SYSTEM);

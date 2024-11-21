@@ -25,7 +25,9 @@ import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.notify.core.INotifyPolicyHandler;
+import neatlogic.framework.process.operationauth.core.IOperationType;
 import neatlogic.framework.process.constvalue.ProcessTaskOperationType;
+import neatlogic.framework.process.constvalue.ProcessTaskStepOperationType;
 import neatlogic.framework.process.crossover.IProcessTaskStepDataCrossoverMapper;
 import neatlogic.framework.process.dto.ProcessTaskStepDataVo;
 import neatlogic.framework.process.dto.ProcessTaskStepVo;
@@ -124,10 +126,10 @@ public class CreateJobProcessUtilHandler extends ProcessStepInternalHandlerBase 
      * 返回步骤动作，校验时用
      */
     @Override
-    public ProcessTaskOperationType[] getStepActions() {
-        return new ProcessTaskOperationType[]{
-                ProcessTaskOperationType.STEP_VIEW,
-                ProcessTaskOperationType.STEP_TRANSFER
+    public IOperationType[] getStepActions() {
+        return new IOperationType[]{
+                ProcessTaskStepOperationType.STEP_VIEW,
+                ProcessTaskStepOperationType.STEP_TRANSFER
         };
     }
 
@@ -135,12 +137,12 @@ public class CreateJobProcessUtilHandler extends ProcessStepInternalHandlerBase 
      * 返回步骤按钮列表
      */
     @Override
-    public ProcessTaskOperationType[] getStepButtons() {
-        return new ProcessTaskOperationType[]{
-                ProcessTaskOperationType.STEP_COMPLETE,
-                ProcessTaskOperationType.STEP_BACK,
+    public IOperationType[] getStepButtons() {
+        return new IOperationType[]{
+                ProcessTaskStepOperationType.STEP_COMPLETE,
+                ProcessTaskStepOperationType.STEP_BACK,
                 ProcessTaskOperationType.PROCESSTASK_TRANSFER,
-                ProcessTaskOperationType.STEP_ACCEPT
+                ProcessTaskStepOperationType.STEP_ACCEPT
         };
     }
 

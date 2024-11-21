@@ -1307,7 +1307,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                     }
                     JSONObject paramObj = processTaskStepVo.getParamObj();
                     paramObj.put("nextStepId", nextStepId);
-                    paramObj.put("action", ProcessTaskOperationType.STEP_COMPLETE.getValue());
+                    paramObj.put("action", ProcessTaskStepOperationType.STEP_COMPLETE.getValue());
                     if (CollectionUtils.isNotEmpty(formAttributeDataList)) {
                         paramObj.put("formAttributeDataList", formAttributeDataList);
                     }
@@ -1315,7 +1315,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                         paramObj.put("hidecomponentList", hidecomponentList);
                     }
                     /* 自动处理 **/
-                    doNext(ProcessTaskOperationType.STEP_COMPLETE, new ProcessStepThread(processTaskStepVo) {
+                    doNext(ProcessTaskStepOperationType.STEP_COMPLETE, new ProcessStepThread(processTaskStepVo) {
                         @Override
                         public void myExecute() {
                             UserContext.init(SystemUser.SYSTEM);

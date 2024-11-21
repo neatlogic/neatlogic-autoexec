@@ -18,7 +18,7 @@ package neatlogic.module.autoexec.api.service;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
-import neatlogic.framework.autoexec.auth.AUTOEXEC_SERVICE_MANAGE;
+import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.constvalue.AutoexecServiceType;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceAuthorityVo;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceVo;
@@ -38,7 +38,7 @@ import java.util.List;
 import java.util.Objects;
 
 @Service
-@AuthAction(action = AUTOEXEC_SERVICE_MANAGE.class)
+@AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class GetAutoexecServiceApi extends PrivateApiComponentBase {
 
