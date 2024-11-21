@@ -1826,8 +1826,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      */
     @Override
     public void checkRunnerHealth(List<RunnerMapVo> runnerVos) {
-        RestVo restVo;
-        String result;
         String url;
         for (RunnerMapVo runner : runnerVos) {
             if (runner.getRunnerMapId() == null) {

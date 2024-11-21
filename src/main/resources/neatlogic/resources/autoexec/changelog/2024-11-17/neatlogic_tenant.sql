@@ -20,4 +20,4 @@ ALTER TABLE `autoexec_job_phase_node` ADD UNIQUE INDEX `idx_phaseid_resourceid`(
 
 ALTER TABLE `autoexec_job_phase_node` ADD COLUMN `error_type` int NULL COMMENT '异常信息' AFTER `update_tag`;
 
-ALTER TABLE `autoexec_job_phase_node` MODIFY COLUMN `status` enum('succeed','pending','failed','ignored','running','aborted','aborting','waitInput','pausing','paused','error') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '状态' AFTER `end_time`;
+ALTER TABLE `autoexec_job_phase_node` MODIFY COLUMN `status` enum('succeed','pending','failed','ignored','running','aborted','aborting','waitInput','pausing','paused','invalid') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '状态' AFTER `end_time`;

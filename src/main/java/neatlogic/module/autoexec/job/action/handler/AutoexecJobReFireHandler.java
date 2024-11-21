@@ -17,7 +17,6 @@ package neatlogic.module.autoexec.job.action.handler;
 
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.JobAction;
-import neatlogic.framework.autoexec.constvalue.JobNodeStatus;
 import neatlogic.framework.autoexec.constvalue.JobPhaseStatus;
 import neatlogic.framework.autoexec.constvalue.JobStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
@@ -84,7 +83,7 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             //重刷所有phase node
             autoexecJobService.refreshJobNodeList(jobVo.getId());
             //更新没有删除的节点为"未开始"状态
-            autoexecJobMapper.updateJobPhaseNodeStatusByJobIdAndIsDelete(jobVo.getId(), JobNodeStatus.PENDING.getValue(), 0);
+            //autoexecJobMapper.updateJobPhaseNodeStatusByJobIdAndIsDelete(jobVo.getId(), JobNodeStatus.PENDING.getValue(), 0);
             jobVo.setIsFirstFire(1);
         } else if (Objects.equals(jobVo.getAction(), JobAction.REFIRE.getValue())) {
             /*寻找中止|暂停|失败的phase

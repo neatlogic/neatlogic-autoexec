@@ -150,7 +150,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
 
     void updateJobPhaseStatus(AutoexecJobVo jobVo, AutoexecJobPhaseVo jobPhaseVo) {
         int warnCount = 0;
-        String finalJobPhaseStatus = JobPhaseStatus.PENDING.getValue();
+        String finalJobPhaseStatus;
         Map<String, Integer> statusCountMap = new HashMap<>();
         for (JobPhaseStatus jobStatus : JobPhaseStatus.values()) {
             statusCountMap.put(jobStatus.getValue(), 0);
