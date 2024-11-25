@@ -870,10 +870,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             return false;
         }
         if (MapUtils.isNotEmpty(executeNodeConfigVo.getFilter())) {
-            long updateNodeResourceByFilter = System.currentTimeMillis();
+            logger.debug("##updateNodeResourceByFilter:-------------------------------------------------------------------------------start");
+            //long updateNodeResourceByFilter = System.currentTimeMillis();
             isHasNode = updateNodeResourceByFilter(executeNodeConfigVo, jobVo, userName, protocolId);
-            System.out.println((System.currentTimeMillis() - updateNodeResourceByFilter) + " ##updateNodeResourceByFilter:-------------------------------------------------------------------------------");
-            logger.debug((System.currentTimeMillis() - updateNodeResourceByFilter) + " ##updateNodeResourceByFilter:-------------------------------------------------------------------------------");
+            //System.out.println((System.currentTimeMillis() - updateNodeResourceByFilter) + " ##updateNodeResourceByFilter:-------------------------------------------------------------------------------");
+            logger.debug("##updateNodeResourceByFilter:-------------------------------------------------------------------------------end");
 
         }
 
@@ -892,7 +893,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getPreOutputList())) {
             isHasNode = updateNodeResourceByPrePhaseOutput(jobVo, executeNodeConfigVo, userName, protocolId);
         }
-        long ccc = System.currentTimeMillis();
+        logger.debug("##AfterUpdateNodes:-------------------------------------------------------------------------------start");
+        //long ccc = System.currentTimeMillis();
         AutoexecJobPhaseVo jobPhaseVo = jobVo.getCurrentPhase();
         //检查当前阶段是否需要更新别的阶段执行目标，如果是则该阶段只能存在一个节点
         if (jobPhaseVo.getIsPreOutputUpdateNode() == 1) {
@@ -906,14 +908,19 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         boolean isNeedLncd = true;//用于判断是否需要更新lncd（用于判断是否需要重新下载节点）
         if (jobVo.getIsFirstInit() == 0) {
             //删除没有跑过的历史节点
-            long deleteJobPhaseNodeByJobPhaseIdAndLcdAndStatus = System.currentTimeMillis();
+            logger.debug("##deleteJobPhaseNodeByJobPhaseIdAndLcdAndStatus:-------------------------------------------------------------------------------start");
+            //long deleteJobPhaseNodeByJobPhaseIdAndLcdAndStatus = System.currentTimeMillis();
             Integer deleteCount = autoexecJobMapper.deleteJobPhaseNodeByJobPhaseIdAndUpdateTagAndStatus(jobPhaseVo.getId(), nowTime.getTime(), JobNodeStatus.PENDING.getValue());
-            System.out.println((System.currentTimeMillis() - deleteJobPhaseNodeByJobPhaseIdAndLcdAndStatus) + " ##deleteJobPhaseNodeByJobPhaseIdAndLcdAndStatus:-------------------------------------------------------------------------------");
+            //System.out.println((System.currentTimeMillis() - deleteJobPhaseNodeByJobPhaseIdAndLcdAndStatus) + " ##deleteJobPhaseNodeByJobPhaseIdAndLcdAndStatus:-------------------------------------------------------------------------------");
+            logger.debug("##deleteJobPhaseNodeByJobPhaseIdAndLcdAndStatus:-------------------------------------------------------------------------------end");
+
             isNeedLncd = deleteCount > 0;
             //更新该阶段所有不是最近更新的节点为已删除，即非法历史节点
-            long cvv = System.currentTimeMillis();
+            //long cvv = System.currentTimeMillis();
+            logger.debug("##updateJobPhaseNodeIsDeleteByJobPhaseIdAndUpdateTag:-------------------------------------------------------------------------------start");
             Integer updateCount = autoexecJobMapper.updateJobPhaseNodeIsDeleteByJobPhaseIdAndUpdateTag(jobPhaseVo.getId(), nowTime.getTime());
-            System.out.println((System.currentTimeMillis() - cvv) + " ##cvv:-------------------------------------------------------------------------------");
+            //System.out.println((System.currentTimeMillis() - cvv) + " ##cvv:-------------------------------------------------------------------------------");
+            logger.debug("##updateJobPhaseNodeIsDeleteByJobPhaseIdAndUpdateTag:-------------------------------------------------------------------------------end");
             isNeedLncd = isNeedLncd || updateCount > 0;
         }
         //阶段节点被真删除||伪删除（is_delete=1），则更新上一次修改日期(plcd),需重新下载
@@ -929,10 +936,13 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         //更新最近一次修改时间lcd
         autoexecJobMapper.updateJobPhaseLcdById(jobPhaseVo.getId(), jobPhaseVo.getLcd());
         //更新phase runner
-        long refreshPhaseRunnerList = System.currentTimeMillis();
+        logger.debug("##refreshPhaseRunnerList:-------------------------------------------------------------------------------start");
+        //long refreshPhaseRunnerList = System.currentTimeMillis();
         refreshPhaseRunnerList(jobPhaseVo);
-        System.out.println((System.currentTimeMillis() - refreshPhaseRunnerList) + " ##refreshPhaseRunnerList:-------------------------------------------------------------------------------");
-        System.out.println((System.currentTimeMillis() - ccc) + " ##ccc:-------------------------------------------------------------------------------");
+        logger.debug("##refreshPhaseRunnerList:-------------------------------------------------------------------------------end");
+        //System.out.println((System.currentTimeMillis() - refreshPhaseRunnerList) + " ##refreshPhaseRunnerList:-------------------------------------------------------------------------------");
+        //System.out.println((System.currentTimeMillis() - ccc) + " ##ccc:-------------------------------------------------------------------------------");
+        logger.debug("##AfterUpdateNodes:-------------------------------------------------------------------------------end");
         return isHasNode;
     }
 
@@ -1301,28 +1311,34 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                         continue;
                     }
                     i--;
-                    long bbb = System.currentTimeMillis();
+                    logger.debug("##getResourceListByIdList:-------------------------------------------------------------------------------start");
+                    //long bbb = System.currentTimeMillis();
                     List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIdList(idPageList);
-                    System.out.println((System.currentTimeMillis() - bbb) + " ##bbb:-------------------------------------------------------------------------------");
+                    //System.out.println((System.currentTimeMillis() - bbb) + " ##bbb:-------------------------------------------------------------------------------");
+                    logger.debug("##getResourceListByIdList:-------------------------------------------------------------------------------end");
                     if (CollectionUtils.isNotEmpty(resourceList)) {
-                        long updateJobPhaseNode = System.currentTimeMillis();
+                        logger.debug("##updateJobPhaseNode:-------------------------------------------------------------------------------start");
+                        //long updateJobPhaseNode = System.currentTimeMillis();
                         updateJobPhaseNode(jobVo, resourceList, userName, protocolId);
-                        System.out.println((System.currentTimeMillis() - updateJobPhaseNode) + " ##updateJobPhaseNode:-------------------------------------------------------------------------------");
-                        logger.debug((System.currentTimeMillis() - updateJobPhaseNode) + " ##updateJobPhaseNode:-------------------------------------------------------------------------------");
+                       // System.out.println((System.currentTimeMillis() - updateJobPhaseNode) + " ##updateJobPhaseNode:-------------------------------------------------------------------------------");
+                        logger.debug("##updateJobPhaseNode:-------------------------------------------------------------------------------end");
                     }
                     index = 0;
                     idPageList.clear();
                 }
                 //补充最后一次循环数据
                 if (CollectionUtils.isNotEmpty(idPageList)) {
-                    long bbb = System.currentTimeMillis();
+                    logger.debug("##getResourceListByIdList last:-------------------------------------------------------------------------------start");
+                    //long bbb = System.currentTimeMillis();
                     List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIdList(idPageList);
-                    System.out.println((System.currentTimeMillis() - bbb) + " ##bbb:-------------------------------------------------------------------------------");
+                    //System.out.println((System.currentTimeMillis() - bbb) + " ##bbb:-------------------------------------------------------------------------------");
+                    logger.debug("##getResourceListByIdList last:-------------------------------------------------------------------------------end");
                     if (CollectionUtils.isNotEmpty(resourceList)) {
-                        long updateJobPhaseNode = System.currentTimeMillis();
+                        logger.debug("##updateJobPhaseNode last:-------------------------------------------------------------------------------start");
+                        //long updateJobPhaseNode = System.currentTimeMillis();
                         updateJobPhaseNode(jobVo, resourceList, userName, protocolId);
-                        System.out.println((System.currentTimeMillis() - updateJobPhaseNode) + " ##updateJobPhaseNode:-------------------------------------------------------------------------------");
-                        logger.debug((System.currentTimeMillis() - updateJobPhaseNode) + " ##updateJobPhaseNode:-------------------------------------------------------------------------------");
+                        //System.out.println((System.currentTimeMillis() - updateJobPhaseNode) + " ##updateJobPhaseNode:-------------------------------------------------------------------------------");
+                        logger.debug("##updateJobPhaseNode last:-------------------------------------------------------------------------------end");
                     }
                     idPageList.clear();
                 }
