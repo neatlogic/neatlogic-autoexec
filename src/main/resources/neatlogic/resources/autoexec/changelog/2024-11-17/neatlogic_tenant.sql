@@ -21,3 +21,5 @@ ALTER TABLE `autoexec_job_phase_node` MODIFY COLUMN `status` enum('succeed','pen
 ALTER TABLE `autoexec_job_phase_node` ADD INDEX `idx_phaseid_updatetag`(`job_phase_id`, `update_tag`) USING BTREE;
 
 ALTER TABLE `autoexec_job_phase_node` ADD UNIQUE INDEX `idx_phaseid_resourceid`(`job_phase_id`, `resource_id`) USING BTREE;
+
+UPDATE autoexec_job_phase_node AS a JOIN autoexec_job_phase_node_runner AS b ON a.id = b.node_id SET a.runner_map_id = b.runner_map_id;
