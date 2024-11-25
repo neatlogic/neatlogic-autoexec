@@ -298,13 +298,13 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
                     break;
                 }
             }
-            if (CollectionUtils.isEmpty(runnerMapVos)) {
-                if (CollectionUtils.isNotEmpty(runnerGroupIdListWithTag)) {
-                    throw new RunnerNotMatchException(jobPhaseVo.getCurrentNode().getHost(), jobPhaseVo.getCurrentNode().getResourceId(), runnerGroupTagNameStr);
-                } else {
-                    throw new RunnerNotMatchException(jobPhaseVo.getCurrentNode().getHost(), jobPhaseVo.getCurrentNode().getResourceId());
-                }
-            }
+//            if (CollectionUtils.isEmpty(runnerMapVos)) {
+//                if (CollectionUtils.isNotEmpty(runnerGroupIdListWithTag)) {
+//                    throw new RunnerNotMatchException(jobPhaseVo.getCurrentNode().getHost(), jobPhaseVo.getCurrentNode().getResourceId(), runnerGroupTagNameStr);
+//                } else {
+//                    throw new RunnerNotMatchException(jobPhaseVo.getCurrentNode().getHost(), jobPhaseVo.getCurrentNode().getResourceId());
+//                }
+//            }
         } else {
             ParamMappingVo runnerGroupParam = jobVo.getRunnerGroup();
             //默认随机分配
