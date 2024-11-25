@@ -23,6 +23,7 @@ import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.constvalue.AutoexecServiceType;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceNodeVo;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceSearchVo;
+import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.dto.AuthenticationInfoVo;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
@@ -60,7 +61,9 @@ public class AllVisibleAutoexecServiceForTreeApi extends PrivateApiComponentBase
         return null;
     }
 
-    @Input({})
+    @Input({
+            @Param(name = "needService", type = ApiParamType.BOOLEAN, defaultValue = "false", desc = "是否需要服务节点数据")
+    })
     @Output({
             @Param(explode = AutoexecServiceNodeVo[].class, desc = "服务目录树结构数据")
     })
@@ -102,30 +105,36 @@ public class AllVisibleAutoexecServiceForTreeApi extends PrivateApiComponentBase
                 leafNodeList.add(nodeVo);
             }
         }
-        // 遍历所有叶子节点，找出叶子节点所有上游节点ID，并将叶子节点从树中移除
-        List<Long> visibleNodeIdList = new ArrayList<>();
+        // 遍历所有叶子节点，找出叶子节点所有上游节点ID
+        List<Long> visibleCatalogNodeIdList = new ArrayList<>();
         for (AutoexecServiceNodeVo nodeVo : leafNodeList) {
             AutoexecServiceNodeVo tempNodeVo = nodeVo;
-            while(true) {
+            while (true) {
                 AutoexecServiceNodeVo parent = tempNodeVo.getParent();
                 if (parent == null) {
                     break;
                 }
-                if (visibleNodeIdList.contains(parent.getId())) {
+                if (visibleCatalogNodeIdList.contains(parent.getId())) {
                     break;
                 }
-                visibleNodeIdList.add(parent.getId());
+                visibleCatalogNodeIdList.add(parent.getId());
                 tempNodeVo = parent;
             }
-            AutoexecServiceNodeVo parent = nodeVo.getParent();
-            if (parent != null) {
-                nodeVo.setParent(null);
-                parent.removeChild(nodeVo);
+        }
+        Boolean needService = paramObj.getBoolean("needService");
+        if (!Objects.equals(needService, true)) {
+            // 遍历所有叶子节点，并将叶子节点从树中移除
+            for (AutoexecServiceNodeVo nodeVo : leafNodeList) {
+                AutoexecServiceNodeVo parent = nodeVo.getParent();
+                if (parent != null) {
+                    nodeVo.setParent(null);
+                    parent.removeChild(nodeVo);
+                }
             }
         }
         // 遍历所有节点，把节点id不在visibleNodeIdList中的节点从树中移除
         for (AutoexecServiceNodeVo nodeVo : allNodeList) {
-            if (!visibleNodeIdList.contains(nodeVo.getId())) {
+            if (Objects.equals(nodeVo.getType(), AutoexecServiceType.CATALOG.getValue()) && !visibleCatalogNodeIdList.contains(nodeVo.getId())) {
                 AutoexecServiceNodeVo parent = nodeVo.getParent();
                 if (parent != null) {
                     nodeVo.setParent(null);
