@@ -159,8 +159,9 @@ public class CreateAutoexecJobFromOperationApi extends PrivateApiComponentBase {
         autoexecCombopPhaseVo.setGroupSort(combopGroupVo.getSort());
         autoexecCombopPhaseVo.setSort(0);
         autoexecCombopPhaseVo.setName("test_phase");
-        autoexecCombopPhaseVo.setExecMode(phaseOperationParam.getExecMode());
-        autoexecCombopPhaseVo.setExecModeName(ExecMode.getText(phaseOperationParam.getExecMode()));
+        String execMode = Objects.equals("native", phaseOperationParam.getExecMode()) ? "runner" : phaseOperationParam.getExecMode();
+        autoexecCombopPhaseVo.setExecMode(execMode);
+        autoexecCombopPhaseVo.setExecModeName(ExecMode.getText(execMode));
         AutoexecCombopPhaseConfigVo combopPhaseConfigVo = new AutoexecCombopPhaseConfigVo();
         AutoexecCombopPhaseOperationVo phaseOperation = new AutoexecCombopPhaseOperationVo(phaseOperationParam);
         //脚本创建测试作业，需补充scriptId
