@@ -18,6 +18,7 @@
 package neatlogic.module.autoexec.process.stephandler.component;
 
 import com.alibaba.fastjson.*;
+import com.alibaba.fastjson.serializer.SerializerFeature;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.autoexec.constvalue.AutoexecNotifyTriggerType;
 import neatlogic.framework.autoexec.constvalue.CombopOperationType;
@@ -149,19 +150,25 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
         ISelectContentByHashCrossoverMapper selectContentByHashCrossoverMapper = CrossoverServiceFactory.getApi(ISelectContentByHashCrossoverMapper.class);
         IProcessTaskStepDataCrossoverMapper processTaskStepDataCrossoverMapper = CrossoverServiceFactory.getApi(IProcessTaskStepDataCrossoverMapper.class);
         try {
-            String configHash = currentProcessTaskStepVo.getConfigHash();
-            if (StringUtils.isBlank(configHash)) {
-                ProcessTaskStepVo processTaskStepVo = processTaskCrossoverMapper.getProcessTaskStepBaseInfoById(currentProcessTaskStepVo.getId());
-                configHash = processTaskStepVo.getConfigHash();
-                currentProcessTaskStepVo.setProcessStepUuid(processTaskStepVo.getProcessStepUuid());
+            JSONObject config = currentProcessTaskStepVo.getConfig();
+            if (MapUtils.isEmpty(config)) {
+                String configHash = currentProcessTaskStepVo.getConfigHash();
+                if (StringUtils.isBlank(configHash)) {
+                    ProcessTaskStepVo processTaskStepVo = processTaskCrossoverMapper.getProcessTaskStepBaseInfoById(currentProcessTaskStepVo.getId());
+                    configHash = processTaskStepVo.getConfigHash();
+                    currentProcessTaskStepVo.setConfigHash(configHash);
+                    currentProcessTaskStepVo.setProcessStepUuid(processTaskStepVo.getProcessStepUuid());
+                }
+                // 获取工单当前步骤配置信息
+                String configStr = selectContentByHashCrossoverMapper.getProcessTaskStepConfigByHash(configHash);
+                if (StringUtils.isBlank(configStr)) {
+                    processTaskStepComplete(currentProcessTaskStepVo.getId());
+                    return 0;
+                }
+                config = JSONObject.parseObject(configStr);
+                currentProcessTaskStepVo.setConfig(config);
             }
-            // 获取工单当前步骤配置信息
-            String config = selectContentByHashCrossoverMapper.getProcessTaskStepConfigByHash(configHash);
-            if (StringUtils.isBlank(config)) {
-                processTaskStepComplete(currentProcessTaskStepVo.getId());
-                return 0;
-            }
-            JSONObject createJobConfig = (JSONObject) JSONPath.read(config, "createJobConfig");
+            JSONObject createJobConfig = config.getJSONObject("createJobConfig");
             if (MapUtils.isEmpty(createJobConfig)) {
                 processTaskStepComplete(currentProcessTaskStepVo.getId());
                 return 0;
@@ -275,11 +282,12 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                 } catch (Exception e) {
                     // 增加提醒
                     logger.error(e.getMessage(), e);
-                    logger.error(JSON.toJSONString(builder));
+                    String builderStr = JSON.toJSONString(builder, SerializerFeature.DisableCircularReferenceDetect);
+                    logger.error(builderStr);
                     JSONObject errorMessageObj = new JSONObject();
                     errorMessageObj.put("jobId", jobVo.getId());
                     errorMessageObj.put("jobName", jobVo.getName());
-                    errorMessageObj.put("error", e.getMessage() + " jobVo=" + JSON.toJSONString(builder));
+                    errorMessageObj.put("error", e.getMessage() + " jobVo=" + builderStr);
                     errorMessageList.add(errorMessageObj);
                     flag = true;
                 }
