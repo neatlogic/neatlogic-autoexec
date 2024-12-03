@@ -22,8 +22,10 @@ import neatlogic.framework.process.dto.ProcessTaskStepVo;
 import neatlogic.framework.process.dto.ProcessTaskVo;
 import neatlogic.framework.process.exception.operationauth.ProcessTaskPermissionDeniedException;
 import neatlogic.framework.process.operationauth.core.OperationAuthHandlerBase;
+import neatlogic.framework.process.operationauth.core.PredicateResult;
 import neatlogic.framework.process.operationauth.core.TernaryPredicate;
 import neatlogic.module.autoexec.operationauth.exception.ProcessTaskAutoexecHandlerNotEnableOperateException;
+import neatlogic.module.autoexec.process.constvalue.CreateJobProcessStepHandlerType;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.PostConstruct;
@@ -57,7 +59,7 @@ public class AutoexecOperateHandler extends OperationAuthHandlerBase {
                     //1.提示“自动化节点不支持'撤回'操作”；
                     operationTypePermissionDeniedExceptionMap.computeIfAbsent(id, key -> new HashMap<>())
                             .put(operationType, new ProcessTaskAutoexecHandlerNotEnableOperateException(operationType.getText()));
-                    return false;
+                    return PredicateResult.DENY;
                 });
 //        operationBiPredicateMap.put(ProcessTaskOperationType.STEP_ACCEPT,
 //                (processTaskVo, processTaskStepVo, userUuid, operationTypePermissionDeniedExceptionMap) -> {
@@ -75,7 +77,7 @@ public class AutoexecOperateHandler extends OperationAuthHandlerBase {
                     //1.提示“自动化节点不支持'处理'操作”；
                     operationTypePermissionDeniedExceptionMap.computeIfAbsent(id, key -> new HashMap<>())
                             .put(operationType, new ProcessTaskAutoexecHandlerNotEnableOperateException(operationType.getText()));
-                    return false;
+                    return PredicateResult.DENY;
                 });
         operationBiPredicateMap.put(ProcessTaskStepOperationType.STEP_COMMENT,
                 (processTaskVo, processTaskStepVo, userUuid, operationTypePermissionDeniedExceptionMap, extraParam) -> {
@@ -84,7 +86,7 @@ public class AutoexecOperateHandler extends OperationAuthHandlerBase {
                     //1.提示“自动化节点不支持'回复'操作”；
                     operationTypePermissionDeniedExceptionMap.computeIfAbsent(id, key -> new HashMap<>())
                             .put(operationType, new ProcessTaskAutoexecHandlerNotEnableOperateException(operationType.getText()));
-                    return false;
+                    return PredicateResult.DENY;
                 });
 
 //        operationBiPredicateMap.put(ProcessTaskOperationType.STEP_COMPLETE,
@@ -120,6 +122,6 @@ public class AutoexecOperateHandler extends OperationAuthHandlerBase {
 
     @Override
     public String getHandler() {
-        return AutoexecOperationAuthHandlerType.AUTOEXEC.getValue();
+        return CreateJobProcessStepHandlerType.CREATE_JOB.getHandler();
     }
 }
