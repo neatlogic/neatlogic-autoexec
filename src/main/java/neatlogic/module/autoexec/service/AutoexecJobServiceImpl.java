@@ -15,6 +15,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 package neatlogic.module.autoexec.service;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
@@ -766,9 +767,12 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
 
     @Override
     public void getAutoexecJobDetail(AutoexecJobVo jobVo) {
-        AutoexecJobContentVo paramContentVo = autoexecJobMapper.getJobContent(jobVo.getParamHash());
+        AutoexecJobContentVo paramContentVo = null;
+        if(StringUtils.isNotBlank(jobVo.getParamHash())){
+            paramContentVo = autoexecJobMapper.getJobContent(jobVo.getParamHash());
+        }
         if (paramContentVo != null && StringUtils.isNotBlank(paramContentVo.getContent())) {
-            jobVo.setRunTimeParamList(JSONArray.parseArray(paramContentVo.getContent(), AutoexecParamVo.class));
+            jobVo.setRunTimeParamList(JSON.parseArray(paramContentVo.getContent(), AutoexecParamVo.class));
         }
         AutoexecJobContentVo jobContent = autoexecJobMapper.getJobContent(jobVo.getConfigHash());
         if (jobContent == null) {
