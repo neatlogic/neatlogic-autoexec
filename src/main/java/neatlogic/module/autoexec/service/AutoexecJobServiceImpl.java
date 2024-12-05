@@ -56,6 +56,7 @@ import neatlogic.framework.deploy.crossover.IDeploySqlCrossoverMapper;
 import neatlogic.framework.dto.RestVo;
 import neatlogic.framework.dto.runner.RunnerMapVo;
 import neatlogic.framework.exception.runner.*;
+import neatlogic.framework.healthcheck.dao.mapper.DatabaseFragmentMapper;
 import neatlogic.framework.integration.authentication.enums.AuthenticateType;
 import neatlogic.framework.util.$;
 import neatlogic.framework.util.HttpRequestUtil;
@@ -103,6 +104,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     private AutoexecCombopVersionMapper autoexecCombopVersionMapper;
     @Resource
     RunnerMapper runnerMapper;
+
+    @Resource
+    private DatabaseFragmentMapper databaseFragmentMapper;
 
     @Resource
     private MongoTemplate mongoTemplate;
@@ -1320,7 +1324,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                         logger.debug("##updateJobPhaseNode:-------------------------------------------------------------------------------start");
                         //long updateJobPhaseNode = System.currentTimeMillis();
                         updateJobPhaseNode(jobVo, resourceList, userName, protocolId);
-                       // System.out.println((System.currentTimeMillis() - updateJobPhaseNode) + " ##updateJobPhaseNode:-------------------------------------------------------------------------------");
+                        // System.out.println((System.currentTimeMillis() - updateJobPhaseNode) + " ##updateJobPhaseNode:-------------------------------------------------------------------------------");
                         logger.debug("##updateJobPhaseNode:-------------------------------------------------------------------------------end");
                     }
                     index = 0;
@@ -1409,7 +1413,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             jobPhaseVo.setCurrentNode(jobPhaseNodeVo);
             try {
                 jobPhaseNodeVo.setRunnerMapId(getRunnerByTargetIp(jobVo));
-            }catch (IPIsIncorrectException e){
+            } catch (IPIsIncorrectException e) {
                 jobPhaseNodeVo.setErrorType(AutoexecJobPhaseNodeErrorType.IP_INVALID.getValue());
                 jobPhaseNodeVo.setStatus(JobNodeStatus.INVALID.getValue());
             }
@@ -1471,23 +1475,20 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
 
     @Override
     public void deleteJob(AutoexecJobVo jobVo) {
-        //删除jobParamContent.
-        /*Set<String> hashSet = new HashSet<>();
+        //删除jobContentHash
+        Set<String> hashSet = new HashSet<>();
         hashSet.add(jobVo.getParamHash());
-        List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobId(jobId);
+        hashSet.add(jobVo.getConfigHash());
+        List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobId(jobVo.getId());
         for (AutoexecJobPhaseOperationVo operationVo : operationVoList) {
             hashSet.add(operationVo.getParamHash());
         }
         for (String hash : hashSet) {
-            AutoexecJobParamContentVo paramContentVo = autoexecJobMapper.getJobParamContentLock(hash);
-            if(paramContentVo != null) {
-                int jobParamReferenceCount = autoexecJobMapper.checkIsJobParamReference(jobId, hash);
-                int jobPhaseOperationParamReferenceCount = autoexecJobMapper.checkIsJobPhaseOperationParamReference(jobId, hash);
-                if (jobParamReferenceCount == 0 && jobPhaseOperationParamReferenceCount == 0) {
-                    autoexecJobMapper.deleteJobParamContentByHash(hash);
-                }
+            int count = autoexecJobMapper.getHashUseByOtherCount(jobVo.getId(), hash);
+            if (count == 0) {
+                autoexecJobMapper.deleteJobContentByHash(hash);
             }
-        }*/
+        }
         //else
         Long jobId = jobVo.getId();
         IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
@@ -1505,6 +1506,20 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         autoexecJobMapper.deleteJobPhaseNodeByJobId(jobId);
         autoexecJobMapper.deleteJobPhaseByJobId(jobId);
         autoexecJobMapper.deleteJobByJobId(jobId);
+
+        databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job");
+        databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_content");
+        databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_phase");
+        databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_phase_node");
+        databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_phase_operation");
+        databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_phase_node_runner");
+        databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_phase_runner");
+        databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_resource_inspect");
+        databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_invoke");
+        databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_group");
+        databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_env");
+        databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_sql_detail");
+        databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "deploy_sql_detail");
     }
 
     @Override
