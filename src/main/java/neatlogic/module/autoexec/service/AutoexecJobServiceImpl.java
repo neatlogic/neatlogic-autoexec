@@ -768,7 +768,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     @Override
     public void getAutoexecJobDetail(AutoexecJobVo jobVo) {
         AutoexecJobContentVo paramContentVo = null;
-        if(StringUtils.isNotBlank(jobVo.getParamHash())){
+        if (StringUtils.isNotBlank(jobVo.getParamHash())) {
             paramContentVo = autoexecJobMapper.getJobContent(jobVo.getParamHash());
         }
         if (paramContentVo != null && StringUtils.isNotBlank(paramContentVo.getContent())) {
@@ -1489,7 +1489,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
         for (String hash : hashSet) {
             int count = autoexecJobMapper.getHashUseByOtherCount(jobVo.getId(), hash);
-            if (count == 0) {
+            if (count == 0 && StringUtils.isNotBlank(hash)) {
                 autoexecJobMapper.deleteJobContentByHash(hash);
             }
         }
