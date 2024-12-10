@@ -682,7 +682,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
             if (config != null) {
                 ParamMappingVo roundCountParamMappingVo = config.getRoundCount();
                 if (needRoundCount && roundCountParamMappingVo != null) {
-                    if (roundCountParamMappingVo.getValue() != null) {
+                    if (Objects.equals(roundCountParamMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue()) && roundCountParamMappingVo.getValue() != null) {
                         builder.setRoundCount((Integer) roundCountParamMappingVo.getValue());
                     } else {
                         if (roundCount != null) {
@@ -695,7 +695,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 AutoexecCombopExecuteConfigVo executeConfigVo = new AutoexecCombopExecuteConfigVo();
                 ParamMappingVo executeUserParamMappingVo = config.getExecuteUser();
                 if (needExecuteUser && executeUserParamMappingVo != null) {
-                    if (executeUserParamMappingVo.getValue() != null) {
+                    if (Objects.equals(executeUserParamMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue()) && executeUserParamMappingVo.getValue() != null) {
                         executeConfigVo.setExecuteUser(executeUserParamMappingVo);
                     } else {
                         if (executeUser != null) {
@@ -710,7 +710,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 }
                 ParamMappingVo protocolParamMappingVo = config.getProtocol();
                 if (needProtocol && protocolParamMappingVo != null) {
-                    if (protocolParamMappingVo.getValue() != null) {
+                    if (Objects.equals(protocolParamMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue()) && protocolParamMappingVo.getValue() != null) {
                         executeConfigVo.setProtocolId((Long) protocolParamMappingVo.getValue());
                     } else {
                         if (protocol != null) {
@@ -722,7 +722,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 }
                 ParamMappingVo executeNodeParamMappingVo = config.getExecuteNodeConfig();
                 if (needExecuteNode && executeNodeParamMappingVo != null) {
-                    if (executeNodeParamMappingVo.getValue() != null) {
+                    if (Objects.equals(executeNodeParamMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue()) && executeNodeParamMappingVo.getValue() != null) {
                         AutoexecCombopExecuteNodeConfigVo executeNodeConfig2 = JSONObject.toJavaObject((JSONObject) executeNodeParamMappingVo.getValue(), AutoexecCombopExecuteNodeConfigVo.class);
                         executeConfigVo.setExecuteNodeConfig(executeNodeConfig2);
                     } else {
