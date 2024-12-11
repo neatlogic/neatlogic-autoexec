@@ -57,7 +57,6 @@ import neatlogic.framework.deploy.crossover.IDeploySqlCrossoverMapper;
 import neatlogic.framework.dto.RestVo;
 import neatlogic.framework.dto.runner.RunnerMapVo;
 import neatlogic.framework.exception.runner.*;
-import neatlogic.framework.healthcheck.dao.mapper.DatabaseFragmentMapper;
 import neatlogic.framework.integration.authentication.enums.AuthenticateType;
 import neatlogic.framework.util.$;
 import neatlogic.framework.util.HttpRequestUtil;
@@ -105,9 +104,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     private AutoexecCombopVersionMapper autoexecCombopVersionMapper;
     @Resource
     RunnerMapper runnerMapper;
-
-    @Resource
-    private DatabaseFragmentMapper databaseFragmentMapper;
 
     @Resource
     private MongoTemplate mongoTemplate;
@@ -1510,20 +1506,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         autoexecJobMapper.deleteJobPhaseNodeByJobId(jobId);
         autoexecJobMapper.deleteJobPhaseByJobId(jobId);
         autoexecJobMapper.deleteJobByJobId(jobId);
-
-        databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job");
-        databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_content");
-        databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_phase");
-        databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_phase_node");
-        databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_phase_operation");
-        databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_phase_node_runner");
-        databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_phase_runner");
-        databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_resource_inspect");
-        databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_invoke");
-        databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_group");
-        databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_env");
-        databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_sql_detail");
-        databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "deploy_sql_detail");
     }
 
     @Override
