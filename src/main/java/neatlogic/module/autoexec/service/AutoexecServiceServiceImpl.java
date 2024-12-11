@@ -527,6 +527,20 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
             builder.setScenarioId(scenarioId);
         }
 
+        AutoexecCombopExecuteConfigVo combopExecuteConfig = versionConfigVo.getExecuteConfig();
+        if (combopExecuteConfig != null) {
+            // 执行器组
+            ParamMappingVo runnerGroup = combopExecuteConfig.getRunnerGroup();
+            if (runnerGroup != null) {
+                builder.setRunnerGroup(runnerGroup);
+            }
+
+            // 执行器组标签
+            ParamMappingVo runnerGroupTag = combopExecuteConfig.getRunnerGroupTag();
+            if (runnerGroupTag != null) {
+                builder.setRunnerGroupTag(runnerGroupTag);
+            }
+        }
         autoexecCombopService.needExecuteConfig(autoexecCombopVersionVo);
         boolean needExecuteUser = autoexecCombopVersionVo.getNeedExecuteUser();
         boolean needExecuteNode = autoexecCombopVersionVo.getNeedExecuteNode();
@@ -662,6 +676,9 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                                 }
                             }
                         }
+                    }
+                    if (MapUtils.isNotEmpty(runtimeParamMap)) {
+                        param.putAll(runtimeParamMap);
                     }
                     for (AutoexecParamVo autoexecParamVo : lastRuntimeParamList) {
                         if (param.containsKey(autoexecParamVo.getKey())) {
