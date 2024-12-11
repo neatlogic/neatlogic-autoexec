@@ -90,6 +90,9 @@ public class CatalogImportExportHandler extends ImportExportHandlerBase {
     @Override
     protected ImportExportVo myExportData(Object primaryKey, List<ImportExportBaseInfoVo> dependencyList, ZipOutputStream zipOutputStream) {
         Long id = (Long) primaryKey;
+        if (id == 0L) {
+            return null;
+        }
         AutoexecCatalogVo autoexecCatalogVo = autoexecCatalogMapper.getAutoexecCatalogById(id);
         if (autoexecCatalogVo == null) {
             throw new AutoexecCatalogNotFoundException(id);
