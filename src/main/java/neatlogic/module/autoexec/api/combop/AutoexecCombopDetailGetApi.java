@@ -27,7 +27,7 @@ import neatlogic.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
-import neatlogic.framework.autoexec.exception.combop.AutoexecCombopNotFoundEditTargetException;
+import neatlogic.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import neatlogic.framework.autoexec.exception.combop.AutoexecCombopVersionNotFoundEditTargetException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.restful.annotation.*;
@@ -74,7 +74,7 @@ public class AutoexecCombopDetailGetApi extends PrivateApiComponentBase {
         Long versionId = paramObj.getLong("versionId");
         AutoexecCombopVo autoexecCombopVo = autoexecCombopService.getAutoexecCombopById(id);
         if (autoexecCombopVo == null) {
-            throw new AutoexecCombopNotFoundEditTargetException(id);
+            throw new AutoexecCombopNotFoundException(id);
         }
         AutoexecTypeVo autoexecTypeVo = autoexecTypeMapper.getTypeById(autoexecCombopVo.getTypeId());
         if (autoexecTypeVo != null) {

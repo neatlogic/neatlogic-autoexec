@@ -38,6 +38,7 @@ import neatlogic.framework.util.$;
 import neatlogic.framework.util.FormUtil;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.process.dto.AutoexecJobBuilder;
+import neatlogic.module.autoexec.process.util.CreateJobConfigUtil;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -640,7 +641,9 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                     } else if (Objects.equals(executeNodeParamMappingVo.getMappingMode(), ServiceParamMappingMode.FORMATTR.getValue())) {
                         Object value = formAttributeDataMap.get(executeNodeParamMappingVo.getValue());
                         if (value != null) {
-                            AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = JSONObject.toJavaObject((JSONObject) value, AutoexecCombopExecuteNodeConfigVo.class);
+                            JSONArray jsonArray = new JSONArray();
+                            jsonArray.add(value);
+                            AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = CreateJobConfigUtil.getExecuteNodeConfig(jsonArray);
                             executeConfigVo.setExecuteNodeConfig(executeNodeConfigVo);
                         }
                     }
