@@ -432,7 +432,7 @@ public class CreateJobConfigUtil {
         return null;
     }
 
-    private static AutoexecCombopExecuteNodeConfigVo getExecuteNodeConfig(JSONArray jsonArray) {
+    public static AutoexecCombopExecuteNodeConfigVo getExecuteNodeConfig(JSONArray jsonArray) {
         if (CollectionUtils.isEmpty(jsonArray)) {
             return null;
         }
