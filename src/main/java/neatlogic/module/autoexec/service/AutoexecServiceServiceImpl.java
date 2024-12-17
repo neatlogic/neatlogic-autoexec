@@ -17,6 +17,7 @@ package neatlogic.module.autoexec.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.autoexec.constvalue.ParamMappingMode;
 import neatlogic.framework.autoexec.constvalue.ServiceParamMappingMode;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
@@ -25,7 +26,8 @@ import neatlogic.framework.autoexec.dto.service.AutoexecServiceConfigVo;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceVo;
 import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.exception.type.ParamNotExistsException;
-import neatlogic.framework.form.constvalue.FormHandler;
+import neatlogic.framework.form.attribute.core.FormAttributeDataConversionHandlerFactory;
+import neatlogic.framework.form.attribute.core.IFormAttributeDataConversionHandler;
 import neatlogic.framework.form.dao.mapper.FormMapper;
 import neatlogic.framework.form.dto.FormAttributeVo;
 import neatlogic.framework.form.dto.FormVersionVo;
@@ -35,7 +37,6 @@ import neatlogic.framework.form.exception.FormAttributeNotFoundException;
 import neatlogic.framework.form.exception.FormAttributeRequiredException;
 import neatlogic.framework.form.exception.FormNotFoundException;
 import neatlogic.framework.util.$;
-import neatlogic.framework.util.FormUtil;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.process.dto.AutoexecJobBuilder;
 import neatlogic.module.autoexec.process.util.CreateJobConfigUtil;
@@ -45,7 +46,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
@@ -140,8 +144,8 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 reasonList.add(jsonObj);
             }
         }
-        ParamMappingVo roundCountMappingVo = serviceConfigVo.getRoundCount();
         if (versionVo.getNeedRoundCount()) {
+            ParamMappingVo roundCountMappingVo = serviceConfigVo.getRoundCount();
             if (roundCountMappingVo == null) {
                 if (throwException) {
                     throw new AutoexecRoundCountIsRequiredException();
@@ -200,8 +204,8 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 }
             }
         }
-        ParamMappingVo protocolMappingVo = serviceConfigVo.getProtocol();
         if (versionVo.getNeedProtocol()) {
+            ParamMappingVo protocolMappingVo = serviceConfigVo.getProtocol();
             if (protocolMappingVo == null) {
                 if (throwException) {
                     throw new AutoexecProtocolIsRequiredException();
@@ -212,8 +216,8 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                     reasonList.add(jsonObj);
                 }
             } else {
-                Object value = roundCountMappingVo.getValue();
-                String mappingMode = roundCountMappingVo.getMappingMode();
+                Object value = protocolMappingVo.getValue();
+                String mappingMode = protocolMappingVo.getMappingMode();
                 if (Objects.equals(mappingMode, ServiceParamMappingMode.CONSTANT.getValue())) {
                     if (value == null) {
                         if (throwException) {
@@ -260,8 +264,8 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 }
             }
         }
-        ParamMappingVo executeUserMappingVo = serviceConfigVo.getExecuteUser();
         if (versionVo.getNeedExecuteUser()) {
+            ParamMappingVo executeUserMappingVo = serviceConfigVo.getExecuteUser();
             if (executeUserMappingVo == null) {
                 if (throwException) {
                     throw new AutoexecExecuteUserIsRequiredException();
@@ -272,8 +276,8 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                     reasonList.add(jsonObj);
                 }
             } else {
-                Object value = roundCountMappingVo.getValue();
-                String mappingMode = roundCountMappingVo.getMappingMode();
+                Object value = executeUserMappingVo.getValue();
+                String mappingMode = executeUserMappingVo.getMappingMode();
                 if (Objects.equals(mappingMode, ServiceParamMappingMode.CONSTANT.getValue())) {
                     if (value == null) {
                         if (throwException) {
@@ -320,8 +324,8 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 }
             }
         }
-        ParamMappingVo executeNodeParamMappingVo = serviceConfigVo.getExecuteNodeConfig();
         if (versionVo.getNeedExecuteNode()) {
+            ParamMappingVo executeNodeParamMappingVo = serviceConfigVo.getExecuteNodeConfig();
             if (executeNodeParamMappingVo == null) {
                 if (throwException) {
                     throw new AutoexecExecuteNodeIsRequiredException();
@@ -332,8 +336,8 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                     reasonList.add(jsonObj);
                 }
             } else {
-                Object value = roundCountMappingVo.getValue();
-                String mappingMode = roundCountMappingVo.getMappingMode();
+                Object value = executeNodeParamMappingVo.getValue();
+                String mappingMode = executeNodeParamMappingVo.getMappingMode();
                 if (Objects.equals(mappingMode, ServiceParamMappingMode.CONSTANT.getValue())) {
                     if (value == null) {
                         if (throwException) {
@@ -384,7 +388,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
         Map<String, AutoexecParamVo> runtimeParamMap = new HashMap<>();
         List<AutoexecParamVo> runtimeParamList = versionConfigVo.getRuntimeParamList();
         if (CollectionUtils.isNotEmpty(runtimeParamList)) {
-            runtimeParamMap = runtimeParamList.stream().collect(Collectors.toMap(e -> e.getKey(), e -> e));
+            runtimeParamMap = runtimeParamList.stream().collect(Collectors.toMap(AutoexecParamVo::getKey, e -> e));
         }
         List<ParamMappingVo> runtimeParamMappingList =  serviceConfigVo.getRuntimeParamList();
         if (CollectionUtils.isNotEmpty(runtimeParamMappingList)) {
@@ -516,11 +520,10 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
             AutoexecCombopExecuteNodeConfigVo executeNodeConfig,
             JSONObject runtimeParamMap
     ) {
-        AutoexecCombopVersionConfigVo versionConfigVo = autoexecCombopVersionVo.getConfig();
-        List<AutoexecParamVo> lastRuntimeParamList = versionConfigVo.getRuntimeParamList();
+        AutoexecServiceConfigVo config = autoexecServiceVo.getConfig();
+        mergeConfig(config, autoexecCombopVersionVo);
         AutoexecJobBuilder builder = new AutoexecJobBuilder(autoexecCombopVersionVo.getCombopId());
         builder.setJobName(name);
-        AutoexecServiceConfigVo config = autoexecServiceVo.getConfig();
         if (scenarioId == null) {
             scenarioId = config.getScenarioId();
         }
@@ -528,36 +531,32 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
             builder.setScenarioId(scenarioId);
         }
 
-        AutoexecCombopExecuteConfigVo combopExecuteConfig = versionConfigVo.getExecuteConfig();
-        if (combopExecuteConfig != null) {
-            // 执行器组
-            ParamMappingVo runnerGroup = combopExecuteConfig.getRunnerGroup();
-            if (runnerGroup != null) {
-                builder.setRunnerGroup(runnerGroup);
-            }
-
-            // 执行器组标签
-            ParamMappingVo runnerGroupTag = combopExecuteConfig.getRunnerGroupTag();
-            if (runnerGroupTag != null) {
-                builder.setRunnerGroupTag(runnerGroupTag);
-            }
+        // 执行器组
+        ParamMappingVo runnerGroup = config.getRunnerGroup();
+        if (runnerGroup != null) {
+            builder.setRunnerGroup(runnerGroup);
         }
-        autoexecCombopService.needExecuteConfig(autoexecCombopVersionVo);
-        boolean needExecuteUser = autoexecCombopVersionVo.getNeedExecuteUser();
-        boolean needExecuteNode = autoexecCombopVersionVo.getNeedExecuteNode();
-        boolean needProtocol = autoexecCombopVersionVo.getNeedProtocol();
-        boolean needRoundCount = autoexecCombopVersionVo.getNeedRoundCount();
-        // 如果服务编辑页设置了表单，且分批数量、执行目标、连接协议、执行账号、作业参数是必填时，要么映射表单组件，要么映射常量（必填）。
-        // 如果服务编辑页没有设置了表单，那么分批数量、执行目标、连接协议、执行账号、作业参数等可填也可不填，不填的话，在服务创建作业时再填。
+
+        // 执行器组标签
+        ParamMappingVo runnerGroupTag = config.getRunnerGroupTag();
+        if (runnerGroupTag != null) {
+            builder.setRunnerGroupTag(runnerGroupTag);
+        }
+        Map<String, Object> formAttributeDataMap = new HashMap<>();
         String formUuid = autoexecServiceVo.getFormUuid();
         if (StringUtils.isNotBlank(formUuid)) {
             if (CollectionUtils.isEmpty(formAttributeDataList)) {
                 throw new ParamNotExistsException("formAttributeDataList");
             }
+
+            FormVersionVo formVersionVo = formMapper.getActionFormVersionByFormUuid(formUuid);
+            String mainSceneUuid = formVersionVo.getFormConfig().getString("uuid");
+            formVersionVo.setSceneUuid(mainSceneUuid);
+            List<FormAttributeVo> formAttributeVoList = formVersionVo.getFormAttributeList();
+            Map<String, FormAttributeVo> formAttributeVoMap = formAttributeVoList.stream().collect(Collectors.toMap(FormAttributeVo::getUuid, e -> e));
             if (CollectionUtils.isEmpty(hidecomponentList)) {
                 hidecomponentList = new JSONArray();
             }
-            Map<String, Object> formAttributeDataMap = new HashMap<>();
             for (int i = 0; i < formAttributeDataList.size(); i++) {
                 JSONObject formAttributeData = formAttributeDataList.getJSONObject(i);
                 if (formAttributeData == null) {
@@ -571,139 +570,45 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 if (dataList == null) {
                     continue;
                 }
-                formAttributeDataMap.put(attributeUuid, dataList);
+                FormAttributeVo formAttributeVo = formAttributeVoMap.get(attributeUuid);
+                if (formAttributeVo == null) {
+                    continue;
+                }
+                IFormAttributeDataConversionHandler handler = FormAttributeDataConversionHandlerFactory.getHandler(formAttributeVo.getHandler());
+                if (handler != null) {
+                    Object simpleValue = handler.getSimpleValue(dataList);
+                } else {
+                    formAttributeDataMap.put(attributeUuid, dataList);
+                }
             }
-            Map<String, String> attributeUuid2HandlerMap = new HashMap<>();
-            FormVersionVo formVersionVo = formMapper.getActionFormVersionByFormUuid(formUuid);
-            String mainSceneUuid = formVersionVo.getFormConfig().getString("uuid");
-            formVersionVo.setSceneUuid(mainSceneUuid);
-            List<FormAttributeVo> formAttributeVoList = formVersionVo.getFormAttributeList();
             for (FormAttributeVo formAttributeVo : formAttributeVoList) {
-                String uuid = formAttributeVo.getUuid();
-                attributeUuid2HandlerMap.put(uuid, formAttributeVo.getHandler());
                 if (formAttributeVo.isRequired()) {
-                    if (hidecomponentList.contains(uuid)) {
+                    if (hidecomponentList.contains(formAttributeVo.getUuid())) {
                         continue;
                     }
-                    if (formAttributeDataMap.containsKey(uuid)) {
+                    if (formAttributeDataMap.containsKey(formAttributeVo.getUuid())) {
                         continue;
                     }
                     throw new FormAttributeRequiredException(formAttributeVo.getLabel());
                 }
             }
-            List<String> formSelectAttributeList = new ArrayList<>();
-            formSelectAttributeList.add(FormHandler.FORMSELECT.getHandler());
-            formSelectAttributeList.add(FormHandler.FORMCHECKBOX.getHandler());
-            formSelectAttributeList.add(FormHandler.FORMRADIO.getHandler());
-            if (config != null) {
-                ParamMappingVo roundCountParamMappingVo = config.getRoundCount();
-                if (needRoundCount && roundCountParamMappingVo != null) {
-                    if (Objects.equals(roundCountParamMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue())) {
-                        builder.setRoundCount((Integer) roundCountParamMappingVo.getValue());
-                    } else if (Objects.equals(roundCountParamMappingVo.getMappingMode(), ServiceParamMappingMode.FORMATTR.getValue())) {
-                        Object value = formAttributeDataMap.get(roundCountParamMappingVo.getValue());
-                        if (value != null) {
-                            builder.setRoundCount((Integer) value);
-                        }
-                    }
-                }
-                AutoexecCombopExecuteConfigVo executeConfigVo = new AutoexecCombopExecuteConfigVo();
-                ParamMappingVo executeUserParamMappingVo = config.getExecuteUser();
-                if (needExecuteUser && executeUserParamMappingVo != null) {
-                    if (Objects.equals(executeUserParamMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue())) {
-                        executeConfigVo.setExecuteUser(executeUserParamMappingVo);
-                    } else if (Objects.equals(executeUserParamMappingVo.getMappingMode(), ServiceParamMappingMode.FORMATTR.getValue())) {
-                        Object value = formAttributeDataMap.get(executeUserParamMappingVo.getValue());
-                        if (value != null) {
-                            ParamMappingVo paramMappingVo = new ParamMappingVo();
-                            paramMappingVo.setMappingMode(ServiceParamMappingMode.CONSTANT.getValue());
-                            paramMappingVo.setValue(value);
-                            executeConfigVo.setExecuteUser(paramMappingVo);
-                        }
-                    }
-                }
-                ParamMappingVo protocolParamMappingVo = config.getProtocol();
-                if (needProtocol && protocolParamMappingVo != null) {
-                    if (Objects.equals(protocolParamMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue())) {
-                        executeConfigVo.setProtocolId((Long) protocolParamMappingVo.getValue());
-                    } else if (Objects.equals(protocolParamMappingVo.getMappingMode(), ServiceParamMappingMode.FORMATTR.getValue())) {
-                        Object value = formAttributeDataMap.get(protocolParamMappingVo.getValue());
-                        if (value != null) {
-                            executeConfigVo.setProtocolId((Long) value);
-                        }
-                    }
-                }
-                ParamMappingVo executeNodeParamMappingVo = config.getExecuteNodeConfig();
-                if (needExecuteNode && executeNodeParamMappingVo != null) {
-                    if (Objects.equals(executeNodeParamMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue())) {
-                        AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = JSONObject.toJavaObject((JSONObject) executeNodeParamMappingVo.getValue(), AutoexecCombopExecuteNodeConfigVo.class);
-                        executeConfigVo.setExecuteNodeConfig(executeNodeConfigVo);
-                    } else if (Objects.equals(executeNodeParamMappingVo.getMappingMode(), ServiceParamMappingMode.FORMATTR.getValue())) {
-                        Object value = formAttributeDataMap.get(executeNodeParamMappingVo.getValue());
-                        if (value != null) {
-                            JSONArray jsonArray = new JSONArray();
-                            jsonArray.add(value);
-                            AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = CreateJobConfigUtil.getExecuteNodeConfig(jsonArray);
-                            executeConfigVo.setExecuteNodeConfig(executeNodeConfigVo);
-                        }
-                    }
-                }
-                builder.setExecuteConfig(executeConfigVo);
-                JSONObject param = new JSONObject();
-                if (CollectionUtils.isNotEmpty(lastRuntimeParamList)) {
-                    List<ParamMappingVo> runtimeParamList = config.getRuntimeParamList();
-                    if (CollectionUtils.isNotEmpty(runtimeParamList)) {
-                        for (ParamMappingVo paramMappingVo : runtimeParamList) {
-                            if (paramMappingVo == null) {
-                                continue;
-                            }
-                            String key = paramMappingVo.getKey();
-                            if (StringUtils.isBlank(key)) {
-                                continue;
-                            }
-                            Object value = paramMappingVo.getValue();
-                            if (value == null) {
-                                continue;
-                            }
-                            if (Objects.equals(paramMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue())) {
-                                param.put(key, value);
-                            } else if (Objects.equals(paramMappingVo.getMappingMode(), ServiceParamMappingMode.FORMATTR.getValue())) {
-                                Object formAttrValue = formAttributeDataMap.get(value);
-                                if (formAttrValue != null) {
-                                    if (formSelectAttributeList.contains(attributeUuid2HandlerMap.get(value))) {
-                                        Object valueObject = FormUtil.getFormSelectAttributeValueByOriginalValue(formAttrValue);
-                                        param.put(key, valueObject);
-                                    } else {
-                                        param.put(key, formAttrValue);
-                                    }
-                                }
+        }
+
+        // 如果服务编辑页设置了表单，且分批数量、执行目标、连接协议、执行账号、作业参数是必填时，要么映射表单组件，要么映射常量（必填）。
+        // 如果服务编辑页没有设置了表单，那么分批数量、执行目标、连接协议、执行账号、作业参数等可填也可不填，不填的话，在服务创建作业时再填。
+        if (autoexecCombopVersionVo.getNeedRoundCount()) {
+            ParamMappingVo roundCountParamMappingVo = config.getRoundCount();
+            if (roundCountParamMappingVo != null) {
+                if (Objects.equals(roundCountParamMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue()) && roundCountParamMappingVo.getValue() != null) {
+                    builder.setRoundCount((Integer) roundCountParamMappingVo.getValue());
+                } else {
+                    if (StringUtils.isNotBlank(formUuid)) {
+                        if (Objects.equals(roundCountParamMappingVo.getMappingMode(), ServiceParamMappingMode.FORMATTR.getValue())) {
+                            Object value = formAttributeDataMap.get(roundCountParamMappingVo.getValue().toString());
+                            if (value != null) {
+                                builder.setRoundCount((Integer) value);
                             }
                         }
-                    }
-                    if (MapUtils.isNotEmpty(runtimeParamMap)) {
-                        param.putAll(runtimeParamMap);
-                    }
-                    for (AutoexecParamVo autoexecParamVo : lastRuntimeParamList) {
-                        if (param.containsKey(autoexecParamVo.getKey())) {
-                            continue;
-                        }
-                        if (!Objects.equals(autoexecParamVo.getIsRequired(), 1)) {
-                            continue;
-                        }
-                        if(autoexecParamVo.getDefaultValue() != null) {
-                            continue;
-                        }
-                        throw new AutoexecJobParamNotExistException(autoexecParamVo.getName(), autoexecParamVo.getKey());
-                    }
-                }
-                builder.setParam(param);
-            }
-        } else {
-            if (config != null) {
-                ParamMappingVo roundCountParamMappingVo = config.getRoundCount();
-                if (needRoundCount && roundCountParamMappingVo != null) {
-                    if (Objects.equals(roundCountParamMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue()) && roundCountParamMappingVo.getValue() != null) {
-                        builder.setRoundCount((Integer) roundCountParamMappingVo.getValue());
                     } else {
                         if (roundCount != null) {
                             builder.setRoundCount(roundCount);
@@ -712,11 +617,25 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         }
                     }
                 }
-                AutoexecCombopExecuteConfigVo executeConfigVo = new AutoexecCombopExecuteConfigVo();
-                ParamMappingVo executeUserParamMappingVo = config.getExecuteUser();
-                if (needExecuteUser && executeUserParamMappingVo != null) {
-                    if (Objects.equals(executeUserParamMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue()) && executeUserParamMappingVo.getValue() != null) {
-                        executeConfigVo.setExecuteUser(executeUserParamMappingVo);
+            }
+        }
+        AutoexecCombopExecuteConfigVo executeConfigVo = new AutoexecCombopExecuteConfigVo();
+        if (autoexecCombopVersionVo.getNeedExecuteUser()) {
+            ParamMappingVo executeUserParamMappingVo = config.getExecuteUser();
+            if (executeUserParamMappingVo != null) {
+                if (Objects.equals(executeUserParamMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue())) {
+                    executeConfigVo.setExecuteUser(executeUserParamMappingVo);
+                } else {
+                    if (StringUtils.isNotBlank(formUuid)) {
+                        if (Objects.equals(executeUserParamMappingVo.getMappingMode(), ServiceParamMappingMode.FORMATTR.getValue()) && executeUserParamMappingVo.getValue() != null) {
+                            Object value = formAttributeDataMap.get(executeUserParamMappingVo.getValue().toString());
+                            if (value != null) {
+                                ParamMappingVo paramMappingVo = new ParamMappingVo();
+                                paramMappingVo.setMappingMode(ServiceParamMappingMode.CONSTANT.getValue());
+                                paramMappingVo.setValue(value);
+                                executeConfigVo.setExecuteUser(paramMappingVo);
+                            }
+                        }
                     } else {
                         if (executeUser != null) {
                             ParamMappingVo paramMappingVo = new ParamMappingVo();
@@ -728,10 +647,21 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         }
                     }
                 }
-                ParamMappingVo protocolParamMappingVo = config.getProtocol();
-                if (needProtocol && protocolParamMappingVo != null) {
-                    if (Objects.equals(protocolParamMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue()) && protocolParamMappingVo.getValue() != null) {
-                        executeConfigVo.setProtocolId((Long) protocolParamMappingVo.getValue());
+            }
+        }
+        if (autoexecCombopVersionVo.getNeedProtocol()) {
+            ParamMappingVo protocolParamMappingVo = config.getProtocol();
+            if (protocolParamMappingVo != null) {
+                if (Objects.equals(protocolParamMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue()) && protocolParamMappingVo.getValue() != null) {
+                    executeConfigVo.setProtocolId((Long) protocolParamMappingVo.getValue());
+                } else {
+                    if (StringUtils.isNotBlank(formUuid)) {
+                        if (Objects.equals(protocolParamMappingVo.getMappingMode(), ServiceParamMappingMode.FORMATTR.getValue())) {
+                            Object value = formAttributeDataMap.get(protocolParamMappingVo.getValue().toString());
+                            if (value != null) {
+                                executeConfigVo.setProtocolId((Long) value);
+                            }
+                        }
                     } else {
                         if (protocol != null) {
                             executeConfigVo.setProtocolId(protocol);
@@ -740,11 +670,25 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         }
                     }
                 }
-                ParamMappingVo executeNodeParamMappingVo = config.getExecuteNodeConfig();
-                if (needExecuteNode && executeNodeParamMappingVo != null) {
-                    if (Objects.equals(executeNodeParamMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue()) && executeNodeParamMappingVo.getValue() != null) {
-                        AutoexecCombopExecuteNodeConfigVo executeNodeConfig2 = JSONObject.toJavaObject((JSONObject) executeNodeParamMappingVo.getValue(), AutoexecCombopExecuteNodeConfigVo.class);
-                        executeConfigVo.setExecuteNodeConfig(executeNodeConfig2);
+            }
+        }
+        if (autoexecCombopVersionVo.getNeedExecuteNode()) {
+            ParamMappingVo executeNodeParamMappingVo = config.getExecuteNodeConfig();
+            if (executeNodeParamMappingVo != null) {
+                if (Objects.equals(executeNodeParamMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue()) && executeNodeParamMappingVo.getValue() != null) {
+                    AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = JSONObject.toJavaObject((JSONObject) executeNodeParamMappingVo.getValue(), AutoexecCombopExecuteNodeConfigVo.class);
+                    executeConfigVo.setExecuteNodeConfig(executeNodeConfigVo);
+                } else {
+                    if (StringUtils.isNotBlank(formUuid)) {
+                        if (Objects.equals(executeNodeParamMappingVo.getMappingMode(), ServiceParamMappingMode.FORMATTR.getValue())) {
+                            Object value = formAttributeDataMap.get(executeNodeParamMappingVo.getValue().toString());
+                            if (value != null) {
+                                JSONArray jsonArray = new JSONArray();
+                                jsonArray.add(value);
+                                AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = CreateJobConfigUtil.getExecuteNodeConfig(jsonArray);
+                                executeConfigVo.setExecuteNodeConfig(executeNodeConfigVo);
+                            }
+                        }
                     } else {
                         if (executeNodeConfig.isNull()) {
                             throw new ParamNotExistsException("executeNodeConfig");
@@ -753,47 +697,134 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         }
                     }
                 }
-                builder.setExecuteConfig(executeConfigVo);
-                JSONObject param = new JSONObject();
-                if (CollectionUtils.isNotEmpty(lastRuntimeParamList)) {
-                    List<ParamMappingVo> runtimeParamList = config.getRuntimeParamList();
-                    if (CollectionUtils.isNotEmpty(runtimeParamList)) {
-                        for (ParamMappingVo paramMappingVo : runtimeParamList) {
-                            if (paramMappingVo == null) {
-                                continue;
-                            }
-                            String key = paramMappingVo.getKey();
-                            if (StringUtils.isBlank(key)) {
-                                continue;
-                            }
-                            Object value = paramMappingVo.getValue();
-                            if (value == null) {
-                                continue;
-                            }
-                            if (Objects.equals(paramMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue())) {
-                                param.put(key, value);
-                            }
-                        }
-                    }
-                    if (MapUtils.isNotEmpty(runtimeParamMap)) {
-                        param.putAll(runtimeParamMap);
-                    }
-                    for (AutoexecParamVo autoexecParamVo : lastRuntimeParamList) {
-                        if (param.containsKey(autoexecParamVo.getKey())) {
-                            continue;
-                        }
-                        if (!Objects.equals(autoexecParamVo.getIsRequired(), 1)) {
-                            continue;
-                        }
-                        if(autoexecParamVo.getDefaultValue() != null) {
-                            continue;
-                        }
-                        throw new AutoexecJobParamNotExistException(autoexecParamVo.getName(), autoexecParamVo.getKey());
-                    }
-                }
-                builder.setParam(param);
             }
         }
+        builder.setExecuteConfig(executeConfigVo);
+        AutoexecCombopVersionConfigVo versionConfigVo = autoexecCombopVersionVo.getConfig();
+        List<AutoexecParamVo> lastRuntimeParamList = versionConfigVo.getRuntimeParamList();
+        JSONObject param = new JSONObject();
+        if (CollectionUtils.isNotEmpty(lastRuntimeParamList)) {
+            List<ParamMappingVo> runtimeParamList = config.getRuntimeParamList();
+            if (CollectionUtils.isNotEmpty(runtimeParamList)) {
+                for (ParamMappingVo paramMappingVo : runtimeParamList) {
+                    if (paramMappingVo == null) {
+                        continue;
+                    }
+                    String key = paramMappingVo.getKey();
+                    if (StringUtils.isBlank(key)) {
+                        continue;
+                    }
+                    Object value = paramMappingVo.getValue();
+                    if (value == null) {
+                        continue;
+                    }
+                    if (Objects.equals(paramMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue())) {
+                        param.put(key, value);
+                    } else {
+                        if (StringUtils.isNotBlank(formUuid)) {
+                            if (Objects.equals(paramMappingVo.getMappingMode(), ServiceParamMappingMode.FORMATTR.getValue())) {
+                                Object formAttrValue = formAttributeDataMap.get(value.toString());
+                                if (formAttrValue != null) {
+                                    param.put(key, formAttrValue);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            if (MapUtils.isNotEmpty(runtimeParamMap)) {
+                param.putAll(runtimeParamMap);
+            }
+            for (AutoexecParamVo autoexecParamVo : lastRuntimeParamList) {
+                if (param.containsKey(autoexecParamVo.getKey())) {
+                    continue;
+                }
+                if (!Objects.equals(autoexecParamVo.getIsRequired(), 1)) {
+                    continue;
+                }
+                if(autoexecParamVo.getDefaultValue() != null) {
+                    continue;
+                }
+                throw new AutoexecJobParamNotExistException(autoexecParamVo.getName(), autoexecParamVo.getKey());
+            }
+        }
+        builder.setParam(param);
         return builder;
+    }
+
+    private void mergeConfig(AutoexecServiceConfigVo serviceConfig, AutoexecCombopVersionVo autoexecCombopVersionVo) {
+        autoexecCombopService.needExecuteConfig(autoexecCombopVersionVo);
+        AutoexecCombopVersionConfigVo versionConfig = autoexecCombopVersionVo.getConfig();
+        AutoexecCombopExecuteConfigVo executeConfig = versionConfig.getExecuteConfig();
+        if (executeConfig != null) {
+            if (autoexecCombopVersionVo.getNeedRoundCount()) {
+                if (executeConfig.getRoundCount() != null) {
+                    ParamMappingVo roundCount = new ParamMappingVo();
+                    roundCount.setMappingMode(ParamMappingMode.CONSTANT.getValue());
+                    roundCount.setValue(executeConfig.getRoundCount());
+                    serviceConfig.setRoundCount(roundCount);
+                }
+            } else {
+                serviceConfig.setRoundCount(null);
+            }
+            if (autoexecCombopVersionVo.getNeedExecuteNode()) {
+                if (executeConfig.getExecuteNodeConfig() != null) {
+                    ParamMappingVo executeNodeConfig = new ParamMappingVo();
+                    executeNodeConfig.setMappingMode(ParamMappingMode.CONSTANT.getValue());
+                    executeNodeConfig.setValue(executeConfig.getExecuteNodeConfig());
+                    serviceConfig.setExecuteNodeConfig(executeNodeConfig);
+                }
+            } else {
+                serviceConfig.setExecuteNodeConfig(null);
+            }
+            if (autoexecCombopVersionVo.getNeedProtocol()) {
+                if (executeConfig.getProtocolId() != null && serviceConfig.getProtocol() == null) {
+                    ParamMappingVo protocol = new ParamMappingVo();
+                    protocol.setMappingMode(ParamMappingMode.CONSTANT.getValue());
+                    protocol.setValue(executeConfig.getProtocolId());
+                    serviceConfig.setProtocol(protocol);
+                }
+            } else {
+                serviceConfig.setProtocol(null);
+            }
+            if (autoexecCombopVersionVo.getNeedExecuteUser()) {
+                ParamMappingVo executeUser = executeConfig.getExecuteUser();
+                if (executeUser != null) {
+                    if (Objects.equals(executeUser.getMappingMode(), ParamMappingMode.CONSTANT.getValue())) {
+                        if (serviceConfig.getExecuteUser() == null) {
+                            serviceConfig.setExecuteUser(executeUser);
+                        }
+                    } else if (Objects.equals(executeUser.getMappingMode(), ParamMappingMode.RUNTIME_PARAM.getValue())) {
+                        serviceConfig.setExecuteUser(executeUser);
+                    }
+                }
+            } else {
+                serviceConfig.setExecuteUser(null);
+            }
+            ParamMappingVo runnerGroupTag = executeConfig.getRunnerGroupTag();
+            if (runnerGroupTag != null) {
+                if (Objects.equals(runnerGroupTag.getMappingMode(), ParamMappingMode.CONSTANT.getValue())) {
+                    if (serviceConfig.getRunnerGroupTag() == null) {
+                        serviceConfig.setRunnerGroupTag(runnerGroupTag);
+                    }
+                } else if (Objects.equals(runnerGroupTag.getMappingMode(), ParamMappingMode.RUNTIME_PARAM.getValue())) {
+                    serviceConfig.setRunnerGroupTag(runnerGroupTag);
+                }
+            }
+            ParamMappingVo runnerGroup = executeConfig.getRunnerGroup();
+            if (runnerGroup != null) {
+                if (Objects.equals(runnerGroup.getMappingMode(), ParamMappingMode.CONSTANT.getValue())) {
+                    if (serviceConfig.getRunnerGroup() == null) {
+                        serviceConfig.setRunnerGroup(runnerGroup);
+                    }
+                } else if (Objects.equals(runnerGroup.getMappingMode(), ParamMappingMode.RUNTIME_PARAM.getValue())) {
+                    serviceConfig.setRunnerGroup(runnerGroup);
+                }
+            }
+        }
+
+        if (CollectionUtils.isEmpty(versionConfig.getScenarioList())) {
+            serviceConfig.setScenarioId(null);
+        }
     }
 }
