@@ -129,10 +129,9 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 return reasonList;
             }
         }
-        autoexecCombopService.needExecuteConfig(versionVo);
         AutoexecCombopVersionConfigVo versionConfigVo = versionVo.getConfig();
-//        List<String> list = new ArrayList<>();
         AutoexecServiceConfigVo serviceConfigVo = serviceVo.getConfig();
+        mergeConfig(serviceConfigVo, versionVo);
         Long scenarioId = serviceConfigVo.getScenarioId();
         if (CollectionUtils.isNotEmpty(versionConfigVo.getScenarioList()) && scenarioId == null) {
             if (throwException) {
@@ -613,7 +612,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         if (roundCount != null) {
                             builder.setRoundCount(roundCount);
                         } else {
-                            throw new ParamNotExistsException("roundCount");
+                            throw new ParamNotExistsException("分批数量(roundCount)必须设置， 请联系管理员重新编辑该服务");
                         }
                     }
                 }
@@ -643,7 +642,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             paramMappingVo.setValue(executeUser);
                             executeConfigVo.setExecuteUser(paramMappingVo);
                         } else {
-                            throw new ParamNotExistsException("executeUser");
+                            throw new ParamNotExistsException("执行用户(executeUser)必须设置， 请联系管理员重新编辑该服务");
                         }
                     }
                 }
@@ -666,7 +665,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         if (protocol != null) {
                             executeConfigVo.setProtocolId(protocol);
                         } else {
-                            throw new ParamNotExistsException("protocol");
+                            throw new ParamNotExistsException("连接协议(protocol)必须设置， 请联系管理员重新编辑该服务");
                         }
                     }
                 }
@@ -691,7 +690,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         }
                     } else {
                         if (executeNodeConfig.isNull()) {
-                            throw new ParamNotExistsException("executeNodeConfig");
+                            throw new ParamNotExistsException("执行目标(executeNodeConfig)必须设置， 请联系管理员重新编辑该服务");
                         } else {
                             executeConfigVo.setExecuteNodeConfig(executeNodeConfig);
                         }
