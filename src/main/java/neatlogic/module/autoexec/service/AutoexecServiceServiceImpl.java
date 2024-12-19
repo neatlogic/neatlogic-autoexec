@@ -131,7 +131,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
         }
         AutoexecCombopVersionConfigVo versionConfigVo = versionVo.getConfig();
         AutoexecServiceConfigVo serviceConfigVo = serviceVo.getConfig();
-        mergeConfig(serviceConfigVo, versionVo);
+        serviceConfigVo = mergeConfig(serviceConfigVo, versionVo);
         Long scenarioId = serviceConfigVo.getScenarioId();
         if (CollectionUtils.isNotEmpty(versionConfigVo.getScenarioList()) && scenarioId == null) {
             if (throwException) {
@@ -522,7 +522,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
             ParamMappingVo runnerGroupTag
     ) {
         AutoexecServiceConfigVo config = autoexecServiceVo.getConfig();
-        mergeConfig(config, autoexecCombopVersionVo);
+        config = mergeConfig(config, autoexecCombopVersionVo);
         AutoexecJobBuilder builder = new AutoexecJobBuilder(autoexecCombopVersionVo.getCombopId());
         builder.setJobName(name);
         if (scenarioId == null) {
@@ -683,8 +683,13 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
             ParamMappingVo executeNodeParamMappingVo = config.getExecuteNodeConfig();
             if (executeNodeParamMappingVo != null) {
                 if (Objects.equals(executeNodeParamMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue()) && executeNodeParamMappingVo.getValue() != null) {
-                    AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = JSONObject.toJavaObject((JSONObject) executeNodeParamMappingVo.getValue(), AutoexecCombopExecuteNodeConfigVo.class);
-                    executeConfigVo.setExecuteNodeConfig(executeNodeConfigVo);
+                    Object value = executeNodeParamMappingVo.getValue();
+                    if (value instanceof AutoexecCombopExecuteNodeConfigVo) {
+                        executeConfigVo.setExecuteNodeConfig((AutoexecCombopExecuteNodeConfigVo) value);
+                    } else if (value instanceof JSONObject) {
+                        AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = JSONObject.toJavaObject((JSONObject) executeNodeParamMappingVo.getValue(), AutoexecCombopExecuteNodeConfigVo.class);
+                        executeConfigVo.setExecuteNodeConfig(executeNodeConfigVo);
+                    }
                 } else {
                     if (StringUtils.isNotBlank(formUuid)) {
                         if (Objects.equals(executeNodeParamMappingVo.getMappingMode(), ServiceParamMappingMode.FORMATTR.getValue())) {
@@ -759,7 +764,8 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
         return builder;
     }
 
-    private void mergeConfig(AutoexecServiceConfigVo serviceConfig, AutoexecCombopVersionVo autoexecCombopVersionVo) {
+    private AutoexecServiceConfigVo mergeConfig(AutoexecServiceConfigVo serviceConfig, AutoexecCombopVersionVo autoexecCombopVersionVo) {
+        AutoexecServiceConfigVo config = JSONObject.parseObject(JSONObject.toJSONString(serviceConfig), AutoexecServiceConfigVo.class);
         autoexecCombopService.needExecuteConfig(autoexecCombopVersionVo);
         AutoexecCombopVersionConfigVo versionConfig = autoexecCombopVersionVo.getConfig();
         AutoexecCombopExecuteConfigVo executeConfig = versionConfig.getExecuteConfig();
@@ -769,69 +775,70 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                     ParamMappingVo roundCount = new ParamMappingVo();
                     roundCount.setMappingMode(ParamMappingMode.CONSTANT.getValue());
                     roundCount.setValue(executeConfig.getRoundCount());
-                    serviceConfig.setRoundCount(roundCount);
+                    config.setRoundCount(roundCount);
                 }
             } else {
-                serviceConfig.setRoundCount(null);
+                config.setRoundCount(null);
             }
             if (autoexecCombopVersionVo.getNeedExecuteNode()) {
                 if (executeConfig.getExecuteNodeConfig() != null) {
                     ParamMappingVo executeNodeConfig = new ParamMappingVo();
                     executeNodeConfig.setMappingMode(ParamMappingMode.CONSTANT.getValue());
                     executeNodeConfig.setValue(executeConfig.getExecuteNodeConfig());
-                    serviceConfig.setExecuteNodeConfig(executeNodeConfig);
+                    config.setExecuteNodeConfig(executeNodeConfig);
                 }
             } else {
-                serviceConfig.setExecuteNodeConfig(null);
+                config.setExecuteNodeConfig(null);
             }
             if (autoexecCombopVersionVo.getNeedProtocol()) {
-                if (executeConfig.getProtocolId() != null && serviceConfig.getProtocol() == null) {
+                if (executeConfig.getProtocolId() != null && config.getProtocol() == null) {
                     ParamMappingVo protocol = new ParamMappingVo();
                     protocol.setMappingMode(ParamMappingMode.CONSTANT.getValue());
                     protocol.setValue(executeConfig.getProtocolId());
-                    serviceConfig.setProtocol(protocol);
+                    config.setProtocol(protocol);
                 }
             } else {
-                serviceConfig.setProtocol(null);
+                config.setProtocol(null);
             }
             if (autoexecCombopVersionVo.getNeedExecuteUser()) {
                 ParamMappingVo executeUser = executeConfig.getExecuteUser();
                 if (executeUser != null) {
                     if (Objects.equals(executeUser.getMappingMode(), ParamMappingMode.CONSTANT.getValue())) {
-                        if (serviceConfig.getExecuteUser() == null) {
-                            serviceConfig.setExecuteUser(executeUser);
+                        if (config.getExecuteUser() == null) {
+                            config.setExecuteUser(executeUser);
                         }
                     } else if (Objects.equals(executeUser.getMappingMode(), ParamMappingMode.RUNTIME_PARAM.getValue())) {
-                        serviceConfig.setExecuteUser(executeUser);
+                        config.setExecuteUser(executeUser);
                     }
                 }
             } else {
-                serviceConfig.setExecuteUser(null);
+                config.setExecuteUser(null);
             }
             ParamMappingVo runnerGroupTag = executeConfig.getRunnerGroupTag();
             if (runnerGroupTag != null) {
                 if (Objects.equals(runnerGroupTag.getMappingMode(), ParamMappingMode.CONSTANT.getValue())) {
-                    if (serviceConfig.getRunnerGroupTag() == null) {
-                        serviceConfig.setRunnerGroupTag(runnerGroupTag);
+                    if (config.getRunnerGroupTag() == null) {
+                        config.setRunnerGroupTag(runnerGroupTag);
                     }
                 } else if (Objects.equals(runnerGroupTag.getMappingMode(), ParamMappingMode.RUNTIME_PARAM.getValue())) {
-                    serviceConfig.setRunnerGroupTag(runnerGroupTag);
+                    config.setRunnerGroupTag(runnerGroupTag);
                 }
             }
             ParamMappingVo runnerGroup = executeConfig.getRunnerGroup();
             if (runnerGroup != null) {
                 if (Objects.equals(runnerGroup.getMappingMode(), ParamMappingMode.CONSTANT.getValue())) {
-                    if (serviceConfig.getRunnerGroup() == null) {
-                        serviceConfig.setRunnerGroup(runnerGroup);
+                    if (config.getRunnerGroup() == null) {
+                        config.setRunnerGroup(runnerGroup);
                     }
                 } else if (Objects.equals(runnerGroup.getMappingMode(), ParamMappingMode.RUNTIME_PARAM.getValue())) {
-                    serviceConfig.setRunnerGroup(runnerGroup);
+                    config.setRunnerGroup(runnerGroup);
                 }
             }
         }
 
         if (CollectionUtils.isEmpty(versionConfig.getScenarioList())) {
-            serviceConfig.setScenarioId(null);
+            config.setScenarioId(null);
         }
+        return config;
     }
 }
