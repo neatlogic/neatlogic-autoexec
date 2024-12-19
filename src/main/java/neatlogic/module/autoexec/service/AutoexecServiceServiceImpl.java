@@ -517,7 +517,9 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
             String executeUser,
             Long protocol,
             AutoexecCombopExecuteNodeConfigVo executeNodeConfig,
-            JSONObject runtimeParamMap
+            JSONObject runtimeParamMap,
+            ParamMappingVo runnerGroup,
+            ParamMappingVo runnerGroupTag
     ) {
         AutoexecServiceConfigVo config = autoexecServiceVo.getConfig();
         mergeConfig(config, autoexecCombopVersionVo);
@@ -531,15 +533,21 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
         }
 
         // 执行器组
-        ParamMappingVo runnerGroup = config.getRunnerGroup();
         if (runnerGroup != null) {
             builder.setRunnerGroup(runnerGroup);
+        } else {
+            if (config.getRunnerGroup() != null) {
+                builder.setRunnerGroup(config.getRunnerGroup());
+            }
         }
 
         // 执行器组标签
-        ParamMappingVo runnerGroupTag = config.getRunnerGroupTag();
         if (runnerGroupTag != null) {
             builder.setRunnerGroupTag(runnerGroupTag);
+        } else {
+            if (config.getRunnerGroupTag() != null) {
+                builder.setRunnerGroupTag(config.getRunnerGroupTag());
+            }
         }
         Map<String, Object> formAttributeDataMap = new HashMap<>();
         String formUuid = autoexecServiceVo.getFormUuid();

@@ -19,6 +19,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteNodeConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
+import neatlogic.framework.autoexec.dto.combop.ParamMappingVo;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceVo;
 import neatlogic.module.autoexec.process.dto.AutoexecJobBuilder;
 
@@ -45,6 +46,8 @@ public interface AutoexecServiceService {
      * @param protocol
      * @param executeNodeConfig
      * @param runtimeParamMap
+     * @param runnerGroup
+     * @param runnerGroupTag
      * @return
      */
     AutoexecJobBuilder getAutoexecJobBuilder(
@@ -58,5 +61,7 @@ public interface AutoexecServiceService {
             String executeUser,
             Long protocol,
             AutoexecCombopExecuteNodeConfigVo executeNodeConfig,
-            JSONObject runtimeParamMap);
+            JSONObject runtimeParamMap,
+            ParamMappingVo runnerGroup,
+            ParamMappingVo runnerGroupTag);
 }
