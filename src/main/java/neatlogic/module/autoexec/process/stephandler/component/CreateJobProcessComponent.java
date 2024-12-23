@@ -26,6 +26,7 @@ import neatlogic.framework.autoexec.constvalue.JobStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteNodeConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
+import neatlogic.framework.autoexec.dto.combop.ParamMappingVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobEnvVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceVo;
@@ -241,7 +242,17 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                         Long protocol = paramObj.getLong("protocol");
                         AutoexecCombopExecuteNodeConfigVo executeNodeConfig = paramObj.getObject("executeNodeConfig", AutoexecCombopExecuteNodeConfigVo.class);
                         JSONObject runtimeParamMap = paramObj.getJSONObject("runtimeParamMap");
-                        AutoexecJobBuilder autoexecJobBuilder = autoexecServiceService.getAutoexecJobBuilder(autoexecServiceVo, autoexecCombopVersionVo, name, scenarioId, formAttributeDataList, hidecomponentList, roundCount, executeUser, protocol, executeNodeConfig, runtimeParamMap);
+                        ParamMappingVo runnerGroup = null;
+                        JSONObject runnerGroupObj = paramObj.getJSONObject("runnerGroup");
+                        if (MapUtils.isNotEmpty(runnerGroupObj)) {
+                            runnerGroup = runnerGroupObj.toJavaObject(ParamMappingVo.class);
+                        }
+                        ParamMappingVo runnerGroupTag = null;
+                        JSONObject runnerGroupTagObj = paramObj.getJSONObject("runnerGroupTag");
+                        if (MapUtils.isNotEmpty(runnerGroupTagObj)) {
+                            runnerGroupTag = runnerGroupTagObj.toJavaObject(ParamMappingVo.class);
+                        }
+                        AutoexecJobBuilder autoexecJobBuilder = autoexecServiceService.getAutoexecJobBuilder(autoexecServiceVo, autoexecCombopVersionVo, name, scenarioId, formAttributeDataList, hidecomponentList, roundCount, executeUser, protocol, executeNodeConfig, runtimeParamMap, runnerGroup, runnerGroupTag);
                         if (autoexecJobBuilder != null) {
                             builderList.add(autoexecJobBuilder);
                         }
