@@ -130,7 +130,8 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
         boolean isNeedDownLoad = false;
         long lastModifiedLong = 0L;
         Date lncd = null;
-
+        response.setContentType("application/octet-stream");
+        response.setHeader("Content-Disposition", " attachment; filename=\"nodes.json\"");
         AutoexecJobPhaseNodeVo nodeParamVo = new AutoexecJobPhaseNodeVo(jobId, phaseName, 0);
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
         if (jobVo == null) {
@@ -207,6 +208,7 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
         if (lastModifiedLong == 0L || lncd == null || lastModifiedLong < lncd.getTime()) {
             IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
             List<AccountProtocolVo> allProtocolList = resourceAccountCrossoverMapper.getAllAccountProtocolList();
+            nodeParamVo.setPageSize(500);
             int count = autoexecJobMapper.searchJobPhaseNodeByDistinctResourceIdCount(nodeParamVo);
             int pageCount = PageUtil.getPageCount(count, nodeParamVo.getPageSize());
             nodeParamVo.setPageCount(pageCount);
@@ -367,8 +369,6 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                             nodeJson.put("port", nodeVo.getPort());
                             nodeJson.put("runnerId", nodeVo.getRunnerMapId());
                             nodeJson.put("appSystemId", resourceAppSystemMap.get(nodeVo.getResourceId()));
-                            response.setContentType("application/json");
-                            response.setHeader("Content-Disposition", " attachment; filename=nodes.json");
                             IOUtils.copyLarge(IOUtils.toInputStream(nodeJson.toJSONString() + System.lineSeparator(), StandardCharsets.UTF_8), os);
                             if (os != null) {
                                 os.flush();
