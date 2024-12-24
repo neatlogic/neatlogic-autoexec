@@ -22,6 +22,7 @@ import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.auth.core.AuthActionChecker;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
+import neatlogic.framework.autoexec.constvalue.AutoexecFromType;
 import neatlogic.framework.autoexec.constvalue.ScriptVersionStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCatalogMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecScriptMapper;
@@ -31,6 +32,7 @@ import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.dto.BasePageVo;
 import neatlogic.framework.common.util.PageUtil;
+import neatlogic.framework.dependency.core.DependencyManager;
 import neatlogic.framework.dto.OperateVo;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
@@ -150,6 +152,8 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
         // 获取操作权限
         if (Objects.equals(ScriptVersionStatus.PASSED.getValue(), scriptVo.getVersionStatus()) && CollectionUtils.isNotEmpty(scriptVoList)) {
             List<Long> idList = scriptVoList.stream().map(AutoexecScriptVo::getId).collect(Collectors.toList());
+            Map<Object, Integer> countMap = DependencyManager.getBatchDependencyCount(AutoexecFromType.SCRIPT, idList);
+            scriptVoList.forEach(o -> o.setReferenceCount(countMap.get(o.getId().toString()) != null ? countMap.get(o.getId().toString()) : 0));
             ScriptOperateManager.Builder builder = new ScriptOperateManager().new Builder();
             builder.addScriptId(idList.toArray(new Long[idList.size()]));
             Map<Long, List<OperateVo>> operateListMap = builder.managerBuild().getOperateListMap();
