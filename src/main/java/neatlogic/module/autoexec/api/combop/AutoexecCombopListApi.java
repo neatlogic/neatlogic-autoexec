@@ -19,16 +19,17 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC;
+import neatlogic.framework.autoexec.constvalue.AutoexecFromType;
 import neatlogic.framework.autoexec.constvalue.ScriptVersionStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import neatlogic.framework.autoexec.dto.AutoexecTypeVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
-import neatlogic.framework.autoexec.exception.AutoexecTypeNotFoundException;
 import neatlogic.framework.cmdb.enums.CmdbTenantConfig;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.dto.BasePageVo;
 import neatlogic.framework.config.ConfigManager;
+import neatlogic.framework.dependency.core.DependencyManager;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -118,6 +119,7 @@ public class AutoexecCombopListApi extends PrivateApiComponentBase {
         for (String status : versionStatusList) {
             List<Long> combopIdList = autoexecCombopVersionMapper.getAutoexecCombopIdListByStatus(status);
             if (CollectionUtils.isNotEmpty(combopIdList)) {
+                Map<Object, Integer> countMap = DependencyManager.getBatchDependencyCount(AutoexecFromType.COMBOP, combopIdList);
                 JSONArray idArray = new JSONArray();
                 combopIdList.forEach(item -> idArray.add(item));
                 searchVo.setDefaultValue(idArray);
@@ -127,11 +129,15 @@ public class AutoexecCombopListApi extends PrivateApiComponentBase {
                     List<AutoexecCombopVo> autoexecCombopList = autoexecCombopMapper.getAutoexecCombopList(searchVo);
                     for (AutoexecCombopVo autoexecCombopVo : autoexecCombopList) {
                         AutoexecTypeVo autoexecTypeVo = autoexecTypeMapper.getTypeById(autoexecCombopVo.getTypeId());
-                        if (autoexecTypeVo == null) {
-                            throw new AutoexecTypeNotFoundException(autoexecCombopVo.getTypeId());
+                        if (autoexecTypeVo != null) {
+                            autoexecCombopVo.setTypeName(autoexecTypeVo.getName());
                         }
-                        autoexecCombopVo.setTypeName(autoexecTypeVo.getName());
                         autoexecCombopService.setOperableButtonList(autoexecCombopVo);
+                        Integer count = countMap.get(autoexecCombopVo.getId().toString());
+                        if (count == null) {
+                            count = 0;
+                        }
+                        autoexecCombopVo.setReferenceCount(count);
                     }
                     resultObj.put("tbodyList", autoexecCombopList);
                 }
