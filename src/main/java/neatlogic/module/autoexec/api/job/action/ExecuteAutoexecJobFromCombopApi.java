@@ -35,7 +35,7 @@ import neatlogic.framework.scheduler.core.IJob;
 import neatlogic.framework.scheduler.core.SchedulerManager;
 import neatlogic.framework.scheduler.dto.JobObject;
 import neatlogic.framework.scheduler.exception.ScheduleHandlerNotFoundException;
-import neatlogic.module.autoexec.config.AutoexecConfig;
+import neatlogic.framework.autoexec.config.AutoexecConfig;
 import neatlogic.module.autoexec.schedule.plugin.AutoexecJobAutoFireJob;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
 import com.alibaba.fastjson.JSONObject;

@@ -469,7 +469,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         UserVo execUser;
         AuthenticationInfoVo authenticationInfoVo = null;
         //初始化执行用户上下文
-        if (Arrays.asList(SystemUser.SYSTEM.getUserUuid(), SystemUser.AUTOEXEC.getUserUuid()).contains(jobVo.getExecUser())) {
+        if (Arrays.asList(SystemUser.SYSTEM.getUserUuid(), neatlogic.framework.autoexec.constvalue.SystemUser.AUTOEXEC.getUserUuid()).contains(jobVo.getExecUser())) {
             execUser = SystemUser.SYSTEM.getUserVo();
         } else {
             execUser = userMapper.getUserBaseInfoByUuid(jobVo.getExecUser());
