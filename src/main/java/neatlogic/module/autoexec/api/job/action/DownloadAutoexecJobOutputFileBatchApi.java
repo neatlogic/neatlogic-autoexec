@@ -23,7 +23,7 @@ import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
-import neatlogic.framework.common.constvalue.SystemUser;
+import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.dto.runner.RunnerVo;
 import neatlogic.framework.exception.runner.RunnerHttpRequestException;
 import neatlogic.framework.integration.authentication.enums.AuthenticateType;

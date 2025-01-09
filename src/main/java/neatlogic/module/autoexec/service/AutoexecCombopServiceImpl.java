@@ -38,7 +38,7 @@ import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
 import neatlogic.framework.common.constvalue.GroupSearch;
-import neatlogic.framework.common.constvalue.SystemUser;
+import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.common.constvalue.UserType;
 import neatlogic.framework.common.util.RC4Util;
 import neatlogic.framework.config.ConfigManager;
