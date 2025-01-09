@@ -1477,15 +1477,21 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     public void deleteJob(AutoexecJobVo jobVo) {
         //删除jobContentHash
         Set<String> hashSet = new HashSet<>();
-        hashSet.add(jobVo.getParamHash());
-        hashSet.add(jobVo.getConfigHash());
+        if(StringUtils.isNotBlank(jobVo.getParamHash())) {
+            hashSet.add(jobVo.getParamHash());
+        }
+        if(StringUtils.isNotBlank(jobVo.getConfigHash())) {
+            hashSet.add(jobVo.getConfigHash());
+        }
         List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobId(jobVo.getId());
         for (AutoexecJobPhaseOperationVo operationVo : operationVoList) {
-            hashSet.add(operationVo.getParamHash());
+            if(StringUtils.isNotBlank(operationVo.getParamHash())) {
+                hashSet.add(operationVo.getParamHash());
+            }
         }
         for (String hash : hashSet) {
-            int count = autoexecJobMapper.getHashUseByOtherCount(jobVo.getId(), hash);
-            if (count == 0 && StringUtils.isNotBlank(hash)) {
+            AutoexecJobContentReferenceVo autoexecJobContentReferenceVo = autoexecJobMapper.getHashUseByOtherCount(jobVo.getId(), hash);
+            if (!autoexecJobContentReferenceVo.isReferenced() && StringUtils.isNotBlank(hash)) {
                 autoexecJobMapper.deleteJobContentByHash(hash);
             }
         }
