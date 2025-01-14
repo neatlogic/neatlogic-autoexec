@@ -18,7 +18,10 @@ package neatlogic.module.autoexec.api.job.exec;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
-import neatlogic.framework.autoexec.constvalue.*;
+import neatlogic.framework.autoexec.constvalue.AutoexecJobPhaseNodeFrom;
+import neatlogic.framework.autoexec.constvalue.CombopOperationType;
+import neatlogic.framework.autoexec.constvalue.ExecMode;
+import neatlogic.framework.autoexec.constvalue.JobNodeStatus;
 import neatlogic.framework.autoexec.dao.mapper.*;
 import neatlogic.framework.autoexec.dto.AutoexecToolVo;
 import neatlogic.framework.autoexec.dto.AutoexecTypeVo;
@@ -35,6 +38,7 @@ import neatlogic.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import neatlogic.framework.cmdb.crossover.IResourceCenterAccountCrossoverService;
 import neatlogic.framework.cmdb.crossover.IResourceCrossoverMapper;
+import neatlogic.framework.cmdb.dto.resourcecenter.AccountBaseVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
@@ -51,18 +55,18 @@ import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
 import neatlogic.framework.tagent.dao.mapper.TagentMapper;
-import neatlogic.framework.cmdb.dto.resourcecenter.AccountBaseVo;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.BufferedOutputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -76,6 +80,7 @@ import static neatlogic.framework.common.util.CommonUtil.distinctByKey;
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComponentBase {
+    Logger logger = LoggerFactory.getLogger(DownloadAutoexecJobPhaseNodesApi.class);
     @Resource
     private AutoexecJobMapper autoexecJobMapper;
 
@@ -195,7 +200,7 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
             BigDecimal lastModifiedDec = new BigDecimal(Double.toString(paramObj.getDouble("lastModified")));
             lastModifiedLong = lastModifiedDec.multiply(new BigDecimal("1000")).longValue();
         }
-        nodeParamVo.setStatusBlackList(Arrays.asList(JobNodeStatus.IGNORED.getValue(),JobNodeStatus.INVALID.getValue()));
+        nodeParamVo.setStatusBlackList(Arrays.asList(JobNodeStatus.IGNORED.getValue(), JobNodeStatus.INVALID.getValue()));
 
         //获取是不是巡检类型的作业
         boolean isInspect = isInspect(jobVo);
@@ -216,168 +221,166 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
             //补充第一行数据 {"totalCount":14, "localRunnerId":1, "jobRunnerIds":[1]}
             //nodes.json 每个作业必须下载
             if (count != 0 || Objects.equals(AutoexecJobPhaseNodeFrom.JOB.getValue(), nodeFrom)) {
-                ServletOutputStream os = response.getOutputStream();
-                isNeedDownLoad = true;
-                List<Long> runnerMapIdList = new ArrayList<>();
-                if (Objects.equals(AutoexecJobPhaseNodeFrom.JOB.getValue(), nodeFrom)) {
-                    runnerMapIdList = autoexecJobMapper.getJobRunnerMapIdListByJobId(nodeParamVo.getJobId());
-                } else {
-                    runnerMapIdList = autoexecJobMapper.getJobPhaseNodeRunnerMapIdListByNodeVo(nodeParamVo);
-                }
-                JSONObject firstRow = new JSONObject();
-                firstRow.put("totalCount", count);
-                firstRow.put("localRunnerId", jobVo.getRunnerMapId());
-                firstRow.put("jobRunnerIds", runnerMapIdList);
-                IOUtils.copyLarge(IOUtils.toInputStream(firstRow.toJSONString() + System.lineSeparator(), StandardCharsets.UTF_8), os);
-                if (os != null) {
-                    os.flush();
-                }
-                //循环分页输出节点流
-                for (int i = 1; i <= pageCount; i++) {
-                    Map<Long, JSONObject> resourceServicePortsMap = new HashMap<>();
-                    Map<Long, List<Long>> resourceAppSystemMap = new HashMap<>();
-                    List<AccountVo> accountByResourceList = new ArrayList<>();
-                    Map<String, AccountBaseVo> tagentIpAccountMap = new HashMap<>();
-                    Map<Long, Long> resourceOSResourceMap = new HashMap<>();//节点resourceId->对应操作系统resourceId
-                    nodeParamVo.setCurrentPage(i);
-                    nodeParamVo.setStartNum(nodeParamVo.getStartNum());
-                    List<AutoexecJobPhaseNodeVo> autoexecJobPhaseNodeVoList = autoexecJobMapper.searchJobPhaseNodeByDistinct(nodeParamVo);
-                    Long protocolId = autoexecJobPhaseNodeVoList.get(0).getProtocolId();
-                    Optional<AccountProtocolVo> protocolVoOptional = allProtocolList.stream().filter(o -> Objects.equals(o.getId(), protocolId)).findFirst();
-                    String protocol = null;
-                    if (protocolVoOptional.isPresent()) {
-                        protocol = protocolVoOptional.get().getName();
+                try (BufferedOutputStream bos = new BufferedOutputStream(response.getOutputStream())) {
+                    isNeedDownLoad = true;
+                    List<Long> runnerMapIdList = new ArrayList<>();
+                    if (Objects.equals(AutoexecJobPhaseNodeFrom.JOB.getValue(), nodeFrom)) {
+                        runnerMapIdList = autoexecJobMapper.getJobRunnerMapIdListByJobId(nodeParamVo.getJobId());
+                    } else {
+                        runnerMapIdList = autoexecJobMapper.getJobPhaseNodeRunnerMapIdListByNodeVo(nodeParamVo);
                     }
-                    String account = autoexecJobPhaseNodeVoList.get(0).getUserName();
-                    //批量根据协议查询默认端口
-                    List<AccountVo> defaultAccountList;
-                    Map<Long, AccountVo> protocolDefaultAccountMap = new HashMap<>();
-                    if (CollectionUtils.isNotEmpty(allProtocolList)) {
-                        defaultAccountList = resourceAccountCrossoverMapper.getDefaultAccountListByProtocolIdListAndAccount(allProtocolList.stream().map(AccountProtocolVo::getId).collect(Collectors.toList()), account);
-                        if (CollectionUtils.isNotEmpty(defaultAccountList)) {
-                            protocolDefaultAccountMap = defaultAccountList.stream().collect(toMap(AccountVo::getProtocolId, o -> o));
+                    JSONObject firstRow = new JSONObject();
+                    firstRow.put("totalCount", count);
+                    firstRow.put("localRunnerId", jobVo.getRunnerMapId());
+                    firstRow.put("jobRunnerIds", runnerMapIdList);
+                    bos.write((firstRow.toJSONString() + System.lineSeparator()).getBytes(StandardCharsets.UTF_8));
+                    bos.flush();
+                    //循环分页输出节点流
+                    for (int i = 1; i <= pageCount; i++) {
+                        Map<Long, JSONObject> resourceServicePortsMap = new HashMap<>();
+                        Map<Long, List<Long>> resourceAppSystemMap = new HashMap<>();
+                        List<AccountVo> accountByResourceList = new ArrayList<>();
+                        Map<String, AccountBaseVo> tagentIpAccountMap = new HashMap<>();
+                        Map<Long, Long> resourceOSResourceMap = new HashMap<>();//节点resourceId->对应操作系统resourceId
+                        nodeParamVo.setCurrentPage(i);
+                        List<AutoexecJobPhaseNodeVo> autoexecJobPhaseNodeVoList = autoexecJobMapper.searchJobPhaseNodeByDistinct(nodeParamVo);
+                        Long protocolId = autoexecJobPhaseNodeVoList.get(0).getProtocolId();
+                        Optional<AccountProtocolVo> protocolVoOptional = allProtocolList.stream().filter(o -> Objects.equals(o.getId(), protocolId)).findFirst();
+                        String protocol = null;
+                        if (protocolVoOptional.isPresent()) {
+                            protocol = protocolVoOptional.get().getName();
                         }
-                    }
-                    if (CollectionUtils.isNotEmpty(autoexecJobPhaseNodeVoList)) {
-                        IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
-                        List<Long> resourceIdList = autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getResourceId).filter(Objects::nonNull).collect(Collectors.toList());
-                        List<Long> resourceIncludeOsIdList = new ArrayList<>(resourceIdList);
-                        //针对巡检 批量补充对应资产的appSystemId
-                        if (CollectionUtils.isNotEmpty(resourceIdList)) {
-                            if (isInspect) {
-                                List<ResourceVo> ipObjectResourceList = resourceCrossoverMapper.getResourceListByIdList(resourceIdList);
-                                if (CollectionUtils.isNotEmpty(ipObjectResourceList)) {
-                                    resourceAppSystemMap.putAll(ipObjectResourceList.stream().filter(o -> o.getAppSystemId() != null).collect(Collectors.toMap(ResourceVo::getId, o -> {
-                                        List<Long> appSystemIdList = new ArrayList<>();
-                                        appSystemIdList.add(o.getAppSystemId());
-                                        return appSystemIdList;
-                                    }, (k1, k2) -> {
-                                        k1.addAll(k2);
-                                        return k1;
-                                    })));
-                                }
-                                List<ResourceVo> osResourceList = resourceCrossoverMapper.getResourceAppSystemListByResourceIdList(resourceIdList);
-                                if (CollectionUtils.isNotEmpty(osResourceList)) {
-                                    osResourceList = osResourceList.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(o -> o.getId() + ":" + o.getAppSystemId()))), ArrayList::new));
-                                    resourceAppSystemMap.putAll(osResourceList.stream().filter(o -> o.getAppSystemId() != null).collect(Collectors.toMap(ResourceVo::getId, o -> {
-                                        List<Long> appSystemIdList = new ArrayList<>();
-                                        appSystemIdList.add(o.getAppSystemId());
-                                        return appSystemIdList;
-                                    }, (k1, k2) -> {
-                                        k1.addAll(k2);
-                                        return k1;
-                                    })));
-                                }
-
-                            }
-                            //查询target 对应的os
-                            List<SoftwareServiceOSVo> targetOsList = resourceCrossoverMapper.getOsResourceListByResourceIdList(resourceIdList);
-                            if (CollectionUtils.isNotEmpty(targetOsList)) {
-                                resourceIncludeOsIdList.addAll(targetOsList.stream().map(SoftwareServiceOSVo::getOsId).collect(toList()));
-                                resourceOSResourceMap = targetOsList.stream().collect(Collectors.toMap(SoftwareServiceOSVo::getResourceId, SoftwareServiceOSVo::getOsId));
-                            }
-
-                            //os、software补充listen_port
-                            List<ResourceVo> osResourceList = resourceCrossoverMapper.getOsResourceListenPortListByResourceIdList(resourceIncludeOsIdList);
-                            if (CollectionUtils.isNotEmpty(osResourceList)) {
-                                resourceServicePortsMap.putAll(osResourceList.stream().filter(o -> o.getListenPort() != null).collect(Collectors.toMap(ResourceVo::getId, o -> {
-                                    JSONObject servicePorts = new JSONObject();
-                                    servicePorts.put(o.getName(), o.getListenPort());
-                                    return servicePorts;
-                                }, (k1, k2) -> {
-                                    k1.putAll(k2);
-                                    return k1;
-                                })));
-                            }
-                            List<ResourceVo> softwareResourceList = resourceCrossoverMapper.getSoftwareResourceListenPortListByResourceIdList(resourceIdList);
-                            if (CollectionUtils.isNotEmpty(softwareResourceList)) {
-                                resourceServicePortsMap.putAll(softwareResourceList.stream().filter(o -> o.getListenPort() != null).collect(Collectors.toMap(ResourceVo::getId, o -> {
-                                    JSONObject servicePorts = new JSONObject();
-                                    servicePorts.put(o.getName(), o.getListenPort());
-                                    return servicePorts;
-                                }, (k1, k2) -> {
-                                    k1.putAll(k2);
-                                    return k1;
-                                })));
-                            }
-                            if (Objects.equals(protocol, Protocol.TAGENT.getValue()) || (protocol != null && protocol.startsWith(Protocol.TAGENT.getValue() + "."))) {
-                                List<AccountBaseVo> tagentAccountByIpList = tagentMapper.getAccountListByIpListAndProtocolId(autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getHost).collect(Collectors.toList()), protocolId);
-                                if (CollectionUtils.isNotEmpty(tagentAccountByIpList)) {
-                                    tagentIpAccountMap = tagentAccountByIpList.stream().filter(distinctByKey(AccountBaseVo::getName)).collect(Collectors.toMap(AccountBaseVo::getIp, o -> o));
-                                }
-                            } else {
-                                accountByResourceList = resourceAccountCrossoverMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIncludeOsIdList, protocolId, account);
+                        String account = autoexecJobPhaseNodeVoList.get(0).getUserName();
+                        //批量根据协议查询默认端口
+                        List<AccountVo> defaultAccountList;
+                        Map<Long, AccountVo> protocolDefaultAccountMap = new HashMap<>();
+                        if (CollectionUtils.isNotEmpty(allProtocolList)) {
+                            defaultAccountList = resourceAccountCrossoverMapper.getDefaultAccountListByProtocolIdListAndAccount(allProtocolList.stream().map(AccountProtocolVo::getId).collect(Collectors.toList()), account);
+                            if (CollectionUtils.isNotEmpty(defaultAccountList)) {
+                                protocolDefaultAccountMap = defaultAccountList.stream().collect(toMap(AccountVo::getProtocolId, o -> o));
                             }
                         }
-                        for (AutoexecJobPhaseNodeVo nodeVo : autoexecJobPhaseNodeVoList) {
-                            JSONObject nodeJson = new JSONObject();
-                            AccountProtocolVo protocolVo = new AccountProtocolVo(protocolId, protocol);
-                            AccountBaseVo accountVoTmp = accountService.filterAccountByRules(accountByResourceList, tagentIpAccountMap, nodeVo.getResourceId(), protocolVo, nodeVo.getHost(), resourceOSResourceMap, protocolDefaultAccountMap);
-                            if (accountVoTmp != null) {
-                                nodeJson.put("protocol", accountVoTmp.getProtocol());
-                                String password = accountVoTmp.getPasswordPlain();
-                                if (StringUtils.isNotBlank(password)) {
-                                    password = RC4Util.encrypt(password);
-                                }
-                                nodeJson.put("password", password);
-                                nodeJson.put("protocolPort", accountVoTmp.getProtocolPort());
-                            } else {
-                                if (StringUtils.isNotBlank(protocolVo.getName())) {
-                                    nodeJson.put("protocol", protocolVo.getName());
-                                    nodeJson.put("protocolPort", protocolVo.getPort());
-                                } else {
-                                    nodeJson.put("protocol", "protocolNotExist");
-                                }
-                            }
-                            nodeJson.put("username", account);
-                            nodeJson.put("nodeName", nodeVo.getNodeName());
-                            nodeJson.put("nodeType", nodeVo.getNodeType());
-                            nodeJson.put("resourceId", nodeVo.getResourceId());
-                            JSONObject servicePorts = resourceServicePortsMap.get(nodeVo.getResourceId());
-                            Long osResourceId = resourceOSResourceMap.get(nodeVo.getResourceId());
-                            if (osResourceId != null) {
-                                JSONObject osServicePorts = resourceServicePortsMap.get(osResourceId);
-                                if (MapUtils.isNotEmpty(osServicePorts)) {
-                                    if (MapUtils.isEmpty(servicePorts)) {
-                                        servicePorts = new JSONObject();
+                        if (CollectionUtils.isNotEmpty(autoexecJobPhaseNodeVoList)) {
+                            IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
+                            List<Long> resourceIdList = autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getResourceId).filter(Objects::nonNull).collect(Collectors.toList());
+                            List<Long> resourceIncludeOsIdList = new ArrayList<>(resourceIdList);
+                            //针对巡检 批量补充对应资产的appSystemId
+                            if (CollectionUtils.isNotEmpty(resourceIdList)) {
+                                if (isInspect) {
+                                    List<ResourceVo> ipObjectResourceList = resourceCrossoverMapper.getResourceListByIdList(resourceIdList);
+                                    if (CollectionUtils.isNotEmpty(ipObjectResourceList)) {
+                                        resourceAppSystemMap.putAll(ipObjectResourceList.stream().filter(o -> o.getAppSystemId() != null).collect(Collectors.toMap(ResourceVo::getId, o -> {
+                                            List<Long> appSystemIdList = new ArrayList<>();
+                                            appSystemIdList.add(o.getAppSystemId());
+                                            return appSystemIdList;
+                                        }, (k1, k2) -> {
+                                            k1.addAll(k2);
+                                            return k1;
+                                        })));
                                     }
-                                    servicePorts.putAll(osServicePorts);
+                                    List<ResourceVo> osResourceList = resourceCrossoverMapper.getResourceAppSystemListByResourceIdList(resourceIdList);
+                                    if (CollectionUtils.isNotEmpty(osResourceList)) {
+                                        osResourceList = osResourceList.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(o -> o.getId() + ":" + o.getAppSystemId()))), ArrayList::new));
+                                        resourceAppSystemMap.putAll(osResourceList.stream().filter(o -> o.getAppSystemId() != null).collect(Collectors.toMap(ResourceVo::getId, o -> {
+                                            List<Long> appSystemIdList = new ArrayList<>();
+                                            appSystemIdList.add(o.getAppSystemId());
+                                            return appSystemIdList;
+                                        }, (k1, k2) -> {
+                                            k1.addAll(k2);
+                                            return k1;
+                                        })));
+                                    }
+
+                                }
+                                //查询target 对应的os
+                                List<SoftwareServiceOSVo> targetOsList = resourceCrossoverMapper.getOsResourceListByResourceIdList(resourceIdList);
+                                if (CollectionUtils.isNotEmpty(targetOsList)) {
+                                    resourceIncludeOsIdList.addAll(targetOsList.stream().map(SoftwareServiceOSVo::getOsId).collect(toList()));
+                                    resourceOSResourceMap = targetOsList.stream().collect(Collectors.toMap(SoftwareServiceOSVo::getResourceId, SoftwareServiceOSVo::getOsId));
+                                }
+
+                                //os、software补充listen_port
+                                List<ResourceVo> osResourceList = resourceCrossoverMapper.getOsResourceListenPortListByResourceIdList(resourceIncludeOsIdList);
+                                if (CollectionUtils.isNotEmpty(osResourceList)) {
+                                    resourceServicePortsMap.putAll(osResourceList.stream().filter(o -> o.getListenPort() != null).collect(Collectors.toMap(ResourceVo::getId, o -> {
+                                        JSONObject servicePorts = new JSONObject();
+                                        servicePorts.put(o.getName(), o.getListenPort());
+                                        return servicePorts;
+                                    }, (k1, k2) -> {
+                                        k1.putAll(k2);
+                                        return k1;
+                                    })));
+                                }
+                                List<ResourceVo> softwareResourceList = resourceCrossoverMapper.getSoftwareResourceListenPortListByResourceIdList(resourceIdList);
+                                if (CollectionUtils.isNotEmpty(softwareResourceList)) {
+                                    resourceServicePortsMap.putAll(softwareResourceList.stream().filter(o -> o.getListenPort() != null).collect(Collectors.toMap(ResourceVo::getId, o -> {
+                                        JSONObject servicePorts = new JSONObject();
+                                        servicePorts.put(o.getName(), o.getListenPort());
+                                        return servicePorts;
+                                    }, (k1, k2) -> {
+                                        k1.putAll(k2);
+                                        return k1;
+                                    })));
+                                }
+                                if (Objects.equals(protocol, Protocol.TAGENT.getValue()) || (protocol != null && protocol.startsWith(Protocol.TAGENT.getValue() + "."))) {
+                                    List<AccountBaseVo> tagentAccountByIpList = tagentMapper.getAccountListByIpListAndProtocolId(autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getHost).collect(Collectors.toList()), protocolId);
+                                    if (CollectionUtils.isNotEmpty(tagentAccountByIpList)) {
+                                        tagentIpAccountMap = tagentAccountByIpList.stream().filter(distinctByKey(AccountBaseVo::getName)).collect(Collectors.toMap(AccountBaseVo::getIp, o -> o));
+                                    }
+                                } else {
+                                    accountByResourceList = resourceAccountCrossoverMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIncludeOsIdList, protocolId, account);
                                 }
                             }
-                            nodeJson.put("servicePorts", servicePorts);
-                            nodeJson.put("host", nodeVo.getHost());
-                            nodeJson.put("port", nodeVo.getPort());
-                            nodeJson.put("runnerId", nodeVo.getRunnerMapId());
-                            nodeJson.put("appSystemId", resourceAppSystemMap.get(nodeVo.getResourceId()));
-                            IOUtils.copyLarge(IOUtils.toInputStream(nodeJson.toJSONString() + System.lineSeparator(), StandardCharsets.UTF_8), os);
-                            if (os != null) {
-                                os.flush();
+                            for (AutoexecJobPhaseNodeVo nodeVo : autoexecJobPhaseNodeVoList) {
+                                JSONObject nodeJson = new JSONObject();
+                                AccountProtocolVo protocolVo = new AccountProtocolVo(protocolId, protocol);
+                                AccountBaseVo accountVoTmp = accountService.filterAccountByRules(accountByResourceList, tagentIpAccountMap, nodeVo.getResourceId(), protocolVo, nodeVo.getHost(), resourceOSResourceMap, protocolDefaultAccountMap);
+                                if (accountVoTmp != null) {
+                                    nodeJson.put("protocol", accountVoTmp.getProtocol());
+                                    String password = accountVoTmp.getPasswordPlain();
+                                    if (StringUtils.isNotBlank(password)) {
+                                        password = RC4Util.encrypt(password);
+                                    }
+                                    nodeJson.put("password", password);
+                                    nodeJson.put("protocolPort", accountVoTmp.getProtocolPort());
+                                } else {
+                                    if (StringUtils.isNotBlank(protocolVo.getName())) {
+                                        nodeJson.put("protocol", protocolVo.getName());
+                                        nodeJson.put("protocolPort", protocolVo.getPort());
+                                    } else {
+                                        nodeJson.put("protocol", "protocolNotExist");
+                                    }
+                                }
+                                nodeJson.put("username", account);
+                                nodeJson.put("nodeName", nodeVo.getNodeName());
+                                nodeJson.put("nodeType", nodeVo.getNodeType());
+                                nodeJson.put("resourceId", nodeVo.getResourceId());
+                                JSONObject servicePorts = resourceServicePortsMap.get(nodeVo.getResourceId());
+                                Long osResourceId = resourceOSResourceMap.get(nodeVo.getResourceId());
+                                if (osResourceId != null) {
+                                    JSONObject osServicePorts = resourceServicePortsMap.get(osResourceId);
+                                    if (MapUtils.isNotEmpty(osServicePorts)) {
+                                        if (MapUtils.isEmpty(servicePorts)) {
+                                            servicePorts = new JSONObject();
+                                        }
+                                        servicePorts.putAll(osServicePorts);
+                                    }
+                                }
+                                nodeJson.put("servicePorts", servicePorts);
+                                nodeJson.put("host", nodeVo.getHost());
+                                nodeJson.put("port", nodeVo.getPort());
+                                nodeJson.put("runnerId", nodeVo.getRunnerMapId());
+                                nodeJson.put("appSystemId", resourceAppSystemMap.get(nodeVo.getResourceId()));
+                                bos.write((nodeJson.toJSONString() + System.lineSeparator()).getBytes(StandardCharsets.UTF_8));
                             }
                         }
+                        bos.flush();
                     }
-                }
-                if (os != null) {
-                    os.close();
+                    bos.flush();
+                } catch (Exception e) {
+                    // 日志记录和异常处理
+                    logger.error("get job nodes fail:" + paramObj.toJSONString(), e);
+                    response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
                 }
             }
         }
