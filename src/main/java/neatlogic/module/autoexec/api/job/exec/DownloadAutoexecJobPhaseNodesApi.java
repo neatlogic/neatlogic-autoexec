@@ -377,6 +377,7 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                         bos.flush();
                     }
                     bos.flush();
+                    response.flushBuffer();
                 } catch (Exception e) {
                     // 日志记录和异常处理
                     logger.error("get job nodes fail:" + paramObj.toJSONString(), e);
