@@ -639,10 +639,13 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                         continue;
                     }
                     // 文本域类型 上游节点输出参数值 文本类型
-                    if (Objects.equals(inputParamVo.getType(), ParamType.TEXTAREA.getValue())) {
-                        if (Objects.equals(preNodeOutputParamVo.getType(), ParamType.TEXT.getValue())) {
+                    if (Objects.equals(inputParamVo.getType(), ParamType.TEXTAREA.getValue()) && Objects.equals(preNodeOutputParamVo.getType(), ParamType.TEXT.getValue())) {
                             continue;
-                        }
+
+                    }
+                    if (Objects.equals(inputParamVo.getType(), ParamType.TEXT.getValue()) && Objects.equals(preNodeOutputParamVo.getType(), ParamType.TEXTAREA.getValue())) {
+                            continue;
+
                     }
                     throw new AutoexecParamMappingTargetTypeMismatchException(phaseName, operationName, inputParamLabel, conversionPreNodeParamPath(preNodeNameMap, preOperationNameMap, value));
                 } else if (Objects.equals(mappingMode, ParamMappingMode.PRE_NODE_OUTPUT_PARAM_KEY.getValue())) {
