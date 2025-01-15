@@ -326,11 +326,12 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                                 }
                                 if (Objects.equals(protocol, Protocol.TAGENT.getValue()) || (protocol != null && protocol.startsWith(Protocol.TAGENT.getValue() + "."))) {
                                     //优先从主ip里面找账号没找到才去副ip列表找，但是副ip不允许存在多个账号
-                                    List<AccountBaseVo> tagentAccountByMainIpList = tagentMapper.getAccountListByMainIpListAndProtocolId(autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getHost).collect(Collectors.toList()), protocolId);
+                                    List<String> ipList = autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getHost).collect(Collectors.toList());
+                                    List<AccountBaseVo> tagentAccountByMainIpList = tagentMapper.getAccountListByMainIpListAndProtocolId(ipList, protocolId);
                                     if (CollectionUtils.isNotEmpty(tagentAccountByMainIpList)) {
                                         tagentMainIpAccountMap = tagentAccountByMainIpList.stream().filter(distinctByKey(AccountBaseVo::getName)).collect(Collectors.toMap(AccountBaseVo::getIp, o -> o));
                                     }
-                                    List<AccountBaseVo> tagentAccountByIpList = tagentMapper.getAccountListByIpListAndProtocolId(autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getHost).collect(Collectors.toList()), protocolId);
+                                    List<AccountBaseVo> tagentAccountByIpList = tagentMapper.getAccountListByIpListAndProtocolId(ipList, protocolId);
                                     if (CollectionUtils.isNotEmpty(tagentAccountByIpList)) {
                                         tagentIpAccountMap = tagentAccountByIpList.stream()
                                                 .collect(Collectors.groupingBy(AccountBaseVo::getIp))  // 按 IP 分组
