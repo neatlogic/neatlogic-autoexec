@@ -70,6 +70,7 @@ import java.io.BufferedOutputStream;
 import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.*;
@@ -241,6 +242,7 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                         Map<Long, List<Long>> resourceAppSystemMap = new HashMap<>();
                         List<AccountVo> accountByResourceList = new ArrayList<>();
                         Map<String, AccountBaseVo> tagentIpAccountMap = new HashMap<>();
+                        Map<String, AccountBaseVo> tagentMainIpAccountMap = new HashMap<>();
                         Map<Long, Long> resourceOSResourceMap = new HashMap<>();//节点resourceId->对应操作系统resourceId
                         nodeParamVo.setCurrentPage(i);
                         List<AutoexecJobPhaseNodeVo> autoexecJobPhaseNodeVoList = autoexecJobMapper.searchJobPhaseNodeByDistinct(nodeParamVo);
@@ -323,9 +325,21 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                                     })));
                                 }
                                 if (Objects.equals(protocol, Protocol.TAGENT.getValue()) || (protocol != null && protocol.startsWith(Protocol.TAGENT.getValue() + "."))) {
+                                    //优先从主ip里面找账号没找到才去副ip列表找，但是副ip不允许存在多个账号
+                                    List<AccountBaseVo> tagentAccountByMainIpList = tagentMapper.getAccountListByMainIpListAndProtocolId(autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getHost).collect(Collectors.toList()), protocolId);
+                                    if (CollectionUtils.isNotEmpty(tagentAccountByMainIpList)) {
+                                        tagentMainIpAccountMap = tagentAccountByMainIpList.stream().filter(distinctByKey(AccountBaseVo::getName)).collect(Collectors.toMap(AccountBaseVo::getIp, o -> o));
+                                    }
                                     List<AccountBaseVo> tagentAccountByIpList = tagentMapper.getAccountListByIpListAndProtocolId(autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getHost).collect(Collectors.toList()), protocolId);
                                     if (CollectionUtils.isNotEmpty(tagentAccountByIpList)) {
-                                        tagentIpAccountMap = tagentAccountByIpList.stream().filter(distinctByKey(AccountBaseVo::getName)).collect(Collectors.toMap(AccountBaseVo::getIp, o -> o));
+                                        tagentIpAccountMap = tagentAccountByIpList.stream()
+                                                .collect(Collectors.groupingBy(AccountBaseVo::getIp))  // 按 IP 分组
+                                                .values()
+                                                .stream()
+                                                .filter(accountBaseVos -> accountBaseVos.size() == 1)  // 过滤掉 IP 重复的
+                                                .map(accountBaseVos -> accountBaseVos.get(0))  // 取唯一的 AccountBaseVo
+                                                .filter(distinctByKey(AccountBaseVo::getName))  // 根据名称去重（如果需要）
+                                                .collect(Collectors.toMap(AccountBaseVo::getIp, Function.identity()));  // 转成 Map
                                     }
                                 } else {
                                     accountByResourceList = resourceAccountCrossoverMapper.getResourceAccountListByResourceIdAndProtocolAndAccount(resourceIncludeOsIdList, protocolId, account);
@@ -334,7 +348,7 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                             for (AutoexecJobPhaseNodeVo nodeVo : autoexecJobPhaseNodeVoList) {
                                 JSONObject nodeJson = new JSONObject();
                                 AccountProtocolVo protocolVo = new AccountProtocolVo(protocolId, protocol);
-                                AccountBaseVo accountVoTmp = accountService.filterAccountByRules(accountByResourceList, tagentIpAccountMap, nodeVo.getResourceId(), protocolVo, nodeVo.getHost(), resourceOSResourceMap, protocolDefaultAccountMap);
+                                AccountBaseVo accountVoTmp = accountService.filterAccountByRules(accountByResourceList, tagentMainIpAccountMap, tagentIpAccountMap, nodeVo.getResourceId(), protocolVo, nodeVo.getHost(), resourceOSResourceMap, protocolDefaultAccountMap);
                                 if (accountVoTmp != null) {
                                     nodeJson.put("protocol", accountVoTmp.getProtocol());
                                     String password = accountVoTmp.getPasswordPlain();
