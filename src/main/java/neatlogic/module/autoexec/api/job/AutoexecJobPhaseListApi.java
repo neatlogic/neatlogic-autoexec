@@ -37,6 +37,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -118,7 +119,7 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
             AtomicInteger succeedCount = new AtomicInteger(0);
             AtomicInteger totalCount = new AtomicInteger();
             jobPhaseNodeStatusCountVoList.forEach(o -> {
-                if (Objects.equals(o.getStatus(), JobNodeStatus.SUCCEED.getValue())) {
+                if (Arrays.asList(JobNodeStatus.SUCCEED.getValue(),JobNodeStatus.IGNORED.getValue()).contains(o.getStatus())) {
                     succeedCount.set(o.getCount());
 
                 }

@@ -1824,6 +1824,16 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
 
     @Override
     public void updateJobNodeStatus(List<RunnerMapVo> runnerVos, AutoexecJobVo jobVo, String nodeStatus) {
+        AutoexecJobPhaseVo currentPhase = jobVo.getCurrentPhase();
+        //如果所有非删除的节点都是ignore，则phase 也要更新成ignore
+        if (autoexecJobMapper.getJobPhaseNodeCountWithoutDeleteByJobIdAndPhaseIdAndExceptStatusList(jobVo.getId(), currentPhase.getId(), Collections.singletonList(JobNodeStatus.IGNORED.getValue())) == 0) {
+            autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(jobVo.getCurrentPhase().getId()), JobPhaseStatus.IGNORED.getValue());
+            List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListWithGroupByJobId(jobVo.getId());
+            if (jobPhaseVoList.stream().allMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.COMPLETED.getValue()) || Objects.equals(o.getStatus(), JobPhaseStatus.IGNORED.getValue()))) {
+                jobVo.setStatus(JobPhaseStatus.COMPLETED.getValue());
+                autoexecJobMapper.updateJobStatus(jobVo);
+            }
+        }
         checkRunnerHealth(runnerVos);
         JSONObject paramJson = new JSONObject();
         paramJson.put("jobId", jobVo.getId());
