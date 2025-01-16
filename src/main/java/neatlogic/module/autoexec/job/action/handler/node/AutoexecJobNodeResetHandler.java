@@ -16,10 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 package neatlogic.module.autoexec.job.action.handler.node;
 
 import com.alibaba.fastjson.JSONObject;
-import neatlogic.framework.autoexec.constvalue.ExecMode;
-import neatlogic.framework.autoexec.constvalue.JobAction;
-import neatlogic.framework.autoexec.constvalue.JobNodeStatus;
-import neatlogic.framework.autoexec.constvalue.JobPhaseStatus;
+import neatlogic.framework.autoexec.constvalue.*;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
@@ -36,7 +33,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.Collections;
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -71,8 +67,9 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
 
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
-        List<AutoexecJobPhaseNodeVo> nodeVoList;
         Integer isAll = jobVo.getActionParam().getInteger("isAll");
+        jobVo.setStatus(JobStatus.RUNNING.getValue());
+        autoexecJobMapper.updateJobStatus(jobVo);
         //更新状态
         AutoexecJobPhaseVo currentPhaseVo = jobVo.getCurrentPhase();
         if (Objects.equals(currentPhaseVo.getExecMode(), ExecMode.SQL.getValue())) {

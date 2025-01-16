@@ -1773,8 +1773,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     public void resetJobNodeStatus(AutoexecJobVo jobVo) {
         AutoexecJobPhaseVo currentPhase = jobVo.getCurrentPhase();
         //如果所有非删除的节点都是pending，则phase 也要更新成pending
-        if (autoexecJobMapper.getJobPhaseNodeCountWithoutDeleteByJobIdAndPhaseIdAndExceptStatusList(jobVo.getId(), currentPhase.getId(), Collections.singletonList(JobNodeStatus.PENDING.getValue())) == 0) {
+        if (autoexecJobMapper.getJobPhaseNodeCountWithoutDeleteByJobIdAndPhaseIdAndExceptStatusList(jobVo.getId(), currentPhase.getId(), Arrays.asList(JobNodeStatus.PENDING.getValue(),JobNodeStatus.INVALID.getValue())) == 0) {
             autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(jobVo.getCurrentPhase().getId()), JobPhaseStatus.PENDING.getValue());
+        }else{
+            autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(jobVo.getCurrentPhase().getId()), JobPhaseStatus.RUNNING.getValue());
         }
         //刷新阶段runner status
         refreshPhaseRunnerStatus(currentPhase);
