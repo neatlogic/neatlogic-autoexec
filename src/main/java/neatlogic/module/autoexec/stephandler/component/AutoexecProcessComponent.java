@@ -1571,7 +1571,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         }
 
 
-        Map<String, FormAttributeVo> formAttributeMap = formAttributeList.stream().collect(Collectors.toMap(e -> e.getUuid(), e -> e));
+        Map<String, FormAttributeVo> formAttributeMap = formAttributeList.stream().collect(Collectors.toMap(FormAttributeVo::getUuid, e -> e));
         JSONObject paramObj = currentProcessTaskStepVo.getParamObj();
         JSONArray formAttributeDataList = paramObj.getJSONArray("formAttributeDataList");
         if (formAttributeDataList == null) {
