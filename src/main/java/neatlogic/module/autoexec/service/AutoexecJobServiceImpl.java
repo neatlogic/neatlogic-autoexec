@@ -1861,6 +1861,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      */
     @Override
     public void checkRunnerHealth(List<RunnerMapVo> runnerVos) {
+
         String url;
         for (RunnerMapVo runner : runnerVos) {
             if (runner.getRunnerMapId() == null) {
@@ -1875,8 +1876,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 throw new RunnerConnectRefusedException(url, requestUtil.getError());
             }
             JSONObject resultJson = requestUtil.getResultJson();
-            if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                throw new RunnerHttpRequestException(url + ":" + requestUtil.getError());
+            if (resultJson==null || !resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
+                throw new RunnerHttpRequestException("url:"+url + ",responseCode:"+requestUtil.getResponseCode()+",message:" + requestUtil.getError());
             }
 
         }

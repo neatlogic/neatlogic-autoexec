@@ -17,6 +17,7 @@ package neatlogic.module.autoexec.service;
 
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
+import org.springframework.transaction.annotation.Transactional;
 
 /**
  * @author lvzk
@@ -36,6 +37,7 @@ public interface AutoexecJobActionService {
      * 校验根据组合工具创建的作业
      *
      */
+    @Transactional
     void validateAndCreateJobFromCombop(AutoexecJobVo autoexecJobParam) throws Exception;
 
     /**
