@@ -1477,15 +1477,15 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     public void deleteJob(AutoexecJobVo jobVo) {
         //删除jobContentHash
         Set<String> hashSet = new HashSet<>();
-        if(StringUtils.isNotBlank(jobVo.getParamHash())) {
+        if (StringUtils.isNotBlank(jobVo.getParamHash())) {
             hashSet.add(jobVo.getParamHash());
         }
-        if(StringUtils.isNotBlank(jobVo.getConfigHash())) {
+        if (StringUtils.isNotBlank(jobVo.getConfigHash())) {
             hashSet.add(jobVo.getConfigHash());
         }
         List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobId(jobVo.getId());
         for (AutoexecJobPhaseOperationVo operationVo : operationVoList) {
-            if(StringUtils.isNotBlank(operationVo.getParamHash())) {
+            if (StringUtils.isNotBlank(operationVo.getParamHash())) {
                 hashSet.add(operationVo.getParamHash());
             }
         }
@@ -1773,9 +1773,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     public void resetJobNodeStatus(AutoexecJobVo jobVo) {
         AutoexecJobPhaseVo currentPhase = jobVo.getCurrentPhase();
         //如果所有非删除的节点都是pending，则phase 也要更新成pending
-        if (autoexecJobMapper.getJobPhaseNodeCountWithoutDeleteByJobIdAndPhaseIdAndExceptStatusList(jobVo.getId(), currentPhase.getId(), Arrays.asList(JobNodeStatus.PENDING.getValue(),JobNodeStatus.INVALID.getValue())) == 0) {
+        if (autoexecJobMapper.getJobPhaseNodeCountWithoutDeleteByJobIdAndPhaseIdAndExceptStatusList(jobVo.getId(), currentPhase.getId(), Arrays.asList(JobNodeStatus.PENDING.getValue(), JobNodeStatus.INVALID.getValue())) == 0) {
             autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(jobVo.getCurrentPhase().getId()), JobPhaseStatus.PENDING.getValue());
-        }else{
+        } else {
             autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(jobVo.getCurrentPhase().getId()), JobPhaseStatus.RUNNING.getValue());
         }
         //刷新阶段runner status
@@ -1876,8 +1876,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 throw new RunnerConnectRefusedException(url, requestUtil.getError());
             }
             JSONObject resultJson = requestUtil.getResultJson();
-            if (resultJson==null || !resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                throw new RunnerHttpRequestException("url:"+url + ",responseCode:"+requestUtil.getResponseCode()+",message:" + requestUtil.getError());
+            if (resultJson == null || !resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
+                throw new RunnerConnectRefusedException(runner.getHost() + ":" + runner.getPort(), url + ", response code:" + requestUtil.getResponseCode());
             }
 
         }
