@@ -422,6 +422,10 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             if (autoexecJobParam.getExecuteConfig().getExecuteNodeConfig() != null && !autoexecJobParam.getExecuteConfig().getExecuteNodeConfig().isNull()) {
                 combopExecuteConfigVo.setExecuteNodeConfig(autoexecJobParam.getExecuteConfig().getExecuteNodeConfig());
             }
+            //如果创建作业分批数入参不存在，则用组合工具的全局分批数
+            if (autoexecJobParam.getRoundCount() == null) {
+                autoexecJobParam.setRoundCount(combopExecuteConfigVo.getRoundCount());
+            }
             config.setExecuteConfig(combopExecuteConfigVo);
             autoexecCombopService.verifyAutoexecCombopConfig(config, true);
         }
