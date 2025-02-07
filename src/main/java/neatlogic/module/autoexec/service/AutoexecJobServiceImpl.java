@@ -1491,7 +1491,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
         for (String hash : hashSet) {
             AutoexecJobContentReferenceVo autoexecJobContentReferenceVo = autoexecJobMapper.getHashUseByOtherCount(jobVo.getId(), hash);
-            if (!autoexecJobContentReferenceVo.isReferenced() && StringUtils.isNotBlank(hash)) {
+            if (autoexecJobContentReferenceVo != null && !autoexecJobContentReferenceVo.isReferenced() && StringUtils.isNotBlank(hash)) {
                 autoexecJobMapper.deleteJobContentByHash(hash);
             }
         }
