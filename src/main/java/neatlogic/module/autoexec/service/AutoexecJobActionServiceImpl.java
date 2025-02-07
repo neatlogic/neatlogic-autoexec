@@ -424,7 +424,12 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             }
             //如果创建作业分批数入参不存在，则用组合工具的全局分批数
             if (autoexecJobParam.getRoundCount() == null) {
-                autoexecJobParam.setRoundCount(combopExecuteConfigVo.getRoundCount());
+                if(combopExecuteConfigVo.getRoundCount() != null) {
+                    autoexecJobParam.setRoundCount(combopExecuteConfigVo.getRoundCount());
+                }else{
+                    //组合工具的全局分批数不存在则默认分64批
+                    autoexecJobParam.setRoundCount(64);
+                }
             }
             config.setExecuteConfig(combopExecuteConfigVo);
             autoexecCombopService.verifyAutoexecCombopConfig(config, true);
