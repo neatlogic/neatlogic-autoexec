@@ -17,6 +17,7 @@ package neatlogic.module.autoexec.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.autoexec.constvalue.CombopNodeSpecify;
 import neatlogic.framework.autoexec.constvalue.ParamMappingMode;
 import neatlogic.framework.autoexec.constvalue.ServiceParamMappingMode;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
@@ -781,7 +782,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 config.setRoundCount(null);
             }
             if (autoexecCombopVersionVo.getNeedExecuteNode()) {
-                if (executeConfig.getExecuteNodeConfig() != null) {
+                if (Objects.equals(executeConfig.getWhenToSpecify(), CombopNodeSpecify.NOW.getValue()) && executeConfig.getExecuteNodeConfig() != null) {
                     ParamMappingVo executeNodeConfig = new ParamMappingVo();
                     executeNodeConfig.setMappingMode(ParamMappingMode.CONSTANT.getValue());
                     executeNodeConfig.setValue(executeConfig.getExecuteNodeConfig());
