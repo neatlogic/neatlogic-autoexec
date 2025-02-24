@@ -3,11 +3,11 @@ package neatlogic.module.autoexec.dependency;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.autoexec.constvalue.AutoexecFromType;
-import neatlogic.framework.autoexec.dao.mapper.AutoexecToolMapper;
-import neatlogic.framework.autoexec.dto.AutoexecToolVo;
+import neatlogic.framework.autoexec.dto.profile.AutoexecProfileVo;
 import neatlogic.framework.dependency.core.CustomDependencyHandlerBase;
 import neatlogic.framework.dependency.core.IFromType;
 import neatlogic.framework.dependency.dto.DependencyInfoVo;
+import neatlogic.module.autoexec.dao.mapper.AutoexecProfileMapper;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -24,7 +24,7 @@ import java.util.Map;
 public class AutoexecTool2ProfileDependencyHandler extends CustomDependencyHandlerBase {
 
     @Resource
-    AutoexecToolMapper autoexecToolMapper;
+    AutoexecProfileMapper autoexecProfileMapper;
 
     @Override
     protected String getTableName() {
@@ -53,16 +53,16 @@ public class AutoexecTool2ProfileDependencyHandler extends CustomDependencyHandl
         }
         if (dependencyObj instanceof Map) {
             Map<String, Object> map = (Map) dependencyObj;
-            Object operationId = map.get("operation_id");
-            if (operationId != null) {
-                AutoexecToolVo tool = autoexecToolMapper.getToolById(Long.valueOf(operationId.toString()));
-                if (tool != null) {
+            Object profileId = map.get("profile_id");
+            if (profileId != null) {
+                AutoexecProfileVo profileVo = autoexecProfileMapper.getProfileVoById(Long.valueOf(profileId.toString()));
+                if (profileVo != null) {
                     JSONObject dependencyInfoConfig = new JSONObject();
-                    dependencyInfoConfig.put("toolId", tool.getId());
+                    dependencyInfoConfig.put("profileId", profileVo.getId());
                     List<String> pathList = new ArrayList<>();
-                    pathList.add("工具库");
-                    String urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/tool-detail?id=${DATA.toolId}";
-                    return new DependencyInfoVo(tool.getId(), dependencyInfoConfig, tool.getName(), pathList, urlFormat, this.getGroupName());
+                    pathList.add("预置参数集");
+                    String urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/tool-profile-manage?id=${DATA.profileId}";
+                    return new DependencyInfoVo(profileVo.getId(), dependencyInfoConfig, profileVo.getName(), pathList, urlFormat, this.getGroupName());
                 }
             }
         }
