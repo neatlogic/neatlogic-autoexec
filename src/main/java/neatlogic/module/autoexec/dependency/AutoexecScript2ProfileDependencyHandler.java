@@ -1,12 +1,19 @@
 package neatlogic.module.autoexec.dependency;
 
+import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.autoexec.constvalue.AutoexecFromType;
+import neatlogic.framework.autoexec.dto.profile.AutoexecProfileVo;
 import neatlogic.framework.dependency.core.CustomDependencyHandlerBase;
 import neatlogic.framework.dependency.core.IFromType;
 import neatlogic.framework.dependency.dto.DependencyInfoVo;
+import neatlogic.module.autoexec.dao.mapper.AutoexecProfileMapper;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @author longrf
@@ -15,6 +22,10 @@ import java.util.List;
  */
 @Service
 public class AutoexecScript2ProfileDependencyHandler extends CustomDependencyHandlerBase {
+
+    @Resource
+    AutoexecProfileMapper autoexecProfileMapper;
+
     @Override
     protected String getTableName() {
         return "autoexec_profile_operation";
@@ -37,6 +48,24 @@ public class AutoexecScript2ProfileDependencyHandler extends CustomDependencyHan
 
     @Override
     protected DependencyInfoVo parse(Object dependencyObj) {
+        if (dependencyObj == null) {
+            return null;
+        }
+        if (dependencyObj instanceof Map) {
+            Map<String, Object> map = (Map) dependencyObj;
+            Object profileId = map.get("profile_id");
+            if (profileId != null) {
+                AutoexecProfileVo profileVo = autoexecProfileMapper.getProfileVoById(Long.valueOf(profileId.toString()));
+                if (profileVo != null) {
+                    JSONObject dependencyInfoConfig = new JSONObject();
+                    dependencyInfoConfig.put("profileId", profileVo.getId());
+                    List<String> pathList = new ArrayList<>();
+                    pathList.add("预置参数集");
+                    String urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/tool-profile-manage?id=${DATA.profileId}";
+                    return new DependencyInfoVo(profileVo.getId(), dependencyInfoConfig, profileVo.getName(), pathList, urlFormat, this.getGroupName());
+                }
+            }
+        }
         return null;
     }
 
