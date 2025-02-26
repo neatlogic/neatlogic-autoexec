@@ -77,7 +77,7 @@ public class ScriptParamTypeText extends ScriptParamTypeBase {
         return new JSONObject() {
             {
                 this.put("type", "text");
-                this.put("maxlength", 500);
+                this.put("maxlength", 2000);
                 this.put("placeholder", "请输入");
             }
         };
