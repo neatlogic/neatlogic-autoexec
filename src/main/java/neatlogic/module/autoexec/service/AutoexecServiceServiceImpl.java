@@ -585,6 +585,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 IFormAttributeDataConversionHandler handler = FormAttributeDataConversionHandlerFactory.getHandler(formAttributeVo.getHandler());
                 if (handler != null) {
                     Object simpleValue = handler.getSimpleValue(dataList);
+                    formAttributeDataMap.put(attributeUuid, simpleValue);
                 } else {
                     formAttributeDataMap.put(attributeUuid, dataList);
                 }
