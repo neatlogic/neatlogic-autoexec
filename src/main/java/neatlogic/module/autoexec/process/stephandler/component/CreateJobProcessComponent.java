@@ -46,10 +46,7 @@ import neatlogic.framework.process.dto.ProcessTaskStepVo;
 import neatlogic.framework.process.dto.ProcessTaskStepWorkerVo;
 import neatlogic.framework.process.exception.processtask.ProcessTaskException;
 import neatlogic.framework.process.exception.processtask.ProcessTaskNoPermissionException;
-import neatlogic.framework.process.stephandler.core.IProcessStepHandler;
-import neatlogic.framework.process.stephandler.core.ProcessStepHandlerBase;
-import neatlogic.framework.process.stephandler.core.ProcessStepHandlerFactory;
-import neatlogic.framework.process.stephandler.core.ProcessStepThread;
+import neatlogic.framework.process.stephandler.core.*;
 import neatlogic.module.autoexec.constvalue.FailPolicy;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecServiceMapper;
@@ -147,207 +144,227 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
 
     @Override
     protected int myActive(ProcessTaskStepVo currentProcessTaskStepVo) throws ProcessTaskException {
-        IProcessTaskCrossoverMapper processTaskCrossoverMapper = CrossoverServiceFactory.getApi(IProcessTaskCrossoverMapper.class);
-        ISelectContentByHashCrossoverMapper selectContentByHashCrossoverMapper = CrossoverServiceFactory.getApi(ISelectContentByHashCrossoverMapper.class);
-        IProcessTaskStepDataCrossoverMapper processTaskStepDataCrossoverMapper = CrossoverServiceFactory.getApi(IProcessTaskStepDataCrossoverMapper.class);
-        try {
-            JSONObject config = currentProcessTaskStepVo.getConfig();
-            if (MapUtils.isEmpty(config)) {
-                String configHash = currentProcessTaskStepVo.getConfigHash();
-                if (StringUtils.isBlank(configHash)) {
-                    ProcessTaskStepVo processTaskStepVo = processTaskCrossoverMapper.getProcessTaskStepBaseInfoById(currentProcessTaskStepVo.getId());
-                    configHash = processTaskStepVo.getConfigHash();
-                    currentProcessTaskStepVo.setConfigHash(configHash);
-                    currentProcessTaskStepVo.setProcessStepUuid(processTaskStepVo.getProcessStepUuid());
-                }
-                // 获取工单当前步骤配置信息
-                String configStr = selectContentByHashCrossoverMapper.getProcessTaskStepConfigByHash(configHash);
-                if (StringUtils.isBlank(configStr)) {
-                    processTaskStepComplete(currentProcessTaskStepVo.getId());
-                    return 0;
-                }
-                config = JSONObject.parseObject(configStr);
-                currentProcessTaskStepVo.setConfig(config);
-            }
-            JSONObject createJobConfig = config.getJSONObject("createJobConfig");
-            if (MapUtils.isEmpty(createJobConfig)) {
-                processTaskStepComplete(currentProcessTaskStepVo.getId());
-                return 0;
-            }
-            CreateJobConfigVo createJobConfigVo = createJobConfig.toJavaObject(CreateJobConfigVo.class);
-            // rerunStepToCreateNewJob为1时表示重新激活自动化步骤时创建新作业，rerunStepToCreateNewJob为0时表示重新激活自动化步骤时不创建新作业，也不重跑旧作业，即什么都不做
-            Integer rerunStepToCreateNewJob = createJobConfigVo.getRerunStepToCreateNewJob();
-            if (!Objects.equals(rerunStepToCreateNewJob, 1)) {
-                Long autoexecJobId = autoexecJobMapper.getJobIdByInvokeIdLimitOne(currentProcessTaskStepVo.getId());
-                if (autoexecJobId != null) {
-                    processTaskStepComplete(currentProcessTaskStepVo.getId());
-                    return 1;
-                }
-            }
-            autoexecJobMapper.deleteAutoexecJobByProcessTaskStepId(currentProcessTaskStepVo.getId());
-            // 删除上次创建作业的报错信息
-            ProcessTaskStepDataVo processTaskStepData = new ProcessTaskStepDataVo();
-            processTaskStepData.setProcessTaskId(currentProcessTaskStepVo.getProcessTaskId());
-            processTaskStepData.setProcessTaskStepId(currentProcessTaskStepVo.getId());
-            processTaskStepData.setType("autoexecCreateJobError");
-            processTaskStepData = processTaskStepDataCrossoverMapper.getProcessTaskStepData(processTaskStepData);
-            if (processTaskStepData != null) {
-                processTaskStepDataCrossoverMapper.deleteProcessTaskStepData(processTaskStepData);
-            }
-            List<CreateJobConfigConfigVo> configList = createJobConfigVo.getConfigList();
-            if (CollectionUtils.isEmpty(configList)) {
-                processTaskStepComplete(currentProcessTaskStepVo.getId());
-                return 0;
-            }
-            List<AutoexecJobBuilder> builderList = new ArrayList<>();
-            for (CreateJobConfigConfigVo createJobConfigConfigVo : configList) {
-                if (createJobConfigConfigVo == null) {
-                    continue;
-                }
-                if (Objects.equals(createJobConfigConfigVo.getType(), "service")) {
-                    JSONObject paramObj = null;
-                    Long processTaskId = currentProcessTaskStepVo.getProcessTaskId();
-                    // 如果工单有表单信息，则查询出表单配置及数据
-                    IProcessTaskCrossoverService processTaskCrossoverService = CrossoverServiceFactory.getApi(IProcessTaskCrossoverService.class);
-                    List<FormAttributeVo> formAttributeList = processTaskCrossoverService.getFormAttributeListByProcessTaskIdAngTagNew(processTaskId, createJobConfigConfigVo.getFormTag());
-                    if (CollectionUtils.isNotEmpty(formAttributeList)) {
-                        List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskIdAndTagNew(processTaskId, createJobConfigConfigVo.getFormTag());
-                        for (ProcessTaskFormAttributeDataVo attributeDataVo : processTaskFormAttributeDataList) {
-                            if (Objects.equals(attributeDataVo.getAttributeUuid(), createJobConfigConfigVo.getFormAttributeUuid())) {
-                                paramObj = (JSONObject) attributeDataVo.getDataObj();
-                                break;
+        currentProcessTaskStepVo.setStatus(ProcessTaskStatus.RUNNING.getValue());
+        currentProcessTaskStepVo.setUpdateStartTime(1);
+        ProcessTaskStepVo processTaskStepVo = new ProcessTaskStepVo();
+        processTaskStepVo.setId(currentProcessTaskStepVo.getId());
+        processTaskStepVo.setName(currentProcessTaskStepVo.getName());
+        processTaskStepVo.setProcessTaskId(currentProcessTaskStepVo.getProcessTaskId());
+        processTaskStepVo.setIsActive(currentProcessTaskStepVo.getIsActive());
+        processTaskStepVo.setStatus(currentProcessTaskStepVo.getStatus());
+        processTaskStepVo.setHandler(currentProcessTaskStepVo.getHandler());
+        processTaskStepVo.setConfigHash(currentProcessTaskStepVo.getConfigHash());
+        processTaskStepVo.setProcessStepUuid(currentProcessTaskStepVo.getProcessStepUuid());
+        processTaskStepVo.getParamObj().putAll(currentProcessTaskStepVo.getParamObj());
+        List<ProcessTaskStepThread> processTaskStepThreadList = new ArrayList<>();
+        ProcessTaskStepThread thread = new ProcessTaskStepThread(ProcessTaskStepOperationType.STEP_HANDLE, processTaskStepVo, ProcessStepMode.MT) {
+            @Override
+            protected void myExecute(ProcessTaskStepVo processTaskStepVo) {
+                IProcessTaskCrossoverMapper processTaskCrossoverMapper = CrossoverServiceFactory.getApi(IProcessTaskCrossoverMapper.class);
+                ISelectContentByHashCrossoverMapper selectContentByHashCrossoverMapper = CrossoverServiceFactory.getApi(ISelectContentByHashCrossoverMapper.class);
+                IProcessTaskStepDataCrossoverMapper processTaskStepDataCrossoverMapper = CrossoverServiceFactory.getApi(IProcessTaskStepDataCrossoverMapper.class);
+                try {
+                    JSONObject config = processTaskStepVo.getConfig();
+                    if (MapUtils.isEmpty(config)) {
+                        String configHash = processTaskStepVo.getConfigHash();
+                        if (StringUtils.isBlank(configHash)) {
+                            ProcessTaskStepVo processTaskStep = processTaskCrossoverMapper.getProcessTaskStepBaseInfoById(processTaskStepVo.getId());
+                            configHash = processTaskStep.getConfigHash();
+                            processTaskStepVo.setConfigHash(configHash);
+                            processTaskStepVo.setProcessStepUuid(processTaskStep.getProcessStepUuid());
+                        }
+                        // 获取工单当前步骤配置信息
+                        String configStr = selectContentByHashCrossoverMapper.getProcessTaskStepConfigByHash(configHash);
+                        if (StringUtils.isBlank(configStr)) {
+                            processTaskStepComplete(processTaskStepVo.getId());
+                            return;
+                        }
+                        config = JSONObject.parseObject(configStr);
+                        processTaskStepVo.setConfig(config);
+                    }
+                    JSONObject createJobConfig = config.getJSONObject("createJobConfig");
+                    if (MapUtils.isEmpty(createJobConfig)) {
+                        processTaskStepComplete(processTaskStepVo.getId());
+                        return;
+                    }
+                    CreateJobConfigVo createJobConfigVo = createJobConfig.toJavaObject(CreateJobConfigVo.class);
+                    // rerunStepToCreateNewJob为1时表示重新激活自动化步骤时创建新作业，rerunStepToCreateNewJob为0时表示重新激活自动化步骤时不创建新作业，也不重跑旧作业，即什么都不做
+                    Integer rerunStepToCreateNewJob = createJobConfigVo.getRerunStepToCreateNewJob();
+                    if (!Objects.equals(rerunStepToCreateNewJob, 1)) {
+                        Long autoexecJobId = autoexecJobMapper.getJobIdByInvokeIdLimitOne(processTaskStepVo.getId());
+                        if (autoexecJobId != null) {
+                            processTaskStepComplete(processTaskStepVo.getId());
+                            return;
+                        }
+                    }
+                    autoexecJobMapper.deleteAutoexecJobByProcessTaskStepId(processTaskStepVo.getId());
+                    // 删除上次创建作业的报错信息
+                    ProcessTaskStepDataVo processTaskStepData = new ProcessTaskStepDataVo();
+                    processTaskStepData.setProcessTaskId(processTaskStepVo.getProcessTaskId());
+                    processTaskStepData.setProcessTaskStepId(processTaskStepVo.getId());
+                    processTaskStepData.setType("autoexecCreateJobError");
+                    processTaskStepData = processTaskStepDataCrossoverMapper.getProcessTaskStepData(processTaskStepData);
+                    if (processTaskStepData != null) {
+                        processTaskStepDataCrossoverMapper.deleteProcessTaskStepData(processTaskStepData);
+                    }
+                    List<CreateJobConfigConfigVo> configList = createJobConfigVo.getConfigList();
+                    if (CollectionUtils.isEmpty(configList)) {
+                        processTaskStepComplete(processTaskStepVo.getId());
+                        return;
+                    }
+                    List<AutoexecJobBuilder> builderList = new ArrayList<>();
+                    for (CreateJobConfigConfigVo createJobConfigConfigVo : configList) {
+                        if (createJobConfigConfigVo == null) {
+                            continue;
+                        }
+                        if (Objects.equals(createJobConfigConfigVo.getType(), "service")) {
+                            JSONObject paramObj = null;
+                            Long processTaskId = processTaskStepVo.getProcessTaskId();
+                            // 如果工单有表单信息，则查询出表单配置及数据
+                            IProcessTaskCrossoverService processTaskCrossoverService = CrossoverServiceFactory.getApi(IProcessTaskCrossoverService.class);
+                            List<FormAttributeVo> formAttributeList = processTaskCrossoverService.getFormAttributeListByProcessTaskIdAngTagNew(processTaskId, createJobConfigConfigVo.getFormTag());
+                            if (CollectionUtils.isNotEmpty(formAttributeList)) {
+                                List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskIdAndTagNew(processTaskId, createJobConfigConfigVo.getFormTag());
+                                for (ProcessTaskFormAttributeDataVo attributeDataVo : processTaskFormAttributeDataList) {
+                                    if (Objects.equals(attributeDataVo.getAttributeUuid(), createJobConfigConfigVo.getFormAttributeUuid())) {
+                                        paramObj = (JSONObject) attributeDataVo.getDataObj();
+                                        break;
+                                    }
+                                }
+                            }
+                            if (MapUtils.isNotEmpty(paramObj)) {
+                                Long serviceId = paramObj.getLong("serviceId");
+                                AutoexecServiceVo autoexecServiceVo = autoexecServiceMapper.getAutoexecServiceById(serviceId);
+                                if (autoexecServiceVo == null) {
+                                    throw new AutoexecServiceNotFoundException(serviceId);
+                                }
+                                if (Objects.equals(autoexecServiceVo.getConfigExpired(), 1)) {
+                                    throw new AutoexecServiceConfigExpiredException(autoexecServiceVo.getName());
+                                }
+                                Long combopId = autoexecServiceVo.getCombopId();
+                                AutoexecCombopVersionVo autoexecCombopVersionVo = autoexecCombopVersionMapper.getAutoexecCombopActiveVersionByCombopId(combopId);
+                                if (autoexecCombopVersionVo == null) {
+                                    throw new AutoexecCombopActiveVersionNotFoundException(combopId);
+                                }
+                                String name = paramObj.getString("name");
+                                Long scenarioId = paramObj.getLong("scenarioId");
+                                JSONArray formAttributeDataList = paramObj.getJSONArray("formAttributeDataList");
+                                JSONArray hidecomponentList = paramObj.getJSONArray("hidecomponentList");
+                                Integer roundCount = paramObj.getInteger("roundCount");
+                                String executeUser = paramObj.getString("executeUser");
+                                Long protocol = paramObj.getLong("protocol");
+                                AutoexecCombopExecuteNodeConfigVo executeNodeConfig = paramObj.getObject("executeNodeConfig", AutoexecCombopExecuteNodeConfigVo.class);
+                                JSONObject runtimeParamMap = paramObj.getJSONObject("runtimeParamMap");
+                                ParamMappingVo runnerGroup = null;
+                                JSONObject runnerGroupObj = paramObj.getJSONObject("runnerGroup");
+                                if (MapUtils.isNotEmpty(runnerGroupObj)) {
+                                    runnerGroup = runnerGroupObj.toJavaObject(ParamMappingVo.class);
+                                }
+                                ParamMappingVo runnerGroupTag = null;
+                                JSONObject runnerGroupTagObj = paramObj.getJSONObject("runnerGroupTag");
+                                if (MapUtils.isNotEmpty(runnerGroupTagObj)) {
+                                    runnerGroupTag = runnerGroupTagObj.toJavaObject(ParamMappingVo.class);
+                                }
+                                AutoexecJobBuilder autoexecJobBuilder = autoexecServiceService.getAutoexecJobBuilder(autoexecServiceVo, autoexecCombopVersionVo, name, scenarioId, formAttributeDataList, hidecomponentList, roundCount, executeUser, protocol, executeNodeConfig, runtimeParamMap, runnerGroup, runnerGroupTag);
+                                if (autoexecJobBuilder != null) {
+                                    builderList.add(autoexecJobBuilder);
+                                }
+                            }
+                        } else {
+                            Long activeVersionId = autoexecCombopVersionMapper.getAutoexecCombopActiveVersionIdByCombopId(createJobConfigConfigVo.getCombopId());
+                            if (activeVersionId == null) {
+                                throw new AutoexecCombopActiveVersionNotFoundException(createJobConfigConfigVo.getCombopId());
+                            }
+                            AutoexecCombopVersionVo autoexecCombopVersionVo = autoexecCombopService.getAutoexecCombopVersionById(activeVersionId);
+                            if (autoexecCombopVersionVo == null) {
+                                throw new AutoexecCombopVersionNotFoundException(activeVersionId);
+                            }
+                            // 根据配置信息创建AutoexecJobBuilder对象
+                            List<AutoexecJobBuilder> list = CreateJobConfigUtil.createAutoexecJobBuilderList(processTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo);
+                            builderList.addAll(list);
+                        }
+
+                    }
+                    if (CollectionUtils.isEmpty(builderList)) {
+                        processTaskStepComplete(processTaskStepVo.getId());
+                    }
+                    JSONArray errorMessageList = new JSONArray();
+                    boolean flag = false;
+                    List<Long> jobIdList = new ArrayList<>();
+                    for (AutoexecJobBuilder builder : builderList) {
+                        AutoexecJobVo jobVo = builder.build();
+                        jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
+                        jobVo.setInvokeId(processTaskStepVo.getId());
+                        jobVo.setRouteId(processTaskStepVo.getId().toString());
+                        jobVo.setSource(AutoExecJobProcessSource.ITSM.getValue());
+                        jobVo.setIsFirstFire(1);
+                        jobVo.setAssignExecUser(SystemUser.SYSTEM.getUserUuid());
+                        try {
+                            autoexecJobActionService.validateCreateJob(jobVo);
+                            autoexecJobMapper.insertAutoexecJobProcessTaskStep(jobVo.getId(), processTaskStepVo.getId());
+                            jobIdList.add(jobVo.getId());
+                        } catch (Exception e) {
+                            // 增加提醒
+                            logger.error(e.getMessage(), e);
+                            String builderStr = JSON.toJSONString(builder, SerializerFeature.DisableCircularReferenceDetect);
+                            logger.error(builderStr);
+                            JSONObject errorMessageObj = new JSONObject();
+                            errorMessageObj.put("jobId", jobVo.getId());
+                            errorMessageObj.put("jobName", jobVo.getName());
+                            errorMessageObj.put("error", e.getMessage() + " jobVo=" + builderStr);
+                            errorMessageList.add(errorMessageObj);
+                            flag = true;
+                        }
+                    }
+                    // 如果有一个作业创建有异常，则根据失败策略执行操作
+                    if (flag) {
+                        ProcessTaskStepDataVo processTaskStepDataVo = new ProcessTaskStepDataVo();
+                        processTaskStepDataVo.setProcessTaskId(processTaskStepVo.getProcessTaskId());
+                        processTaskStepDataVo.setProcessTaskStepId(processTaskStepVo.getId());
+                        processTaskStepDataVo.setType("autoexecCreateJobError");
+                        JSONObject dataObj = new JSONObject();
+                        dataObj.put("errorList", errorMessageList);
+                        processTaskStepDataVo.setData(dataObj.toJSONString());
+                        processTaskStepDataVo.setFcu(UserContext.get().getUserUuid());
+                        processTaskStepDataCrossoverMapper.replaceProcessTaskStepData(processTaskStepDataVo);
+                        String failPolicy = createJobConfigVo.getFailPolicy();
+                        if (FailPolicy.KEEP_ON.getValue().equals(failPolicy)) {
+                            if (CollectionUtils.isNotEmpty(jobIdList)) {
+                                int running = 0;
+                                List<AutoexecJobVo> autoexecJobList = autoexecJobMapper.getJobListByIdList(jobIdList);
+                                for (AutoexecJobVo autoexecJobVo : autoexecJobList) {
+                                    if (JobStatus.isRunningStatus(autoexecJobVo.getStatus())) {
+                                        running++;
+                                    }
+                                }
+                                if (running == 0) {
+                                    processTaskStepComplete(processTaskStepVo.getId());
+                                }
+                            } else {
+                                processTaskStepComplete(processTaskStepVo.getId());
+                            }
+                        } else {
+                            IProcessStepHandler processStepHandler = ProcessStepHandlerFactory.getHandler(processTaskStepVo.getHandler());
+                            if (processStepHandler != null) {
+                                try {
+                                    processStepHandler.assign(processTaskStepVo);
+                                } catch (ProcessTaskException e) {
+                                    logger.error(e.getMessage(), e);
+                                }
                             }
                         }
+                        IProcessStepHandlerCrossoverUtil processStepHandlerCrossoverUtil = CrossoverServiceFactory.getApi(IProcessStepHandlerCrossoverUtil.class);
+                        /* 触发通知 **/
+                        processStepHandlerCrossoverUtil.notify(processTaskStepVo, AutoexecNotifyTriggerType.CREATE_JOB_FAILED);
                     }
-                    if (MapUtils.isNotEmpty(paramObj)) {
-                        Long serviceId = paramObj.getLong("serviceId");
-                        AutoexecServiceVo autoexecServiceVo = autoexecServiceMapper.getAutoexecServiceById(serviceId);
-                        if (autoexecServiceVo == null) {
-                            throw new AutoexecServiceNotFoundException(serviceId);
-                        }
-                        if (Objects.equals(autoexecServiceVo.getConfigExpired(), 1)) {
-                            throw new AutoexecServiceConfigExpiredException(autoexecServiceVo.getName());
-                        }
-                        Long combopId = autoexecServiceVo.getCombopId();
-                        AutoexecCombopVersionVo autoexecCombopVersionVo = autoexecCombopVersionMapper.getAutoexecCombopActiveVersionByCombopId(combopId);
-                        if (autoexecCombopVersionVo == null) {
-                            throw new AutoexecCombopActiveVersionNotFoundException(combopId);
-                        }
-                        String name = paramObj.getString("name");
-                        Long scenarioId = paramObj.getLong("scenarioId");
-                        JSONArray formAttributeDataList = paramObj.getJSONArray("formAttributeDataList");
-                        JSONArray hidecomponentList = paramObj.getJSONArray("hidecomponentList");
-                        Integer roundCount = paramObj.getInteger("roundCount");
-                        String executeUser = paramObj.getString("executeUser");
-                        Long protocol = paramObj.getLong("protocol");
-                        AutoexecCombopExecuteNodeConfigVo executeNodeConfig = paramObj.getObject("executeNodeConfig", AutoexecCombopExecuteNodeConfigVo.class);
-                        JSONObject runtimeParamMap = paramObj.getJSONObject("runtimeParamMap");
-                        ParamMappingVo runnerGroup = null;
-                        JSONObject runnerGroupObj = paramObj.getJSONObject("runnerGroup");
-                        if (MapUtils.isNotEmpty(runnerGroupObj)) {
-                            runnerGroup = runnerGroupObj.toJavaObject(ParamMappingVo.class);
-                        }
-                        ParamMappingVo runnerGroupTag = null;
-                        JSONObject runnerGroupTagObj = paramObj.getJSONObject("runnerGroupTag");
-                        if (MapUtils.isNotEmpty(runnerGroupTagObj)) {
-                            runnerGroupTag = runnerGroupTagObj.toJavaObject(ParamMappingVo.class);
-                        }
-                        AutoexecJobBuilder autoexecJobBuilder = autoexecServiceService.getAutoexecJobBuilder(autoexecServiceVo, autoexecCombopVersionVo, name, scenarioId, formAttributeDataList, hidecomponentList, roundCount, executeUser, protocol, executeNodeConfig, runtimeParamMap, runnerGroup, runnerGroupTag);
-                        if (autoexecJobBuilder != null) {
-                            builderList.add(autoexecJobBuilder);
-                        }
-                    }
-                } else {
-                    Long activeVersionId = autoexecCombopVersionMapper.getAutoexecCombopActiveVersionIdByCombopId(createJobConfigConfigVo.getCombopId());
-                    if (activeVersionId == null) {
-                        throw new AutoexecCombopActiveVersionNotFoundException(createJobConfigConfigVo.getCombopId());
-                    }
-                    AutoexecCombopVersionVo autoexecCombopVersionVo = autoexecCombopService.getAutoexecCombopVersionById(activeVersionId);
-                    if (autoexecCombopVersionVo == null) {
-                        throw new AutoexecCombopVersionNotFoundException(activeVersionId);
-                    }
-                    // 根据配置信息创建AutoexecJobBuilder对象
-                    List<AutoexecJobBuilder> list = CreateJobConfigUtil.createAutoexecJobBuilderList(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo);
-                    builderList.addAll(list);
+                } catch (Exception e) {
+                    logger.error(e.getMessage(), e);
                 }
 
             }
-            if (CollectionUtils.isEmpty(builderList)) {
-                processTaskStepComplete(currentProcessTaskStepVo.getId());
-            }
-            JSONArray errorMessageList = new JSONArray();
-            boolean flag = false;
-            List<Long> jobIdList = new ArrayList<>();
-            for (AutoexecJobBuilder builder : builderList) {
-                AutoexecJobVo jobVo = builder.build();
-                jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
-                jobVo.setInvokeId(currentProcessTaskStepVo.getId());
-                jobVo.setRouteId(currentProcessTaskStepVo.getId().toString());
-                jobVo.setSource(AutoExecJobProcessSource.ITSM.getValue());
-                jobVo.setIsFirstFire(1);
-                jobVo.setAssignExecUser(SystemUser.SYSTEM.getUserUuid());
-                try {
-                    autoexecJobActionService.validateCreateJob(jobVo);
-                    autoexecJobMapper.insertAutoexecJobProcessTaskStep(jobVo.getId(), currentProcessTaskStepVo.getId());
-                    jobIdList.add(jobVo.getId());
-                } catch (Exception e) {
-                    // 增加提醒
-                    logger.error(e.getMessage(), e);
-                    String builderStr = JSON.toJSONString(builder, SerializerFeature.DisableCircularReferenceDetect);
-                    logger.error(builderStr);
-                    JSONObject errorMessageObj = new JSONObject();
-                    errorMessageObj.put("jobId", jobVo.getId());
-                    errorMessageObj.put("jobName", jobVo.getName());
-                    errorMessageObj.put("error", e.getMessage() + " jobVo=" + builderStr);
-                    errorMessageList.add(errorMessageObj);
-                    flag = true;
-                }
-            }
-            // 如果有一个作业创建有异常，则根据失败策略执行操作
-            if (flag) {
-                ProcessTaskStepDataVo processTaskStepDataVo = new ProcessTaskStepDataVo();
-                processTaskStepDataVo.setProcessTaskId(currentProcessTaskStepVo.getProcessTaskId());
-                processTaskStepDataVo.setProcessTaskStepId(currentProcessTaskStepVo.getId());
-                processTaskStepDataVo.setType("autoexecCreateJobError");
-                JSONObject dataObj = new JSONObject();
-                dataObj.put("errorList", errorMessageList);
-                processTaskStepDataVo.setData(dataObj.toJSONString());
-                processTaskStepDataVo.setFcu(UserContext.get().getUserUuid());
-                processTaskStepDataCrossoverMapper.replaceProcessTaskStepData(processTaskStepDataVo);
-                String failPolicy = createJobConfigVo.getFailPolicy();
-                if (FailPolicy.KEEP_ON.getValue().equals(failPolicy)) {
-                    if (CollectionUtils.isNotEmpty(jobIdList)) {
-                        int running = 0;
-                        List<AutoexecJobVo> autoexecJobList = autoexecJobMapper.getJobListByIdList(jobIdList);
-                        for (AutoexecJobVo autoexecJobVo : autoexecJobList) {
-                            if (JobStatus.isRunningStatus(autoexecJobVo.getStatus())) {
-                                running++;
-                            }
-                        }
-                        if (running == 0) {
-                            processTaskStepComplete(currentProcessTaskStepVo.getId());
-                        }
-                    } else {
-                        processTaskStepComplete(currentProcessTaskStepVo.getId());
-                    }
-                } else {
-                    IProcessStepHandler processStepHandler = ProcessStepHandlerFactory.getHandler(currentProcessTaskStepVo.getHandler());
-                    if (processStepHandler != null) {
-                        try {
-                            processStepHandler.assign(currentProcessTaskStepVo);
-                        } catch (ProcessTaskException e) {
-                            logger.error(e.getMessage(), e);
-                        }
-                    }
-                }
-                IProcessStepHandlerCrossoverUtil processStepHandlerCrossoverUtil = CrossoverServiceFactory.getApi(IProcessStepHandlerCrossoverUtil.class);
-                /* 触发通知 **/
-                processStepHandlerCrossoverUtil.notify(currentProcessTaskStepVo, AutoexecNotifyTriggerType.CREATE_JOB_FAILED);
-            }
-        } catch (Exception e) {
-            logger.error(e.getMessage(), e);
-            throw new ProcessTaskException(e);
-        }
+        };
+        processTaskStepThreadList.add(thread);
+        doNext(processTaskStepThreadList);
         return 1;
     }
 
