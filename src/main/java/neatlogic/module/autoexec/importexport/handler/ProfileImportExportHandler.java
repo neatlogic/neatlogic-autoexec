@@ -19,9 +19,13 @@ import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.AutoexecImportExportHandlerType;
 import neatlogic.framework.autoexec.constvalue.ParamMappingMode;
 import neatlogic.framework.autoexec.constvalue.ToolType;
+import neatlogic.framework.autoexec.dao.mapper.AutoexecScriptMapper;
+import neatlogic.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import neatlogic.framework.autoexec.dto.AutoexecOperationVo;
+import neatlogic.framework.autoexec.dto.AutoexecToolVo;
 import neatlogic.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import neatlogic.framework.autoexec.dto.profile.AutoexecProfileVo;
+import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
 import neatlogic.framework.autoexec.exception.AutoexecProfileIsNotFoundException;
 import neatlogic.framework.dependency.core.DependencyManager;
 import neatlogic.framework.importexport.core.ImportExportHandlerBase;
@@ -48,6 +52,12 @@ public class ProfileImportExportHandler extends ImportExportHandlerBase {
 
     @Resource
     private AutoexecProfileService autoexecProfileService;
+
+    @Resource
+    private AutoexecToolMapper autoexecToolMapper;
+
+    @Resource
+    private AutoexecScriptMapper autoexecScriptMapper;
 
     @Override
     public ImportExportHandlerType getType() {
@@ -105,11 +115,27 @@ public class ProfileImportExportHandler extends ImportExportHandlerBase {
                 Object newPrimaryKey = getNewPrimaryKey(AutoexecImportExportHandlerType.AUTOEXEC_SCRIPT, autoexecOperationVo.getId(), primaryChangeList);
                 if (newPrimaryKey != null) {
                     autoexecOperationVo.setId((Long) newPrimaryKey);
+                } else {
+                    AutoexecScriptVo scriptVo = autoexecScriptMapper.getScriptBaseInfoById(autoexecOperationVo.getId());
+                    if (scriptVo == null) {
+                        scriptVo = autoexecScriptMapper.getScriptBaseInfoByName(autoexecOperationVo.getName());
+                        if (scriptVo != null) {
+                            autoexecOperationVo.setId(scriptVo.getId());
+                        }
+                    }
                 }
             } else if (Objects.equals(autoexecOperationVo.getType(), ToolType.TOOL.getValue())) {
                 Object newPrimaryKey = getNewPrimaryKey(AutoexecImportExportHandlerType.AUTOEXEC_TOOL, autoexecOperationVo.getId(), primaryChangeList);
                 if (newPrimaryKey != null) {
                     autoexecOperationVo.setId((Long) newPrimaryKey);
+                } else {
+                    AutoexecToolVo toolVo = autoexecToolMapper.getToolById(autoexecOperationVo.getId());
+                    if (toolVo == null) {
+                        toolVo = autoexecToolMapper.getToolByName(autoexecOperationVo.getName());
+                        if (toolVo != null) {
+                            autoexecOperationVo.setId(toolVo.getId());
+                        }
+                    }
                 }
             }
         }
@@ -152,8 +178,16 @@ public class ProfileImportExportHandler extends ImportExportHandlerBase {
         if (CollectionUtils.isNotEmpty(autoexecOperationVoList)) {
             for (AutoexecOperationVo autoexecOperationVo : autoexecOperationVoList) {
                 if (Objects.equals(autoexecOperationVo.getType(), ToolType.SCRIPT.getValue())) {
+                    AutoexecScriptVo scriptVo = autoexecScriptMapper.getScriptBaseInfoById(autoexecOperationVo.getId());
+                    if (scriptVo != null) {
+                        autoexecOperationVo.setName(scriptVo.getName());
+                    }
                     doExportData(AutoexecImportExportHandlerType.AUTOEXEC_SCRIPT, autoexecOperationVo.getId(), dependencyList, zipOutputStream);
                 } else if (Objects.equals(autoexecOperationVo.getType(), ToolType.TOOL.getValue())) {
+                    AutoexecToolVo toolVo = autoexecToolMapper.getToolById(autoexecOperationVo.getId());
+                    if (toolVo != null) {
+                        autoexecOperationVo.setName(toolVo.getName());
+                    }
                     doExportData(AutoexecImportExportHandlerType.AUTOEXEC_TOOL, autoexecOperationVo.getId(), dependencyList, zipOutputStream);
                 }
             }
