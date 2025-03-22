@@ -63,6 +63,7 @@ import neatlogic.framework.util.HttpRequestUtil;
 import neatlogic.framework.util.RestUtil;
 import neatlogic.framework.util.SnowflakeUtil;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
+import neatlogic.module.autoexec.dao.mapper.AutoexecResourceMapper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -110,6 +111,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
 
     @Resource
     private UserMapper userMapper;
+
+    @Resource
+    private AutoexecResourceMapper autoexecResourceMapper;
 
     /**
      * 根据作业参数获取最终参数值
@@ -1357,12 +1361,12 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     searchVo.setTypeId(jobVo.getInvokeId());
                     searchVo.setAppSystemId(searchVo.getAppSystemIdList().get(0));
                     searchVo.setEnvId(searchVo.getEnvIdList().get(0));
-                    int rowNum = resourceCrossoverMapper.getOsResourceCountByAppSystemIdAndAppModuleIdListAndEnvIdAndTypeId(searchVo);
+                    int rowNum = autoexecResourceMapper.getOsResourceCountByAppSystemIdAndAppModuleIdListAndEnvIdAndTypeId(searchVo);
                     if (rowNum > 0) {
                         searchVo.setRowNum(rowNum);
                         for (int currentPage = 1; currentPage <= searchVo.getPageCount(); currentPage++) {
                             searchVo.setCurrentPage(currentPage);
-                            List<Long> idOsList = resourceCrossoverMapper.getOsResourceIdListByAppSystemIdAndAppModuleIdAndEnvIdAndTypeId(searchVo);
+                            List<Long> idOsList = autoexecResourceMapper.getOsResourceIdListByAppSystemIdAndAppModuleIdAndEnvIdAndTypeId(searchVo);
                             if (CollectionUtils.isNotEmpty(idOsList)) {
                                 List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceByIdList(idOsList);
                                 if (CollectionUtils.isNotEmpty(resourceList)) {

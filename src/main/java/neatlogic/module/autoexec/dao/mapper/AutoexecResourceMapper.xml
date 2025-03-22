@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!--
+  ~ Copyright (C) 2025  深圳极向量科技有限公司 All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU Affero General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU Affero General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU Affero General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="neatlogic.module.autoexec.dao.mapper.AutoexecResourceMapper">
+
+    <select id="getOsResourceListByResourceIdList"
+            resultType="neatlogic.framework.cmdb.dto.resourcecenter.entity.SoftwareServiceOSVo">
+        select id as resourceId,os_name as osName,os_id as osId from @{DATA_SCHEMA}.scence_softwareservice_os where id in
+        <foreach collection="list" item="resourceId" separator="," open="(" close=")">
+            #{resourceId}
+        </foreach>
+        and os_id is not null
+    </select>
+
+    <select id="getOsResourceListenPortListByResourceIdList"
+            resultType="neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo">
+        select id,name,listen_port as listenPort from @{DATA_SCHEMA}.scence_osservice_ports where id in
+        <foreach collection="list" item="resourceId" separator="," open="(" close=")">
+            #{resourceId}
+        </foreach>
+    </select>
+
+    <select id="getOsResourceIdListByAppSystemIdAndAppModuleIdAndEnvIdAndTypeId"
+            parameterType="neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo" resultType="java.lang.Long">
+        SELECT distinct a.`id`
+        FROM @{DATA_SCHEMA}.`scence_os_softwareservice_env_appmodule_appsystem` a
+        <if test="inspectStatusList != null and inspectStatusList.size() > 0">
+            JOIN `cmdb_cientity` b on b.`id` = a.`resource_id` and b.`inspect_status` IN
+            <foreach collection="inspectStatusList" item="inspectStatus" open="(" separator="," close=")">
+                #{inspectStatus}
+            </foreach>
+        </if>
+        WHERE a.`type_id` = #{typeId}
+        <if test="appSystemId != null">
+            AND a.`app_system_id` = #{appSystemId}
+        </if>
+        <if test="appModuleId != null">
+            AND a.`app_module_id` = #{appModuleId}
+        </if>
+        <if test="envId != null and envId != -2">
+            AND a.`env_id` = #{envId}
+        </if>
+        <if test="envId == -2">
+            AND a.`env_id` is null
+        </if>
+        ORDER BY a.`id` DESC
+        LIMIT #{startNum}, #{pageSize}
+    </select>
+
+    <select id="getOsResourceCountByAppSystemIdAndAppModuleIdListAndEnvIdAndTypeId"
+            resultType="java.lang.Integer">
+        SELECT COUNT(distinct a.`id`)
+        FROM @{DATA_SCHEMA}.`scence_os_softwareservice_env_appmodule_appsystem` a
+        <if test="inspectStatusList != null and inspectStatusList.size() > 0">
+            JOIN `cmdb_cientity` b on b.`id` = a.`resource_id` and b.`inspect_status` IN
+            <foreach collection="inspectStatusList" item="inspectStatus" open="(" separator="," close=")">
+                #{inspectStatus}
+            </foreach>
+        </if>
+        WHERE a.`type_id` = #{typeId}
+        <if test="appSystemId != null">
+            AND a.`app_system_id` = #{appSystemId}
+        </if>
+        <if test="appModuleIdList != null and appModuleIdList.size() > 0">
+            AND a.`app_module_id` in
+            <foreach collection="appModuleIdList" item="appModuleId" open="(" close=")" separator=",">
+                #{appModuleId}
+            </foreach>
+        </if>
+        <if test="envId != null">
+            AND a.`env_id` = #{envId}
+        </if>
+    </select>
+
+    <select id="getResourceAppSystemListByResourceIdList" parameterType="java.lang.Long"
+            resultType="neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo">
+        SELECT a.`app_system_id` as appSystemId,a.id
+        FROM @{DATA_SCHEMA}.`scence_os_softwareservice_env_appmodule_appsystem` a
+        WHERE a.`id` in
+        <foreach collection="list" item="id" close=")" separator="," open="(">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="getSoftwareResourceListenPortListByResourceIdList"
+            resultType="neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo">
+        select id,name,listen_port as listenPort from @{DATA_SCHEMA}.scence_softwareservice_ports where id in
+        <foreach collection="list" item="resourceId" separator="," open="(" close=")">
+            #{resourceId}
+        </foreach>
+    </select>
+</mapper>

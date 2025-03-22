@@ -55,6 +55,7 @@ import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
 import neatlogic.framework.tagent.dao.mapper.TagentMapper;
+import neatlogic.module.autoexec.dao.mapper.AutoexecResourceMapper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -99,6 +100,9 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
 
     @Resource
     private TagentMapper tagentMapper;
+
+    @Resource
+    private AutoexecResourceMapper autoexecResourceMapper;
 
     @Override
     public String getToken() {
@@ -280,7 +284,7 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                                             return k1;
                                         })));
                                     }
-                                    List<ResourceVo> osResourceList = resourceCrossoverMapper.getResourceAppSystemListByResourceIdList(resourceIdList);
+                                    List<ResourceVo> osResourceList = autoexecResourceMapper.getResourceAppSystemListByResourceIdList(resourceIdList);
                                     if (CollectionUtils.isNotEmpty(osResourceList)) {
                                         osResourceList = osResourceList.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(o -> o.getId() + ":" + o.getAppSystemId()))), ArrayList::new));
                                         resourceAppSystemMap.putAll(osResourceList.stream().filter(o -> o.getAppSystemId() != null).collect(Collectors.toMap(ResourceVo::getId, o -> {
@@ -295,14 +299,14 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
 
                                 }
                                 //查询target 对应的os
-                                List<SoftwareServiceOSVo> targetOsList = resourceCrossoverMapper.getOsResourceListByResourceIdList(resourceIdList);
+                                List<SoftwareServiceOSVo> targetOsList = autoexecResourceMapper.getOsResourceListByResourceIdList(resourceIdList);
                                 if (CollectionUtils.isNotEmpty(targetOsList)) {
                                     resourceIncludeOsIdList.addAll(targetOsList.stream().map(SoftwareServiceOSVo::getOsId).collect(toList()));
                                     resourceOSResourceMap = targetOsList.stream().collect(Collectors.toMap(SoftwareServiceOSVo::getResourceId, SoftwareServiceOSVo::getOsId));
                                 }
 
                                 //os、software补充listen_port
-                                List<ResourceVo> osResourceList = resourceCrossoverMapper.getOsResourceListenPortListByResourceIdList(resourceIncludeOsIdList);
+                                List<ResourceVo> osResourceList = autoexecResourceMapper.getOsResourceListenPortListByResourceIdList(resourceIncludeOsIdList);
                                 if (CollectionUtils.isNotEmpty(osResourceList)) {
                                     resourceServicePortsMap.putAll(osResourceList.stream().filter(o -> o.getListenPort() != null).collect(Collectors.toMap(ResourceVo::getId, o -> {
                                         JSONObject servicePorts = new JSONObject();
@@ -313,7 +317,7 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                                         return k1;
                                     })));
                                 }
-                                List<ResourceVo> softwareResourceList = resourceCrossoverMapper.getSoftwareResourceListenPortListByResourceIdList(resourceIdList);
+                                List<ResourceVo> softwareResourceList = autoexecResourceMapper.getSoftwareResourceListenPortListByResourceIdList(resourceIdList);
                                 if (CollectionUtils.isNotEmpty(softwareResourceList)) {
                                     resourceServicePortsMap.putAll(softwareResourceList.stream().filter(o -> o.getListenPort() != null).collect(Collectors.toMap(ResourceVo::getId, o -> {
                                         JSONObject servicePorts = new JSONObject();
