@@ -311,7 +311,9 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                             JSONObject errorMessageObj = new JSONObject();
                             errorMessageObj.put("jobId", jobVo.getId());
                             errorMessageObj.put("jobName", jobVo.getName());
-                            errorMessageObj.put("error", e.getMessage() + " jobVo=" + builderStr);
+                            errorMessageObj.put("error", e.getMessage());
+                            errorMessageObj.put("message", e.getMessage());
+                            errorMessageObj.put("jobVo", builder);
                             errorMessageList.add(errorMessageObj);
                             flag = true;
                         }
@@ -406,7 +408,8 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
 
     @Override
     protected int myAssign(ProcessTaskStepVo currentProcessTaskStepVo, Set<ProcessTaskStepWorkerVo> workerSet) throws ProcessTaskException {
-        return defaultAssign(currentProcessTaskStepVo, workerSet);
+        defaultAssign(currentProcessTaskStepVo, workerSet);
+        return 1;
     }
 
     @Override
