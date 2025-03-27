@@ -7,3 +7,5 @@ bin
 .classpath
 .project
 logs/
+.flattened-pom.xml
+.DS_Store

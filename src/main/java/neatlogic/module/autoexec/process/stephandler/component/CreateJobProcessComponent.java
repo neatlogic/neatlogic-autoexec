@@ -61,6 +61,7 @@ import neatlogic.module.autoexec.service.AutoexecServiceService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -308,10 +309,17 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                             logger.error(e.getMessage(), e);
                             String builderStr = JSON.toJSONString(builder, SerializerFeature.DisableCircularReferenceDetect);
                             logger.error(builderStr);
+                            String error = e.getMessage();
+                            if (error == null) {
+                                error = "null";
+                            }
                             JSONObject errorMessageObj = new JSONObject();
                             errorMessageObj.put("jobId", jobVo.getId());
                             errorMessageObj.put("jobName", jobVo.getName());
-                            errorMessageObj.put("error", e.getMessage() + " jobVo=" + builderStr);
+                            errorMessageObj.put("error", error);
+                            errorMessageObj.put("message", error);
+                            errorMessageObj.put("jobVo", builder);
+                            errorMessageObj.put("stackTrace", ExceptionUtils.getStackFrames(e));
                             errorMessageList.add(errorMessageObj);
                             flag = true;
                         }
@@ -406,7 +414,8 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
 
     @Override
     protected int myAssign(ProcessTaskStepVo currentProcessTaskStepVo, Set<ProcessTaskStepWorkerVo> workerSet) throws ProcessTaskException {
-        return defaultAssign(currentProcessTaskStepVo, workerSet);
+        defaultAssign(currentProcessTaskStepVo, workerSet);
+        return 1;
     }
 
     @Override
