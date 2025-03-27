@@ -8,3 +8,4 @@ bin
 .project
 logs/
 .flattened-pom.xml
+.DS_Store
