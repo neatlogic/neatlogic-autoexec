@@ -50,6 +50,7 @@ import neatlogic.framework.process.stephandler.core.*;
 import neatlogic.module.autoexec.constvalue.FailPolicy;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecServiceMapper;
+import neatlogic.module.autoexec.process.constvalue.AutoexecProcessTaskAuditDetailType;
 import neatlogic.module.autoexec.process.constvalue.CreateJobProcessStepHandlerType;
 import neatlogic.module.autoexec.process.dto.AutoexecJobBuilder;
 import neatlogic.module.autoexec.process.dto.CreateJobConfigConfigVo;
@@ -335,6 +336,7 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                         processTaskStepDataVo.setData(dataObj.toJSONString());
                         processTaskStepDataVo.setFcu(UserContext.get().getUserUuid());
                         processTaskStepDataCrossoverMapper.replaceProcessTaskStepData(processTaskStepDataVo);
+                        currentProcessTaskStepVo.getParamObj().put(AutoexecProcessTaskAuditDetailType.AUTOEXECMESSAGE.getParamName(), dataObj.toJSONString());
                         String failPolicy = createJobConfigVo.getFailPolicy();
                         if (FailPolicy.KEEP_ON.getValue().equals(failPolicy)) {
                             if (CollectionUtils.isNotEmpty(jobIdList)) {
@@ -364,11 +366,17 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                         IProcessStepHandlerCrossoverUtil processStepHandlerCrossoverUtil = CrossoverServiceFactory.getApi(IProcessStepHandlerCrossoverUtil.class);
                         /* 触发通知 **/
                         processStepHandlerCrossoverUtil.notify(processTaskStepVo, AutoexecNotifyTriggerType.CREATE_JOB_FAILED);
+                    } else {
+                        JSONObject dataObj = new JSONObject();
+                        dataObj.put("jobIdList", jobIdList);
+                        currentProcessTaskStepVo.getParamObj().put(AutoexecProcessTaskAuditDetailType.AUTOEXECMESSAGE.getParamName(), dataObj.toJSONString());
                     }
                 } catch (Exception e) {
                     logger.error(e.getMessage(), e);
+                } finally {
+                    IProcessStepHandlerCrossoverUtil processStepHandlerCrossoverUtil = CrossoverServiceFactory.getApi(IProcessStepHandlerCrossoverUtil.class);
+                    processStepHandlerCrossoverUtil.audit(currentProcessTaskStepVo, ProcessTaskAuditType.ACTIVE);
                 }
-
             }
         };
         processTaskStepThreadList.add(thread);
