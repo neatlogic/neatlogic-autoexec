@@ -132,7 +132,7 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
         result.put("phaseList", jobPhaseVoList);
         IAutoexecJobSourceTypeHandler jobSourceTypeHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobVo.getSource());
         if (jobSourceTypeHandler != null) {
-            result.putAll(jobSourceTypeHandler.getExtraRefreshJobInfo(jobVo));
+            result.put("extraInfo",jobSourceTypeHandler.getExtraRefreshJobInfo(jobVo));
         }
         return result;
     }
