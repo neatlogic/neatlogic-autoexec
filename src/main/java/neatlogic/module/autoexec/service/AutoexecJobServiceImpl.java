@@ -1360,7 +1360,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     //从scence_os_softwareservice_env_appmodule_appsystem 获取os
                     searchVo.setTypeId(jobVo.getInvokeId());
                     searchVo.setAppSystemId(searchVo.getAppSystemIdList().get(0));
-                    searchVo.setEnvId(searchVo.getEnvIdList().get(0));
+                    if(CollectionUtils.isNotEmpty(searchVo.getEnvIdList())) {
+                        searchVo.setEnvId(searchVo.getEnvIdList().get(0));
+                    }
                     int rowNum = autoexecResourceMapper.getOsResourceCountByAppSystemIdAndAppModuleIdListAndEnvIdAndTypeId(searchVo);
                     if (rowNum > 0) {
                         searchVo.setRowNum(rowNum);
