@@ -1,0 +1,88 @@
+/*
+ * Copyright (C) 2025  深圳极向量科技有限公司 All Rights Reserved.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
+package neatlogic.module.autoexec.job.node;
+
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteNodeConfigVo;
+import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
+import neatlogic.framework.autoexec.job.node.IUpdateNodes;
+import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
+import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
+import neatlogic.framework.cmdb.dto.resourcecenter.config.ResourceEntityVo;
+import neatlogic.framework.cmdb.resourcecenter.datasource.core.IResourceCenterDataSource;
+import neatlogic.framework.cmdb.resourcecenter.datasource.core.ResourceCenterDataSourceFactory;
+import neatlogic.module.autoexec.service.AutoexecJobService;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
+import org.springframework.stereotype.Component;
+
+import javax.annotation.Resource;
+import java.util.List;
+
+@Component
+public class UpdateNodesByInspectFilterHandler implements IUpdateNodes {
+
+    @Resource
+    AutoexecJobService autoexecJobService;
+
+    @Override
+    public boolean update(AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
+        boolean isHasNode = false;
+        if (executeNodeConfigVo == null) {
+            return false;
+        }
+        JSONObject inspectFilter = executeNodeConfigVo.getInspectFilter();
+        if (MapUtils.isNotEmpty(inspectFilter)) {
+            Long appSystemId = inspectFilter.getLong("appSystemId");
+            Long appModuleId = inspectFilter.getLong("appModuleId");
+            Long envId = inspectFilter.getLong("envId");
+            Long typeId = inspectFilter.getLong("typeId");
+            JSONArray inspectStatusList = inspectFilter.getJSONArray("inspectStatusList");
+            ResourceSearchVo searchVo = new ResourceSearchVo();
+            searchVo.setAppSystemId(appSystemId);
+            searchVo.setAppModuleId(appModuleId);
+            searchVo.setEnvId(envId);
+            searchVo.setTypeId(typeId);
+            searchVo.setInspectStatusList(inspectStatusList.toJavaList(String.class));
+            IResourceCenterDataSource resourceCenterDataSource = ResourceCenterDataSourceFactory.getResourceCenterDataSource();
+            List<ResourceEntityVo> appViewList = resourceCenterDataSource.getAppViewList();
+            if (CollectionUtils.isNotEmpty(appViewList)) {
+                for (ResourceEntityVo resourceEntityVo : appViewList) {
+                    searchVo.setViewName(resourceEntityVo.getName());
+                    searchVo.setCurrentPage(1);
+                    searchVo.setPageSize(100);
+                    List<ResourceVo> resourceList = resourceCenterDataSource.getAppResourceList(searchVo, true);
+                    if (CollectionUtils.isNotEmpty(resourceList)) {
+                        autoexecJobService.updateJobPhaseNode(jobVo, resourceList, userName, protocolId);
+                        isHasNode = true;
+                        for (int currentPage = 2; currentPage <= searchVo.getPageCount(); currentPage++) {
+                            searchVo.setCurrentPage(currentPage);
+                            resourceList = resourceCenterDataSource.getAppResourceList(searchVo, true);
+                            if (CollectionUtils.isNotEmpty(resourceList)) {
+                                autoexecJobService.updateJobPhaseNode(jobVo, resourceList, userName, protocolId);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return isHasNode;
+    }
+
+}
