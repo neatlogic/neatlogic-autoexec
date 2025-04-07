@@ -25,9 +25,7 @@ import neatlogic.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteNodeConfigVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.job.node.IUpdateNodes;
-import neatlogic.framework.cmdb.crossover.ICiCrossoverMapper;
 import neatlogic.framework.cmdb.crossover.IResourceCrossoverMapper;
-import neatlogic.framework.cmdb.dto.ci.CiVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
@@ -40,7 +38,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 @Service
 public class UpdateNodesByFilterHandler implements IUpdateNodes {
@@ -155,34 +156,6 @@ public class UpdateNodesByFilterHandler implements IUpdateNodes {
                     idPageList.clear();
                 }
                 isHasNode = true;
-            }
-            //针对巡检补充os 资产
-            if (Objects.equals(jobVo.getSource(), neatlogic.framework.inspect.constvalue.JobSource.INSPECT_APP.getValue())) {
-                ICiCrossoverMapper ciCrossoverMapper = CrossoverServiceFactory.getApi(ICiCrossoverMapper.class);
-                CiVo civo = ciCrossoverMapper.getCiById(jobVo.getInvokeId());
-                if (civo.getParentCiName() != null && civo.getParentCiName().toUpperCase(Locale.ROOT).contains("OS")) {
-                    //从scence_os_softwareservice_env_appmodule_appsystem 获取os
-                    searchVo.setTypeId(jobVo.getInvokeId());
-                    searchVo.setAppSystemId(searchVo.getAppSystemIdList().get(0));
-                    if (CollectionUtils.isNotEmpty(searchVo.getEnvIdList())) {
-                        searchVo.setEnvId(searchVo.getEnvIdList().get(0));
-                    }
-                    int rowNum = autoexecResourceMapper.getOsResourceCountByAppSystemIdAndAppModuleIdListAndEnvIdAndTypeId(searchVo);
-                    if (rowNum > 0) {
-                        searchVo.setRowNum(rowNum);
-                        for (int currentPage = 1; currentPage <= searchVo.getPageCount(); currentPage++) {
-                            searchVo.setCurrentPage(currentPage);
-                            List<Long> idOsList = autoexecResourceMapper.getOsResourceIdListByAppSystemIdAndAppModuleIdAndEnvIdAndTypeId(searchVo);
-                            if (CollectionUtils.isNotEmpty(idOsList)) {
-                                List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceByIdList(idOsList);
-                                if (CollectionUtils.isNotEmpty(resourceList)) {
-                                    autoexecJobService.updateJobPhaseNode(jobVo, resourceList, userName, protocolId);
-                                    isHasNode = true;
-                                }
-                            }
-                        }
-                    }
-                }
             }
         }
         return isHasNode;
