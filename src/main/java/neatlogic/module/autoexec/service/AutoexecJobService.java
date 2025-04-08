@@ -24,6 +24,8 @@ import neatlogic.framework.autoexec.dto.combop.ParamMappingVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
+import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
+import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
 import neatlogic.framework.dto.runner.RunnerMapVo;
 
 import java.util.List;
@@ -251,5 +253,30 @@ public interface AutoexecJobService {
      * @param runTimeParamList 作业参数列表
      */
     String getFinalParamValue(ParamMappingVo executeUser, List<AutoexecParamVo> runTimeParamList);
+
+    /**
+     * 获取resourceSearch,补充opType操作类型
+     *
+     * @param jobVo 作业
+     */
+    ResourceSearchVo getResourceSearchVoWithCmdbGroupType(AutoexecJobVo jobVo);
+
+    /**
+     * 获取resourceSearch,补充opType操作类型
+     *
+     * @param jobVo 作业
+     * @param filterJson 过滤参数
+     */
+    ResourceSearchVo getResourceSearchVoWithCmdbGroupType(AutoexecJobVo jobVo, JSONObject filterJson);
+
+
+    /**
+     * 获取目标节点并入库
+     * @param jobVo 作业
+     * @param resourceVoList 资产列表
+     * @param userName 执行用户
+     * @param protocolId 协议id
+     */
+    void updateJobPhaseNode(AutoexecJobVo jobVo, List<ResourceVo> resourceVoList, String userName, Long protocolId);
 
 }
