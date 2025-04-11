@@ -72,7 +72,7 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         AutoexecJobPhaseVo jobPhaseVo = jobVo.getExecuteJobPhaseList().get(0);
-        jobVo.setStatus(JobStatus.RUNNING.getValue());
+        jobVo.setStatus(JobStatus.QUEUE.getValue());
         autoexecJobMapper.updateJobStatus(jobVo);
         jobPhaseVo.setStatus(JobPhaseStatus.RUNNING.getValue());
         autoexecJobMapper.updateJobPhaseStatus(jobPhaseVo);

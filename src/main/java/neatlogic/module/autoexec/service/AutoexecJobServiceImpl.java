@@ -970,7 +970,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     }
 
 
-
     /**
      * 跟新作业阶段阶段
      *
@@ -1268,8 +1267,15 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         autoexecJobVo.setConfigStr(jobContent.getContent());
         List<AutoexecJobPhaseNodeOperationStatusVo> statusList = new ArrayList<>();
         String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/status/get";
-        JSONObject statusJson = JSONObject.parseObject(AutoexecUtil.requestRunner(url, paramJson));
-        AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(statusJson);
+        JSONObject statusJson = null;
+        AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobNodeId(paramJson.getLong("nodeId"));
+        try {
+            statusJson = JSON.parseObject(AutoexecUtil.requestRunner(url, paramJson));
+        } catch (Exception ignored) {
+            //ignored
+        }
+
+
         if (isNeedOperationList) {
             IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(autoexecJobVo.getSource());
             if (jobSource == null) {
@@ -1323,6 +1329,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     statusList.add(new AutoexecJobPhaseNodeOperationStatusVo(jobPhaseOperationVo, statusJson, description, jobSonOperationList, combopOperationUuidMap));
                 }
 
+            }
+            if (MapUtils.isNotEmpty(statusJson)) {
+                nodeVo.setStatus(statusJson.getString("status"));
+                nodeVo.setInteractStr(statusJson.getString("interact"));
             }
             nodeVo.setOperationStatusVoList(statusList.stream().sorted(Comparator.comparing(AutoexecJobPhaseNodeOperationStatusVo::getSort)).collect(toList()));
         }
@@ -1520,7 +1530,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         if (CollectionUtils.isEmpty(runnerVos)) {
             throw new RunnerNotMatchException();
         }
-        jobVo.setStatus(JobStatus.RUNNING.getValue());
+        if(jobVo.getIsFirstFire() == 1) {
+            jobVo.setStatus(JobStatus.QUEUE.getValue());
+        }
         autoexecJobMapper.updateJobStatus(jobVo);
 
         JSONObject paramJson = new JSONObject();

@@ -21,6 +21,7 @@ import neatlogic.framework.autoexec.constvalue.ExecMode;
 import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.constvalue.JobPhaseStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import neatlogic.framework.autoexec.dto.job.AutoexecJobGroupVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
@@ -104,6 +105,8 @@ public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
         AutoexecJobPhaseVo phaseVo = jobVo.getCurrentPhase();
         phaseVo.setStatus(JobPhaseStatus.RUNNING.getValue());
         autoexecJobMapper.updateJobPhaseStatus(phaseVo);
+        AutoexecJobGroupVo jobGroupVo = autoexecJobMapper.getJobGroupById(phaseVo.getGroupId());
+        jobVo.setExecuteJobGroupVo(jobGroupVo);
         jobVo.setExecuteJobPhaseList(Collections.singletonList(phaseVo));
         autoexecJobService.executeNode(jobVo);
         return null;

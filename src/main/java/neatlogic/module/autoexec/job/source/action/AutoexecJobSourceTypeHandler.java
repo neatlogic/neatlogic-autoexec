@@ -292,7 +292,7 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
                         throw new RunnerGroupRunnerNotFoundException(networkVo.getGroupId());
                     }
                     if (CollectionUtils.isEmpty(groupVo.getRunnerMapList())) {
-                        throw new RunnerGroupRunnerNotFoundException(groupVo.getName(), networkVo.getName() + "(" + networkVo.getGroupId() + ") ");
+                        throw new RunnerGroupRunnerNotFoundException(groupVo.getName(), networkVo.getNetworkIp());
                     }
                     runnerMapVos = groupVo.getRunnerMapList();
                     break;

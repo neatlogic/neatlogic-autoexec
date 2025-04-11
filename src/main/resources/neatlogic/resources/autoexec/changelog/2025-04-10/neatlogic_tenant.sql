@@ -1,0 +1,2 @@
+ALTER TABLE `autoexec_job`
+MODIFY COLUMN `status` enum('running','pausing','paused','completed','pending','aborting','aborted','succeed','failed','waitInput','ready','revoked','saved','checked','queue') CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL COMMENT '作业状态' AFTER `name`;

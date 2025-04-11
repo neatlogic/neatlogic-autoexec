@@ -63,6 +63,7 @@ public class AutoexecJobNodeOperationListHandler extends AutoexecJobActionHandle
         paramJson.put("resourceId", nodeVo.getResourceId());
         paramJson.put("phase", nodeVo.getJobPhaseName());
         paramJson.put("phaseId", nodeVo.getJobPhaseId());
+        paramJson.put("nodeId",nodeVo.getId());
         paramJson.put("ip", nodeVo.getHost());
         paramJson.put("port", nodeVo.getPort());
         paramJson.put("runnerUrl", nodeVo.getRunnerUrl());
