@@ -53,7 +53,7 @@ import java.util.stream.Collectors;
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
-public class GetAutoexecJobQueueStatusApi extends PrivateApiComponentBase {
+public class GetAutoexecJobWaitingDetailApi extends PrivateApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
     @Resource
@@ -100,7 +100,7 @@ public class GetAutoexecJobQueueStatusApi extends PrivateApiComponentBase {
 
         autoexecJobService.checkRunnerHealth(runnerVos);
         for (RunnerMapVo runner : runnerVos) {
-            String url = runner.getUrl() + "api/rest/job/queue/status/get";
+            String url = runner.getUrl() + "api/rest/job/waiting/detail/get";
             HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setConnectTimeout(5000).setReadTimeout(5000).setPayload(jsonObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
             if (StringUtils.isNotBlank(requestUtil.getError())) {
                 throw new RunnerHttpRequestException(url + ":" + requestUtil.getError());
@@ -134,6 +134,6 @@ public class GetAutoexecJobQueueStatusApi extends PrivateApiComponentBase {
 
     @Override
     public String getToken() {
-        return "autoexec/job/queue/status/get";
+        return "autoexec/job/waiting/detail/get";
     }
 }

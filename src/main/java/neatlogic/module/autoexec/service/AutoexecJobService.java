@@ -279,4 +279,11 @@ public interface AutoexecJobService {
      */
     void updateJobPhaseNode(AutoexecJobVo jobVo, List<ResourceVo> resourceVoList, String userName, Long protocolId);
 
+
+    /**
+     * 作业第一次跑和重置后重跑作业更新排队等待
+     * @param jobVo 作业
+     */
+    void fireOrResetRefireWaiting(AutoexecJobVo jobVo);
+
 }

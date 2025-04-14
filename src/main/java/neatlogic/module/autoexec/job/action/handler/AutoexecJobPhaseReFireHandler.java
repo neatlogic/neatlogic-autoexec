@@ -22,6 +22,7 @@ import neatlogic.framework.autoexec.constvalue.JobPhaseStatus;
 import neatlogic.framework.autoexec.constvalue.JobStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
+import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseRunnerVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobPhaseRunnerNotFoundException;
@@ -72,7 +73,8 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         AutoexecJobPhaseVo jobPhaseVo = jobVo.getExecuteJobPhaseList().get(0);
-        jobVo.setStatus(JobStatus.QUEUE.getValue());
+        jobVo.setStatus(JobStatus.WAITING.getValue());
+        jobVo.setIsFirstFire(0);
         autoexecJobMapper.updateJobStatus(jobVo);
         jobPhaseVo.setStatus(JobPhaseStatus.RUNNING.getValue());
         autoexecJobMapper.updateJobPhaseStatus(jobPhaseVo);
@@ -84,6 +86,11 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
             resetPhase(jobVo);
             autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(jobVo.getExecuteJobPhaseList().stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()), JobPhaseStatus.PENDING.getValue());
             autoexecJobService.refreshJobPhaseNodeList(jobVo.getId(), jobVo.getExecuteJobPhaseList());
+            autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(jobPhaseVo.getId()), JobPhaseStatus.WAITING.getValue());
+            List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobVo.getId(), Collections.singletonList(jobPhaseVo.getId()));
+            for (AutoexecJobPhaseRunnerVo jobPhaseRunnerVo : jobPhaseRunnerVos) {
+                autoexecJobMapper.updateJobPhaseRunnerStatus(Collections.singletonList(jobPhaseVo.getId()), jobPhaseRunnerVo.getRunnerMapId(), JobPhaseStatus.WAITING.getValue());
+            }
         }
         if (Objects.equals(jobVo.getAction(), JobAction.REFIRE.getValue())) {
             List<AutoexecJobPhaseNodeVo> needResetNodeList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseIdAndExceptStatus(jobPhaseVo.getId(), Arrays.asList(JobNodeStatus.IGNORED.getValue(), JobNodeStatus.SUCCEED.getValue(), JobNodeStatus.INVALID.getValue()));

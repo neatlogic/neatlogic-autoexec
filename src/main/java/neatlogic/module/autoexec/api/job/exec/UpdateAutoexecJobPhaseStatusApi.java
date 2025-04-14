@@ -99,6 +99,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         String phaseRunnerStatus = jsonObj.getString("status");
         Integer phaseRunnerWarnCount = jsonObj.getInteger("warnCount");
         JSONObject passThroughEnv = jsonObj.getJSONObject("passThroughEnv");
+        Integer isFirstFire = 0;
         Long runnerId = 0L;
         if (MapUtils.isNotEmpty(passThroughEnv)) {
             if (!passThroughEnv.containsKey("runnerId")) {
@@ -106,11 +107,15 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
             } else {
                 runnerId = passThroughEnv.getLong("runnerId");
             }
+            if (passThroughEnv.containsKey("isFirstFire")) {
+                isFirstFire = passThroughEnv.getInteger("isFirstFire");
+            }
         }
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
+        jobVo.setIsFirstFire(isFirstFire);
         //更新执行用户上下文
         autoexecJobActionService.initExecuteUserContext(jobVo);
 
@@ -165,7 +170,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
             finalJobPhaseStatus = JobPhaseStatus.COMPLETED.getValue();
         } else if (statusCountMap.get(JobPhaseStatus.WAIT_INPUT.getValue()) > 0) {
             finalJobPhaseStatus = JobPhaseStatus.WAIT_INPUT.getValue();
-        } else if (statusCountMap.get(JobPhaseStatus.RUNNING.getValue()) > 0) {
+        } else if (statusCountMap.get(JobPhaseStatus.RUNNING.getValue()) > 0 || statusCountMap.get(JobPhaseStatus.COMPLETED.getValue())>0) {
             finalJobPhaseStatus = JobPhaseStatus.RUNNING.getValue();
         } else if (statusCountMap.get(JobPhaseStatus.FAILED.getValue()) > 0) {
             finalJobPhaseStatus = JobPhaseStatus.FAILED.getValue();
@@ -173,6 +178,8 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
             finalJobPhaseStatus = JobPhaseStatus.ABORTED.getValue();
         } else if (statusCountMap.get(JobPhaseStatus.PAUSED.getValue()) > 0) {
             finalJobPhaseStatus = JobPhaseStatus.PAUSED.getValue();
+        } else if (statusCountMap.get(JobPhaseStatus.WAITING.getValue()) > 0) {
+            finalJobPhaseStatus = JobPhaseStatus.WAITING.getValue();
         } else {
             finalJobPhaseStatus = JobPhaseStatus.PENDING.getValue();
         }

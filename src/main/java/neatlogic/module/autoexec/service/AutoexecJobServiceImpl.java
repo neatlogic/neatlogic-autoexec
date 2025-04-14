@@ -1361,6 +1361,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 finalStatus = JobNodeStatus.ABORTED.getValue();
             } else if (statusList.contains(JobNodeStatus.PAUSED.getValue())) {
                 finalStatus = JobNodeStatus.PAUSED.getValue();
+            } else if (statusList.contains(JobNodeStatus.WAITING.getValue())) {
+                finalStatus = JobNodeStatus.WAITING.getValue();
             } else {
                 finalStatus = JobNodeStatus.PENDING.getValue();
             }
@@ -1530,22 +1532,21 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         if (CollectionUtils.isEmpty(runnerVos)) {
             throw new RunnerNotMatchException();
         }
-        if(jobVo.getIsFirstFire() == 1) {
-            jobVo.setStatus(JobStatus.QUEUE.getValue());
-        }
         autoexecJobMapper.updateJobStatus(jobVo);
-
+        Integer isFirstFire = Arrays.asList(JobAction.FIRE.getValue(), JobAction.RESET_REFIRE.getValue()).contains(jobVo.getAction()) ? 1 : 0;
         JSONObject paramJson = new JSONObject();
         paramJson.put("jobId", jobVo.getId());
         paramJson.put("tenant", TenantContext.get().getTenantUuid());
         paramJson.put("isNoFireNext", jobVo.getIsNoFireNext());
-        paramJson.put("isFirstFire", jobVo.getIsFirstFire());
+        paramJson.put("isFirstFire", isFirstFire);
+        if (jobVo.getExecuteJobGroupVo() == null) {
+            throw new AutoexecJobGroupNotFoundException(jobVo.getId());
+        }
         if (CollectionUtils.isNotEmpty(jobVo.getExecuteJobPhaseList())) {
             paramJson.put("jobPhaseNameList", jobVo.getExecuteJobPhaseList().stream().map(AutoexecJobPhaseVo::getName).collect(Collectors.toList()));
         }
-        if (jobVo.getExecuteJobGroupVo() != null) {
-            paramJson.put("jobGroupIdList", Collections.singletonList(jobVo.getExecuteJobGroupVo().getSort()));
-        }
+
+        paramJson.put("jobGroupIdList", Collections.singletonList(jobVo.getExecuteJobGroupVo().getSort()));
 
         if (jobVo.getCurrentPhase() != null && Objects.equals(jobVo.getCurrentPhase().getExecMode(), ExecMode.SQL.getValue())) {
             paramJson.put("jobPhaseNodeSqlList", jobVo.getJobPhaseNodeSqlList());
@@ -1564,13 +1565,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 url = runner.getUrl() + "api/rest/job/exec";
                 JSONObject passThroughEnv = jobVo.getPassThroughEnv();
                 passThroughEnv.put("runnerId", runner.getRunnerMapId());
-                if (jobVo.getExecuteJobGroupVo() != null) {
-                    passThroughEnv.put("groupSort", jobVo.getExecuteJobGroupVo().getSort());
-                }
+                passThroughEnv.put("groupSort", jobVo.getExecuteJobGroupVo().getSort());
                 if (CollectionUtils.isNotEmpty(jobVo.getExecuteJobPhaseList())) {
                     passThroughEnv.put("phaseSort", jobVo.getExecuteJobPhaseList().get(0).getSort());
                 }
-                passThroughEnv.put("isFirstFire", jobVo.getIsFirstFire());
+                passThroughEnv.put("isFirstFire", isFirstFire);
                 passThroughEnv.put("EXECUSER_TOKEN", userMapper.getUserTokenByUser(UserContext.get().getUserId()));
                 paramJson.put("passThroughEnv", passThroughEnv);
                 paramJson.put("environment", jobVo.getEnvironment());
@@ -1585,6 +1584,19 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
             throw new RunnerConnectRefusedException(url + " " + result);
+        }
+    }
+
+    @Override
+    public void fireOrResetRefireWaiting(AutoexecJobVo jobVo){
+        jobVo.setStatus(JobStatus.WAITING.getValue());
+        autoexecJobMapper.updateJobStatus(jobVo);
+        //找到第一个组的第一个phase状态更新成排队中
+        AutoexecJobPhaseVo firstPhase = autoexecJobMapper.getJobFirstPhaseByGroupId(jobVo.getExecuteJobGroupVo().getId());
+        autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(firstPhase.getId()), JobPhaseStatus.WAITING.getValue());
+        List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobVo.getId(), Collections.singletonList(firstPhase.getId()));
+        for (AutoexecJobPhaseRunnerVo jobPhaseRunnerVo : jobPhaseRunnerVos) {
+            autoexecJobMapper.updateJobPhaseRunnerStatus(Collections.singletonList(firstPhase.getId()), jobPhaseRunnerVo.getRunnerMapId(), JobPhaseStatus.WAITING.getValue());
         }
     }
 

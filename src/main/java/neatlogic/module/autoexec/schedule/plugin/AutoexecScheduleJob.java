@@ -142,7 +142,6 @@ public class AutoexecScheduleJob extends JobBase {
             jobVo.setInvokeId(autoexecScheduleVo.getId());
             jobVo.setRouteId(autoexecScheduleVo.getId().toString());
             jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
-            jobVo.setIsFirstFire(1);
             UserVo fcuVo = userMapper.getUserByUuid(autoexecScheduleVo.getFcu());
             AuthenticationInfoVo authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(autoexecScheduleVo.getFcu());
             UserContext.init(fcuVo, authenticationInfoVo, SystemUser.SYSTEM.getTimezone());

@@ -103,6 +103,7 @@ public class FireAutoexecJobNextGroupApi extends PrivateApiComponentBase {
                 AutoexecJobGroupVo nextGroupVo = autoexecJobMapper.getJobGroupByJobIdAndSort(jobId, groupSort + 1);
                 if (nextGroupVo != null) {
                     jobVo.setExecuteJobGroupVo(nextGroupVo);
+                    jobVo.setIsFirstFire(0);
                     IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
                     fireAction.doService(jobVo);
                 }
