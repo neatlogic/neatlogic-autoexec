@@ -1452,7 +1452,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         paramJson.put("nodeStatus", nodeStatus);
         for (RunnerMapVo runner : runnerVos) {
             String url = runner.getUrl() + "api/rest/job/phase/node/status/update";
-            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(5000).setReadTimeout(5000).sendRequest();
+            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
             if (StringUtils.isNotBlank(requestUtil.getError())) {
                 throw new RunnerHttpRequestException(url + ":" + requestUtil.getError());
             }
@@ -1478,13 +1478,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 throw new AutoexecJobRunnerNotFoundException(runner.getRunnerMapId().toString());
             }
             url = runner.getUrl() + "api/rest/health/check";
-            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setConnectTimeout(5000).setReadTimeout(5000).setPayload(new JSONObject().toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
+            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(new JSONObject().toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
             if (StringUtils.isNotBlank(requestUtil.getError())) {
-                throw new RunnerConnectRefusedException(url, requestUtil.getError());
-            }
-            JSONObject resultJson = requestUtil.getResultJson();
-            if (resultJson == null || !resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                throw new RunnerConnectRefusedException(runner.getHost() + ":" + runner.getPort(), url + ", response code:" + requestUtil.getResponseCode());
+                throw new ApiRuntimeException((StringUtils.isNotBlank(requestUtil.getErrorMsg())?requestUtil.getErrorMsg():requestUtil.getError()));
             }
 
         }
@@ -1574,11 +1570,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             HttpRequestUtil httpRequestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
 
             if (StringUtils.isNotBlank(httpRequestUtil.getError())) {
-                throw new ApiRuntimeException(url + " " + (StringUtils.isNotBlank(httpRequestUtil.getErrorMsg())?httpRequestUtil.getErrorMsg():httpRequestUtil.getError()));
-            }
-            JSONObject resultJson = httpRequestUtil.getResultJson();
-            if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                throw new ApiRuntimeException(url + ":" + resultJson.getString("Message"));
+                throw new ApiRuntimeException((StringUtils.isNotBlank(httpRequestUtil.getErrorMsg())?httpRequestUtil.getErrorMsg():httpRequestUtil.getError()));
             }
         }
 
