@@ -73,9 +73,13 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         AutoexecJobPhaseVo jobPhaseVo = jobVo.getExecuteJobPhaseList().get(0);
-        jobVo.setStatus(JobStatus.WAITING.getValue());
+        AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseStatus(jobVo.getId(), JobPhaseStatus.RUNNING.getValue());
+        //存在进行中的阶段不修改作业状态
+        if (phaseVo == null) {
+            jobVo.setStatus(JobStatus.WAITING.getValue());
+            autoexecJobMapper.updateJobStatus(jobVo);
+        }
         jobVo.setIsFirstFire(0);
-        autoexecJobMapper.updateJobStatus(jobVo);
         jobPhaseVo.setStatus(JobPhaseStatus.RUNNING.getValue());
         autoexecJobMapper.updateJobPhaseStatus(jobPhaseVo);
         //如果是sqlfile类型的phase 需额外清除状态
@@ -101,13 +105,13 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
                     throw new AutoexecJobPhaseRunnerNotFoundException(jobPhaseVo.getJobId(), jobPhaseVo.getName(), jobPhaseVo.getId());
                 }
                 autoexecJobService.updateJobNodeStatus(runnerMapVos, jobVo, JobNodeStatus.PENDING.getValue());
-                autoexecJobMapper.updateJobPhaseNodeListStatusByPhaseIdAndExceptStatus(jobPhaseVo.getId(), Arrays.asList(JobNodeStatus.IGNORED.getValue(), JobNodeStatus.SUCCEED.getValue(), JobNodeStatus.INVALID.getValue()),JobNodeStatus.PENDING.getValue());
+                autoexecJobMapper.updateJobPhaseNodeListStatusByPhaseIdAndExceptStatus(jobPhaseVo.getId(), Arrays.asList(JobNodeStatus.IGNORED.getValue(), JobNodeStatus.SUCCEED.getValue(), JobNodeStatus.INVALID.getValue()), JobNodeStatus.PENDING.getValue());
                 jobVo.setExecuteJobNodeVoList(null);
             }
         }
         Integer pendingCount = autoexecJobMapper.isHasPendingNode(jobPhaseVo.getId());
-        if(pendingCount == null){
-            autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(jobPhaseVo.getId()),JobPhaseStatus.COMPLETED.getValue());
+        if (pendingCount == null) {
+            autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(jobPhaseVo.getId()), JobPhaseStatus.COMPLETED.getValue());
             return null;
         }
         jobPhaseVo.setJobGroupVo(autoexecJobMapper.getJobGroupById(jobPhaseVo.getGroupId()));

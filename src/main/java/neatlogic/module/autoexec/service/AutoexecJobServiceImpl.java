@@ -52,6 +52,7 @@ import neatlogic.framework.dao.mapper.runner.RunnerMapper;
 import neatlogic.framework.deploy.crossover.IDeploySqlCrossoverMapper;
 import neatlogic.framework.dto.RestVo;
 import neatlogic.framework.dto.runner.RunnerMapVo;
+import neatlogic.framework.exception.core.ApiRuntimeException;
 import neatlogic.framework.exception.runner.*;
 import neatlogic.framework.integration.authentication.enums.AuthenticateType;
 import neatlogic.framework.util.$;
@@ -1553,42 +1554,38 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         } else {
             paramJson.put("jobPhaseResourceIdList", jobVo.getExecuteResourceIdList());
         }
-        RestVo restVo = null;
-        String result = StringUtils.EMPTY;
-        String url = StringUtils.EMPTY;
         runnerVos = runnerVos.stream().filter(o -> StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
         checkRunnerHealth(runnerVos);
-        try {
-            Long execid = SnowflakeUtil.uniqueLong();
-            for (RunnerMapVo runner : runnerVos) {
-                jobVo.getEnvironment().put("RUNNER_ID", runner.getRunnerMapId());
-                url = runner.getUrl() + "api/rest/job/exec";
-                JSONObject passThroughEnv = jobVo.getPassThroughEnv();
-                passThroughEnv.put("runnerId", runner.getRunnerMapId());
-                passThroughEnv.put("groupSort", jobVo.getExecuteJobGroupVo().getSort());
-                if (CollectionUtils.isNotEmpty(jobVo.getExecuteJobPhaseList())) {
-                    passThroughEnv.put("phaseSort", jobVo.getExecuteJobPhaseList().get(0).getSort());
-                }
-                passThroughEnv.put("isFirstFire", isFirstFire);
-                passThroughEnv.put("EXECUSER_TOKEN", userMapper.getUserTokenByUser(UserContext.get().getUserId()));
-                paramJson.put("passThroughEnv", passThroughEnv);
-                paramJson.put("environment", jobVo.getEnvironment());
-                paramJson.put("execid", String.valueOf(execid));
-                restVo = new RestVo.Builder(url, AuthenticateType.BUILDIN.getValue()).setPayload(paramJson).build();
-                result = RestUtil.sendPostRequest(restVo);
-                JSONObject resultJson = JSONObject.parseObject(result);
-                if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                    throw new RunnerHttpRequestException(restVo.getUrl() + ":" + resultJson.getString("Message"));
-                }
+        Long execid = SnowflakeUtil.uniqueLong();
+        for (RunnerMapVo runner : runnerVos) {
+            jobVo.getEnvironment().put("RUNNER_ID", runner.getRunnerMapId());
+            String url = runner.getUrl() + "api/rest/job/exec";
+            JSONObject passThroughEnv = jobVo.getPassThroughEnv();
+            passThroughEnv.put("runnerId", runner.getRunnerMapId());
+            passThroughEnv.put("groupSort", jobVo.getExecuteJobGroupVo().getSort());
+            if (CollectionUtils.isNotEmpty(jobVo.getExecuteJobPhaseList())) {
+                passThroughEnv.put("phaseSort", jobVo.getExecuteJobPhaseList().get(0).getSort());
             }
-        } catch (Exception ex) {
-            logger.error(ex.getMessage(), ex);
-            throw new RunnerConnectRefusedException(url + " " + result);
+            passThroughEnv.put("isFirstFire", isFirstFire);
+            passThroughEnv.put("EXECUSER_TOKEN", userMapper.getUserTokenByUser(UserContext.get().getUserId()));
+            paramJson.put("passThroughEnv", passThroughEnv);
+            paramJson.put("environment", jobVo.getEnvironment());
+            paramJson.put("execid", String.valueOf(execid));
+            HttpRequestUtil httpRequestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
+
+            if (StringUtils.isNotBlank(httpRequestUtil.getError())) {
+                throw new ApiRuntimeException(url + " " + (StringUtils.isNotBlank(httpRequestUtil.getErrorMsg())?httpRequestUtil.getErrorMsg():httpRequestUtil.getError()));
+            }
+            JSONObject resultJson = httpRequestUtil.getResultJson();
+            if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
+                throw new ApiRuntimeException(url + ":" + resultJson.getString("Message"));
+            }
         }
+
     }
 
     @Override
-    public void fireOrResetRefireWaiting(AutoexecJobVo jobVo){
+    public void fireOrResetRefireWaiting(AutoexecJobVo jobVo) {
         jobVo.setStatus(JobStatus.WAITING.getValue());
         autoexecJobMapper.updateJobStatus(jobVo);
         //找到第一个组的第一个phase状态更新成排队中

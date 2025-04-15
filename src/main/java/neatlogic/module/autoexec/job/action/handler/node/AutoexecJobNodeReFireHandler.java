@@ -102,6 +102,7 @@ public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         //重跑单个节点无需激活下个phase
         jobVo.setIsNoFireNext(1);
+        jobVo.setIsFirstFire(0);
         AutoexecJobPhaseVo phaseVo = jobVo.getCurrentPhase();
         phaseVo.setStatus(JobPhaseStatus.WAITING.getValue());
         autoexecJobMapper.updateJobPhaseStatus(phaseVo);
