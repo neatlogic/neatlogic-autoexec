@@ -15,6 +15,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 package neatlogic.module.autoexec.service;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
@@ -285,5 +286,12 @@ public interface AutoexecJobService {
      * @param jobVo 作业
      */
     void fireOrResetRefireWaiting(AutoexecJobVo jobVo);
+
+    /**
+     * 根据作业id获取作业等待详情
+     *
+     * @param jobId 作业id
+     */
+    JSONArray getAutoexecJobWaitingDetail(Long jobId);
 
 }

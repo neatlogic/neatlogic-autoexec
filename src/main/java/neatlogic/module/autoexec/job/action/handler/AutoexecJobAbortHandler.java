@@ -82,7 +82,7 @@ public class AutoexecJobAbortHandler extends AutoexecJobActionHandlerBase {
                 abortingPhaseIdList.add(jobPhase.getId());
             } else if (Arrays.asList(JobPhaseStatus.RUNNING.getValue(), JobPhaseStatus.WAITING.getValue(), JobPhaseStatus.WAIT_INPUT.getValue()).contains(jobPhase.getStatus())) {
                 jobPhase.setStatus(JobStatus.ABORTING.getValue());
-                abortingPhaseIdList.add(jobPhase.getJobId());
+                abortingPhaseIdList.add(jobPhase.getId());
                 autoexecJobMapper.updateJobPhaseStatus(jobPhase);
                 autoexecJobMapper.updateBatchJobPhaseRunnerStatus(jobPhase.getId(), JobPhaseStatus.ABORTING.getValue());
             }
@@ -129,7 +129,7 @@ public class AutoexecJobAbortHandler extends AutoexecJobActionHandlerBase {
                 logger.error(ex.getMessage(), ex);
                 throw new RunnerConnectRefusedException(url + " " + result);
             }
-            if (autoexecJobMapper.getJobPhaseStatusCountByJobIdAndStatus(jobVo.getId(), JobPhaseStatus.ABORTING.getValue()) == 0) {
+            if (autoexecJobMapper.getJobPhaseRunnerStatusCountByJobIdAndStatus(jobVo.getId(), JobPhaseStatus.ABORTING.getValue()) == 0) {
                 if (CollectionUtils.isNotEmpty(abortingPhaseIdList)) {
                     autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(abortingPhaseIdList, JobPhaseStatus.ABORTED.getValue());
                 }
