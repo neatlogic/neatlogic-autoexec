@@ -26,8 +26,11 @@ import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeStatusCountVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
+import neatlogic.framework.autoexec.exception.AutoexecJobSourceInvalidException;
 import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
 import neatlogic.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
+import neatlogic.framework.autoexec.source.AutoexecJobSourceFactory;
+import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
@@ -130,7 +133,11 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
         result.put("status", jobVo.getStatus());
         result.put("statusName", JobStatus.getText(jobVo.getStatus()));
         result.put("phaseList", jobPhaseVoList);
-        IAutoexecJobSourceTypeHandler jobSourceTypeHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobVo.getSource());
+        IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
+        if (jobSource == null) {
+            throw new AutoexecJobSourceInvalidException(jobVo.getSource());
+        }
+        IAutoexecJobSourceTypeHandler jobSourceTypeHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
         if (jobSourceTypeHandler != null) {
             result.put("extraInfo",jobSourceTypeHandler.getExtraRefreshJobInfo(jobVo));
         }
