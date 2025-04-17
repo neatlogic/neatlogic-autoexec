@@ -468,7 +468,6 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             jobVo.setExecuteJobGroupVo(autoexecJobMapper.getJobGroupByJobIdAndSort(jobVo.getId(), 0));
             autoexecJobService.getAutoexecJobDetail(jobVo);
             IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
-            jobVo.setIsFirstFire(1);
             fireAction.doService(jobVo);
         }
     }
@@ -498,7 +497,6 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         if (jobVo.getTriggerType() == null || (Objects.equals(JobTriggerType.AUTO.getValue(), jobVo.getTriggerType()) && jobVo.getPlanStartTime().getTime() <= System.currentTimeMillis())) {
             IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
             jobVo.setAction(JobAction.FIRE.getValue());
-            jobVo.setIsFirstFire(1);
             fireAction.doService(jobVo);
         } else if (Objects.equals(JobTriggerType.AUTO.getValue(), jobVo.getTriggerType()) && jobVo.getPlanStartTime() != null) {
             IJob jobHandler = SchedulerManager.getHandler(AutoexecJobAutoFireJob.class.getName());

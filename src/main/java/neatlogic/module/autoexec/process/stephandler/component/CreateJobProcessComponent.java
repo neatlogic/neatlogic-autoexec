@@ -299,7 +299,6 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                         jobVo.setInvokeId(processTaskStepVo.getId());
                         jobVo.setRouteId(processTaskStepVo.getId().toString());
                         jobVo.setSource(AutoExecJobProcessSource.ITSM.getValue());
-                        jobVo.setIsFirstFire(1);
                         jobVo.setAssignExecUser(SystemUser.SYSTEM.getUserUuid());
                         try {
                             autoexecJobActionService.validateCreateJob(jobVo);

@@ -92,7 +92,7 @@ public class AutoexecJobNodeSubmitWaitInputHandler extends AutoexecJobActionHand
         }
         String url = String.format("%s/api/rest/job/phase/node/submit/waitInput", nodeVo.getRunnerUrl());
         String result = HttpRequestUtil.post(url)
-                .setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(5000).setReadTimeout(5000)
+                .setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN)
                 .sendRequest().getError();
         if (StringUtils.isNotBlank(result)) {
             throw new RunnerHttpRequestException(url + ":" + result);

@@ -19,8 +19,10 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.ExecMode;
 import neatlogic.framework.autoexec.constvalue.JobAction;
+import neatlogic.framework.autoexec.constvalue.JobNodeStatus;
 import neatlogic.framework.autoexec.constvalue.JobPhaseStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import neatlogic.framework.autoexec.dto.job.AutoexecJobGroupVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
@@ -61,13 +63,13 @@ public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
         currentPhaseIdValid(jobVo);
         JSONObject jsonObj = jobVo.getActionParam();
         List<Long> resourceIdList = JSONObject.parseArray(jsonObj.getJSONArray("resourceIdList").toJSONString(), Long.class);
-        if(CollectionUtils.isEmpty(resourceIdList)){
+        if (CollectionUtils.isEmpty(resourceIdList)) {
             throw new ParamIrregularException("resourceIdList");
         }
         List<AutoexecJobPhaseNodeVo> nodeVoList;
         if (Objects.equals(jobVo.getCurrentPhase().getExecMode(), ExecMode.SQL.getValue())) {
             JSONArray sqlIdArray = jobVo.getActionParam().getJSONArray("sqlIdList");
-            if(CollectionUtils.isEmpty(sqlIdArray)){
+            if (CollectionUtils.isEmpty(sqlIdArray)) {
                 throw new ParamIrregularException("sqlIdList");
             }
             IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
@@ -76,10 +78,10 @@ public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
             }
             nodeVoList = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType()).getJobNodeListBySqlIdList(sqlIdArray.toJavaList(Long.class));
             jobVo.setJobPhaseNodeSqlList(nodeVoList);
-        }else {
+        } else {
             nodeVoList = autoexecJobMapper.getJobPhaseNodeListByJobPhaseIdAndResourceIdList(jobVo.getCurrentPhaseId(), resourceIdList);
-            //重置节点开始和结束时间,以防 失败节点直接"重跑"导致耗时异常
-            autoexecJobMapper.updateJobPhaseNodeResetStartTimeAndEndTimeByNodeIdList(nodeVoList.stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()));
+            List<Long> nodeIdList = nodeVoList.stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList());
+            autoexecJobMapper.updateJobPhaseNodeListStatus(nodeIdList, JobNodeStatus.WAITING.getValue());
         }
         jobVo.setExecuteJobNodeVoList(nodeVoList);
         //校验是否和当前phaseId一致
@@ -100,10 +102,12 @@ public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         //重跑单个节点无需激活下个phase
         jobVo.setIsNoFireNext(1);
-        //跟新phase状态为running
+        jobVo.setIsFirstFire(0);
         AutoexecJobPhaseVo phaseVo = jobVo.getCurrentPhase();
-        phaseVo.setStatus(JobPhaseStatus.RUNNING.getValue());
+        phaseVo.setStatus(JobPhaseStatus.WAITING.getValue());
         autoexecJobMapper.updateJobPhaseStatus(phaseVo);
+        AutoexecJobGroupVo jobGroupVo = autoexecJobMapper.getJobGroupById(phaseVo.getGroupId());
+        jobVo.setExecuteJobGroupVo(jobGroupVo);
         jobVo.setExecuteJobPhaseList(Collections.singletonList(phaseVo));
         autoexecJobService.executeNode(jobVo);
         return null;

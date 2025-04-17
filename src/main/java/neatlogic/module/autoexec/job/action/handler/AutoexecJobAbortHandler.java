@@ -15,6 +15,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 package neatlogic.module.autoexec.job.action.handler;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
@@ -64,37 +65,44 @@ public class AutoexecJobAbortHandler extends AutoexecJobActionHandlerBase {
     }
 
     @Override
-    public boolean isNeedExecuteAuthCheck(){
+    public boolean isNeedExecuteAuthCheck() {
         return true;
     }
 
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
+        List<Long> abortingPhaseIdList = new ArrayList<>();
         //更新job状态 为中止中
         jobVo.setStatus(JobPhaseStatus.ABORTING.getValue());
         autoexecJobMapper.updateJobStatus(jobVo);
         //更新phase状态 为中止中
         jobVo.setPhaseList(autoexecJobMapper.getJobPhaseListWithGroupByJobId(jobVo.getId()));
         for (AutoexecJobPhaseVo jobPhase : jobVo.getPhaseList()) {
-            if (Arrays.asList(JobPhaseStatus.RUNNING.getValue(),JobPhaseStatus.WAITING.getValue(),JobPhaseStatus.WAIT_INPUT.getValue()).contains(jobPhase.getStatus())) {
+            if (Objects.equals(JobPhaseStatus.ABORTING.getValue(), jobPhase.getStatus())) {
+                abortingPhaseIdList.add(jobPhase.getId());
+            } else if (Arrays.asList(JobPhaseStatus.RUNNING.getValue(), JobPhaseStatus.WAITING.getValue(), JobPhaseStatus.WAIT_INPUT.getValue()).contains(jobPhase.getStatus())) {
                 jobPhase.setStatus(JobStatus.ABORTING.getValue());
+                abortingPhaseIdList.add(jobPhase.getId());
                 autoexecJobMapper.updateJobPhaseStatus(jobPhase);
                 autoexecJobMapper.updateBatchJobPhaseRunnerStatus(jobPhase.getId(), JobPhaseStatus.ABORTING.getValue());
             }
         }
         //更新node状态 为中止中
-        List<AutoexecJobPhaseNodeVo> nodeVoList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndNodeStatusList(jobVo.getId(), Collections.singletonList(JobNodeStatus.RUNNING.getValue()));
+        List<AutoexecJobPhaseNodeVo> nodeVoList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndNodeStatusList(jobVo.getId(), Arrays.asList(JobPhaseStatus.WAITING.getValue(), JobNodeStatus.RUNNING.getValue()));
         for (AutoexecJobPhaseNodeVo nodeVo : nodeVoList) {
             nodeVo.setStatus(JobNodeStatus.ABORTING.getValue());
             autoexecJobMapper.updateJobPhaseNodeStatus(nodeVo);
         }
 
-        List<RunnerMapVo> runnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdListAndStatus(jobVo.getId(), jobVo.getPhaseIdList(),JobNodeStatus.ABORTING.getValue());
+        List<RunnerMapVo> runnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdListAndStatus(jobVo.getId(), jobVo.getPhaseIdList(), JobNodeStatus.ABORTING.getValue());
         if (CollectionUtils.isEmpty(runnerVos)) {
+            if (CollectionUtils.isNotEmpty(abortingPhaseIdList)) {
+                autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(abortingPhaseIdList, JobPhaseStatus.ABORTED.getValue());
+            }
             jobVo.setStatus(JobStatus.ABORTED.getValue());
             autoexecJobMapper.updateJobStatus(jobVo);
-        }else {
-            runnerVos = runnerVos.stream().filter(o->StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>( Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
+        } else {
+            runnerVos = runnerVos.stream().filter(o -> StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
             autoexecJobService.checkRunnerHealth(runnerVos);
             JSONObject paramJson = new JSONObject();
             paramJson.put("jobId", jobVo.getId());
@@ -111,14 +119,21 @@ public class AutoexecJobAbortHandler extends AutoexecJobActionHandlerBase {
                     url = runner.getUrl() + "api/rest/job/abort";
                     RestVo restVo = new RestVo.Builder(url, AuthenticateType.BUILDIN.getValue()).setPayload(paramJson).build();
                     result = RestUtil.sendPostRequest(restVo);
-                    JSONObject resultJson = JSONObject.parseObject(result);
+                    JSONObject resultJson = JSON.parseObject(result);
                     if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
                         throw new RunnerHttpRequestException(restVo.getUrl() + ":" + resultJson.getString("Message"));
                     }
+                    autoexecJobMapper.updateJobPhaseRunnerStatus(abortingPhaseIdList, runner.getRunnerMapId(), JobPhaseStatus.ABORTED.getValue());
                 }
             } catch (Exception ex) {
                 logger.error(ex.getMessage(), ex);
                 throw new RunnerConnectRefusedException(url + " " + result);
+            }
+            if (autoexecJobMapper.getJobPhaseRunnerStatusCountByJobIdAndStatus(jobVo.getId(), JobPhaseStatus.ABORTING.getValue()) == 0) {
+                if (CollectionUtils.isNotEmpty(abortingPhaseIdList)) {
+                    autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(abortingPhaseIdList, JobPhaseStatus.ABORTED.getValue());
+                }
+                autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobVo.getId(), JobPhaseStatus.ABORTED.getValue()));
             }
         }
         return null;

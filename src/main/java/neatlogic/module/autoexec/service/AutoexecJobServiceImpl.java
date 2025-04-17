@@ -52,12 +52,10 @@ import neatlogic.framework.dao.mapper.runner.RunnerMapper;
 import neatlogic.framework.deploy.crossover.IDeploySqlCrossoverMapper;
 import neatlogic.framework.dto.RestVo;
 import neatlogic.framework.dto.runner.RunnerMapVo;
+import neatlogic.framework.exception.core.ApiRuntimeException;
 import neatlogic.framework.exception.runner.*;
 import neatlogic.framework.integration.authentication.enums.AuthenticateType;
-import neatlogic.framework.util.$;
-import neatlogic.framework.util.HttpRequestUtil;
-import neatlogic.framework.util.RestUtil;
-import neatlogic.framework.util.SnowflakeUtil;
+import neatlogic.framework.util.*;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -970,7 +968,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     }
 
 
-
     /**
      * 跟新作业阶段阶段
      *
@@ -1268,8 +1265,15 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         autoexecJobVo.setConfigStr(jobContent.getContent());
         List<AutoexecJobPhaseNodeOperationStatusVo> statusList = new ArrayList<>();
         String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/status/get";
-        JSONObject statusJson = JSONObject.parseObject(AutoexecUtil.requestRunner(url, paramJson));
-        AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(statusJson);
+        JSONObject statusJson = null;
+        AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobNodeId(paramJson.getLong("nodeId"));
+        try {
+            statusJson = JSON.parseObject(AutoexecUtil.requestRunner(url, paramJson));
+        } catch (Exception ignored) {
+            //ignored
+        }
+
+
         if (isNeedOperationList) {
             IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(autoexecJobVo.getSource());
             if (jobSource == null) {
@@ -1324,6 +1328,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 }
 
             }
+            if (MapUtils.isNotEmpty(statusJson)) {
+                nodeVo.setStatus(statusJson.getString("status"));
+                nodeVo.setInteractStr(statusJson.getString("interact"));
+            }
             nodeVo.setOperationStatusVoList(statusList.stream().sorted(Comparator.comparing(AutoexecJobPhaseNodeOperationStatusVo::getSort)).collect(toList()));
         }
         return nodeVo;
@@ -1351,6 +1359,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 finalStatus = JobNodeStatus.ABORTED.getValue();
             } else if (statusList.contains(JobNodeStatus.PAUSED.getValue())) {
                 finalStatus = JobNodeStatus.PAUSED.getValue();
+            } else if (statusList.contains(JobNodeStatus.WAITING.getValue())) {
+                finalStatus = JobNodeStatus.WAITING.getValue();
             } else {
                 finalStatus = JobNodeStatus.PENDING.getValue();
             }
@@ -1439,7 +1449,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         paramJson.put("nodeStatus", nodeStatus);
         for (RunnerMapVo runner : runnerVos) {
             String url = runner.getUrl() + "api/rest/job/phase/node/status/update";
-            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(5000).setReadTimeout(5000).sendRequest();
+            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
             if (StringUtils.isNotBlank(requestUtil.getError())) {
                 throw new RunnerHttpRequestException(url + ":" + requestUtil.getError());
             }
@@ -1465,13 +1475,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 throw new AutoexecJobRunnerNotFoundException(runner.getRunnerMapId().toString());
             }
             url = runner.getUrl() + "api/rest/health/check";
-            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setConnectTimeout(5000).setReadTimeout(5000).setPayload(new JSONObject().toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
+            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(new JSONObject().toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
             if (StringUtils.isNotBlank(requestUtil.getError())) {
-                throw new RunnerConnectRefusedException(url, requestUtil.getError());
-            }
-            JSONObject resultJson = requestUtil.getResultJson();
-            if (resultJson == null || !resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                throw new RunnerConnectRefusedException(runner.getHost() + ":" + runner.getPort(), url + ", response code:" + requestUtil.getResponseCode());
+                throw new ApiRuntimeException((StringUtils.isNotBlank(requestUtil.getErrorMsg()) ? requestUtil.getErrorMsg() : requestUtil.getError()));
             }
 
         }
@@ -1520,59 +1526,63 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         if (CollectionUtils.isEmpty(runnerVos)) {
             throw new RunnerNotMatchException();
         }
-        jobVo.setStatus(JobStatus.RUNNING.getValue());
         autoexecJobMapper.updateJobStatus(jobVo);
-
+        Integer isFirstFire = Arrays.asList(JobAction.FIRE.getValue(), JobAction.RESET_REFIRE.getValue()).contains(jobVo.getAction()) ? 1 : 0;
         JSONObject paramJson = new JSONObject();
         paramJson.put("jobId", jobVo.getId());
         paramJson.put("tenant", TenantContext.get().getTenantUuid());
         paramJson.put("isNoFireNext", jobVo.getIsNoFireNext());
-        paramJson.put("isFirstFire", jobVo.getIsFirstFire());
+        paramJson.put("isFirstFire", isFirstFire);
+        if (jobVo.getExecuteJobGroupVo() == null) {
+            throw new AutoexecJobGroupNotFoundException(jobVo.getId());
+        }
         if (CollectionUtils.isNotEmpty(jobVo.getExecuteJobPhaseList())) {
             paramJson.put("jobPhaseNameList", jobVo.getExecuteJobPhaseList().stream().map(AutoexecJobPhaseVo::getName).collect(Collectors.toList()));
         }
-        if (jobVo.getExecuteJobGroupVo() != null) {
-            paramJson.put("jobGroupIdList", Collections.singletonList(jobVo.getExecuteJobGroupVo().getSort()));
-        }
+
+        paramJson.put("jobGroupSortList", Collections.singletonList(jobVo.getExecuteJobGroupVo().getSort()));
 
         if (jobVo.getCurrentPhase() != null && Objects.equals(jobVo.getCurrentPhase().getExecMode(), ExecMode.SQL.getValue())) {
             paramJson.put("jobPhaseNodeSqlList", jobVo.getJobPhaseNodeSqlList());
         } else {
             paramJson.put("jobPhaseResourceIdList", jobVo.getExecuteResourceIdList());
         }
-        RestVo restVo = null;
-        String result = StringUtils.EMPTY;
-        String url = StringUtils.EMPTY;
         runnerVos = runnerVos.stream().filter(o -> StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
         checkRunnerHealth(runnerVos);
-        try {
-            Long execid = SnowflakeUtil.uniqueLong();
-            for (RunnerMapVo runner : runnerVos) {
-                jobVo.getEnvironment().put("RUNNER_ID", runner.getRunnerMapId());
-                url = runner.getUrl() + "api/rest/job/exec";
-                JSONObject passThroughEnv = jobVo.getPassThroughEnv();
-                passThroughEnv.put("runnerId", runner.getRunnerMapId());
-                if (jobVo.getExecuteJobGroupVo() != null) {
-                    passThroughEnv.put("groupSort", jobVo.getExecuteJobGroupVo().getSort());
-                }
-                if (CollectionUtils.isNotEmpty(jobVo.getExecuteJobPhaseList())) {
-                    passThroughEnv.put("phaseSort", jobVo.getExecuteJobPhaseList().get(0).getSort());
-                }
-                passThroughEnv.put("isFirstFire", jobVo.getIsFirstFire());
-                passThroughEnv.put("EXECUSER_TOKEN", userMapper.getUserTokenByUser(UserContext.get().getUserId()));
-                paramJson.put("passThroughEnv", passThroughEnv);
-                paramJson.put("environment", jobVo.getEnvironment());
-                paramJson.put("execid", String.valueOf(execid));
-                restVo = new RestVo.Builder(url, AuthenticateType.BUILDIN.getValue()).setPayload(paramJson).build();
-                result = RestUtil.sendPostRequest(restVo);
-                JSONObject resultJson = JSONObject.parseObject(result);
-                if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
-                    throw new RunnerHttpRequestException(restVo.getUrl() + ":" + resultJson.getString("Message"));
-                }
+        Long execid = SnowflakeUtil.uniqueLong();
+        for (RunnerMapVo runner : runnerVos) {
+            jobVo.getEnvironment().put("RUNNER_ID", runner.getRunnerMapId());
+            String url = runner.getUrl() + "api/rest/job/exec";
+            JSONObject passThroughEnv = jobVo.getPassThroughEnv();
+            passThroughEnv.put("runnerId", runner.getRunnerMapId());
+            passThroughEnv.put("groupSort", jobVo.getExecuteJobGroupVo().getSort());
+            if (CollectionUtils.isNotEmpty(jobVo.getExecuteJobPhaseList())) {
+                passThroughEnv.put("phaseSort", jobVo.getExecuteJobPhaseList().get(0).getSort());
             }
-        } catch (Exception ex) {
-            logger.error(ex.getMessage(), ex);
-            throw new RunnerConnectRefusedException(url + " " + result);
+            passThroughEnv.put("isFirstFire", isFirstFire);
+            passThroughEnv.put("EXECUSER_TOKEN", userMapper.getUserTokenByUser(UserContext.get().getUserId()));
+            paramJson.put("passThroughEnv", passThroughEnv);
+            paramJson.put("environment", jobVo.getEnvironment());
+            paramJson.put("execid", String.valueOf(execid));
+            HttpRequestUtil httpRequestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
+
+            if (StringUtils.isNotBlank(httpRequestUtil.getError())) {
+                throw new ApiRuntimeException((StringUtils.isNotBlank(httpRequestUtil.getErrorMsg()) ? httpRequestUtil.getErrorMsg() : httpRequestUtil.getError()));
+            }
+        }
+
+    }
+
+    @Override
+    public void fireOrResetRefireWaiting(AutoexecJobVo jobVo) {
+        jobVo.setStatus(JobStatus.WAITING.getValue());
+        autoexecJobMapper.updateJobStatus(jobVo);
+        //找到第一个组的第一个phase状态更新成排队中
+        AutoexecJobPhaseVo firstPhase = autoexecJobMapper.getJobFirstPhaseByGroupId(jobVo.getExecuteJobGroupVo().getId());
+        autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(firstPhase.getId()), JobPhaseStatus.WAITING.getValue());
+        List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobVo.getId(), Collections.singletonList(firstPhase.getId()));
+        for (AutoexecJobPhaseRunnerVo jobPhaseRunnerVo : jobPhaseRunnerVos) {
+            autoexecJobMapper.updateJobPhaseRunnerStatus(Collections.singletonList(firstPhase.getId()), jobPhaseRunnerVo.getRunnerMapId(), JobPhaseStatus.WAITING.getValue());
         }
     }
 
@@ -1608,5 +1618,52 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             IAutoexecJobActionHandler refireAction = AutoexecJobActionHandlerFactory.getAction(jobAction.getValue());
             refireAction.doService(job);
         }
+    }
+
+    /**
+     * 根据作业id获取作业等待详情
+     *
+     * @param jobId 作业id
+     */
+    @Override
+    public JSONArray getAutoexecJobWaitingDetail(Long jobId) {
+        JSONArray queueStatusArray = new JSONArray();
+        //作业基本信息
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        if (jobVo == null) {
+            throw new AutoexecJobNotFoundException(jobId.toString());
+        }
+        List<RunnerMapVo> runnerVos = autoexecJobMapper.getJobPhaseRunnerMapByJobId(jobId);
+
+        JSONObject params = new JSONObject();
+        params.put("jobId", jobId);
+        checkRunnerHealth(runnerVos);
+        for (RunnerMapVo runner : runnerVos) {
+            String url = runner.getUrl() + "api/rest/job/waiting/detail/get";
+            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(params.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
+            if (StringUtils.isNotBlank(requestUtil.getError())) {
+                throw new RunnerHttpRequestException(url + ":" + requestUtil.getError());
+            }
+            JSONObject resultJson = requestUtil.getResultJson();
+            JSONObject queueJson = resultJson.getJSONObject("Return");
+            if (MapUtils.isNotEmpty(queueJson)) {
+                for (Map.Entry<String, Object> entry : queueJson.entrySet()) {
+                    String key = entry.getKey();
+                    if (Objects.equals(key, "count")) {
+                        continue;
+                    }
+                    JSONObject value = JSON.parseObject(entry.getValue().toString());
+                    JSONObject queueStatus = new JSONObject();
+                    queueStatus.put("sort", key + "/" + queueJson.getString("count"));
+                    queueStatus.put("command", value.getString("command"));
+                    queueStatus.put("fcd", TimeUtil.convertDateToString(new Date(value.getLong("fcd")), TimeUtil.YYYY_MM_DD_HH_MM_SS));
+                    queueStatus.put("runner", runner.getName() + ":" + runner.getPort());
+                    queueStatus.put("runnerId", runner.getId());
+                    queueStatus.put("groupSortList",value.getJSONArray("groupSortList"));
+                    queueStatusArray.add(queueStatus);
+                }
+            }
+        }
+        return queueStatusArray;
     }
 }

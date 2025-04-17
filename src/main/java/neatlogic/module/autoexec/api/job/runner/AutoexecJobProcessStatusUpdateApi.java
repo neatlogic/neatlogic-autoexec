@@ -124,14 +124,16 @@ public class AutoexecJobProcessStatusUpdateApi extends PrivateApiComponentBase {
                 List<HashMap<String, String>> phaseAbortingCountMapList = autoexecJobMapper.getJobPhaseRunnerAbortingCountMapCountByJobId(jobId);
                 HashMap<String, Integer> phaseIdAbortingCountMap = new HashMap<>();
                 for (HashMap<String, String> phaseAbortingCountMap : phaseAbortingCountMapList) {
-                    phaseIdAbortingCountMap.put(phaseAbortingCountMap.get("job_phase_id"), Integer.valueOf(phaseAbortingCountMap.get("count")));
+                    phaseIdAbortingCountMap.put(String.valueOf(phaseAbortingCountMap.get("job_phase_id")), Integer.valueOf(String.valueOf(phaseAbortingCountMap.get("count"))));
                 }
                 for (Long phaseId : jobPhaseIdList) {
                     if (phaseIdAbortingCountMap.get(phaseId.toString()) == 0) {
                         jobPhaseIdAbortedList.add(phaseId);
                     }
                 }
-                autoexecJobMapper.updateJobPhaseRunnerStatusBatch(jobPhaseIdAbortedList, JobPhaseStatus.ABORTED.getValue(), runnerId);
+                if(CollectionUtils.isNotEmpty(jobPhaseIdAbortedList)) {
+                    autoexecJobMapper.updateJobPhaseRunnerStatusBatch(jobPhaseIdAbortedList, JobPhaseStatus.ABORTED.getValue(), runnerId);
+                }
             }
             if (StringUtils.isNotBlank(status)) {
                 //4

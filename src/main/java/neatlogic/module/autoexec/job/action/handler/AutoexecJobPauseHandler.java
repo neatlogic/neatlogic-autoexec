@@ -103,7 +103,7 @@ public class AutoexecJobPauseHandler extends AutoexecJobActionHandlerBase {
                     //put("phaseSort", jobVo.getCurrentGroupSort());
                 }});
                 String url = runner.getUrl() + "api/rest/job/pause";
-                HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(5000).setReadTimeout(5000).sendRequest();
+                HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
                 if (StringUtils.isNotBlank(requestUtil.getError())) {
                     throw new RunnerHttpRequestException(url + ":" + requestUtil.getError());
                 }

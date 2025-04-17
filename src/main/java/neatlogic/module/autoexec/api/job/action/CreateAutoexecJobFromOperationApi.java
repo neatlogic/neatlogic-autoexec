@@ -106,7 +106,6 @@ public class CreateAutoexecJobFromOperationApi extends PrivateApiComponentBase {
         AutoexecJobVo jobVo = JSON.toJavaObject(jsonObj, AutoexecJobVo.class);
         jobVo.setRunTimeParamList(combopVo.getConfig().getRuntimeParamList() == null ? new ArrayList<>() : combopVo.getConfig().getRuntimeParamList());
         jobVo.setOperationType(type);
-        jobVo.setIsFirstFire(1);
         jobVo.setAction(JobAction.FIRE.getValue());
         jobVo.setInvokeId(jobVo.getOperationId());
         jobVo.setRouteId(jobVo.getOperationId().toString());
