@@ -21,11 +21,9 @@ import neatlogic.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
 import neatlogic.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
 import neatlogic.framework.common.constvalue.ApiParamType;
-import neatlogic.framework.deploy.constvalue.JobSourceType;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -71,12 +69,8 @@ public class CheckinAutoexecJobSqlApi extends PrivateApiComponentBase {
     @Description(desc = "检查作业执行sql文件状态")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        IAutoexecJobSourceTypeHandler handler;
-        if (StringUtils.equals(paramObj.getString("operType"), neatlogic.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue())) {
-            handler = AutoexecJobSourceTypeHandlerFactory.getAction(neatlogic.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
-            handler.checkinSqlList(paramObj);
-        } else if (StringUtils.equals(paramObj.getString("operType"), JobSourceType.DEPLOY.getValue())) {
-            handler = AutoexecJobSourceTypeHandlerFactory.getAction(JobSourceType.DEPLOY.getValue());
+        IAutoexecJobSourceTypeHandler handler = AutoexecJobSourceTypeHandlerFactory.getAction(neatlogic.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
+        if(handler != null) {
             handler.checkinSqlList(paramObj);
         }
         return null;

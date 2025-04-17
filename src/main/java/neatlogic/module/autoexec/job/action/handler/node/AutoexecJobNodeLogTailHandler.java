@@ -75,9 +75,11 @@ public class AutoexecJobNodeLogTailHandler extends AutoexecJobActionHandlerBase 
         String nodeStatus = JobNodeStatus.PENDING.getValue();
         if (StringUtils.isBlank(paramJson.getString("sqlName"))) {//获取node节点的状态（包括operation status）
             AutoexecJobPhaseNodeVo phaseNodeVo = autoexecJobService.getNodeOperationStatus(paramJson, false);
-            result.put("interact", phaseNodeVo.getInteract());
-            if(!StringUtils.isBlank(phaseNodeVo.getStatus())) {
-                nodeStatus = phaseNodeVo.getStatus();
+            if(phaseNodeVo != null) {
+                result.put("interact", phaseNodeVo.getInteract());
+                if (!StringUtils.isBlank(phaseNodeVo.getStatus())) {
+                    nodeStatus = phaseNodeVo.getStatus();
+                }
             }
         } else {//获取sql 状态
             String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/status/get";

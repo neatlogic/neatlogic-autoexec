@@ -59,7 +59,9 @@ public class UpdateAutoexecJobSqlApi extends PrivateApiComponentBase {
             throw new AutoexecJobNotFoundException(paramObj.getLong("jobId"));
         }
         IAutoexecJobSourceTypeHandler handler = AutoexecJobSourceTypeHandlerFactory.getAction(paramObj.getString("operType"));
-        handler.updateSqlStatus(paramObj);
+        if(handler != null) {
+            handler.updateSqlStatus(paramObj);
+        }
         return null;
     }
 }
