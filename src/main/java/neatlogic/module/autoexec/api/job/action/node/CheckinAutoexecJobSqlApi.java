@@ -69,7 +69,7 @@ public class CheckinAutoexecJobSqlApi extends PrivateApiComponentBase {
     @Description(desc = "检查作业执行sql文件状态")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
-        IAutoexecJobSourceTypeHandler handler = AutoexecJobSourceTypeHandlerFactory.getAction(neatlogic.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
+        IAutoexecJobSourceTypeHandler handler = AutoexecJobSourceTypeHandlerFactory.getAction(paramObj.getString("operType"));
         if(handler != null) {
             handler.checkinSqlList(paramObj);
         }
