@@ -1272,7 +1272,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         } catch (Exception ignored) {
             //ignored
         }
-
+        if (MapUtils.isNotEmpty(statusJson)) {
+            nodeVo.setStatus(statusJson.getString("status"));
+            nodeVo.setInteractStr(statusJson.getString("interact"));
+        }
 
         if (isNeedOperationList) {
             IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(autoexecJobVo.getSource());
@@ -1327,10 +1330,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     statusList.add(new AutoexecJobPhaseNodeOperationStatusVo(jobPhaseOperationVo, statusJson, description, jobSonOperationList, combopOperationUuidMap));
                 }
 
-            }
-            if (MapUtils.isNotEmpty(statusJson)) {
-                nodeVo.setStatus(statusJson.getString("status"));
-                nodeVo.setInteractStr(statusJson.getString("interact"));
             }
             nodeVo.setOperationStatusVoList(statusList.stream().sorted(Comparator.comparing(AutoexecJobPhaseNodeOperationStatusVo::getSort)).collect(toList()));
         }
@@ -1550,17 +1549,17 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         runnerVos = runnerVos.stream().filter(o -> StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
         checkRunnerHealth(runnerVos);
         Long execid = SnowflakeUtil.uniqueLong();
+        JSONObject passThroughEnv = jobVo.getPassThroughEnv();
+        passThroughEnv.put("groupSort", jobVo.getExecuteJobGroupVo().getSort());
+        if (CollectionUtils.isNotEmpty(jobVo.getExecuteJobPhaseList())) {
+            passThroughEnv.put("phaseSort", jobVo.getExecuteJobPhaseList().get(0).getSort());
+        }
+        passThroughEnv.put("isFirstFire", isFirstFire);
+        passThroughEnv.put("EXECUSER_TOKEN", userMapper.getUserTokenByUser(UserContext.get().getUserId()));
         for (RunnerMapVo runner : runnerVos) {
             jobVo.getEnvironment().put("RUNNER_ID", runner.getRunnerMapId());
             String url = runner.getUrl() + "api/rest/job/exec";
-            JSONObject passThroughEnv = jobVo.getPassThroughEnv();
             passThroughEnv.put("runnerId", runner.getRunnerMapId());
-            passThroughEnv.put("groupSort", jobVo.getExecuteJobGroupVo().getSort());
-            if (CollectionUtils.isNotEmpty(jobVo.getExecuteJobPhaseList())) {
-                passThroughEnv.put("phaseSort", jobVo.getExecuteJobPhaseList().get(0).getSort());
-            }
-            passThroughEnv.put("isFirstFire", isFirstFire);
-            passThroughEnv.put("EXECUSER_TOKEN", userMapper.getUserTokenByUser(UserContext.get().getUserId()));
             paramJson.put("passThroughEnv", passThroughEnv);
             paramJson.put("environment", jobVo.getEnvironment());
             paramJson.put("execid", String.valueOf(execid));
@@ -1659,7 +1658,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     queueStatus.put("fcd", TimeUtil.convertDateToString(new Date(value.getLong("fcd")), TimeUtil.YYYY_MM_DD_HH_MM_SS));
                     queueStatus.put("runner", runner.getName() + ":" + runner.getPort());
                     queueStatus.put("runnerId", runner.getId());
-                    queueStatus.put("groupSortList",value.getJSONArray("groupSortList"));
+                    queueStatus.put("groupSortList", value.getJSONArray("groupSortList"));
                     queueStatusArray.add(queueStatus);
                 }
             }
