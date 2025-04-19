@@ -50,6 +50,7 @@ import java.util.Objects;
  * @author linbq
  * @since 2021/9/29 17:42
  **/
+@Transactional
 @Component
 @DisallowConcurrentExecution
 public class AutoexecScheduleJob extends JobBase {
