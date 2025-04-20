@@ -39,6 +39,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.zip.ZipOutputStream;
 
@@ -131,6 +132,19 @@ public class ScriptImportExportHandler extends ImportExportHandlerBase {
             if (newPrimaryKey != null) {
                 version.setPackageFileId((Long) newPrimaryKey);
             }
+        }
+        List<Long> useLib = version.getUseLib();
+        if (CollectionUtils.isNotEmpty(useLib)) {
+            List<Long> newUseLib = new ArrayList<>();
+            for (Long useLibId : useLib) {
+                Object newPrimaryKey = getNewPrimaryKey(AutoexecImportExportHandlerType.AUTOEXEC_SCRIPT, useLibId, primaryChangeList);
+                if (newPrimaryKey != null) {
+                    newUseLib.add((Long) newPrimaryKey);
+                } else {
+                    newUseLib.add(useLibId);
+                }
+            }
+            version.setUseLib(newUseLib);
         }
         // 保存
         version.setId(null);// 新增一个版本
