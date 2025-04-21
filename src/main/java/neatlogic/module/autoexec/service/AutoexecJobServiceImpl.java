@@ -887,6 +887,16 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             //System.out.println((System.currentTimeMillis() - cvv) + " ##cvv:-------------------------------------------------------------------------------");
             logger.debug("##updateJobPhaseNodeIsDeleteByJobPhaseIdAndUpdateTag:-------------------------------------------------------------------------------end");
             isNeedLncd = isNeedLncd || updateCount > 0;
+
+            //其它数据源处理数据
+            IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
+            if (jobSource == null) {
+                throw new AutoexecJobSourceInvalidException(jobVo.getSource());
+            }
+            IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
+            if (autoexecJobSourceActionHandler != null) {
+                autoexecJobSourceActionHandler.handleDeleteJobPhaseNodeEvent(jobPhaseVo.getId(), nowTime.getTime());
+            }
         }
         //阶段节点被真删除||伪删除（is_delete=1），则更新上一次修改日期(plcd),需重新下载
         if (isNeedLncd) {
@@ -982,7 +992,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         List<AutoexecJobPhaseNodeVo> nodeList = new ArrayList<>();
         //List<AutoexecJobPhaseNodeRunnerVo> nodeRunnerList = new ArrayList<>();
         //List<Long> resourceIdList = new ArrayList<>();
-        boolean isNeedLncd;//用于判断是否需要更新lncd（用于判断是否需要重新下载节点）
+        //boolean isNeedLncd;//用于判断是否需要更新lncd（用于判断是否需要重新下载节点）
         //新增节点需重新下载
         List<Long> resourceIdList = resourceVoList.stream().map(ResourceVo::getId).collect(Collectors.toList());
 //        List<AutoexecJobPhaseNodeVo> originNodeList = autoexecJobMapper.getJobPhaseNodeListByJobPhaseIdAndResourceIdList(jobPhaseVo.getId(), resourceIdList);
@@ -1036,6 +1046,17 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         } else {
             autoexecJobMapper.updateJobPhaseNodeBatch(jobPhaseVo.getId(), resourceIdList, JobNodeStatus.PENDING.getValue(), jobPhaseVo.getLcd().getTime());
             autoexecJobMapper.batchInsertIgnoreJobPhaseNode(nodeList);
+        }
+
+
+        //其它数据源处理数据
+        IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
+        if (jobSource == null) {
+            throw new AutoexecJobSourceInvalidException(jobVo.getSource());
+        }
+        IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
+        if (autoexecJobSourceActionHandler != null) {
+            autoexecJobSourceActionHandler.handleAddJobPhaseNodeEvent(jobVo, nodeList, userName, protocolId, jobPhaseVo.getLcd().getTime());
         }
     }
 

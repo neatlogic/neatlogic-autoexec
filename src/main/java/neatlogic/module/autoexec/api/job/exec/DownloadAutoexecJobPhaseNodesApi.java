@@ -35,6 +35,11 @@ import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobGroupNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
+import neatlogic.framework.autoexec.exception.AutoexecJobSourceInvalidException;
+import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
+import neatlogic.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
+import neatlogic.framework.autoexec.source.AutoexecJobSourceFactory;
+import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import neatlogic.framework.cmdb.crossover.IResourceCenterAccountCrossoverService;
 import neatlogic.framework.cmdb.crossover.IResourceCrossoverMapper;
@@ -267,6 +272,16 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                             }
                         }
                         if (CollectionUtils.isNotEmpty(autoexecJobPhaseNodeVoList)) {
+                            //补充蓝绿sort等其它数据
+                            IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
+                            if (jobSource == null) {
+                                throw new AutoexecJobSourceInvalidException(jobVo.getSource());
+                            }
+                            IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
+                            if (autoexecJobSourceActionHandler != null) {
+                                autoexecJobSourceActionHandler.addExtraJobPhaseNodeBlueGreenInfoByList(jobVo.getId(), autoexecJobPhaseNodeVoList);
+                            }
+
                             IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
                             List<Long> resourceIdList = autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getResourceId).filter(Objects::nonNull).collect(Collectors.toList());
                             List<Long> resourceIncludeOsIdList = new ArrayList<>(resourceIdList);
@@ -374,6 +389,12 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                                 nodeJson.put("nodeName", nodeVo.getNodeName());
                                 nodeJson.put("nodeType", nodeVo.getNodeType());
                                 nodeJson.put("resourceId", nodeVo.getResourceId());
+                                //补充额外信息
+                                JSONObject extraInfo = nodeVo.getExtraInfo();
+                                if (MapUtils.isNotEmpty(extraInfo) && StringUtils.isNotBlank(extraInfo.getString("blueGreenSort"))) {
+                                    nodeJson.put("seqNo", extraInfo.getInteger("blueGreenSort"));
+                                    nodeJson.put("seqNoId", extraInfo.getLong("blueGreenId"));
+                                }
                                 JSONObject servicePorts = resourceServicePortsMap.get(nodeVo.getResourceId());
                                 Long osResourceId = resourceOSResourceMap.get(nodeVo.getResourceId());
                                 if (osResourceId != null) {
