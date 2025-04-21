@@ -30,6 +30,7 @@ import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.framework.util.TableResultUtil;
 import neatlogic.framework.util.TimeUtil;
 import neatlogic.module.autoexec.service.AutoexecJobService;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 
@@ -102,6 +103,9 @@ public class AutoexecJobSearchApi extends PrivateApiComponentBase {
         AutoexecJobVo jobVo = JSON.toJavaObject(jsonObj, AutoexecJobVo.class);
         if (parentId != null) {
             List<Long> idList = autoexecJobMapper.getJobIdListByParentId(parentId);
+            if (CollectionUtils.isEmpty(idList)) {
+                return TableResultUtil.getResult(new ArrayList<>(), jobVo);
+            }
             jobVo.setIdList(idList);
             jobVo.setSourceList(new ArrayList<String>() {{
                 this.add(JobSource.DEPLOY.getValue());
