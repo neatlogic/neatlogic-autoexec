@@ -346,8 +346,6 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                 autoexecScriptMapper.updateScriptBaseInfo(scriptVo);
             } else {
                 scriptVo.setFcu(UserContext.get().getUserUuid());
-                scriptVo.setId(null);
-                id = scriptVo.getId();
                 autoexecScriptMapper.insertScript(scriptVo);
             }
 
