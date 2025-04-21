@@ -26,6 +26,7 @@ import neatlogic.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
 import neatlogic.framework.autoexec.dto.AutoexecToolVo;
 import neatlogic.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
+import neatlogic.framework.autoexec.dto.script.AutoexecScriptArgumentVo;
 import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import neatlogic.framework.common.constvalue.ApiParamType;
@@ -142,6 +143,14 @@ public class RegisterAutoexecToolApi extends PrivateApiComponentBase {
         TransactionStatus tx = TransactionUtil.openTx();
         try {
             JSONArray paramList = getParamList(option, output);
+            if (CollectionUtils.isNotEmpty(paramList)) {
+                List<AutoexecParamVo> autoexecParamList = paramList.toJavaList(AutoexecParamVo.class);
+                autoexecService.validateParamList(autoexecParamList);
+            }
+            if (argument != null) {
+                AutoexecScriptArgumentVo argumentVo = argument.toJavaObject(AutoexecScriptArgumentVo.class);
+                autoexecService.validateArgument(argumentVo);
+            }
             AutoexecToolVo vo = new AutoexecToolVo(jsonObj);
             if (oldTool != null) {
                 vo.setId(oldTool.getId());
