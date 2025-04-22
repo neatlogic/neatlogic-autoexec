@@ -1290,17 +1290,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         autoexecJobVo.setConfigStr(jobContent.getContent());
         List<AutoexecJobPhaseNodeOperationStatusVo> statusList = new ArrayList<>();
         String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/status/get";
-        JSONObject statusJson = null;
-        AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseNodeInfoByJobNodeId(paramJson.getLong("nodeId"));
-        try {
-            statusJson = JSON.parseObject(AutoexecUtil.requestRunner(url, paramJson));
-        } catch (Exception ignored) {
-            //ignored
-        }
-        if (MapUtils.isNotEmpty(statusJson)) {
-            nodeVo.setStatus(statusJson.getString("status"));
-            nodeVo.setInteractStr(statusJson.getString("interact"));
-        }
+        JSONObject statusJson = JSON.parseObject(AutoexecUtil.requestRunner(url, paramJson));
+        AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(statusJson);
 
         if (isNeedOperationList) {
             IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(autoexecJobVo.getSource());
