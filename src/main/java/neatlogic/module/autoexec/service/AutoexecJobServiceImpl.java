@@ -361,8 +361,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         //autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(jobPhaseVoList.stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()), JobPhaseStatus.PENDING.getValue());
         Map<String, AutoexecJobPhaseVo> jobPhaseUuidMap = jobPhaseVoList.stream().collect(Collectors.toMap(AutoexecJobPhaseVo::getUuid, o -> o));
         for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseVoList) {
-            jobVo.setCurrentPhase(jobPhaseUuidMap.get(combopPhaseVo.getUuid()));
-            initPhaseExecuteUserAndProtocolAndNode(jobVo, jobVo.getConfig().getExecuteConfig(), combopPhaseVo.getConfig());
+            AutoexecJobPhaseVo targetPhase = jobPhaseUuidMap.get(combopPhaseVo.getUuid());
+            if(targetPhase != null) {
+                jobVo.setCurrentPhase(targetPhase);
+                initPhaseExecuteUserAndProtocolAndNode(jobVo, jobVo.getConfig().getExecuteConfig(), combopPhaseVo.getConfig());
+            }
         }
     }
 
