@@ -112,9 +112,9 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 if (StringUtils.isBlank(name)) {
                     throw new AutoexecParameterChineseNameParamNotExistException(index, key);
                 }
-                if (!RegexUtils.regexPatternMap.get(RegexUtils.NAME_WITH_SPACE).matcher(name).matches()) {
-                    throw new AutoexecParamIrregularException(index, key, name);
-                }
+//                if (!RegexUtils.regexPatternMap.get(RegexUtils.NAME_WITH_SPACE).matcher(name).matches()) {
+//                    throw new AutoexecParamIrregularException(index, key, name);
+//                }
                 if (param instanceof AutoexecScriptVersionParamVo && StringUtils.isBlank(mode)) {
                     throw new AutoexecParameterModeParamNotExistException(index, key);
                 }
@@ -192,9 +192,9 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 if (StringUtils.isBlank(name)) {
                     throw new AutoexecParameterChineseNameParamNotExistException(index, key);
                 }
-                if (!RegexUtils.isMatch(name, RegexUtils.NAME_WITH_SLASH)) {
-                    throw new AutoexecParamIrregularException(index, key, name);
-                }
+//                if (!RegexUtils.isMatch(name, RegexUtils.NAME_WITH_SLASH)) {
+//                    throw new AutoexecParamIrregularException(index, key, name);
+//                }
                 Integer isRequired = autoexecParamVo.getIsRequired();
                 if (isRequired == null) {
                     throw new AutoexecParameterRequiredParamNotExistException(index, key);
