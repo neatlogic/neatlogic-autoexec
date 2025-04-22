@@ -51,7 +51,7 @@ public class UpdateNodesByParamsHandler implements IUpdateNodes {
             return false;
         }
 
-        if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getInputNodeList())) {
+        if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getParamList())) {
             isHasNode = updateNodeResourceByParam(jobVo, executeNodeConfigVo, userName, protocolId);
         }
         return isHasNode;

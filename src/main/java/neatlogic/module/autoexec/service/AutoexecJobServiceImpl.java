@@ -34,6 +34,7 @@ import neatlogic.framework.autoexec.dto.job.*;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
 import neatlogic.framework.autoexec.exception.*;
+import neatlogic.framework.autoexec.exception.job.AutoexecJobTargetOrRunnerNotFoundException;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import neatlogic.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import neatlogic.framework.autoexec.job.node.UpdateNodesFactory;
@@ -1547,7 +1548,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     @Override
     public void execute(AutoexecJobVo jobVo, List<RunnerMapVo> runnerVos) {
         if (CollectionUtils.isEmpty(runnerVos)) {
-            throw new RunnerNotMatchException();
+            throw new AutoexecJobTargetOrRunnerNotFoundException();
         }
         autoexecJobMapper.updateJobStatus(jobVo);
         Integer isFirstFire = Arrays.asList(JobAction.FIRE.getValue(), JobAction.RESET_REFIRE.getValue()).contains(jobVo.getAction()) ? 1 : 0;

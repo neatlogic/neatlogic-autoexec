@@ -24,6 +24,8 @@ import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobGroupVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
+import neatlogic.framework.autoexec.exception.job.AutoexecJobFireNextGroupException;
+import neatlogic.framework.autoexec.exception.job.AutoexecJobTargetOrRunnerNotFoundException;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import neatlogic.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import neatlogic.framework.common.constvalue.ApiParamType;
@@ -96,16 +98,20 @@ public class FireAutoexecJobNextGroupApi extends PrivateApiComponentBase {
          * 2、当前sort的所有phase的runner 都是completed，所有runner的"是否fireNext"标识都为1
          */
         if (autoexecJobService.checkIsAllActivePhaseIsCompleted(jobId, groupSort)) {
-            if(Objects.equals(JobStatus.ABORTING.getValue(),jobVo.getStatus())){
+            if (Objects.equals(JobStatus.ABORTING.getValue(), jobVo.getStatus())) {
                 jobVo.setStatus(JobStatus.ABORTED.getValue());
                 autoexecJobMapper.updateJobStatus(jobVo);
-            }else {
+            } else {
                 AutoexecJobGroupVo nextGroupVo = autoexecJobMapper.getJobGroupByJobIdAndSort(jobId, groupSort + 1);
                 if (nextGroupVo != null) {
                     jobVo.setExecuteJobGroupVo(nextGroupVo);
                     jobVo.setIsFirstFire(0);
-                    IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
-                    fireAction.doService(jobVo);
+                    try {
+                        IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
+                        fireAction.doService(jobVo);
+                    } catch (AutoexecJobTargetOrRunnerNotFoundException ex) {
+                        throw new AutoexecJobFireNextGroupException(nextGroupVo, ex.getMessage());
+                    }
                 }
             }
         }

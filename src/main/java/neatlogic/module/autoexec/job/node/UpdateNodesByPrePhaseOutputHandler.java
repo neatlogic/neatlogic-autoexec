@@ -64,7 +64,7 @@ public class UpdateNodesByPrePhaseOutputHandler implements IUpdateNodes {
             return false;
         }
 
-        if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getInputNodeList())) {
+        if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getPreOutputList())) {
             isHasNode = updateNodeResourceByPrePhaseOutput(jobVo, executeNodeConfigVo, userName, protocolId);
         }
         return isHasNode;
