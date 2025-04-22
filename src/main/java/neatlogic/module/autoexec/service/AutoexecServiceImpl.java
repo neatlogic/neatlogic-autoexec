@@ -106,7 +106,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                 } else {
                     keySet.add(key);
                 }
-                if (!RegexUtils.regexPatternMap.get(RegexUtils.ENGLISH_NUMBER_NAME_WHIT_UNDERLINE).matcher(key).matches()) {
+                if (!RegexUtils.regexPatternMap.get(RegexUtils.ENGLISH_NUMBER_NAME).matcher(key).matches()) {
                     throw new ParamIrregularException(key);
                 }
                 if (StringUtils.isBlank(name)) {
