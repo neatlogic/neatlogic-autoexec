@@ -43,9 +43,12 @@ import neatlogic.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandle
 import neatlogic.framework.autoexec.source.AutoexecJobSourceFactory;
 import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.autoexec.util.AutoexecUtil;
+import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import neatlogic.framework.cmdb.crossover.IResourceCenterResourceCrossoverService;
+import neatlogic.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
+import neatlogic.framework.cmdb.exception.resourcecenter.ResourceCenterAccountProtocolNotFoundException;
 import neatlogic.framework.config.ConfigManager;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dao.mapper.UserMapper;
@@ -363,7 +366,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         Map<String, AutoexecJobPhaseVo> jobPhaseUuidMap = jobPhaseVoList.stream().collect(Collectors.toMap(AutoexecJobPhaseVo::getUuid, o -> o));
         for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseVoList) {
             AutoexecJobPhaseVo targetPhase = jobPhaseUuidMap.get(combopPhaseVo.getUuid());
-            if(targetPhase != null) {
+            if (targetPhase != null) {
                 jobVo.setCurrentPhase(targetPhase);
                 initPhaseExecuteUserAndProtocolAndNode(jobVo, jobVo.getConfig().getExecuteConfig(), combopPhaseVo.getConfig());
             }
@@ -571,15 +574,21 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         boolean isGroupConfig = false;
         String userName = null;
         Long protocolId = null;
+        Integer roundCount = null;
+        AutoexecJobPhaseVo jobPhase = jobVo.getCurrentPhase();
         if (combopExecuteConfigVo != null) {
             //先获取组合工具配置的执行用户和协议
             userName = getFinalParamValue(combopExecuteConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
             protocolId = combopExecuteConfigVo.getProtocolId();
+            roundCount = jobVo.getRoundCount();
             if (StringUtils.isNotBlank(userName)) {
-                jobVo.setUserNameFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
+                jobPhase.setUserNameFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
             }
             if (protocolId != null) {
-                jobVo.setProtocolFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
+                jobPhase.setProtocolFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
+            }
+            if (roundCount != null) {
+                jobPhase.setRoundCountFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
             }
         }
         AutoexecCombopExecuteConfigVo executeConfigVo;
@@ -594,16 +603,20 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     String userNameTmp = getFinalParamValue(executeConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
                     if (StringUtils.isNotBlank(userNameTmp)) {
                         userName = userNameTmp;
-                        jobVo.setUserNameFrom(AutoexecJobPhaseNodeFrom.GROUP.getValue());
+                        jobPhase.setUserNameFrom(AutoexecJobPhaseNodeFrom.GROUP.getValue());
                     }
                     if (executeConfigVo.getProtocolId() != null) {
                         protocolId = executeConfigVo.getProtocolId();
-                        jobVo.setProtocolFrom(AutoexecJobPhaseNodeFrom.GROUP.getValue());
+                        jobPhase.setProtocolFrom(AutoexecJobPhaseNodeFrom.GROUP.getValue());
                     }
                     isGroupConfig = executeConfigVo.getExecuteNodeConfig() != null && !executeConfigVo.getExecuteNodeConfig().isNull();
                     if (isGroupConfig) {
                         jobVo.setNodeFrom(AutoexecJobPhaseNodeFrom.GROUP.getValue());
                         isHasNode = getJobNodeList(executeConfigVo, jobVo, userName, protocolId);
+                    }
+                    if (executeConfigVo.getRoundCount() != null) {
+                        roundCount = executeConfigVo.getRoundCount();
+                        jobPhase.setRoundCountFrom(AutoexecJobPhaseNodeFrom.GROUP.getValue());
                     }
                 }
             }
@@ -613,17 +626,21 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 String userNameTmp = getFinalParamValue(executeConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
                 if (StringUtils.isNotBlank(userNameTmp)) {
                     userName = userNameTmp;
-                    jobVo.setUserNameFrom(AutoexecJobPhaseNodeFrom.PHASE.getValue());
+                    jobPhase.setUserNameFrom(AutoexecJobPhaseNodeFrom.PHASE.getValue());
                 }
                 if (executeConfigVo.getProtocolId() != null) {
                     protocolId = executeConfigVo.getProtocolId();
-                    jobVo.setProtocolFrom(AutoexecJobPhaseNodeFrom.PHASE.getValue());
+                    jobPhase.setProtocolFrom(AutoexecJobPhaseNodeFrom.PHASE.getValue());
                 }
                 //判断阶段执行节点是否配置
                 isPhaseConfig = executeConfigVo.getExecuteNodeConfig() != null && !executeConfigVo.getExecuteNodeConfig().isNull();
                 if (isPhaseConfig) {
                     jobVo.setNodeFrom(AutoexecJobPhaseNodeFrom.PHASE.getValue());
                     isHasNode = getJobNodeList(executeConfigVo, jobVo, userName, protocolId);
+                }
+                if (executeConfigVo.getRoundCount() != null) {
+                    roundCount = executeConfigVo.getRoundCount();
+                    jobPhase.setRoundCountFrom(AutoexecJobPhaseNodeFrom.PHASE.getValue());
                 }
             }
         }
@@ -637,8 +654,17 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             throw new AutoexecJobPhaseNodeNotFoundException(jobVo.getCurrentPhase().getName(), isPhaseConfig);
         }
 
+        jobPhase.setUserName(userName);
+        IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
+        AccountProtocolVo protocolVo = resourceAccountCrossoverMapper.getAccountProtocolVoByProtocolId(protocolId);
+        if (protocolVo == null) {
+            throw new ResourceCenterAccountProtocolNotFoundException(protocolId);
+        }
+        jobPhase.setProtocol(protocolVo.getName());
+        jobPhase.setRoundCount(roundCount);
+        jobPhase.setNodeFrom(jobVo.getNodeFrom());
         //跟新节点来源
-        autoexecJobMapper.updateJobPhaseFrom(jobVo);
+        autoexecJobMapper.updateJobPhaseFrom(jobPhase);
 
     }
 
