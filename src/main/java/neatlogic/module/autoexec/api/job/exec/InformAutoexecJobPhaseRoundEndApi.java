@@ -28,6 +28,7 @@ import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobGroupNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
+import neatlogic.framework.autoexec.exception.AutoexecJobPhaseNodeNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import neatlogic.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
@@ -41,10 +42,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 
 /**
@@ -132,13 +130,23 @@ public class InformAutoexecJobPhaseRoundEndApi extends PrivateApiComponentBase {
 
     /**
      * 当前蓝绿批次（seqNo）的节点是否都执行完了
-     * @param seqNo 蓝绿批次
-     * @param jobVo 作业
+     *
+     * @param seqNo   蓝绿批次
+     * @param jobVo   作业
      * @param phaseVo 阶段
      */
     private boolean isJobPhaseSeqNoRoundNodeAllCompleted(Integer seqNo, AutoexecJobVo jobVo, AutoexecJobPhaseVo phaseVo) {
-        AutoexecJobPhaseNodeVo nodeParamVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), phaseVo.getName(), 0);
-        List<AutoexecJobPhaseNodeVo> notCompletedNodeList = autoexecJobMapper.getJobPhaseNodeIdListByNodeVoAndSeqNo(nodeParamVo, seqNo).stream().filter(o -> Arrays.asList(JobNodeStatus.PENDING.getValue(), JobNodeStatus.RUNNING.getValue()).contains(o.getStatus())).collect(Collectors.toList());
+        List<AutoexecJobPhaseNodeVo> notCompletedNodeList = null;
+        if (Objects.equals(ExecMode.SQL.getValue(), phaseVo.getExecMode())) {
+            List<AutoexecJobPhaseNodeVo> nodeVos = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseId(jobVo.getId(), phaseVo.getId());
+            if (CollectionUtils.isEmpty(nodeVos)) {
+                throw new AutoexecJobPhaseNodeNotFoundException(phaseVo.getId().toString(), ExecMode.SQL.getValue());
+            }
+            notCompletedNodeList = nodeVos.stream().filter(o -> Arrays.asList(JobNodeStatus.PENDING.getValue(), JobNodeStatus.RUNNING.getValue()).contains(o.getStatus())).collect(Collectors.toList());
+        } else {
+            AutoexecJobPhaseNodeVo nodeParamVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), phaseVo.getName(), 0);
+            notCompletedNodeList = autoexecJobMapper.getJobPhaseNodeIdListByNodeVoAndSeqNo(nodeParamVo, seqNo).stream().filter(o -> Arrays.asList(JobNodeStatus.PENDING.getValue(), JobNodeStatus.RUNNING.getValue()).contains(o.getStatus())).collect(Collectors.toList());
+        }
         return CollectionUtils.isEmpty(notCompletedNodeList);
     }
 
