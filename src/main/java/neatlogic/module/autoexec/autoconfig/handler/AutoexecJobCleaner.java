@@ -89,7 +89,11 @@ public class AutoexecJobCleaner extends AuditCleanerBase {
             }
             //删除超时的自定化作业
             for (AutoexecJobVo autoexecJobVo : autoexecJobVos) {
-                autoexecJobService.deleteJob(autoexecJobVo);
+                try {
+                    autoexecJobService.deleteJob(autoexecJobVo);
+                } catch (Exception ex) {
+                    logger.error(ex.getMessage(), ex);
+                }
             }
 
             databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job");
