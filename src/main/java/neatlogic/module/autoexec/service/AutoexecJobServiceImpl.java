@@ -1513,7 +1513,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 throw new RunnerMapNotMatchRunnerException(runner.getRunnerMapId());
             }
             if (StringUtils.isBlank(runner.getUrl())) {
-                throw new AutoexecJobRunnerNotFoundException(runner.getRunnerMapId().toString());
+                throw new AutoexecJobRunnerNotFoundException(runner.getRunnerMapId());
             }
             url = runner.getUrl() + "api/rest/health/check";
             HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(new JSONObject().toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();

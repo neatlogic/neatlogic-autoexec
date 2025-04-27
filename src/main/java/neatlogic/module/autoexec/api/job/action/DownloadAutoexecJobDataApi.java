@@ -22,6 +22,7 @@ import neatlogic.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
+import neatlogic.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.dao.mapper.runner.RunnerMapper;
 import neatlogic.framework.dto.runner.RunnerMapVo;
@@ -34,12 +35,17 @@ import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
 import neatlogic.framework.util.FileUtil;
 import neatlogic.framework.util.HttpRequestUtil;
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry;
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import java.io.ByteArrayOutputStream;
+import java.util.Collections;
+import java.util.List;
 
 @Service
 @AuthAction(action = AUTOEXEC_MODIFY.class)
@@ -69,25 +75,55 @@ public class DownloadAutoexecJobDataApi extends PrivateBinaryStreamApiComponentB
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "作业Id"),
-            @Param(name = "runnerName", type = ApiParamType.STRING, isRequired = true, desc = "runnerName")
+            @Param(name = "runnerName", type = ApiParamType.STRING, desc = "执行器名")
     })
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         Long jobId = paramObj.getLong("jobId");
         String runnerName = paramObj.getString("runnerName");
         AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        List<RunnerMapVo> runnerMapVoList;
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId);
         }
-        RunnerMapVo runnerMapVo = runnerMapper.getRunnerMapByRunnerName(runnerName);
-        String fileName = FileUtil.getEncodedFileName(runnerMapVo.getHost() + (runnerMapVo.getPort() == null ? StringUtils.EMPTY : "-" + runnerMapVo.getPort()) + "-" + jobId + ".tar");
-        UserContext.get().getResponse().setContentType("text/plain");
-        UserContext.get().getResponse().setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
-        String url = String.format("%s/api/binary/job/data/download", runnerMapVo.getUrl());
-        String result = HttpRequestUtil.download(url, "POST", UserContext.get().getResponse().getOutputStream()).setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest().getError();
-        if (StringUtils.isNotBlank(result)) {
-            throw new RunnerHttpRequestException(url + ":" + result);
+        if (StringUtils.isNotBlank(runnerName)) {
+            RunnerMapVo runnerMapVo = runnerMapper.getRunnerMapByRunnerName(runnerName);
+            if (runnerMapVo != null) {
+                runnerMapVoList = Collections.singletonList(runnerMapVo);
+            } else {
+                throw new AutoexecJobRunnerNotFoundException(runnerName);
+            }
+        } else {
+            runnerMapVoList = autoexecJobMapper.getJobPhaseRunnerMapByJobId(jobId);
         }
+
+        String fileName = FileUtil.getEncodedFileName("job-" + jobId + ".tar");
+        response.setContentType("application/octet-stream");
+        response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
+        try (TarArchiveOutputStream tarOut = new TarArchiveOutputStream(response.getOutputStream())) {
+            tarOut.setLongFileMode(TarArchiveOutputStream.LONGFILE_GNU);
+            for (int i = 0; i < runnerMapVoList.size(); i++) {
+                RunnerMapVo runnerMapVo = runnerMapVoList.get(i);
+                String url = String.format("%s/api/binary/job/data/download", runnerMapVo.getUrl());
+                // 每次从一个runner下载数据
+                ByteArrayOutputStream baos = new ByteArrayOutputStream();
+                String result = HttpRequestUtil.download(url, "POST", UserContext.get().getResponse().getOutputStream()).setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest().getError();
+                if (StringUtils.isNotBlank(result)) {
+                    throw new RunnerHttpRequestException(url + ":" + result);
+                }
+
+                // 将每个 runner 的内容加到 tar 里
+                byte[] data = baos.toByteArray();
+                TarArchiveEntry entry = new TarArchiveEntry(runnerMapVo.getHost() + (runnerMapVo.getPort() == null ? "" : "-" + runnerMapVo.getPort()) + ".tar");
+                entry.setSize(data.length);
+                tarOut.putArchiveEntry(entry);
+                tarOut.write(data);
+                tarOut.closeArchiveEntry();
+            }
+            tarOut.finish();
+        }
+
+
         return null;
     }
 

@@ -55,7 +55,7 @@ public class AutoexecJobConsoleLogDownloadHandler extends AutoexecJobActionHandl
         Long runnerId = jobVo.getActionParam().getLong("runnerId");
         RunnerVo runnerVo = runnerMapper.getRunnerById(runnerId);
         if (runnerVo == null) {
-            throw new AutoexecJobRunnerNotFoundException(runnerId.toString());
+            throw new AutoexecJobRunnerNotFoundException(runnerId);
         }
         jobVo.getActionParam().put("runnerUrl", runnerVo.getUrl());
         jobVo.getActionParam().put("runnerIp", runnerVo.getHost());
