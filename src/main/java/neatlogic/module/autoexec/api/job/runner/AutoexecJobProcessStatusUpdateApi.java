@@ -33,7 +33,6 @@ import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
@@ -47,7 +46,8 @@ import java.util.stream.Collectors;
  * @author lvzk
  * @since 2021/4/14 14:15
  **/
-@Service
+//@Service
+@Deprecated
 @Transactional
 @AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.UPDATE)

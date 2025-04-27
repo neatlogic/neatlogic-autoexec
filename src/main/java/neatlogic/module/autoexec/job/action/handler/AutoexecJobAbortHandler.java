@@ -123,18 +123,18 @@ public class AutoexecJobAbortHandler extends AutoexecJobActionHandlerBase {
                     if (!resultJson.containsKey("Status") || !"OK".equals(resultJson.getString("Status"))) {
                         throw new RunnerHttpRequestException(restVo.getUrl() + ":" + resultJson.getString("Message"));
                     }
-                    autoexecJobMapper.updateJobPhaseRunnerStatus(abortingPhaseIdList, runner.getRunnerMapId(), JobPhaseStatus.ABORTED.getValue());
+                    //autoexecJobMapper.updateJobPhaseRunnerStatus(abortingPhaseIdList, runner.getRunnerMapId(), JobPhaseStatus.ABORTED.getValue());
                 }
             } catch (Exception ex) {
                 logger.error(ex.getMessage(), ex);
                 throw new RunnerConnectRefusedException(url + " " + result);
             }
-            if (autoexecJobMapper.getJobPhaseRunnerStatusCountByJobIdAndStatus(jobVo.getId(), JobPhaseStatus.ABORTING.getValue()) == 0) {
-                if (CollectionUtils.isNotEmpty(abortingPhaseIdList)) {
-                    autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(abortingPhaseIdList, JobPhaseStatus.ABORTED.getValue());
-                }
-                autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobVo.getId(), JobPhaseStatus.ABORTED.getValue()));
-            }
+//            if (autoexecJobMapper.getJobPhaseRunnerStatusCountByJobIdAndStatus(jobVo.getId(), JobPhaseStatus.ABORTING.getValue()) == 0) {
+//                if (CollectionUtils.isNotEmpty(abortingPhaseIdList)) {
+//                    autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(abortingPhaseIdList, JobPhaseStatus.ABORTED.getValue());
+//                }
+//                autoexecJobMapper.updateJobStatus(new AutoexecJobVo(jobVo.getId(), JobPhaseStatus.ABORTED.getValue()));
+//            }
         }
         return null;
     }
