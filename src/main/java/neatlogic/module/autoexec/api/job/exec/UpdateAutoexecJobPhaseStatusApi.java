@@ -170,7 +170,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
             finalJobPhaseStatus = JobPhaseStatus.COMPLETED.getValue();
         } else if (statusCountMap.get(JobPhaseStatus.WAIT_INPUT.getValue()) > 0) {
             finalJobPhaseStatus = JobPhaseStatus.WAIT_INPUT.getValue();
-        } else if (statusCountMap.get(JobPhaseStatus.RUNNING.getValue()) > 0 || statusCountMap.get(JobPhaseStatus.COMPLETED.getValue())>0) {
+        } else if (statusCountMap.get(JobPhaseStatus.RUNNING.getValue()) > 0 || statusCountMap.get(JobPhaseStatus.COMPLETED.getValue()) > 0) {
             finalJobPhaseStatus = JobPhaseStatus.RUNNING.getValue();
         } else if (statusCountMap.get(JobPhaseStatus.FAILED.getValue()) > 0) {
             finalJobPhaseStatus = JobPhaseStatus.FAILED.getValue();
@@ -183,7 +183,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         } else {
             finalJobPhaseStatus = JobPhaseStatus.PENDING.getValue();
         }
-        autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), finalJobPhaseStatus, warnCount));
+        autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), finalJobPhaseStatus, warnCount, jobPhaseVo.getStartTime()));
 
         //如果阶段需要更新别的阶段的执行目标 且 状态为complete
         if (jobPhaseVo.getIsPreOutputUpdateNode() == 1 && Objects.equals(JobPhaseStatus.COMPLETED.getValue(), finalJobPhaseStatus)) {
