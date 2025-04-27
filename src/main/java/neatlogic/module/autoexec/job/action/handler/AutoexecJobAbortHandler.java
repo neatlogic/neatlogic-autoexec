@@ -96,11 +96,11 @@ public class AutoexecJobAbortHandler extends AutoexecJobActionHandlerBase {
 
         List<RunnerMapVo> runnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdListAndStatus(jobVo.getId(), jobVo.getPhaseIdList(), JobNodeStatus.ABORTING.getValue());
         if (CollectionUtils.isEmpty(runnerVos)) {
-            if (CollectionUtils.isNotEmpty(abortingPhaseIdList)) {
-                autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(abortingPhaseIdList, JobPhaseStatus.ABORTED.getValue());
-            }
-            jobVo.setStatus(JobStatus.ABORTED.getValue());
-            autoexecJobMapper.updateJobStatus(jobVo);
+//            if (CollectionUtils.isNotEmpty(abortingPhaseIdList)) {
+//                autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(abortingPhaseIdList, JobPhaseStatus.ABORTED.getValue());
+//            }
+//            jobVo.setStatus(JobStatus.ABORTED.getValue());
+//            autoexecJobMapper.updateJobStatus(jobVo);
         } else {
             runnerVos = runnerVos.stream().filter(o -> StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
             autoexecJobService.checkRunnerHealth(runnerVos);
