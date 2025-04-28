@@ -180,7 +180,7 @@ public interface AutoexecJobService {
     /**
      * 检查runner联通性
      */
-    void checkRunnerHealth(List<RunnerMapVo> runnerVos);
+    void checkRunnerHealth(List<? extends RunnerMapVo> runnerMapVos);
 
     /**
      * 执行组
@@ -293,5 +293,13 @@ public interface AutoexecJobService {
      * @param jobId 作业id
      */
     JSONArray getAutoexecJobWaitingDetail(Long jobId);
+
+    /**
+     * 中止或暂停
+     * @param jobVo 作业
+     * @param action 动作 abort｜pause
+     * @param statusIng 状态ing
+     */
+    void abortOrPause(AutoexecJobVo jobVo,String action,String statusIng);
 
 }

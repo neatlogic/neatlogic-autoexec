@@ -92,18 +92,20 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
             autoexecJobService.refreshJobPhaseNodeList(jobVo.getId(), jobVo.getExecuteJobPhaseList());
             List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobVo.getId(), Collections.singletonList(jobPhaseVo.getId()));
             for (AutoexecJobPhaseRunnerVo jobPhaseRunnerVo : jobPhaseRunnerVos) {
-                autoexecJobMapper.updateJobPhaseRunnerStatus(Collections.singletonList(jobPhaseVo.getId()), jobPhaseRunnerVo.getRunnerMapId(), JobPhaseStatus.WAITING.getValue());
+                autoexecJobMapper.updateJobPhaseRunnerStatus(Collections.singletonList(jobPhaseVo.getId()), jobPhaseRunnerVo.getRunnerMapId(), JobPhaseStatus.PENDING.getValue());
             }
         }
         if (Objects.equals(jobVo.getAction(), JobAction.REFIRE.getValue())) {
             List<AutoexecJobPhaseNodeVo> needResetNodeList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseIdAndExceptStatus(jobPhaseVo.getId(), Arrays.asList(JobNodeStatus.IGNORED.getValue(), JobNodeStatus.SUCCEED.getValue(), JobNodeStatus.INVALID.getValue()));
             if (CollectionUtils.isNotEmpty(needResetNodeList)) {
                 jobVo.setExecuteJobNodeVoList(needResetNodeList);
-                List<RunnerMapVo> runnerMapVos = autoexecJobMapper.getJobPhaseNodeRunnerListByJobPhaseId(jobPhaseVo.getId());
+                List<RunnerMapVo> runnerMapVos = autoexecJobMapper.getJobPhaseRunnerMapByJobIdAndPhaseIdList(jobPhaseVo.getJobId(), Collections.singletonList(jobPhaseVo.getId()));
                 if (CollectionUtils.isEmpty(runnerMapVos)) {
                     throw new AutoexecJobPhaseRunnerNotFoundException(jobPhaseVo.getJobId(), jobPhaseVo.getName(), jobPhaseVo.getId());
                 }
+                //调runner api 重置节点
                 autoexecJobService.updateJobNodeStatus(runnerMapVos, jobVo, JobNodeStatus.PENDING.getValue());
+                autoexecJobMapper.updateJobPhaseRunnerStatusByPhaseIdAndExceptStatus(jobVo.getId(),JobPhaseStatus.PENDING.getValue(),Arrays.asList(JobNodeStatus.IGNORED.getValue(), JobNodeStatus.SUCCEED.getValue(), JobNodeStatus.INVALID.getValue()));
                 autoexecJobMapper.updateJobPhaseNodeListStatusByPhaseIdAndExceptStatus(jobPhaseVo.getId(), Arrays.asList(JobNodeStatus.IGNORED.getValue(), JobNodeStatus.SUCCEED.getValue(), JobNodeStatus.INVALID.getValue()), JobNodeStatus.PENDING.getValue());
                 jobVo.setExecuteJobNodeVoList(null);
             }

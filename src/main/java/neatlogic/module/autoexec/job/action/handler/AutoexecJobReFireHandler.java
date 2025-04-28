@@ -116,7 +116,7 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(firstPhase.getId()), JobPhaseStatus.WAITING.getValue());
             List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobVo.getId(), Collections.singletonList(firstPhase.getId()));
             for (AutoexecJobPhaseRunnerVo jobPhaseRunnerVo : jobPhaseRunnerVos) {
-                autoexecJobMapper.updateJobPhaseRunnerStatus(Collections.singletonList(firstPhase.getId()), jobPhaseRunnerVo.getRunnerMapId(), JobPhaseStatus.WAITING.getValue());
+                autoexecJobMapper.updateJobPhaseRunnerStatus(Collections.singletonList(firstPhase.getId()), jobPhaseRunnerVo.getRunnerMapId(), JobPhaseStatus.PENDING.getValue());
             }
             autoexecJobService.getAutoexecJobDetail(jobVo);
             if (CollectionUtils.isNotEmpty(jobVo.getPhaseList())) {

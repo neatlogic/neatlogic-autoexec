@@ -92,6 +92,7 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
 
         if (Objects.equals(isAll, 1)) {
             autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(currentPhaseVo.getId()), JobPhaseStatus.PENDING.getValue());
+            autoexecJobMapper.updateJobPhaseRunnerStatusByJobIdAndPhaseId(jobVo.getId(),currentPhaseVo.getId(), JobPhaseStatus.PENDING.getValue());
             autoexecJobMapper.updateJobPhaseNodeStatusByJobPhaseIdAndIsDelete(currentPhaseVo.getId(), JobNodeStatus.PENDING.getValue(), 0);
         }
 

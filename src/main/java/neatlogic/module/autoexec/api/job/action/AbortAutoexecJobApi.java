@@ -19,6 +19,7 @@ import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.constvalue.JobAction;
+import neatlogic.framework.autoexec.constvalue.JobStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
@@ -31,6 +32,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author lvzk
@@ -73,7 +76,13 @@ public class AbortAutoexecJobApi extends PrivateApiComponentBase {
             throw new AutoexecJobNotFoundException(jobId);
         }
         jobVo.setAction(JobAction.ABORT.getValue());
-        autoexecJobService.batchExecuteJobAction(jobVo, JobAction.ABORT);
+        List<AutoexecJobVo> autoexecJobVos = com.google.common.collect.Lists.newArrayList(Collections.singletonList(jobVo));
+        autoexecJobService.getAllSubJobList(jobVo.getId(), autoexecJobVos);
+        for (AutoexecJobVo job : autoexecJobVos) {
+            job.setAction(jobVo.getAction());
+            job.setIsTakeOver(jobVo.getIsTakeOver());
+            autoexecJobService.abortOrPause(jobVo,JobAction.ABORT.getValue(), JobStatus.ABORTING.getValue());
+        }
         return null;
     }
 

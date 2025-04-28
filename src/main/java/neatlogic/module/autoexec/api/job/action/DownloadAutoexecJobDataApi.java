@@ -94,7 +94,7 @@ public class DownloadAutoexecJobDataApi extends PrivateBinaryStreamApiComponentB
                 throw new AutoexecJobRunnerNotFoundException(runnerName);
             }
         } else {
-            runnerMapVoList = autoexecJobMapper.getJobPhaseRunnerMapByJobId(jobId);
+            runnerMapVoList = autoexecJobMapper.getJobRunnerMapByJobId(jobId);
         }
 
         String fileName = FileUtil.getEncodedFileName("job-" + jobId + ".tar");
