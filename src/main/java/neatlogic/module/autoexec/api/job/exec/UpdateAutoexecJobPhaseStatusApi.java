@@ -136,10 +136,12 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
             }
             IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
             isCanUpdatePhaseStatus = autoexecJobSourceActionHandler.getIsCanUpdatePhaseRunner(jobPhaseVo, runnerId);
-        }else if(JobPhaseStatus.COMPLETED.getValue().equals(jobPhaseVo.getStatus())) {
+        } else if (JobPhaseStatus.COMPLETED.getValue().equals(jobPhaseVo.getStatus())) {
             //已完成的状态不更新为其它状态
             isCanUpdatePhaseStatus = false;
-
+        } else if (JobPhaseStatus.PENDING.getValue().equals(jobPhaseVo.getStatus()) && !Objects.equals(JobPhaseStatus.RUNNING.getValue(), phaseRunnerStatus)) {
+            //如果原来是pending，需要更新成running才允许更改
+            isCanUpdatePhaseStatus = false;
         }
 
         if (isCanUpdatePhaseStatus) {
@@ -164,7 +166,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         for (JobPhaseStatus jobStatus : JobPhaseStatus.values()) {
             statusCountMap.put(jobStatus.getValue(), 0);
         }
-            List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobPhaseVo.getJobId(), Collections.singletonList(jobPhaseVo.getId()));
+        List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobPhaseVo.getJobId(), Collections.singletonList(jobPhaseVo.getId()));
         for (AutoexecJobPhaseRunnerVo jobPhaseRunnerVo : jobPhaseRunnerVos) {
             warnCount += jobPhaseRunnerVo.getWarnCount() == null ? 0 : jobPhaseRunnerVo.getWarnCount();
             statusCountMap.put(jobPhaseRunnerVo.getStatus(), statusCountMap.get(jobPhaseRunnerVo.getStatus()) + 1);
@@ -184,7 +186,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
             finalJobPhaseStatus = JobPhaseStatus.RUNNING.getValue();
         } else if (statusCountMap.get(JobPhaseStatus.WAITING.getValue()) > 0) {
             finalJobPhaseStatus = JobPhaseStatus.WAITING.getValue();
-        }else {
+        } else {
             finalJobPhaseStatus = JobPhaseStatus.PENDING.getValue();
         }
         autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), finalJobPhaseStatus, warnCount, jobPhaseVo.getStartTime()));
