@@ -124,6 +124,8 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             if (CollectionUtils.isNotEmpty(jobVo.getPhaseList())) {
                 new AutoexecJobAuthActionManager.Builder().addReFireJob().build().setAutoexecJobAction(jobVo);
             }
+            //把异常状态的node改回pending，否则后续inform会异常
+            autoexecJobMapper.updateJobPhaseNodeStatusByJobAndStatus(jobVo.getId(), Arrays.asList(JobNodeStatus.ABORTED.getValue(), JobNodeStatus.PAUSED.getValue(), JobNodeStatus.FAILED.getValue()),JobNodeStatus.PENDING.getValue());
             jobVo.setIsNoFireNext(0);
         } else {
             throw new AutoexecJobActionInvalidException();

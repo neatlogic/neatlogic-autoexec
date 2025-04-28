@@ -200,7 +200,7 @@ public class InformAutoexecJobPhaseRoundEndApi extends PrivateApiComponentBase {
         }
         //设置分页，查询该phase round
         nodeParamVo.setPageSize(roundCountList.get(roundNo - 1));
-        List<AutoexecJobPhaseNodeVo> notCompletedNodeList = autoexecJobMapper.getJobPhaseNodeIdListByNodeVoAndStartNum(nodeParamVo, startNum).stream().filter(o -> Arrays.asList(JobNodeStatus.PENDING.getValue(), JobNodeStatus.RUNNING.getValue()).contains(o.getStatus())).collect(Collectors.toList());
+        List<AutoexecJobPhaseNodeVo> notCompletedNodeList = autoexecJobMapper.getJobPhaseNodeIdListByNodeVoAndStartNum(nodeParamVo, startNum).stream().filter(o -> Arrays.asList(JobNodeStatus.WAITING.getValue(),JobNodeStatus.PENDING.getValue(), JobNodeStatus.RUNNING.getValue()).contains(o.getStatus())).collect(Collectors.toList());
         return CollectionUtils.isEmpty(notCompletedNodeList);
     }
 
