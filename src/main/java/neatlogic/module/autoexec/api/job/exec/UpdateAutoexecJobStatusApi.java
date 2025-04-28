@@ -33,6 +33,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -76,6 +77,10 @@ public class UpdateAutoexecJobStatusApi extends PrivateApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
+        //如果作业状态本来就是终结状态，则跳过
+        if(Arrays.asList(JobStatus.COMPLETED.getValue(),JobStatus.ABORTED.getValue(),JobStatus.PAUSED.getValue(),JobStatus.FAILED.getValue(),JobStatus.REVOKED.getValue()).contains(jobVo.getStatus())){
+            return null;
+        }
         //更新执行用户上下文
         autoexecJobActionService.initExecuteUserContext(jobVo);
 
@@ -98,7 +103,7 @@ public class UpdateAutoexecJobStatusApi extends PrivateApiComponentBase {
             Long runnerId = passThroughEnv.getLong("runnerId");
             jobVo.setPassThroughEnv(passThroughEnv);
             //update job phase runner
-            autoexecJobMapper.updateJobPhaseRunnerStatusByJobIdAndRunnerIdAndStatus(jobId, runnerId, status,statusIng);
+            autoexecJobMapper.updateJobPhaseRunnerStatusByJobIdAndRunnerIdAndStatus(jobId, runnerId, status, statusIng);
             //如果该job runner 没有一个aborting|pausing phase 则更新为 aborted|paused
             int statusIngCount = autoexecJobMapper.getJobPhaseRunnerCountByJobIdAndRunnerStatus(jobId, statusIng);
             if (statusIngCount == 0) {

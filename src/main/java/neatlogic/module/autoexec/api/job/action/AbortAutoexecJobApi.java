@@ -81,7 +81,7 @@ public class AbortAutoexecJobApi extends PrivateApiComponentBase {
         for (AutoexecJobVo job : autoexecJobVos) {
             job.setAction(jobVo.getAction());
             job.setIsTakeOver(jobVo.getIsTakeOver());
-            autoexecJobService.abortOrPause(jobVo,JobAction.ABORT.getValue(), JobStatus.ABORTING.getValue());
+            autoexecJobService.abortOrPause(job, JobAction.ABORT.getValue(), JobStatus.ABORTING.getValue());
         }
         return null;
     }

@@ -1708,6 +1708,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
 
     @Override
     public void abortOrPause(AutoexecJobVo jobVo, String action, String statusIng) {
+        //如果作业本身是已完成 则无需中止
+        if(Arrays.asList(JobStatus.COMPLETED.getValue(),JobStatus.ABORTED.getValue(),JobStatus.PAUSED.getValue(),JobStatus.FAILED.getValue(),JobStatus.REVOKED.getValue()).contains(jobVo.getStatus())){
+            return;
+        }
         //更新job状态 为中止中
         jobVo.setStatus(statusIng);
         autoexecJobMapper.updateJobStatus(jobVo);
