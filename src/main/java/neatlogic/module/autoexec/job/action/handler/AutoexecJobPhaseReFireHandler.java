@@ -105,7 +105,7 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
                 }
                 //调runner api 重置节点
                 autoexecJobService.updateJobNodeStatus(runnerMapVos, jobVo, JobNodeStatus.PENDING.getValue());
-                autoexecJobMapper.updateJobPhaseRunnerStatusByPhaseIdAndExceptStatus(jobVo.getId(),JobPhaseStatus.PENDING.getValue(),Arrays.asList(JobNodeStatus.IGNORED.getValue(), JobNodeStatus.SUCCEED.getValue(), JobNodeStatus.INVALID.getValue()));
+                autoexecJobMapper.updateJobPhaseRunnerStatusByPhaseIdAndExceptStatus(jobPhaseVo.getId(),JobPhaseStatus.PENDING.getValue(), Collections.singletonList(JobPhaseStatus.COMPLETED.getValue()));
                 autoexecJobMapper.updateJobPhaseNodeListStatusByPhaseIdAndExceptStatus(jobPhaseVo.getId(), Arrays.asList(JobNodeStatus.IGNORED.getValue(), JobNodeStatus.SUCCEED.getValue(), JobNodeStatus.INVALID.getValue()), JobNodeStatus.PENDING.getValue());
                 jobVo.setExecuteJobNodeVoList(null);
             }

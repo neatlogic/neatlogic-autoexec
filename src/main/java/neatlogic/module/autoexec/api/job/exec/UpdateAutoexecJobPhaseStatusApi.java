@@ -22,6 +22,7 @@ import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.constvalue.JobNodeStatus;
 import neatlogic.framework.autoexec.constvalue.JobPhaseStatus;
+import neatlogic.framework.autoexec.constvalue.JobStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseRunnerVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
@@ -144,8 +145,16 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
             isCanUpdatePhaseStatus = false;
         }
 
+        //补充校验阶段已完成
+
         if (isCanUpdatePhaseStatus) {
-            autoexecJobMapper.updateJobPhaseRunnerStatusAndWarnCount(Collections.singletonList(jobPhaseVo.getId()), runnerId, phaseRunnerStatus, phaseRunnerWarnCount);
+            if (JobPhaseStatus.ABORTED.getValue().equals(phaseRunnerStatus)) {
+                //只更新原来非中止状态的runner状态
+                autoexecJobMapper.updateJobPhaseRunnerStatusAndWarnCountByExceptStatus(Collections.singletonList(jobPhaseVo.getId()), runnerId, phaseRunnerStatus, phaseRunnerWarnCount, Arrays.asList(JobStatus.COMPLETED.getValue(),JobStatus.ABORTED.getValue(),JobStatus.PAUSED.getValue(),JobStatus.FAILED.getValue(),JobStatus.REVOKED.getValue()));
+            } else {
+                //只更新原来非complete状态的runner状态
+                autoexecJobMapper.updateJobPhaseRunnerStatusAndWarnCountByExceptStatus(Collections.singletonList(jobPhaseVo.getId()), runnerId, phaseRunnerStatus, phaseRunnerWarnCount, Collections.singletonList(JobPhaseStatus.COMPLETED.getValue()));
+            }
         }
 
         jobVo.setPassThroughEnv(passThroughEnv);

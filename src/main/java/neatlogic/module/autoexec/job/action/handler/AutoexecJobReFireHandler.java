@@ -118,6 +118,8 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             for (AutoexecJobPhaseRunnerVo jobPhaseRunnerVo : jobPhaseRunnerVos) {
                 autoexecJobMapper.updateJobPhaseRunnerStatus(Collections.singletonList(firstPhase.getId()), jobPhaseRunnerVo.getRunnerMapId(), JobPhaseStatus.PENDING.getValue());
             }
+            //runner状态不是complete都改成pending
+            autoexecJobMapper.updateJobPhaseRunnerStatusByJobIdAndExceptStatus(jobVo.getId(),JobPhaseStatus.PENDING.getValue(), Collections.singletonList(JobPhaseStatus.COMPLETED.getValue()));
             autoexecJobService.getAutoexecJobDetail(jobVo);
             if (CollectionUtils.isNotEmpty(jobVo.getPhaseList())) {
                 new AutoexecJobAuthActionManager.Builder().addReFireJob().build().setAutoexecJobAction(jobVo);
