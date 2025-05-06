@@ -1,7 +1,3 @@
-ALTER TABLE `autoexec_job_phase_node_runner` DROP PRIMARY KEY,ADD PRIMARY KEY (`job_phase_id`, `node_id`) USING BTREE;
-
-ALTER TABLE `autoexec_job_phase_node_runner` DROP INDEX `idx_phaseId`,ADD INDEX `idx_nodeId`(`node_id`) USING BTREE;
-
 ALTER TABLE `autoexec_job_phase_node` DROP INDEX `uni_id`;
 
 ALTER TABLE `autoexec_job_phase_node` DROP INDEX `idx_host_port`;
@@ -21,5 +17,3 @@ ALTER TABLE `autoexec_job_phase_node` MODIFY COLUMN `status` enum('succeed','pen
 ALTER TABLE `autoexec_job_phase_node` ADD INDEX `idx_phaseid_updatetag`(`job_phase_id`, `update_tag`) USING BTREE;
 
 ALTER TABLE `autoexec_job_phase_node` ADD UNIQUE INDEX `idx_phaseid_resourceid`(`job_phase_id`, `resource_id`) USING BTREE;
-
-UPDATE autoexec_job_phase_node AS a JOIN autoexec_job_phase_node_runner AS b ON a.id = b.node_id SET a.runner_map_id = b.runner_map_id;

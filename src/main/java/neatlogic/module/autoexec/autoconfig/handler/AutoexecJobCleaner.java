@@ -101,7 +101,6 @@ public class AutoexecJobCleaner extends AuditCleanerBase {
             databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_phase");
             databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_phase_node");
             databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_phase_operation");
-            databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_phase_node_runner");
             databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_phase_runner");
             databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_resource_inspect");
             databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_invoke");

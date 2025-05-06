@@ -283,18 +283,6 @@ CREATE TABLE IF NOT EXISTS `autoexec_job_phase_node`  (
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '自动化作业阶段节点表';
 
 -- ----------------------------
--- Table structure for autoexec_job_phase_node_runner
--- ----------------------------
-CREATE TABLE IF NOT EXISTS `autoexec_job_phase_node_runner`  (
-  `job_id` bigint NULL DEFAULT NULL COMMENT '作业id',
-  `job_phase_id` bigint NULL DEFAULT NULL COMMENT '作业剧本id',
-  `node_id` bigint NOT NULL COMMENT '作业剧本节点id',
-  `runner_map_id` bigint NOT NULL COMMENT '作业剧本节点runner 映射id',
-  PRIMARY KEY (`node_id`, `runner_map_id`) USING BTREE,
-  INDEX `idx_phaseId`(`job_phase_id`) USING BTREE
-) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci COMMENT = '自动化作业阶段节点runner表';
-
--- ----------------------------
 -- Table structure for autoexec_job_phase_operation
 -- ----------------------------
 CREATE TABLE IF NOT EXISTS `autoexec_job_phase_operation`  (
