@@ -85,6 +85,6 @@ public class ScriptParamTypeTextarea extends ScriptParamTypeBase {
 
     @Override
     public Object convertDataForProcessComponent(JSONArray jsonArray) {
-        return String.join(",", getStringList(jsonArray));
+        return getString(jsonArray);
     }
 }
