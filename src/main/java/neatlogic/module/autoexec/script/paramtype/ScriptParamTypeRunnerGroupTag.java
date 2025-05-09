@@ -127,7 +127,7 @@ public class ScriptParamTypeRunnerGroupTag extends ScriptParamTypeBase {
 
     @Override
     public Object convertDataForProcessComponent(JSONArray jsonArray) {
-        // 组id，单选
-        return jsonArray;
+        // 组id，多选
+        return getObjectList(jsonArray);
     }
 }
