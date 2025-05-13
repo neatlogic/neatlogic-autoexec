@@ -365,6 +365,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
                     }
                     if (hasModifyAuth) {
                         operateList.add(new OperateVo(ScriptAndToolOperate.EDIT.getValue(), ScriptAndToolOperate.EDIT.getText()));
+                        operateList.add(new OperateVo(ScriptAndToolOperate.TEST.getValue(), ScriptAndToolOperate.TEST.getText()));
                     }
                 } else if (!Objects.equals(version.getIsActive(), 1)) {
                     if (hasSearchAuth) {
