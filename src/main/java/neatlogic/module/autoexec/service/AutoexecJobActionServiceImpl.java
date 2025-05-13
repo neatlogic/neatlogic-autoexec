@@ -385,6 +385,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         return value;
     }
 
+    @Transactional
     @Override
     public void validateAndCreateJobFromCombop(AutoexecJobVo autoexecJobParam) {
         IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(autoexecJobParam.getSource());
@@ -461,6 +462,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         fireAction.doService(jobParam);
     }
 
+    @Transactional
     @Override
     public void getJobDetailAndFireJob(AutoexecJobVo jobVo) throws Exception {
         if (jobVo != null) {

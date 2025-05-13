@@ -36,7 +36,6 @@ import org.quartz.JobExecutionContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.Date;
@@ -48,7 +47,6 @@ import java.util.List;
  * @author laiwt
  * @since 2022/3/24 17:42
  **/
-@Transactional
 @Component
 @DisallowConcurrentExecution
 public class AutoexecJobAutoFireJob extends JobBase {

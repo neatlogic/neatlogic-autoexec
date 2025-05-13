@@ -40,7 +40,6 @@ import org.apache.commons.collections4.MapUtils;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -50,7 +49,6 @@ import java.util.Objects;
  * @author linbq
  * @since 2021/9/29 17:42
  **/
-@Transactional
 @Component
 @DisallowConcurrentExecution
 public class AutoexecScheduleJob extends JobBase {
@@ -118,7 +116,6 @@ public class AutoexecScheduleJob extends JobBase {
         }
     }
 
-    @Transactional
     @Override
     public void executeInternal(JobExecutionContext context, JobObject jobObject) throws Exception {
         String uuid = jobObject.getJobName();
