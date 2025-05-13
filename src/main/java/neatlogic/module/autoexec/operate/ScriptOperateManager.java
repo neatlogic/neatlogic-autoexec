@@ -277,10 +277,12 @@ public class ScriptOperateManager {
         }
         for (Long id : idList) {
             List<OperateVo> operateList = new ArrayList<>();
+            OperateVo test = new OperateVo(ScriptAndToolOperate.TEST.getValue(), ScriptAndToolOperate.TEST.getText());
             OperateVo generateToCombop = new OperateVo(ScriptAndToolOperate.GENERATETOCOMBOP.getValue(), ScriptAndToolOperate.GENERATETOCOMBOP.getText());
             OperateVo copy = new OperateVo(ScriptAndToolOperate.COPY.getValue(), ScriptAndToolOperate.COPY.getText());
             OperateVo export = new OperateVo(ScriptAndToolOperate.EXPORT.getValue(), ScriptAndToolOperate.EXPORT.getText());
             OperateVo delete = new OperateVo(ScriptAndToolOperate.DELETE.getValue(), ScriptAndToolOperate.DELETE.getText());
+            operateList.add(test);
             operateList.add(generateToCombop);
             operateList.add(copy);
             operateList.add(export);
@@ -302,6 +304,8 @@ public class ScriptOperateManager {
                 generateToCombop.setDisabledReason("无权限，请联系管理员");
             }
             if (!hasModifyAuth) {
+                test.setDisabled(1);
+                test.setDisabledReason("无权限，请联系管理员");
                 copy.setDisabled(1);
                 copy.setDisabledReason("无权限，请联系管理员");
             }
