@@ -27,10 +27,12 @@ import neatlogic.framework.autoexec.dto.AutoexecToolVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
+import neatlogic.framework.autoexec.exception.AutoexecScriptHasNoActiveVersionException;
 import neatlogic.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecToolNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.exception.type.ParamNotExistsException;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -74,7 +76,8 @@ public class AutoexecScriptOrToolInputParamGetApi extends PrivateApiComponentBas
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "工具ID或自定义工具版本ID"),
+            @Param(name = "id", type = ApiParamType.LONG, desc = "工具ID或自定义工具版本ID"),
+            @Param(name = "scriptId", type = ApiParamType.LONG, desc = "自定义工具ID"),
             @Param(name = "type", type = ApiParamType.ENUM, rule = "script,tool", isRequired = true, desc = "工具或自定义工具"),
     })
     @Output({
@@ -90,15 +93,31 @@ public class AutoexecScriptOrToolInputParamGetApi extends PrivateApiComponentBas
         String name;
         List<AutoexecParamVo> inputParamList = null;
         if (ToolType.SCRIPT.getValue().equals(type)) {
-            AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(id);
-            if (version == null) {
-                throw new AutoexecScriptVersionNotFoundException(id);
+            Long scriptId = jsonObj.getLong("scriptId");
+            if (id != null) {
+                AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(id);
+                if (version == null) {
+                    throw new AutoexecScriptVersionNotFoundException(id);
+                }
+                AutoexecScriptVo script = autoexecScriptMapper.getScriptBaseInfoById(version.getScriptId());
+                if (script == null) {
+                    throw new AutoexecScriptNotFoundException(version.getScriptId());
+                }
+                name = script.getName();
+            } else if (scriptId != null) {
+                AutoexecScriptVo script = autoexecScriptMapper.getScriptBaseInfoById(scriptId);
+                if (script == null) {
+                    throw new AutoexecScriptNotFoundException(scriptId);
+                }
+                name = script.getName();
+                AutoexecScriptVersionVo version = autoexecScriptMapper.getActiveVersionByScriptId(scriptId);
+                if (version == null) {
+                    throw new AutoexecScriptHasNoActiveVersionException(name);
+                }
+                id = version.getId();
+            } else {
+                throw new ParamNotExistsException("id", "scriptId");
             }
-            AutoexecScriptVo script = autoexecScriptMapper.getScriptBaseInfoById(version.getScriptId());
-            if (script == null) {
-                throw new AutoexecScriptNotFoundException(version.getScriptId());
-            }
-            name = script.getName();
             List<AutoexecScriptVersionParamVo> paramList = autoexecScriptMapper.getParamListByVersionId(id);
             if (CollectionUtils.isNotEmpty(paramList)) {
                 inputParamList = paramList.stream()
@@ -107,6 +126,9 @@ public class AutoexecScriptOrToolInputParamGetApi extends PrivateApiComponentBas
                         .collect(Collectors.toList());
             }
         } else {
+            if (id == null) {
+                throw new ParamNotExistsException("id");
+            }
             AutoexecToolVo tool = autoexecToolMapper.getToolById(id);
             if (tool == null) {
                 throw new AutoexecToolNotFoundException(id);
@@ -119,6 +141,7 @@ public class AutoexecScriptOrToolInputParamGetApi extends PrivateApiComponentBas
                 autoexecService.mergeConfig(autoexecParamVo);
             }
         }
+        result.put("id", id);
         result.put("name", name);
         result.put("inputParamList", inputParamList);
         return result;
