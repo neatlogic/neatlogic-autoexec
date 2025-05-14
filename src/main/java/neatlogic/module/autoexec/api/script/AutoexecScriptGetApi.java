@@ -165,25 +165,7 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         if (version.getPackageFileId() != null) {
             version.setPackageFile(fileMapper.getFileById(version.getPackageFileId()));
         }
-//        List<Long> combopIdList = new ArrayList<>();
-//        List<DependencyInfoVo> dependencyInfoList = DependencyManager.getDependencyList(AutoexecScript2CombopPhaseOperationDependencyHandler.class, id);
-//        for (DependencyInfoVo dependencyInfoVo : dependencyInfoList) {
-//            JSONObject config = dependencyInfoVo.getConfig();
-//            if (MapUtils.isNotEmpty(config)) {
-//                Long combopId = config.getLong("combopId");
-//                if (combopId != null) {
-//                    combopIdList.add(combopId);
-//                }
-//            }
-//        }
-//        if (CollectionUtils.isNotEmpty(combopIdList)) {
-//            List<AutoexecCombopVo> combopList = autoexecCombopMapper.getAutoexecCombopByIdList(combopIdList);
-//            script.setCombopList(combopList);
-//            autoexecCombopService.setOperableButtonList(combopList);
-//        }
-//        List<AutoexecCombopVo> combopList = autoexecScriptMapper.getReferenceListByScriptId(id);
-//        script.setCombopList(combopList);
-//        autoexecCombopService.setOperableButtonList(combopList);
+
         if (StringUtils.isNotBlank(version.getReviewer())) {
             version.setReviewerVo(userMapper.getUserBaseInfoByUuid(version.getReviewer()));
         }
