@@ -296,6 +296,8 @@ public class ScriptOperateManager {
                     generateToCombop.setDisabled(1);
                     generateToCombop.setDisabledReason("当前自定义工具未有激活版本，无法发布为组合工具");
                 } else if (isLibScriptIdList.contains(id)) {
+                    test.setDisabled(1);
+                    test.setDisabledReason("当前自定义工具是库文件，不能测试");
                     generateToCombop.setDisabled(1);
                     generateToCombop.setDisabledReason("当前自定义工具是库文件，无法发布为组合工具");
                 }

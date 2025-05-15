@@ -20,9 +20,7 @@ import com.alibaba.fastjson.JSONPath;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_SCRIPT_SEARCH;
 import neatlogic.framework.autoexec.constvalue.*;
-import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecScriptMapper;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptAuditVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
@@ -35,22 +33,16 @@ import neatlogic.framework.autoexec.exception.script.AutoexecScriptVersionNotFou
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.dao.mapper.UserMapper;
 import neatlogic.framework.dependency.core.DependencyManager;
-import neatlogic.framework.dependency.dto.DependencyInfoVo;
 import neatlogic.framework.exception.type.ParamNotExistsException;
 import neatlogic.framework.file.dao.mapper.FileMapper;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import neatlogic.module.autoexec.dependency.AutoexecScript2CombopPhaseOperationDependencyHandler;
-import neatlogic.module.autoexec.service.AutoexecCombopService;
 import neatlogic.module.autoexec.service.AutoexecScriptService;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -61,12 +53,6 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
-
-    @Resource
-    private AutoexecCombopMapper autoexecCombopMapper;
-
-    @Resource
-    private AutoexecCombopService autoexecCombopService;
 
     @Resource
     private AutoexecScriptService autoexecScriptService;
@@ -179,25 +165,7 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
         if (version.getPackageFileId() != null) {
             version.setPackageFile(fileMapper.getFileById(version.getPackageFileId()));
         }
-        List<Long> combopIdList = new ArrayList<>();
-        List<DependencyInfoVo> dependencyInfoList = DependencyManager.getDependencyList(AutoexecScript2CombopPhaseOperationDependencyHandler.class, id);
-        for (DependencyInfoVo dependencyInfoVo : dependencyInfoList) {
-            JSONObject config = dependencyInfoVo.getConfig();
-            if (MapUtils.isNotEmpty(config)) {
-                Long combopId = config.getLong("combopId");
-                if (combopId != null) {
-                    combopIdList.add(combopId);
-                }
-            }
-        }
-        if (CollectionUtils.isNotEmpty(combopIdList)) {
-            List<AutoexecCombopVo> combopList = autoexecCombopMapper.getAutoexecCombopByIdList(combopIdList);
-            script.setCombopList(combopList);
-            autoexecCombopService.setOperableButtonList(combopList);
-        }
-//        List<AutoexecCombopVo> combopList = autoexecScriptMapper.getReferenceListByScriptId(id);
-//        script.setCombopList(combopList);
-//        autoexecCombopService.setOperableButtonList(combopList);
+
         if (StringUtils.isNotBlank(version.getReviewer())) {
             version.setReviewerVo(userMapper.getUserBaseInfoByUuid(version.getReviewer()));
         }
