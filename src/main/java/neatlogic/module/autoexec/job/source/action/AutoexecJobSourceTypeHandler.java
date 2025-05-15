@@ -407,6 +407,12 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
     }
 
     @Override
+    public boolean getIsCanUpdateSqlNode(AutoexecJobPhaseVo jobPhaseVo, Long runnerMapId) {
+        List<AutoexecSqlNodeDetailVo> sqlDetail = autoexecJobMapper.getJobSqlDetailListByJobIdAndPhaseNameAndExceptStatusAndRunnerMapId(jobPhaseVo.getJobId(), jobPhaseVo.getName(), Arrays.asList(JobNodeStatus.SUCCEED.getValue(), JobNodeStatus.IGNORED.getValue()), runnerMapId);
+        return sqlDetail.isEmpty();
+    }
+
+    @Override
     public void myExecuteAuthCheck(AutoexecJobVo jobVo) {
         //先校验有没有组合工具权限
         if (Objects.equals(jobVo.getOperationType(), CombopOperationType.COMBOP.getValue())) {
