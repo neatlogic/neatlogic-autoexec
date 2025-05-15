@@ -89,11 +89,12 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
                 jobVo.setExecuteJobNodeVoList(autoexecJobMapper.getJobPhaseNodeRunnerListByNodeIdList(jobVo.getExecuteJobNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList())));
             }
         }
-        //只要重置，则更新阶段状态为待运行
-        autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(currentPhaseVo.getId()), JobPhaseStatus.PENDING.getValue());
-        autoexecJobMapper.updateJobPhaseRunnerStatusByJobIdAndPhaseId(jobVo.getId(),currentPhaseVo.getId(), JobPhaseStatus.PENDING.getValue());
-        autoexecJobMapper.updateJobPhaseNodeStatusByJobPhaseIdAndIsDelete(currentPhaseVo.getId(), JobNodeStatus.PENDING.getValue(), 0);
-
+        if (Objects.equals(isAll, 1) || Objects.equals(currentPhaseVo.getStatus(), JobPhaseStatus.COMPLETED.getValue())) {
+            //重置所有或者阶段原来状态已完成的 更新阶段状态为待运行
+            autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(currentPhaseVo.getId()), JobPhaseStatus.PENDING.getValue());
+            autoexecJobMapper.updateJobPhaseRunnerStatusByJobIdAndPhaseId(jobVo.getId(), currentPhaseVo.getId(), JobPhaseStatus.PENDING.getValue());
+            autoexecJobMapper.updateJobPhaseNodeStatusByJobPhaseIdAndIsDelete(currentPhaseVo.getId(), JobNodeStatus.PENDING.getValue(), 0);
+        }
 
         autoexecJobService.resetJobNodeStatus(jobVo);
         return null;

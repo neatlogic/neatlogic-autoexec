@@ -121,8 +121,8 @@ public class UpdateAutoexecJobPhaseNodeStatusApi extends PrivateApiComponentBase
                     throw new AutoexecJobSourceInvalidException(jobVo.getSource());
                 }
                 IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
-                boolean isCanUpdatePhaseStatus = autoexecJobSourceActionHandler.getIsCanUpdateSqlNode(jobPhaseVo, nodeVo.getRunnerMapId());
-                if (!isCanUpdatePhaseStatus) {
+                boolean isCanUpdateNodeStatus = autoexecJobSourceActionHandler.getIsCanUpdateSqlNode(jobPhaseVo, nodeVo.getRunnerMapId());
+                if (!isCanUpdateNodeStatus) {
                     return null;
                 }
             }
