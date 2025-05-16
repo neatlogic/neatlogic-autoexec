@@ -350,7 +350,7 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                                     if (CollectionUtils.isNotEmpty(tagentAccountByMainIpList)) {
                                         tagentMainIpAccountMap = tagentAccountByMainIpList.stream().filter(distinctByKey(AccountBaseVo::getName)).collect(Collectors.toMap(AccountBaseVo::getIp, o -> o));
                                     }
-                                    List<AccountBaseVo> tagentAccountByIpList = tagentMapper.getAccountListByIpListAndProtocolId(ipList, protocolId);
+                                    List<AccountBaseVo> tagentAccountByIpList = tagentMapper.getAccountListByIncludeIpListAndProtocolId(ipList, protocolId);
                                     if (CollectionUtils.isNotEmpty(tagentAccountByIpList)) {
                                         tagentIpAccountMap = tagentAccountByIpList.stream()
                                                 .collect(Collectors.groupingBy(AccountBaseVo::getIp))  // 按 IP 分组
