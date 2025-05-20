@@ -40,10 +40,6 @@ import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
-/**
- * @author longrf
- * @date 2022/5/31 2:34 下午
- */
 @Service
 public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBase {
 
@@ -336,7 +332,7 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
 //            }
         } else {
             //默认随机分配
-            String runnerGroup = "-1";
+            String runnerGroup = null;
             ParamMappingVo runnerGroupParam = jobVo.getRunnerGroup();
             Boolean isJobRunnerGroup = null;
             //优先使用runner phase声明的执行器组
@@ -349,7 +345,7 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
                 }
             }
 
-            if (Objects.equals("-1", runnerGroup) && runnerGroupParam != null) {
+            if (runnerGroupParam != null) {
                 String runnerGroupIdStr = autoexecJobService.getFinalParamValue(runnerGroupParam, jobVo.getRunTimeParamList());
                 if (StringUtils.isNotBlank(runnerGroupIdStr)) {
                     runnerGroup = runnerGroupIdStr;
@@ -357,6 +353,10 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
                 }
             }
 
+            //如果都没有设置，则默认为-1，随机分配
+            if(runnerGroup == null) {
+                runnerGroup = "-1";
+            }
             if (Objects.equals(runnerGroup, "-1")) {//-1 代表 “随机匹配”
                 runnerMapVos = runnerMapper.getAllRunnerMap(runnerGroupIdListWithTag);
                 if (CollectionUtils.isEmpty(runnerMapVos)) {
