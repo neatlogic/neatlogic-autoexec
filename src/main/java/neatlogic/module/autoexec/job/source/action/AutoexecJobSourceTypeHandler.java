@@ -345,7 +345,7 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
                 }
             }
 
-            if (runnerGroupParam != null) {
+            if (runnerGroup == null && runnerGroupParam != null) {
                 String runnerGroupIdStr = autoexecJobService.getFinalParamValue(runnerGroupParam, jobVo.getRunTimeParamList());
                 if (StringUtils.isNotBlank(runnerGroupIdStr)) {
                     runnerGroup = runnerGroupIdStr;
