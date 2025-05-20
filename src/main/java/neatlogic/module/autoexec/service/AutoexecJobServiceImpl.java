@@ -236,7 +236,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             } else {
                 IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
                 if (runnerMapVo == null) {
-                    List<RunnerMapVo> runnerMapList = autoexecJobSourceActionHandler.getRunnerMapList(jobVo);
+                    List<RunnerMapVo> runnerMapList = autoexecJobSourceActionHandler.getRunnerMapList(jobVo, combopPhaseExecuteConfigVo);
                     if (CollectionUtils.isEmpty(runnerMapList)) {
                         throw new RunnerNotMatchException();
                     }
@@ -822,22 +822,22 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 }
             }
             List<AutoexecJobPhaseVo> jobPhaseWithOperationList = autoexecJobMapper.getJobPhaseListWithOperationWithoutParentByJobId(jobVo.getId());
-            Map<Long,List<AutoexecJobPhaseOperationVo>> phaseOperationVoMap = jobPhaseWithOperationList.stream().collect(Collectors.toMap(AutoexecJobPhaseVo::getId, AutoexecJobPhaseVo::getOperationList));
+            Map<Long, List<AutoexecJobPhaseOperationVo>> phaseOperationVoMap = jobPhaseWithOperationList.stream().collect(Collectors.toMap(AutoexecJobPhaseVo::getId, AutoexecJobPhaseVo::getOperationList));
             //批量获取operationParamContent
             List<String> paramContentHashList = new ArrayList<>();
             Map<String, AutoexecJobContentVo> paramContentMap = new HashMap<>();
-            for(Map.Entry<Long,List<AutoexecJobPhaseOperationVo>> entry : phaseOperationVoMap.entrySet()){
+            for (Map.Entry<Long, List<AutoexecJobPhaseOperationVo>> entry : phaseOperationVoMap.entrySet()) {
                 List<AutoexecJobPhaseOperationVo> operationVos = entry.getValue();
-                for (AutoexecJobPhaseOperationVo operationVo : operationVos){
-                    if(StringUtils.isNotBlank(operationVo.getParamHash())) {
+                for (AutoexecJobPhaseOperationVo operationVo : operationVos) {
+                    if (StringUtils.isNotBlank(operationVo.getParamHash())) {
                         paramContentHashList.add(operationVo.getParamHash());
                     }
                 }
             }
-            if(CollectionUtils.isNotEmpty(paramContentHashList)){
+            if (CollectionUtils.isNotEmpty(paramContentHashList)) {
                 List<AutoexecJobContentVo> paramContentVos = autoexecJobMapper.getJobContentList(paramContentHashList);
-                if(CollectionUtils.isNotEmpty(paramContentVos)) {
-                    paramContentMap = paramContentVos.stream().collect(Collectors.toMap(AutoexecJobContentVo::getHash, o->o));
+                if (CollectionUtils.isNotEmpty(paramContentVos)) {
+                    paramContentMap = paramContentVos.stream().collect(Collectors.toMap(AutoexecJobContentVo::getHash, o -> o));
                 }
             }
             for (AutoexecJobPhaseVo phaseVo : jobPhaseVoList) {
@@ -1728,7 +1728,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     @Override
     public void abortOrPause(AutoexecJobVo jobVo, String action, String statusIng) {
         //如果作业本身是已完成 则无需中止
-        if(Arrays.asList(JobStatus.COMPLETED.getValue(),JobStatus.ABORTED.getValue(),JobStatus.PAUSED.getValue(),JobStatus.FAILED.getValue(),JobStatus.REVOKED.getValue()).contains(jobVo.getStatus())){
+        if (Arrays.asList(JobStatus.COMPLETED.getValue(), JobStatus.ABORTED.getValue(), JobStatus.PAUSED.getValue(), JobStatus.FAILED.getValue(), JobStatus.REVOKED.getValue()).contains(jobVo.getStatus())) {
             return;
         }
         //更新job状态 为中止中
