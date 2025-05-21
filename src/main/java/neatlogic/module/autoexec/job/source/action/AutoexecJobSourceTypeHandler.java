@@ -353,8 +353,16 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
                 }
             }
 
+            if (Boolean.TRUE.equals(isJobRunnerGroup) && (isJobRunnerGroupTag == null || Boolean.TRUE.equals(isJobRunnerGroupTag))) {
+                autoexecJobMapper.updateJobPhaseRunnerGroupFrom(AutoexecJobPhaseNodeFrom.JOB.getValue(), jobPhaseVo.getId());
+                jobPhaseVo.setRunnerGroupFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
+            } else {
+                autoexecJobMapper.updateJobPhaseRunnerGroupFrom(AutoexecJobPhaseNodeFrom.PHASE.getValue(), jobPhaseVo.getId());
+                jobPhaseVo.setRunnerGroupFrom(AutoexecJobPhaseNodeFrom.PHASE.getValue());
+            }
+
             //如果都没有设置，则默认为-1，随机分配
-            if(runnerGroup == null) {
+            if (runnerGroup == null) {
                 runnerGroup = "-1";
             }
             if (Objects.equals(runnerGroup, "-1")) {//-1 代表 “随机匹配”

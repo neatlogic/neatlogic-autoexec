@@ -49,6 +49,7 @@ import neatlogic.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
 import neatlogic.framework.cmdb.exception.resourcecenter.ResourceCenterAccountProtocolNotFoundException;
+import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.config.ConfigManager;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dao.mapper.UserMapper;
@@ -57,6 +58,7 @@ import neatlogic.framework.deploy.crossover.IDeploySqlCrossoverMapper;
 import neatlogic.framework.dto.runner.RunnerMapVo;
 import neatlogic.framework.exception.core.ApiRuntimeException;
 import neatlogic.framework.exception.runner.*;
+import neatlogic.framework.filter.core.LoginAuthHandlerBase;
 import neatlogic.framework.integration.authentication.enums.AuthenticateType;
 import neatlogic.framework.util.$;
 import neatlogic.framework.util.HttpRequestUtil;
@@ -85,6 +87,8 @@ import static neatlogic.framework.common.util.CommonUtil.distinctByKey;
 @Service
 public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobCrossoverService {
     private final Logger logger = LoggerFactory.getLogger(AutoexecJobServiceImpl.class);
+
+    private Random r = new Random();
     @Resource
     AutoexecJobMapper autoexecJobMapper;
     @Resource
@@ -205,8 +209,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
         List<Long> combopGroupIdList = new ArrayList<>();//记录真正使用的group
         Map<String, String> preOperationNameMap = new HashMap<>();//记录上游阶段工具uuid对应的名称
-        RunnerMapVo runnerMapVo = null;//作业内的local仅在一个runner上执行
+        RunnerMapVo runnerMapVo = null;//默认使用同一个全局runner
         for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
+            RunnerMapVo phaseRunnerMapVo = null;
             //如果不是场景定义的phase则无需保存
             if (CollectionUtils.isNotEmpty(scenarioPhaseNameList) && !scenarioPhaseNameList.contains(autoexecCombopPhaseVo.getName())) {
                 continue;
@@ -229,29 +234,40 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 //如果需要上游出参作为执行目标则无需初始化执行当前阶段执行目标
                 continue;
             }
-            //如果是target、runnerTarget 则获取执行目标，否则随机分配runner,且作业仅存在一个local runner
+            //如果是target、runnerTarget 则获取执行目标
             jobVo.setCurrentPhase(jobPhaseVo);
             if (Arrays.asList(ExecMode.TARGET.getValue(), ExecMode.RUNNER_TARGET.getValue()).contains(autoexecCombopPhaseVo.getExecMode())) {
                 initPhaseExecuteUserAndProtocolAndNode(jobVo, combopExecuteConfigVo, combopPhaseExecuteConfigVo);
             } else {
                 IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
-                if (runnerMapVo == null) {
-                    List<RunnerMapVo> runnerMapList = autoexecJobSourceActionHandler.getRunnerMapList(jobVo, combopPhaseExecuteConfigVo);
-                    if (CollectionUtils.isEmpty(runnerMapList)) {
-                        throw new RunnerNotMatchException();
-                    }
-                    int runnerMapIndex = (int) (Math.random() * runnerMapList.size());
-                    runnerMapVo = runnerMapList.get(runnerMapIndex);
-                    autoexecJobMapper.updateJobLocalRunnerId(jobVo.getId(), runnerMapVo.getRunnerMapId());
+                List<RunnerMapVo> runnerMapList = autoexecJobSourceActionHandler.getRunnerMapList(jobVo, combopPhaseExecuteConfigVo);
+                if (CollectionUtils.isEmpty(runnerMapList)) {
+                    throw new RunnerNotMatchException();
                 }
+                if (Objects.equals(jobVo.getCurrentPhase().getRunnerGroupFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())) {
+                    if (runnerMapVo == null) {
+                        int runnerMapIndex = r.nextInt(runnerMapList.size());
+                        runnerMapVo = runnerMapList.get(runnerMapIndex);
+                        autoexecJobMapper.updateJobLocalRunnerId(jobVo.getId(), runnerMapVo.getRunnerMapId());
+                    }
+                    phaseRunnerMapVo = runnerMapVo;
+                } else {
+                    int runnerMapIndex = r.nextInt(runnerMapList.size());
+                    phaseRunnerMapVo = runnerMapList.get(runnerMapIndex);
+                    if (runnerMapVo == null) {
+                        runnerMapVo = phaseRunnerMapVo;
+                        autoexecJobMapper.updateJobLocalRunnerId(jobVo.getId(), runnerMapVo.getRunnerMapId());
+                    }
+                }
+
                 Date nowTime = new Date(System.currentTimeMillis());
                 jobPhaseVo.setLcd(nowTime);
                 AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), jobPhaseVo, "runner", JobNodeStatus.PENDING.getValue(), userName, protocolId);
-                nodeVo.setRunnerMapId(runnerMapVo.getRunnerMapId());
+                nodeVo.setRunnerMapId(phaseRunnerMapVo.getRunnerMapId());
                 autoexecJobMapper.insertJobPhaseNode(nodeVo);
-                runnerMapper.insertRunnerMap(runnerMapVo);
+                runnerMapper.insertRunnerMap(phaseRunnerMapVo);
                 autoexecJobMapper.insertJobPhaseRunner(nodeVo.getJobId(), nodeVo.getJobGroupId(), nodeVo.getJobPhaseId(), nodeVo.getRunnerMapId(), nodeVo.getLcd());
-                autoexecJobSourceActionHandler.updateJobRunnerMap(jobVo.getId(), runnerMapVo.getRunnerMapId());
+                autoexecJobSourceActionHandler.updateJobRunnerMap(jobVo.getId(), phaseRunnerMapVo.getRunnerMapId());
             }
         }
         //保存group
@@ -1699,8 +1715,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         for (RunnerMapVo runner : runnerVos) {
             String url = runner.getUrl() + "api/rest/job/waiting/detail/get";
             HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(params.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
-            if (StringUtils.isNotBlank(requestUtil.getError())) {
-                throw new RunnerHttpRequestException(url + ":" + requestUtil.getError());
+            if (requestUtil.getResponseCode() != 200 || StringUtils.isNotBlank(requestUtil.getError())) {
+                throw new RunnerHttpRequestException("Request failed! "+url + ":" + requestUtil.getError());
             }
             JSONObject resultJson = requestUtil.getResultJson();
             JSONObject queueJson = resultJson.getJSONObject("Return");
@@ -1782,6 +1798,29 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         } catch (Exception ex) {
             logger.error(ex.getMessage(), ex);
             throw new RunnerConnectRefusedException(url + " " + result);
+        }
+    }
+
+    @Override
+    public void cleanHistoryJobAutoexecData(List<Long> runnerMapIdList, int dayBefore) throws Exception {
+        List<RunnerMapVo> runnerVos = runnerMapper.getRunnerByRunnerMapIdList(runnerMapIdList);
+        if (CollectionUtils.isNotEmpty(runnerVos)) {
+            runnerVos = runnerVos.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getId))), ArrayList::new));
+            UserContext.init(neatlogic.framework.common.constvalue.systemuser.SystemUser.SYSTEM);
+            UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(SystemUser.SYSTEM.getUserVo()).getCc());
+            for (RunnerMapVo runner : runnerVos) {
+                String url = runner.getUrl() + "api/rest/job/data/purge";
+                JSONObject paramJson = new JSONObject();
+                paramJson.put("expiredDays", dayBefore);
+                paramJson.put("passThroughEnv", new JSONObject() {{
+                    put("runnerId", runner.getRunnerMapId());
+                }});
+                HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setAuthType(AuthenticateType.BUILDIN).setPayload(paramJson.toJSONString()).sendRequest();
+                if (StringUtils.isNotBlank(requestUtil.getError())) {
+                    logger.error(requestUtil.getError());
+                    throw new AutoexecJobDeleteException(runner);
+                }
+            }
         }
     }
 }

@@ -195,15 +195,13 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                     && Objects.equals(jobPhaseVo.getProtocolFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())
                     && Objects.equals(jobPhaseVo.getUserNameFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue()))
             ) {
-                if (response != null) {
-                    response.setStatus(204);
-                    response.getWriter().print(StringUtils.EMPTY);
-                }
+                response.setStatus(204);
+                response.getWriter().print(StringUtils.EMPTY);
                 return null;
             }
             lncd = jobPhaseVo.getLncd();
             nodeParamVo.setJobPhaseName(jobPhaseVo.getName());
-            jobVo.setExecuteJobPhaseList(Collections.singletonList(jobPhaseVo));
+            jobVo.setCurrentPhase(jobPhaseVo);
         }
 
         if (paramObj.getDouble("lastModified") != null) {
@@ -242,6 +240,11 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                     JSONObject firstRow = new JSONObject();
                     firstRow.put("totalCount", count);
                     firstRow.put("localRunnerId", jobVo.getRunnerMapId());
+                    if (Objects.equals(AutoexecJobPhaseNodeFrom.PHASE.getValue(), nodeFrom) && Objects.equals(ExecMode.RUNNER.getValue(), jobVo.getCurrentPhase().getExecMode()) && Objects.equals(AutoexecJobPhaseNodeFrom.PHASE.getValue(), jobVo.getCurrentPhase().getRunnerGroupFrom())) {
+                        List<AutoexecJobPhaseNodeVo> autoexecJobPhaseNodeVos = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseId(jobVo.getId(), jobVo.getCurrentPhase().getId());
+                        firstRow.put("localRunnerId", autoexecJobPhaseNodeVos.get(0).getRunnerMapId());
+                    }
+
                     firstRow.put("jobRunnerIds", runnerMapIdList);
                     bos.write((firstRow.toJSONString() + System.lineSeparator()).getBytes(StandardCharsets.UTF_8));
                     bos.flush();

@@ -20,6 +20,8 @@ import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
+import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
+import neatlogic.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.dto.runner.RunnerVo;
@@ -64,11 +66,16 @@ public class AutoexecJobPhaseRunnerGetApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
         Long jobPhaseId = jsonObj.getLong("jobPhaseId");
+        AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(jobId, jobPhaseId);
+        if (phaseVo == null) {
+            throw new AutoexecJobPhaseNotFoundException(jobPhaseId.toString());
+        }
         AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseRunnerNodeByJobIdAndPhaseId(jobId, jobPhaseId);
         if (nodeVo == null) {
             throw new AutoexecJobRunnerNotFoundException(jobId, jobPhaseId);
         }
         nodeVo.setRunnerVo(autoexecJobMapper.getJobRunnerById(nodeVo.getRunnerId()));
+        nodeVo.setPhaseRunnerGroupFrom(phaseVo.getRunnerGroupFrom());
         return nodeVo;
     }
 

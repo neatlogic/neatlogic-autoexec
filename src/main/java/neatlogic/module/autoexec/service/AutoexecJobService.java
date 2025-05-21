@@ -302,4 +302,11 @@ public interface AutoexecJobService {
      */
     void abortOrPause(AutoexecJobVo jobVo,String action,String statusIng);
 
+    /**
+     * 清除历史作业数据
+     * @param runnerMapIdList 执行器id列表
+     * @param dayBefore 保留天数
+     */
+    void cleanHistoryJobAutoexecData(List<Long> runnerMapIdList,int dayBefore) throws Exception ;
+
 }
