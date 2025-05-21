@@ -254,10 +254,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 } else {
                     int runnerMapIndex = r.nextInt(runnerMapList.size());
                     phaseRunnerMapVo = runnerMapList.get(runnerMapIndex);
-                    if (runnerMapVo == null) {
-                        runnerMapVo = phaseRunnerMapVo;
-                        autoexecJobMapper.updateJobLocalRunnerId(jobVo.getId(), runnerMapVo.getRunnerMapId());
-                    }
                 }
 
                 Date nowTime = new Date(System.currentTimeMillis());
