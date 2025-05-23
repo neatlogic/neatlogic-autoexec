@@ -43,6 +43,7 @@ import neatlogic.framework.fulltextindex.core.IFullTextIndexHandler;
 import neatlogic.framework.lrcode.LRCodeManager;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCustomTemplateMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecProfileMapper;
+import neatlogic.module.autoexec.dependency.AutoexecScript2ScriptDependencyHandler;
 import neatlogic.module.autoexec.fulltextindex.AutoexecFullTextIndexType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -743,8 +744,12 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
         }
         //保存依赖工具
         autoexecScriptMapper.deleteScriptVersionLibByScriptVersionId(versionVo.getId());
+        DependencyManager.delete(AutoexecScript2ScriptDependencyHandler.class, versionVo.getId());
         if (CollectionUtils.isNotEmpty(versionVo.getUseLib())) {
             autoexecScriptMapper.insertScriptVersionUseLib(versionVo.getId(), versionVo.getUseLib());
+            for (Long useLibId : versionVo.getUseLib()) {
+                DependencyManager.insert(AutoexecScript2ScriptDependencyHandler.class, useLibId, versionVo.getId());
+            }
         }
     }
 
