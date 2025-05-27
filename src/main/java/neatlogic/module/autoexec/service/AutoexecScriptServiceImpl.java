@@ -620,6 +620,9 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
             if (CollectionUtils.isNotEmpty(versionIdList)) {
                 autoexecScriptMapper.deleteParamByVersionIdList(versionIdList);
                 autoexecScriptMapper.deleteArgumentByVersionIdList(versionIdList);
+                for (Long versionId : versionIdList) {
+                    DependencyManager.delete(AutoexecScript2ScriptDependencyHandler.class, versionId);
+                }
             }
             //删除依赖工具关系
             autoexecScriptMapper.deleteScriptVersionLibByLibScriptId(id);
