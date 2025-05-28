@@ -24,10 +24,12 @@ import neatlogic.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import neatlogic.framework.autoexec.dto.script.*;
 import neatlogic.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.dependency.core.DependencyManager;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.framework.util.RegexUtils;
+import neatlogic.module.autoexec.dependency.AutoexecScript2ScriptDependencyHandler;
 import neatlogic.module.autoexec.service.AutoexecScriptService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.beans.BeanUtils;
@@ -134,6 +136,9 @@ public class AutoexecScriptCopyApi extends PrivateApiComponentBase {
                 }
                 if (CollectionUtils.isNotEmpty(source.getUseLib())) {
                     autoexecScriptMapper.insertScriptVersionUseLib(target.getId(), source.getUseLib());
+                    for (Long useLibId : source.getUseLib()) {
+                        DependencyManager.insert(AutoexecScript2ScriptDependencyHandler.class, useLibId, target.getId());
+                    }
                 }
             }
             if (paramList.size() > 0) {
