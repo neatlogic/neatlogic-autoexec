@@ -67,7 +67,7 @@ public class AutoexecJobPhaseRoundInformHandler extends AutoexecJobActionHandler
         informParam.put("action", "informRoundContinue");
         informParam.put("groupNo", groupSort);
         jsonObj.put("informParam", informParam);
-        jsonObj.put("socketFileName", "job" + jsonObj.getString("pid"));
+        jsonObj.put("socketFileName", "job" + jsonObj.getString("execId"));
         AutoexecJobPhaseVo phaseVo = jobVo.getCurrentPhase();
         //寻找下一个phase执行当前round,如果不存在下一个phase 则啥都不做
         //AutoexecJobPhaseVo nextJobPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndGroupSortAndSort(phaseVo.getJobId(), groupSort, phaseVo.getSort() + 1);

@@ -73,14 +73,15 @@ public class InformAutoexecJobPhaseRoundEndApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
-            @Param(name = "phase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
+            @Param(name = "phase", type = ApiParamType.STRING, desc = "term.autoexec.phase", isRequired = true),
+            @Param(name = "execId", type = ApiParamType.LONG, desc = "nmaaje.updateautoexecjobphasestatusapi.input.param.desc", isRequired = true),
             @Param(name = "runnerId", type = ApiParamType.LONG, desc = "runnerId"),
-            @Param(name = "roundNo", type = ApiParamType.INTEGER, desc = "round号", isRequired = true),
-            @Param(name = "groupNo", type = ApiParamType.INTEGER, desc = "组号", isRequired = true),
-            @Param(name = "seqNo", type = ApiParamType.INTEGER, desc = "蓝绿批次"),
-            @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数", isRequired = true),
-            @Param(name = "time", type = ApiParamType.DOUBLE, desc = "回调时间")
+            @Param(name = "roundNo", type = ApiParamType.INTEGER, desc = "round no", isRequired = true),
+            @Param(name = "groupNo", type = ApiParamType.INTEGER, desc = "group no", isRequired = true),
+            @Param(name = "seqNo", type = ApiParamType.INTEGER, desc = "nmaaje.informautoexecjobphaseroundendapi.input.param.desc.seqno"),
+            @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.passthroughenv", isRequired = true),
+            @Param(name = "time", type = ApiParamType.DOUBLE, desc = "common.time")
     })
     @Output({
     })

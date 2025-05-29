@@ -36,18 +36,26 @@ import neatlogic.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandle
 import neatlogic.framework.autoexec.source.AutoexecJobSourceFactory;
 import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.dto.runner.RunnerMapVo;
 import neatlogic.framework.exception.core.ApiRuntimeException;
+import neatlogic.framework.exception.runner.RunnerHttpRequestException;
+import neatlogic.framework.integration.authentication.enums.AuthenticateType;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
+import neatlogic.framework.util.HttpRequestUtil;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
 import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
+
+import static java.util.stream.Collectors.collectingAndThen;
+import static java.util.stream.Collectors.toCollection;
 
 /**
  * @author lvzk
@@ -86,6 +94,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
+            @Param(name = "execId", type = ApiParamType.LONG, desc = "nmaaje.updateautoexecjobphasestatusapi.input.param.desc", isRequired = true),
             @Param(name = "phase", type = ApiParamType.STRING, desc = "term.autoexec.phase", isRequired = true),
             @Param(name = "status", type = ApiParamType.STRING, desc = "common.status", isRequired = true),
             @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.passthroughenv")
@@ -150,7 +159,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         if (isCanUpdatePhaseStatus) {
             if (JobPhaseStatus.ABORTED.getValue().equals(phaseRunnerStatus)) {
                 //只更新原来非中止状态的runner状态
-                autoexecJobMapper.updateJobPhaseRunnerStatusAndWarnCountByExceptStatus(Collections.singletonList(jobPhaseVo.getId()), runnerId, phaseRunnerStatus, phaseRunnerWarnCount, Arrays.asList(JobStatus.COMPLETED.getValue(),JobStatus.ABORTED.getValue(),JobStatus.PAUSED.getValue(),JobStatus.FAILED.getValue(),JobStatus.REVOKED.getValue()));
+                autoexecJobMapper.updateJobPhaseRunnerStatusAndWarnCountByExceptStatus(Collections.singletonList(jobPhaseVo.getId()), runnerId, phaseRunnerStatus, phaseRunnerWarnCount, Arrays.asList(JobStatus.COMPLETED.getValue(), JobStatus.ABORTED.getValue(), JobStatus.PAUSED.getValue(), JobStatus.FAILED.getValue(), JobStatus.REVOKED.getValue()));
             } else {
                 //只更新原来非complete状态的runner状态
                 autoexecJobMapper.updateJobPhaseRunnerStatusAndWarnCountByExceptStatus(Collections.singletonList(jobPhaseVo.getId()), runnerId, phaseRunnerStatus, phaseRunnerWarnCount, Collections.singletonList(JobPhaseStatus.COMPLETED.getValue()));
@@ -230,6 +239,42 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
             if (jobPhaseVoList.stream().allMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.COMPLETED.getValue()) || Objects.equals(o.getStatus(), JobPhaseStatus.IGNORED.getValue()))) {
                 jobVo.setStatus(JobPhaseStatus.COMPLETED.getValue());
                 autoexecJobMapper.updateJobStatus(jobVo);
+            }
+        }
+
+        //informGlobalFail
+        if (Arrays.asList(JobPhaseStatus.FAILED.getValue(), JobPhaseStatus.ABORTED.getValue(), finalJobPhaseStatus).contains(finalJobPhaseStatus)) {
+            informGlobalFail(jobPhaseVo);
+        }
+    }
+
+    /**
+     * 失败阶段时inform所有autoexec
+     *
+     * @param phaseVo 阶段
+     */
+    private void informGlobalFail(AutoexecJobPhaseVo phaseVo) {
+        JSONObject jsonObj = new JSONObject();
+        JSONObject informParam = new JSONObject();
+        informParam.put("action", "informGlobalFail");
+        informParam.put("phaseName", phaseVo.getName());
+        jsonObj.put("informParam", informParam);
+        jsonObj.put("socketFileName", "job" + jsonObj.getString("execId"));
+        List<RunnerMapVo> runnerVos = autoexecJobMapper.getJobRunnerListByJobIdAndGroupId(phaseVo.getJobId(), phaseVo.getGroupId());
+        runnerVos = runnerVos.stream().filter(o -> StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
+        autoexecJobService.checkRunnerHealth(runnerVos);
+        for (RunnerMapVo runnerVo : runnerVos) {
+            String url = String.format("%s/api/rest/job/phase/socket/write", runnerVo.getUrl());
+            HttpRequestUtil request = HttpRequestUtil.post(url)
+                    .setPayload(jsonObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN)
+                    .sendRequest();
+            if (request.getResponseCode() != 200) {
+                String errMsg = String.format("test account failed, ResponseCode:%d, ErrorMsg: %s, Exception: %s, Result: %s", request.getResponseCode(), request.getErrorMsg(), request.getError(), request.getResult());
+                throw new ApiRuntimeException(errMsg);
+            }
+            String error = request.getError();
+            if (StringUtils.isNotBlank(error)) {
+                throw new RunnerHttpRequestException(url + ":" + error);
             }
         }
     }
