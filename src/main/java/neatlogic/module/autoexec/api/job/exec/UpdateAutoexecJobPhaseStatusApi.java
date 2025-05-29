@@ -126,6 +126,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
         jobVo.setIsFirstFire(isFirstFire);
+        jobVo.setActionParam(jsonObj);
         //更新执行用户上下文
         autoexecJobActionService.initExecuteUserContext(jobVo);
 
@@ -244,7 +245,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
 
         //informGlobalFail
         if (Arrays.asList(JobPhaseStatus.FAILED.getValue(), JobPhaseStatus.ABORTED.getValue(), finalJobPhaseStatus).contains(finalJobPhaseStatus)) {
-            informGlobalFail(jobPhaseVo);
+            informGlobalFail(jobVo, jobPhaseVo);
         }
     }
 
@@ -253,8 +254,8 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
      *
      * @param phaseVo 阶段
      */
-    private void informGlobalFail(AutoexecJobPhaseVo phaseVo) {
-        JSONObject jsonObj = new JSONObject();
+    private void informGlobalFail(AutoexecJobVo jobVo, AutoexecJobPhaseVo phaseVo) {
+        JSONObject jsonObj = jobVo.getActionParam();
         JSONObject informParam = new JSONObject();
         informParam.put("action", "informGlobalFail");
         informParam.put("phaseName", phaseVo.getName());
