@@ -244,7 +244,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         }
 
         //informGlobalFail
-        if (Arrays.asList(JobPhaseStatus.FAILED.getValue(), JobPhaseStatus.ABORTED.getValue(), finalJobPhaseStatus).contains(finalJobPhaseStatus)) {
+        if (Arrays.asList(JobPhaseStatus.FAILED.getValue(), JobPhaseStatus.ABORTED.getValue()).contains(finalJobPhaseStatus)) {
             informGlobalFail(jobVo, jobPhaseVo);
         }
     }
