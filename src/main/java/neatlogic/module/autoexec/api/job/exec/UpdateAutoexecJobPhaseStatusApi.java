@@ -134,6 +134,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         if (jobPhaseVo == null) {
             throw new AutoexecJobPhaseNotFoundException(jobId + ":" + phaseName);
         }
+
         //将succeed转成completed，前端不区分成功还是完成
         if (Objects.equals(phaseRunnerStatus, JobNodeStatus.SUCCEED.getValue())) {
             phaseRunnerStatus = JobPhaseStatus.COMPLETED.getValue();
@@ -231,23 +232,12 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
             }
         }
 
-        //如果状态一致或者状态已经是失败，则无需更新状态，防止多次触发callback；
-        if (Objects.equals(jobVo.getStatus(), finalJobPhaseStatus) || (Objects.equals(jobVo.getStatus(), finalJobPhaseStatus) && JobPhaseStatus.FAILED.getValue().equals(jobVo.getStatus()))) {
-            return;
+        String jobStatus = autoexecJobService.getJobStatus(jobVo.getId());
+        //如果状态一致，则无需更新状态，防止多次触发callback；
+        if (!Objects.equals(jobVo.getStatus(), jobStatus)) {
+            jobVo.setStatus(jobStatus);
+           autoexecJobMapper.updateJobStatus(jobVo);
         }
-        //autoexec是不会回调failed的作业状态，故如果存在失败的phase 则更新作业状态为failed
-        if (Arrays.asList(JobPhaseStatus.FAILED.getValue(), JobPhaseStatus.WAIT_INPUT.getValue(), JobPhaseStatus.RUNNING.getValue()).contains(finalJobPhaseStatus)) {
-            jobVo.setStatus(finalJobPhaseStatus);
-            autoexecJobMapper.updateJobStatus(jobVo);
-        } else if (Objects.equals(finalJobPhaseStatus, JobPhaseStatus.COMPLETED.getValue())) {
-            //判断所有phase 是否都已跑完（completed|ignored），如果是则需要更新job状态
-            List<AutoexecJobPhaseVo> jobPhaseVoList = autoexecJobMapper.getJobPhaseListWithGroupByJobId(jobVo.getId());
-            if (jobPhaseVoList.stream().allMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.COMPLETED.getValue()) || Objects.equals(o.getStatus(), JobPhaseStatus.IGNORED.getValue()))) {
-                jobVo.setStatus(JobPhaseStatus.COMPLETED.getValue());
-                autoexecJobMapper.updateJobStatus(jobVo);
-            }
-        }
-
     }
 
     /**
