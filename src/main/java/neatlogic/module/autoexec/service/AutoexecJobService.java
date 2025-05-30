@@ -334,8 +334,9 @@ public interface AutoexecJobService {
      * @param jobVo 作业
      * @param jobPhaseVo 阶段
      * @param runnerId 执行器id
+     * @param phaseStatusParam 阶段状态入参
      * @return 作业状态
      */
-    String getJobPhaseStatus(AutoexecJobVo jobVo, AutoexecJobPhaseVo jobPhaseVo, Long runnerId);
+    String getJobPhaseStatus(AutoexecJobVo jobVo, AutoexecJobPhaseVo jobPhaseVo, Long runnerId,String phaseStatusParam);
 
 }

@@ -1859,7 +1859,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     }
 
     @Override
-    public String getJobPhaseStatus(AutoexecJobVo jobVo, AutoexecJobPhaseVo jobPhaseVo, Long runnerId) {
+    public String getJobPhaseStatus(AutoexecJobVo jobVo, AutoexecJobPhaseVo jobPhaseVo, Long runnerId,String phaseStatusParam) {
         IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
         if (jobSource == null) {
             throw new AutoexecJobSourceInvalidException(jobVo.getSource());
@@ -1867,33 +1867,34 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
         List<String> phaseNodeOrSqlStatusList = autoexecJobSourceActionHandler.getPhaseNodeOrSqlStatusList(jobPhaseVo, runnerId);
 
-        if (phaseNodeOrSqlStatusList.contains(JobStatus.WAIT_INPUT.getValue())) {
-            return JobStatus.WAIT_INPUT.getValue();
+        if (phaseNodeOrSqlStatusList.contains(JobNodeStatus.WAIT_INPUT.getValue())) {
+            return JobNodeStatus.WAIT_INPUT.getValue();
         }
-        if (phaseNodeOrSqlStatusList.contains(JobStatus.ABORTED.getValue())) {
-            return JobStatus.ABORTED.getValue();
+        if (phaseNodeOrSqlStatusList.contains(JobNodeStatus.ABORTED.getValue())) {
+            return JobNodeStatus.ABORTED.getValue();
         }
-        if (phaseNodeOrSqlStatusList.contains(JobStatus.FAILED.getValue())) {
-            return JobStatus.FAILED.getValue();
+        if (phaseNodeOrSqlStatusList.contains(JobNodeStatus.FAILED.getValue())) {
+            return JobNodeStatus.FAILED.getValue();
         }
-        if (phaseNodeOrSqlStatusList.contains(JobStatus.PAUSED.getValue())) {
-            return JobStatus.PAUSED.getValue();
+        if (phaseNodeOrSqlStatusList.contains(JobNodeStatus.PAUSED.getValue())) {
+            return JobNodeStatus.PAUSED.getValue();
         }
-        if (phaseNodeOrSqlStatusList.contains(JobStatus.ABORTING.getValue())) {
-            return JobStatus.ABORTING.getValue();
+        if (phaseNodeOrSqlStatusList.contains(JobNodeStatus.ABORTING.getValue())) {
+            return JobNodeStatus.ABORTING.getValue();
         }
-        if (phaseNodeOrSqlStatusList.contains(JobStatus.PAUSING.getValue())) {
-            return JobStatus.PAUSING.getValue();
+        if (phaseNodeOrSqlStatusList.contains(JobNodeStatus.PAUSING.getValue())) {
+            return JobNodeStatus.PAUSING.getValue();
         }
-        if (phaseNodeOrSqlStatusList.contains(JobStatus.RUNNING.getValue())) {
-            return JobStatus.RUNNING.getValue();
+        //autoexec是先更新阶段状态为running，再更新节点状态的，所以没有异常状态节点，如果autoexec的是running状态则返回running
+        if (Objects.equals(phaseStatusParam,JobNodeStatus.RUNNING.getValue()) || phaseNodeOrSqlStatusList.contains(JobNodeStatus.RUNNING.getValue())) {
+            return JobNodeStatus.RUNNING.getValue();
         }
-        if (phaseNodeOrSqlStatusList.contains(JobStatus.WAITING.getValue())) {
-            return JobStatus.WAITING.getValue();
+        if (phaseNodeOrSqlStatusList.contains(JobNodeStatus.WAITING.getValue())) {
+            return JobNodeStatus.WAITING.getValue();
         }
         if (Arrays.asList(JobNodeStatus.IGNORED.getValue(), JobNodeStatus.SUCCEED.getValue()).containsAll(phaseNodeOrSqlStatusList)) {
             return JobPhaseStatus.COMPLETED.getValue();
         }
-        return JobStatus.PENDING.getValue();
+        return JobNodeStatus.PENDING.getValue();
     }
 }

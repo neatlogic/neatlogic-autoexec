@@ -100,12 +100,13 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
         String phaseName = jsonObj.getString("phase");
-        String phaseRunnerStatus = jsonObj.getString("status");
+        String phaseRunnerStatusParam = jsonObj.getString("status");
         Integer phaseRunnerWarnCount = jsonObj.getInteger("warnCount");
         JSONObject passThroughEnv = jsonObj.getJSONObject("passThroughEnv");
         Integer isFirstFire = 0;
         Integer isPartialNodeOrSqlRun = 0;
         Long runnerId = 0L;
+        String phaseRunnerStatus = phaseRunnerStatusParam;
         if (MapUtils.isNotEmpty(passThroughEnv)) {
             if (!passThroughEnv.containsKey("runnerId")) {
                 throw new AutoexecJobRunnerNotFoundException("runnerId");
@@ -134,15 +135,16 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         }
 
         //将succeed转成completed，前端不区分成功还是完成
-        if (Objects.equals(phaseRunnerStatus, JobNodeStatus.SUCCEED.getValue())) {
+        if (Objects.equals(phaseRunnerStatusParam, JobNodeStatus.SUCCEED.getValue())) {
             phaseRunnerStatus = JobPhaseStatus.COMPLETED.getValue();
         }
 
+        System.out.println(jobPhaseVo.getName()+" before: "+phaseRunnerStatus);
         //需纠正单个节点重跑的情况，比如一个节点成功，也会调这个接口且状态为succeed
         if (isPartialNodeOrSqlRun == 1) {
-            phaseRunnerStatus = autoexecJobService.getJobPhaseStatus(jobVo, jobPhaseVo, runnerId);
+            phaseRunnerStatus = autoexecJobService.getJobPhaseStatus(jobVo, jobPhaseVo, runnerId,phaseRunnerStatusParam);
         }
-
+        System.out.println(jobPhaseVo.getName()+" after: "+phaseRunnerStatus);
         autoexecJobMapper.updateJobPhaseRunnerStatusAndWarnCount(jobPhaseVo.getId(), runnerId, phaseRunnerStatus, phaseRunnerWarnCount);
 
         jobVo.setPassThroughEnv(passThroughEnv);
@@ -150,7 +152,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         updateJobPhaseStatus(jobVo, jobPhaseVo);
 
         //informGlobalFail
-        if (Arrays.asList(JobPhaseStatus.FAILED.getValue(), JobPhaseStatus.ABORTED.getValue()).contains(phaseRunnerStatus)) {
+        if (Arrays.asList(JobPhaseStatus.FAILED.getValue(), JobPhaseStatus.ABORTED.getValue()).contains(phaseRunnerStatusParam)) {
             informGlobalFail(jobVo, jobPhaseVo);
         }
         return null;

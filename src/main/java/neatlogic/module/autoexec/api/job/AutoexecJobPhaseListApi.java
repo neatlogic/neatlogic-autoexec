@@ -123,7 +123,7 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
             AtomicInteger totalCount = new AtomicInteger();
             jobPhaseNodeStatusCountVoList.forEach(o -> {
                 if (Arrays.asList(JobNodeStatus.SUCCEED.getValue(),JobNodeStatus.IGNORED.getValue()).contains(o.getStatus())) {
-                    succeedCount.set(o.getCount());
+                    succeedCount.set(succeedCount.get()+o.getCount());
 
                 }
                 totalCount.addAndGet(o.getCount());
