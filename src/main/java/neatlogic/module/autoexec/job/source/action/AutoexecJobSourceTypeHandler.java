@@ -102,7 +102,7 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
     @Override
     public void resetSqlStatus(JSONObject paramObj, AutoexecJobVo jobVo) {
         JSONArray sqlIdArray = paramObj.getJSONArray("sqlIdList");
-        AutoexecJobPhaseVo currentPhase = jobVo.getCurrentPhase();
+        AutoexecJobPhaseVo currentPhase = jobVo.getExecutePhase();
         if (paramObj.getInteger("isAll") != null && paramObj.getInteger("isAll") == 1) {
             autoexecJobMapper.updateJobSqlStatusByJobIdAndPhaseId(currentPhase.getJobId(), currentPhase.getId(), JobNodeStatus.PENDING.getValue());
         } else {
@@ -118,7 +118,7 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
     @Override
     public void ignoreSql(JSONObject paramObj, AutoexecJobVo jobVo) {
         JSONArray sqlIdArray = paramObj.getJSONArray("sqlIdList");
-        AutoexecJobPhaseVo currentPhase = jobVo.getCurrentPhase();
+        AutoexecJobPhaseVo currentPhase = jobVo.getExecutePhase();
         if (paramObj.getInteger("isAll") != null && paramObj.getInteger("isAll") == 1) {
             autoexecJobMapper.updateJobSqlStatusByJobIdAndPhaseId(currentPhase.getJobId(), currentPhase.getId(), JobNodeStatus.IGNORED.getValue());
         } else {
@@ -248,7 +248,7 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
      */
     @Override
     public List<RunnerMapVo> getRunnerMapList(AutoexecJobVo jobVo, AutoexecCombopPhaseConfigVo combopPhaseExecuteConfigVo) {
-        AutoexecJobPhaseVo jobPhaseVo = jobVo.getCurrentPhase();
+        AutoexecJobPhaseVo jobPhaseVo = jobVo.getExecutePhase();
         List<RunnerMapVo> runnerMapVos = null;
         ParamMappingVo runnerGroupTagParam = jobVo.getRunnerGroupTag();
         String runnerGroupTagStr = null;

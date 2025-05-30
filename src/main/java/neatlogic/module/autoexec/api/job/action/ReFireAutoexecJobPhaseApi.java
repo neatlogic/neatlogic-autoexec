@@ -79,7 +79,7 @@ public class ReFireAutoexecJobPhaseApi extends PrivateApiComponentBase {
         phaseVo.setJobGroupVo(jobGroupVo);
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(phaseVo.getJobId());
         jobVo.setExecuteJobGroupVo(jobGroupVo);
-        jobVo.setCurrentPhase(phaseVo);
+        jobVo.setExecutePhase(phaseVo);
         jobVo.setAction(JobAction.RESET_REFIRE.getValue());
         if(jsonObj.containsKey("type")){
             jobVo.setAction(jsonObj.getString("type"));

@@ -64,7 +64,7 @@ public class AutoexecJobPhaseIgnoreHandler extends AutoexecJobActionHandlerBase 
 
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
-        AutoexecJobPhaseVo jobPhaseVo = jobVo.getCurrentPhase();
+        AutoexecJobPhaseVo jobPhaseVo = jobVo.getExecutePhase();
         //目前仅支持忽略 runner阶段
         if (Objects.equals(jobPhaseVo.getExecMode(), ExecMode.RUNNER.getValue())) {
             jobPhaseVo.setStatus(JobPhaseStatus.IGNORED.getValue());

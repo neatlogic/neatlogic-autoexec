@@ -72,7 +72,7 @@ public class AutoexecJobNodeIgnoreHandler extends AutoexecJobActionHandlerBase {
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         List<AutoexecJobPhaseNodeVo> nodeVoList;
-        AutoexecJobPhaseVo currentPhaseVo = jobVo.getCurrentPhase();
+        AutoexecJobPhaseVo currentPhaseVo = jobVo.getExecutePhase();
         //重置mongodb node 状态
         List<RunnerMapVo> runnerVos = new ArrayList<>();
         IAutoexecJobSourceTypeHandler handler = null;

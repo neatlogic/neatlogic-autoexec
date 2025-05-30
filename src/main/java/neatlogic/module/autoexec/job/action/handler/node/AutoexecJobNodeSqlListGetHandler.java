@@ -57,7 +57,7 @@ public class AutoexecJobNodeSqlListGetHandler extends AutoexecJobActionHandlerBa
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         JSONObject result = new JSONObject();
         AutoexecJobPhaseNodeVo nodeVo = jobVo.getCurrentNode();
-        AutoexecJobPhaseVo phaseVo = jobVo.getCurrentPhase();
+        AutoexecJobPhaseVo phaseVo = jobVo.getExecutePhase();
         JSONObject paramObj = jobVo.getActionParam();
         paramObj.put("jobId", nodeVo.getJobId());
         paramObj.put("nodeId", nodeVo.getId());

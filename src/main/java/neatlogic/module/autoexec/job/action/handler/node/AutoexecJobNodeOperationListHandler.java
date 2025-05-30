@@ -57,7 +57,7 @@ public class AutoexecJobNodeOperationListHandler extends AutoexecJobActionHandle
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         AutoexecJobPhaseNodeVo nodeVo = jobVo.getCurrentNode();
-        AutoexecJobPhaseVo phaseVo = jobVo.getCurrentPhase();
+        AutoexecJobPhaseVo phaseVo = jobVo.getExecutePhase();
         JSONObject paramJson = jobVo.getActionParam();
         paramJson.put("jobId", phaseVo.getJobId());
         paramJson.put("resourceId", nodeVo.getResourceId());

@@ -201,7 +201,7 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
             }
             lncd = jobPhaseVo.getLncd();
             nodeParamVo.setJobPhaseName(jobPhaseVo.getName());
-            jobVo.setCurrentPhase(jobPhaseVo);
+            jobVo.setExecutePhase(jobPhaseVo);
         }
 
         if (paramObj.getDouble("lastModified") != null) {
@@ -240,8 +240,8 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                     JSONObject firstRow = new JSONObject();
                     firstRow.put("totalCount", count);
                     firstRow.put("localRunnerId", jobVo.getRunnerMapId());
-                    if (Objects.equals(AutoexecJobPhaseNodeFrom.PHASE.getValue(), nodeFrom) && Objects.equals(ExecMode.RUNNER.getValue(), jobVo.getCurrentPhase().getExecMode()) && Objects.equals(AutoexecJobPhaseNodeFrom.PHASE.getValue(), jobVo.getCurrentPhase().getRunnerGroupFrom())) {
-                        List<AutoexecJobPhaseNodeVo> autoexecJobPhaseNodeVos = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseId(jobVo.getId(), jobVo.getCurrentPhase().getId());
+                    if (Objects.equals(AutoexecJobPhaseNodeFrom.PHASE.getValue(), nodeFrom) && Objects.equals(ExecMode.RUNNER.getValue(), jobVo.getExecutePhase().getExecMode()) && Objects.equals(AutoexecJobPhaseNodeFrom.PHASE.getValue(), jobVo.getExecutePhase().getRunnerGroupFrom())) {
+                        List<AutoexecJobPhaseNodeVo> autoexecJobPhaseNodeVos = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseId(jobVo.getId(), jobVo.getExecutePhase().getId());
                         firstRow.put("localRunnerId", autoexecJobPhaseNodeVos.get(0).getRunnerMapId());
                     }
 

@@ -69,7 +69,7 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         Integer isAll = jobVo.getActionParam().getInteger("isAll");
         //更新状态
-        AutoexecJobPhaseVo currentPhaseVo = jobVo.getCurrentPhase();
+        AutoexecJobPhaseVo currentPhaseVo = jobVo.getExecutePhase();
         if (Objects.equals(currentPhaseVo.getExecMode(), ExecMode.SQL.getValue())) {
             jobVo.getActionParam().put("phaseName", currentPhaseVo.getName());
             IAutoexecJobSourceTypeHandler handler;

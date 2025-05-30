@@ -65,12 +65,12 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
 
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
-        AutoexecJobPhaseVo jobPhaseVo = jobVo.getCurrentPhase();
+        AutoexecJobPhaseVo jobPhaseVo = jobVo.getExecutePhase();
         jobVo.setIsFirstFire(0);
         if (Objects.equals(jobVo.getAction(), JobAction.RESET_REFIRE.getValue())) {
             resetPhase(jobVo);
-            autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(jobVo.getCurrentPhase().getId()), JobPhaseStatus.WAITING.getValue());
-            autoexecJobService.refreshJobPhaseNodeList(jobVo.getId(), Collections.singletonList(jobVo.getCurrentPhase()));
+            autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(jobVo.getExecutePhase().getId()), JobPhaseStatus.WAITING.getValue());
+            autoexecJobService.refreshJobPhaseNodeList(jobVo.getId(), Collections.singletonList(jobVo.getExecutePhase()));
             List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobVo.getId(), Collections.singletonList(jobPhaseVo.getId()));
             for (AutoexecJobPhaseRunnerVo jobPhaseRunnerVo : jobPhaseRunnerVos) {
                 autoexecJobMapper.updateJobPhaseRunnerStatus(Collections.singletonList(jobPhaseVo.getId()), jobPhaseRunnerVo.getRunnerMapId(), JobPhaseStatus.PENDING.getValue());
@@ -109,10 +109,10 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
     private void resetPhase(AutoexecJobVo jobVo) {
         JSONObject paramJson = new JSONObject();
         paramJson.put("jobId", jobVo.getId());
-        paramJson.put("phaseName", jobVo.getCurrentPhase().getName());
-        List<RunnerMapVo> runnerVos = autoexecJobMapper.getJobPhaseRunnerMapByJobIdAndPhaseIdList(jobVo.getId(), Collections.singletonList(jobVo.getCurrentPhase().getId()));
+        paramJson.put("phaseName", jobVo.getExecutePhase().getName());
+        List<RunnerMapVo> runnerVos = autoexecJobMapper.getJobPhaseRunnerMapByJobIdAndPhaseIdList(jobVo.getId(), Collections.singletonList(jobVo.getExecutePhase().getId()));
         if (CollectionUtils.isEmpty(runnerVos)) {
-            throw new AutoexecJobPhaseRunnerNotFoundException(jobVo.getCurrentPhase().getName());
+            throw new AutoexecJobPhaseRunnerNotFoundException(jobVo.getExecutePhase().getName());
         }
         autoexecJobService.checkRunnerHealth(runnerVos);
         for (RunnerMapVo runner : runnerVos) {

@@ -121,7 +121,7 @@ public class InformAutoexecJobPhaseRoundEndApi extends PrivateApiComponentBase {
             IAutoexecJobActionHandler jobActionHandler = AutoexecJobActionHandlerFactory.getAction(JobAction.INFORM_PHASE_ROUND.getValue());
             jobVo.setAction(JobAction.INFORM_PHASE_ROUND.getValue());
             jobVo.setActionParam(jsonObj);
-            jobVo.setCurrentPhase(jobPhaseVo);
+            jobVo.setExecutePhase(jobPhaseVo);
             jobActionHandler.doService(jobVo);
             //System.out.println("roundNo:"+jsonObj.getInteger("roundNo")+" runnerId:"+jsonObj.getString(("runnerId")) +" phase:"+ phase + " run");
         }

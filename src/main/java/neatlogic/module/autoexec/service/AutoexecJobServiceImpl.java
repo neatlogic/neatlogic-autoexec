@@ -235,7 +235,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 continue;
             }
             //如果是target、runnerTarget 则获取执行目标
-            jobVo.setCurrentPhase(jobPhaseVo);
+            jobVo.setExecutePhase(jobPhaseVo);
             if (Arrays.asList(ExecMode.TARGET.getValue(), ExecMode.RUNNER_TARGET.getValue()).contains(autoexecCombopPhaseVo.getExecMode())) {
                 initPhaseExecuteUserAndProtocolAndNode(jobVo, combopExecuteConfigVo, combopPhaseExecuteConfigVo);
             } else {
@@ -244,7 +244,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 if (CollectionUtils.isEmpty(runnerMapList)) {
                     throw new RunnerNotMatchException();
                 }
-                if (Objects.equals(jobVo.getCurrentPhase().getRunnerGroupFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())) {
+                if (Objects.equals(jobVo.getExecutePhase().getRunnerGroupFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())) {
                     if (runnerMapVo == null) {
                         int runnerMapIndex = r.nextInt(runnerMapList.size());
                         runnerMapVo = runnerMapList.get(runnerMapIndex);
@@ -278,6 +278,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 i++;
             }
         }
+
+        //初始化完清空currentPhase,因为创建作业execute无需currenPhase
+        jobVo.setExecutePhase(null);
     }
 
     /**
@@ -381,7 +384,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseVoList) {
             AutoexecJobPhaseVo targetPhase = jobPhaseUuidMap.get(combopPhaseVo.getUuid());
             if (targetPhase != null) {
-                jobVo.setCurrentPhase(targetPhase);
+                jobVo.setExecutePhase(targetPhase);
                 initPhaseExecuteUserAndProtocolAndNode(jobVo, jobVo.getConfig().getExecuteConfig(), combopPhaseVo.getConfig());
             }
         }
@@ -589,7 +592,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         String userName = null;
         Long protocolId = null;
         Integer roundCount = null;
-        AutoexecJobPhaseVo jobPhase = jobVo.getCurrentPhase();
+        AutoexecJobPhaseVo jobPhase = jobVo.getExecutePhase();
         if (combopExecuteConfigVo != null) {
             //先获取组合工具配置的执行用户和协议
             userName = getFinalParamValue(combopExecuteConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
@@ -606,7 +609,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             }
         }
         AutoexecCombopExecuteConfigVo executeConfigVo;
-        AutoexecJobGroupVo jobGroupVo = jobVo.getCurrentPhase().getJobGroupVo();
+        AutoexecJobGroupVo jobGroupVo = jobVo.getExecutePhase().getJobGroupVo();
         //判断group是不是grayScale，如果是则从group中获取执行节点、账号、执行用户
         if (Objects.equals(jobGroupVo.getPolicy(), AutoexecJobGroupPolicy.GRAYSCALE.getName())) {
             AutoexecCombopGroupConfigVo groupConfig = jobGroupVo.getConfig();
@@ -665,7 +668,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
         //如果都找不到执行节点
         if (!isHasNode) {
-            throw new AutoexecJobPhaseNodeNotFoundException(jobVo.getCurrentPhase().getName(), isPhaseConfig);
+            throw new AutoexecJobPhaseNodeNotFoundException(jobVo.getExecutePhase().getName(), isPhaseConfig);
         }
 
         jobPhase.setUserName(userName);
@@ -766,7 +769,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     continue;
                 }
                 jobPhaseVo.setCombopId(jobVo.getOperationId());
-                jobVo.setCurrentPhase(jobPhaseVo);
+                jobVo.setExecutePhase(jobPhaseVo);
                 initPhaseExecuteUserAndProtocolAndNode(jobVo, combopExecuteConfigVo, combopPhaseExecuteConfigVo);
                 refreshPhaseRunnerStatus(jobPhaseVo);
             }
@@ -875,26 +878,26 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      * @return runnerId
      */
     private Long getRunnerByTargetIp(AutoexecJobVo jobVo) {
-        if (jobVo.getCurrentPhase().getCurrentNode() != null) {
+        if (jobVo.getExecutePhase().getCurrentNode() != null) {
             IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
             if (jobSource == null) {
                 throw new AutoexecJobSourceInvalidException(jobVo.getSource());
             }
             //确保已存在的资产使用同一个runner
-            Long runnerMapId = jobVo.getNodeResourceIdRunnerIdMap().get(jobVo.getCurrentPhase().getCurrentNode().getResourceId());
+            Long runnerMapId = jobVo.getNodeResourceIdRunnerIdMap().get(jobVo.getExecutePhase().getCurrentNode().getResourceId());
             if (runnerMapId != null) {
                 return runnerMapId;
             }
             IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
             List<RunnerMapVo> runnerMapVos = autoexecJobSourceActionHandler.getRunnerMapList(jobVo);
             if (CollectionUtils.isNotEmpty(runnerMapVos)) {
-                int runnerMapIndex = (int) (jobVo.getCurrentPhase().getCurrentNode().getId() % runnerMapVos.size());
+                int runnerMapIndex = (int) (jobVo.getExecutePhase().getCurrentNode().getId() % runnerMapVos.size());
                 RunnerMapVo runnerMapVo = runnerMapVos.get(runnerMapIndex);
                 if (runnerMapVo.getRunnerMapId() == null) {
                     runnerMapVo.setRunnerMapId(runnerMapVo.getId());
                     runnerMapper.insertRunnerMap(runnerMapVo);
                 }
-                jobVo.getNodeResourceIdRunnerIdMap().put(jobVo.getCurrentPhase().getCurrentNode().getResourceId(), runnerMapVo.getRunnerMapId());
+                jobVo.getNodeResourceIdRunnerIdMap().put(jobVo.getExecutePhase().getCurrentNode().getResourceId(), runnerMapVo.getRunnerMapId());
                 return runnerMapVo.getRunnerMapId();
             }
         }
@@ -917,13 +920,13 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             return false;
         }
         Date nowTime = new Date(System.currentTimeMillis());
-        jobVo.getCurrentPhase().setLcd(nowTime);
+        jobVo.getExecutePhase().setLcd(nowTime);
 
         AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = combopExecuteConfigVo.getExecuteNodeConfig();
         boolean isHasNode = UpdateNodesFactory.updateNodes(executeNodeConfigVo, jobVo, userName, protocolId);
         logger.debug("##AfterUpdateNodes:-------------------------------------------------------------------------------start");
         //long ccc = System.currentTimeMillis();
-        AutoexecJobPhaseVo jobPhaseVo = jobVo.getCurrentPhase();
+        AutoexecJobPhaseVo jobPhaseVo = jobVo.getExecutePhase();
         //检查当前阶段是否需要更新别的阶段执行目标，如果是则该阶段只能存在一个节点
         if (jobPhaseVo.getIsPreOutputUpdateNode() == 1) {
             int nodeCount = autoexecJobMapper.searchJobPhaseNodeCount(new AutoexecJobPhaseNodeVo(jobPhaseVo.getId(), 0));
@@ -1051,7 +1054,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      */
     @Override
     public void updateJobPhaseNode(AutoexecJobVo jobVo, List<ResourceVo> resourceVoList, String userName, Long protocolId) {
-        AutoexecJobPhaseVo jobPhaseVo = jobVo.getCurrentPhase();
+        AutoexecJobPhaseVo jobPhaseVo = jobVo.getExecutePhase();
         List<AutoexecJobPhaseNodeVo> nodeList = new ArrayList<>();
         //List<AutoexecJobPhaseNodeRunnerVo> nodeRunnerList = new ArrayList<>();
         //List<Long> resourceIdList = new ArrayList<>();
@@ -1449,13 +1452,13 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      */
     @Override
     public void resetJobNodeStatus(AutoexecJobVo jobVo) {
-        AutoexecJobPhaseVo currentPhase = jobVo.getCurrentPhase();
+        AutoexecJobPhaseVo currentPhase = jobVo.getExecutePhase();
         //如果所有非删除的节点都是pending，则phase 也要更新成pending
         if (autoexecJobMapper.getJobPhaseNodeCountWithoutDeleteByJobIdAndPhaseIdAndExceptStatusList(jobVo.getId(), currentPhase.getId(), Arrays.asList(JobNodeStatus.PENDING.getValue(), JobNodeStatus.INVALID.getValue())) == 0) {
-            autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(jobVo.getCurrentPhase().getId()), JobPhaseStatus.PENDING.getValue());
-            autoexecJobMapper.updateJobPhaseRunnerStatusByJobIdAndPhaseId(jobVo.getId(), jobVo.getCurrentPhase().getId(), JobPhaseStatus.PENDING.getValue());
+            autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(jobVo.getExecutePhase().getId()), JobPhaseStatus.PENDING.getValue());
+            autoexecJobMapper.updateJobPhaseRunnerStatusByJobIdAndPhaseId(jobVo.getId(), jobVo.getExecutePhase().getId(), JobPhaseStatus.PENDING.getValue());
         } else {
-            autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(jobVo.getCurrentPhase().getId()), JobPhaseStatus.PENDING.getValue());
+            autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(jobVo.getExecutePhase().getId()), JobPhaseStatus.PENDING.getValue());
         }
         //刷新阶段runner status
         refreshPhaseRunnerStatus(currentPhase);
@@ -1468,11 +1471,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             runnerVos = runnerVos.stream().filter(o -> StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
         } else {
             //重置所有节点状态
-            runnerVos = autoexecJobMapper.getJobPhaseRunnerMapByJobIdAndPhaseIdList(jobVo.getId(), Collections.singletonList(jobVo.getCurrentPhase().getId()));
+            runnerVos = autoexecJobMapper.getJobPhaseRunnerMapByJobIdAndPhaseIdList(jobVo.getId(), Collections.singletonList(jobVo.getExecutePhase().getId()));
         }
 
         checkRunnerHealth(runnerVos);
-        AutoexecJobPhaseVo currentPhaseVo = jobVo.getCurrentPhase();
+        AutoexecJobPhaseVo currentPhaseVo = jobVo.getExecutePhase();
         JSONObject paramJson = new JSONObject();
         paramJson.put("jobId", jobVo.getId());
         paramJson.put("tenant", TenantContext.get().getTenantUuid());
@@ -1498,10 +1501,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
 
     @Override
     public void updateJobNodeStatus(List<RunnerMapVo> runnerVos, AutoexecJobVo jobVo, String nodeStatus) {
-        AutoexecJobPhaseVo currentPhase = jobVo.getCurrentPhase();
+        AutoexecJobPhaseVo currentPhase = jobVo.getExecutePhase();
         //如果所有非删除的节点都是ignore，则phase 也要更新成completed
         if (autoexecJobMapper.getJobPhaseNodeCountWithoutDeleteByJobIdAndPhaseIdAndExceptStatusList(jobVo.getId(), currentPhase.getId(), Collections.singletonList(JobNodeStatus.IGNORED.getValue())) == 0) {
-            autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(jobVo.getCurrentPhase().getId()), JobPhaseStatus.COMPLETED.getValue());
+            autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(jobVo.getExecutePhase().getId()), JobPhaseStatus.COMPLETED.getValue());
             String jobStatus = getJobStatus(jobVo.getId());
             jobVo.setStatus(jobStatus);
             autoexecJobMapper.updateJobStatus(jobVo);
@@ -1511,8 +1514,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         paramJson.put("jobId", jobVo.getId());
         paramJson.put("tenant", TenantContext.get().getTenantUuid());
         paramJson.put("execUser", UserContext.get().getUserUuid(true));
-        paramJson.put("phaseName", jobVo.getCurrentPhase().getName());
-        paramJson.put("execMode", jobVo.getCurrentPhase().getExecMode());
+        paramJson.put("phaseName", jobVo.getExecutePhase().getName());
+        paramJson.put("execMode", jobVo.getExecutePhase().getExecMode());
         paramJson.put("phaseNodeList", jobVo.getExecuteJobNodeVoList());
         paramJson.put("nodeStatus", nodeStatus);
         for (RunnerMapVo runner : runnerVos) {
@@ -1573,7 +1576,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     @Override
     public void executeNode(AutoexecJobVo jobVo) {
         List<RunnerMapVo> runnerVos = new ArrayList<>();
-        if (Objects.equals(jobVo.getCurrentPhase().getExecMode(), ExecMode.SQL.getValue())) {
+        if (Objects.equals(jobVo.getExecutePhase().getExecMode(), ExecMode.SQL.getValue())) {
             for (AutoexecJobPhaseNodeVo nodeVo : jobVo.getExecuteJobNodeVoList()) {
                 runnerVos.add(new RunnerMapVo(nodeVo.getRunnerUrl(), nodeVo.getRunnerMapId()));
             }
@@ -1605,13 +1608,13 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         if (jobVo.getExecuteJobGroupVo() == null) {
             throw new AutoexecJobGroupNotFoundException(jobVo.getId());
         }
-        if (jobVo.getCurrentPhase() != null) {
-            paramJson.put("jobPhaseNameList", Collections.singletonList(jobVo.getCurrentPhase().getName()));
+        if (jobVo.getExecutePhase() != null) {
+            paramJson.put("jobPhaseNameList", Collections.singletonList(jobVo.getExecutePhase().getName()));
         }
 
         paramJson.put("jobGroupSortList", Collections.singletonList(jobVo.getExecuteJobGroupVo().getSort()));
 
-        if (jobVo.getCurrentPhase() != null && Objects.equals(jobVo.getCurrentPhase().getExecMode(), ExecMode.SQL.getValue())) {
+        if (jobVo.getExecutePhase() != null && Objects.equals(jobVo.getExecutePhase().getExecMode(), ExecMode.SQL.getValue())) {
             paramJson.put("jobPhaseNodeSqlList", jobVo.getJobPhaseNodeSqlList());
             if (CollectionUtils.isNotEmpty(jobVo.getJobPhaseNodeSqlList())) {
                 passThroughEnv.put("isPartialNodeOrSqlRun", 1);
@@ -1626,8 +1629,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         checkRunnerHealth(runnerVos);
         Long execid = SnowflakeUtil.uniqueLong();
         passThroughEnv.put("groupSort", jobVo.getExecuteJobGroupVo().getSort());
-        if (jobVo.getCurrentPhase() != null) {
-            passThroughEnv.put("phaseSort", jobVo.getCurrentPhase().getSort());
+        if (jobVo.getExecutePhase() != null) {
+            passThroughEnv.put("phaseSort", jobVo.getExecutePhase().getSort());
         }
         passThroughEnv.put("isFirstFire", isFirstFire);
         passThroughEnv.put("EXECUSER_TOKEN", userMapper.getUserTokenByUser(UserContext.get().getUserId()));
