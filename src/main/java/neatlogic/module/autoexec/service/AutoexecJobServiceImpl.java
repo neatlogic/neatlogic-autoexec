@@ -1455,7 +1455,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(jobVo.getCurrentPhase().getId()), JobPhaseStatus.PENDING.getValue());
             autoexecJobMapper.updateJobPhaseRunnerStatusByJobIdAndPhaseId(jobVo.getId(), jobVo.getCurrentPhase().getId(), JobPhaseStatus.PENDING.getValue());
         } else {
-            autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(jobVo.getCurrentPhase().getId()), JobPhaseStatus.RUNNING.getValue());
+            autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(jobVo.getCurrentPhase().getId()), JobPhaseStatus.PENDING.getValue());
         }
         //刷新阶段runner status
         refreshPhaseRunnerStatus(currentPhase);
@@ -1601,6 +1601,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         paramJson.put("tenant", TenantContext.get().getTenantUuid());
         paramJson.put("isNoFireNext", jobVo.getIsNoFireNext());
         paramJson.put("isFirstFire", isFirstFire);
+        JSONObject passThroughEnv = jobVo.getPassThroughEnv();
         if (jobVo.getExecuteJobGroupVo() == null) {
             throw new AutoexecJobGroupNotFoundException(jobVo.getId());
         }
@@ -1612,13 +1613,18 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
 
         if (jobVo.getCurrentPhase() != null && Objects.equals(jobVo.getCurrentPhase().getExecMode(), ExecMode.SQL.getValue())) {
             paramJson.put("jobPhaseNodeSqlList", jobVo.getJobPhaseNodeSqlList());
+            if (CollectionUtils.isNotEmpty(jobVo.getJobPhaseNodeSqlList())) {
+                passThroughEnv.put("isPartialNodeOrSqlRun", 1);
+            }
         } else {
             paramJson.put("jobPhaseResourceIdList", jobVo.getExecuteResourceIdList());
+            if (CollectionUtils.isNotEmpty(jobVo.getExecuteResourceIdList())) {
+                passThroughEnv.put("isPartialNodeOrSqlRun", 1);
+            }
         }
         runnerVos = runnerVos.stream().filter(o -> StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
         checkRunnerHealth(runnerVos);
         Long execid = SnowflakeUtil.uniqueLong();
-        JSONObject passThroughEnv = jobVo.getPassThroughEnv();
         passThroughEnv.put("groupSort", jobVo.getExecuteJobGroupVo().getSort());
         if (jobVo.getCurrentPhase() != null) {
             passThroughEnv.put("phaseSort", jobVo.getCurrentPhase().getSort());
@@ -1847,6 +1853,45 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             return JobStatus.WAITING.getValue();
         }
         if (phaseList.stream().allMatch(o -> Objects.equals(o.getStatus(), JobPhaseStatus.COMPLETED.getValue()))) {
+            return JobPhaseStatus.COMPLETED.getValue();
+        }
+        return JobStatus.PENDING.getValue();
+    }
+
+    @Override
+    public String getJobPhaseStatus(AutoexecJobVo jobVo, AutoexecJobPhaseVo jobPhaseVo, Long runnerId) {
+        IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
+        if (jobSource == null) {
+            throw new AutoexecJobSourceInvalidException(jobVo.getSource());
+        }
+        IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
+        List<String> phaseNodeOrSqlStatusList = autoexecJobSourceActionHandler.getPhaseNodeOrSqlStatusList(jobPhaseVo, runnerId);
+
+        if (phaseNodeOrSqlStatusList.contains(JobStatus.WAIT_INPUT.getValue())) {
+            return JobStatus.WAIT_INPUT.getValue();
+        }
+        if (phaseNodeOrSqlStatusList.contains(JobStatus.ABORTED.getValue())) {
+            return JobStatus.ABORTED.getValue();
+        }
+        if (phaseNodeOrSqlStatusList.contains(JobStatus.FAILED.getValue())) {
+            return JobStatus.FAILED.getValue();
+        }
+        if (phaseNodeOrSqlStatusList.contains(JobStatus.PAUSED.getValue())) {
+            return JobStatus.PAUSED.getValue();
+        }
+        if (phaseNodeOrSqlStatusList.contains(JobStatus.ABORTING.getValue())) {
+            return JobStatus.ABORTING.getValue();
+        }
+        if (phaseNodeOrSqlStatusList.contains(JobStatus.PAUSING.getValue())) {
+            return JobStatus.PAUSING.getValue();
+        }
+        if (phaseNodeOrSqlStatusList.contains(JobStatus.RUNNING.getValue())) {
+            return JobStatus.RUNNING.getValue();
+        }
+        if (phaseNodeOrSqlStatusList.contains(JobStatus.WAITING.getValue())) {
+            return JobStatus.WAITING.getValue();
+        }
+        if (Arrays.asList(JobNodeStatus.IGNORED.getValue(), JobNodeStatus.SUCCEED.getValue()).containsAll(phaseNodeOrSqlStatusList)) {
             return JobPhaseStatus.COMPLETED.getValue();
         }
         return JobStatus.PENDING.getValue();

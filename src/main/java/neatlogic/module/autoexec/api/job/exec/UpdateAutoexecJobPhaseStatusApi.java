@@ -22,7 +22,6 @@ import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.constvalue.JobNodeStatus;
 import neatlogic.framework.autoexec.constvalue.JobPhaseStatus;
-import neatlogic.framework.autoexec.constvalue.JobStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseRunnerVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
@@ -30,11 +29,6 @@ import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
-import neatlogic.framework.autoexec.exception.AutoexecJobSourceInvalidException;
-import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
-import neatlogic.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
-import neatlogic.framework.autoexec.source.AutoexecJobSourceFactory;
-import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.dto.runner.RunnerMapVo;
 import neatlogic.framework.exception.core.ApiRuntimeException;
@@ -110,6 +104,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         Integer phaseRunnerWarnCount = jsonObj.getInteger("warnCount");
         JSONObject passThroughEnv = jsonObj.getJSONObject("passThroughEnv");
         Integer isFirstFire = 0;
+        Integer isPartialNodeOrSqlRun = 0;
         Long runnerId = 0L;
         if (MapUtils.isNotEmpty(passThroughEnv)) {
             if (!passThroughEnv.containsKey("runnerId")) {
@@ -119,6 +114,9 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
             }
             if (passThroughEnv.containsKey("isFirstFire")) {
                 isFirstFire = passThroughEnv.getInteger("isFirstFire");
+            }
+            if (passThroughEnv.containsKey("isPartialNodeOrSqlRun")) {
+                isPartialNodeOrSqlRun = passThroughEnv.getInteger("isPartialNodeOrSqlRun");
             }
         }
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
@@ -139,34 +137,13 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         if (Objects.equals(phaseRunnerStatus, JobNodeStatus.SUCCEED.getValue())) {
             phaseRunnerStatus = JobPhaseStatus.COMPLETED.getValue();
         }
-        //更新phase_runner 状态,如果status是Completed，则得该runner所有节点或sql都succeed
-        boolean isCanUpdatePhaseStatus = true;
-        if (Objects.equals(phaseRunnerStatus, JobPhaseStatus.COMPLETED.getValue())) {
-            IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
-            if (jobSource == null) {
-                throw new AutoexecJobSourceInvalidException(jobVo.getSource());
-            }
-            IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
-            isCanUpdatePhaseStatus = autoexecJobSourceActionHandler.getIsCanUpdatePhaseRunner(jobPhaseVo, runnerId);
-        } else if (JobPhaseStatus.COMPLETED.getValue().equals(jobPhaseVo.getStatus())) {
-            //已完成的状态不更新为其它状态
-            isCanUpdatePhaseStatus = false;
-        } else if (JobPhaseStatus.PENDING.getValue().equals(jobPhaseVo.getStatus()) && !Objects.equals(JobPhaseStatus.RUNNING.getValue(), phaseRunnerStatus)) {
-            //如果原来是pending，需要更新成running才允许更改
-            isCanUpdatePhaseStatus = false;
+
+        //需纠正单个节点重跑的情况，比如一个节点成功，也会调这个接口且状态为succeed
+        if (isPartialNodeOrSqlRun == 1) {
+            phaseRunnerStatus = autoexecJobService.getJobPhaseStatus(jobVo, jobPhaseVo, runnerId);
         }
 
-        //补充校验阶段已完成
-
-        if (isCanUpdatePhaseStatus) {
-            if (JobPhaseStatus.ABORTED.getValue().equals(phaseRunnerStatus)) {
-                //只更新原来非中止状态的runner状态
-                autoexecJobMapper.updateJobPhaseRunnerStatusAndWarnCountByExceptStatus(Collections.singletonList(jobPhaseVo.getId()), runnerId, phaseRunnerStatus, phaseRunnerWarnCount, Arrays.asList(JobStatus.COMPLETED.getValue(), JobStatus.ABORTED.getValue(), JobStatus.PAUSED.getValue(), JobStatus.FAILED.getValue(), JobStatus.REVOKED.getValue()));
-            } else {
-                //只更新原来非complete状态的runner状态
-                autoexecJobMapper.updateJobPhaseRunnerStatusAndWarnCountByExceptStatus(Collections.singletonList(jobPhaseVo.getId()), runnerId, phaseRunnerStatus, phaseRunnerWarnCount, Collections.singletonList(JobPhaseStatus.COMPLETED.getValue()));
-            }
-        }
+        autoexecJobMapper.updateJobPhaseRunnerStatusAndWarnCount(jobPhaseVo.getId(), runnerId, phaseRunnerStatus, phaseRunnerWarnCount);
 
         jobVo.setPassThroughEnv(passThroughEnv);
         //更新job 和 phase 状态
@@ -236,7 +213,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         //如果状态一致，则无需更新状态，防止多次触发callback；
         if (!Objects.equals(jobVo.getStatus(), jobStatus)) {
             jobVo.setStatus(jobStatus);
-           autoexecJobMapper.updateJobStatus(jobVo);
+            autoexecJobMapper.updateJobStatus(jobVo);
         }
     }
 

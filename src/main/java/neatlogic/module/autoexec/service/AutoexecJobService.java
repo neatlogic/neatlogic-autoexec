@@ -328,4 +328,14 @@ public interface AutoexecJobService {
      */
     String getJobStatus(Long jobId);
 
+
+    /**
+     * 需纠正单个节点重跑的情况，比如一个节点成功，也会调这个接口且状态为succeed
+     * @param jobVo 作业
+     * @param jobPhaseVo 阶段
+     * @param runnerId 执行器id
+     * @return 作业状态
+     */
+    String getJobPhaseStatus(AutoexecJobVo jobVo, AutoexecJobPhaseVo jobPhaseVo, Long runnerId);
+
 }
