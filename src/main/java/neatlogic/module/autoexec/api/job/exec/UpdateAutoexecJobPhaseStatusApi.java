@@ -42,6 +42,8 @@ import neatlogic.module.autoexec.service.AutoexecJobActionService;
 import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -60,7 +62,7 @@ import static java.util.stream.Collectors.toCollection;
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
-
+    private final Logger logger = LoggerFactory.getLogger(UpdateAutoexecJobPhaseStatusApi.class);
     @Resource
     AutoexecJobMapper autoexecJobMapper;
 
@@ -139,12 +141,13 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
             phaseRunnerStatus = JobPhaseStatus.COMPLETED.getValue();
         }
 
-        System.out.println(jobPhaseVo.getName()+" before: "+phaseRunnerStatus);
+        logger.debug("jobId:{} phaseName:{} runnerId:{} before {}", jobVo.getId(), jobPhaseVo.getName(), runnerId, phaseRunnerStatusParam);
         //需纠正单个节点重跑的情况，比如一个节点成功，也会调这个接口且状态为succeed
         if (isPartialNodeOrSqlRun == 1) {
-            phaseRunnerStatus = autoexecJobService.getJobPhaseStatus(jobVo, jobPhaseVo, runnerId,phaseRunnerStatusParam);
+            phaseRunnerStatus = autoexecJobService.getJobPhaseStatus(jobVo, jobPhaseVo, runnerId, phaseRunnerStatusParam);
         }
-        System.out.println(jobPhaseVo.getName()+" after: "+phaseRunnerStatus);
+        logger.debug("jobId:{} phaseName:{} runnerId:{} after {}", jobVo.getId(), jobPhaseVo.getName(), runnerId, phaseRunnerStatus);
+
         autoexecJobMapper.updateJobPhaseRunnerStatusAndWarnCount(jobPhaseVo.getId(), runnerId, phaseRunnerStatus, phaseRunnerWarnCount);
 
         jobVo.setPassThroughEnv(passThroughEnv);
