@@ -79,7 +79,7 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
                 handler = AutoexecJobSourceTypeHandlerFactory.getAction(neatlogic.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
             }
             handler.resetSqlStatus(jobVo.getActionParam(), jobVo);
-        }  else {
+        } else {
             if (!Objects.equals(isAll, 1)) {
                 currentResourceIdListValid(jobVo);
                 //重置节点 (status、startTime、endTime)
@@ -87,7 +87,7 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
                 jobVo.setExecuteJobNodeVoList(autoexecJobMapper.getJobPhaseNodeRunnerListByNodeIdList(jobVo.getExecuteJobNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList())));
             }
         }
-        if (Objects.equals(isAll, 1)) {
+        if (Objects.equals(isAll, 1) || Objects.equals(currentPhaseVo.getExecMode(), ExecMode.SQL.getValue())) {
             //重置所有或者阶段原来状态已完成的 更新阶段状态为待运行
             autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(currentPhaseVo.getId()), JobPhaseStatus.PENDING.getValue());
             autoexecJobMapper.updateJobPhaseRunnerStatusByJobIdAndPhaseId(jobVo.getId(), currentPhaseVo.getId(), JobPhaseStatus.PENDING.getValue());
