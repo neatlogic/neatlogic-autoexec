@@ -1466,7 +1466,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         if (CollectionUtils.isNotEmpty(jobVo.getExecuteJobNodeVoList())) {
             for (AutoexecJobPhaseNodeVo nodeVo : jobVo.getExecuteJobNodeVoList()) {
                 runnerVos.add(new RunnerMapVo(nodeVo.getRunnerUrl(), nodeVo.getRunnerMapId()));
-                String finalJobPhaseStatus = updatePartialNodeJobAndPhase(jobVo.getExecutePhase(), nodeVo.getRunnerMapId(), jobVo, null, null);
+                String finalJobPhaseStatus = updatePartialNodeJobAndPhaseWithRunnerId(jobVo.getExecutePhase(), nodeVo.getRunnerMapId(), jobVo, null, null);
                 autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(phaseVo.getId(), finalJobPhaseStatus, null, phaseVo.getStartTime()));
             }
             runnerVos = runnerVos.stream().filter(o -> StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
@@ -2036,7 +2036,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     }
 
     @Override
-    public String updatePartialNodeJobAndPhase(AutoexecJobPhaseVo jobPhaseVo, Long runnerId, AutoexecJobVo jobVo, String currentPhaseStatus, Integer phaseRunnerWarnCount) {
+    public String updatePartialNodeJobAndPhaseWithRunnerId(AutoexecJobPhaseVo jobPhaseVo, Long runnerId, AutoexecJobVo jobVo, String currentPhaseStatus, Integer phaseRunnerWarnCount) {
         List<String> statusList;
         //如果单个重跑则需要根据节点纠正当前阶段runner状态
         List<String> needCountStatusList = Arrays.stream(JobNodeStatus.values()).map(JobNodeStatus::getValue).filter(value -> !Objects.equals(value, JobNodeStatus.INVALID.getValue())).collect(toList());

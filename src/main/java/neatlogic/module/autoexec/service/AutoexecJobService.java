@@ -339,6 +339,6 @@ public interface AutoexecJobService {
     String getJobPhaseStatus(List<String> statusList,String currentPhaseStatus);
 
 
-    String updatePartialNodeJobAndPhase(AutoexecJobPhaseVo jobPhaseVo,Long runnerId,AutoexecJobVo jobVo,String currentPhaseStatus,Integer phaseRunnerWarnCount);
+    String updatePartialNodeJobAndPhaseWithRunnerId(AutoexecJobPhaseVo jobPhaseVo, Long runnerId, AutoexecJobVo jobVo, String currentPhaseStatus, Integer phaseRunnerWarnCount);
 
 }

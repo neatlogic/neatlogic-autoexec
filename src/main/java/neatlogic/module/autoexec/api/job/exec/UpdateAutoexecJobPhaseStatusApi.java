@@ -155,7 +155,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         List<String> statusList;
         String finalJobPhaseStatus;
         if ( isPartialNodeOrSqlRun == 1 ) {
-            finalJobPhaseStatus = autoexecJobService.updatePartialNodeJobAndPhase(jobPhaseVo,runnerId,jobVo,currentPhaseStatus,phaseRunnerWarnCount);
+            finalJobPhaseStatus = autoexecJobService.updatePartialNodeJobAndPhaseWithRunnerId(jobPhaseVo,runnerId,jobVo,currentPhaseStatus,phaseRunnerWarnCount);
         }else{
             autoexecJobMapper.updateJobPhaseRunnerStatusAndWarnCount(jobPhaseVo.getId(), runnerId, currentPhaseStatus, phaseRunnerWarnCount);
             List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobPhaseVo.getJobId(), Collections.singletonList(jobPhaseVo.getId()));
