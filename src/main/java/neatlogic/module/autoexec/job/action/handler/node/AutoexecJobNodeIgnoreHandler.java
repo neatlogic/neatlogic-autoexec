@@ -89,8 +89,6 @@ public class AutoexecJobNodeIgnoreHandler extends AutoexecJobActionHandlerBase {
             nodeVoList = autoexecJobMapper.getJobPhaseNodeRunnerListByNodeIdList(jobVo.getExecuteJobNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()));
             for (AutoexecJobPhaseNodeVo nodeVo : jobVo.getExecuteJobNodeVoList()) {
                 nodeVo.setStatus(JobNodeStatus.IGNORED.getValue());
-                nodeVo.setStartTime(null);
-                nodeVo.setEndTime(null);
                 autoexecJobMapper.updateJobPhaseNodeById(nodeVo);
             }
             for (AutoexecJobPhaseNodeVo nodeVo : nodeVoList) {

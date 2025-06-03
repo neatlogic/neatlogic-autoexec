@@ -1466,7 +1466,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         if (CollectionUtils.isNotEmpty(jobVo.getExecuteJobNodeVoList())) {
             for (AutoexecJobPhaseNodeVo nodeVo : jobVo.getExecuteJobNodeVoList()) {
                 runnerVos.add(new RunnerMapVo(nodeVo.getRunnerUrl(), nodeVo.getRunnerMapId()));
-                String finalJobPhaseStatus = updatePartialNodeJobAndPhaseWithRunnerId(jobVo.getExecutePhase(), nodeVo.getRunnerMapId(), jobVo, null, null);
+                updatePartialNodeJobAndPhaseWithRunnerId(jobVo.getExecutePhase(), nodeVo.getRunnerMapId(), jobVo, null, null);
+                List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(phaseVo.getJobId(), Collections.singletonList(phaseVo.getId()));
+                List<String> statusList = jobPhaseRunnerVos.stream().map(AutoexecJobPhaseRunnerVo::getStatus).collect(toList());
+                String finalJobPhaseStatus = getJobPhaseStatus(statusList,null);
                 autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(phaseVo.getId(), finalJobPhaseStatus, null, phaseVo.getStartTime()));
             }
             runnerVos = runnerVos.stream().filter(o -> StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
