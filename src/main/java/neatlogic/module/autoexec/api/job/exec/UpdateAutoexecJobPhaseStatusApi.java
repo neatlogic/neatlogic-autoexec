@@ -155,13 +155,14 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         List<String> statusList;
         String finalJobPhaseStatus;
         if ( isPartialNodeOrSqlRun == 1 ) {
-            finalJobPhaseStatus = autoexecJobService.updatePartialNodeJobAndPhaseWithRunnerId(jobPhaseVo,runnerId,jobVo,currentPhaseStatus,phaseRunnerWarnCount);
+            autoexecJobService.updatePartialNodeJobAndPhaseWithRunnerId(jobPhaseVo,runnerId,jobVo,currentPhaseStatus,phaseRunnerWarnCount);
         }else{
             autoexecJobMapper.updateJobPhaseRunnerStatusAndWarnCount(jobPhaseVo.getId(), runnerId, currentPhaseStatus, phaseRunnerWarnCount);
-            List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobPhaseVo.getJobId(), Collections.singletonList(jobPhaseVo.getId()));
-            statusList = jobPhaseRunnerVos.stream().map(AutoexecJobPhaseRunnerVo::getStatus).collect(toList());
-            finalJobPhaseStatus = autoexecJobService.getJobPhaseStatus(statusList,currentPhaseStatus);
+
         }
+        List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobPhaseVo.getJobId(), Collections.singletonList(jobPhaseVo.getId()));
+        statusList = jobPhaseRunnerVos.stream().map(AutoexecJobPhaseRunnerVo::getStatus).collect(toList());
+        finalJobPhaseStatus = autoexecJobService.getJobPhaseStatus(statusList,currentPhaseStatus);
         autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), finalJobPhaseStatus, phaseRunnerWarnCount, jobPhaseVo.getStartTime()));
 
         //如果最终阶段状态是wait_input则更新作业状态为waitInput

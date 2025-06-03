@@ -97,6 +97,10 @@ public class AutoexecJobNodeIgnoreHandler extends AutoexecJobActionHandlerBase {
                 runnerVos.add(new RunnerMapVo(nodeVo.getRunnerUrl(), nodeVo.getRunnerMapId()));
             }
             runnerVos = runnerVos.stream().filter(o -> StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
+
+            for(RunnerMapVo runnerMapVo : runnerVos){
+                autoexecJobService.updatePartialNodeJobAndPhaseWithRunnerId(currentPhaseVo, runnerMapVo.getRunnerMapId(), jobVo, null, null);
+            }
             autoexecJobService.updateJobNodeStatus(runnerVos, jobVo, JobNodeStatus.IGNORED.getValue());
         }
 

@@ -1963,8 +1963,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 pausedCount++;
             } else if (Objects.equals(phaseStatus, JobPhaseStatus.FAILED.getValue())) {
                 failedCount++;
-            } else if (Objects.equals(phaseStatus, JobPhaseStatus.IGNORED.getValue())) {
-                ignoredCount++;
             } else {
                 completeCount++;
             }
@@ -2052,6 +2050,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
         currentPhaseStatus = getJobPhaseStatus(statusList, currentPhaseStatus);
         autoexecJobMapper.updateJobPhaseRunnerStatusAndWarnCount(jobPhaseVo.getId(), runnerId, currentPhaseStatus, phaseRunnerWarnCount);
-        return getJobPhaseStatus(statusList, currentPhaseStatus);
+        return currentPhaseStatus;
     }
 }

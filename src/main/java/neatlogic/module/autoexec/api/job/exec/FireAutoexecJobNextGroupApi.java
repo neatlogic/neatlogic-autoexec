@@ -73,6 +73,7 @@ public class FireAutoexecJobNextGroupApi extends PrivateApiComponentBase {
             @Param(name = "groupNo", type = ApiParamType.STRING, desc = "上一个组（排序）序号", isRequired = true),
             @Param(name = "runnerId", type = ApiParamType.LONG, desc = "runnerId", isRequired = true),
             @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数", isRequired = true),
+            @Param(name = "execId", type = ApiParamType.LONG, desc = "nmaaje.updateautoexecjobphasestatusapi.input.param.desc"),
             @Param(name = "time", type = ApiParamType.DOUBLE, desc = "回调时间")
     })
     @Output({
@@ -83,6 +84,7 @@ public class FireAutoexecJobNextGroupApi extends PrivateApiComponentBase {
         Long jobId = jsonObj.getLong("jobId");
         Integer groupSort = jsonObj.getInteger("groupNo");
         Long runnerId = jsonObj.getLong("runnerId");
+        Long execId = jsonObj.getLong("execId");
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
@@ -92,6 +94,8 @@ public class FireAutoexecJobNextGroupApi extends PrivateApiComponentBase {
 
         //更新group对应runner的"是否fireNext"标识为1
         autoexecJobMapper.updateJobPhaseRunnerFireNextByJobIdAndGroupSortAndRunnerId(jobId, groupSort, 1, runnerId);
+
+        autoexecJobMapper.deleteJobExec(jobVo.getId(), runnerId, execId);
         /*
          *判断是否满足激活下个phase条件
          * 1、当前sort的所有phase都completed,

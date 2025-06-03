@@ -67,7 +67,7 @@ public class AutoexecJobPhaseIgnoreHandler extends AutoexecJobActionHandlerBase 
         AutoexecJobPhaseVo jobPhaseVo = jobVo.getExecutePhase();
         //目前仅支持忽略 runner阶段
         if (Objects.equals(jobPhaseVo.getExecMode(), ExecMode.RUNNER.getValue())) {
-            jobPhaseVo.setStatus(JobPhaseStatus.IGNORED.getValue());
+            jobPhaseVo.setStatus(JobPhaseStatus.COMPLETED.getValue());
             autoexecJobMapper.updateJobPhaseStatus(jobPhaseVo);
             List<RunnerMapVo> runnerMapVos = autoexecJobMapper.getJobPhaseNodeRunnerListByJobPhaseId(jobPhaseVo.getId());
             if(CollectionUtils.isEmpty(runnerMapVos)){
