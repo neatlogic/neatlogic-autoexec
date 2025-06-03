@@ -20,8 +20,8 @@ import neatlogic.framework.asynchronization.thread.NeatLogicThread;
 import neatlogic.framework.asynchronization.threadpool.TransactionSynchronizationPool;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
-import neatlogic.framework.autoexec.constvalue.JobNodeStatus;
 import neatlogic.framework.autoexec.constvalue.JobPhaseStatus;
+import neatlogic.framework.autoexec.constvalue.JobStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseRunnerVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
@@ -50,8 +50,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.annotation.Resource;
 import java.util.*;
 
-import static java.util.stream.Collectors.collectingAndThen;
-import static java.util.stream.Collectors.toCollection;
+import static java.util.stream.Collectors.*;
 
 /**
  * @author lvzk
@@ -136,23 +135,9 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
             throw new AutoexecJobPhaseNotFoundException(jobId + ":" + phaseName);
         }
 
-        //将succeed转成completed，前端不区分成功还是完成
-        if (Objects.equals(phaseRunnerStatusParam, JobNodeStatus.SUCCEED.getValue())) {
-            phaseRunnerStatus = JobPhaseStatus.COMPLETED.getValue();
-        }
-
-        logger.debug("jobId:{} phaseName:{} runnerId:{} before {}", jobVo.getId(), jobPhaseVo.getName(), runnerId, phaseRunnerStatusParam);
-        //需纠正单个节点重跑的情况，比如一个节点成功，也会调这个接口且状态为succeed
-        if (isPartialNodeOrSqlRun == 1) {
-            phaseRunnerStatus = autoexecJobService.getJobPhaseStatus(jobVo, jobPhaseVo, runnerId, phaseRunnerStatusParam);
-        }
-        logger.debug("jobId:{} phaseName:{} runnerId:{} after {}", jobVo.getId(), jobPhaseVo.getName(), runnerId, phaseRunnerStatus);
-
-        autoexecJobMapper.updateJobPhaseRunnerStatusAndWarnCount(jobPhaseVo.getId(), runnerId, phaseRunnerStatus, phaseRunnerWarnCount);
-
         jobVo.setPassThroughEnv(passThroughEnv);
-        //更新job 和 phase 状态
-        updateJobPhaseStatus(jobVo, jobPhaseVo);
+        //phase 状态
+        updateJobPhaseStatus(jobVo, jobPhaseVo,isPartialNodeOrSqlRun,phaseRunnerStatus,runnerId,phaseRunnerWarnCount);
 
         //informGlobalFail
         if (Arrays.asList(JobPhaseStatus.FAILED.getValue(), JobPhaseStatus.ABORTED.getValue()).contains(phaseRunnerStatusParam)) {
@@ -166,37 +151,26 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         return "autoexec/job/phase/status/update";
     }
 
-    void updateJobPhaseStatus(AutoexecJobVo jobVo, AutoexecJobPhaseVo jobPhaseVo) {
-        int warnCount = 0;
+    void updateJobPhaseStatus(AutoexecJobVo jobVo, AutoexecJobPhaseVo jobPhaseVo, int isPartialNodeOrSqlRun,String currentPhaseStatus,Long runnerId,Integer phaseRunnerWarnCount) {
+        List<String> statusList;
         String finalJobPhaseStatus;
-        Map<String, Integer> statusCountMap = new HashMap<>();
-        for (JobPhaseStatus jobStatus : JobPhaseStatus.values()) {
-            statusCountMap.put(jobStatus.getValue(), 0);
+        if ( isPartialNodeOrSqlRun == 1 ) {
+            finalJobPhaseStatus = autoexecJobService.updatePartialNodeJobAndPhase(jobPhaseVo,runnerId,jobVo,currentPhaseStatus,phaseRunnerWarnCount);
+        }else{
+            autoexecJobMapper.updateJobPhaseRunnerStatusAndWarnCount(jobPhaseVo.getId(), runnerId, currentPhaseStatus, phaseRunnerWarnCount);
+            List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobPhaseVo.getJobId(), Collections.singletonList(jobPhaseVo.getId()));
+            statusList = jobPhaseRunnerVos.stream().map(AutoexecJobPhaseRunnerVo::getStatus).collect(toList());
+            finalJobPhaseStatus = autoexecJobService.getJobPhaseStatus(statusList,currentPhaseStatus);
         }
-        List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobPhaseVo.getJobId(), Collections.singletonList(jobPhaseVo.getId()));
-        for (AutoexecJobPhaseRunnerVo jobPhaseRunnerVo : jobPhaseRunnerVos) {
-            warnCount += jobPhaseRunnerVo.getWarnCount() == null ? 0 : jobPhaseRunnerVo.getWarnCount();
-            statusCountMap.put(jobPhaseRunnerVo.getStatus(), statusCountMap.get(jobPhaseRunnerVo.getStatus()) + 1);
-        }
+        autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), finalJobPhaseStatus, phaseRunnerWarnCount, jobPhaseVo.getStartTime()));
 
-        if (statusCountMap.get(JobPhaseStatus.COMPLETED.getValue()) == jobPhaseRunnerVos.size()) {
-            finalJobPhaseStatus = JobPhaseStatus.COMPLETED.getValue();
-        } else if (statusCountMap.get(JobPhaseStatus.WAIT_INPUT.getValue()) > 0) {
-            finalJobPhaseStatus = JobPhaseStatus.WAIT_INPUT.getValue();
-        } else if (statusCountMap.get(JobPhaseStatus.FAILED.getValue()) > 0) {
-            finalJobPhaseStatus = JobPhaseStatus.FAILED.getValue();
-        } else if (statusCountMap.get(JobPhaseStatus.ABORTED.getValue()) > 0) {
-            finalJobPhaseStatus = JobPhaseStatus.ABORTED.getValue();
-        } else if (statusCountMap.get(JobPhaseStatus.PAUSED.getValue()) > 0) {
-            finalJobPhaseStatus = JobPhaseStatus.PAUSED.getValue();
-        } else if (statusCountMap.get(JobPhaseStatus.RUNNING.getValue()) > 0 || statusCountMap.get(JobPhaseStatus.COMPLETED.getValue()) > 0) {
-            finalJobPhaseStatus = JobPhaseStatus.RUNNING.getValue();
-        } else if (statusCountMap.get(JobPhaseStatus.WAITING.getValue()) > 0) {
-            finalJobPhaseStatus = JobPhaseStatus.WAITING.getValue();
-        } else {
-            finalJobPhaseStatus = JobPhaseStatus.PENDING.getValue();
+        //如果最终阶段状态是wait_input则更新作业状态为waitInput
+        if(Objects.equals(finalJobPhaseStatus,JobPhaseStatus.WAIT_INPUT.getValue())){
+            AutoexecJobVo job = new AutoexecJobVo();
+            job.setId(jobVo.getId());
+            job.setStatus(JobStatus.WAIT_INPUT.getValue());
+            autoexecJobMapper.updateJobStatus(job);
         }
-        autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), finalJobPhaseStatus, warnCount, jobPhaseVo.getStartTime()));
 
         //如果阶段需要更新别的阶段的执行目标 且 状态为complete
         if (jobPhaseVo.getIsPreOutputUpdateNode() == 1 && Objects.equals(JobPhaseStatus.COMPLETED.getValue(), finalJobPhaseStatus)) {
@@ -212,13 +186,6 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
                 });
                 throw new ApiRuntimeException(ex.getMessage(), ex);
             }
-        }
-
-        String jobStatus = autoexecJobService.getJobStatus(jobVo.getId());
-        //如果状态一致，则无需更新状态，防止多次触发callback；
-        if (!Objects.equals(jobVo.getStatus(), jobStatus)) {
-            jobVo.setStatus(jobStatus);
-            autoexecJobMapper.updateJobStatus(jobVo);
         }
     }
 

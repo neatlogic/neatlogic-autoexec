@@ -29,6 +29,7 @@ import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
 import neatlogic.framework.dto.runner.RunnerMapVo;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -160,7 +161,7 @@ public interface AutoexecJobService {
      * @param combopExecuteConfigVo      作业设置的节点配置
      * @param combopPhaseExecuteConfigVo 阶段设置的节点配置
      */
-    void initPhaseExecuteUserAndProtocolAndNode(AutoexecJobVo jobVo, AutoexecCombopExecuteConfigVo combopExecuteConfigVo, AutoexecCombopPhaseConfigVo combopPhaseExecuteConfigVo);
+    void initPhaseExecuteUserAndProtocolAndNode(AutoexecJobVo jobVo, AutoexecCombopExecuteConfigVo combopExecuteConfigVo, AutoexecCombopPhaseConfigVo combopPhaseExecuteConfigVo, Date updateTime);
 
     /**
      * 更新根据上游出参更新阶段执行节点
@@ -175,7 +176,7 @@ public interface AutoexecJobService {
      *
      * @param jobVo 作业
      */
-    void resetJobNodeStatus(AutoexecJobVo jobVo);
+    void resetRunnerJobNodeStatus(AutoexecJobVo jobVo);
 
     /**
      * 检查runner联通性
@@ -326,17 +327,18 @@ public interface AutoexecJobService {
      *
      * @param jobId 作业id
      */
-    String getJobStatus(Long jobId);
+    String getJobStatus(Long jobId, String runnerStatus);
 
 
     /**
-     * 需纠正单个节点重跑的情况，比如一个节点成功，也会调这个接口且状态为succeed
-     * @param jobVo 作业
-     * @param jobPhaseVo 阶段
-     * @param runnerId 执行器id
-     * @param phaseStatusParam 阶段状态入参
+     * 获取最终的阶段状态
+     * @param statusList 节点或阶段runner的状态列表
+     * @param currentPhaseStatus 当前阶段状态，目前只有updateStatusApi用到
      * @return 作业状态
      */
-    String getJobPhaseStatus(AutoexecJobVo jobVo, AutoexecJobPhaseVo jobPhaseVo, Long runnerId,String phaseStatusParam);
+    String getJobPhaseStatus(List<String> statusList,String currentPhaseStatus);
+
+
+    String updatePartialNodeJobAndPhase(AutoexecJobPhaseVo jobPhaseVo,Long runnerId,AutoexecJobVo jobVo,String currentPhaseStatus,Integer phaseRunnerWarnCount);
 
 }

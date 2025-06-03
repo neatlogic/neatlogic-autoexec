@@ -24,7 +24,10 @@ import neatlogic.framework.dto.TagVo;
 import neatlogic.framework.dto.runner.GroupNetworkVo;
 import neatlogic.framework.dto.runner.RunnerGroupVo;
 import neatlogic.framework.dto.runner.RunnerMapVo;
-import neatlogic.framework.exception.runner.*;
+import neatlogic.framework.exception.runner.RunnerGroupNotFoundException;
+import neatlogic.framework.exception.runner.RunnerGroupRunnerNotFoundException;
+import neatlogic.framework.exception.runner.RunnerHttpRequestException;
+import neatlogic.framework.exception.runner.RunnerNotFoundException;
 import neatlogic.framework.integration.authentication.enums.AuthenticateType;
 import neatlogic.framework.util.HttpRequestUtil;
 import neatlogic.framework.util.I18nUtils;
@@ -453,12 +456,8 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
     }
 
     @Override
-    public List<String> getPhaseNodeOrSqlStatusList(AutoexecJobPhaseVo jobPhaseVo, Long runnerMapId) {
-        if (Objects.equals(jobPhaseVo.getExecMode(), ExecMode.SQL.getValue())) {
-            return autoexecJobMapper.getJobSqlDetailStatusList(jobPhaseVo.getJobId(), jobPhaseVo.getName(), runnerMapId);
-        } else {
-            return autoexecJobMapper.getJobPhaseNodeStatusList(jobPhaseVo.getJobId(), jobPhaseVo.getId(), runnerMapId);
-        }
+    public List<String> getPhaseSqlStatusList(AutoexecJobPhaseVo jobPhaseVo, Long runnerMapId, List<String> needCountStatusList) {
+        return autoexecJobMapper.getJobSqlDetailStatusList(jobPhaseVo.getJobId(), jobPhaseVo.getName(), runnerMapId, needCountStatusList);
     }
 
     @Override

@@ -16,7 +16,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 package neatlogic.module.autoexec.job.action.handler.node;
 
 import com.alibaba.fastjson.JSONObject;
-import neatlogic.framework.autoexec.constvalue.*;
+import neatlogic.framework.autoexec.constvalue.ExecMode;
+import neatlogic.framework.autoexec.constvalue.JobAction;
+import neatlogic.framework.autoexec.constvalue.JobNodeStatus;
+import neatlogic.framework.autoexec.constvalue.JobPhaseStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
@@ -32,7 +35,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Collections;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -89,12 +91,11 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
         }
         if (Objects.equals(isAll, 1) || Objects.equals(currentPhaseVo.getExecMode(), ExecMode.SQL.getValue())) {
             //重置所有或者阶段原来状态已完成的 更新阶段状态为待运行
-            autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(currentPhaseVo.getId()), JobPhaseStatus.PENDING.getValue());
             autoexecJobMapper.updateJobPhaseRunnerStatusByJobIdAndPhaseId(jobVo.getId(), currentPhaseVo.getId(), JobPhaseStatus.PENDING.getValue());
             autoexecJobMapper.updateJobPhaseNodeStatusByJobPhaseIdAndIsDelete(currentPhaseVo.getId(), JobNodeStatus.PENDING.getValue(), 0);
         }
 
-        autoexecJobService.resetJobNodeStatus(jobVo);
+        autoexecJobService.resetRunnerJobNodeStatus(jobVo);
         return null;
     }
 }
