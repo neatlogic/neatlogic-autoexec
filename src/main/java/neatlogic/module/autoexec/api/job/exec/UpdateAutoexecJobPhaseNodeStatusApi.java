@@ -107,6 +107,7 @@ public class UpdateAutoexecJobPhaseNodeStatusApi extends PrivateApiComponentBase
         }
         //不抛异常影响其它节点运行，ignore 就好
         if (nodeVo == null) {
+            logger.error("jobId:{} phaseName:{} resourceId:{}",jobId,phaseName,resourceId);
             return null;
         }
 

@@ -1778,11 +1778,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             }
         }
         //更新node状态 为中止中
-        List<AutoexecJobPhaseNodeVo> nodeVoList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndNodeStatusList(jobVo.getId(), Arrays.asList(JobPhaseStatus.WAITING.getValue(), JobNodeStatus.RUNNING.getValue()));
-        for (AutoexecJobPhaseNodeVo nodeVo : nodeVoList) {
-            nodeVo.setStatus(statusIng);
-            autoexecJobMapper.updateJobPhaseNodeStatus(nodeVo);
-        }
+//        List<AutoexecJobPhaseNodeVo> nodeVoList = autoexecJobMapper.getJobPhaseNodeListByJobIdAndNodeStatusList(jobVo.getId(), Arrays.asList(JobPhaseStatus.WAITING.getValue(), JobNodeStatus.RUNNING.getValue()));
+//        for (AutoexecJobPhaseNodeVo nodeVo : nodeVoList) {
+//            nodeVo.setStatus(statusIng);
+//            autoexecJobMapper.updateJobPhaseNodeStatus(nodeVo);
+//        }
 
 
         runnerVos = runnerVos.stream().filter(o -> StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(AutoexecJobPhaseRunnerVo::getUrl))), ArrayList::new));
@@ -1883,7 +1883,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     completedCount++;
                 }
             }
-
             if (Objects.equals(runnerStatus, JobStatus.RUNNING.getValue())) {
                 //如果更新作业状态接口调用过来的状态是running，这是，phase和node都还没有进入running，需要额外优先处理
                 if (waitInputCount > 0) {
@@ -1970,7 +1969,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 completeCount++;
             }
         }
-
+        System.out.println(String.join(",",statusSet));
         String finalPhaseStatus = null;
         if (Objects.equals(currentPhaseStatus, JobPhaseStatus.RUNNING.getValue())) {
             //如果phase给出的状态是running，这个时候节点状态还没有更新
@@ -2010,7 +2009,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 finalPhaseStatus = JobPhaseStatus.PENDING.getValue();
             }
         }
-
+        System.out.println("finalPhaseStatus:"+finalPhaseStatus);
         return finalPhaseStatus;
     }
 
