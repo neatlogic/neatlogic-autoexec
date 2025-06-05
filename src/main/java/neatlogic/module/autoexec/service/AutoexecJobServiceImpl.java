@@ -1908,11 +1908,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     jobStatus = JobStatus.PAUSING.getValue();
                 } else if (abortedCount > 0) {
                     jobStatus = JobStatus.ABORTED.getValue();
-                } else if (pausedCount > 0) {
-                    jobStatus = JobStatus.PAUSED.getValue();
                 } else if (failedCount > 0) {
                     jobStatus = JobStatus.FAILED.getValue();
-                } else if (completedCount > 0) {
+                } else if (pausedCount > 0) {
+                    jobStatus = JobStatus.PAUSED.getValue();
+                }else if (completedCount > 0) {
                     if (pendingCount == 0) {
                         //没有pending和其它状态的phase，全部都是complete
                         jobStatus = JobStatus.COMPLETED.getValue();
