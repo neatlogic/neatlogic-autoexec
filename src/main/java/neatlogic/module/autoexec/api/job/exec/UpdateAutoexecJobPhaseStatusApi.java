@@ -92,6 +92,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
             @Param(name = "execId", type = ApiParamType.LONG, desc = "nmaaje.updateautoexecjobphasestatusapi.input.param.desc", isRequired = true),
             @Param(name = "phase", type = ApiParamType.STRING, desc = "term.autoexec.phase", isRequired = true),
             @Param(name = "status", type = ApiParamType.STRING, desc = "common.status", isRequired = true),
+            @Param(name = "needInform", type = ApiParamType.STRING, desc = "nmaaje.updateautoexecjobphasestatusapi.input.param.needinform", isRequired = true),
             @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.passthroughenv")
     })
     @Output({
@@ -104,6 +105,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         String phaseRunnerStatusParam = jsonObj.getString("status");
         Integer phaseRunnerWarnCount = jsonObj.getInteger("warnCount");
         JSONObject passThroughEnv = jsonObj.getJSONObject("passThroughEnv");
+        Integer needInform = jsonObj.getInteger("needInform");
         Integer isFirstFire = 0;
         Integer isPartialNodeOrSqlRun = 0;
         Long runnerId = 0L;
@@ -137,11 +139,11 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
 
         jobVo.setPassThroughEnv(passThroughEnv);
         //phase 状态
-        updateJobPhaseStatus(jobVo, jobPhaseVo,isPartialNodeOrSqlRun,phaseRunnerStatus,runnerId,phaseRunnerWarnCount);
+        updateJobPhaseStatus(jobVo, jobPhaseVo, isPartialNodeOrSqlRun, phaseRunnerStatus, runnerId, phaseRunnerWarnCount);
 
         //informGlobalFail
-        if (Arrays.asList(JobPhaseStatus.FAILED.getValue(), JobPhaseStatus.ABORTED.getValue()).contains(phaseRunnerStatusParam)) {
-            informGlobalFail(jobVo, jobPhaseVo);
+        if (needInform == 1 && Arrays.asList(JobPhaseStatus.FAILED.getValue(), JobPhaseStatus.ABORTED.getValue(), JobPhaseStatus.PAUSED.getValue()).contains(phaseRunnerStatusParam)) {
+            informGlobalFail(jobVo, jobPhaseVo, phaseRunnerStatusParam, runnerId);
         }
         return null;
     }
@@ -151,22 +153,22 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         return "autoexec/job/phase/status/update";
     }
 
-    void updateJobPhaseStatus(AutoexecJobVo jobVo, AutoexecJobPhaseVo jobPhaseVo, int isPartialNodeOrSqlRun,String currentPhaseStatus,Long runnerId,Integer phaseRunnerWarnCount) {
+    void updateJobPhaseStatus(AutoexecJobVo jobVo, AutoexecJobPhaseVo jobPhaseVo, int isPartialNodeOrSqlRun, String currentPhaseStatus, Long runnerId, Integer phaseRunnerWarnCount) {
         List<String> statusList;
         String finalJobPhaseStatus;
-        if ( isPartialNodeOrSqlRun == 1 ) {
-            autoexecJobService.updatePartialNodeJobAndPhaseWithRunnerId(jobPhaseVo,runnerId,jobVo,currentPhaseStatus,phaseRunnerWarnCount);
-        }else{
+        if (isPartialNodeOrSqlRun == 1) {
+            autoexecJobService.updatePartialNodeJobAndPhaseWithRunnerId(jobPhaseVo, runnerId, jobVo, currentPhaseStatus, phaseRunnerWarnCount);
+        } else {
             autoexecJobMapper.updateJobPhaseRunnerStatusAndWarnCount(jobPhaseVo.getId(), runnerId, currentPhaseStatus, phaseRunnerWarnCount);
 
         }
         List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobPhaseVo.getJobId(), Collections.singletonList(jobPhaseVo.getId()));
         statusList = jobPhaseRunnerVos.stream().map(AutoexecJobPhaseRunnerVo::getStatus).collect(toList());
-        finalJobPhaseStatus = autoexecJobService.getJobPhaseStatus(statusList,currentPhaseStatus);
+        finalJobPhaseStatus = autoexecJobService.getJobPhaseStatus(statusList, currentPhaseStatus);
         autoexecJobMapper.updateJobPhaseStatus(new AutoexecJobPhaseVo(jobPhaseVo.getId(), finalJobPhaseStatus, phaseRunnerWarnCount, jobPhaseVo.getStartTime()));
 
         //如果最终阶段状态是wait_input则更新作业状态为waitInput
-        if(Objects.equals(finalJobPhaseStatus,JobPhaseStatus.WAIT_INPUT.getValue())){
+        if (Objects.equals(finalJobPhaseStatus, JobPhaseStatus.WAIT_INPUT.getValue())) {
             AutoexecJobVo job = new AutoexecJobVo();
             job.setId(jobVo.getId());
             job.setStatus(JobStatus.WAIT_INPUT.getValue());
@@ -195,11 +197,13 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
      *
      * @param phaseVo 阶段
      */
-    private void informGlobalFail(AutoexecJobVo jobVo, AutoexecJobPhaseVo phaseVo) {
+    private void informGlobalFail(AutoexecJobVo jobVo, AutoexecJobPhaseVo phaseVo, String phaseRunnerStatusParam, Long runnerId) {
         JSONObject jsonObj = jobVo.getActionParam();
         JSONObject informParam = new JSONObject();
         informParam.put("action", "informGlobalFail");
+        informParam.put("originRunnerId", runnerId);
         informParam.put("phaseName", phaseVo.getName());
+        informParam.put("phaseStatus", phaseRunnerStatusParam);
         jsonObj.put("informParam", informParam);
         jsonObj.put("socketFileName", "job" + jsonObj.getString("execId"));
         List<RunnerMapVo> runnerVos = autoexecJobMapper.getJobRunnerListByJobIdAndGroupId(phaseVo.getJobId(), phaseVo.getGroupId());
