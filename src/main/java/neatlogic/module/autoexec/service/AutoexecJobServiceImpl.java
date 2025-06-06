@@ -1761,7 +1761,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             return;
         }
         //如果不是暂停动作且作业状态是waitInput,则更新job状态 为中止中
-        if (!(Objects.equals(JobAction.PAUSE.getValue(), action)&& Objects.equals(jobVo.getStatus(), JobPhaseStatus.WAIT_INPUT.getValue()))) {
+        if (!(Objects.equals(JobAction.PAUSE.getValue(), action) && Objects.equals(jobVo.getStatus(), JobPhaseStatus.WAIT_INPUT.getValue()))) {
             jobVo.setStatus(statusIng);
             autoexecJobMapper.updateJobStatus(jobVo);
         }
@@ -1906,8 +1906,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 } else if (execJobId != null) {
                     //如果进程还在则是running
                     jobStatus = JobStatus.RUNNING.getValue();
-                } else if (waitingCount > 0) {
-                    jobStatus = JobStatus.WAITING.getValue();
                 } else if (abortingCount > 0) {
                     jobStatus = JobStatus.ABORTING.getValue();
                 } else if (pausingCount > 0) {
@@ -1926,6 +1924,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                         //如果存在pending而且阶段状态是complete，修正为PAUSED状态
                         jobStatus = JobStatus.PAUSED.getValue();
                     }
+                } else if (waitingCount > 0) {
+                    //降低waiting优先级。防止中止第一个round的runner，第二round是另外一个runner还是waiting，导致阶段状态计算还是waiting
+                    jobStatus = JobStatus.WAITING.getValue();
                 } else {
                     //没有其它状态，全部是pending
                     jobStatus = JobStatus.PENDING.getValue();
@@ -1990,8 +1991,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 finalPhaseStatus = JobPhaseStatus.WAIT_INPUT.getValue();
             } else if (runningCount > 0) {
                 finalPhaseStatus = JobPhaseStatus.RUNNING.getValue();
-            } else if (waitingCount > 0) {
-                finalPhaseStatus = JobPhaseStatus.WAITING.getValue();
             } else if (abortingCount > 0) {
                 finalPhaseStatus = JobPhaseStatus.ABORTING.getValue();
             } else if (pausingCount > 0) {
@@ -2010,6 +2009,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     //如果存在pending而且阶段状态是complete，修正为PAUSED状态
                     finalPhaseStatus = JobPhaseStatus.PAUSED.getValue();
                 }
+            } else if (waitingCount > 0) {
+                //降低waiting优先级。防止中止第一个round的runner，第二round是另外一个runner还是waiting，导致阶段状态计算还是waiting
+                finalPhaseStatus = JobPhaseStatus.WAITING.getValue();
             } else {
                 //其它状态都没有，只有pending
                 finalPhaseStatus = JobPhaseStatus.PENDING.getValue();
