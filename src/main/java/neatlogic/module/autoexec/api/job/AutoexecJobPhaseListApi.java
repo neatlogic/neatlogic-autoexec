@@ -97,9 +97,9 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
             throw new AutoexecJobNotFoundException(jobId);
         }
         if (CollectionUtils.isEmpty(jobPhaseIdList)) {
-            jobPhaseVoList = autoexecJobMapper.getJobPhaseListWithGroupByJobId(jobId);
+            jobPhaseVoList = autoexecJobMapper.getJobPhaseListWithGroupAndRunnerByJobId(jobId);
         } else {
-            jobPhaseVoList = autoexecJobMapper.getJobPhaseListWithGroupByJobIdAndPhaseIdList(jobId, jobPhaseIdList);
+            jobPhaseVoList = autoexecJobMapper.getJobPhaseListWithGroupAndRunnerByJobIdAndPhaseIdList(jobId, jobPhaseIdList);
         }
 
         //过滤出需要根据入参phaseList 更新执行目标的阶段List
