@@ -1427,7 +1427,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      * @param currentPhase 作业阶段
      */
     public void refreshPhaseRunnerStatus(AutoexecJobPhaseVo currentPhase) {
-        List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVoList = autoexecJobMapper.getJobPhaseRunnerStatusByJobIdAndPhaseId(currentPhase.getJobId(), currentPhase.getId());
+        List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVoList = autoexecJobMapper.getJobPhaseRunnerStatusByNodeStatus(currentPhase.getJobId(), currentPhase.getId());
         for (AutoexecJobPhaseRunnerVo jobPhaseRunnerVo : jobPhaseRunnerVoList) {
             List<String> statusList = Arrays.stream(jobPhaseRunnerVo.getStatus().split(",")).collect(toList());
             String finalStatus;

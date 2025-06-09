@@ -21,7 +21,6 @@ import neatlogic.framework.autoexec.constvalue.JobNodeStatus;
 import neatlogic.framework.autoexec.constvalue.JobPhaseStatus;
 import neatlogic.framework.autoexec.constvalue.JobStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
-import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseRunnerVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobActionInvalidException;
@@ -114,10 +113,10 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             //重置需要重跑的第一个phase的状态为waiting
             AutoexecJobPhaseVo firstPhase = autoexecJobPhaseVos.get(0);
             autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(firstPhase.getId()), JobPhaseStatus.WAITING.getValue());
-            List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdListAndExceptStatus(jobVo.getId(), Collections.singletonList(firstPhase.getId()), Collections.singletonList(JobPhaseStatus.COMPLETED.getValue()));
-            for (AutoexecJobPhaseRunnerVo jobPhaseRunnerVo : jobPhaseRunnerVos) {
-                autoexecJobMapper.updateJobPhaseRunnerStatus(Collections.singletonList(firstPhase.getId()), jobPhaseRunnerVo.getRunnerMapId(), JobPhaseStatus.PENDING.getValue());
-            }
+//            List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdListAndExceptStatus(jobVo.getId(), Collections.singletonList(firstPhase.getId()), Collections.singletonList(JobPhaseStatus.COMPLETED.getValue()));
+//            for (AutoexecJobPhaseRunnerVo jobPhaseRunnerVo : jobPhaseRunnerVos) {
+//                autoexecJobMapper.updateJobPhaseRunnerStatus(Collections.singletonList(firstPhase.getId()), jobPhaseRunnerVo.getRunnerMapId(), JobPhaseStatus.PENDING.getValue());
+//            }
             //runner状态不是complete都改成pending
             autoexecJobMapper.updateJobPhaseRunnerStatusByJobIdAndExceptStatus(jobVo.getId(), JobPhaseStatus.PENDING.getValue(), Collections.singletonList(JobPhaseStatus.COMPLETED.getValue()));
             autoexecJobService.getAutoexecJobDetail(jobVo);
