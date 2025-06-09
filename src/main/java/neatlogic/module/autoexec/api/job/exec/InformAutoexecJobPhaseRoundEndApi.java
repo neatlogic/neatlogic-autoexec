@@ -28,6 +28,7 @@ import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import neatlogic.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.dto.runner.RunnerMapVo;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -38,10 +39,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * @author lvzk
@@ -98,7 +96,6 @@ public class InformAutoexecJobPhaseRoundEndApi extends PrivateApiComponentBase {
                 runnerId = passThroughEnv.getLong("runnerId");
             }
         }
-        boolean isJobPhaseRoundNodeAllCompleted = false;
         //Long runnerId = jsonObj.getLong("runnerId");
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         if (jobVo == null) {
@@ -115,12 +112,18 @@ public class InformAutoexecJobPhaseRoundEndApi extends PrivateApiComponentBase {
         autoexecJobActionService.initExecuteUserContext(jobVo);
 
 
-        //local检查对应phase需要跑的runner状态是completed才执行inform操作，否则会引起grayscale并发问题
         boolean isNeedInform = false;
         if (Objects.equals(jobPhaseVo.getExecMode(), ExecMode.RUNNER.getValue())) {
-            AutoexecJobPhaseRunnerVo phaseRunnerVo = autoexecJobMapper.getJobPhaseRunnerStatus(jobId,jobPhaseVo.getId());
-            if(phaseRunnerVo != null &&  Objects.equals(phaseRunnerVo.getStatus(), JobPhaseStatus.COMPLETED.getValue())){
+            List<RunnerMapVo> runnerMapVos = autoexecJobMapper.getJobPhaseRunnerMapByJobIdAndPhaseIdList(jobId, Collections.singletonList(jobPhaseVo.getId()));
+            //local是当前runner的inform才执行inform操作
+            if (CollectionUtils.isNotEmpty(runnerMapVos) && Objects.equals(runnerMapVos.get(0).getRunnerMapId(), runnerId)) {
                 isNeedInform = true;
+            }else {
+                //local不是当前runner执行，则检查对应phase需要跑的runner node状态是completed才执行inform操作，否则会引起grayscale并发问题
+                List<AutoexecJobPhaseNodeVo> runnerNodes = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseId(jobId, jobPhaseVo.getId());
+                if (CollectionUtils.isNotEmpty(runnerNodes) && Objects.equals(runnerNodes.get(0).getStatus(), JobPhaseStatus.COMPLETED.getValue())) {
+                    isNeedInform = true;
+                }
             }
         }else{
             if (seqNo == null) {
