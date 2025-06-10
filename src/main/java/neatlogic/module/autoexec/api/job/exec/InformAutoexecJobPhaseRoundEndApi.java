@@ -21,9 +21,11 @@ import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.constvalue.ExecMode;
 import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.constvalue.JobNodeStatus;
-import neatlogic.framework.autoexec.constvalue.JobPhaseStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
-import neatlogic.framework.autoexec.dto.job.*;
+import neatlogic.framework.autoexec.dto.job.AutoexecJobGroupVo;
+import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
+import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
+import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import neatlogic.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
@@ -121,7 +123,7 @@ public class InformAutoexecJobPhaseRoundEndApi extends PrivateApiComponentBase {
             }else {
                 //local不是当前runner执行，则检查对应phase需要跑的runner node状态是completed才执行inform操作，否则会引起grayscale并发问题
                 List<AutoexecJobPhaseNodeVo> runnerNodes = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseId(jobId, jobPhaseVo.getId());
-                if (CollectionUtils.isNotEmpty(runnerNodes) && Objects.equals(runnerNodes.get(0).getStatus(), JobPhaseStatus.COMPLETED.getValue())) {
+                if (CollectionUtils.isNotEmpty(runnerNodes) && Objects.equals(runnerNodes.get(0).getStatus(), JobNodeStatus.SUCCEED.getValue())) {
                     isNeedInform = true;
                 }
             }
