@@ -130,7 +130,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         jobVo.setIsFirstFire(isFirstFire);
         jobVo.setActionParam(jsonObj);
         //更新执行用户上下文
-        autoexecJobActionService.initExecuteUserContext(jobVo);
+        autoexecJobActionService.initExecuteUserContext(jobVo, passThroughEnv);
 
         AutoexecJobPhaseVo jobPhaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseNameWithGroup(jobId, phaseName);
         if (jobPhaseVo == null) {

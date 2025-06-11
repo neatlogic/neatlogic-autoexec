@@ -60,7 +60,7 @@ public interface AutoexecJobActionService {
      * @param jobVo 作业
      * @throws Exception 异常
      */
-    void initExecuteUserContext(AutoexecJobVo jobVo) throws Exception;
+    void initExecuteUserContext(AutoexecJobVo jobVo,JSONObject passThroughEnv) throws Exception;
 
     /**
      * 设置作业的激活方式

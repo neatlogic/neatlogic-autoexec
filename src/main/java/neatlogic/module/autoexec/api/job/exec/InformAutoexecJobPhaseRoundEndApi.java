@@ -111,7 +111,7 @@ public class InformAutoexecJobPhaseRoundEndApi extends PrivateApiComponentBase {
         if (jobPhaseVo == null) {
             throw new AutoexecJobPhaseNotFoundException(jobId + ":" + phase);
         }
-        autoexecJobActionService.initExecuteUserContext(jobVo);
+        autoexecJobActionService.initExecuteUserContext(jobVo, jsonObj.getJSONObject("passThroughEnv"));
 
 
         boolean isNeedInform = false;
@@ -120,14 +120,14 @@ public class InformAutoexecJobPhaseRoundEndApi extends PrivateApiComponentBase {
             //local是当前runner的inform才执行inform操作
             if (CollectionUtils.isNotEmpty(runnerMapVos) && Objects.equals(runnerMapVos.get(0).getRunnerMapId(), runnerId)) {
                 isNeedInform = true;
-            }else {
+            } else {
                 //local不是当前runner执行，则检查对应phase需要跑的runner node状态是completed才执行inform操作，否则会引起grayscale并发问题
                 List<AutoexecJobPhaseNodeVo> runnerNodes = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseId(jobId, jobPhaseVo.getId());
                 if (CollectionUtils.isNotEmpty(runnerNodes) && Objects.equals(runnerNodes.get(0).getStatus(), JobNodeStatus.SUCCEED.getValue())) {
                     isNeedInform = true;
                 }
             }
-        }else{
+        } else {
             if (seqNo == null) {
                 isNeedInform = isJobPhaseRoundNodeAllCompleted(groupVo, jobPhaseVo, roundNo);
             } else {
@@ -147,7 +147,7 @@ public class InformAutoexecJobPhaseRoundEndApi extends PrivateApiComponentBase {
             //System.out.println("roundNo:"+jsonObj.getInteger("roundNo")+" runnerId:"+jsonObj.getString(("runnerId")) +" phase:"+ phase + " run");
         }
         //else{
-            //System.out.println("noNeed: phase"+phase+" runnerId:"+runnerId);
+        //System.out.println("noNeed: phase"+phase+" runnerId:"+runnerId);
         //}
         return null;
     }

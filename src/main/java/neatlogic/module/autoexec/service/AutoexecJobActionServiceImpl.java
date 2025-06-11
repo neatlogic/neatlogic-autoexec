@@ -44,11 +44,11 @@ import neatlogic.framework.autoexec.source.AutoexecJobSourceFactory;
 import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountVo;
-import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dao.mapper.UserMapper;
 import neatlogic.framework.dto.AuthenticationInfoVo;
 import neatlogic.framework.dto.UserVo;
+import neatlogic.framework.exception.type.ParamIrregularException;
 import neatlogic.framework.exception.user.UserNotFoundException;
 import neatlogic.framework.filter.core.LoginAuthHandlerBase;
 import neatlogic.framework.scheduler.core.IJob;
@@ -60,6 +60,7 @@ import neatlogic.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecScenarioMapper;
 import neatlogic.module.autoexec.schedule.plugin.AutoexecJobAutoFireJob;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -424,9 +425,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             }
             //如果创建作业分批数入参不存在，则用组合工具的全局分批数
             if (autoexecJobParam.getRoundCount() == null) {
-                if(combopExecuteConfigVo.getRoundCount() != null) {
+                if (combopExecuteConfigVo.getRoundCount() != null) {
                     autoexecJobParam.setRoundCount(combopExecuteConfigVo.getRoundCount());
-                }else{
+                } else {
                     //组合工具的全局分批数不存在则默认分64批
                     autoexecJobParam.setRoundCount(64);
                 }
@@ -474,19 +475,19 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
     }
 
     @Override
-    public void initExecuteUserContext(AutoexecJobVo jobVo) throws Exception {
-        UserVo execUser;
-        AuthenticationInfoVo authenticationInfoVo = null;
-        //初始化执行用户上下文
-        if (Arrays.asList(SystemUser.SYSTEM.getUserUuid(), neatlogic.framework.autoexec.constvalue.SystemUser.AUTOEXEC.getUserUuid()).contains(jobVo.getExecUser())) {
-            execUser = SystemUser.SYSTEM.getUserVo();
-        } else {
-            execUser = userMapper.getUserBaseInfoByUuid(jobVo.getExecUser());
-            authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(jobVo.getExecUser());
+    public void initExecuteUserContext(AutoexecJobVo jobVo,JSONObject passThroughEnv) throws Exception {
+        if(MapUtils.isEmpty(passThroughEnv)){
+            throw new ParamIrregularException("passThroughEnv");
         }
+        if(!passThroughEnv.containsKey("EXECUSER_UUID")){
+            throw new AutoexecExecuteUserIsRequiredException();
+        }
+        String execUserUuid = passThroughEnv.getString("EXECUSER_UUID");
+        UserVo execUser = userMapper.getUserBaseInfoByUuid(execUserUuid);
         if (execUser == null) {
-            throw new UserNotFoundException(jobVo.getExecUser());
+            throw new UserNotFoundException(execUserUuid);
         }
+        AuthenticationInfoVo authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(jobVo.getExecUser());
 
         UserContext.init(execUser, authenticationInfoVo, "+8:00");
         UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(execUser).getCc());

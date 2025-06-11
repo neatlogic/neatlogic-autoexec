@@ -122,6 +122,7 @@ public class AutoexecScheduleJob extends JobBase {
         AutoexecScheduleVo autoexecScheduleVo = autoexecScheduleMapper.getAutoexecScheduleByUuid(uuid);
         if (autoexecScheduleVo == null) {
             schedulerManager.unloadJob(jobObject);
+            return;
         }
         Long combopId = autoexecScheduleVo.getAutoexecCombopId();
         AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
@@ -140,10 +141,10 @@ public class AutoexecScheduleJob extends JobBase {
             jobVo.setInvokeId(autoexecScheduleVo.getId());
             jobVo.setRouteId(autoexecScheduleVo.getId().toString());
             jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
-            UserVo fcuVo = userMapper.getUserByUuid(autoexecScheduleVo.getFcu());
+            UserVo lcuVo = userMapper.getUserByUuid(autoexecScheduleVo.getLcu());
             AuthenticationInfoVo authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(autoexecScheduleVo.getFcu());
-            UserContext.init(fcuVo, authenticationInfoVo, SystemUser.SYSTEM.getTimezone());
-            UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(fcuVo).getCc());
+            UserContext.init(lcuVo, authenticationInfoVo, SystemUser.SYSTEM.getTimezone());
+            UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(lcuVo).getCc());
             autoexecJobActionService.validateAndCreateJobFromCombop(jobVo);
             jobVo.setAction(JobAction.FIRE.getValue());
             IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());

@@ -1642,6 +1642,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
         passThroughEnv.put("isFirstFire", isFirstFire);
         passThroughEnv.put("EXECUSER_TOKEN", userMapper.getUserTokenByUser(UserContext.get().getUserId()));
+        passThroughEnv.put("EXECUSER_UUID", UserContext.get().getUserUuid());
         for (RunnerMapVo runner : runnerVos) {
             jobVo.getEnvironment().put("RUNNER_ID", runner.getRunnerMapId());
             String url = runner.getUrl() + "api/rest/job/exec";
@@ -1803,6 +1804,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             for (RunnerMapVo runner : runnerVos) {
                 paramJson.put("passThroughEnv", new JSONObject() {{
                     put("runnerId", runner.getRunnerMapId());
+                    put("EXECUSER_UUID", UserContext.get().getUserUuid(true));
                 }});
                 url = runner.getUrl() + "api/rest/job/" + action;
                 HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();

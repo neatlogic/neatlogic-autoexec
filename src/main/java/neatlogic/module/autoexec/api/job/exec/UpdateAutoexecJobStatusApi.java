@@ -27,6 +27,7 @@ import neatlogic.framework.exception.type.ParamIrregularException;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
+import neatlogic.module.autoexec.service.AutoexecJobActionService;
 import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -49,6 +50,8 @@ public class UpdateAutoexecJobStatusApi extends PrivateApiComponentBase {
     AutoexecJobMapper autoexecJobMapper;
     @Resource
     AutoexecJobService autoexecJobService;
+    @Resource
+    AutoexecJobActionService autoexecJobActionService;
 
     @Override
     public String getName() {
@@ -87,7 +90,7 @@ public class UpdateAutoexecJobStatusApi extends PrivateApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
-
+        autoexecJobActionService.initExecuteUserContext(jobVo,jsonObj.getJSONObject("passThroughEnv"));
         if (execId != null && execId != 0) {
             if (!Arrays.asList(JobStatus.RUNNING.getValue(), JobStatus.WAIT_INPUT.getValue()).contains(status)) {
                 autoexecJobMapper.deleteJobExec(jobVo.getId(), runnerId, execId);
