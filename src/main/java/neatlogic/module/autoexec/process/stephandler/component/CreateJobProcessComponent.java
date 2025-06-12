@@ -34,16 +34,14 @@ import neatlogic.framework.autoexec.exception.AutoexecCombopActiveVersionNotFoun
 import neatlogic.framework.autoexec.exception.AutoexecCombopVersionNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecServiceConfigExpiredException;
 import neatlogic.framework.autoexec.exception.AutoexecServiceNotFoundException;
+import neatlogic.framework.common.constvalue.GroupSearch;
 import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.form.dto.AttributeDataVo;
 import neatlogic.framework.form.dto.FormAttributeVo;
 import neatlogic.framework.process.constvalue.*;
 import neatlogic.framework.process.crossover.*;
-import neatlogic.framework.process.dto.ProcessTaskFormAttributeDataVo;
-import neatlogic.framework.process.dto.ProcessTaskStepDataVo;
-import neatlogic.framework.process.dto.ProcessTaskStepVo;
-import neatlogic.framework.process.dto.ProcessTaskStepWorkerVo;
+import neatlogic.framework.process.dto.*;
 import neatlogic.framework.process.exception.processtask.ProcessTaskException;
 import neatlogic.framework.process.exception.processtask.ProcessTaskNoPermissionException;
 import neatlogic.framework.process.stephandler.core.*;
@@ -289,6 +287,17 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                     }
                     if (CollectionUtils.isEmpty(builderList)) {
                         processTaskStepComplete(processTaskStepVo.getId());
+                        return;
+                    }
+                    String assignExecUser = SystemUser.SYSTEM.getUserUuid();
+                    List<ProcessTaskStepWorkerVo> processTaskStepWorkerList = processTaskCrossoverMapper.getProcessTaskStepWorkerByProcessTaskIdAndProcessTaskStepId(processTaskStepVo.getProcessTaskId(), processTaskStepVo.getId());
+                    if (CollectionUtils.isNotEmpty(processTaskStepWorkerList)) {
+                        for (ProcessTaskStepWorkerVo processTaskStepWorkerVo : processTaskStepWorkerList) {
+                            if (Objects.equals(processTaskStepWorkerVo.getUserType(), ProcessUserType.MAJOR.getValue()) && Objects.equals(processTaskStepWorkerVo.getType(), GroupSearch.USER.getValue())) {
+                                assignExecUser = processTaskStepWorkerVo.getUuid();
+                                break;
+                            }
+                        }
                     }
                     JSONArray errorMessageList = new JSONArray();
                     boolean flag = false;
@@ -299,7 +308,7 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                         jobVo.setInvokeId(processTaskStepVo.getId());
                         jobVo.setRouteId(processTaskStepVo.getId().toString());
                         jobVo.setSource(AutoExecJobProcessSource.ITSM.getValue());
-                        jobVo.setAssignExecUser(SystemUser.SYSTEM.getUserUuid());
+                        jobVo.setAssignExecUser(assignExecUser);
                         try {
                             autoexecJobActionService.validateCreateJob(jobVo);
                             autoexecJobMapper.insertAutoexecJobProcessTaskStep(jobVo.getId(), processTaskStepVo.getId());
