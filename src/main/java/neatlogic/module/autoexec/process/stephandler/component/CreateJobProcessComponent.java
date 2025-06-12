@@ -289,8 +289,7 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                         return;
                     }
                     String assignExecUser = SystemUser.SYSTEM.getUserUuid();
-                    IProcessTaskCrossoverMapper processTaskCrossoverMapper1 = CrossoverServiceFactory.getApi(IProcessTaskCrossoverMapper.class);
-                    List<ProcessTaskStepUserVo> stepUserVoList =  processTaskCrossoverMapper.getProcessTaskStepUserByStepId(currentProcessTaskStepVo.getId(), ProcessUserType.MAJOR.getValue());
+                    List<ProcessTaskStepUserVo> stepUserVoList =  processTaskCrossoverMapper.getProcessTaskStepUserByStepId(processTaskStepVo.getId(), ProcessUserType.MAJOR.getValue());
                     if (CollectionUtils.isNotEmpty(stepUserVoList)) {
                         assignExecUser = stepUserVoList.get(0).getUserUuid();
                     }
