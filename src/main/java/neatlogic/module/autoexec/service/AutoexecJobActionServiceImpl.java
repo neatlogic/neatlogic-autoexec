@@ -20,7 +20,10 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
-import neatlogic.framework.autoexec.constvalue.*;
+import neatlogic.framework.autoexec.constvalue.JobAction;
+import neatlogic.framework.autoexec.constvalue.JobTriggerType;
+import neatlogic.framework.autoexec.constvalue.ParamMappingMode;
+import neatlogic.framework.autoexec.constvalue.ToolType;
 import neatlogic.framework.autoexec.crossover.IAutoexecJobActionCrossoverService;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
@@ -453,14 +456,14 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         validateAndCreateJobFromCombop(jobParam);
         UserVo user = SystemUser.SYSTEM.getUserVo();
         AuthenticationInfoVo authenticationInfo = SystemUser.SYSTEM.getAuthenticationInfoVo();
-        if(!Objects.equals(jobParam.getAssignExecUser(), SystemUser.SYSTEM.getUserUuid())){
+        if (!Objects.equals(jobParam.getAssignExecUser(), SystemUser.SYSTEM.getUserUuid())) {
             user = userMapper.getUserByUuid(jobParam.getAssignExecUser());
-            if(user == null){
+            if (user == null) {
                 throw new UserNotFoundException(jobParam.getAssignExecUser());
             }
             authenticationInfo = authenticationInfoService.getAuthenticationInfo(user.getUuid());
         }
-        UserContext.init(user,authenticationInfo,SystemUser.SYSTEM.getTimezone());
+        UserContext.init(user, authenticationInfo, SystemUser.SYSTEM.getTimezone());
         jobParam.setAction(JobAction.FIRE.getValue());
         IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
         fireAction.doService(jobParam);
@@ -479,21 +482,25 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
     }
 
     @Override
-    public void initExecuteUserContext(AutoexecJobVo jobVo,JSONObject passThroughEnv) throws Exception {
-        if(MapUtils.isEmpty(passThroughEnv)){
+    public void initExecuteUserContext(AutoexecJobVo jobVo, JSONObject passThroughEnv) throws Exception {
+        if (MapUtils.isEmpty(passThroughEnv)) {
             throw new ParamIrregularException("passThroughEnv");
         }
-        if(!passThroughEnv.containsKey("EXECUSER_UUID")){
+        if (!passThroughEnv.containsKey("EXECUSER_UUID")) {
             throw new AutoexecExecuteUserIsRequiredException();
         }
         String execUserUuid = passThroughEnv.getString("EXECUSER_UUID");
         UserVo execUser;
         AuthenticationInfoVo authenticationInfoVo;
         // TODO临时兼容systemUser
-        if (Objects.equals(execUserUuid,SystemUser.SYSTEM.getUserUuid())) {
+        if (Objects.equals(SystemUser.SYSTEM.getUserUuid(), execUserUuid)) {
             execUser = SystemUser.SYSTEM.getUserVo();
             authenticationInfoVo = SystemUser.SYSTEM.getAuthenticationInfoVo();
-        }else {
+        } else if (Objects.equals(neatlogic.framework.autoexec.constvalue.SystemUser.AUTOEXEC.getUserUuid(), execUserUuid)) {
+            //autoexec脚本用的是autoexec虚拟用户
+            execUser = neatlogic.framework.autoexec.constvalue.SystemUser.AUTOEXEC.getUserVo();
+            authenticationInfoVo = neatlogic.framework.autoexec.constvalue.SystemUser.AUTOEXEC.getAuthenticationInfoVo();
+        } else {
             execUser = userMapper.getUserBaseInfoByUuid(execUserUuid);
             if (execUser == null) {
                 throw new UserNotFoundException(execUserUuid);
