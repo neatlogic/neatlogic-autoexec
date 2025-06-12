@@ -20,10 +20,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
-import neatlogic.framework.autoexec.constvalue.JobAction;
-import neatlogic.framework.autoexec.constvalue.JobTriggerType;
-import neatlogic.framework.autoexec.constvalue.ParamMappingMode;
-import neatlogic.framework.autoexec.constvalue.ToolType;
+import neatlogic.framework.autoexec.constvalue.*;
 import neatlogic.framework.autoexec.crossover.IAutoexecJobActionCrossoverService;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
@@ -44,6 +41,7 @@ import neatlogic.framework.autoexec.source.AutoexecJobSourceFactory;
 import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountVo;
+import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dao.mapper.UserMapper;
 import neatlogic.framework.dto.AuthenticationInfoVo;
@@ -453,6 +451,16 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
     @Override
     public void validateCreateJob(AutoexecJobVo jobParam) throws Exception {
         validateAndCreateJobFromCombop(jobParam);
+        UserVo user = SystemUser.SYSTEM.getUserVo();
+        AuthenticationInfoVo authenticationInfo = SystemUser.SYSTEM.getAuthenticationInfoVo();
+        if(!Objects.equals(jobParam.getAssignExecUser(), SystemUser.SYSTEM.getUserUuid())){
+            user = userMapper.getUserByUuid(jobParam.getAssignExecUser());
+            if(user == null){
+                throw new UserNotFoundException(jobParam.getAssignExecUser());
+            }
+            authenticationInfo = authenticationInfoService.getAuthenticationInfo(user.getUuid());
+        }
+        UserContext.init(user,authenticationInfo,SystemUser.SYSTEM.getTimezone());
         jobParam.setAction(JobAction.FIRE.getValue());
         IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
         fireAction.doService(jobParam);
@@ -479,11 +487,19 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             throw new AutoexecExecuteUserIsRequiredException();
         }
         String execUserUuid = passThroughEnv.getString("EXECUSER_UUID");
-        UserVo execUser = userMapper.getUserBaseInfoByUuid(execUserUuid);
-        if (execUser == null) {
-            throw new UserNotFoundException(execUserUuid);
+        UserVo execUser;
+        AuthenticationInfoVo authenticationInfoVo;
+        // TODO临时兼容systemUser
+        if (Objects.equals(execUserUuid,SystemUser.SYSTEM.getUserUuid())) {
+            execUser = SystemUser.SYSTEM.getUserVo();
+            authenticationInfoVo = SystemUser.SYSTEM.getAuthenticationInfoVo();
+        }else {
+            execUser = userMapper.getUserBaseInfoByUuid(execUserUuid);
+            if (execUser == null) {
+                throw new UserNotFoundException(execUserUuid);
+            }
+            authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(jobVo.getExecUser());
         }
-        AuthenticationInfoVo authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(jobVo.getExecUser());
 
         UserContext.init(execUser, authenticationInfoVo, "+8:00");
         UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(execUser).getCc());
