@@ -40,10 +40,7 @@ import neatlogic.framework.form.dto.AttributeDataVo;
 import neatlogic.framework.form.dto.FormAttributeVo;
 import neatlogic.framework.process.constvalue.*;
 import neatlogic.framework.process.crossover.*;
-import neatlogic.framework.process.dto.ProcessTaskFormAttributeDataVo;
-import neatlogic.framework.process.dto.ProcessTaskStepDataVo;
-import neatlogic.framework.process.dto.ProcessTaskStepVo;
-import neatlogic.framework.process.dto.ProcessTaskStepWorkerVo;
+import neatlogic.framework.process.dto.*;
 import neatlogic.framework.process.exception.processtask.ProcessTaskException;
 import neatlogic.framework.process.exception.processtask.ProcessTaskNoPermissionException;
 import neatlogic.framework.process.stephandler.core.*;
@@ -289,6 +286,13 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                     }
                     if (CollectionUtils.isEmpty(builderList)) {
                         processTaskStepComplete(processTaskStepVo.getId());
+                        return;
+                    }
+                    String assignExecUser = SystemUser.SYSTEM.getUserUuid();
+                    IProcessTaskCrossoverMapper processTaskCrossoverMapper1 = CrossoverServiceFactory.getApi(IProcessTaskCrossoverMapper.class);
+                    List<ProcessTaskStepUserVo> stepUserVoList =  processTaskCrossoverMapper.getProcessTaskStepUserByStepId(currentProcessTaskStepVo.getId(), ProcessUserType.MAJOR.getValue());
+                    if (CollectionUtils.isNotEmpty(stepUserVoList)) {
+                        assignExecUser = stepUserVoList.get(0).getUserUuid();
                     }
                     JSONArray errorMessageList = new JSONArray();
                     boolean flag = false;
@@ -299,7 +303,7 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                         jobVo.setInvokeId(processTaskStepVo.getId());
                         jobVo.setRouteId(processTaskStepVo.getId().toString());
                         jobVo.setSource(AutoExecJobProcessSource.ITSM.getValue());
-                        jobVo.setAssignExecUser(SystemUser.SYSTEM.getUserUuid());
+                        jobVo.setAssignExecUser(assignExecUser);
                         try {
                             autoexecJobActionService.validateCreateJob(jobVo);
                             autoexecJobMapper.insertAutoexecJobProcessTaskStep(jobVo.getId(), processTaskStepVo.getId());
