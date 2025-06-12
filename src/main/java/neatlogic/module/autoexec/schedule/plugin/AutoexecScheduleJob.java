@@ -104,7 +104,9 @@ public class AutoexecScheduleJob extends JobBase {
         searchVo.setIsActive(1);
         int rowNum = autoexecScheduleMapper.getAutoexecScheduleCount(searchVo);
         searchVo.setPageSize(100);
-        for (int currentPage = 1; rowNum > 0; currentPage++, rowNum -= 100) {
+        searchVo.setRowNum(rowNum);
+        Integer pageCount = searchVo.getPageCount();
+        for (int currentPage = 1; currentPage <= pageCount; currentPage++) {
             searchVo.setCurrentPage(currentPage);
             List<AutoexecScheduleVo> autoexecScheduleList = autoexecScheduleMapper.getAutoexecScheduleList(searchVo);
             for (AutoexecScheduleVo autoexecScheduleVo : autoexecScheduleList) {
