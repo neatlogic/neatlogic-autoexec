@@ -34,6 +34,7 @@ import neatlogic.framework.autoexec.exception.AutoexecCombopActiveVersionNotFoun
 import neatlogic.framework.autoexec.exception.AutoexecCombopVersionNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecServiceConfigExpiredException;
 import neatlogic.framework.autoexec.exception.AutoexecServiceNotFoundException;
+import neatlogic.framework.common.constvalue.GroupSearch;
 import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.form.dto.AttributeDataVo;
@@ -289,9 +290,14 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                         return;
                     }
                     String assignExecUser = SystemUser.SYSTEM.getUserUuid();
-                    List<ProcessTaskStepUserVo> stepUserVoList =  processTaskCrossoverMapper.getProcessTaskStepUserByStepId(processTaskStepVo.getId(), ProcessUserType.MAJOR.getValue());
-                    if (CollectionUtils.isNotEmpty(stepUserVoList)) {
-                        assignExecUser = stepUserVoList.get(0).getUserUuid();
+                    List<ProcessTaskStepWorkerVo> processTaskStepWorkerList = processTaskCrossoverMapper.getProcessTaskStepWorkerByProcessTaskIdAndProcessTaskStepId(processTaskStepVo.getProcessTaskId(), processTaskStepVo.getId());
+                    if (CollectionUtils.isNotEmpty(processTaskStepWorkerList)) {
+                        for (ProcessTaskStepWorkerVo processTaskStepWorkerVo : processTaskStepWorkerList) {
+                            if (Objects.equals(processTaskStepWorkerVo.getUserType(), ProcessUserType.MAJOR.getValue()) && Objects.equals(processTaskStepWorkerVo.getType(), GroupSearch.USER.getValue())) {
+                                assignExecUser = processTaskStepWorkerVo.getUuid();
+                                break;
+                            }
+                        }
                     }
                     JSONArray errorMessageList = new JSONArray();
                     boolean flag = false;
