@@ -505,7 +505,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             if (execUser == null) {
                 throw new UserNotFoundException(execUserUuid);
             }
-            authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(jobVo.getExecUser());
+            authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(execUserUuid);
         }
 
         UserContext.init(execUser, authenticationInfoVo, "+8:00");
