@@ -385,7 +385,6 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         return value;
     }
 
-    @Transactional
     @Override
     public void validateAndCreateJobFromCombop(AutoexecJobVo autoexecJobParam) {
         IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(autoexecJobParam.getSource());
@@ -445,16 +444,13 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             }
             autoexecJobParam.setScenarioId(scenarioVo.getId());
         }
-        autoexecJobParam.setConfigStr(JSONObject.toJSONString(config));
+        autoexecJobParam.setConfigStr(JSON.toJSONString(config));
         autoexecJobParam.setRunTimeParamList(config.getRuntimeParamList());
-
-        autoexecJobSourceActionHandler.updateInvokeJob(autoexecJobParam);
         autoexecJobService.saveAutoexecCombopJob(autoexecJobParam);
         autoexecJobParam.setAction(JobAction.FIRE.getValue());
     }
 
     @Override
-    @Transactional
     public void validateCreateJob(AutoexecJobVo jobParam) throws Exception {
         validateAndCreateJobFromCombop(jobParam);
         jobParam.setAction(JobAction.FIRE.getValue());

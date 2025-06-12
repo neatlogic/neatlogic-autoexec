@@ -141,7 +141,11 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
         if (jobSourceTypeHandler != null) {
             result.put("extraInfo",jobSourceTypeHandler.getExtraRefreshJobInfo(jobVo));
         }
-        result.put("waitingDetail",autoexecJobService.getAutoexecJobWaitingDetail(jobVo.getId()));
+        try {
+            result.put("waitingDetail", autoexecJobService.getAutoexecJobWaitingDetail(jobVo.getId()));
+        }catch (Exception ignored){
+            //ignored
+        }
         return result;
     }
 

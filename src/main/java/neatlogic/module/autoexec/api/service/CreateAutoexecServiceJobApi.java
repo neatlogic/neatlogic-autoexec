@@ -45,14 +45,12 @@ import neatlogic.module.autoexec.service.AutoexecJobActionService;
 import neatlogic.module.autoexec.service.AutoexecServiceService;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
-@Transactional
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.CREATE)

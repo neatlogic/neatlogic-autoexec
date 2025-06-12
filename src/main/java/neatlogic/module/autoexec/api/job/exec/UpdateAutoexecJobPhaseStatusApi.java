@@ -20,6 +20,7 @@ import neatlogic.framework.asynchronization.thread.NeatLogicThread;
 import neatlogic.framework.asynchronization.threadpool.TransactionSynchronizationPool;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
+import neatlogic.framework.autoexec.config.AutoexecConfig;
 import neatlogic.framework.autoexec.constvalue.JobPhaseStatus;
 import neatlogic.framework.autoexec.constvalue.JobStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
@@ -212,7 +213,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         for (RunnerMapVo runnerVo : runnerVos) {
             String url = String.format("%s/api/rest/job/phase/socket/write", runnerVo.getUrl());
             HttpRequestUtil request = HttpRequestUtil.post(url)
-                    .setPayload(jsonObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN)
+                    .setPayload(jsonObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT())
                     .sendRequest();
             if (request.getResponseCode() != 200) {
                 String errMsg = String.format("test account failed, ResponseCode:%d, ErrorMsg: %s, Exception: %s, Result: %s", request.getResponseCode(), request.getErrorMsg(), request.getError(), request.getResult());

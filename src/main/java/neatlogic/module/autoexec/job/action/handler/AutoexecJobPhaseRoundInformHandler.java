@@ -16,6 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 package neatlogic.module.autoexec.job.action.handler;
 
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.autoexec.config.AutoexecConfig;
 import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
@@ -80,7 +81,7 @@ public class AutoexecJobPhaseRoundInformHandler extends AutoexecJobActionHandler
         for (RunnerMapVo runnerVo : runnerVos) {
             String url = String.format("%s/api/rest/job/phase/socket/write", runnerVo.getUrl());
             String result = HttpRequestUtil.post(url)
-                    .setPayload(jsonObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN)
+                    .setPayload(jsonObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT())
                     .sendRequest().getError();
             if (StringUtils.isNotBlank(result)) {
                 throw new RunnerHttpRequestException(url + ":" + result);
