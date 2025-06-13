@@ -15,6 +15,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 package neatlogic.module.autoexec.job.action.handler.node;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.constvalue.JobNodeStatus;
@@ -31,7 +32,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Arrays;
 import java.util.Objects;
 
 /**
@@ -75,7 +75,7 @@ public class AutoexecJobNodeLogTailHandler extends AutoexecJobActionHandlerBase 
         String nodeStatus = JobNodeStatus.PENDING.getValue();
         if (StringUtils.isBlank(paramJson.getString("sqlName"))) {//获取node节点的状态（包括operation status）
             AutoexecJobPhaseNodeVo phaseNodeVo = autoexecJobService.getNodeOperationStatus(paramJson, false);
-            if(phaseNodeVo != null) {
+            if (phaseNodeVo != null) {
                 result.put("interact", phaseNodeVo.getInteract());
                 if (!StringUtils.isBlank(phaseNodeVo.getStatus())) {
                     nodeStatus = phaseNodeVo.getStatus();
@@ -83,18 +83,18 @@ public class AutoexecJobNodeLogTailHandler extends AutoexecJobActionHandlerBase 
             }
         } else {//获取sql 状态
             String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/status/get";
-            JSONObject statusJson = JSONObject.parseObject(AutoexecUtil.requestRunner(url, paramJson));
+            JSONObject statusJson = JSON.parseObject(AutoexecUtil.requestRunner(url, paramJson));
             if (MapUtils.isNotEmpty(statusJson)) {
                 result.put("interact", statusJson.get("interact"));
                 nodeStatus = statusJson.getString("status");
             }
         }
         paramJson.put("status", nodeStatus);
-        if(!Objects.equals(JobNodeStatus.PENDING.getValue(),nodeStatus)) {
-            result.putAll(JSONObject.parseObject(AutoexecUtil.requestRunner(paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/log/tail", paramJson)));
+        if (!Objects.equals(JobNodeStatus.PENDING.getValue(), nodeStatus)) {
+            result.putAll(JSON.parseObject(AutoexecUtil.requestRunner(paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/log/tail", paramJson)));
         }
         result.put("isRefresh", 0);
-        if (Objects.equals(JobNodeStatus.PENDING.getValue(),nodeStatus) || Arrays.asList(JobNodeStatus.RUNNING.getValue(), JobNodeStatus.ABORTING.getValue()).contains(nodeStatus)) {
+        if (JobNodeStatus.isRunningStatus(nodeStatus)) {
             result.put("isRefresh", 1);
         }
         result.put("nodeStatus", nodeStatus);
