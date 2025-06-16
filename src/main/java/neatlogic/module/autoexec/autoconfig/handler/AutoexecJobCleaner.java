@@ -22,7 +22,6 @@ import neatlogic.framework.auditconfig.core.AuditCleanerBase;
 import neatlogic.framework.autoexec.config.AutoexecConfig;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
-import neatlogic.framework.autoexec.exception.AutoexecJobDeleteException;
 import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.dao.mapper.runner.RunnerMapper;
 import neatlogic.framework.dto.runner.RunnerMapVo;
@@ -89,7 +88,7 @@ public class AutoexecJobCleaner extends AuditCleanerBase {
                         HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setAuthType(AuthenticateType.BUILDIN).setPayload(paramJson.toJSONString()).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).sendRequest();
                         if (StringUtils.isNotBlank(requestUtil.getError())) {
                             logger.error(requestUtil.getError());
-                            throw new AutoexecJobDeleteException(runner);
+                            //throw new AutoexecJobDeleteException(runner);
                         }
                     }
                 }
