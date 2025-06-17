@@ -77,6 +77,7 @@ public class UpdateAutoexecJobStatusApi extends PrivateApiComponentBase {
         Long jobId = jsonObj.getLong("jobId");
         String status = jsonObj.getString("status");
         Long execId = jsonObj.getLong("execId");
+        Integer isFirstFire = 0;
         if (!jsonObj.containsKey("passThroughEnv")) {
             throw new ParamIrregularException("passThroughEnv");
         }
@@ -84,12 +85,16 @@ public class UpdateAutoexecJobStatusApi extends PrivateApiComponentBase {
         if (!passThroughEnv.containsKey("runnerId")) {
             throw new ParamIrregularException("runnerId");
         }
+        if (passThroughEnv.containsKey("isFirstFire")) {
+            isFirstFire = passThroughEnv.getInteger("isFirstFire");
+        }
         Long runnerId = passThroughEnv.getLong("runnerId");
 
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
+        jobVo.setIsFirstFire(isFirstFire);
         autoexecJobActionService.initExecuteUserContext(jobVo,jsonObj.getJSONObject("passThroughEnv"));
         if (execId != null && execId != 0) {
             if (!Arrays.asList(JobStatus.RUNNING.getValue(), JobStatus.WAIT_INPUT.getValue()).contains(status)) {
