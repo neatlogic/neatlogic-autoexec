@@ -218,6 +218,7 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
          * 1、lastModified 为 null
          * 2、lastModified小于最近一次节点变动时间(lncd)
          */
+        //TODO 如果node来自job，其它来自phase或group会导致lncd一直是null
         if (lastModifiedLong == 0L || lncd == null || lastModifiedLong < lncd.getTime()) {
             IResourceAccountCrossoverMapper resourceAccountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
             List<AccountProtocolVo> allProtocolList = resourceAccountCrossoverMapper.getAllAccountProtocolList();
@@ -248,6 +249,7 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                     firstRow.put("jobRunnerIds", runnerMapIdList);
                     bos.write((firstRow.toJSONString() + System.lineSeparator()).getBytes(StandardCharsets.UTF_8));
                     bos.flush();
+                    Map<Long, AccountProtocolVo> accountProtocolVoMap = new HashMap<>();
                     //循环分页输出节点流
                     for (int i = 1; i <= pageCount; i++) {
                         Map<Long, JSONObject> resourceServicePortsMap = new HashMap<>();
@@ -259,6 +261,12 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                         nodeParamVo.setCurrentPage(i);
                         List<AutoexecJobPhaseNodeVo> autoexecJobPhaseNodeVoList = autoexecJobMapper.searchJobPhaseNodeByDistinct(nodeParamVo);
                         Long protocolId = autoexecJobPhaseNodeVoList.get(0).getProtocolId();
+                        if(!accountProtocolVoMap.containsKey(protocolId)) {
+                            AccountProtocolVo accountProtocolVo = resourceAccountCrossoverMapper.getAccountProtocolVoByProtocolId(protocolId);
+                            if(accountProtocolVo != null) {
+                                accountProtocolVoMap.put(protocolId, accountProtocolVo);
+                            }
+                        }
                         Optional<AccountProtocolVo> protocolVoOptional = allProtocolList.stream().filter(o -> Objects.equals(o.getId(), protocolId)).findFirst();
                         String protocol = null;
                         if (protocolVoOptional.isPresent()) {
@@ -370,23 +378,21 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                             }
                             for (AutoexecJobPhaseNodeVo nodeVo : autoexecJobPhaseNodeVoList) {
                                 JSONObject nodeJson = new JSONObject();
-                                AccountProtocolVo protocolVo = new AccountProtocolVo(protocolId, protocol);
+                                AccountProtocolVo protocolVo = accountProtocolVoMap.get(protocolId);
                                 AccountBaseVo accountVoTmp = accountService.filterAccountByRules(accountByResourceList, tagentMainIpAccountMap, tagentIpAccountMap, nodeVo.getResourceId(), protocolVo, nodeVo.getHost(), resourceOSResourceMap, protocolDefaultAccountMap);
                                 if (accountVoTmp != null) {
-                                    nodeJson.put("protocol", accountVoTmp.getProtocol());
                                     String password = accountVoTmp.getPasswordPlain();
                                     if (StringUtils.isNotBlank(password)) {
                                         password = RC4Util.encrypt(password);
                                     }
                                     nodeJson.put("password", password);
-                                    nodeJson.put("protocolPort", accountVoTmp.getProtocolPort());
+                                }
+
+                                if (protocolVo != null) {
+                                    nodeJson.put("protocol", protocolVo.getName());
+                                    nodeJson.put("protocolPort", protocolVo.getPort());
                                 } else {
-                                    if (StringUtils.isNotBlank(protocolVo.getName())) {
-                                        nodeJson.put("protocol", protocolVo.getName());
-                                        nodeJson.put("protocolPort", protocolVo.getPort());
-                                    } else {
-                                        nodeJson.put("protocol", "protocolNotExist");
-                                    }
+                                    nodeJson.put("protocol", "protocolNotExist");
                                 }
                                 nodeJson.put("username", account);
                                 nodeJson.put("nodeName", nodeVo.getNodeName());
