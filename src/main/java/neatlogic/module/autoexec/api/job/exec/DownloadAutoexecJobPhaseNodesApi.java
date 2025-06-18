@@ -261,9 +261,9 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                         nodeParamVo.setCurrentPage(i);
                         List<AutoexecJobPhaseNodeVo> autoexecJobPhaseNodeVoList = autoexecJobMapper.searchJobPhaseNodeByDistinct(nodeParamVo);
                         Long protocolId = autoexecJobPhaseNodeVoList.get(0).getProtocolId();
-                        if(!accountProtocolVoMap.containsKey(protocolId)) {
+                        if (!accountProtocolVoMap.containsKey(protocolId)) {
                             AccountProtocolVo accountProtocolVo = resourceAccountCrossoverMapper.getAccountProtocolVoByProtocolId(protocolId);
-                            if(accountProtocolVo != null) {
+                            if (accountProtocolVo != null) {
                                 accountProtocolVoMap.put(protocolId, accountProtocolVo);
                             }
                         }
@@ -379,6 +379,9 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                             for (AutoexecJobPhaseNodeVo nodeVo : autoexecJobPhaseNodeVoList) {
                                 JSONObject nodeJson = new JSONObject();
                                 AccountProtocolVo protocolVo = accountProtocolVoMap.get(protocolId);
+                                if (protocolVo == null) {
+                                    protocolVo = new AccountProtocolVo(protocolId, protocol);
+                                }
                                 AccountBaseVo accountVoTmp = accountService.filterAccountByRules(accountByResourceList, tagentMainIpAccountMap, tagentIpAccountMap, nodeVo.getResourceId(), protocolVo, nodeVo.getHost(), resourceOSResourceMap, protocolDefaultAccountMap);
                                 if (accountVoTmp != null) {
                                     String password = accountVoTmp.getPasswordPlain();
