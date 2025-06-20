@@ -19,6 +19,7 @@ import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandler
 import neatlogic.framework.autoexec.util.AutoexecUtil;
 import neatlogic.framework.common.util.IpUtil;
 import neatlogic.framework.dao.mapper.TagMapper;
+import neatlogic.framework.dao.mapper.UserSessionContentMapper;
 import neatlogic.framework.dao.mapper.runner.RunnerMapper;
 import neatlogic.framework.dto.TagVo;
 import neatlogic.framework.dto.runner.GroupNetworkVo;
@@ -29,6 +30,7 @@ import neatlogic.framework.exception.runner.RunnerGroupRunnerNotFoundException;
 import neatlogic.framework.exception.runner.RunnerHttpRequestException;
 import neatlogic.framework.exception.runner.RunnerNotFoundException;
 import neatlogic.framework.integration.authentication.enums.AuthenticateType;
+import neatlogic.framework.util.AviatorEvaluatorUtil;
 import neatlogic.framework.util.HttpRequestUtil;
 import neatlogic.framework.util.I18nUtils;
 import neatlogic.framework.util.TableResultUtil;
@@ -66,6 +68,9 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
 
     @Resource
     TagMapper tagMapper;
+
+    @Resource
+    UserSessionContentMapper userSessionContentMapper;
 
     @Override
     public String getName() {
@@ -258,9 +263,10 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
         String runnerGroupTagNameStr = StringUtils.EMPTY;
         //满足标签的执行器组id列表
         List<Long> runnerGroupIdListWithTag = new ArrayList<>();
-        List<String> runnerGroupIdNameListWithTag = new ArrayList<>();
+        List<Long> runnerGroupIdListWithTagAndRule;
         List<String> runnerGroupTagList = null;
         Boolean isJobRunnerGroupTag = null;
+        List<Long> runnerGroupIdListWithRule = getMatchRuleRunnerGroupList();
         //优先获取runner phase声明的执行器组标签
         if (ExecMode.RUNNER.getValue().equals(jobPhaseVo.getExecMode()) && combopPhaseExecuteConfigVo != null && combopPhaseExecuteConfigVo.getExecuteConfig() != null
                 && combopPhaseExecuteConfigVo.getExecuteConfig().getRunnerGroupTag() != null) {
@@ -297,10 +303,17 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
             runnerGroupTagNameStr = tagVoList.stream().map(TagVo::getName).collect(Collectors.joining("、"));
             List<RunnerGroupVo> runnerGroupVos = runnerMapper.getRunnerGroupByTagIdOrNameList(runnerGroupTagList);
             if (CollectionUtils.isNotEmpty(runnerGroupVos)) {
+                runnerGroupVos = runnerGroupVos.stream().filter(rg -> runnerGroupIdListWithRule.contains(rg.getId())).collect(Collectors.toList());
+                if (CollectionUtils.isNotEmpty(runnerGroupVos)) {
+                    runnerGroupIdListWithTagAndRule = runnerGroupVos.stream().map(RunnerGroupVo::getId).collect(Collectors.toList());
+                } else {
+                    if (Boolean.TRUE.equals(isJobRunnerGroupTag)) {
+                        throw new AutoexecRunnerGroupNotFoundByTagAndRuleException(runnerGroupTagNameStr);
+                    } else {
+                        throw new AutoexecRunnerGroupNotFoundByTagAndRuleException(runnerGroupTagNameStr, jobPhaseVo);
+                    }
+                }
                 runnerGroupIdListWithTag = runnerGroupVos.stream().map(RunnerGroupVo::getId).collect(Collectors.toList());
-                List<String> runnerGroupIdStrListWithTag = runnerGroupIdListWithTag.stream().map(Object::toString).collect(Collectors.toList());
-                runnerGroupIdNameListWithTag = runnerGroupVos.stream().map(RunnerGroupVo::getName).collect(Collectors.toList());
-                runnerGroupIdNameListWithTag.addAll(runnerGroupIdStrListWithTag);
             } else {
                 if (Boolean.TRUE.equals(isJobRunnerGroupTag)) {
                     throw new AutoexecRunnerGroupNotFoundByTagException(runnerGroupTagNameStr);
@@ -308,11 +321,13 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
                     throw new AutoexecRunnerGroupNotFoundByTagException(runnerGroupTagNameStr, jobPhaseVo);
                 }
             }
+        } else {
+            runnerGroupIdListWithTagAndRule = runnerGroupIdListWithRule;
         }
 
 
         if (Arrays.asList(ExecMode.TARGET.getValue(), ExecMode.RUNNER_TARGET.getValue()).contains(jobPhaseVo.getExecMode())) {
-            List<GroupNetworkVo> networkVoList = runnerMapper.getAllNetworkMask(runnerGroupIdListWithTag);
+            List<GroupNetworkVo> networkVoList = runnerMapper.getAllNetworkMask(runnerGroupIdListWithTagAndRule);
             for (GroupNetworkVo networkVo : networkVoList) {
                 if (IpUtil.isBelongSegment(jobPhaseVo.getCurrentNode().getHost(), networkVo.getNetworkIp(), networkVo.getMask())) {
                     RunnerGroupVo groupVo = runnerMapper.getRunnerMapGroupById(networkVo.getGroupId());
@@ -326,13 +341,6 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
                     break;
                 }
             }
-//            if (CollectionUtils.isEmpty(runnerMapVos)) {
-//                if (CollectionUtils.isNotEmpty(runnerGroupIdListWithTag)) {
-//                    throw new RunnerNotMatchException(jobPhaseVo.getCurrentNode().getHost(), jobPhaseVo.getCurrentNode().getResourceId(), runnerGroupTagNameStr);
-//                } else {
-//                    throw new RunnerNotMatchException(jobPhaseVo.getCurrentNode().getHost(), jobPhaseVo.getCurrentNode().getResourceId());
-//                }
-//            }
         } else {
             //默认随机分配
             String runnerGroup = null;
@@ -369,11 +377,8 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
                 runnerGroup = "-1";
             }
             if (Objects.equals(runnerGroup, "-1")) {//-1 代表 “随机匹配”
-                runnerMapVos = runnerMapper.getAllRunnerMap(runnerGroupIdListWithTag);
+                runnerMapVos = runnerMapper.getAllRunnerMap(runnerGroupIdListWithTagAndRule);
                 if (CollectionUtils.isEmpty(runnerMapVos)) {
-                    if (CollectionUtils.isNotEmpty(runnerGroupIdListWithTag)) {
-                        throw new AutoexecRunnerGroupTagNotMatchException(runnerGroupTagNameStr);
-                    }
                     throw new RunnerNotFoundException();
                 }
             } else {
@@ -381,7 +386,7 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
                 if (runnerGroupVo == null) {
                     throw new RunnerGroupNotFoundException(runnerGroup);
                 }
-                if (CollectionUtils.isNotEmpty(runnerGroupIdListWithTag) && !runnerGroupIdNameListWithTag.contains(runnerGroup)) {
+                if (CollectionUtils.isNotEmpty(runnerGroupIdListWithTag) && !runnerGroupIdListWithTag.contains(runnerGroupVo.getId())) {
                     String runnerGroupFrom = I18nUtils.getMessage("nmajsa.autoexecjobsourcetypehandler.getrunnermaplist");
                     if (Boolean.FALSE.equals(isJobRunnerGroup)) {
                         runnerGroupFrom = I18nUtils.getMessage("nfac.paramtype.phase") + "“" + jobPhaseVo.getName() + "“";
@@ -392,14 +397,51 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
                     }
                     throw new AutoexecRunnerGroupTagNotMatchException(runnerGroupFrom, runnerGroupTagFrom, runnerGroupVo.getName(), runnerGroupTagNameStr);
                 }
+                if (!runnerGroupIdListWithRule.contains(runnerGroupVo.getId())) {
+                    if (Boolean.FALSE.equals(isJobRunnerGroup)) {
+                        throw new AutoexecRunnerGroupRuleNotMatchException(runnerGroupVo, I18nUtils.getMessage("nfac.paramtype.phase"), jobPhaseVo.getName());
+                    } else {
+                        throw new AutoexecRunnerGroupRuleNotMatchException(runnerGroupVo, I18nUtils.getMessage("nmajsa.autoexecjobsourcetypehandler.getrunnermaplist"));
+                    }
+                }
                 runnerMapVos = runnerMapper.getRunnerMapListByRunnerGroupId(runnerGroupVo.getId());
                 if (CollectionUtils.isEmpty(runnerMapVos)) {
-                    throw new RunnerGroupRunnerNotFoundException(runnerGroup);
+                    throw new RunnerGroupRunnerNotFoundException(runnerGroupVo.getName() + "(" + runnerGroupVo.getId() + ")");
                 }
             }
 
         }
         return runnerMapVos;
+    }
+
+    /**
+     * 返回所有rule为空 或 满足rule的执行器组
+     */
+    private List<Long> getMatchRuleRunnerGroupList() {
+        List<Long> matchRuleRunnerGroupIdList = new ArrayList<>();
+        List<RunnerGroupVo> runnerGroups = runnerMapper.getAllRunnerGroupList();
+        JSONObject headers = null;
+        //如果存在规则的执行器组，则先校验
+        for (RunnerGroupVo runnerGroupVo : runnerGroups) {
+            if (StringUtils.isNotBlank(runnerGroupVo.getRule())) {
+                if (MapUtils.isEmpty(headers) && UserContext.get() != null) {
+                    String tokenHash = UserContext.get().getTokenHash();
+                    if (StringUtils.isNotBlank(tokenHash)) {
+                        String sessionContentStr = userSessionContentMapper.getUserSessionContentByHash(tokenHash);
+                        JSONObject sessionContentJson = JSON.parseObject(sessionContentStr);
+                        if (MapUtils.isNotEmpty(sessionContentJson)) {
+                            headers = sessionContentJson.getJSONObject("headers");
+                        }
+                    }
+                }
+                if (MapUtils.isNotEmpty(headers) && AviatorEvaluatorUtil.evaluateBoolean(runnerGroupVo.getRule(), headers)) {
+                    matchRuleRunnerGroupIdList.add(runnerGroupVo.getId());
+                }
+            } else {
+                matchRuleRunnerGroupIdList.add(runnerGroupVo.getId());
+            }
+        }
+        return matchRuleRunnerGroupIdList;
     }
 
     @Override
@@ -456,7 +498,8 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
     }
 
     @Override
-    public List<String> getPhaseSqlStatusList(AutoexecJobPhaseVo jobPhaseVo, Long runnerMapId, List<String> needCountStatusList) {
+    public List<String> getPhaseSqlStatusList(AutoexecJobPhaseVo jobPhaseVo, Long
+            runnerMapId, List<String> needCountStatusList) {
         return autoexecJobMapper.getJobSqlDetailStatusList(jobPhaseVo.getJobId(), jobPhaseVo.getName(), runnerMapId, needCountStatusList);
     }
 
