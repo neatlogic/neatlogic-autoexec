@@ -267,6 +267,9 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
         List<String> runnerGroupTagList = null;
         Boolean isJobRunnerGroupTag = null;
         List<Long> runnerGroupIdListWithRule = getMatchRuleRunnerGroupList();
+        if(CollectionUtils.isEmpty(runnerGroupIdListWithRule)){
+            throw new RunnerGroupMatchRuleNotFoundException();
+        }
         //优先获取runner phase声明的执行器组标签
         if (ExecMode.RUNNER.getValue().equals(jobPhaseVo.getExecMode()) && combopPhaseExecuteConfigVo != null && combopPhaseExecuteConfigVo.getExecuteConfig() != null
                 && combopPhaseExecuteConfigVo.getExecuteConfig().getRunnerGroupTag() != null) {
