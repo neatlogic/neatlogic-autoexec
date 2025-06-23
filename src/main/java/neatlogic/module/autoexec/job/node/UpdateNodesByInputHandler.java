@@ -94,7 +94,7 @@ public class UpdateNodesByInputHandler implements IUpdateNodes {
             List<ResourceVo> inputNodeResourceList = new ArrayList<>();
             for (ResourceVo resourceVo : ipPortNameList) {
                 inputNodeResourceList.add(resourceVo);
-                if (inputNodeResourceList.size() > 100) {
+                if (inputNodeResourceList.size() > 500) {
                     searchVo.setInputNodeList(inputNodeResourceList);
                     List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIpAndPortAndNameWithFilter(searchVo);
                     if (CollectionUtils.isNotEmpty(resourceList)) {
