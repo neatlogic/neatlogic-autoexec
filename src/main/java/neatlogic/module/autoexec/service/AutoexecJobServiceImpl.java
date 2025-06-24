@@ -50,6 +50,7 @@ import neatlogic.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
 import neatlogic.framework.cmdb.exception.resourcecenter.ResourceCenterAccountProtocolNotFoundException;
+import neatlogic.framework.common.constvalue.RunnerStatus;
 import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.config.ConfigManager;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
@@ -1570,10 +1571,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             url = runner.getUrl() + "api/rest/health/check";
             HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(new JSONObject().toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).sendRequest();
             if (requestUtil.getResponseCode() != 200 || StringUtils.isNotBlank(requestUtil.getError())) {
+                runnerMapper.updateStatusById(runner.getId(), RunnerStatus.DISCONNECTED.getValue());
                 throw new ApiRuntimeException(String.format("Request to %s failed, result: %s, ResponseCode: %s, ErrorMsg: %s, Exception %s",
                         url, requestUtil.getResult(), requestUtil.getResponseCode(), requestUtil.getErrorMsg(), requestUtil.getError()));
             }
-
         }
     }
 
@@ -2053,10 +2054,12 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     private void refreshJobRunner(Long jobId, Long updateTag) {
         //保存作业执行器状态
         List<AutoexecJobPhaseRunnerVo> runnerVos = autoexecJobMapper.getJobPhaseRunnerMapByJobId(jobId);
-        runnerVos = runnerVos.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(AutoexecJobPhaseRunnerVo::getRunnerMapId))), ArrayList::new));
-        autoexecJobMapper.insertJobRunner(runnerVos, updateTag);
-        if (updateTag != null) {
-            autoexecJobMapper.deleteJobByJobIdAndUpdateTag(jobId, updateTag);
+        if(CollectionUtils.isNotEmpty(runnerVos)) {
+            runnerVos = runnerVos.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(AutoexecJobPhaseRunnerVo::getRunnerMapId))), ArrayList::new));
+            autoexecJobMapper.insertJobRunner(runnerVos, updateTag);
+            if (updateTag != null) {
+                autoexecJobMapper.deleteJobByJobIdAndUpdateTag(jobId, updateTag);
+            }
         }
     }
 
