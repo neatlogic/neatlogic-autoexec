@@ -544,7 +544,9 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
                 if (UserContext.get().getUserUuid().equals(jobVo.getExecUser())) {
                     jobVo.setIsCanExecute(1);
                 } else {
-                    jobVo.setIsCanTakeOver(1);
+                    if (!Objects.equals(JobStatus.CHECKED.getValue(), jobVo.getStatus())) {
+                        jobVo.setIsCanTakeOver(1);
+                    }
                 }
             }
         } else if (Objects.equals(jobVo.getOperationType(), CombopOperationType.COMBOP.getValue())) {
@@ -557,7 +559,9 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
                 if (UserContext.get().getUserUuid().equals(jobVo.getExecUser())) {
                     jobVo.setIsCanExecute(1);
                 } else {
-                    jobVo.setIsCanTakeOver(1);
+                    if (!Objects.equals(JobStatus.CHECKED.getValue(), jobVo.getStatus())) {
+                        jobVo.setIsCanTakeOver(1);
+                    }
                 }
             }
         }
