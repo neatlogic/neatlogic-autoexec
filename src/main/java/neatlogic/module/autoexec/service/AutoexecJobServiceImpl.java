@@ -700,10 +700,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             throw new ResourceCenterAccountProtocolNotFoundException(protocolId);
         }
         //如果并发策略是并发数量类型，则需要计算分批数
-        if(Objects.equals(parallelPolicy, AutoexecParallelPolicy.PARALLEL.getValue())){
-            if(parallelCount == -1 || parallelCount == 0 || parallelCount == 1){
+        if (Objects.equals(parallelPolicy, AutoexecParallelPolicy.PARALLEL.getValue())) {
+            if (parallelCount == -1 || parallelCount == 0 || parallelCount == 1) {
                 roundCount = parallelCount;
-            }else {
+            } else {
                 int phaseNodeCount = autoexecJobMapper.getJobPhaseNodeCountWithoutDeleteAndInvalidByJobIdAndPhaseId(jobVo.getId(), jobPhase.getId());
                 // 向上取整计算批次数
                 roundCount = (phaseNodeCount + parallelCount - 1) / parallelCount;
@@ -1593,7 +1593,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             url = runner.getUrl() + "api/rest/health/check";
             HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(new JSONObject().toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).sendRequest();
             if (requestUtil.getResponseCode() != 200 || StringUtils.isNotBlank(requestUtil.getError())) {
-                runnerMapper.updateStatusById(runner.getId(), RunnerStatus.DISCONNECTED.getValue());
+                Long statusLcd = System.currentTimeMillis();
+                runnerMapper.updateStatusById(runner.getId(), RunnerStatus.DISCONNECTED.getValue(), new Date(statusLcd));
                 throw new ApiRuntimeException(String.format("Request to %s failed, result: %s, ResponseCode: %s, ErrorMsg: %s, Exception %s",
                         url, requestUtil.getResult(), requestUtil.getResponseCode(), requestUtil.getErrorMsg(), requestUtil.getError()));
             }
@@ -2076,7 +2077,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     private void refreshJobRunner(Long jobId, Long updateTag) {
         //保存作业执行器状态
         List<AutoexecJobPhaseRunnerVo> runnerVos = autoexecJobMapper.getJobPhaseRunnerMapByJobId(jobId);
-        if(CollectionUtils.isNotEmpty(runnerVos)) {
+        if (CollectionUtils.isNotEmpty(runnerVos)) {
             runnerVos = runnerVos.stream().collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(AutoexecJobPhaseRunnerVo::getRunnerMapId))), ArrayList::new));
             autoexecJobMapper.insertJobRunner(runnerVos, updateTag);
             if (updateTag != null) {
