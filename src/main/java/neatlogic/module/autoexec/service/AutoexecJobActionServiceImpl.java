@@ -452,6 +452,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                     }
                 }
             }
+            combopExecuteConfigVo.setParallelPolicy(autoexecJobParam.getParallelPolicy());
+            combopExecuteConfigVo.setRoundCount(autoexecJobParam.getRoundCount());
+            combopExecuteConfigVo.setParallelCount(autoexecJobParam.getParallelCount());
             config.setExecuteConfig(combopExecuteConfigVo);
             autoexecCombopService.verifyAutoexecCombopConfig(config, true);
         }

@@ -712,6 +712,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
 
         jobPhase.setProtocol(protocolVo.getName());
         jobPhase.setRoundCount(roundCount);
+        //兼容老数据不存在policy
+        if (StringUtils.isBlank(parallelPolicy) && roundCount != null) {
+            parallelPolicy = AutoexecParallelPolicy.ROUND_COUNT.getValue();
+        }
         jobPhase.setParallelPolicy(parallelPolicy);
         jobPhase.setParallelCount(parallelCount);
         jobPhase.setNodeFrom(jobVo.getNodeFrom());
