@@ -20,6 +20,7 @@ package neatlogic.module.autoexec.process.util;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.autoexec.constvalue.AutoexecParallelPolicy;
 import neatlogic.framework.autoexec.constvalue.CombopNodeSpecify;
 import neatlogic.framework.autoexec.crossover.IAutoexecCombopCrossoverService;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
@@ -340,18 +341,54 @@ public class CreateJobConfigUtil {
             }
         }
         if (needRoundCount) {
+            String parallelPolicy;
+            Integer roundCount = null;
+            if(StringUtils.isNotBlank(combopExecuteConfig.getParallelPolicy())){
+                parallelPolicy = combopExecuteConfig.getParallelPolicy();
+                executeConfig.setParallelPolicy(parallelPolicy);
+            }else{
+                CreateJobConfigMappingGroupVo mappingGroupVo = executeParamMappingGroupMap.get("parallelPolicy");
+                JSONArray jsonArray = parseCreateJobConfigMappingGroup(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, formCommonComponentDataMap, processTaskParam);
+                parallelPolicy = getFirstNotBlankString(jsonArray);
+                if (parallelPolicy != null) {
+                    builder.setParallelPolicy(parallelPolicy);
+                }
+            }
+
             if (combopExecuteConfig.getRoundCount() != null) {
-                executeConfig.setRoundCount(combopExecuteConfig.getRoundCount());
+                roundCount = combopExecuteConfig.getRoundCount();
+                executeConfig.setRoundCount(roundCount);
             } else {
                 CreateJobConfigMappingGroupVo mappingGroupVo = executeParamMappingGroupMap.get("roundCount");
                 if (mappingGroupVo != null) {
                     JSONArray jsonArray = parseCreateJobConfigMappingGroup(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, formCommonComponentDataMap, processTaskParam);
-                    Integer roundCount = getFirstNotBlankInteger(jsonArray);
+                    roundCount = getFirstNotBlankInteger(jsonArray);
                     if (roundCount != null) {
                         builder.setRoundCount(roundCount);
                     }
                 }
             }
+            // 兼容老数据
+            if(roundCount != null && StringUtils.isBlank(parallelPolicy)){
+                parallelPolicy = AutoexecParallelPolicy.ROUND_COUNT.getValue();
+                builder.setParallelPolicy(parallelPolicy);
+            }
+            if(Objects.equals(parallelPolicy,AutoexecParallelPolicy.PARALLEL.getValue())){
+                if (combopExecuteConfig.getParallelCount() != null) {
+                    executeConfig.setParallelCount(combopExecuteConfig.getParallelCount());
+                } else {
+                    CreateJobConfigMappingGroupVo mappingGroupVo = executeParamMappingGroupMap.get("parallelCount");
+                    if (mappingGroupVo != null) {
+                        JSONArray jsonArray = parseCreateJobConfigMappingGroup(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, formCommonComponentDataMap, processTaskParam);
+                        Integer parallelCount = getFirstNotBlankInteger(jsonArray);
+                        if (parallelCount != null) {
+                            builder.setParallelCount(parallelCount);
+                        }
+                    }
+                }
+            }
+
+
         }
         builder.setExecuteConfig(executeConfig);
 

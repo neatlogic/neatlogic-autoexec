@@ -58,6 +58,8 @@ public interface AutoexecServiceService {
             JSONArray formAttributeDataList,
             JSONArray hidecomponentList,
             Integer roundCount,
+            Integer parallelCount,
+            String parallelPolicy,
             String executeUser,
             Long protocol,
             AutoexecCombopExecuteNodeConfigVo executeNodeConfig,

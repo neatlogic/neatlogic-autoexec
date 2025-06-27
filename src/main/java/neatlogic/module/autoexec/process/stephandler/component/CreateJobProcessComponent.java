@@ -253,6 +253,8 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                                 JSONArray formAttributeDataList = paramObj.getJSONArray("formAttributeDataList");
                                 JSONArray hidecomponentList = paramObj.getJSONArray("hidecomponentList");
                                 Integer roundCount = paramObj.getInteger("roundCount");
+                                Integer parallelCount = paramObj.getInteger("parallelCount");
+                                String parallelPolicy = paramObj.getString("parallelPolicy");
                                 String executeUser = paramObj.getString("executeUser");
                                 Long protocol = paramObj.getLong("protocol");
                                 AutoexecCombopExecuteNodeConfigVo executeNodeConfig = paramObj.getObject("executeNodeConfig", AutoexecCombopExecuteNodeConfigVo.class);
@@ -267,7 +269,7 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                                 if (MapUtils.isNotEmpty(runnerGroupTagObj)) {
                                     runnerGroupTag = runnerGroupTagObj.toJavaObject(ParamMappingVo.class);
                                 }
-                                AutoexecJobBuilder autoexecJobBuilder = autoexecServiceService.getAutoexecJobBuilder(autoexecServiceVo, autoexecCombopVersionVo, name, scenarioId, formAttributeDataList, hidecomponentList, roundCount, executeUser, protocol, executeNodeConfig, runtimeParamMap, runnerGroup, runnerGroupTag);
+                                AutoexecJobBuilder autoexecJobBuilder = autoexecServiceService.getAutoexecJobBuilder(autoexecServiceVo, autoexecCombopVersionVo, name, scenarioId, formAttributeDataList, hidecomponentList, roundCount,parallelCount,parallelPolicy, executeUser, protocol, executeNodeConfig, runtimeParamMap, runnerGroup, runnerGroupTag);
                                 if (autoexecJobBuilder != null) {
                                     builderList.add(autoexecJobBuilder);
                                 }

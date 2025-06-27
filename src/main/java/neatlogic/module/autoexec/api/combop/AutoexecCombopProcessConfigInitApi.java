@@ -324,6 +324,34 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
                     roundCountObj.put("value", "");
                 }
                 executeParamList.add(roundCountObj);
+                //并发数
+                JSONObject parallelCountObj = new JSONObject();
+                parallelCountObj.put("key", "parallelCount");
+                parallelCountObj.put("name", "并发数量");
+                parallelCountObj.put("isRequired", 1);
+                Integer parallelCount = executeConfigVo.getParallelCount();
+                if (parallelCount != null) {
+                    parallelCountObj.put("mappingMode", ParamMappingMode.CONSTANT.getValue());
+                    parallelCountObj.put("value", parallelCount);
+                } else {
+                    parallelCountObj.put("mappingMode", "");
+                    parallelCountObj.put("value", "");
+                }
+                executeParamList.add(parallelCountObj);
+                //并发策略
+                JSONObject parallelPolicyObj = new JSONObject();
+                parallelPolicyObj.put("key", "parallelPolicy");
+                parallelPolicyObj.put("name", "并发策略");
+                parallelPolicyObj.put("isRequired", 1);
+                String parallelPolicy = executeConfigVo.getParallelPolicy();
+                if (StringUtils.isNotBlank(parallelPolicy)) {
+                    parallelPolicyObj.put("mappingMode", ParamMappingMode.CONSTANT.getValue());
+                    parallelPolicyObj.put("value", parallelPolicy);
+                } else {
+                    parallelPolicyObj.put("mappingMode", "");
+                    parallelPolicyObj.put("value", "");
+                }
+                executeParamList.add(parallelPolicyObj);
             }
         } else {
             if (needExecuteNode) {
@@ -362,7 +390,24 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
                 roundCountObj.put("mappingMode", "");
                 roundCountObj.put("value", "");
                 executeParamList.add(roundCountObj);
+                //并发数
+                JSONObject parallelCountObj = new JSONObject();
+                parallelCountObj.put("key", "parallelCount");
+                parallelCountObj.put("name", "并发数量");
+                parallelCountObj.put("isRequired", 1);
+                parallelCountObj.put("mappingMode", "");
+                parallelCountObj.put("value", "");
+                executeParamList.add(parallelCountObj);
+                //并发策略
+                JSONObject parallelPolicyObj = new JSONObject();
+                parallelPolicyObj.put("key", "parallelPolicy");
+                parallelPolicyObj.put("name", "并发策略");
+                parallelPolicyObj.put("isRequired", 1);
+                parallelPolicyObj.put("mappingMode", "");
+                parallelPolicyObj.put("value", "");
+                executeParamList.add(parallelPolicyObj);
             }
+
 
             //补充runnerGroup
             ParamMappingVo runnerGroupParam = new ParamMappingVo();

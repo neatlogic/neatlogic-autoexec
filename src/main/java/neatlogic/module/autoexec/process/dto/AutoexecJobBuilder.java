@@ -23,6 +23,7 @@ import neatlogic.framework.autoexec.dto.combop.ParamMappingVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.restful.annotation.EntityField;
+import org.apache.commons.lang3.StringUtils;
 
 public class AutoexecJobBuilder {
     @EntityField(name = "组合工具id", type = ApiParamType.LONG)
@@ -47,6 +48,9 @@ public class AutoexecJobBuilder {
 
     @EntityField(name = "并发线程数", type = ApiParamType.INTEGER)
     private Integer parallelCount;
+
+    @EntityField(name = "并发策略", type = ApiParamType.INTEGER)
+    private String parallelPolicy;
 
     @EntityField(name = "作业参数数据", type = ApiParamType.JSONOBJECT)
     private JSONObject param;
@@ -130,6 +134,14 @@ public class AutoexecJobBuilder {
         this.parallelCount = parallelCount;
     }
 
+    public String getParallelPolicy() {
+        return parallelPolicy;
+    }
+
+    public void setParallelPolicy(String parallelPolicy) {
+        this.parallelPolicy = parallelPolicy;
+    }
+
     public AutoexecJobBuilder(Long combopId) {
         this.combopId = combopId;
     }
@@ -146,6 +158,9 @@ public class AutoexecJobBuilder {
         }
         if (parallelCount != null) {
             jobVo.setParallelCount(parallelCount);
+        }
+        if(StringUtils.isNotBlank(parallelPolicy)){
+            jobVo.setParallelPolicy(parallelPolicy);
         }
         jobVo.setName(jobName);
         jobVo.setOperationId(combopId);

@@ -17,6 +17,7 @@ package neatlogic.module.autoexec.service;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.autoexec.constvalue.AutoexecParallelPolicy;
 import neatlogic.framework.autoexec.constvalue.CombopNodeSpecify;
 import neatlogic.framework.autoexec.constvalue.ParamMappingMode;
 import neatlogic.framework.autoexec.constvalue.ServiceParamMappingMode;
@@ -390,7 +391,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
         if (CollectionUtils.isNotEmpty(runtimeParamList)) {
             runtimeParamMap = runtimeParamList.stream().collect(Collectors.toMap(AutoexecParamVo::getKey, e -> e));
         }
-        List<ParamMappingVo> runtimeParamMappingList =  serviceConfigVo.getRuntimeParamList();
+        List<ParamMappingVo> runtimeParamMappingList = serviceConfigVo.getRuntimeParamList();
         if (CollectionUtils.isNotEmpty(runtimeParamMappingList)) {
             for (ParamMappingVo runtimeParamMapping : runtimeParamMappingList) {
                 String key = runtimeParamMapping.getKey();
@@ -515,6 +516,8 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
             JSONArray formAttributeDataList,
             JSONArray hidecomponentList,
             Integer roundCount,
+            Integer parallelCount,
+            String parallelPolicy,
             String executeUser,
             Long protocol,
             AutoexecCombopExecuteNodeConfigVo executeNodeConfig,
@@ -606,23 +609,70 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
         // 如果服务编辑页设置了表单，且分批数量、执行目标、连接协议、执行账号、作业参数是必填时，要么映射表单组件，要么映射常量（必填）。
         // 如果服务编辑页没有设置了表单，那么分批数量、执行目标、连接协议、执行账号、作业参数等可填也可不填，不填的话，在服务创建作业时再填。
         if (autoexecCombopVersionVo.getNeedRoundCount()) {
-            ParamMappingVo roundCountParamMappingVo = config.getRoundCount();
-            if (roundCountParamMappingVo != null) {
-                if (Objects.equals(roundCountParamMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue()) && roundCountParamMappingVo.getValue() != null) {
-                    builder.setRoundCount((Integer) roundCountParamMappingVo.getValue());
+            ParamMappingVo parallelPolicyParamMappingVo = config.getParallelPolicy();
+            if (parallelPolicyParamMappingVo != null) {
+                if (Objects.equals(parallelPolicyParamMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue()) && parallelPolicyParamMappingVo.getValue() != null) {
+                    parallelPolicy = parallelPolicyParamMappingVo.getValue().toString();
+                    builder.setParallelPolicy(parallelPolicy);
                 } else {
                     if (StringUtils.isNotBlank(formUuid)) {
-                        if (Objects.equals(roundCountParamMappingVo.getMappingMode(), ServiceParamMappingMode.FORMATTR.getValue())) {
-                            Object value = formAttributeDataMap.get(roundCountParamMappingVo.getValue().toString());
+                        if (Objects.equals(parallelPolicyParamMappingVo.getMappingMode(), ServiceParamMappingMode.FORMATTR.getValue())) {
+                            Object value = formAttributeDataMap.get(parallelPolicyParamMappingVo.getValue().toString());
                             if (value != null) {
-                                builder.setRoundCount((Integer) value);
+                                parallelPolicy = value.toString();
+                                builder.setParallelPolicy(parallelPolicy);
                             }
                         }
                     } else {
-                        if (roundCount != null) {
-                            builder.setRoundCount(roundCount);
+                        if (StringUtils.isNotBlank(parallelPolicy)) {
+                            builder.setParallelPolicy(parallelPolicy);
                         } else {
-                            throw new ParamNotExistsException("分批数量(roundCount)必须设置， 请联系管理员重新编辑该服务");
+                            throw new ParamNotExistsException("并发策略(roundCount)必须设置， 请联系管理员重新编辑该服务");
+                        }
+                    }
+                }
+            }
+            if (Objects.equals(parallelPolicy, AutoexecParallelPolicy.ROUND_COUNT.getValue())) {
+                ParamMappingVo roundCountParamMappingVo = config.getRoundCount();
+                if (roundCountParamMappingVo != null) {
+                    if (Objects.equals(roundCountParamMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue()) && roundCountParamMappingVo.getValue() != null) {
+                        builder.setRoundCount((Integer) roundCountParamMappingVo.getValue());
+                    } else {
+                        if (StringUtils.isNotBlank(formUuid)) {
+                            if (Objects.equals(roundCountParamMappingVo.getMappingMode(), ServiceParamMappingMode.FORMATTR.getValue())) {
+                                Object value = formAttributeDataMap.get(roundCountParamMappingVo.getValue().toString());
+                                if (value != null) {
+                                    builder.setRoundCount((Integer) value);
+                                }
+                            }
+                        } else {
+                            if (roundCount != null) {
+                                builder.setRoundCount(roundCount);
+                            } else {
+                                throw new ParamNotExistsException("分批数量(roundCount)必须设置， 请联系管理员重新编辑该服务");
+                            }
+                        }
+                    }
+                }
+            } else if (Objects.equals(parallelPolicy, AutoexecParallelPolicy.PARALLEL.getValue())) {
+                ParamMappingVo parallelCountParamMappingVo = config.getParallelCount();
+                if (parallelCountParamMappingVo != null) {
+                    if (Objects.equals(parallelCountParamMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue()) && parallelCountParamMappingVo.getValue() != null) {
+                        builder.setParallelCount((Integer) parallelCountParamMappingVo.getValue());
+                    } else {
+                        if (StringUtils.isNotBlank(formUuid)) {
+                            if (Objects.equals(parallelCountParamMappingVo.getMappingMode(), ServiceParamMappingMode.FORMATTR.getValue())) {
+                                Object value = formAttributeDataMap.get(parallelCountParamMappingVo.getValue().toString());
+                                if (value != null) {
+                                    builder.setParallelCount((Integer) value);
+                                }
+                            }
+                        } else {
+                            if (roundCount != null) {
+                                builder.setParallelCount(parallelCount);
+                            } else {
+                                throw new ParamNotExistsException("并发数量(roundCount)必须设置， 请联系管理员重新编辑该服务");
+                            }
                         }
                     }
                 }
@@ -756,7 +806,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 if (!Objects.equals(autoexecParamVo.getIsRequired(), 1)) {
                     continue;
                 }
-                if(autoexecParamVo.getDefaultValue() != null) {
+                if (autoexecParamVo.getDefaultValue() != null) {
                     continue;
                 }
                 throw new AutoexecJobParamNotExistException(autoexecParamVo.getName(), autoexecParamVo.getKey());
