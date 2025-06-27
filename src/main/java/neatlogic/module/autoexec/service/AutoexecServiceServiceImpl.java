@@ -146,59 +146,121 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
             }
         }
         if (versionVo.getNeedRoundCount()) {
-            ParamMappingVo roundCountMappingVo = serviceConfigVo.getRoundCount();
-            if (roundCountMappingVo == null) {
-                if (throwException) {
-                    throw new AutoexecRoundCountIsRequiredException();
-                } else {
-                    JSONObject jsonObj = new JSONObject();
-                    jsonObj.put("key", "roundCount");
-                    jsonObj.put("description", $.t("分批数量必须设置"));
-                    reasonList.add(jsonObj);
-                }
-            } else {
-                Object value = roundCountMappingVo.getValue();
-                String mappingMode = roundCountMappingVo.getMappingMode();
-                if (Objects.equals(mappingMode, ServiceParamMappingMode.CONSTANT.getValue())) {
-                    if (value == null) {
-                        if (throwException) {
-                            throw new AutoexecRoundCountIsRequiredException();
-                        } else {
-                            JSONObject jsonObj = new JSONObject();
-                            jsonObj.put("key", "roundCount");
-                            jsonObj.put("description", $.t("分批数量必须设置"));
-                            reasonList.add(jsonObj);
-                        }
-                    }
-                } else if (Objects.equals(mappingMode, ServiceParamMappingMode.FORMATTR.getValue())) {
-                    if (StringUtils.isBlank(formUuid)) {
-                        if (throwException) {
-                            throw new AutoexecServiceNotReferencedFormException();
-                        } else {
-                            JSONObject jsonObj = new JSONObject();
-                            jsonObj.put("key", "roundCount");
-                            jsonObj.put("description", $.t("服务目录未引用表单，不能映射表单属性"));
-                            reasonList.add(jsonObj);
-                        }
-                    } else if (StringUtils.isBlank((String) value)) {
-                        if (throwException) {
-                            throw new AutoexecRoundCountIsRequiredException();
-                        } else {
-                            JSONObject jsonObj = new JSONObject();
-                            jsonObj.put("key", "roundCount");
-                            jsonObj.put("description", $.t("分批数量必须设置"));
-                            reasonList.add(jsonObj);
-                        }
+            ParamMappingVo parallelPolicy = serviceConfigVo.getParallelPolicy();
+            if (Objects.equals(parallelPolicy, AutoexecParallelPolicy.ROUND_COUNT.getValue())) {
+                ParamMappingVo roundCountMappingVo = serviceConfigVo.getRoundCount();
+                if (roundCountMappingVo == null) {
+                    if (throwException) {
+                        throw new AutoexecRoundCountIsRequiredException();
                     } else {
-                        FormAttributeVo formAttributeVo = formAttributeMap.get((String) value);
-                        if (formAttributeVo == null) {
+                        JSONObject jsonObj = new JSONObject();
+                        jsonObj.put("key", "roundCount");
+                        jsonObj.put("description", $.t("分批数量必须设置"));
+                        reasonList.add(jsonObj);
+                    }
+                } else {
+                    Object value = roundCountMappingVo.getValue();
+                    String mappingMode = roundCountMappingVo.getMappingMode();
+                    if (Objects.equals(mappingMode, ServiceParamMappingMode.CONSTANT.getValue())) {
+                        if (value == null) {
                             if (throwException) {
-                                throw new FormAttributeNotFoundException(formName, (String) value);
+                                throw new AutoexecRoundCountIsRequiredException();
                             } else {
                                 JSONObject jsonObj = new JSONObject();
                                 jsonObj.put("key", "roundCount");
-                                jsonObj.put("description", $.t("表单”{0}“中找不到“{1}”属性", formName, value));
+                                jsonObj.put("description", $.t("分批数量必须设置"));
                                 reasonList.add(jsonObj);
+                            }
+                        }
+                    } else if (Objects.equals(mappingMode, ServiceParamMappingMode.FORMATTR.getValue())) {
+                        if (StringUtils.isBlank(formUuid)) {
+                            if (throwException) {
+                                throw new AutoexecServiceNotReferencedFormException();
+                            } else {
+                                JSONObject jsonObj = new JSONObject();
+                                jsonObj.put("key", "roundCount");
+                                jsonObj.put("description", $.t("服务目录未引用表单，不能映射表单属性"));
+                                reasonList.add(jsonObj);
+                            }
+                        } else if (StringUtils.isBlank((String) value)) {
+                            if (throwException) {
+                                throw new AutoexecRoundCountIsRequiredException();
+                            } else {
+                                JSONObject jsonObj = new JSONObject();
+                                jsonObj.put("key", "roundCount");
+                                jsonObj.put("description", $.t("分批数量必须设置"));
+                                reasonList.add(jsonObj);
+                            }
+                        } else {
+                            FormAttributeVo formAttributeVo = formAttributeMap.get((String) value);
+                            if (formAttributeVo == null) {
+                                if (throwException) {
+                                    throw new FormAttributeNotFoundException(formName, (String) value);
+                                } else {
+                                    JSONObject jsonObj = new JSONObject();
+                                    jsonObj.put("key", "roundCount");
+                                    jsonObj.put("description", $.t("表单”{0}“中找不到“{1}”属性", formName, value));
+                                    reasonList.add(jsonObj);
+                                }
+                            }
+                        }
+                    }
+                }
+            } else {
+                ParamMappingVo parallelCountMappingVo = serviceConfigVo.getParallelCount();
+                if (parallelCountMappingVo == null) {
+                    if (throwException) {
+                        throw new AutoexecRoundCountIsRequiredException();
+                    } else {
+                        JSONObject jsonObj = new JSONObject();
+                        jsonObj.put("key", "parallelCount");
+                        jsonObj.put("description", $.t("并发数量必须设置"));
+                        reasonList.add(jsonObj);
+                    }
+                } else {
+                    Object value = parallelCountMappingVo.getValue();
+                    String mappingMode = parallelCountMappingVo.getMappingMode();
+                    if (Objects.equals(mappingMode, ServiceParamMappingMode.CONSTANT.getValue())) {
+                        if (value == null) {
+                            if (throwException) {
+                                throw new AutoexecRoundCountIsRequiredException();
+                            } else {
+                                JSONObject jsonObj = new JSONObject();
+                                jsonObj.put("key", "parallelCount");
+                                jsonObj.put("description", $.t("并发数量必须设置"));
+                                reasonList.add(jsonObj);
+                            }
+                        }
+                    } else if (Objects.equals(mappingMode, ServiceParamMappingMode.FORMATTR.getValue())) {
+                        if (StringUtils.isBlank(formUuid)) {
+                            if (throwException) {
+                                throw new AutoexecServiceNotReferencedFormException();
+                            } else {
+                                JSONObject jsonObj = new JSONObject();
+                                jsonObj.put("key", "parallelCount");
+                                jsonObj.put("description", $.t("服务目录未引用表单，不能映射表单属性"));
+                                reasonList.add(jsonObj);
+                            }
+                        } else if (StringUtils.isBlank((String) value)) {
+                            if (throwException) {
+                                throw new AutoexecRoundCountIsRequiredException();
+                            } else {
+                                JSONObject jsonObj = new JSONObject();
+                                jsonObj.put("key", "parallelCount");
+                                jsonObj.put("description", $.t("并发数量必须设置"));
+                                reasonList.add(jsonObj);
+                            }
+                        } else {
+                            FormAttributeVo formAttributeVo = formAttributeMap.get((String) value);
+                            if (formAttributeVo == null) {
+                                if (throwException) {
+                                    throw new FormAttributeNotFoundException(formName, (String) value);
+                                } else {
+                                    JSONObject jsonObj = new JSONObject();
+                                    jsonObj.put("key", "parallelCount");
+                                    jsonObj.put("description", $.t("表单”{0}“中找不到“{1}”属性", formName, value));
+                                    reasonList.add(jsonObj);
+                                }
                             }
                         }
                     }
@@ -627,7 +689,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         if (StringUtils.isNotBlank(parallelPolicy)) {
                             builder.setParallelPolicy(parallelPolicy);
                         } else {
-                            throw new ParamNotExistsException("并发策略(roundCount)必须设置， 请联系管理员重新编辑该服务");
+                            throw new ParamNotExistsException("并发策略(parallel)必须设置， 请联系管理员重新编辑该服务");
                         }
                     }
                 }
@@ -668,7 +730,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                                 }
                             }
                         } else {
-                            if (roundCount != null) {
+                            if (parallelCount != null) {
                                 builder.setParallelCount(parallelCount);
                             } else {
                                 throw new ParamNotExistsException("并发数量(roundCount)必须设置， 请联系管理员重新编辑该服务");

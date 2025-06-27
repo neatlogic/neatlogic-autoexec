@@ -97,7 +97,7 @@ public class GetAutoexecServiceApi extends PrivateApiComponentBase {
             }
         }
         //兼容老数据
-        if (serviceVo.getConfig() != null && serviceVo.getConfig().getRoundCount() != null && serviceVo.getConfig().getRoundCount().getValue() != null) {
+        if (serviceVo.getConfig() != null && serviceVo.getConfig().getRoundCount() != null && serviceVo.getConfig().getRoundCount().getValue() != null && serviceVo.getConfig().getParallelPolicy() == null) {
             ParamMappingVo parallelPolicy = new ParamMappingVo();
             parallelPolicy.setMappingMode(ParamMappingMode.CONSTANT.getValue());
             parallelPolicy.setValue(AutoexecParallelPolicy.ROUND_COUNT.getValue());

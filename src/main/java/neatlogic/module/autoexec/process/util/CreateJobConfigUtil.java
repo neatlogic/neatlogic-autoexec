@@ -341,16 +341,15 @@ public class CreateJobConfigUtil {
             }
         }
         if (needRoundCount) {
-            String parallelPolicy;
+            String parallelPolicy = null;
             Integer roundCount = null;
             if(StringUtils.isNotBlank(combopExecuteConfig.getParallelPolicy())){
                 parallelPolicy = combopExecuteConfig.getParallelPolicy();
                 executeConfig.setParallelPolicy(parallelPolicy);
             }else{
                 CreateJobConfigMappingGroupVo mappingGroupVo = executeParamMappingGroupMap.get("parallelPolicy");
-                JSONArray jsonArray = parseCreateJobConfigMappingGroup(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, formCommonComponentDataMap, processTaskParam);
-                parallelPolicy = getFirstNotBlankString(jsonArray);
-                if (parallelPolicy != null) {
+                if (CollectionUtils.isNotEmpty(mappingGroupVo.getMappingList()) && mappingGroupVo.getMappingList().get(0) != null && mappingGroupVo.getMappingList().get(0).getValue() != null) {
+                    parallelPolicy = mappingGroupVo.getMappingList().get(0).getValue().toString();
                     builder.setParallelPolicy(parallelPolicy);
                 }
             }
