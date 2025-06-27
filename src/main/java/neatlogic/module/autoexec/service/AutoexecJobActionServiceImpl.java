@@ -20,10 +20,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
-import neatlogic.framework.autoexec.constvalue.JobAction;
-import neatlogic.framework.autoexec.constvalue.JobTriggerType;
-import neatlogic.framework.autoexec.constvalue.ParamMappingMode;
-import neatlogic.framework.autoexec.constvalue.ToolType;
+import neatlogic.framework.autoexec.constvalue.*;
 import neatlogic.framework.autoexec.crossover.IAutoexecJobActionCrossoverService;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
@@ -423,13 +420,36 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             if (autoexecJobParam.getExecuteConfig().getExecuteNodeConfig() != null && !autoexecJobParam.getExecuteConfig().getExecuteNodeConfig().isNull()) {
                 combopExecuteConfigVo.setExecuteNodeConfig(autoexecJobParam.getExecuteConfig().getExecuteNodeConfig());
             }
-            //如果创建作业分批数入参不存在，则用组合工具的全局分批数
-            if (autoexecJobParam.getRoundCount() == null) {
-                if (combopExecuteConfigVo.getRoundCount() != null) {
-                    autoexecJobParam.setRoundCount(combopExecuteConfigVo.getRoundCount());
+            if (StringUtils.isBlank(autoexecJobParam.getParallelPolicy())) {
+                if (combopExecuteConfigVo.getParallelPolicy() != null) {
+                    autoexecJobParam.setParallelPolicy(combopExecuteConfigVo.getParallelPolicy());
                 } else {
-                    //组合工具的全局分批数不存在则默认分64批
-                    autoexecJobParam.setRoundCount(64);
+                    //组合工具的全局并发策略不存在则默认并发数，兼容老数据
+                    if (autoexecJobParam.getRoundCount() != null || combopExecuteConfigVo.getRoundCount() != null) {
+                        autoexecJobParam.setParallelPolicy(AutoexecParallelPolicy.ROUND_COUNT.getValue());
+                    }else{
+                        autoexecJobParam.setParallelPolicy(AutoexecParallelPolicy.PARALLEL.getValue());
+                    }
+                }
+            }
+
+            if (Objects.equals(autoexecJobParam.getParallelPolicy(), AutoexecParallelPolicy.ROUND_COUNT.getValue())) {
+                //如果创建作业分批数入参不存在，则用组合工具的全局分批数
+                if (autoexecJobParam.getRoundCount() == null) {
+                    if (combopExecuteConfigVo.getRoundCount() != null) {
+                        autoexecJobParam.setRoundCount(combopExecuteConfigVo.getRoundCount());
+                    } else {
+                        //组合工具的全局分批数不存在则默认分64批
+                        autoexecJobParam.setRoundCount(64);
+                    }
+                }
+            } else {
+                if (autoexecJobParam.getParallelCount() == null) {
+                    if (combopExecuteConfigVo.getParallelCount() != null) {
+                        autoexecJobParam.setParallelCount(combopExecuteConfigVo.getParallelCount());
+                    } else {
+                        autoexecJobParam.setParallelCount(32);
+                    }
                 }
             }
             config.setExecuteConfig(combopExecuteConfigVo);

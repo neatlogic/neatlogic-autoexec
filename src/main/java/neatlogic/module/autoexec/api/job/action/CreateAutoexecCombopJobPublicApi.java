@@ -20,10 +20,7 @@ import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
-import neatlogic.framework.autoexec.constvalue.CombopOperationType;
-import neatlogic.framework.autoexec.constvalue.JobSource;
-import neatlogic.framework.autoexec.constvalue.JobTriggerType;
-import neatlogic.framework.autoexec.constvalue.ParamType;
+import neatlogic.framework.autoexec.constvalue.*;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
@@ -100,7 +97,9 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
             @Param(name = "invokeId", type = ApiParamType.LONG, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.invokeid"),
             @Param(name = "parentId", type = ApiParamType.LONG, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.parentid"),
             @Param(name = "scenarioName", type = ApiParamType.STRING, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.scenarioname"),
+            @Param(name = "parallelPolicy", type = ApiParamType.ENUM, member = AutoexecParallelPolicy.class,desc = "nmaaja.createautoexeccombopjobapi.input.param.desc.parallelpolicy"),
             @Param(name = "roundCount", type = ApiParamType.LONG, desc = "term.autoexec.roundcount"),
+            @Param(name = "parallelCount", type = ApiParamType.LONG, desc = "term.autoexec.roundcount"),
             @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.executeconfig"),
             @Param(name = "planStartTime", type = ApiParamType.LONG, desc = "common.planstarttime"),
             @Param(name = "triggerType", type = ApiParamType.ENUM, member = JobTriggerType.class, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.triggertype"),

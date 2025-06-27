@@ -42,8 +42,11 @@ public class AutoexecJobBuilder {
     @EntityField(name = "runner执行组标签", type = ApiParamType.JSONOBJECT)
     private ParamMappingVo runnerGroupTag;
 
-    @EntityField(name = "并发线程数", type = ApiParamType.INTEGER)
+    @EntityField(name = "分批数", type = ApiParamType.INTEGER)
     private Integer roundCount;
+
+    @EntityField(name = "并发线程数", type = ApiParamType.INTEGER)
+    private Integer parallelCount;
 
     @EntityField(name = "作业参数数据", type = ApiParamType.JSONOBJECT)
     private JSONObject param;
@@ -119,6 +122,14 @@ public class AutoexecJobBuilder {
         this.rawData = rawData;
     }
 
+    public Integer getParallelCount() {
+        return parallelCount;
+    }
+
+    public void setParallelCount(Integer parallelCount) {
+        this.parallelCount = parallelCount;
+    }
+
     public AutoexecJobBuilder(Long combopId) {
         this.combopId = combopId;
     }
@@ -132,6 +143,9 @@ public class AutoexecJobBuilder {
         jobVo.setExecuteConfig(executeConfig);
         if (roundCount != null) {
             jobVo.setRoundCount(roundCount);
+        }
+        if (parallelCount != null) {
+            jobVo.setParallelCount(parallelCount);
         }
         jobVo.setName(jobName);
         jobVo.setOperationId(combopId);

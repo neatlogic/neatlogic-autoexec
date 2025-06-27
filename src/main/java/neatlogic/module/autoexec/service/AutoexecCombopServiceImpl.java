@@ -375,6 +375,11 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 if (phaseExecuteConfig.getExecuteNodeConfig() == null) {
                     isNeedExecuteNodeConfig = true;
                 }
+
+                //兼容老数据：如果只有roundCount且parallelPolicy为null则parallelPolicy为roundCount
+                if (StringUtils.isBlank(phaseExecuteConfig.getParallelPolicy()) && phaseExecuteConfig.getRoundCount() != null) {
+                    phaseExecuteConfig.setParallelPolicy(AutoexecParallelPolicy.ROUND_COUNT.getValue());
+                }
             }
             List<AutoexecCombopPhaseOperationVo> phaseOperationList = phaseConfig.getPhaseOperationList();
             if (CollectionUtils.isEmpty(phaseOperationList)) {
@@ -405,6 +410,11 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                             }
                         }
                     }
+                }
+
+                //兼容老数据：如果只有roundCount且parallelPolicy为null则parallelPolicy为roundCount
+                if (StringUtils.isBlank(executeConfigVo.getParallelPolicy()) && executeConfigVo.getRoundCount() != null) {
+                    executeConfigVo.setParallelPolicy(AutoexecParallelPolicy.ROUND_COUNT.getValue());
                 }
             }
         }
@@ -452,6 +462,10 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 config.getExecuteConfig().setRunnerGroup(paramMappingVo);
                 paramMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
                 paramMappingVo.setValue("-1");
+            }
+            //兼容老数据：如果只有roundCount且parallelPolicy为null则parallelPolicy为roundCount
+            if (StringUtils.isBlank(config.getExecuteConfig().getParallelPolicy()) && config.getExecuteConfig().getRoundCount() != null) {
+                config.getExecuteConfig().setParallelPolicy(AutoexecParallelPolicy.ROUND_COUNT.getValue());
             }
         }
 
@@ -640,11 +654,11 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                     }
                     // 文本域类型 上游节点输出参数值 文本类型
                     if (Objects.equals(inputParamVo.getType(), ParamType.TEXTAREA.getValue()) && Objects.equals(preNodeOutputParamVo.getType(), ParamType.TEXT.getValue())) {
-                            continue;
+                        continue;
 
                     }
                     if (Objects.equals(inputParamVo.getType(), ParamType.TEXT.getValue()) && Objects.equals(preNodeOutputParamVo.getType(), ParamType.TEXTAREA.getValue())) {
-                            continue;
+                        continue;
 
                     }
                     throw new AutoexecParamMappingTargetTypeMismatchException(phaseName, operationName, inputParamLabel, conversionPreNodeParamPath(preNodeNameMap, preOperationNameMap, value));
