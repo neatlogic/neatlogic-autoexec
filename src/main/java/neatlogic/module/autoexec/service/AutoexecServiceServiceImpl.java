@@ -147,7 +147,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
         }
         if (versionVo.getNeedRoundCount()) {
             ParamMappingVo parallelPolicy = serviceConfigVo.getParallelPolicy();
-            if (Objects.equals(parallelPolicy, AutoexecParallelPolicy.ROUND_COUNT.getValue())) {
+            if (Objects.equals(parallelPolicy.getValue(), AutoexecParallelPolicy.ROUND_COUNT.getValue())) {
                 ParamMappingVo roundCountMappingVo = serviceConfigVo.getRoundCount();
                 if (roundCountMappingVo == null) {
                     if (throwException) {
@@ -210,11 +210,11 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 ParamMappingVo parallelCountMappingVo = serviceConfigVo.getParallelCount();
                 if (parallelCountMappingVo == null) {
                     if (throwException) {
-                        throw new AutoexecRoundCountIsRequiredException();
+                        throw new AutoexecParallelCountIsRequiredException();
                     } else {
                         JSONObject jsonObj = new JSONObject();
                         jsonObj.put("key", "parallelCount");
-                        jsonObj.put("description", $.t("并发数量必须设置"));
+                        jsonObj.put("description", $.t("并发数量必须设置1"));
                         reasonList.add(jsonObj);
                     }
                 } else {
@@ -223,11 +223,11 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                     if (Objects.equals(mappingMode, ServiceParamMappingMode.CONSTANT.getValue())) {
                         if (value == null) {
                             if (throwException) {
-                                throw new AutoexecRoundCountIsRequiredException();
+                                throw new AutoexecParallelCountIsRequiredException();
                             } else {
                                 JSONObject jsonObj = new JSONObject();
                                 jsonObj.put("key", "parallelCount");
-                                jsonObj.put("description", $.t("并发数量必须设置"));
+                                jsonObj.put("description", $.t("并发数量必须设置2"));
                                 reasonList.add(jsonObj);
                             }
                         }
@@ -243,11 +243,11 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             }
                         } else if (StringUtils.isBlank((String) value)) {
                             if (throwException) {
-                                throw new AutoexecRoundCountIsRequiredException();
+                                throw new AutoexecParallelCountIsRequiredException();
                             } else {
                                 JSONObject jsonObj = new JSONObject();
                                 jsonObj.put("key", "parallelCount");
-                                jsonObj.put("description", $.t("并发数量必须设置"));
+                                jsonObj.put("description", $.t("并发数量必须设置3"));
                                 reasonList.add(jsonObj);
                             }
                         } else {

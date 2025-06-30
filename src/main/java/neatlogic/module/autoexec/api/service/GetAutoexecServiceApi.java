@@ -80,6 +80,13 @@ public class GetAutoexecServiceApi extends PrivateApiComponentBase {
         if (serviceVo == null) {
             throw new AutoexecServiceNotFoundEditTargetException(id);
         }
+        //兼容老数据
+        if (serviceVo.getConfig() != null && serviceVo.getConfig().getRoundCount() != null && serviceVo.getConfig().getRoundCount().getValue() != null && serviceVo.getConfig().getParallelPolicy() == null) {
+            ParamMappingVo parallelPolicy = new ParamMappingVo();
+            parallelPolicy.setMappingMode(ParamMappingMode.CONSTANT.getValue());
+            parallelPolicy.setValue(AutoexecParallelPolicy.ROUND_COUNT.getValue());
+            serviceVo.getConfig().setParallelPolicy(parallelPolicy);
+        }
         List<AutoexecServiceAuthorityVo> authorityVoList = autoexecServiceMapper.getAutoexecServiceAuthorityListByServiceId(id);
         if (CollectionUtils.isNotEmpty(authorityVoList)) {
             List<String> authorityList = new ArrayList<>();
@@ -95,13 +102,6 @@ public class GetAutoexecServiceApi extends PrivateApiComponentBase {
                 serviceVo.setConfigExpiredReason(reasonObj);
                 autoexecServiceMapper.updateServiceConfigExpiredById(serviceVo);
             }
-        }
-        //兼容老数据
-        if (serviceVo.getConfig() != null && serviceVo.getConfig().getRoundCount() != null && serviceVo.getConfig().getRoundCount().getValue() != null && serviceVo.getConfig().getParallelPolicy() == null) {
-            ParamMappingVo parallelPolicy = new ParamMappingVo();
-            parallelPolicy.setMappingMode(ParamMappingMode.CONSTANT.getValue());
-            parallelPolicy.setValue(AutoexecParallelPolicy.ROUND_COUNT.getValue());
-            serviceVo.getConfig().setParallelPolicy(parallelPolicy);
         }
         return serviceVo;
     }
