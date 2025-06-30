@@ -704,7 +704,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             if (Objects.equals(roundCountParamMappingVo.getMappingMode(), ServiceParamMappingMode.FORMATTR.getValue())) {
                                 Object value = formAttributeDataMap.get(roundCountParamMappingVo.getValue().toString());
                                 if (value != null) {
-                                    builder.setRoundCount((Integer) value);
+                                    builder.setRoundCount(Integer.parseInt(value.toString()));
                                 }
                             }
                         } else {
@@ -726,7 +726,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             if (Objects.equals(parallelCountParamMappingVo.getMappingMode(), ServiceParamMappingMode.FORMATTR.getValue())) {
                                 Object value = formAttributeDataMap.get(parallelCountParamMappingVo.getValue().toString());
                                 if (value != null) {
-                                    builder.setParallelCount((Integer) value);
+                                    builder.setParallelCount(Integer.parseInt(value.toString()));
                                 }
                             }
                         } else {
