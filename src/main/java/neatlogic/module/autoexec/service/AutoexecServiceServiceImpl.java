@@ -147,7 +147,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
         }
         if (versionVo.getNeedRoundCount()) {
             ParamMappingVo parallelPolicy = serviceConfigVo.getParallelPolicy();
-            if (Objects.equals(parallelPolicy.getValue(), AutoexecParallelPolicy.ROUND_COUNT.getValue())) {
+            if (parallelPolicy != null && Objects.equals(parallelPolicy.getValue(), AutoexecParallelPolicy.ROUND_COUNT.getValue())) {
                 ParamMappingVo roundCountMappingVo = serviceConfigVo.getRoundCount();
                 if (roundCountMappingVo == null) {
                     if (throwException) {
@@ -885,11 +885,13 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
         AutoexecCombopExecuteConfigVo executeConfig = versionConfig.getExecuteConfig();
         if (executeConfig != null) {
             if (autoexecCombopVersionVo.getNeedRoundCount()) {
-                if (executeConfig.getRoundCount() != null) {
-                    ParamMappingVo roundCount = new ParamMappingVo();
-                    roundCount.setMappingMode(ParamMappingMode.CONSTANT.getValue());
-                    roundCount.setValue(executeConfig.getRoundCount());
-                    config.setRoundCount(roundCount);
+                if (config.getRoundCount() == null) {
+                    if (executeConfig.getRoundCount() != null) {
+                        ParamMappingVo roundCount = new ParamMappingVo();
+                        roundCount.setMappingMode(ParamMappingMode.CONSTANT.getValue());
+                        roundCount.setValue(executeConfig.getRoundCount());
+                        config.setRoundCount(roundCount);
+                    }
                 }
             } else {
                 config.setRoundCount(null);
