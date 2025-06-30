@@ -101,6 +101,10 @@ public class GetAutoexecServiceApi extends PrivateApiComponentBase {
                 reasonObj.put("reasonList", reasonList);
                 serviceVo.setConfigExpiredReason(reasonObj);
                 autoexecServiceMapper.updateServiceConfigExpiredById(serviceVo);
+            } else {
+                serviceVo.setConfigExpired(0);
+                serviceVo.setConfigExpiredReason(null);
+                autoexecServiceMapper.updateServiceConfigExpiredById(serviceVo);
             }
         }
         return serviceVo;
