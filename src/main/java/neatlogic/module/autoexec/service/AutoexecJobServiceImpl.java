@@ -504,13 +504,13 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     scriptVersionVo = autoexecScriptMapper.getActiveVersionByScriptId(id);
                     script = autoexecCombopService.getOperationActiveVersionScriptByOperationId(id);
                 }
-                jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, scriptVo, scriptVersionVo, script, jobPhaseVoList, preOperationNameMap);
+                jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(jobVo, autoexecCombopPhaseOperationVo, jobPhaseVo, scriptVo, scriptVersionVo, script, jobPhaseVoList, preOperationNameMap);
             } else {
                 AutoexecToolVo toolVo = autoexecToolMapper.getToolById(id);
                 if (toolVo == null) {
                     throw new AutoexecToolNotFoundException(id);
                 }
-                jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(autoexecCombopPhaseOperationVo, jobPhaseVo, toolVo, jobPhaseVoList, preOperationNameMap);
+                jobPhaseOperationVo = new AutoexecJobPhaseOperationVo(jobVo, autoexecCombopPhaseOperationVo, jobPhaseVo, toolVo, jobPhaseVoList, preOperationNameMap);
             }
             initIfBlockOperation(autoexecCombopPhaseOperationVo, jobPhaseOperationVo, jobPhaseVo, jobPhaseVoList, jobVo, preOperationNameMap);
             initLOOPBlockOperation(autoexecCombopPhaseOperationVo, jobPhaseOperationVo, jobPhaseVo, jobPhaseVoList, jobVo, preOperationNameMap);
