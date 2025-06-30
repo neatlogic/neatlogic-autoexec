@@ -15,11 +15,8 @@ import neatlogic.framework.common.dto.BasePageVo;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import neatlogic.framework.scheduler.core.SchedulerManager;
-import neatlogic.framework.scheduler.dto.JobStatusVo;
 import neatlogic.framework.util.TableResultUtil;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -42,9 +39,6 @@ public class AutoexecScheduleListApi extends PrivateApiComponentBase {
     private AutoexecJobMapper autoexecJobMapper;
     @Resource
     private AutoexecCombopService autoexecCombopService;
-
-    @Resource
-    private SchedulerManager schedulerManager;
 
     @Override
     public String getToken() {
@@ -112,12 +106,6 @@ public class AutoexecScheduleListApi extends PrivateApiComponentBase {
                     if (execCount != null) {
                         autoexecScheduleVo.setExecCount(execCount);
                     }
-                    boolean isLoad = false;
-                    JobStatusVo jobStatusVo = autoexecScheduleVo.getJobStatus();
-                    if (jobStatusVo != null && StringUtils.isNotBlank(jobStatusVo.getJobName()) && StringUtils.isNotBlank(jobStatusVo.getJobGroup())) {
-                        isLoad = schedulerManager.checkJobIsExists(jobStatusVo.getJobName(), jobStatusVo.getJobGroup());
-                    }
-                    autoexecScheduleVo.setIsLoad(isLoad ? 1 : 0);
                 }
             }
         }
