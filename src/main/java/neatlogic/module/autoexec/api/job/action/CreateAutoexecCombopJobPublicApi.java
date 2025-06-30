@@ -51,9 +51,7 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -97,7 +95,7 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
             @Param(name = "invokeId", type = ApiParamType.LONG, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.invokeid"),
             @Param(name = "parentId", type = ApiParamType.LONG, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.parentid"),
             @Param(name = "scenarioName", type = ApiParamType.STRING, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.scenarioname"),
-            @Param(name = "parallelPolicy", type = ApiParamType.ENUM, member = AutoexecParallelPolicy.class,desc = "nmaaja.createautoexeccombopjobapi.input.param.desc.parallelpolicy"),
+            @Param(name = "parallelPolicy", type = ApiParamType.ENUM, member = AutoexecParallelPolicy.class, desc = "nmaaja.createautoexeccombopjobapi.input.param.desc.parallelpolicy"),
             @Param(name = "roundCount", type = ApiParamType.LONG, desc = "term.autoexec.roundcount"),
             @Param(name = "parallelCount", type = ApiParamType.LONG, desc = "term.autoexec.roundcount"),
             @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.executeconfig"),
@@ -185,20 +183,20 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
      * @param versionConfig 组合工具版本配置
      */
     private JSONObject initParam(JSONObject param, AutoexecCombopVersionConfigVo versionConfig) {
-        List<AutoexecParamVo> paramList = versionConfig.getRuntimeParamList().stream().filter(o -> !Objects.equals(ParamType.FILE.getValue(), o.getType())).collect(Collectors.toList());
-
         JSONObject newParam = new JSONObject();
-        for (Map.Entry<String, Object> entry : param.entrySet()) {
-            String key = entry.getKey();
-            Object value = entry.getValue();
-            Optional<AutoexecParamVo> paramVoOptional = paramList.stream().filter(o -> Objects.equals(o.getKey(), key)).findFirst();
-            if (paramVoOptional.isPresent()) {
-                IScriptParamType paramType = ScriptParamTypeFactory.getHandler(paramVoOptional.get().getType());
-                if (paramType != null) {
-                    value = paramType.getExchangeParamByValue(value);
-                }
-                newParam.put(key, value);
+        List<AutoexecParamVo> paramList = versionConfig.getRuntimeParamList().stream().filter(o -> !Objects.equals(ParamType.FILE.getValue(), o.getType())).collect(Collectors.toList());
+        for (AutoexecParamVo paramVo : paramList) {
+            Object value;
+            IScriptParamType paramType = ScriptParamTypeFactory.getHandler(paramVo.getType());
+            if (param.containsKey(paramVo.getKey()) && param.get(paramVo.getKey()) != null) {
+                value = param.get(paramVo.getKey());
+            } else {
+                value = paramVo.getDefaultValue();
             }
+            if (paramType != null) {
+                value = paramType.getExchangeParamByValue(value);
+            }
+            newParam.put(paramVo.getKey(), value);
         }
         return newParam;
     }
