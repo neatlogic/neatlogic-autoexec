@@ -751,6 +751,13 @@ public class CreateJobConfigUtil {
                 }
             }
         }
+        // 删除集合中元素值为null的元素
+        for (int i = resultList.size() - 1; i >= 0; i--) {
+            Object obj = resultList.get(i);
+            if (obj == null) {
+                resultList.remove(i);
+            }
+        }
         return resultList;
     }
 

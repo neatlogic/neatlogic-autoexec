@@ -618,9 +618,9 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
         Map<String, Object> formAttributeDataMap = new HashMap<>();
         String formUuid = autoexecServiceVo.getFormUuid();
         if (StringUtils.isNotBlank(formUuid)) {
-            if (CollectionUtils.isEmpty(formAttributeDataList)) {
-                throw new ParamNotExistsException("formAttributeDataList");
-            }
+//            if (CollectionUtils.isEmpty(formAttributeDataList)) {
+//                throw new ParamNotExistsException("formAttributeDataList");
+//            }
 
             FormVersionVo formVersionVo = formMapper.getActionFormVersionByFormUuid(formUuid);
             String mainSceneUuid = formVersionVo.getFormConfig().getString("uuid");
