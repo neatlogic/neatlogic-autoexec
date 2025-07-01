@@ -34,16 +34,14 @@ import neatlogic.framework.autoexec.exception.AutoexecCombopActiveVersionNotFoun
 import neatlogic.framework.autoexec.exception.AutoexecCombopVersionNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecServiceConfigExpiredException;
 import neatlogic.framework.autoexec.exception.AutoexecServiceNotFoundException;
+import neatlogic.framework.common.constvalue.GroupSearch;
 import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.form.dto.AttributeDataVo;
 import neatlogic.framework.form.dto.FormAttributeVo;
 import neatlogic.framework.process.constvalue.*;
 import neatlogic.framework.process.crossover.*;
-import neatlogic.framework.process.dto.ProcessTaskFormAttributeDataVo;
-import neatlogic.framework.process.dto.ProcessTaskStepDataVo;
-import neatlogic.framework.process.dto.ProcessTaskStepVo;
-import neatlogic.framework.process.dto.ProcessTaskStepWorkerVo;
+import neatlogic.framework.process.dto.*;
 import neatlogic.framework.process.exception.processtask.ProcessTaskException;
 import neatlogic.framework.process.exception.processtask.ProcessTaskNoPermissionException;
 import neatlogic.framework.process.stephandler.core.*;
@@ -148,6 +146,8 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
     protected int myActive(ProcessTaskStepVo currentProcessTaskStepVo) throws ProcessTaskException {
         currentProcessTaskStepVo.setStatus(ProcessTaskStatus.RUNNING.getValue());
         currentProcessTaskStepVo.setUpdateStartTime(1);
+        IProcessTaskCrossoverMapper processTaskCrossoverMapper = CrossoverServiceFactory.getApi(IProcessTaskCrossoverMapper.class);
+        processTaskCrossoverMapper.deleteProcessTaskStepWorker(new ProcessTaskStepWorkerVo(currentProcessTaskStepVo.getId()));
         ProcessTaskStepVo processTaskStepVo = new ProcessTaskStepVo();
         processTaskStepVo.setId(currentProcessTaskStepVo.getId());
         processTaskStepVo.setName(currentProcessTaskStepVo.getName());
@@ -253,6 +253,8 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                                 JSONArray formAttributeDataList = paramObj.getJSONArray("formAttributeDataList");
                                 JSONArray hidecomponentList = paramObj.getJSONArray("hidecomponentList");
                                 Integer roundCount = paramObj.getInteger("roundCount");
+                                Integer parallelCount = paramObj.getInteger("parallelCount");
+                                String parallelPolicy = paramObj.getString("parallelPolicy");
                                 String executeUser = paramObj.getString("executeUser");
                                 Long protocol = paramObj.getLong("protocol");
                                 AutoexecCombopExecuteNodeConfigVo executeNodeConfig = paramObj.getObject("executeNodeConfig", AutoexecCombopExecuteNodeConfigVo.class);
@@ -267,7 +269,7 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                                 if (MapUtils.isNotEmpty(runnerGroupTagObj)) {
                                     runnerGroupTag = runnerGroupTagObj.toJavaObject(ParamMappingVo.class);
                                 }
-                                AutoexecJobBuilder autoexecJobBuilder = autoexecServiceService.getAutoexecJobBuilder(autoexecServiceVo, autoexecCombopVersionVo, name, scenarioId, formAttributeDataList, hidecomponentList, roundCount, executeUser, protocol, executeNodeConfig, runtimeParamMap, runnerGroup, runnerGroupTag);
+                                AutoexecJobBuilder autoexecJobBuilder = autoexecServiceService.getAutoexecJobBuilder(autoexecServiceVo, autoexecCombopVersionVo, name, scenarioId, formAttributeDataList, hidecomponentList, roundCount,parallelCount,parallelPolicy, executeUser, protocol, executeNodeConfig, runtimeParamMap, runnerGroup, runnerGroupTag);
                                 if (autoexecJobBuilder != null) {
                                     builderList.add(autoexecJobBuilder);
                                 }
@@ -289,6 +291,24 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                     }
                     if (CollectionUtils.isEmpty(builderList)) {
                         processTaskStepComplete(processTaskStepVo.getId());
+                        return;
+                    }
+                    String assignExecUser = SystemUser.SYSTEM.getUserUuid();
+                    IProcessStepHandlerCrossoverUtil processStepHandlerCrossoverUtil = CrossoverServiceFactory.getApi(IProcessStepHandlerCrossoverUtil.class);
+                    ProcessTaskStepAssignVo processTaskStepAssignVo = processStepHandlerCrossoverUtil.analysisAssignConfig(processTaskStepVo);
+                    List<ProcessTaskStepWorkerVo> finalStepWorkerList = processTaskStepAssignVo.getFinalStepWorkerList();
+                    if (CollectionUtils.isNotEmpty(finalStepWorkerList)) {
+                        for (ProcessTaskStepWorkerVo processTaskStepWorkerVo : finalStepWorkerList) {
+                            if (Objects.equals(processTaskStepWorkerVo.getType(), GroupSearch.USER.getValue())) {
+                                assignExecUser = processTaskStepWorkerVo.getUuid();
+                                break;
+                            }
+                        }
+                    }
+                    UserContext userContext = null;
+                    // 如果作业的执行用户不是当前用户，创建作业的时候会切换用户上下文，这里先复制一份当前的用户上下文，等作业创建完成后再切回当前用户上下文
+                    if (!Objects.equals(assignExecUser, UserContext.get().getUserUuid())) {
+                        userContext = UserContext.get().copy();
                     }
                     JSONArray errorMessageList = new JSONArray();
                     boolean flag = false;
@@ -299,7 +319,7 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                         jobVo.setInvokeId(processTaskStepVo.getId());
                         jobVo.setRouteId(processTaskStepVo.getId().toString());
                         jobVo.setSource(AutoExecJobProcessSource.ITSM.getValue());
-                        jobVo.setAssignExecUser(SystemUser.SYSTEM.getUserUuid());
+                        jobVo.setAssignExecUser(assignExecUser);
                         try {
                             autoexecJobActionService.validateCreateJob(jobVo);
                             autoexecJobMapper.insertAutoexecJobProcessTaskStep(jobVo.getId(), processTaskStepVo.getId());
@@ -323,6 +343,9 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                             errorMessageList.add(errorMessageObj);
                             flag = true;
                         }
+                    }
+                    if (userContext != null && !Objects.equals(userContext.getUserUuid(), UserContext.get().getUserUuid())) {
+                        UserContext.init(userContext);
                     }
                     // 如果有一个作业创建有异常，则根据失败策略执行操作
                     if (flag) {
@@ -362,7 +385,6 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                                 }
                             }
                         }
-                        IProcessStepHandlerCrossoverUtil processStepHandlerCrossoverUtil = CrossoverServiceFactory.getApi(IProcessStepHandlerCrossoverUtil.class);
                         /* 触发通知 **/
                         processStepHandlerCrossoverUtil.notify(processTaskStepVo, AutoexecNotifyTriggerType.CREATE_JOB_FAILED);
                     } else {

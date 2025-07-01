@@ -19,7 +19,10 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
+import neatlogic.framework.autoexec.constvalue.AutoexecParallelPolicy;
 import neatlogic.framework.autoexec.constvalue.AutoexecServiceType;
+import neatlogic.framework.autoexec.constvalue.ParamMappingMode;
+import neatlogic.framework.autoexec.dto.combop.ParamMappingVo;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceAuthorityVo;
 import neatlogic.framework.autoexec.dto.service.AutoexecServiceVo;
 import neatlogic.framework.autoexec.exception.service.AutoexecServiceNotFoundEditTargetException;
@@ -77,6 +80,13 @@ public class GetAutoexecServiceApi extends PrivateApiComponentBase {
         if (serviceVo == null) {
             throw new AutoexecServiceNotFoundEditTargetException(id);
         }
+        //兼容老数据
+        if (serviceVo.getConfig() != null && serviceVo.getConfig().getRoundCount() != null && serviceVo.getConfig().getRoundCount().getValue() != null && serviceVo.getConfig().getParallelPolicy() == null) {
+            ParamMappingVo parallelPolicy = new ParamMappingVo();
+            parallelPolicy.setMappingMode(ParamMappingMode.CONSTANT.getValue());
+            parallelPolicy.setValue(AutoexecParallelPolicy.ROUND_COUNT.getValue());
+            serviceVo.getConfig().setParallelPolicy(parallelPolicy);
+        }
         List<AutoexecServiceAuthorityVo> authorityVoList = autoexecServiceMapper.getAutoexecServiceAuthorityListByServiceId(id);
         if (CollectionUtils.isNotEmpty(authorityVoList)) {
             List<String> authorityList = new ArrayList<>();
@@ -90,6 +100,10 @@ public class GetAutoexecServiceApi extends PrivateApiComponentBase {
                 JSONObject reasonObj = new JSONObject();
                 reasonObj.put("reasonList", reasonList);
                 serviceVo.setConfigExpiredReason(reasonObj);
+                autoexecServiceMapper.updateServiceConfigExpiredById(serviceVo);
+            } else {
+                serviceVo.setConfigExpired(0);
+                serviceVo.setConfigExpiredReason(null);
                 autoexecServiceMapper.updateServiceConfigExpiredById(serviceVo);
             }
         }

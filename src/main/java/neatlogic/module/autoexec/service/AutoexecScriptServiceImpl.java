@@ -43,6 +43,7 @@ import neatlogic.framework.fulltextindex.core.IFullTextIndexHandler;
 import neatlogic.framework.lrcode.LRCodeManager;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCustomTemplateMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecProfileMapper;
+import neatlogic.module.autoexec.dependency.AutoexecScript2ScriptDependencyHandler;
 import neatlogic.module.autoexec.fulltextindex.AutoexecFullTextIndexType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -365,6 +366,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
                     }
                     if (hasModifyAuth) {
                         operateList.add(new OperateVo(ScriptAndToolOperate.EDIT.getValue(), ScriptAndToolOperate.EDIT.getText()));
+                        operateList.add(new OperateVo(ScriptAndToolOperate.TEST.getValue(), ScriptAndToolOperate.TEST.getText()));
                     }
                 } else if (!Objects.equals(version.getIsActive(), 1)) {
                     if (hasSearchAuth) {
@@ -618,6 +620,9 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
             if (CollectionUtils.isNotEmpty(versionIdList)) {
                 autoexecScriptMapper.deleteParamByVersionIdList(versionIdList);
                 autoexecScriptMapper.deleteArgumentByVersionIdList(versionIdList);
+                for (Long versionId : versionIdList) {
+                    DependencyManager.delete(AutoexecScript2ScriptDependencyHandler.class, versionId);
+                }
             }
             //删除依赖工具关系
             autoexecScriptMapper.deleteScriptVersionLibByLibScriptId(id);
@@ -742,8 +747,12 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
         }
         //保存依赖工具
         autoexecScriptMapper.deleteScriptVersionLibByScriptVersionId(versionVo.getId());
+        DependencyManager.delete(AutoexecScript2ScriptDependencyHandler.class, versionVo.getId());
         if (CollectionUtils.isNotEmpty(versionVo.getUseLib())) {
             autoexecScriptMapper.insertScriptVersionUseLib(versionVo.getId(), versionVo.getUseLib());
+            for (Long useLibId : versionVo.getUseLib()) {
+                DependencyManager.insert(AutoexecScript2ScriptDependencyHandler.class, useLibId, versionVo.getId());
+            }
         }
     }
 

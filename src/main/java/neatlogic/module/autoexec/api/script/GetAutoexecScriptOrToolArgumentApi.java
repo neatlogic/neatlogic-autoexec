@@ -24,9 +24,13 @@ import neatlogic.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import neatlogic.framework.autoexec.dto.AutoexecToolVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptArgumentVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
+import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
+import neatlogic.framework.autoexec.exception.AutoexecScriptHasNoActiveVersionException;
+import neatlogic.framework.autoexec.exception.AutoexecScriptNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecToolNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.exception.type.ParamNotExistsException;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -61,7 +65,8 @@ public class GetAutoexecScriptOrToolArgumentApi extends PrivateApiComponentBase 
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "工具ID或自定义工具版本ID"),
+            @Param(name = "id", type = ApiParamType.LONG, desc = "工具ID或自定义工具版本ID"),
+            @Param(name = "scriptId", type = ApiParamType.LONG, desc = "自定义工具ID"),
             @Param(name = "type", type = ApiParamType.ENUM, rule = "script,tool", isRequired = true, desc = "工具或自定义工具"),
     })
     @Output({
@@ -72,12 +77,30 @@ public class GetAutoexecScriptOrToolArgumentApi extends PrivateApiComponentBase 
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id =jsonObj.getLong("id");
         if (ToolType.SCRIPT.getValue().equals(jsonObj.getString("type"))) {
-            AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(id);
-            if (version == null) {
-                throw new AutoexecScriptVersionNotFoundException(id);
+            Long scriptId = jsonObj.getLong("scriptId");
+            if (id != null) {
+                AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(id);
+                if (version == null) {
+                    throw new AutoexecScriptVersionNotFoundException(id);
+                }
+                return autoexecScriptMapper.getArgumentByVersionId(id);
+            } else if (scriptId != null) {
+                AutoexecScriptVo script = autoexecScriptMapper.getScriptBaseInfoById(scriptId);
+                if (script == null) {
+                    throw new AutoexecScriptNotFoundException(scriptId);
+                }
+                AutoexecScriptVersionVo version = autoexecScriptMapper.getActiveVersionByScriptId(scriptId);
+                if (version == null) {
+                    throw new AutoexecScriptHasNoActiveVersionException(script.getName());
+                }
+                return autoexecScriptMapper.getArgumentByVersionId(version.getId());
+            } else {
+                throw new ParamNotExistsException("id", "scriptId");
             }
-            return autoexecScriptMapper.getArgumentByVersionId(id);
         }else{
+            if (id == null) {
+                throw new ParamNotExistsException("id");
+            }
             AutoexecToolVo tool = autoexecToolMapper.getToolById(id);
             if (tool == null) {
                 throw new AutoexecToolNotFoundException(id);

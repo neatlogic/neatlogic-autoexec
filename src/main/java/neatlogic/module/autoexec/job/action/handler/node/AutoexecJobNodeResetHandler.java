@@ -16,7 +16,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 package neatlogic.module.autoexec.job.action.handler.node;
 
 import com.alibaba.fastjson.JSONObject;
-import neatlogic.framework.autoexec.constvalue.*;
+import neatlogic.framework.autoexec.constvalue.ExecMode;
+import neatlogic.framework.autoexec.constvalue.JobAction;
+import neatlogic.framework.autoexec.constvalue.JobNodeStatus;
+import neatlogic.framework.autoexec.constvalue.JobPhaseStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
@@ -68,10 +71,8 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         Integer isAll = jobVo.getActionParam().getInteger("isAll");
-        jobVo.setStatus(JobStatus.RUNNING.getValue());
-        autoexecJobMapper.updateJobStatus(jobVo);
         //更新状态
-        AutoexecJobPhaseVo currentPhaseVo = jobVo.getCurrentPhase();
+        AutoexecJobPhaseVo currentPhaseVo = jobVo.getExecutePhase();
         if (Objects.equals(currentPhaseVo.getExecMode(), ExecMode.SQL.getValue())) {
             jobVo.getActionParam().put("phaseName", currentPhaseVo.getName());
             IAutoexecJobSourceTypeHandler handler;
@@ -81,7 +82,7 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
                 handler = AutoexecJobSourceTypeHandlerFactory.getAction(neatlogic.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
             }
             handler.resetSqlStatus(jobVo.getActionParam(), jobVo);
-        }  else {
+        } else {
             if (!Objects.equals(isAll, 1)) {
                 currentResourceIdListValid(jobVo);
                 //重置节点 (status、startTime、endTime)
@@ -89,14 +90,14 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
                 jobVo.setExecuteJobNodeVoList(autoexecJobMapper.getJobPhaseNodeRunnerListByNodeIdList(jobVo.getExecuteJobNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList())));
             }
         }
-
-        if (Objects.equals(isAll, 1)) {
+        if (Objects.equals(isAll, 1) || Objects.equals(currentPhaseVo.getExecMode(), ExecMode.SQL.getValue())) {
+            //重置所有或者阶段原来状态已完成的 更新阶段状态为待运行
             autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(currentPhaseVo.getId()), JobPhaseStatus.PENDING.getValue());
-            autoexecJobMapper.updateJobPhaseRunnerStatusByJobIdAndPhaseId(jobVo.getId(),currentPhaseVo.getId(), JobPhaseStatus.PENDING.getValue());
+            autoexecJobMapper.updateJobPhaseRunnerStatusByJobIdAndPhaseId(jobVo.getId(), currentPhaseVo.getId(), JobPhaseStatus.PENDING.getValue());
             autoexecJobMapper.updateJobPhaseNodeStatusByJobPhaseIdAndIsDelete(currentPhaseVo.getId(), JobNodeStatus.PENDING.getValue(), 0);
         }
 
-        autoexecJobService.resetJobNodeStatus(jobVo);
+        autoexecJobService.resetRunnerJobNodeStatus(jobVo);
         return null;
     }
 }

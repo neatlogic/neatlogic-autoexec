@@ -102,13 +102,14 @@ public class AutoexecScheduleIsActiveUpdateApi extends PrivateApiComponentBase {
             throw new ScheduleHandlerNotFoundException(AutoexecScheduleJob.class.getName());
         }
         String tenantUuid = TenantContext.get().getTenantUuid();
+
         JobObject jobObject = new JobObject.Builder(autoexecScheduleVo.getUuid(), jobHandler.getGroupName(), jobHandler.getClassName(), tenantUuid)
                 .withCron(autoexecScheduleVo.getCron()).withBeginTime(autoexecScheduleVo.getBeginTime())
                 .withEndTime(autoexecScheduleVo.getEndTime())
 //                .needAudit(autoexecScheduleVo.getNeedAudit())
                 .setType("private")
                 .build();
-        if (autoexecScheduleVo.getIsActive().intValue() == 1) {
+        if (Objects.equals(autoexecScheduleVo.getIsActive(), 1)) {
             schedulerManager.loadJob(jobObject);
         } else {
             schedulerManager.unloadJob(jobObject);

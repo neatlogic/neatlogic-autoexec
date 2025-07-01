@@ -72,7 +72,7 @@ public class AutoexecJobNodeIgnoreHandler extends AutoexecJobActionHandlerBase {
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         List<AutoexecJobPhaseNodeVo> nodeVoList;
-        AutoexecJobPhaseVo currentPhaseVo = jobVo.getCurrentPhase();
+        AutoexecJobPhaseVo currentPhaseVo = jobVo.getExecutePhase();
         //重置mongodb node 状态
         List<RunnerMapVo> runnerVos = new ArrayList<>();
         IAutoexecJobSourceTypeHandler handler = null;
@@ -89,14 +89,16 @@ public class AutoexecJobNodeIgnoreHandler extends AutoexecJobActionHandlerBase {
             nodeVoList = autoexecJobMapper.getJobPhaseNodeRunnerListByNodeIdList(jobVo.getExecuteJobNodeVoList().stream().map(AutoexecJobPhaseNodeVo::getId).collect(Collectors.toList()));
             for (AutoexecJobPhaseNodeVo nodeVo : jobVo.getExecuteJobNodeVoList()) {
                 nodeVo.setStatus(JobNodeStatus.IGNORED.getValue());
-                nodeVo.setStartTime(null);
-                nodeVo.setEndTime(null);
                 autoexecJobMapper.updateJobPhaseNodeById(nodeVo);
             }
             for (AutoexecJobPhaseNodeVo nodeVo : nodeVoList) {
                 runnerVos.add(new RunnerMapVo(nodeVo.getRunnerUrl(), nodeVo.getRunnerMapId()));
             }
             runnerVos = runnerVos.stream().filter(o -> StringUtils.isNotBlank(o.getUrl())).collect(collectingAndThen(toCollection(() -> new TreeSet<>(Comparator.comparing(RunnerMapVo::getUrl))), ArrayList::new));
+
+            for(RunnerMapVo runnerMapVo : runnerVos){
+                autoexecJobService.updatePartialNodeJobAndPhaseWithRunnerId(currentPhaseVo, runnerMapVo.getRunnerMapId(), jobVo, null, null);
+            }
             autoexecJobService.updateJobNodeStatus(runnerVos, jobVo, JobNodeStatus.IGNORED.getValue());
         }
 

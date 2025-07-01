@@ -15,6 +15,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 package neatlogic.module.autoexec.job.action.handler.node;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.CombopOperationType;
@@ -61,7 +62,7 @@ public class AutoexecJobNodeOutputParamGetHandler extends AutoexecJobActionHandl
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         JSONObject result = new JSONObject();
         AutoexecJobPhaseNodeVo nodeVo = jobVo.getCurrentNode();
-        AutoexecJobPhaseVo phaseVo = jobVo.getCurrentPhase();
+        AutoexecJobPhaseVo phaseVo = jobVo.getExecutePhase();
         JSONObject paramJson = jobVo.getActionParam();
         paramJson.put("jobId", nodeVo.getJobId());
         paramJson.put("phase", nodeVo.getJobPhaseName());
@@ -74,7 +75,7 @@ public class AutoexecJobNodeOutputParamGetHandler extends AutoexecJobActionHandl
         paramJson.put("execMode", phaseVo.getExecMode());
         JSONArray operationOutputParamArray = null;
         String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/output/param/get";
-        JSONObject statusJson = JSONObject.parseObject(AutoexecUtil.requestRunner(url, paramJson));
+        JSONObject statusJson = JSON.parseObject(AutoexecUtil.requestRunner(url, paramJson));
         if (MapUtils.isNotEmpty(statusJson)) {
             Long jobId = paramJson.getLong("jobId");
             Long jobPhaseId = paramJson.getLong("phaseId");
@@ -95,11 +96,11 @@ public class AutoexecJobNodeOutputParamGetHandler extends AutoexecJobActionHandl
                         JSONObject valueJson = statusJson.getJSONObject(operationVo.getName() + "_" + operationVo.getId());
                         List<AutoexecParamVo> outputParamList = new ArrayList<>();
                         if (Objects.equals(operationVo.getType(), CombopOperationType.TOOL.getValue()) && finalToolHashContentMap.containsKey(operationVo.getParamHash())) {
-                            JSONObject json = JSONObject.parseObject(finalToolHashContentMap.get(operationVo.getParamHash()));
+                            JSONObject json = JSON.parseObject(finalToolHashContentMap.get(operationVo.getParamHash()));
                             JSONArray outputArray = json.getJSONArray("outputParamList");
                             if(CollectionUtils.isNotEmpty(outputArray)) {
                                 for (Object output : outputArray) {
-                                    AutoexecParamVo outputVo = JSONObject.parseObject(output.toString()).toJavaObject(AutoexecParamVo.class);
+                                    AutoexecParamVo outputVo = JSON.parseObject(output.toString()).toJavaObject(AutoexecParamVo.class);
                                     if (valueJson != null) {
                                         outputVo.setValue(valueJson.getString(outputVo.getKey()));
                                     }

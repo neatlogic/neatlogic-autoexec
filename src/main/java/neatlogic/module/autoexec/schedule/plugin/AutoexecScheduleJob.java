@@ -40,7 +40,6 @@ import org.apache.commons.collections4.MapUtils;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
 import org.springframework.stereotype.Component;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.List;
@@ -50,7 +49,6 @@ import java.util.Objects;
  * @author linbq
  * @since 2021/9/29 17:42
  **/
-@Transactional
 @Component
 @DisallowConcurrentExecution
 public class AutoexecScheduleJob extends JobBase {
@@ -106,7 +104,9 @@ public class AutoexecScheduleJob extends JobBase {
         searchVo.setIsActive(1);
         int rowNum = autoexecScheduleMapper.getAutoexecScheduleCount(searchVo);
         searchVo.setPageSize(100);
-        for (int currentPage = 1; rowNum > 0; currentPage++, rowNum -= 100) {
+        searchVo.setRowNum(rowNum);
+        Integer pageCount = searchVo.getPageCount();
+        for (int currentPage = 1; currentPage <= pageCount; currentPage++) {
             searchVo.setCurrentPage(currentPage);
             List<AutoexecScheduleVo> autoexecScheduleList = autoexecScheduleMapper.getAutoexecScheduleList(searchVo);
             for (AutoexecScheduleVo autoexecScheduleVo : autoexecScheduleList) {
@@ -118,13 +118,13 @@ public class AutoexecScheduleJob extends JobBase {
         }
     }
 
-    @Transactional
     @Override
     public void executeInternal(JobExecutionContext context, JobObject jobObject) throws Exception {
         String uuid = jobObject.getJobName();
         AutoexecScheduleVo autoexecScheduleVo = autoexecScheduleMapper.getAutoexecScheduleByUuid(uuid);
         if (autoexecScheduleVo == null) {
             schedulerManager.unloadJob(jobObject);
+            return;
         }
         Long combopId = autoexecScheduleVo.getAutoexecCombopId();
         AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
@@ -143,10 +143,10 @@ public class AutoexecScheduleJob extends JobBase {
             jobVo.setInvokeId(autoexecScheduleVo.getId());
             jobVo.setRouteId(autoexecScheduleVo.getId().toString());
             jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
-            UserVo fcuVo = userMapper.getUserByUuid(autoexecScheduleVo.getFcu());
+            UserVo lcuVo = userMapper.getUserByUuid(autoexecScheduleVo.getLcu());
             AuthenticationInfoVo authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(autoexecScheduleVo.getFcu());
-            UserContext.init(fcuVo, authenticationInfoVo, SystemUser.SYSTEM.getTimezone());
-            UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(fcuVo).getCc());
+            UserContext.init(lcuVo, authenticationInfoVo, SystemUser.SYSTEM.getTimezone());
+            UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(lcuVo).getCc());
             autoexecJobActionService.validateAndCreateJobFromCombop(jobVo);
             jobVo.setAction(JobAction.FIRE.getValue());
             IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());

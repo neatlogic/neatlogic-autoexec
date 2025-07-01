@@ -79,8 +79,8 @@ public class AutoexecJobNodeOperationInputParamGetHandler extends AutoexecJobAct
         AutoexecJobPhaseNodeVo nodeVo = jobVo.getCurrentNode();
         JSONObject paramJson = jobVo.getActionParam();
         paramJson.put("phase", nodeVo.getJobPhaseName());
-        List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseId(jobVo.getId(), jobVo.getCurrentPhase().getId());
-        paramJson.put("execMode", jobVo.getCurrentPhase().getExecMode());
+        List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationByJobIdAndPhaseId(jobVo.getId(), jobVo.getExecutePhase().getId());
+        paramJson.put("execMode", jobVo.getExecutePhase().getExecMode());
         paramJson.put("ip", nodeVo.getHost());
         paramJson.put("port", nodeVo.getPort());
         String url = nodeVo.getRunnerUrl() + "/api/rest/job/phase/node/input/param/get";

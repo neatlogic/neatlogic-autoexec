@@ -29,6 +29,7 @@ import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
 import neatlogic.framework.dto.runner.RunnerMapVo;
 
+import java.util.Date;
 import java.util.List;
 
 /**
@@ -160,7 +161,7 @@ public interface AutoexecJobService {
      * @param combopExecuteConfigVo      作业设置的节点配置
      * @param combopPhaseExecuteConfigVo 阶段设置的节点配置
      */
-    void initPhaseExecuteUserAndProtocolAndNode(AutoexecJobVo jobVo, AutoexecCombopExecuteConfigVo combopExecuteConfigVo, AutoexecCombopPhaseConfigVo combopPhaseExecuteConfigVo);
+    void initPhaseExecuteUserAndProtocolAndNode(AutoexecJobVo jobVo, AutoexecCombopExecuteConfigVo combopExecuteConfigVo, AutoexecCombopPhaseConfigVo combopPhaseExecuteConfigVo, Date updateTime);
 
     /**
      * 更新根据上游出参更新阶段执行节点
@@ -173,9 +174,9 @@ public interface AutoexecJobService {
     /**
      * 重置autoexec 作业节点状态
      *
-     * @param jobVo      作业
+     * @param jobVo 作业
      */
-    void resetJobNodeStatus(AutoexecJobVo jobVo);
+    void resetRunnerJobNodeStatus(AutoexecJobVo jobVo);
 
     /**
      * 检查runner联通性
@@ -198,14 +199,16 @@ public interface AutoexecJobService {
 
     /**
      * 执行
-     * @param jobVo 作业
+     *
+     * @param jobVo     作业
      * @param runnerVos 执行器s
      */
     void execute(AutoexecJobVo jobVo, List<RunnerMapVo> runnerVos);
 
     /**
      * 根据当前阶段出参获取需要更新执行目标的其他阶段
-     * @param jobVo 作业
+     *
+     * @param jobVo             作业
      * @param currentJobPhaseVo 当前阶段
      * @return 需要更新执行目标的阶段
      */
@@ -213,13 +216,15 @@ public interface AutoexecJobService {
 
     /**
      * 将作业和对应的阶段状态改为失败
-     * @param jobVo 作业
+     *
+     * @param jobVo      作业
      * @param jobPhaseVo 阶段
      */
     void updatePhaseJobStatus2Failed(AutoexecJobVo jobVo, AutoexecJobPhaseVo jobPhaseVo);
 
     /**
      * 刷新作业阶段runner
+     *
      * @param jobPhaseVo 作业阶段
      */
     void refreshPhaseRunnerList(AutoexecJobPhaseVo jobPhaseVo);
@@ -227,21 +232,24 @@ public interface AutoexecJobService {
 
     /**
      * 更新作业节点状态
-     * @param runnerVos 执行器
-     * @param jobVo 作业
+     *
+     * @param runnerVos  执行器
+     * @param jobVo      作业
      * @param nodeStatus 目标节点状态
      */
     void updateJobNodeStatus(List<RunnerMapVo> runnerVos, AutoexecJobVo jobVo, String nodeStatus);
 
     /**
      * 获取所有子作业
+     *
      * @param jobId 父作业id
      * @return 子作业列表
      */
-    void getAllSubJobList(Long jobId,List<AutoexecJobVo> jobVoList);
+    void getAllSubJobList(Long jobId, List<AutoexecJobVo> jobVoList);
 
     /**
      * 执行父作业以及所有子作业
+     *
      * @param jobVo 父作业
      * @throws Exception 异常
      */
@@ -265,7 +273,7 @@ public interface AutoexecJobService {
     /**
      * 获取resourceSearch,补充opType操作类型
      *
-     * @param jobVo 作业
+     * @param jobVo      作业
      * @param filterJson 过滤参数
      */
     ResourceSearchVo getResourceSearchVoWithCmdbGroupType(AutoexecJobVo jobVo, JSONObject filterJson);
@@ -273,16 +281,18 @@ public interface AutoexecJobService {
 
     /**
      * 获取目标节点并入库
-     * @param jobVo 作业
+     *
+     * @param jobVo          作业
      * @param resourceVoList 资产列表
-     * @param userName 执行用户
-     * @param protocolId 协议id
+     * @param userName       执行用户
+     * @param protocolId     协议id
      */
     void updateJobPhaseNode(AutoexecJobVo jobVo, List<ResourceVo> resourceVoList, String userName, Long protocolId);
 
 
     /**
      * 作业第一次跑和重置后重跑作业更新排队等待
+     *
      * @param jobVo 作业
      */
     void fireOrResetRefireWaiting(AutoexecJobVo jobVo);
@@ -296,10 +306,39 @@ public interface AutoexecJobService {
 
     /**
      * 中止或暂停
-     * @param jobVo 作业
-     * @param action 动作 abort｜pause
+     *
+     * @param jobVo     作业
+     * @param action    动作 abort｜pause
      * @param statusIng 状态ing
      */
-    void abortOrPause(AutoexecJobVo jobVo,String action,String statusIng);
+    void abortOrPause(AutoexecJobVo jobVo, String action, String statusIng);
+
+    /**
+     * 清除历史作业数据
+     *
+     * @param runnerMapIdList 执行器id列表
+     * @param dayBefore       保留天数
+     */
+    void cleanHistoryJobAutoexecData(List<Long> runnerMapIdList, int dayBefore) throws Exception;
+
+
+    /**
+     * 根据阶段状态计算出最终作业状态
+     *
+     * @param jobId 作业id
+     */
+    String getJobStatus(Long jobId, String runnerStatus);
+
+
+    /**
+     * 获取最终的阶段状态
+     * @param statusList 节点或阶段runner的状态列表
+     * @param currentPhaseStatus 当前阶段状态，目前只有updateStatusApi用到
+     * @return 作业状态
+     */
+    String getJobPhaseStatus(List<String> statusList,String currentPhaseStatus);
+
+
+    String updatePartialNodeJobAndPhaseWithRunnerId(AutoexecJobPhaseVo jobPhaseVo, Long runnerId, AutoexecJobVo jobVo, String currentPhaseStatus, Integer phaseRunnerWarnCount);
 
 }

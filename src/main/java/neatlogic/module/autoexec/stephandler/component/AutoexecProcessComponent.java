@@ -483,7 +483,6 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
 
         String jobNamePrefixValue = getJobNamePrefixValue(jobNamePrefixKey, jobVo.getExecuteConfig(), jobVo.getParam());
         jobVo.setSource(AutoExecJobProcessSource.ITSM.getValue());
-        jobVo.setRoundCount(32);
         jobVo.setOperationId(combopId);
         jobVo.setName(jobNamePrefixValue + jobName);
         jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
@@ -531,7 +530,6 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         for (int index = 0; index < tbodyList.size(); index++) {
             AutoexecJobVo jobVo = new AutoexecJobVo();
             jobVo.setSource(AutoExecJobProcessSource.ITSM.getValue());
-            jobVo.setRoundCount(32);
             jobVo.setOperationId(combopId);
             jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
             jobVo.setInvokeId(currentProcessTaskStepVo.getId());
@@ -1244,7 +1242,6 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             jobVo.setExecuteConfig(executeConfig.toJavaObject(AutoexecCombopExecuteConfigVo.class));
         }
         jobVo.setSource(AutoExecJobProcessSource.ITSM.getValue());
-        jobVo.setRoundCount(32);
         jobVo.setOperationId(combopId);
         jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
         jobVo.setInvokeId(currentProcessTaskStepVo.getId());

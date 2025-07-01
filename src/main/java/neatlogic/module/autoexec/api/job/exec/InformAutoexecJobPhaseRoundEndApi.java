@@ -26,24 +26,22 @@ import neatlogic.framework.autoexec.dto.job.AutoexecJobGroupVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
-import neatlogic.framework.autoexec.exception.AutoexecJobGroupNotFoundException;
-import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
-import neatlogic.framework.autoexec.exception.AutoexecJobPhaseNodeNotFoundException;
-import neatlogic.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
+import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import neatlogic.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.dto.runner.RunnerMapVo;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.*;
-import java.util.stream.Collectors;
 
 /**
  * @author lvzk
@@ -71,14 +69,15 @@ public class InformAutoexecJobPhaseRoundEndApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
-            @Param(name = "phase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
+            @Param(name = "phase", type = ApiParamType.STRING, desc = "term.autoexec.phase", isRequired = true),
+            @Param(name = "execId", type = ApiParamType.LONG, desc = "nmaaje.updateautoexecjobphasestatusapi.input.param.desc", isRequired = true),
             @Param(name = "runnerId", type = ApiParamType.LONG, desc = "runnerId"),
-            @Param(name = "roundNo", type = ApiParamType.INTEGER, desc = "round号", isRequired = true),
-            @Param(name = "groupNo", type = ApiParamType.INTEGER, desc = "组号", isRequired = true),
-            @Param(name = "seqNo", type = ApiParamType.INTEGER, desc = "蓝绿批次"),
-            @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数", isRequired = true),
-            @Param(name = "time", type = ApiParamType.DOUBLE, desc = "回调时间")
+            @Param(name = "roundNo", type = ApiParamType.INTEGER, desc = "round no", isRequired = true),
+            @Param(name = "groupNo", type = ApiParamType.INTEGER, desc = "group no", isRequired = true),
+            @Param(name = "seqNo", type = ApiParamType.INTEGER, desc = "nmaaje.informautoexecjobphaseroundendapi.input.param.desc.seqno"),
+            @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.passthroughenv", isRequired = true),
+            @Param(name = "time", type = ApiParamType.DOUBLE, desc = "common.time")
     })
     @Output({
     })
@@ -90,7 +89,15 @@ public class InformAutoexecJobPhaseRoundEndApi extends PrivateApiComponentBase {
         Integer roundNo = jsonObj.getInteger("roundNo");
         Integer groupSort = jsonObj.getInteger("groupNo");
         Integer seqNo = jsonObj.getInteger("seqNo");
-        boolean isJobPhaseRoundNodeAllCompleted = false;
+        Long runnerId = null;
+        JSONObject passThroughEnv = jsonObj.getJSONObject("passThroughEnv");
+        if (MapUtils.isNotEmpty(passThroughEnv)) {
+            if (!passThroughEnv.containsKey("runnerId")) {
+                throw new AutoexecJobRunnerNotFoundException("runnerId");
+            } else {
+                runnerId = passThroughEnv.getLong("runnerId");
+            }
+        }
         //Long runnerId = jsonObj.getLong("runnerId");
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         if (jobVo == null) {
@@ -104,26 +111,43 @@ public class InformAutoexecJobPhaseRoundEndApi extends PrivateApiComponentBase {
         if (jobPhaseVo == null) {
             throw new AutoexecJobPhaseNotFoundException(jobId + ":" + phase);
         }
-        autoexecJobActionService.initExecuteUserContext(jobVo);
+        autoexecJobActionService.initExecuteUserContext(jobVo, jsonObj.getJSONObject("passThroughEnv"));
 
-        if (seqNo == null) {
-            isJobPhaseRoundNodeAllCompleted = isJobPhaseRoundNodeAllCompleted(groupVo, jobPhaseVo, roundNo);
+
+        boolean isNeedInform = false;
+        if (Objects.equals(jobPhaseVo.getExecMode(), ExecMode.RUNNER.getValue())) {
+            List<RunnerMapVo> runnerMapVos = autoexecJobMapper.getJobPhaseRunnerMapByJobIdAndPhaseIdList(jobId, Collections.singletonList(jobPhaseVo.getId()));
+            //local是当前runner的inform才执行inform操作
+            if (CollectionUtils.isNotEmpty(runnerMapVos) && Objects.equals(runnerMapVos.get(0).getRunnerMapId(), runnerId)) {
+                isNeedInform = true;
+            } else {
+                //local不是当前runner执行，则检查对应phase需要跑的runner node状态是completed才执行inform操作，否则会引起grayscale并发问题
+                List<AutoexecJobPhaseNodeVo> runnerNodes = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseId(jobId, jobPhaseVo.getId());
+                if (CollectionUtils.isNotEmpty(runnerNodes) && Objects.equals(runnerNodes.get(0).getStatus(), JobNodeStatus.SUCCEED.getValue())) {
+                    isNeedInform = true;
+                }
+            }
         } else {
-            isJobPhaseRoundNodeAllCompleted = isJobPhaseSeqNoRoundNodeAllCompleted(seqNo, jobVo, jobPhaseVo);
+            if (seqNo == null) {
+                isNeedInform = isJobPhaseRoundNodeAllCompleted(groupVo, jobPhaseVo, roundNo);
+            } else {
+                isNeedInform = isJobPhaseSeqNoRoundNodeAllCompleted(seqNo, jobVo, jobPhaseVo);
+            }
         }
 
         //判断该phase这个round所属节点是否都跑完了
-        if (Objects.equals(jobPhaseVo.getExecMode(), ExecMode.RUNNER.getValue()) || isJobPhaseRoundNodeAllCompleted) {
+        if (isNeedInform) {
             //发起inform
             IAutoexecJobActionHandler jobActionHandler = AutoexecJobActionHandlerFactory.getAction(JobAction.INFORM_PHASE_ROUND.getValue());
             jobVo.setAction(JobAction.INFORM_PHASE_ROUND.getValue());
             jobVo.setActionParam(jsonObj);
-            jobVo.setCurrentPhase(jobPhaseVo);
+            jobVo.setExecutePhase(jobPhaseVo);
             jobActionHandler.doService(jobVo);
+            //System.out.println("need: phase"+phase+" runnerId:"+runnerId);
             //System.out.println("roundNo:"+jsonObj.getInteger("roundNo")+" runnerId:"+jsonObj.getString(("runnerId")) +" phase:"+ phase + " run");
         }
         //else{
-        //System.out.println(jsonObj.getString(("runnerId")) +" "+ roundNo+" "+ "wait");
+        //System.out.println("noNeed: phase"+phase+" runnerId:"+runnerId);
         //}
         return null;
     }
@@ -136,18 +160,18 @@ public class InformAutoexecJobPhaseRoundEndApi extends PrivateApiComponentBase {
      * @param phaseVo 阶段
      */
     private boolean isJobPhaseSeqNoRoundNodeAllCompleted(Integer seqNo, AutoexecJobVo jobVo, AutoexecJobPhaseVo phaseVo) {
-        List<AutoexecJobPhaseNodeVo> notCompletedNodeList = null;
         if (Objects.equals(ExecMode.SQL.getValue(), phaseVo.getExecMode())) {
             List<AutoexecJobPhaseNodeVo> nodeVos = autoexecJobMapper.getJobPhaseNodeListByJobIdAndPhaseId(jobVo.getId(), phaseVo.getId());
             if (CollectionUtils.isEmpty(nodeVos)) {
                 throw new AutoexecJobPhaseNodeNotFoundException(phaseVo.getId().toString(), ExecMode.SQL.getValue());
             }
-            notCompletedNodeList = nodeVos.stream().filter(o -> Arrays.asList(JobNodeStatus.PENDING.getValue(), JobNodeStatus.RUNNING.getValue()).contains(o.getStatus())).collect(Collectors.toList());
+            return nodeVos.stream().allMatch(o -> Arrays.asList(JobNodeStatus.IGNORED.getValue(), JobNodeStatus.SUCCEED.getValue()).contains(o.getStatus()));
         } else {
             AutoexecJobPhaseNodeVo nodeParamVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), phaseVo.getName(), 0);
-            notCompletedNodeList = autoexecJobMapper.getJobPhaseNodeIdListByNodeVoAndSeqNo(nodeParamVo, seqNo).stream().filter(o -> Arrays.asList(JobNodeStatus.PENDING.getValue(), JobNodeStatus.RUNNING.getValue()).contains(o.getStatus())).collect(Collectors.toList());
+            nodeParamVo.setStatusBlackList(Arrays.asList(JobNodeStatus.IGNORED.getValue(), JobNodeStatus.SUCCEED.getValue()));
+            List<AutoexecJobPhaseNodeVo> notCompleteNode = autoexecJobMapper.getJobPhaseNodeIdListByNodeVoAndSeqNo(nodeParamVo, seqNo);
+            return CollectionUtils.isEmpty(notCompleteNode);
         }
-        return CollectionUtils.isEmpty(notCompletedNodeList);
     }
 
 
@@ -200,8 +224,7 @@ public class InformAutoexecJobPhaseRoundEndApi extends PrivateApiComponentBase {
         }
         //设置分页，查询该phase round
         nodeParamVo.setPageSize(roundCountList.get(roundNo - 1));
-        List<AutoexecJobPhaseNodeVo> notCompletedNodeList = autoexecJobMapper.getJobPhaseNodeIdListByNodeVoAndStartNum(nodeParamVo, startNum).stream().filter(o -> Arrays.asList(JobNodeStatus.WAITING.getValue(),JobNodeStatus.PENDING.getValue(), JobNodeStatus.RUNNING.getValue()).contains(o.getStatus())).collect(Collectors.toList());
-        return CollectionUtils.isEmpty(notCompletedNodeList);
+        return autoexecJobMapper.getJobPhaseNodeIdListByNodeVoAndStartNum(nodeParamVo, startNum).stream().allMatch(o -> Arrays.asList(JobNodeStatus.IGNORED.getValue(), JobNodeStatus.SUCCEED.getValue()).contains(o.getStatus()));
     }
 
     @Override

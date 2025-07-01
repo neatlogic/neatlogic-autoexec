@@ -24,6 +24,7 @@ import neatlogic.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteNodeConfigVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.dto.node.AutoexecNodeVo;
+import neatlogic.framework.autoexec.exception.job.AutoexecInputOutOfCountException;
 import neatlogic.framework.autoexec.job.node.IUpdateNodes;
 import neatlogic.framework.cmdb.crossover.IResourceCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
@@ -37,11 +38,13 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 public class UpdateNodesByInputHandler implements IUpdateNodes {
     @Resource
     AutoexecJobService autoexecJobService;
+
     @Override
     public boolean update(AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
         boolean isHasNode = false;
@@ -52,7 +55,7 @@ public class UpdateNodesByInputHandler implements IUpdateNodes {
         if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getInputNodeList())) {
             isHasNode = updateNodeResourceByInput(executeNodeConfigVo, jobVo, userName, protocolId);
         }
-        return  isHasNode;
+        return isHasNode;
     }
 
     /**
@@ -69,6 +72,9 @@ public class UpdateNodesByInputHandler implements IUpdateNodes {
         boolean isHasNode = false;
         List<ResourceVo> ipPortNameList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(nodeVoList)) {
+            if (nodeVoList.size() > 1000) {
+                throw new AutoexecInputOutOfCountException(1000);
+            }
             nodeVoList.forEach(o -> ipPortNameList.add(new ResourceVo(o.getIp(), o.getPort(), o.getName())));
             JSONObject preFilter = null;
             if (Objects.equals(jobVo.getNodeFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())) {
@@ -78,24 +84,37 @@ public class UpdateNodesByInputHandler implements IUpdateNodes {
                         && config.getExecuteConfig().getCombopNodeConfig() != null
                         && MapUtils.isNotEmpty(config.getExecuteConfig().getCombopNodeConfig().getFilter())
                         && (Objects.equals(config.getExecuteConfig().getWhenToSpecify(), CombopNodeSpecify.RUNTIME.getValue()))) {
-                        preFilter = config.getExecuteConfig().getCombopNodeConfig().getFilter();
+                    preFilter = config.getExecuteConfig().getCombopNodeConfig().getFilter();
                 }
             }
             ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, preFilter);
             IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
-            List<ResourceSearchVo> resourceSearchList = new ArrayList<>();
+
             Set<Long> resourceIdSet = new HashSet<>();
-            ipPortNameList.forEach(o -> resourceSearchList.add(new ResourceSearchVo(o)));
-            if (CollectionUtils.isNotEmpty(resourceSearchList)) {
-                for (ResourceSearchVo resourceSearchVo : resourceSearchList) {
-                    Long id = resourceCrossoverMapper.getResourceIdByIpAndPortAndName(resourceSearchVo);
-                    if (id != null) {
-                        resourceIdSet.add(id);
+            List<ResourceVo> inputNodeResourceList = new ArrayList<>();
+            for (ResourceVo resourceVo : ipPortNameList) {
+                inputNodeResourceList.add(resourceVo);
+                if (inputNodeResourceList.size() > 500) {
+                    searchVo.setInputNodeList(inputNodeResourceList);
+                    List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIpAndPortAndNameWithFilter(searchVo);
+                    if (CollectionUtils.isNotEmpty(resourceList)) {
+                        resourceIdSet.addAll(resourceList.stream().map(ResourceVo::getId).collect(Collectors.toList()));
                     }
+                    inputNodeResourceList.clear();
                 }
+            }
+            if (CollectionUtils.isNotEmpty(inputNodeResourceList)) {
+                searchVo.setInputNodeList(inputNodeResourceList);
+                List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIpAndPortAndNameWithFilter(searchVo);
+                if (CollectionUtils.isNotEmpty(resourceList)) {
+                    resourceIdSet.addAll(resourceList.stream().map(ResourceVo::getId).collect(Collectors.toList()));
+                }
+                inputNodeResourceList.clear();
             }
             if (CollectionUtils.isNotEmpty(resourceIdSet)) {
                 searchVo.setIdList(new ArrayList<>(resourceIdSet));
+                searchVo.setMaxPageSize(1000);
+                searchVo.setPageSize(1000);
                 int count = resourceCrossoverMapper.getResourceCount(searchVo);
                 if (count > 0) {
                     int pageCount = PageUtil.getPageCount(count, searchVo.getPageSize());

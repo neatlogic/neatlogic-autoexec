@@ -17,6 +17,7 @@ package neatlogic.module.autoexec.job.action.handler;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.autoexec.config.AutoexecConfig;
 import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobConsoleLogAuditVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
@@ -75,7 +76,7 @@ public class AutoexecJobConsoleLogAuditListHandler extends AutoexecJobActionHand
         JSONObject result = new JSONObject();
         JSONObject paramObj = jobVo.getActionParam();
         String url = paramObj.getString("runnerUrl") + "/api/rest/job/console/log/audit/list";
-        HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
+        HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).sendRequest();
         if(StringUtils.isNotBlank(requestUtil.getError())){
             throw new RunnerConnectRefusedException(url);
         }

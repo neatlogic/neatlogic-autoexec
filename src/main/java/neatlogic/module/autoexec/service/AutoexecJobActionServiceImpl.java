@@ -20,10 +20,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
-import neatlogic.framework.autoexec.constvalue.JobAction;
-import neatlogic.framework.autoexec.constvalue.JobTriggerType;
-import neatlogic.framework.autoexec.constvalue.ParamMappingMode;
-import neatlogic.framework.autoexec.constvalue.ToolType;
+import neatlogic.framework.autoexec.constvalue.*;
 import neatlogic.framework.autoexec.crossover.IAutoexecJobActionCrossoverService;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
@@ -49,6 +46,7 @@ import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dao.mapper.UserMapper;
 import neatlogic.framework.dto.AuthenticationInfoVo;
 import neatlogic.framework.dto.UserVo;
+import neatlogic.framework.exception.type.ParamIrregularException;
 import neatlogic.framework.exception.user.UserNotFoundException;
 import neatlogic.framework.filter.core.LoginAuthHandlerBase;
 import neatlogic.framework.scheduler.core.IJob;
@@ -60,11 +58,11 @@ import neatlogic.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecScenarioMapper;
 import neatlogic.module.autoexec.schedule.plugin.AutoexecJobAutoFireJob;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
@@ -422,15 +420,41 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             if (autoexecJobParam.getExecuteConfig().getExecuteNodeConfig() != null && !autoexecJobParam.getExecuteConfig().getExecuteNodeConfig().isNull()) {
                 combopExecuteConfigVo.setExecuteNodeConfig(autoexecJobParam.getExecuteConfig().getExecuteNodeConfig());
             }
-            //如果创建作业分批数入参不存在，则用组合工具的全局分批数
-            if (autoexecJobParam.getRoundCount() == null) {
-                if(combopExecuteConfigVo.getRoundCount() != null) {
-                    autoexecJobParam.setRoundCount(combopExecuteConfigVo.getRoundCount());
-                }else{
-                    //组合工具的全局分批数不存在则默认分64批
-                    autoexecJobParam.setRoundCount(64);
+            if (StringUtils.isBlank(autoexecJobParam.getParallelPolicy())) {
+                if (combopExecuteConfigVo.getParallelPolicy() != null) {
+                    autoexecJobParam.setParallelPolicy(combopExecuteConfigVo.getParallelPolicy());
+                } else {
+                    //组合工具的全局并发策略不存在则默认并发数，兼容老数据
+                    if (autoexecJobParam.getRoundCount() != null || combopExecuteConfigVo.getRoundCount() != null) {
+                        autoexecJobParam.setParallelPolicy(AutoexecParallelPolicy.ROUND_COUNT.getValue());
+                    }else{
+                        autoexecJobParam.setParallelPolicy(AutoexecParallelPolicy.PARALLEL.getValue());
+                    }
                 }
             }
+
+            if (Objects.equals(autoexecJobParam.getParallelPolicy(), AutoexecParallelPolicy.ROUND_COUNT.getValue())) {
+                //如果创建作业分批数入参不存在，则用组合工具的全局分批数
+                if (autoexecJobParam.getRoundCount() == null) {
+                    if (combopExecuteConfigVo.getRoundCount() != null) {
+                        autoexecJobParam.setRoundCount(combopExecuteConfigVo.getRoundCount());
+                    } else {
+                        //组合工具的全局分批数不存在则默认分64批
+                        autoexecJobParam.setRoundCount(64);
+                    }
+                }
+            } else {
+                if (autoexecJobParam.getParallelCount() == null) {
+                    if (combopExecuteConfigVo.getParallelCount() != null) {
+                        autoexecJobParam.setParallelCount(combopExecuteConfigVo.getParallelCount());
+                    } else {
+                        autoexecJobParam.setParallelCount(32);
+                    }
+                }
+            }
+            combopExecuteConfigVo.setParallelPolicy(autoexecJobParam.getParallelPolicy());
+            combopExecuteConfigVo.setRoundCount(autoexecJobParam.getRoundCount());
+            combopExecuteConfigVo.setParallelCount(autoexecJobParam.getParallelCount());
             config.setExecuteConfig(combopExecuteConfigVo);
             autoexecCombopService.verifyAutoexecCombopConfig(config, true);
         }
@@ -444,23 +468,31 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             }
             autoexecJobParam.setScenarioId(scenarioVo.getId());
         }
-        autoexecJobParam.setConfigStr(JSONObject.toJSONString(config));
+        autoexecJobParam.setConfigStr(JSON.toJSONString(config));
         autoexecJobParam.setRunTimeParamList(config.getRuntimeParamList());
-
-        autoexecJobSourceActionHandler.updateInvokeJob(autoexecJobParam);
         autoexecJobService.saveAutoexecCombopJob(autoexecJobParam);
         autoexecJobParam.setAction(JobAction.FIRE.getValue());
     }
 
     @Override
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void validateCreateJob(AutoexecJobVo jobParam) throws Exception {
         validateAndCreateJobFromCombop(jobParam);
+        UserVo user = SystemUser.SYSTEM.getUserVo();
+        AuthenticationInfoVo authenticationInfo = SystemUser.SYSTEM.getAuthenticationInfoVo();
+        if (!Objects.equals(jobParam.getAssignExecUser(), SystemUser.SYSTEM.getUserUuid())) {
+            user = userMapper.getUserByUuid(jobParam.getAssignExecUser());
+            if (user == null) {
+                throw new UserNotFoundException(jobParam.getAssignExecUser());
+            }
+            authenticationInfo = authenticationInfoService.getAuthenticationInfo(user.getUuid());
+        }
+        UserContext.init(user, authenticationInfo, SystemUser.SYSTEM.getTimezone());
         jobParam.setAction(JobAction.FIRE.getValue());
         IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
         fireAction.doService(jobParam);
     }
 
+    @Transactional
     @Override
     public void getJobDetailAndFireJob(AutoexecJobVo jobVo) throws Exception {
         if (jobVo != null) {
@@ -473,18 +505,30 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
     }
 
     @Override
-    public void initExecuteUserContext(AutoexecJobVo jobVo) throws Exception {
-        UserVo execUser;
-        AuthenticationInfoVo authenticationInfoVo = null;
-        //初始化执行用户上下文
-        if (Arrays.asList(SystemUser.SYSTEM.getUserUuid(), neatlogic.framework.autoexec.constvalue.SystemUser.AUTOEXEC.getUserUuid()).contains(jobVo.getExecUser())) {
-            execUser = SystemUser.SYSTEM.getUserVo();
-        } else {
-            execUser = userMapper.getUserBaseInfoByUuid(jobVo.getExecUser());
-            authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(jobVo.getExecUser());
+    public void initExecuteUserContext(AutoexecJobVo jobVo, JSONObject passThroughEnv) throws Exception {
+        if (MapUtils.isEmpty(passThroughEnv)) {
+            throw new ParamIrregularException("passThroughEnv");
         }
-        if (execUser == null) {
-            throw new UserNotFoundException(jobVo.getExecUser());
+        if (!passThroughEnv.containsKey("EXECUSER_UUID")) {
+            throw new AutoexecExecuteUserIsRequiredException();
+        }
+        String execUserUuid = passThroughEnv.getString("EXECUSER_UUID");
+        UserVo execUser;
+        AuthenticationInfoVo authenticationInfoVo;
+        // TODO临时兼容systemUser
+        if (Objects.equals(SystemUser.SYSTEM.getUserUuid(), execUserUuid)) {
+            execUser = SystemUser.SYSTEM.getUserVo();
+            authenticationInfoVo = SystemUser.SYSTEM.getAuthenticationInfoVo();
+        } else if (Objects.equals(neatlogic.framework.autoexec.constvalue.SystemUser.AUTOEXEC.getUserUuid(), execUserUuid)) {
+            //autoexec脚本用的是autoexec虚拟用户
+            execUser = neatlogic.framework.autoexec.constvalue.SystemUser.AUTOEXEC.getUserVo();
+            authenticationInfoVo = neatlogic.framework.autoexec.constvalue.SystemUser.AUTOEXEC.getAuthenticationInfoVo();
+        } else {
+            execUser = userMapper.getUserBaseInfoByUuid(execUserUuid);
+            if (execUser == null) {
+                throw new UserNotFoundException(execUserUuid);
+            }
+            authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(execUserUuid);
         }
 
         UserContext.init(execUser, authenticationInfoVo, "+8:00");

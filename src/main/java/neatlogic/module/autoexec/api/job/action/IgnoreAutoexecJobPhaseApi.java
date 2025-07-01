@@ -79,7 +79,7 @@ public class IgnoreAutoexecJobPhaseApi extends PrivateApiComponentBase {
         if(phaseVo==null){
             throw new AutoexecJobPhaseNotFoundException(phaseId.toString());
         }
-        jobVo.setCurrentPhase(phaseVo);
+        jobVo.setExecutePhase(phaseVo);
         jobVo.setActionParam(jsonObj);
         jobVo.setAction(JobAction.IGNORE_PHASE.getValue());
         IAutoexecJobActionHandler ignorePhaseAction = AutoexecJobActionHandlerFactory.getAction(JobAction.IGNORE_PHASE.getValue());

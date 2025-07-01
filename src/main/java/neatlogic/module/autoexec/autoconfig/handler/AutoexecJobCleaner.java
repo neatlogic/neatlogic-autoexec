@@ -19,6 +19,7 @@ import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auditconfig.core.AuditCleanerBase;
+import neatlogic.framework.autoexec.config.AutoexecConfig;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.common.constvalue.systemuser.SystemUser;
@@ -30,6 +31,7 @@ import neatlogic.framework.integration.authentication.enums.AuthenticateType;
 import neatlogic.framework.util.HttpRequestUtil;
 import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -83,7 +85,11 @@ public class AutoexecJobCleaner extends AuditCleanerBase {
                         paramJson.put("passThroughEnv", new JSONObject() {{
                             put("runnerId", runner.getRunnerMapId());
                         }});
-                        HttpRequestUtil.post(url).setAuthType(AuthenticateType.BUILDIN).setPayload(paramJson.toJSONString()).sendRequest();
+                        HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setAuthType(AuthenticateType.BUILDIN).setPayload(paramJson.toJSONString()).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).sendRequest();
+                        if (StringUtils.isNotBlank(requestUtil.getError())) {
+                            logger.error(requestUtil.getError());
+                            //throw new AutoexecJobDeleteException(runner);
+                        }
                     }
                 }
             }
@@ -97,6 +103,8 @@ public class AutoexecJobCleaner extends AuditCleanerBase {
             }
 
             databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job");
+            databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_runner");
+            databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_exec");
             databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_content");
             databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_phase");
             databaseFragmentMapper.rebuildTable(TenantContext.get().getDbName(), "autoexec_job_phase_node");

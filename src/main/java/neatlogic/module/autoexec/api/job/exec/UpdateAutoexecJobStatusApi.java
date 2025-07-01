@@ -28,6 +28,7 @@ import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
+import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -48,6 +49,8 @@ public class UpdateAutoexecJobStatusApi extends PrivateApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;
     @Resource
+    AutoexecJobService autoexecJobService;
+    @Resource
     AutoexecJobActionService autoexecJobActionService;
 
     @Override
@@ -63,6 +66,7 @@ public class UpdateAutoexecJobStatusApi extends PrivateApiComponentBase {
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
             @Param(name = "status", type = ApiParamType.STRING, desc = "common.status", isRequired = true),
+            @Param(name = "execId", type = ApiParamType.LONG, desc = "nmaaje.updateautoexecjobphasestatusapi.input.param.desc"),
             @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.passthroughenv")
     })
     @Output({
@@ -72,52 +76,55 @@ public class UpdateAutoexecJobStatusApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
         String status = jsonObj.getString("status");
-        String statusIng = null;
+        Long execId = jsonObj.getLong("execId");
+        Integer isFirstFire = 0;
+        if (!jsonObj.containsKey("passThroughEnv")) {
+            throw new ParamIrregularException("passThroughEnv");
+        }
+        JSONObject passThroughEnv = jsonObj.getJSONObject("passThroughEnv");
+        if (!passThroughEnv.containsKey("runnerId")) {
+            throw new ParamIrregularException("runnerId");
+        }
+        if (passThroughEnv.containsKey("isFirstFire")) {
+            isFirstFire = passThroughEnv.getInteger("isFirstFire");
+        }
+        Long runnerId = passThroughEnv.getLong("runnerId");
+
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(jobId.toString());
         }
-        //如果作业状态本来就是终结状态，则跳过
-        if(Arrays.asList(JobStatus.COMPLETED.getValue(),JobStatus.ABORTED.getValue(),JobStatus.PAUSED.getValue(),JobStatus.FAILED.getValue(),JobStatus.REVOKED.getValue()).contains(jobVo.getStatus())){
-            return null;
-        }
-        //更新执行用户上下文
-        autoexecJobActionService.initExecuteUserContext(jobVo);
-
-        if (Objects.equals(status, JobStatus.ABORTED.getValue())) {
-            statusIng = JobStatus.ABORTING.getValue();
-        } else if (Objects.equals(status, JobStatus.PAUSED.getValue())) {
-            statusIng = JobStatus.PAUSING.getValue();
-        }
-
-        if (StringUtils.isNotBlank(statusIng)) {
-            //if(Objects.equals(statusIng, jobVo.getStatus())) {
-            jobVo.setStatus(status);
-            if (!jsonObj.containsKey("passThroughEnv")) {
-                throw new ParamIrregularException("passThroughEnv");
+        jobVo.setIsFirstFire(isFirstFire);
+        autoexecJobActionService.initExecuteUserContext(jobVo,jsonObj.getJSONObject("passThroughEnv"));
+        if (execId != null && execId != 0) {
+            if (!Arrays.asList(JobStatus.RUNNING.getValue(), JobStatus.WAIT_INPUT.getValue()).contains(status)) {
+                autoexecJobMapper.deleteJobExec(jobVo.getId(), runnerId, execId);
             }
-            JSONObject passThroughEnv = jsonObj.getJSONObject("passThroughEnv");
-            if (!passThroughEnv.containsKey("runnerId")) {
-                throw new ParamIrregularException("runnerId");
-            }
-            Long runnerId = passThroughEnv.getLong("runnerId");
-            jobVo.setPassThroughEnv(passThroughEnv);
-            //update job phase runner
-            autoexecJobMapper.updateJobPhaseRunnerStatusByJobIdAndRunnerIdAndStatus(jobId, runnerId, status, statusIng);
-            //如果该job runner 没有一个aborting|pausing phase 则更新为 aborted|paused
-            int statusIngCount = autoexecJobMapper.getJobPhaseRunnerCountByJobIdAndRunnerStatus(jobId, statusIng);
-            if (statusIngCount == 0) {
-                jobVo.setStatus(status);
-                autoexecJobMapper.updateJobStatus(jobVo);
-                //将中止中和暂停中的phase 状态更新为 已中止和已暂停
-                autoexecJobMapper.updateJobPhaseStatusByJobIdAndPhaseStatus(jobId, statusIng, status);
-            }
-            //}
         } else {
-            jobVo.setStatus(status);
-            autoexecJobMapper.updateJobStatus(jobVo);
+            //如果execId是空的说明是终止或暂停操作，所有exec进程记录都需要清空
+            autoexecJobMapper.deleteJobExecByJobId(jobVo.getId());
+            //如果没有任何作业在运行，而且状态是aborting或pausing，则把所有节点、阶段的改成aborted、pauted
+            String statusIng = null;
+            if (Objects.equals(status, JobStatus.ABORTED.getValue())) {
+                statusIng= JobStatus.ABORTING.getValue();
+            } else if (Objects.equals(status, JobStatus.PAUSED.getValue())) {
+                statusIng= JobStatus.PAUSING.getValue();
+            }
+            if(StringUtils.isNotBlank(statusIng)) {
+                autoexecJobMapper.updateJobPhaseRunnerStatusByJobIdAndRunnerIdAndStatus(jobId, runnerId, status, statusIng);
+                //如果该job runner 没有一个aborting|pausing phase 则更新为 aborted|paused
+                int statusIngCount = autoexecJobMapper.getJobPhaseRunnerCountByJobIdAndRunnerStatus(jobId, statusIng);
+                if (statusIngCount == 0) {
+                    autoexecJobMapper.updateJobStatus(jobVo);
+                    //将中止中和暂停中的phase 状态更新为 已中止和已暂停
+                    autoexecJobMapper.updateJobPhaseStatusByJobIdAndPhaseStatus(jobId, statusIng, status);
+                }
+            }
         }
-
+        //计算最终的作业状态
+        String jobStatus = autoexecJobService.getJobStatus(jobVo.getId(), status);
+        jobVo.setStatus(jobStatus);
+        autoexecJobMapper.updateJobStatus(jobVo);
 
         return null;
     }

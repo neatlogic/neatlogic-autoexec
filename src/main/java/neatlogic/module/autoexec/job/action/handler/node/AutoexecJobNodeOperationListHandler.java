@@ -30,7 +30,6 @@ import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 import java.util.List;
-import java.util.Objects;
 
 /**
  * @author lvzk
@@ -57,13 +56,13 @@ public class AutoexecJobNodeOperationListHandler extends AutoexecJobActionHandle
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         AutoexecJobPhaseNodeVo nodeVo = jobVo.getCurrentNode();
-        AutoexecJobPhaseVo phaseVo = jobVo.getCurrentPhase();
+        AutoexecJobPhaseVo phaseVo = jobVo.getExecutePhase();
         JSONObject paramJson = jobVo.getActionParam();
         paramJson.put("jobId", phaseVo.getJobId());
         paramJson.put("resourceId", nodeVo.getResourceId());
         paramJson.put("phase", nodeVo.getJobPhaseName());
         paramJson.put("phaseId", nodeVo.getJobPhaseId());
-        paramJson.put("nodeId",nodeVo.getId());
+        paramJson.put("nodeId", nodeVo.getId());
         paramJson.put("ip", nodeVo.getHost());
         paramJson.put("port", nodeVo.getPort());
         paramJson.put("runnerUrl", nodeVo.getRunnerUrl());
@@ -74,7 +73,7 @@ public class AutoexecJobNodeOperationListHandler extends AutoexecJobActionHandle
         List<AutoexecJobPhaseNodeOperationStatusVo> operationStatusVos = phaseNodeVo.getOperationStatusVoList();
         result.put("operationStatusList", operationStatusVos);
         String nodeStatusOld = paramJson.getString("status");
-        if (Objects.equals(nodeStatusOld, JobNodeStatus.RUNNING.getValue()) || Objects.equals(phaseNodeVo.getStatus(), JobNodeStatus.RUNNING.getValue())) {
+        if (JobNodeStatus.isRunningStatus(nodeStatusOld) || JobNodeStatus.isRunningStatus(phaseNodeVo.getStatus())) {
             result.put("isRefresh", 1);
         }
         return result;

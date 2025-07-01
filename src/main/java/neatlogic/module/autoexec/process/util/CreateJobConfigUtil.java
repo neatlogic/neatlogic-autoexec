@@ -20,6 +20,7 @@ package neatlogic.module.autoexec.process.util;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.autoexec.constvalue.AutoexecParallelPolicy;
 import neatlogic.framework.autoexec.constvalue.CombopNodeSpecify;
 import neatlogic.framework.autoexec.crossover.IAutoexecCombopCrossoverService;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
@@ -60,11 +61,18 @@ public class CreateJobConfigUtil {
     public static List<AutoexecJobBuilder> createAutoexecJobBuilderList(ProcessTaskStepVo currentProcessTaskStepVo, CreateJobConfigConfigVo createJobConfigConfigVo, AutoexecCombopVersionVo autoexecCombopVersionVo) {
         Long processTaskId = currentProcessTaskStepVo.getProcessTaskId();
         // 如果工单有表单信息，则查询出表单配置及数据
-        Map<String, Object> formAttributeDataMap = new HashMap<>();
+        Map<String, Object> formTableComponentDataMap = new HashMap<>();
+        Map<String, Object> formCommonComponentDataMap = new HashMap<>();
         Map<String, Object> originalFormAttributeDataMap = new HashMap<>();
         IProcessTaskCrossoverService processTaskCrossoverService = CrossoverServiceFactory.getApi(IProcessTaskCrossoverService.class);
         List<FormAttributeVo> formAttributeList = processTaskCrossoverService.getFormAttributeListByProcessTaskIdAngTagNew(processTaskId, createJobConfigConfigVo.getFormTag());
         if (CollectionUtils.isNotEmpty(formAttributeList)) {
+            Map<String, FormAttributeVo> formAttributeMap = new HashMap<>();
+            for (FormAttributeVo formAttributeVo : formAttributeList) {
+                if (!formAttributeMap.containsKey(formAttributeVo.getUuid())) {
+                    formAttributeMap.put(formAttributeVo.getUuid(), formAttributeVo);
+                }
+            }
             List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskIdAndTagNew(processTaskId, createJobConfigConfigVo.getFormTag());
             for (ProcessTaskFormAttributeDataVo attributeDataVo : processTaskFormAttributeDataList) {
                 // 放入表单普通组件数据
@@ -74,15 +82,29 @@ public class CreateJobConfigUtil {
                     IFormAttributeDataConversionHandler handler = FormAttributeDataConversionHandlerFactory.getHandler(attributeDataVo.getHandler());
                     if (handler != null) {
                         Object simpleValue = handler.getSimpleValue(attributeDataVo.getDataObj());
-                        formAttributeDataMap.put(attributeDataVo.getAttributeUuid(), simpleValue);
-                        formAttributeDataMap.put(attributeDataVo.getAttributeKey(), simpleValue);
+                        formTableComponentDataMap.put(attributeDataVo.getAttributeUuid(), simpleValue);
+                        formTableComponentDataMap.put(attributeDataVo.getAttributeKey(), simpleValue);
                     } else {
                         Object dataObj = attributeDataVo.getDataObj();
-                        formAttributeDataMap.put(attributeDataVo.getAttributeUuid(), dataObj);
-                        formAttributeDataMap.put(attributeDataVo.getAttributeKey(), dataObj);
+                        formTableComponentDataMap.put(attributeDataVo.getAttributeUuid(), dataObj);
+                        formTableComponentDataMap.put(attributeDataVo.getAttributeKey(), dataObj);
                     }
                 }
                 Object dataObj = attributeDataVo.getDataObj();
+                FormAttributeVo formAttributeVo = formAttributeMap.get(attributeDataVo.getAttributeUuid());
+                if (dataObj != null && formAttributeVo != null) {
+                    IFormAttributeDataConversionHandler handler = FormAttributeDataConversionHandlerFactory.getHandler(formAttributeVo.getHandler());
+                    if (handler != null) {
+                        Object enhanceReadabilityValue = handler.getEnhanceReadabilityValue(dataObj, formAttributeVo);
+                        formCommonComponentDataMap.put(formAttributeVo.getUuid(), enhanceReadabilityValue);
+                        formCommonComponentDataMap.put(formAttributeVo.getKey(), enhanceReadabilityValue);
+                        formCommonComponentDataMap.put(formAttributeVo.getLabel(), enhanceReadabilityValue);
+                    } else {
+                        formCommonComponentDataMap.put(attributeDataVo.getAttributeUuid(), dataObj);
+                        formCommonComponentDataMap.put(attributeDataVo.getAttributeKey(), dataObj);
+                        formCommonComponentDataMap.put(attributeDataVo.getAttributeLabel(), dataObj);
+                    }
+                }
                 originalFormAttributeDataMap.put(attributeDataVo.getAttributeUuid(), dataObj);
                 originalFormAttributeDataMap.put(attributeDataVo.getAttributeKey(), dataObj);
             }
@@ -109,12 +131,12 @@ public class CreateJobConfigUtil {
         // 作业策略createJobPolicy为single时表示单次创建作业，createJobPolicy为batch时表示批量创建作业
         String createPolicy = createJobConfigConfigVo.getCreatePolicy();
         if (Objects.equals(createPolicy, "single")) {
-            AutoexecJobBuilder builder = createSingleAutoexecJobBuilder(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
+            AutoexecJobBuilder builder = createSingleAutoexecJobBuilder(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo, formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, formCommonComponentDataMap, processTaskParam);
             List<AutoexecJobBuilder> builderList = new ArrayList<>();
             builderList.add(builder);
             return builderList;
         } else if (Objects.equals(createPolicy, "batch")) {
-            List<AutoexecJobBuilder> builderList = createBatchAutoexecJobBuilder(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
+            List<AutoexecJobBuilder> builderList = createBatchAutoexecJobBuilder(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo, formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, formCommonComponentDataMap, processTaskParam);
             return builderList;
         } else {
             return null;
@@ -128,7 +150,8 @@ public class CreateJobConfigUtil {
      * @param createJobConfigConfigVo
      * @param formAttributeList
      * @param originalFormAttributeDataMap
-     * @param formAttributeDataMap
+     * @param formTableComponentDataMap
+     * @param formCommonComponentDataMap
      * @param processTaskParam
      * @return
      */
@@ -138,7 +161,8 @@ public class CreateJobConfigUtil {
             AutoexecCombopVersionVo autoexecCombopVersionVo,
             List<FormAttributeVo> formAttributeList,
             Map<String, Object> originalFormAttributeDataMap,
-            Map<String, Object> formAttributeDataMap,
+            Map<String, Object> formTableComponentDataMap,
+            Map<String, Object> formCommonComponentDataMap,
             JSONObject processTaskParam) {
 
         List<AutoexecJobBuilder> resultList = new ArrayList<>();
@@ -147,7 +171,7 @@ public class CreateJobConfigUtil {
         if (batchDataSourceMapping == null) {
             return resultList;
         }
-        JSONArray tbodyList = parseFormTableComponentMappingMode(batchDataSourceMapping, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
+        JSONArray tbodyList = parseFormTableComponentMappingMode(batchDataSourceMapping, formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, formCommonComponentDataMap, processTaskParam);
         if (CollectionUtils.isEmpty(tbodyList)) {
             return resultList;
         }
@@ -161,9 +185,9 @@ public class CreateJobConfigUtil {
         // 遍历表格数据，创建AutoexecJobVo对象列表
         for (Object obj : tbodyList) {
             List<Object> list = Collections.singletonList(obj);
-            formAttributeDataMap.put(formAttributeVo.getUuid(), list);
-            formAttributeDataMap.put(formAttributeVo.getKey(), list);
-            AutoexecJobBuilder builder = createSingleAutoexecJobBuilder(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
+            formTableComponentDataMap.put(formAttributeVo.getUuid(), list);
+            formTableComponentDataMap.put(formAttributeVo.getKey(), list);
+            AutoexecJobBuilder builder = createSingleAutoexecJobBuilder(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo, formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, formCommonComponentDataMap, processTaskParam);
             resultList.add(builder);
         }
         return resultList;
@@ -176,7 +200,7 @@ public class CreateJobConfigUtil {
      * @param createJobConfigConfigVo
      * @param formAttributeList
      * @param originalFormAttributeDataMap
-     * @param formAttributeDataMap
+     * @param formTableComponentDataMap
      * @param processTaskParam
      * @return
      */
@@ -186,7 +210,8 @@ public class CreateJobConfigUtil {
             AutoexecCombopVersionVo autoexecCombopVersionVo,
             List<FormAttributeVo> formAttributeList,
             Map<String, Object> originalFormAttributeDataMap,
-            Map<String, Object> formAttributeDataMap,
+            Map<String, Object> formTableComponentDataMap,
+            Map<String, Object> formCommonComponentDataMap,
             JSONObject processTaskParam) {
         // 组合工具ID
         Long combopId = createJobConfigConfigVo.getCombopId();
@@ -197,7 +222,7 @@ public class CreateJobConfigUtil {
         rawData.put("autoexecCombopVersionVo", autoexecCombopVersionVo);
         rawData.put("formAttributeList", formAttributeList);
         rawData.put("originalFormAttributeDataMap", originalFormAttributeDataMap);
-        rawData.put("formAttributeDataMap", formAttributeDataMap);
+        rawData.put("formTableComponentDataMap", formTableComponentDataMap);
         rawData.put("processTaskParam", processTaskParam);
         builder.setRawData(JSONObject.parseObject(rawData.toJSONString()));
         // 作业名称
@@ -207,7 +232,7 @@ public class CreateJobConfigUtil {
         if (CollectionUtils.isNotEmpty(versionConfig.getScenarioList())) {
             List<CreateJobConfigMappingGroupVo> scenarioParamMappingGroupList = createJobConfigConfigVo.getScenarioParamMappingGroupList();
             if (CollectionUtils.isNotEmpty(scenarioParamMappingGroupList)) {
-                JSONArray jsonArray = parseCreateJobConfigMappingGroup(scenarioParamMappingGroupList.get(0), formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
+                JSONArray jsonArray = parseCreateJobConfigMappingGroup(scenarioParamMappingGroupList.get(0), formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, formCommonComponentDataMap, processTaskParam);
                 Long scenarioId = getScenarioId(jsonArray, versionConfig.getScenarioList());
                 builder.setScenarioId(scenarioId);
             }
@@ -224,7 +249,7 @@ public class CreateJobConfigUtil {
                     if (autoexecParamVo == null) {
                         continue;
                     }
-                    JSONArray jsonArray = parseCreateJobConfigMappingGroup(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
+                    JSONArray jsonArray = parseCreateJobConfigMappingGroup(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, formCommonComponentDataMap, processTaskParam);
                     if (CollectionUtils.isEmpty(jsonArray)) {
                         continue;
                     }
@@ -277,7 +302,7 @@ public class CreateJobConfigUtil {
                 executeConfig.setWhenToSpecify(CombopNodeSpecify.RUNTIME.getValue());
                 CreateJobConfigMappingGroupVo mappingGroupVo = executeParamMappingGroupMap.get("executeNodeConfig");
                 if (mappingGroupVo != null) {
-                    JSONArray jsonArray = parseCreateJobConfigMappingGroup(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
+                    JSONArray jsonArray = parseCreateJobConfigMappingGroup(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, formCommonComponentDataMap, processTaskParam);
                     AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = getExecuteNodeConfig(jsonArray);
                     if (executeNodeConfigVo != null) {
                         executeConfig.setExecuteNodeConfig(executeNodeConfigVo);
@@ -291,7 +316,7 @@ public class CreateJobConfigUtil {
             } else {
                 CreateJobConfigMappingGroupVo mappingGroupVo = executeParamMappingGroupMap.get("protocolId");
                 if (mappingGroupVo != null) {
-                    JSONArray jsonArray = parseCreateJobConfigMappingGroup(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
+                    JSONArray jsonArray = parseCreateJobConfigMappingGroup(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, formCommonComponentDataMap, processTaskParam);
                     Long protocolId = getProtocolId(jsonArray);
                     executeConfig.setProtocolId(protocolId);
                 }
@@ -304,7 +329,7 @@ public class CreateJobConfigUtil {
             } else {
                 CreateJobConfigMappingGroupVo mappingGroupVo = executeParamMappingGroupMap.get("executeUser");
                 if (mappingGroupVo != null) {
-                    JSONArray jsonArray = parseCreateJobConfigMappingGroup(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
+                    JSONArray jsonArray = parseCreateJobConfigMappingGroup(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, formCommonComponentDataMap, processTaskParam);
                     String executeUser = getFirstNotBlankString(jsonArray);
                     if (StringUtils.isNotBlank(executeUser)) {
                         ParamMappingVo paramMappingVo = new ParamMappingVo();
@@ -316,18 +341,53 @@ public class CreateJobConfigUtil {
             }
         }
         if (needRoundCount) {
+            String parallelPolicy = null;
+            Integer roundCount = null;
+            if(StringUtils.isNotBlank(combopExecuteConfig.getParallelPolicy())){
+                parallelPolicy = combopExecuteConfig.getParallelPolicy();
+                executeConfig.setParallelPolicy(parallelPolicy);
+            }else{
+                CreateJobConfigMappingGroupVo mappingGroupVo = executeParamMappingGroupMap.get("parallelPolicy");
+                if (CollectionUtils.isNotEmpty(mappingGroupVo.getMappingList()) && mappingGroupVo.getMappingList().get(0) != null && mappingGroupVo.getMappingList().get(0).getValue() != null) {
+                    parallelPolicy = mappingGroupVo.getMappingList().get(0).getValue().toString();
+                    builder.setParallelPolicy(parallelPolicy);
+                }
+            }
+
             if (combopExecuteConfig.getRoundCount() != null) {
-                executeConfig.setRoundCount(combopExecuteConfig.getRoundCount());
+                roundCount = combopExecuteConfig.getRoundCount();
+                executeConfig.setRoundCount(roundCount);
             } else {
                 CreateJobConfigMappingGroupVo mappingGroupVo = executeParamMappingGroupMap.get("roundCount");
                 if (mappingGroupVo != null) {
-                    JSONArray jsonArray = parseCreateJobConfigMappingGroup(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
-                    Integer roundCount = getFirstNotBlankInteger(jsonArray);
+                    JSONArray jsonArray = parseCreateJobConfigMappingGroup(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, formCommonComponentDataMap, processTaskParam);
+                    roundCount = getFirstNotBlankInteger(jsonArray);
                     if (roundCount != null) {
                         builder.setRoundCount(roundCount);
                     }
                 }
             }
+            // 兼容老数据
+            if(roundCount != null && StringUtils.isBlank(parallelPolicy)){
+                parallelPolicy = AutoexecParallelPolicy.ROUND_COUNT.getValue();
+                builder.setParallelPolicy(parallelPolicy);
+            }
+            if(Objects.equals(parallelPolicy,AutoexecParallelPolicy.PARALLEL.getValue())){
+                if (combopExecuteConfig.getParallelCount() != null) {
+                    executeConfig.setParallelCount(combopExecuteConfig.getParallelCount());
+                } else {
+                    CreateJobConfigMappingGroupVo mappingGroupVo = executeParamMappingGroupMap.get("parallelCount");
+                    if (mappingGroupVo != null) {
+                        JSONArray jsonArray = parseCreateJobConfigMappingGroup(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, formCommonComponentDataMap, processTaskParam);
+                        Integer parallelCount = getFirstNotBlankInteger(jsonArray);
+                        if (parallelCount != null) {
+                            builder.setParallelCount(parallelCount);
+                        }
+                    }
+                }
+            }
+
+
         }
         builder.setExecuteConfig(executeConfig);
 
@@ -663,7 +723,8 @@ public class CreateJobConfigUtil {
     private static JSONArray parseCreateJobConfigMappingGroup(CreateJobConfigMappingGroupVo mappingGroupVo,
                                                               List<FormAttributeVo> formAttributeList,
                                                               Map<String, Object> originalFormAttributeDataMap,
-                                                              Map<String, Object> formAttributeDataMap,
+                                                              Map<String, Object> formTableComponentDataMap,
+                                                              Map<String, Object> formCommonComponentDataMap,
                                                               JSONObject processTaskParam) {
         JSONArray resultList = new JSONArray();
         List<CreateJobConfigMappingVo> mappingList = mappingGroupVo.getMappingList();
@@ -677,17 +738,24 @@ public class CreateJobConfigUtil {
             }
             String mappingMode = mappingVo.getMappingMode();
             if (Objects.equals(mappingMode, "formTableComponent")) {
-                resultList.addAll(parseFormTableComponentMappingMode(mappingVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam));
+                resultList.addAll(parseFormTableComponentMappingMode(mappingVo, formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, formCommonComponentDataMap, processTaskParam));
             } else if (Objects.equals(mappingMode, "formCommonComponent")) {
-                resultList.add(formAttributeDataMap.get(value));
+                resultList.add(formCommonComponentDataMap.get(value));
             } else if (Objects.equals(mappingMode, "constant")) {
                 resultList.add(value);
             } else if (Objects.equals(mappingMode, "processTaskParam")) {
                 resultList.add(processTaskParam.get(value));
             } else if (Objects.equals(mappingMode, "expression")) {
                 if (value instanceof JSONArray) {
-                    resultList.add(parseExpression((JSONArray) value, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam));
+                    resultList.add(parseExpression((JSONArray) value, formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, formCommonComponentDataMap, processTaskParam));
                 }
+            }
+        }
+        // 删除集合中元素值为null的元素
+        for (int i = resultList.size() - 1; i >= 0; i--) {
+            Object obj = resultList.get(i);
+            if (obj == null) {
+                resultList.remove(i);
             }
         }
         return resultList;
@@ -698,17 +766,19 @@ public class CreateJobConfigUtil {
      * @param mappingVo
      * @param formAttributeList
      * @param originalFormAttributeDataMap
-     * @param formAttributeDataMap
+     * @param formTableComponentDataMap
+     * @param formCommonComponentDataMap
      * @param processTaskParam
      * @return
      */
     private static JSONArray parseFormTableComponentMappingMode(CreateJobConfigMappingVo mappingVo,
                                                          List<FormAttributeVo> formAttributeList,
                                                          Map<String, Object> originalFormAttributeDataMap,
-                                                         Map<String, Object> formAttributeDataMap,
+                                                         Map<String, Object> formTableComponentDataMap,
+                                                         Map<String, Object> formCommonComponentDataMap,
                                                          Map<String, Object> processTaskParam) {
         JSONArray resultList = new JSONArray();
-        List<JSONObject> mainTableDataList = getFormTableComponentData(formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, mappingVo.getValue().toString());
+        List<JSONObject> mainTableDataList = getFormTableComponentData(formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, mappingVo.getValue().toString());
         if (CollectionUtils.isEmpty(mainTableDataList)) {
             return resultList;
         }
@@ -737,7 +807,7 @@ public class CreateJobConfigUtil {
                             }
                         }
                         if (!flag) {
-                            List<JSONObject> rightTableDataList = getFormTableComponentData(formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, filterVo.getRightValue());
+                            List<JSONObject> rightTableDataList = getFormTableComponentData(formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, filterVo.getRightValue());
                             if (CollectionUtils.isNotEmpty(rightTableDataList)) {
                                 for (JSONObject rowData : totalDerivedTableDataList) {
                                     Object leftData = rowData.get(filterVo.getLeftValue() + "." + filterVo.getLeftColumn());
@@ -764,7 +834,7 @@ public class CreateJobConfigUtil {
                             }
                         }
                     } else if (Objects.equals(filterVo.getRightMappingMode() ,"formCommonComponent")) {
-                        Object rightData = formAttributeDataMap.get(filterVo.getRightValue());
+                        Object rightData = formCommonComponentDataMap.get(filterVo.getRightValue());
                         for (JSONObject rowData : totalDerivedTableDataList) {
                             Object leftData = rowData.get(filterVo.getLeftValue() + "." + filterVo.getLeftColumn());
                             if (expressionAssert(leftData, filterVo.getExpression(), rightData)) {
@@ -902,7 +972,7 @@ public class CreateJobConfigUtil {
     private static List<JSONObject> getFormTableComponentData(
             List<FormAttributeVo> formAttributeList,
             Map<String, Object> originalFormAttributeDataMap,
-            Map<String, Object> formAttributeDataMap,
+            Map<String, Object> formTableComponentDataMap,
             String attribute) {
         List<JSONObject> resultList = new ArrayList<>();
         FormAttributeVo formAttributeVo = getFormAttributeVo(formAttributeList, attribute);
@@ -912,7 +982,7 @@ public class CreateJobConfigUtil {
         if (formAttributeVo == null) {
             return resultList;
         }
-        Object object = formAttributeDataMap.get(attribute);
+        Object object = formTableComponentDataMap.get(attribute);
         if (object != null) {
             return (List<JSONObject>) object;
         }
@@ -986,14 +1056,16 @@ public class CreateJobConfigUtil {
      * @param valueList
      * @param formAttributeList
      * @param originalFormAttributeDataMap
-     * @param formAttributeDataMap
+     * @param formTableComponentDataMap
+     * @param formCommonComponentDataMap
      * @param processTaskParam
      * @return
      */
     private static String parseExpression(JSONArray valueList,
                                    List<FormAttributeVo> formAttributeList,
                                    Map<String, Object> originalFormAttributeDataMap,
-                                   Map<String, Object> formAttributeDataMap,
+                                   Map<String, Object> formTableComponentDataMap,
+                                   Map<String, Object> formCommonComponentDataMap,
                                    JSONObject processTaskParam) {
         StringBuilder stringBuilder = new StringBuilder();
         List<CreateJobConfigMappingVo> mappingList = valueList.toJavaList(CreateJobConfigMappingVo.class);
@@ -1001,14 +1073,14 @@ public class CreateJobConfigUtil {
             String value = mappingVo.getValue().toString();
             String mappingMode = mappingVo.getMappingMode();
             if (Objects.equals(mappingMode, "formTableComponent")) {
-                JSONArray array = parseFormTableComponentMappingMode(mappingVo, formAttributeList, originalFormAttributeDataMap, formAttributeDataMap, processTaskParam);
+                JSONArray array = parseFormTableComponentMappingMode(mappingVo, formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, formCommonComponentDataMap, processTaskParam);
                 List<String> list = new ArrayList<>();
                 for (int j = 0; j < array.size(); j++) {
                     list.add(array.getString(j));
                 }
                 stringBuilder.append(String.join(",", list));
             } else if (Objects.equals(mappingMode, "formCommonComponent")) {
-                Object obj = formAttributeDataMap.get(value);
+                Object obj = formCommonComponentDataMap.get(value);
                 if (obj != null) {
                     if (obj instanceof JSONArray) {
                         List<String> list = new ArrayList<>();

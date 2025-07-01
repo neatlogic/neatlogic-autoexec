@@ -58,7 +58,7 @@ public class AutoexecJobNodeLogDownloadHandler extends AutoexecJobActionHandlerB
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) throws Exception {
         AutoexecJobPhaseNodeVo nodeVo = jobVo.getCurrentNode();
-        AutoexecJobPhaseVo phaseVo = jobVo.getCurrentPhase();
+        AutoexecJobPhaseVo phaseVo = jobVo.getExecutePhase();
         JSONObject paramObj = jobVo.getActionParam();
         paramObj.put("jobId", nodeVo.getJobId());
         paramObj.put("phase", nodeVo.getJobPhaseName());

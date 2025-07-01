@@ -118,10 +118,10 @@ public class UpdateNodesByPrePhaseOutputHandler implements IUpdateNodes {
                             try {
                                 nodeArrayAtomic.set(JSON.parseArray(nodes.toString()));
                             } catch (Exception ex) {
-                                throw new AutoexecJobNodePreParamValueNotInvalidException(jobVo.getId(), jobVo.getCurrentPhase().getName());
+                                throw new AutoexecJobNodePreParamValueNotInvalidException(jobVo.getId(), jobVo.getExecutePhase().getName());
                             }
                         } else {
-                            throw new AutoexecJobNodePreParamValueNotInvalidException(jobVo.getId(), jobVo.getCurrentPhase().getName());
+                            throw new AutoexecJobNodePreParamValueNotInvalidException(jobVo.getId(), jobVo.getExecutePhase().getName());
                         }
                     }
                 }
@@ -129,7 +129,7 @@ public class UpdateNodesByPrePhaseOutputHandler implements IUpdateNodes {
         });
         JSONArray nodeArray = nodeArrayAtomic.get();
         if (CollectionUtils.isEmpty(nodeArray)) {
-            throw new AutoexecJobNodePreParamValueNotInvalidException(jobVo.getId(), jobVo.getCurrentPhase().getName());
+            throw new AutoexecJobNodePreParamValueNotInvalidException(jobVo.getId(), jobVo.getExecutePhase().getName());
         }
 
         //更新执行节点

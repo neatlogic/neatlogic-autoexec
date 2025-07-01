@@ -16,12 +16,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 package neatlogic.module.autoexec.job.action.handler;
 
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.autoexec.config.AutoexecConfig;
 import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.constvalue.JobNodeStatus;
 import neatlogic.framework.autoexec.constvalue.JobPhaseStatus;
 import neatlogic.framework.autoexec.constvalue.JobStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
-import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseRunnerVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobActionInvalidException;
@@ -93,9 +93,9 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
              * 1、寻找pending|aborted|paused|failed phaseList
              * 2、没有满足1条件的,再寻找pending|aborted|paused|failed node 最小sort phaseList
              */
-            List<AutoexecJobPhaseVo> autoexecJobPhaseVos = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobVo.getId(), Arrays.asList(JobPhaseStatus.PENDING.getValue(), JobPhaseStatus.WAITING.getValue(),JobPhaseStatus.ABORTED.getValue(), JobPhaseStatus.PAUSED.getValue(), JobPhaseStatus.FAILED.getValue()));
+            List<AutoexecJobPhaseVo> autoexecJobPhaseVos = autoexecJobMapper.getJobPhaseListByJobIdAndPhaseStatus(jobVo.getId(), Arrays.asList(JobPhaseStatus.PENDING.getValue(), JobPhaseStatus.WAITING.getValue(), JobPhaseStatus.ABORTED.getValue(), JobPhaseStatus.PAUSED.getValue(), JobPhaseStatus.FAILED.getValue()));
             if (CollectionUtils.isEmpty(autoexecJobPhaseVos)) {
-                autoexecJobPhaseVos = autoexecJobMapper.getJobPhaseListByJobIdAndNodeStatusList(jobVo.getId(), Arrays.asList(JobNodeStatus.PENDING.getValue(),JobNodeStatus.WAITING.getValue(), JobNodeStatus.ABORTED.getValue(), JobNodeStatus.PAUSED.getValue(), JobNodeStatus.FAILED.getValue()));
+                autoexecJobPhaseVos = autoexecJobMapper.getJobPhaseListByJobIdAndNodeStatusList(jobVo.getId(), Arrays.asList(JobNodeStatus.PENDING.getValue(), JobNodeStatus.WAITING.getValue(), JobNodeStatus.ABORTED.getValue(), JobNodeStatus.PAUSED.getValue(), JobNodeStatus.FAILED.getValue()));
             }
             //如果都成功了则无须重跑
             if (CollectionUtils.isEmpty(autoexecJobPhaseVos)) {
@@ -114,18 +114,18 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
             //重置需要重跑的第一个phase的状态为waiting
             AutoexecJobPhaseVo firstPhase = autoexecJobPhaseVos.get(0);
             autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(firstPhase.getId()), JobPhaseStatus.WAITING.getValue());
-            List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobVo.getId(), Collections.singletonList(firstPhase.getId()));
-            for (AutoexecJobPhaseRunnerVo jobPhaseRunnerVo : jobPhaseRunnerVos) {
-                autoexecJobMapper.updateJobPhaseRunnerStatus(Collections.singletonList(firstPhase.getId()), jobPhaseRunnerVo.getRunnerMapId(), JobPhaseStatus.PENDING.getValue());
-            }
+//            List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdListAndExceptStatus(jobVo.getId(), Collections.singletonList(firstPhase.getId()), Collections.singletonList(JobPhaseStatus.COMPLETED.getValue()));
+//            for (AutoexecJobPhaseRunnerVo jobPhaseRunnerVo : jobPhaseRunnerVos) {
+//                autoexecJobMapper.updateJobPhaseRunnerStatus(Collections.singletonList(firstPhase.getId()), jobPhaseRunnerVo.getRunnerMapId(), JobPhaseStatus.PENDING.getValue());
+//            }
             //runner状态不是complete都改成pending
-            autoexecJobMapper.updateJobPhaseRunnerStatusByJobIdAndExceptStatus(jobVo.getId(),JobPhaseStatus.PENDING.getValue(), Collections.singletonList(JobPhaseStatus.COMPLETED.getValue()));
+            autoexecJobMapper.updateJobPhaseRunnerStatusByJobIdAndExceptStatus(jobVo.getId(), JobPhaseStatus.PENDING.getValue(), Collections.singletonList(JobPhaseStatus.COMPLETED.getValue()));
             autoexecJobService.getAutoexecJobDetail(jobVo);
             if (CollectionUtils.isNotEmpty(jobVo.getPhaseList())) {
                 new AutoexecJobAuthActionManager.Builder().addReFireJob().build().setAutoexecJobAction(jobVo);
             }
             //把异常状态的node改回pending，否则后续inform会异常
-            autoexecJobMapper.updateJobPhaseNodeStatusByJobAndStatus(jobVo.getId(), Arrays.asList(JobNodeStatus.ABORTED.getValue(), JobNodeStatus.PAUSED.getValue(), JobNodeStatus.FAILED.getValue()),JobNodeStatus.PENDING.getValue());
+            autoexecJobMapper.updateJobPhaseNodeStatusByJobAndStatus(jobVo.getId(), Arrays.asList(JobNodeStatus.ABORTED.getValue(), JobNodeStatus.PAUSED.getValue(), JobNodeStatus.FAILED.getValue()), JobNodeStatus.PENDING.getValue());
             jobVo.setIsNoFireNext(0);
         } else {
             throw new AutoexecJobActionInvalidException();
@@ -155,7 +155,7 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
                 //put("phaseSort", jobVo.getCurrentGroupSort());
             }});
 
-            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
+            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).sendRequest();
             if (StringUtils.isNotBlank(requestUtil.getError())) {
                 throw new RunnerHttpRequestException(url + ":" + requestUtil.getError());
             }

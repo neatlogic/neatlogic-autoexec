@@ -26,6 +26,11 @@ import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
+import neatlogic.framework.autoexec.exception.AutoexecJobSourceInvalidException;
+import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
+import neatlogic.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
+import neatlogic.framework.autoexec.source.AutoexecJobSourceFactory;
+import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
@@ -102,6 +107,7 @@ public class UpdateAutoexecJobPhaseNodeStatusApi extends PrivateApiComponentBase
         }
         //不抛异常影响其它节点运行，ignore 就好
         if (nodeVo == null) {
+            logger.error("jobId:{} phaseName:{} resourceId:{}",jobId,phaseName,resourceId);
             return null;
         }
 
@@ -109,6 +115,18 @@ public class UpdateAutoexecJobPhaseNodeStatusApi extends PrivateApiComponentBase
         if (!Objects.equals(nodeVo.getStatus(), jsonObj.getString("status")) || !Objects.equals(nodeVo.getWarnCount(), jsonObj.getInteger("warnCount"))) {
             nodeVo.setStatus(jsonObj.getString("status"));
             nodeVo.setWarnCount(jsonObj.getInteger("warnCount"));
+            //当是sql类型的阶段虚拟节点成功时需判断是否所有sql都执行成功，才能更新虚拟节点状态
+            if (Objects.equals(JobNodeStatus.SUCCEED.getValue(), jsonObj.getString("status")) && Objects.equals(ExecMode.SQL.getValue(), jobPhaseVo.getExecMode())) {
+                IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
+                if (jobSource == null) {
+                    throw new AutoexecJobSourceInvalidException(jobVo.getSource());
+                }
+                IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
+                boolean isCanUpdateNodeStatus = autoexecJobSourceActionHandler.getIsCanUpdateSqlNode(jobPhaseVo, nodeVo.getRunnerMapId());
+                if (!isCanUpdateNodeStatus) {
+                    return null;
+                }
+            }
             if (Objects.equals(nodeVo.getStatus(), JobNodeStatus.RUNNING.getValue())) {
                 nodeVo.setIsExecuted(1);
             }

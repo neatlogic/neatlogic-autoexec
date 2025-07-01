@@ -27,11 +27,13 @@ import neatlogic.framework.autoexec.exception.AutoexecScriptVersionCannotDeleteE
 import neatlogic.framework.autoexec.exception.AutoexecScriptVersionHasBeenActivedException;
 import neatlogic.framework.autoexec.exception.AutoexecScriptVersionNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.dependency.core.DependencyManager;
 import neatlogic.framework.dto.FieldValidResultVo;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.IValid;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
+import neatlogic.module.autoexec.dependency.AutoexecScript2ScriptDependencyHandler;
 import neatlogic.module.autoexec.service.AutoexecScriptService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -99,6 +101,7 @@ public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
             autoexecScriptMapper.deleteScriptLineByVersionId(versionId);
             autoexecScriptMapper.deleteVersionByVersionId(versionId);
             autoexecScriptMapper.deleteScriptVersionLibByScriptVersionId(versionId);
+            DependencyManager.delete(AutoexecScript2ScriptDependencyHandler.class, versionId);
             // 只剩一个版本时，直接删除整个脚本
             if (hasOnlyOneVersion) {
                 autoexecScriptMapper.deleteScriptById(version.getScriptId());

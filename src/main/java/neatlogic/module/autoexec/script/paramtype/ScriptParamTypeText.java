@@ -85,6 +85,6 @@ public class ScriptParamTypeText extends ScriptParamTypeBase {
 
     @Override
     public Object convertDataForProcessComponent(JSONArray jsonArray) {
-        return String.join(",", getStringList(jsonArray));
+        return getString(jsonArray);
     }
 }

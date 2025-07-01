@@ -18,6 +18,7 @@ package neatlogic.module.autoexec.api.job.action;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
+import neatlogic.framework.autoexec.constvalue.AutoexecParallelPolicy;
 import neatlogic.framework.autoexec.constvalue.CombopOperationType;
 import neatlogic.framework.autoexec.constvalue.JobSource;
 import neatlogic.framework.autoexec.constvalue.JobTriggerType;
@@ -35,11 +36,9 @@ import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 
-@Transactional
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.CREATE)
@@ -69,7 +68,9 @@ public class CreateAutoexecCombopJobApi extends PrivateApiComponentBase {
             @Param(name = "param", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "term.autoexec.executeparam"),
             @Param(name = "scenarioId", type = ApiParamType.LONG, desc = "term.autoexec.scenarioid"),
             @Param(name = "scenarioName", type = ApiParamType.STRING, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.scenarioname"),
-            @Param(name = "roundCount", type = ApiParamType.LONG, desc = "nmaaja.createautoexeccombopjobapi.input.param.roundcount "),
+            @Param(name = "roundCount", type = ApiParamType.LONG, desc = "nmaaja.createautoexeccombopjobapi.input.param.roundcount"),
+            @Param(name = "parallelCount", type = ApiParamType.LONG, desc = "nmaaja.createautoexeccombopjobapi.input.param.desc.parallelcount"),
+            @Param(name = "parallelPolicy", type = ApiParamType.ENUM, member = AutoexecParallelPolicy.class,desc = "nmaaja.createautoexeccombopjobapi.input.param.desc.parallelpolicy"),
             @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.executeconfig"),
             @Param(name = "planStartTime", type = ApiParamType.LONG, desc = "common.planstarttime"),
             @Param(name = "triggerType", type = ApiParamType.ENUM, member = JobTriggerType.class, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.triggertype"),

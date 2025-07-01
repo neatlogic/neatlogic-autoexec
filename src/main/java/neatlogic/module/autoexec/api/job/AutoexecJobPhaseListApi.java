@@ -97,9 +97,9 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
             throw new AutoexecJobNotFoundException(jobId);
         }
         if (CollectionUtils.isEmpty(jobPhaseIdList)) {
-            jobPhaseVoList = autoexecJobMapper.getJobPhaseListWithGroupByJobId(jobId);
+            jobPhaseVoList = autoexecJobMapper.getJobPhaseListWithGroupAndRunnerByJobId(jobId);
         } else {
-            jobPhaseVoList = autoexecJobMapper.getJobPhaseListWithGroupByJobIdAndPhaseIdList(jobId, jobPhaseIdList);
+            jobPhaseVoList = autoexecJobMapper.getJobPhaseListWithGroupAndRunnerByJobIdAndPhaseIdList(jobId, jobPhaseIdList);
         }
 
         //过滤出需要根据入参phaseList 更新执行目标的阶段List
@@ -123,7 +123,7 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
             AtomicInteger totalCount = new AtomicInteger();
             jobPhaseNodeStatusCountVoList.forEach(o -> {
                 if (Arrays.asList(JobNodeStatus.SUCCEED.getValue(),JobNodeStatus.IGNORED.getValue()).contains(o.getStatus())) {
-                    succeedCount.set(o.getCount());
+                    succeedCount.set(succeedCount.get()+o.getCount());
 
                 }
                 totalCount.addAndGet(o.getCount());
@@ -141,7 +141,11 @@ public class AutoexecJobPhaseListApi extends PrivateApiComponentBase {
         if (jobSourceTypeHandler != null) {
             result.put("extraInfo",jobSourceTypeHandler.getExtraRefreshJobInfo(jobVo));
         }
-        result.put("waitingDetail",autoexecJobService.getAutoexecJobWaitingDetail(jobVo.getId()));
+        try {
+            result.put("waitingDetail", autoexecJobService.getAutoexecJobWaitingDetail(jobVo.getId()));
+        }catch (Exception ignored){
+            //ignored
+        }
         return result;
     }
 

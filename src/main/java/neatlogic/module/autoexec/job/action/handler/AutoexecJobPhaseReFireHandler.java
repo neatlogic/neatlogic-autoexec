@@ -16,10 +16,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 package neatlogic.module.autoexec.job.action.handler;
 
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.autoexec.config.AutoexecConfig;
 import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.constvalue.JobNodeStatus;
 import neatlogic.framework.autoexec.constvalue.JobPhaseStatus;
-import neatlogic.framework.autoexec.constvalue.JobStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseRunnerVo;
@@ -42,7 +42,6 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * @author lvzk
@@ -61,35 +60,18 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
     }
 
     @Override
-    public boolean myValidate(AutoexecJobVo jobVo) {
-        return true;
-    }
-
-    @Override
     public boolean isNeedExecuteAuthCheck() {
         return true;
     }
 
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
-        AutoexecJobPhaseVo jobPhaseVo = jobVo.getExecuteJobPhaseList().get(0);
-        AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseStatus(jobVo.getId(), JobPhaseStatus.RUNNING.getValue());
-        //存在进行中的阶段不修改作业状态
-        if (phaseVo == null) {
-            jobVo.setStatus(JobStatus.WAITING.getValue());
-            autoexecJobMapper.updateJobStatus(jobVo);
-        }
+        AutoexecJobPhaseVo jobPhaseVo = jobVo.getExecutePhase();
         jobVo.setIsFirstFire(0);
-        jobPhaseVo.setStatus(JobPhaseStatus.RUNNING.getValue());
-        autoexecJobMapper.updateJobPhaseStatus(jobPhaseVo);
-        //如果是sqlfile类型的phase 需额外清除状态
-//        if (Objects.equals(ExecMode.SQL.getValue(), jobPhaseVo.getExecMode()) && Objects.equals(jobVo.getActionParam().getInteger("isAll"), 1)) {
-//            autoexecJobService.resetAutoexecJobSqlStatusByJobIdAndJobPhaseNameList(jobVo.getId(), Collections.singletonList(jobPhaseVo.getName()));
-//        }
         if (Objects.equals(jobVo.getAction(), JobAction.RESET_REFIRE.getValue())) {
             resetPhase(jobVo);
-            autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(jobVo.getExecuteJobPhaseList().stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()), JobPhaseStatus.WAITING.getValue());
-            autoexecJobService.refreshJobPhaseNodeList(jobVo.getId(), jobVo.getExecuteJobPhaseList());
+            autoexecJobMapper.updateJobPhaseStatusByPhaseIdList(Collections.singletonList(jobVo.getExecutePhase().getId()), JobPhaseStatus.WAITING.getValue());
+            autoexecJobService.refreshJobPhaseNodeList(jobVo.getId(), Collections.singletonList(jobVo.getExecutePhase()));
             List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobVo.getId(), Collections.singletonList(jobPhaseVo.getId()));
             for (AutoexecJobPhaseRunnerVo jobPhaseRunnerVo : jobPhaseRunnerVos) {
                 autoexecJobMapper.updateJobPhaseRunnerStatus(Collections.singletonList(jobPhaseVo.getId()), jobPhaseRunnerVo.getRunnerMapId(), JobPhaseStatus.PENDING.getValue());
@@ -104,9 +86,9 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
                     throw new AutoexecJobPhaseRunnerNotFoundException(jobPhaseVo.getJobId(), jobPhaseVo.getName(), jobPhaseVo.getId());
                 }
                 //调runner api 重置节点
-                autoexecJobService.updateJobNodeStatus(runnerMapVos, jobVo, JobNodeStatus.PENDING.getValue());
                 autoexecJobMapper.updateJobPhaseRunnerStatusByPhaseIdAndExceptStatus(jobPhaseVo.getId(),JobPhaseStatus.PENDING.getValue(), Collections.singletonList(JobPhaseStatus.COMPLETED.getValue()));
                 autoexecJobMapper.updateJobPhaseNodeListStatusByPhaseIdAndExceptStatus(jobPhaseVo.getId(), Arrays.asList(JobNodeStatus.IGNORED.getValue(), JobNodeStatus.SUCCEED.getValue(), JobNodeStatus.INVALID.getValue()), JobNodeStatus.PENDING.getValue());
+                autoexecJobService.updateJobNodeStatus(runnerMapVos, jobVo, JobNodeStatus.PENDING.getValue());
                 jobVo.setExecuteJobNodeVoList(null);
             }
         }
@@ -128,10 +110,10 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
     private void resetPhase(AutoexecJobVo jobVo) {
         JSONObject paramJson = new JSONObject();
         paramJson.put("jobId", jobVo.getId());
-        paramJson.put("phaseName", jobVo.getExecuteJobPhaseList().get(0).getName());
-        List<RunnerMapVo> runnerVos = autoexecJobMapper.getJobPhaseRunnerMapByJobIdAndPhaseIdList(jobVo.getId(), jobVo.getExecuteJobPhaseList().stream().map(AutoexecJobPhaseVo::getId).collect(Collectors.toList()));
+        paramJson.put("phaseName", jobVo.getExecutePhase().getName());
+        List<RunnerMapVo> runnerVos = autoexecJobMapper.getJobPhaseRunnerMapByJobIdAndPhaseIdList(jobVo.getId(), Collections.singletonList(jobVo.getExecutePhase().getId()));
         if (CollectionUtils.isEmpty(runnerVos)) {
-            throw new AutoexecJobPhaseRunnerNotFoundException(jobVo.getExecuteJobPhaseList().stream().map(AutoexecJobPhaseVo::getName).collect(Collectors.joining("','")));
+            throw new AutoexecJobPhaseRunnerNotFoundException(jobVo.getExecutePhase().getName());
         }
         autoexecJobService.checkRunnerHealth(runnerVos);
         for (RunnerMapVo runner : runnerVos) {
@@ -140,7 +122,7 @@ public class AutoexecJobPhaseReFireHandler extends AutoexecJobActionHandlerBase 
                 put("runnerId", runner.getRunnerMapId());
             }});
 
-            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest();
+            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).sendRequest();
             if (StringUtils.isNotBlank(requestUtil.getError())) {
                 throw new RunnerConnectRefusedException(url);
             }

@@ -20,15 +20,21 @@ import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
+import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseRunnerVo;
+import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
+import neatlogic.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.dto.runner.RunnerVo;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author lvzk
@@ -64,11 +70,21 @@ public class AutoexecJobPhaseRunnerGetApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");
         Long jobPhaseId = jsonObj.getLong("jobPhaseId");
+        AutoexecJobPhaseVo phaseVo = autoexecJobMapper.getJobPhaseByJobIdAndPhaseId(jobId, jobPhaseId);
+        if (phaseVo == null) {
+            throw new AutoexecJobPhaseNotFoundException(jobPhaseId.toString());
+        }
         AutoexecJobPhaseNodeVo nodeVo = autoexecJobMapper.getJobPhaseRunnerNodeByJobIdAndPhaseId(jobId, jobPhaseId);
         if (nodeVo == null) {
             throw new AutoexecJobRunnerNotFoundException(jobId, jobPhaseId);
         }
-        nodeVo.setRunnerVo(autoexecJobMapper.getJobRunnerById(nodeVo.getRunnerId()));
+        RunnerVo runnerVo = autoexecJobMapper.getJobRunnerById(nodeVo.getRunnerId());
+        List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobId, Collections.singletonList(jobPhaseId));
+        if(CollectionUtils.isNotEmpty(jobPhaseRunnerVos)){
+            runnerVo.setStatus(jobPhaseRunnerVos.get(0).getStatus());
+        }
+        nodeVo.setRunnerVo(runnerVo);
+        nodeVo.setPhaseRunnerGroupFrom(phaseVo.getRunnerGroupFrom());
         return nodeVo;
     }
 

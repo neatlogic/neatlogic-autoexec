@@ -45,14 +45,12 @@ import neatlogic.module.autoexec.service.AutoexecJobActionService;
 import neatlogic.module.autoexec.service.AutoexecServiceService;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
-@Transactional
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.CREATE)
@@ -129,6 +127,8 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
         JSONArray formAttributeDataList = paramObj.getJSONArray("formAttributeDataList");
         JSONArray hidecomponentList = paramObj.getJSONArray("hidecomponentList");
         Integer roundCount = paramObj.getInteger("roundCount");
+        Integer parallelCount = paramObj.getInteger("parallelCount");
+        String parallelPolicy = paramObj.getString("parallelPolicy");
         String executeUser = paramObj.getString("executeUser");
         Long protocol = paramObj.getLong("protocol");
         AutoexecCombopExecuteNodeConfigVo executeNodeConfig = paramObj.getObject("executeNodeConfig", AutoexecCombopExecuteNodeConfigVo.class);
@@ -144,7 +144,7 @@ public class CreateAutoexecServiceJobApi extends PrivateApiComponentBase {
             runnerGroupTag = runnerGroupTagObj.toJavaObject(ParamMappingVo.class);
         }
 
-        AutoexecJobBuilder autoexecJobBuilder = autoexecServiceService.getAutoexecJobBuilder(autoexecServiceVo, autoexecCombopVersionVo, name, scenarioId, formAttributeDataList, hidecomponentList, roundCount, executeUser, protocol, executeNodeConfig, runtimeParamMap, runnerGroup, runnerGroupTag);
+        AutoexecJobBuilder autoexecJobBuilder = autoexecServiceService.getAutoexecJobBuilder(autoexecServiceVo, autoexecCombopVersionVo, name, scenarioId, formAttributeDataList, hidecomponentList, roundCount, parallelCount, parallelPolicy, executeUser, protocol, executeNodeConfig, runtimeParamMap, runnerGroup, runnerGroupTag);
         AutoexecJobVo autoexecJobVo = autoexecJobBuilder.build();
         autoexecJobVo.setOperationType(CombopOperationType.COMBOP.getValue());
         autoexecJobVo.setInvokeId(autoexecServiceVo.getId());

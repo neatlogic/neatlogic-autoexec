@@ -34,7 +34,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
-import java.util.Collections;
 
 /**
  *
@@ -80,8 +79,7 @@ public class ReFireAutoexecJobPhaseApi extends PrivateApiComponentBase {
         phaseVo.setJobGroupVo(jobGroupVo);
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(phaseVo.getJobId());
         jobVo.setExecuteJobGroupVo(jobGroupVo);
-        jobVo.setExecuteJobPhaseList(Collections.singletonList(phaseVo));
-        jobVo.setCurrentPhase(phaseVo);
+        jobVo.setExecutePhase(phaseVo);
         jobVo.setAction(JobAction.RESET_REFIRE.getValue());
         if(jsonObj.containsKey("type")){
             jobVo.setAction(jsonObj.getString("type"));

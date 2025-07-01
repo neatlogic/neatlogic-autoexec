@@ -37,7 +37,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -67,7 +66,7 @@ public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
             throw new ParamIrregularException("resourceIdList");
         }
         List<AutoexecJobPhaseNodeVo> nodeVoList;
-        if (Objects.equals(jobVo.getCurrentPhase().getExecMode(), ExecMode.SQL.getValue())) {
+        if (Objects.equals(jobVo.getExecutePhase().getExecMode(), ExecMode.SQL.getValue())) {
             JSONArray sqlIdArray = jobVo.getActionParam().getJSONArray("sqlIdList");
             if (CollectionUtils.isEmpty(sqlIdArray)) {
                 throw new ParamIrregularException("sqlIdList");
@@ -103,12 +102,12 @@ public class AutoexecJobNodeReFireHandler extends AutoexecJobActionHandlerBase {
         //重跑单个节点无需激活下个phase
         jobVo.setIsNoFireNext(1);
         jobVo.setIsFirstFire(0);
-        AutoexecJobPhaseVo phaseVo = jobVo.getCurrentPhase();
+        AutoexecJobPhaseVo phaseVo = jobVo.getExecutePhase();
         phaseVo.setStatus(JobPhaseStatus.WAITING.getValue());
         autoexecJobMapper.updateJobPhaseStatus(phaseVo);
         AutoexecJobGroupVo jobGroupVo = autoexecJobMapper.getJobGroupById(phaseVo.getGroupId());
         jobVo.setExecuteJobGroupVo(jobGroupVo);
-        jobVo.setExecuteJobPhaseList(Collections.singletonList(phaseVo));
+        jobVo.setExecutePhase(phaseVo);
         autoexecJobService.executeNode(jobVo);
         return null;
     }
