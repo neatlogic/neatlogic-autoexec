@@ -2,6 +2,7 @@ package neatlogic.module.autoexec.api.schedule;
 
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
+import neatlogic.framework.autoexec.constvalue.AutoexecParallelPolicy;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecScheduleMapper;
 import neatlogic.framework.autoexec.dto.schedule.AutoexecScheduleVo;
@@ -11,6 +12,7 @@ import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import com.alibaba.fastjson.JSONObject;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -57,6 +59,12 @@ public class AutoexecScheduleGetApi extends PrivateApiComponentBase {
         }
         if (autoexecCombopMapper.checkAutoexecCombopIsExists(autoexecScheduleVo.getAutoexecCombopId()) == 0) {
             autoexecScheduleVo.setAutoexecCombopId(null);
+        }
+
+        //兼容老数据
+        if (autoexecScheduleVo.getConfig() != null && autoexecScheduleVo.getConfig().getInteger("roundCount") != null
+                && StringUtils.isBlank(autoexecScheduleVo.getConfig().getString("parallelPolicy"))) {
+            autoexecScheduleVo.getConfig().put("parallelPolicy", AutoexecParallelPolicy.ROUND_COUNT.getValue());
         }
         return autoexecScheduleVo;
     }
