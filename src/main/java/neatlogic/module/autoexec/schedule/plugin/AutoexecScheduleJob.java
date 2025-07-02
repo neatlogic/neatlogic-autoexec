@@ -34,6 +34,7 @@ import neatlogic.framework.dto.UserVo;
 import neatlogic.framework.filter.core.LoginAuthHandlerBase;
 import neatlogic.framework.scheduler.core.JobBase;
 import neatlogic.framework.scheduler.dto.JobObject;
+import neatlogic.framework.scheduler.dto.JobVo;
 import neatlogic.framework.service.AuthenticationInfoService;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
 import org.apache.commons.collections4.MapUtils;
@@ -78,6 +79,9 @@ public class AutoexecScheduleJob extends JobBase {
         AutoexecScheduleVo autoexecScheduleVo = autoexecScheduleMapper.getAutoexecScheduleByUuid(uuid);
         if (autoexecScheduleVo == null) {
             return false;
+        }
+        if (jobObject.isTest() == 1) {
+            return true;
         }
         return Objects.equals(autoexecScheduleVo.getIsActive(), 1) && Objects.equals(autoexecScheduleVo.getCron(), jobObject.getCron());
     }
@@ -152,5 +156,19 @@ public class AutoexecScheduleJob extends JobBase {
             IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
             fireAction.doService(jobVo);
         }
+    }
+
+    @Override
+    public JobVo getJob(String uuid) {
+        JobVo jobVo = null;
+        AutoexecScheduleVo scheduleVo = autoexecScheduleMapper.getAutoexecScheduleByUuid(uuid);
+        if (scheduleVo != null) {
+            jobVo = new JobVo();
+            jobVo.setName(scheduleVo.getName());
+            jobVo.setUuid(scheduleVo.getUuid());
+            jobVo.setCron(scheduleVo.getCron());
+            jobVo.setIsActive(scheduleVo.getIsActive());
+        }
+        return jobVo;
     }
 }
