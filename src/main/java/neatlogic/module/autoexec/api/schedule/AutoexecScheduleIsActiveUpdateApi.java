@@ -18,7 +18,7 @@ package neatlogic.module.autoexec.api.schedule;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.auth.core.AuthAction;
-import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
+import neatlogic.framework.autoexec.auth.AUTOEXEC_SCHEDULE_MODIFY;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecScheduleMapper;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
@@ -47,7 +47,7 @@ import java.util.Objects;
  * @since 2021/10/14 14:17
  **/
 @Service
-@AuthAction(action = AUTOEXEC_BASE.class)
+@AuthAction(action = AUTOEXEC_SCHEDULE_MODIFY.class)
 @Transactional
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class AutoexecScheduleIsActiveUpdateApi extends PrivateApiComponentBase {

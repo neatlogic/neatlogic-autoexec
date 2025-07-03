@@ -2,7 +2,7 @@ package neatlogic.module.autoexec.api.schedule;
 
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
-import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
+import neatlogic.framework.autoexec.auth.AUTOEXEC_SCHEDULE_MODIFY;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecScheduleMapper;
@@ -28,7 +28,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-@AuthAction(action = AUTOEXEC_BASE.class)
+@AuthAction(action = AUTOEXEC_SCHEDULE_MODIFY.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecScheduleListApi extends PrivateApiComponentBase {
 

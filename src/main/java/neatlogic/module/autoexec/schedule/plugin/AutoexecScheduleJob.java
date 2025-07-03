@@ -25,17 +25,20 @@ import neatlogic.framework.autoexec.dao.mapper.AutoexecScheduleMapper;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.dto.schedule.AutoexecScheduleVo;
+import neatlogic.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import neatlogic.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.dao.mapper.UserMapper;
 import neatlogic.framework.dto.AuthenticationInfoVo;
 import neatlogic.framework.dto.UserVo;
+import neatlogic.framework.exception.type.PermissionDeniedException;
 import neatlogic.framework.filter.core.LoginAuthHandlerBase;
 import neatlogic.framework.scheduler.core.JobBase;
 import neatlogic.framework.scheduler.dto.JobObject;
 import neatlogic.framework.scheduler.dto.JobVo;
 import neatlogic.framework.service.AuthenticationInfoService;
+import neatlogic.module.autoexec.service.AutoexecCombopService;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
 import org.apache.commons.collections4.MapUtils;
 import org.quartz.DisallowConcurrentExecution;
@@ -67,6 +70,9 @@ public class AutoexecScheduleJob extends JobBase {
 
     @Resource
     private AuthenticationInfoService authenticationInfoService;
+
+    @Resource
+    private AutoexecCombopService autoexecCombopService;
 
     @Override
     public String getGroupName() {
@@ -159,10 +165,18 @@ public class AutoexecScheduleJob extends JobBase {
     }
 
     @Override
-    public JobVo getJob(String uuid) {
+    public JobVo getJob(String uuid) throws Exception {
         JobVo jobVo = null;
         AutoexecScheduleVo scheduleVo = autoexecScheduleMapper.getAutoexecScheduleByUuid(uuid);
         if (scheduleVo != null) {
+            AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(scheduleVo.getAutoexecCombopId());
+            if (autoexecCombopVo == null) {
+                throw new AutoexecCombopNotFoundException(scheduleVo.getAutoexecCombopId());
+            }
+            autoexecCombopService.setOperableButtonList(autoexecCombopVo);
+            if (Objects.equals(autoexecCombopVo.getExecutable(), 0)) {
+                throw new PermissionDeniedException();
+            }
             jobVo = new JobVo();
             jobVo.setName(scheduleVo.getName());
             jobVo.setUuid(scheduleVo.getUuid());

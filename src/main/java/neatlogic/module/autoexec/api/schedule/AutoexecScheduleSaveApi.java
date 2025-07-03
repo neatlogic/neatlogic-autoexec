@@ -1,9 +1,10 @@
 package neatlogic.module.autoexec.api.schedule;
 
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthAction;
-import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
+import neatlogic.framework.autoexec.auth.AUTOEXEC_SCHEDULE_MODIFY;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecScheduleMapper;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
@@ -26,7 +27,6 @@ import neatlogic.framework.scheduler.exception.ScheduleIllegalParameterException
 import neatlogic.framework.scheduler.exception.ScheduleJobNameRepeatException;
 import neatlogic.module.autoexec.schedule.plugin.AutoexecScheduleJob;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
-import com.alibaba.fastjson.JSONObject;
 import org.quartz.CronExpression;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -35,7 +35,7 @@ import javax.annotation.Resource;
 import java.util.Objects;
 
 @Service
-@AuthAction(action = AUTOEXEC_BASE.class)
+@AuthAction(action = AUTOEXEC_SCHEDULE_MODIFY.class)
 @Transactional
 @OperationType(type = OperationTypeEnum.CREATE)
 public class AutoexecScheduleSaveApi extends PrivateApiComponentBase {
