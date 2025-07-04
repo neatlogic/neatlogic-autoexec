@@ -111,6 +111,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     @Resource
     private UserMapper userMapper;
 
+    @Resource
+    private AutoexecJobNotSupportedService autoexecJobNotSupportedService;
+
     /**
      * 根据作业参数获取最终参数值
      *
@@ -159,7 +162,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         AutoexecJobInvokeVo invokeVo = new AutoexecJobInvokeVo(jobVo.getId(), jobVo.getInvokeId(), jobVo.getSource(), jobSource.getType(), jobVo.getRouteId());
         autoexecJobMapper.insertJobInvoke(invokeVo);
         if (StringUtils.isNotBlank(jobVo.getConfigHash())) {
-            autoexecJobMapper.insertJobContent(new AutoexecJobContentVo(jobVo.getConfigHash(), jobVo.getConfigStr()));
+            autoexecJobNotSupportedService.insertIntoJobContent(jobVo.getConfigHash(), jobVo.getConfigStr());
         }
         getFinalRuntimeParamList(jobVo.getRunTimeParamList(), jobVo.getParam());
         if (CollectionUtils.isNotEmpty(jobVo.getRunTimeParamList())) {
@@ -168,7 +171,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             }
         }
         if (StringUtils.isNotBlank(jobVo.getParamHash())) {
-            autoexecJobMapper.insertJobContent(new AutoexecJobContentVo(jobVo.getParamHash(), jobVo.getRunTimeParamListStr()));
+            autoexecJobNotSupportedService.insertIntoJobContent(jobVo.getParamHash(), jobVo.getRunTimeParamListStr());
         }
         //更新父节作业的parentId,-1代表父作业
         if (jobVo.getParentId() != null) {
@@ -518,7 +521,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             jobPhaseVo.getOperationList().add(jobPhaseOperationVo);
             autoexecJobMapper.insertJobPhaseOperation(jobPhaseOperationVo);
             if (StringUtils.isNotBlank(jobPhaseOperationVo.getParamHash())) {
-                autoexecJobMapper.insertJobContent(new AutoexecJobContentVo(jobPhaseOperationVo.getParamHash(), jobPhaseOperationVo.getParamStr()));
+                autoexecJobNotSupportedService.insertIntoJobContent(jobPhaseOperationVo.getParamHash(), jobPhaseOperationVo.getParamStr());
             }
         }
         return jobPhaseOperationVoList;
@@ -754,7 +757,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             autoexecService.validateTextTypeParamValue(runtimeParam, runtimeParam.getValue());
         }
         if (StringUtils.isNotBlank(jobVo.getParamHash())) {
-            autoexecJobMapper.insertJobContent(new AutoexecJobContentVo(jobVo.getParamHash(), jobVo.getRunTimeParamListStr()));
+            autoexecJobNotSupportedService.insertIntoJobContent(jobVo.getParamHash(), jobVo.getRunTimeParamListStr());
             autoexecJobMapper.updateJobParamHashById(jobVo.getId(), jobVo.getParamHash());
         } else {
             autoexecJobMapper.updateJobParamHashById(jobVo.getId(), null);
