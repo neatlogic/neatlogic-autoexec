@@ -78,7 +78,6 @@ public class TakeOverAutoexecJobApi extends PrivateApiComponentBase {
             return null;
         }
         jobVo.setAction(JobAction.TAKE_OVER.getValue());
-        jobVo.setIsTakeOver(1);
         autoexecJobService.batchExecuteJobAction(jobVo, JobAction.TAKE_OVER);
         return null;
     }

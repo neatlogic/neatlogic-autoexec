@@ -392,7 +392,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
         AutoexecCombopVo combopVo = autoexecJobSourceActionHandler.getAutoexecCombop(autoexecJobParam);
         //作业执行权限校验
-        autoexecJobSourceActionHandler.executeAuthCheck(autoexecJobParam, false);
+        autoexecJobSourceActionHandler.executeAuthCheck(autoexecJobParam);
         //设置作业执行节点
         AutoexecCombopConfigVo config = combopVo.getConfig();
         if (config == null) {
@@ -479,10 +479,10 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         validateAndCreateJobFromCombop(jobParam);
         UserVo user = SystemUser.SYSTEM.getUserVo();
         AuthenticationInfoVo authenticationInfo = SystemUser.SYSTEM.getAuthenticationInfoVo();
-        if (!Objects.equals(jobParam.getAssignExecUser(), SystemUser.SYSTEM.getUserUuid())) {
-            user = userMapper.getUserByUuid(jobParam.getAssignExecUser());
+        if (!Objects.equals(jobParam.getExecUser(), SystemUser.SYSTEM.getUserUuid())) {
+            user = userMapper.getUserByUuid(jobParam.getExecUser());
             if (user == null) {
-                throw new UserNotFoundException(jobParam.getAssignExecUser());
+                throw new UserNotFoundException(jobParam.getExecUser());
             }
             authenticationInfo = authenticationInfoService.getAuthenticationInfo(user.getUuid());
         }

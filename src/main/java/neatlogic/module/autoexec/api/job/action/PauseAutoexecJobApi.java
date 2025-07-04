@@ -80,7 +80,6 @@ public class PauseAutoexecJobApi extends PrivateApiComponentBase {
         autoexecJobService.getAllSubJobList(jobVo.getId(), autoexecJobVos);
         for (AutoexecJobVo job : autoexecJobVos) {
             job.setAction(jobVo.getAction());
-            job.setIsTakeOver(jobVo.getIsTakeOver());
             autoexecJobService.abortOrPause(jobVo,JobAction.PAUSE.getValue(), JobStatus.PAUSING.getValue());
         }
         return null;

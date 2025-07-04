@@ -83,7 +83,7 @@ public class GetAutoexecJobCreatePayloadApi extends PrivateApiComponentBase {
         }
         IAutoexecJobSourceTypeHandler autoexecJobSourceHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
         try {
-            autoexecJobSourceHandler.executeAuthCheck(jobVo, false);
+            autoexecJobSourceHandler.executeAuthCheck(jobVo);
         }catch (DeployJobCannotExecuteException exception){
             throw new PermissionDeniedException(exception.getMessage());
         }

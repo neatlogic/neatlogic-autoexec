@@ -293,21 +293,21 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                         processTaskStepComplete(processTaskStepVo.getId());
                         return;
                     }
-                    String assignExecUser = SystemUser.SYSTEM.getUserUuid();
+                    String execUser = SystemUser.SYSTEM.getUserUuid();
                     IProcessStepHandlerCrossoverUtil processStepHandlerCrossoverUtil = CrossoverServiceFactory.getApi(IProcessStepHandlerCrossoverUtil.class);
                     ProcessTaskStepAssignVo processTaskStepAssignVo = processStepHandlerCrossoverUtil.analysisAssignConfig(processTaskStepVo);
                     List<ProcessTaskStepWorkerVo> finalStepWorkerList = processTaskStepAssignVo.getFinalStepWorkerList();
                     if (CollectionUtils.isNotEmpty(finalStepWorkerList)) {
                         for (ProcessTaskStepWorkerVo processTaskStepWorkerVo : finalStepWorkerList) {
                             if (Objects.equals(processTaskStepWorkerVo.getType(), GroupSearch.USER.getValue())) {
-                                assignExecUser = processTaskStepWorkerVo.getUuid();
+                                execUser = processTaskStepWorkerVo.getUuid();
                                 break;
                             }
                         }
                     }
                     UserContext userContext = null;
                     // 如果作业的执行用户不是当前用户，创建作业的时候会切换用户上下文，这里先复制一份当前的用户上下文，等作业创建完成后再切回当前用户上下文
-                    if (!Objects.equals(assignExecUser, UserContext.get().getUserUuid())) {
+                    if (!Objects.equals(execUser, UserContext.get().getUserUuid())) {
                         userContext = UserContext.get().copy();
                     }
                     JSONArray errorMessageList = new JSONArray();
@@ -319,7 +319,7 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                         jobVo.setInvokeId(processTaskStepVo.getId());
                         jobVo.setRouteId(processTaskStepVo.getId().toString());
                         jobVo.setSource(AutoExecJobProcessSource.ITSM.getValue());
-                        jobVo.setAssignExecUser(assignExecUser);
+                        jobVo.setExecUser(execUser);
                         try {
                             autoexecJobActionService.validateCreateJob(jobVo);
                             autoexecJobMapper.insertAutoexecJobProcessTaskStep(jobVo.getId(), processTaskStepVo.getId());

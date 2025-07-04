@@ -247,7 +247,7 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
                         jobObj.put("operationType", jobVo.getOperationType());
                         jobObj.put("invokeId", jobVo.getInvokeId());
                         jobObj.put("routeId", jobVo.getRouteId());
-                        jobObj.put("assignExecUser", jobVo.getAssignExecUser());
+                        jobObj.put("execUser", jobVo.getExecUser());
                         logger.error(jobObj.toJSONString());
                         JSONObject errorMessageObj = new JSONObject();
                         errorMessageObj.put("jobId", jobVo.getId());
@@ -488,7 +488,6 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
         jobVo.setInvokeId(currentProcessTaskStepVo.getId());
         jobVo.setRouteId(currentProcessTaskStepVo.getId().toString());
-        jobVo.setAssignExecUser(SystemUser.SYSTEM.getUserUuid());
         return jobVo;
     }
 
@@ -534,7 +533,6 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
             jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
             jobVo.setInvokeId(currentProcessTaskStepVo.getId());
             jobVo.setRouteId(currentProcessTaskStepVo.getId().toString());
-            jobVo.setAssignExecUser(SystemUser.SYSTEM.getUserUuid());
             JSONObject tbodyObj = tbodyList.getJSONObject(index);
             // 场景
             JSONArray scenarioParamList = autoexecConfig.getJSONArray("scenarioParamList");
@@ -1246,7 +1244,6 @@ public class AutoexecProcessComponent extends ProcessStepHandlerBase {
         jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
         jobVo.setInvokeId(currentProcessTaskStepVo.getId());
         jobVo.setRouteId(currentProcessTaskStepVo.getId().toString());
-        jobVo.setAssignExecUser(SystemUser.SYSTEM.getUserUuid());
         return jobVo;
     }
 
