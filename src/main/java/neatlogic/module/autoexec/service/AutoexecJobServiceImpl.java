@@ -609,14 +609,13 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         String userName = null;
         Long protocolId = null;
         Integer roundCount = null;
-        String parallelPolicy = null;
+        String parallelPolicy = jobVo.getParallelPolicy();
         Integer parallelCount = null;
         AutoexecJobPhaseVo jobPhase = jobVo.getExecutePhase();
         if (combopExecuteConfigVo != null) {
             //先获取组合工具配置的执行用户和协议
             userName = getFinalParamValue(combopExecuteConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
             protocolId = combopExecuteConfigVo.getProtocolId();
-            parallelPolicy = jobVo.getParallelPolicy();
             //兼容老数据不存在policy
             if (StringUtils.isBlank(parallelPolicy) && jobVo.getRoundCount() != null) {
                 parallelPolicy = AutoexecParallelPolicy.ROUND_COUNT.getValue();
@@ -659,12 +658,13 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                         jobVo.setNodeFrom(AutoexecJobPhaseNodeFrom.GROUP.getValue());
                         isHasNode = getJobNodeList(executeConfigVo, jobVo, userName, protocolId, updateTime);
                     }
-                    parallelPolicy = executeConfigVo.getParallelPolicy();
+                    String parallelPolicyTmp = executeConfigVo.getParallelPolicy();
                     //兼容老数据不存在policy
-                    if (StringUtils.isBlank(parallelPolicy) && executeConfigVo.getRoundCount() != null) {
+                    if (StringUtils.isBlank(parallelPolicyTmp) && executeConfigVo.getRoundCount() != null) {
                         parallelPolicy = AutoexecParallelPolicy.ROUND_COUNT.getValue();
                     }
-                    if (StringUtils.isNotBlank(parallelPolicy)) {
+                    if (StringUtils.isNotBlank(parallelPolicyTmp)) {
+                        parallelPolicy = parallelPolicyTmp;
                         if (Objects.equals(AutoexecParallelPolicy.ROUND_COUNT.getValue(), parallelPolicy)) {
                             roundCount = executeConfigVo.getRoundCount();
                             jobGroupVo.setParallelPolicy(parallelPolicy);
@@ -696,12 +696,13 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     jobVo.setNodeFrom(AutoexecJobPhaseNodeFrom.PHASE.getValue());
                     isHasNode = getJobNodeList(executeConfigVo, jobVo, userName, protocolId, updateTime);
                 }
-                parallelPolicy = executeConfigVo.getParallelPolicy();
+                String parallelPolicyTmp = executeConfigVo.getParallelPolicy();
                 //兼容老数据不存在policy
-                if (StringUtils.isBlank(parallelPolicy) && executeConfigVo.getRoundCount() != null) {
+                if (StringUtils.isBlank(parallelPolicyTmp) && executeConfigVo.getRoundCount() != null) {
                     parallelPolicy = AutoexecParallelPolicy.ROUND_COUNT.getValue();
                 }
-                if (StringUtils.isNotBlank(parallelPolicy)) {
+                if (StringUtils.isNotBlank(parallelPolicyTmp)) {
+                    parallelPolicy = parallelPolicyTmp;
                     if (Objects.equals(AutoexecParallelPolicy.ROUND_COUNT.getValue(), parallelPolicy)) {
                         roundCount = executeConfigVo.getRoundCount();
                     } else if (Objects.equals(AutoexecParallelPolicy.PARALLEL.getValue(), parallelPolicy)) {
