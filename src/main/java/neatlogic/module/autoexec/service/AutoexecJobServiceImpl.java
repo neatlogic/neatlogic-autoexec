@@ -740,14 +740,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 // 向上取整计算批次数
                 roundCount = (phaseNodeCount + parallelCount - 1) / parallelCount;
             }
-            //如果roundCount from 作业或者组则需要更新对应的roundCount
-            if (Objects.equals(jobPhase.getRoundCountFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())) {
-                if (jobVo.getRoundCount() == null) {
-                    jobVo.setRoundCount(roundCount);
-                    autoexecJobMapper.updateJobRoundCount(jobVo.getId(), roundCount);
-                }
-            } else if (Objects.equals(jobPhase.getRoundCountFrom(), AutoexecJobPhaseNodeFrom.GROUP.getValue())) {
+            //如果组是grayscale则需要更新对应组的roundCount
+            if (Objects.equals(jobGroupVo.getPolicy(), AutoexecJobGroupPolicy.GRAYSCALE.getName())) {
+                jobGroupVo.setParallelPolicy(AutoexecParallelPolicy.PARALLEL.getValue());
                 jobGroupVo.setRoundCount(roundCount);
+                jobGroupVo.setParallelCount(parallelCount);
             }
         }
 
