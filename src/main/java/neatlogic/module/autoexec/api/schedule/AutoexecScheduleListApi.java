@@ -2,7 +2,7 @@ package neatlogic.module.autoexec.api.schedule;
 
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
-import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
+import neatlogic.framework.autoexec.auth.AUTOEXEC_SCHEDULE_MODIFY;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecScheduleMapper;
@@ -16,6 +16,7 @@ import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.framework.util.TableResultUtil;
+import neatlogic.module.autoexec.schedule.plugin.AutoexecScheduleJob;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
 import org.springframework.stereotype.Service;
 
@@ -27,7 +28,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
-@AuthAction(action = AUTOEXEC_BASE.class)
+@AuthAction(action = AUTOEXEC_SCHEDULE_MODIFY.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class AutoexecScheduleListApi extends PrivateApiComponentBase {
 
@@ -109,7 +110,9 @@ public class AutoexecScheduleListApi extends PrivateApiComponentBase {
                 }
             }
         }
-        return TableResultUtil.getResult(autoexecScheduleList, searchVo);
+        JSONObject resultObj = TableResultUtil.getResult(autoexecScheduleList, searchVo);
+        resultObj.put("handler", AutoexecScheduleJob.class.getName());
+        return resultObj;
     }
 
 }
