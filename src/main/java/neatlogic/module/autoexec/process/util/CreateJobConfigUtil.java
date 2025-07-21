@@ -348,9 +348,10 @@ public class CreateJobConfigUtil {
                 executeConfig.setParallelPolicy(parallelPolicy);
             }else{
                 CreateJobConfigMappingGroupVo mappingGroupVo = executeParamMappingGroupMap.get("parallelPolicy");
-                if (CollectionUtils.isNotEmpty(mappingGroupVo.getMappingList()) && mappingGroupVo.getMappingList().get(0) != null && mappingGroupVo.getMappingList().get(0).getValue() != null) {
-                    parallelPolicy = mappingGroupVo.getMappingList().get(0).getValue().toString();
-                    builder.setParallelPolicy(parallelPolicy);
+                if(mappingGroupVo != null && (CollectionUtils.isNotEmpty(mappingGroupVo.getMappingList()) && mappingGroupVo.getMappingList().get(0) != null && mappingGroupVo.getMappingList().get(0).getValue() != null)) {
+                        parallelPolicy = mappingGroupVo.getMappingList().get(0).getValue().toString();
+                        builder.setParallelPolicy(parallelPolicy);
+
                 }
             }
 
