@@ -132,6 +132,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                         for (AutoexecParamVo runtimeParam : runTimeParamList) {
                             if (Objects.equals(value, runtimeParam.getKey())) {
                                 if (runtimeParam.getValue() != null) {
+                                    if(runtimeParam.getValue() instanceof ArrayList){
+                                        return JSON.toJSONString(runtimeParam.getValue());
+                                    }
                                     return runtimeParam.getValue().toString();
                                 }
                             }
