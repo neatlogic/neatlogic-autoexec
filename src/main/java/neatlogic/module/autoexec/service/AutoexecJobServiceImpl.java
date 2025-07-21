@@ -132,6 +132,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                         for (AutoexecParamVo runtimeParam : runTimeParamList) {
                             if (Objects.equals(value, runtimeParam.getKey())) {
                                 if (runtimeParam.getValue() != null) {
+                                    if(runtimeParam.getValue() instanceof ArrayList){
+                                        return JSON.toJSONString(runtimeParam.getValue());
+                                    }
                                     return runtimeParam.getValue().toString();
                                 }
                             }
@@ -661,7 +664,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     String parallelPolicyTmp = executeConfigVo.getParallelPolicy();
                     //兼容老数据不存在policy
                     if (StringUtils.isBlank(parallelPolicyTmp) && executeConfigVo.getRoundCount() != null) {
-                        parallelPolicy = AutoexecParallelPolicy.ROUND_COUNT.getValue();
+                        parallelPolicyTmp = AutoexecParallelPolicy.ROUND_COUNT.getValue();
                     }
                     if (StringUtils.isNotBlank(parallelPolicyTmp)) {
                         parallelPolicy = parallelPolicyTmp;
@@ -699,7 +702,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 String parallelPolicyTmp = executeConfigVo.getParallelPolicy();
                 //兼容老数据不存在policy
                 if (StringUtils.isBlank(parallelPolicyTmp) && executeConfigVo.getRoundCount() != null) {
-                    parallelPolicy = AutoexecParallelPolicy.ROUND_COUNT.getValue();
+                    parallelPolicyTmp = AutoexecParallelPolicy.ROUND_COUNT.getValue();
                 }
                 if (StringUtils.isNotBlank(parallelPolicyTmp)) {
                     parallelPolicy = parallelPolicyTmp;

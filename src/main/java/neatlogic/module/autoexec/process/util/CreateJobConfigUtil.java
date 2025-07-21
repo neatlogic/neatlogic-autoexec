@@ -216,15 +216,6 @@ public class CreateJobConfigUtil {
         // 组合工具ID
         Long combopId = createJobConfigConfigVo.getCombopId();
         AutoexecJobBuilder builder = new AutoexecJobBuilder(combopId);
-        JSONObject rawData = new JSONObject();
-        rawData.put("currentProcessTaskStepVo", currentProcessTaskStepVo);
-        rawData.put("createJobConfigConfigVo", createJobConfigConfigVo);
-        rawData.put("autoexecCombopVersionVo", autoexecCombopVersionVo);
-        rawData.put("formAttributeList", formAttributeList);
-        rawData.put("originalFormAttributeDataMap", originalFormAttributeDataMap);
-        rawData.put("formTableComponentDataMap", formTableComponentDataMap);
-        rawData.put("processTaskParam", processTaskParam);
-        builder.setRawData(JSONObject.parseObject(rawData.toJSONString()));
         // 作业名称
         String jobName = createJobConfigConfigVo.getJobName();
         AutoexecCombopVersionConfigVo versionConfig = autoexecCombopVersionVo.getConfig();
@@ -348,9 +339,10 @@ public class CreateJobConfigUtil {
                 executeConfig.setParallelPolicy(parallelPolicy);
             }else{
                 CreateJobConfigMappingGroupVo mappingGroupVo = executeParamMappingGroupMap.get("parallelPolicy");
-                if (CollectionUtils.isNotEmpty(mappingGroupVo.getMappingList()) && mappingGroupVo.getMappingList().get(0) != null && mappingGroupVo.getMappingList().get(0).getValue() != null) {
-                    parallelPolicy = mappingGroupVo.getMappingList().get(0).getValue().toString();
-                    builder.setParallelPolicy(parallelPolicy);
+                if(mappingGroupVo != null && (CollectionUtils.isNotEmpty(mappingGroupVo.getMappingList()) && mappingGroupVo.getMappingList().get(0) != null && mappingGroupVo.getMappingList().get(0).getValue() != null)) {
+                        parallelPolicy = mappingGroupVo.getMappingList().get(0).getValue().toString();
+                        builder.setParallelPolicy(parallelPolicy);
+
                 }
             }
 
