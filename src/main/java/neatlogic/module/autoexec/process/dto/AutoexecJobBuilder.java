@@ -55,9 +55,6 @@ public class AutoexecJobBuilder {
     @EntityField(name = "作业参数数据", type = ApiParamType.JSONOBJECT)
     private JSONObject param;
 
-    @EntityField(name = "原始数据", type = ApiParamType.JSONOBJECT)
-    private JSONObject rawData;
-
     public Long getCombopId() {
         return combopId;
     }
@@ -116,14 +113,6 @@ public class AutoexecJobBuilder {
 
     public void setParam(JSONObject param) {
         this.param = param;
-    }
-
-    public JSONObject getRawData() {
-        return rawData;
-    }
-
-    public void setRawData(JSONObject rawData) {
-        this.rawData = rawData;
     }
 
     public Integer getParallelCount() {
