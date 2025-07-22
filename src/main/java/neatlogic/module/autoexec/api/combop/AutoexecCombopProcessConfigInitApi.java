@@ -19,6 +19,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
+import neatlogic.framework.autoexec.constvalue.AutoexecParallelPolicy;
 import neatlogic.framework.autoexec.constvalue.CombopNodeSpecify;
 import neatlogic.framework.autoexec.constvalue.ParamMappingMode;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
@@ -344,6 +345,10 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
                 parallelPolicyObj.put("name", "并发策略");
                 parallelPolicyObj.put("isRequired", 1);
                 String parallelPolicy = executeConfigVo.getParallelPolicy();
+                //兼容老数据
+                if (StringUtils.isBlank(parallelPolicy) && roundCount != null) {
+                    parallelPolicy = AutoexecParallelPolicy.ROUND_COUNT.getValue();
+                }
                 if (StringUtils.isNotBlank(parallelPolicy)) {
                     parallelPolicyObj.put("mappingMode", ParamMappingMode.CONSTANT.getValue());
                     parallelPolicyObj.put("value", parallelPolicy);
