@@ -19,7 +19,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthAction;
-import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
+import neatlogic.framework.autoexec.auth.AUTOEXEC_JOB_MODIFY;
 import neatlogic.framework.autoexec.constvalue.*;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
@@ -37,12 +37,16 @@ import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
 import neatlogic.framework.cmdb.exception.resourcecenter.ResourceCenterAccountProtocolNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dao.mapper.UserMapper;
+import neatlogic.framework.dto.AuthenticationInfoVo;
 import neatlogic.framework.dto.UserVo;
+import neatlogic.framework.exception.user.UserNotFoundException;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
+import neatlogic.framework.service.AuthenticationInfoService;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
@@ -60,7 +64,7 @@ import java.util.stream.Collectors;
  **/
 
 @Service
-@AuthAction(action = AUTOEXEC_BASE.class)
+@AuthAction(action = AUTOEXEC_JOB_MODIFY.class)
 @OperationType(type = OperationTypeEnum.CREATE)
 public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
     @Resource
@@ -77,6 +81,9 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
 
     @Resource
     AutoexecCombopService autoexecCombopService;
+
+    @Resource
+    private AuthenticationInfoService authenticationInfoService;
 
     @Override
     public String getName() {
@@ -130,6 +137,10 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
             UserVo assignUserTmp = userMapper.getUserByUser(assignExecUserParam);
             if (assignUserTmp != null) {
                 assignExecUser = assignUserTmp.getUuid();
+                AuthenticationInfoVo authenticationInfo = authenticationInfoService.getAuthenticationInfo(assignExecUser);
+                UserContext.init(assignUserTmp, authenticationInfo, SystemUser.SYSTEM.getTimezone());
+            }else{
+                throw new UserNotFoundException(assignExecUserParam);
             }
         }
         JSONObject param = jsonObj.getJSONObject("param");
