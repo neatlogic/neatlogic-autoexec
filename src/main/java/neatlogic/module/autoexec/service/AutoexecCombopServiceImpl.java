@@ -652,15 +652,18 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                     if (Objects.equals(preNodeOutputParamVo.getType(), inputParamVo.getType())) {
                         continue;
                     }
-                    // 文本域类型 上游节点输出参数值 文本类型
-                    if (Objects.equals(inputParamVo.getType(), ParamType.TEXTAREA.getValue()) && Objects.equals(preNodeOutputParamVo.getType(), ParamType.TEXT.getValue())) {
+                    // 文本域类型和文本类型 上游节点输出参数值 （可以是任意类型）
+                    if (Objects.equals(inputParamVo.getType(), ParamType.TEXTAREA.getValue()) || Objects.equals(inputParamVo.getType(), ParamType.TEXT.getValue())) {
                         continue;
-
                     }
-                    if (Objects.equals(inputParamVo.getType(), ParamType.TEXT.getValue()) && Objects.equals(preNodeOutputParamVo.getType(), ParamType.TEXTAREA.getValue())) {
-                        continue;
-
-                    }
+//                    if (Objects.equals(inputParamVo.getType(), ParamType.TEXTAREA.getValue()) && Objects.equals(preNodeOutputParamVo.getType(), ParamType.TEXT.getValue())) {
+//                        continue;
+//
+//                    }
+//                    if (Objects.equals(inputParamVo.getType(), ParamType.TEXT.getValue()) && Objects.equals(preNodeOutputParamVo.getType(), ParamType.TEXTAREA.getValue())) {
+//                        continue;
+//
+//                    }
                     throw new AutoexecParamMappingTargetTypeMismatchException(phaseName, operationName, inputParamLabel, conversionPreNodeParamPath(preNodeNameMap, preOperationNameMap, value));
                 } else if (Objects.equals(mappingMode, ParamMappingMode.PRE_NODE_OUTPUT_PARAM_KEY.getValue())) {
                     String value = null;
