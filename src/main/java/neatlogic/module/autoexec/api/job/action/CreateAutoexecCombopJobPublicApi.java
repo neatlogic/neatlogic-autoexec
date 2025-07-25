@@ -19,7 +19,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthAction;
-import neatlogic.framework.autoexec.auth.AUTOEXEC_JOB_MODIFY;
+import neatlogic.framework.autoexec.auth.AUTOEXEC_CREATE_PUBLIC_JOB;
 import neatlogic.framework.autoexec.constvalue.*;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
@@ -64,7 +64,7 @@ import java.util.stream.Collectors;
  **/
 
 @Service
-@AuthAction(action = AUTOEXEC_JOB_MODIFY.class)
+@AuthAction(action = AUTOEXEC_CREATE_PUBLIC_JOB.class)
 @OperationType(type = OperationTypeEnum.CREATE)
 public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
     @Resource
