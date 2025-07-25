@@ -26,6 +26,7 @@ import neatlogic.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.dto.runner.RunnerVo;
+import neatlogic.framework.exception.runner.RunnerNotFoundException;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -79,8 +80,11 @@ public class AutoexecJobPhaseRunnerGetApi extends PrivateApiComponentBase {
             throw new AutoexecJobRunnerNotFoundException(jobId, jobPhaseId);
         }
         RunnerVo runnerVo = autoexecJobMapper.getJobRunnerById(nodeVo.getRunnerId());
+        if (runnerVo == null) {
+            throw new RunnerNotFoundException(nodeVo.getRunnerId());
+        }
         List<AutoexecJobPhaseRunnerVo> jobPhaseRunnerVos = autoexecJobMapper.getJobPhaseRunnerByJobIdAndPhaseIdList(jobId, Collections.singletonList(jobPhaseId));
-        if(CollectionUtils.isNotEmpty(jobPhaseRunnerVos)){
+        if (CollectionUtils.isNotEmpty(jobPhaseRunnerVos)) {
             runnerVo.setStatus(jobPhaseRunnerVos.get(0).getStatus());
         }
         nodeVo.setRunnerVo(runnerVo);
