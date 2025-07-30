@@ -336,7 +336,7 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                                 if (CollectionUtils.isNotEmpty(osResourceList)) {
                                     resourceServicePortsMap.putAll(osResourceList.stream().filter(o -> o.getListenPort() != null).collect(Collectors.toMap(ResourceVo::getId, o -> {
                                         JSONObject servicePorts = new JSONObject();
-                                        servicePorts.put(o.getName(), o.getListenPort());
+                                        servicePorts.put(o.getName() == null ? StringUtils.EMPTY : o.getName(), o.getListenPort());
                                         return servicePorts;
                                     }, (k1, k2) -> {
                                         k1.putAll(k2);
@@ -347,7 +347,7 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                                 if (CollectionUtils.isNotEmpty(softwareResourceList)) {
                                     resourceServicePortsMap.putAll(softwareResourceList.stream().filter(o -> o.getListenPort() != null).collect(Collectors.toMap(ResourceVo::getId, o -> {
                                         JSONObject servicePorts = new JSONObject();
-                                        servicePorts.put(o.getName(), o.getListenPort());
+                                        servicePorts.put(o.getName() == null ? StringUtils.EMPTY : o.getName(), o.getListenPort());
                                         return servicePorts;
                                     }, (k1, k2) -> {
                                         k1.putAll(k2);
