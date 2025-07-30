@@ -615,6 +615,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         String parallelPolicy = jobVo.getParallelPolicy();
         Integer parallelCount = null;
         AutoexecJobPhaseVo jobPhase = jobVo.getExecutePhase();
+        AutoexecJobGroupVo jobGroupVo = jobVo.getExecutePhase().getJobGroupVo();
         if (combopExecuteConfigVo != null) {
             //先获取组合工具配置的执行用户和协议
             userName = getFinalParamValue(combopExecuteConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
@@ -636,10 +637,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 } else if (Objects.equals(AutoexecParallelPolicy.PARALLEL.getValue(), parallelPolicy)) {
                     parallelCount = jobVo.getParallelCount();
                 }
+                jobGroupVo.setParallelFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
             }
         }
         AutoexecCombopExecuteConfigVo executeConfigVo;
-        AutoexecJobGroupVo jobGroupVo = jobVo.getExecutePhase().getJobGroupVo();
         //判断group是不是grayScale，如果是则从group中获取执行节点、账号、执行用户
         if (Objects.equals(jobGroupVo.getPolicy(), AutoexecJobGroupPolicy.GRAYSCALE.getName())) {
             AutoexecCombopGroupConfigVo groupConfig = jobGroupVo.getConfig();
@@ -677,6 +678,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                             jobGroupVo.setParallelPolicy(parallelPolicy);
                             jobGroupVo.setParallelCount(parallelCount);
                         }
+                        jobGroupVo.setParallelFrom(AutoexecJobPhaseNodeFrom.GROUP.getValue());
                         jobPhase.setRoundCountFrom(AutoexecJobPhaseNodeFrom.GROUP.getValue());
                     }
                 }
