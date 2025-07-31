@@ -91,6 +91,18 @@ public class ScriptParamTypeRunnerGroupTag extends ScriptParamTypeBase {
     }
 
     @Override
+    public Object getMyExchangeParamByValue(Object value) {
+        if (value != null && StringUtils.isNotBlank(value.toString())) {
+            if (value.toString().startsWith("[") && value.toString().startsWith("]")) {
+               return value;
+            } else {
+               return String.format("[%s]", value);
+            }
+        }
+        return null;
+    }
+
+    @Override
     protected Object getMyTextByValue(Object value, JSONObject config) {
         String valueStr = value.toString();
         if (StringUtils.isNotBlank(valueStr)) {

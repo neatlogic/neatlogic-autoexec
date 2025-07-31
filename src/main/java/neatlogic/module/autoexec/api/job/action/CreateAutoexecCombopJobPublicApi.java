@@ -153,9 +153,12 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
         jsonObj.put("source", JobSource.COMBOP.getValue());
         jsonObj.put("operationId", combopVo.getId());
         getExecuteConfig(jsonObj);
+        String runnerGroup = jsonObj.getString("runnerGroup");
+        String runnerGroupTag = jsonObj.getString("runnerGroupTag");
+        jsonObj.remove("runnerGroup");
+        jsonObj.remove("runnerGroupTag");
         AutoexecJobVo autoexecJobParam = JSON.toJavaObject(jsonObj, AutoexecJobVo.class);
         //runnerGroup
-        String runnerGroup = jsonObj.getString("runnerGroup");
         if (StringUtils.isNotBlank(runnerGroup)) {
             ParamMappingVo runnerGroupMappingVo = new ParamMappingVo();
             runnerGroupMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
@@ -163,7 +166,6 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
             autoexecJobParam.setRunnerGroup(runnerGroupMappingVo);
         }
         //runnerGroupTag
-        String runnerGroupTag = jsonObj.getString("runnerGroupTag");
         if (StringUtils.isNotBlank(runnerGroupTag)) {
             ParamMappingVo runnerGroupTagMappingVo = new ParamMappingVo();
             runnerGroupTagMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
