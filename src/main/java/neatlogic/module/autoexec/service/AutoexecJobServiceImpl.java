@@ -751,6 +751,12 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 jobGroupVo.setRoundCount(roundCount);
                 jobGroupVo.setParallelCount(parallelCount);
             }
+        }else{
+            //如果组是grayscale则需要更新对应组的roundCount
+            if (Objects.equals(jobGroupVo.getPolicy(), AutoexecJobGroupPolicy.GRAYSCALE.getName())) {
+                jobGroupVo.setParallelPolicy(AutoexecParallelPolicy.ROUND_COUNT.getValue());
+                jobGroupVo.setRoundCount(roundCount);
+            }
         }
 
         if (roundCount == null) {
