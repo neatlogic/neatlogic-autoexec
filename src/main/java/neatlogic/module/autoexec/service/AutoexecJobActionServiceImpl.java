@@ -427,7 +427,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                     //组合工具的全局并发策略不存在则默认并发数，兼容老数据
                     if (autoexecJobParam.getRoundCount() != null || combopExecuteConfigVo.getRoundCount() != null) {
                         autoexecJobParam.setParallelPolicy(AutoexecParallelPolicy.ROUND_COUNT.getValue());
-                    }else{
+                    } else {
                         autoexecJobParam.setParallelPolicy(AutoexecParallelPolicy.PARALLEL.getValue());
                     }
                 }
@@ -453,6 +453,15 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                         autoexecJobParam.setParallelCount(32);
                     }
                 }
+            }
+
+            //如果作业入参数执行器组为null，则使用组合工具中的配置
+            if (autoexecJobParam.getRunnerGroup() == null) {
+                autoexecJobParam.setRunnerGroup(combopExecuteConfigVo.getRunnerGroup());
+            }
+            //如果作业入参数执行器组标签为null，则使用组合工具中的配置
+            if (autoexecJobParam.getRunnerGroupTag() == null) {
+                autoexecJobParam.setRunnerGroupTag(combopExecuteConfigVo.getRunnerGroupTag());
             }
             combopExecuteConfigVo.setParallelPolicy(autoexecJobParam.getParallelPolicy());
             combopExecuteConfigVo.setRoundCount(autoexecJobParam.getRoundCount());
