@@ -19,7 +19,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.ParamType;
 import neatlogic.framework.autoexec.script.paramtype.ScriptParamTypeBase;
-import neatlogic.framework.common.constvalue.TagType;
 import neatlogic.framework.dao.mapper.TagMapper;
 import neatlogic.framework.dto.TagVo;
 import org.apache.commons.lang3.StringUtils;
@@ -89,25 +88,6 @@ public class ScriptParamTypeRunnerGroupTag extends ScriptParamTypeBase {
                 this.put("placeholder", "请选择");
             }
         };
-    }
-
-    @Override
-    public Object getMyExchangeParamByValue(Object value) {
-        Long runnerGroupTagId = null;
-        if (value != null && StringUtils.isNotBlank(value.toString())) {
-            try {
-                runnerGroupTagId = Long.valueOf(value.toString());
-            } catch (NumberFormatException ignored) {
-            }
-            if (runnerGroupTagId == null) {
-                Long id = tagMapper.getTagIdByNameAndType(value.toString(), TagType.RUNNERGROUP.getValue());
-                if (id != null) {
-                    runnerGroupTagId = id;
-                }
-            }
-
-        }
-        return runnerGroupTagId;
     }
 
     @Override

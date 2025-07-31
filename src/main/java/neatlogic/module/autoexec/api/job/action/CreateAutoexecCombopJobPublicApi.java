@@ -23,10 +23,7 @@ import neatlogic.framework.autoexec.auth.AUTOEXEC_CREATE_PUBLIC_JOB;
 import neatlogic.framework.autoexec.constvalue.*;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionConfigVo;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
+import neatlogic.framework.autoexec.dto.combop.*;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecCombopActiveVersionNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecCombopNotFoundException;
@@ -40,6 +37,7 @@ import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dao.mapper.UserMapper;
+import neatlogic.framework.dao.mapper.runner.RunnerMapper;
 import neatlogic.framework.dto.AuthenticationInfoVo;
 import neatlogic.framework.dto.UserVo;
 import neatlogic.framework.exception.user.UserNotFoundException;
@@ -85,6 +83,9 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
     @Resource
     private AuthenticationInfoService authenticationInfoService;
 
+    @Resource
+    private RunnerMapper runnerMapper;
+
     @Override
     public String getName() {
         return "nmaaja.createautoexecjobfromcomboppublicapi.getname";
@@ -109,6 +110,8 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
             @Param(name = "planStartTime", type = ApiParamType.LONG, desc = "common.planstarttime"),
             @Param(name = "triggerType", type = ApiParamType.ENUM, member = JobTriggerType.class, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.triggertype"),
             @Param(name = "assignExecUser", type = ApiParamType.STRING, desc = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.assignuser"),
+            @Param(name = "runnerGroup", type = ApiParamType.STRING, desc = "nfac.paramtype.runnergroup"),
+            @Param(name = "runnerGroupTag", type = ApiParamType.STRING, desc = "nfac.paramtype.runnergrouptag")
     })
     @Output({
     })
@@ -139,7 +142,7 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
                 assignExecUser = assignUserTmp.getUuid();
                 AuthenticationInfoVo authenticationInfo = authenticationInfoService.getAuthenticationInfo(assignExecUser);
                 UserContext.init(assignUserTmp, authenticationInfo, SystemUser.SYSTEM.getTimezone());
-            }else{
+            } else {
                 throw new UserNotFoundException(assignExecUserParam);
             }
         }
@@ -151,6 +154,26 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
         jsonObj.put("operationId", combopVo.getId());
         getExecuteConfig(jsonObj);
         AutoexecJobVo autoexecJobParam = JSON.toJavaObject(jsonObj, AutoexecJobVo.class);
+        //runnerGroup
+        String runnerGroup = jsonObj.getString("runnerGroup");
+        if (StringUtils.isNotBlank(runnerGroup)) {
+            ParamMappingVo runnerGroupMappingVo = new ParamMappingVo();
+            runnerGroupMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
+            runnerGroupMappingVo.setValue(runnerGroup);
+            autoexecJobParam.setRunnerGroup(runnerGroupMappingVo);
+        }
+        //runnerGroupTag
+        String runnerGroupTag = jsonObj.getString("runnerGroupTag");
+        if (StringUtils.isNotBlank(runnerGroupTag)) {
+            ParamMappingVo runnerGroupTagMappingVo = new ParamMappingVo();
+            runnerGroupTagMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
+            if (runnerGroupTag.startsWith("[") && runnerGroupTag.endsWith("]")) {
+                runnerGroupTagMappingVo.setValue(runnerGroupTag);
+            } else {
+                runnerGroupTagMappingVo.setValue(String.format("[%s]", runnerGroupTag));
+            }
+            autoexecJobParam.setRunnerGroupTag(runnerGroupTagMappingVo);
+        }
         AutoexecCombopExecuteConfigVo executeConfigVo = autoexecJobParam.getExecuteConfig();
         if (executeConfigVo != null && StringUtils.isNotBlank(executeConfigVo.getProtocol())) {
             IResourceAccountCrossoverMapper accountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
