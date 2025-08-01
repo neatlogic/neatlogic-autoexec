@@ -901,6 +901,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         boolean needProtocol = autoexecCombopVersionVo.getNeedProtocol();
         boolean needExecuteNode = autoexecCombopVersionVo.getNeedExecuteNode();
         boolean needRoundCount = autoexecCombopVersionVo.getNeedRoundCount();
+        boolean needRunnerGroup = autoexecCombopVersionVo.getNeedRunnerGroup();
         AutoexecCombopExecuteConfigVo executeConfigVo = null;
         if (Objects.equals(AutoexecJobGroupPolicy.GRAYSCALE.getName(), autoexecCombopGroupVo.getPolicy())) {
             AutoexecCombopGroupConfigVo autoexecCombopGroupConfigVo = autoexecCombopGroupVo.getConfig();
@@ -947,11 +948,18 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                     needRoundCount = true;
                 }
             }
+            if (!needRunnerGroup) {
+                ParamMappingVo runnerGroup = executeConfigVo.getRunnerGroup();
+                if (runnerGroup == null || StringUtils.isBlank((String) runnerGroup.getValue())) {
+                    needRunnerGroup = true;
+                }
+            }
         }
         autoexecCombopVersionVo.setNeedExecuteUser(needExecuteUser);
         autoexecCombopVersionVo.setNeedExecuteNode(needExecuteNode);
         autoexecCombopVersionVo.setNeedProtocol(needProtocol);
         autoexecCombopVersionVo.setNeedRoundCount(needRoundCount);
+        autoexecCombopVersionVo.setNeedRunnerGroup(needRunnerGroup);
     }
 
     @Override
