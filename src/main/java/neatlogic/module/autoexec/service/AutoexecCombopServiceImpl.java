@@ -954,12 +954,6 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                     }
                 }
             }
-            if (!needRunnerGroup) {
-                ParamMappingVo runnerGroup = executeConfigVo.getRunnerGroup();
-                if (runnerGroup == null || StringUtils.isBlank((String) runnerGroup.getValue())) {
-                    needRunnerGroup = true;
-                }
-            }
         }
         autoexecCombopVersionVo.setNeedExecuteUser(needExecuteUser);
         autoexecCombopVersionVo.setNeedExecuteNode(needExecuteNode);
