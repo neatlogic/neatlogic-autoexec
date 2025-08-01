@@ -46,6 +46,7 @@ import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dao.mapper.UserMapper;
 import neatlogic.framework.dto.AuthenticationInfoVo;
 import neatlogic.framework.dto.UserVo;
+import neatlogic.framework.exception.core.ApiRuntimeException;
 import neatlogic.framework.exception.type.ParamIrregularException;
 import neatlogic.framework.exception.user.UserNotFoundException;
 import neatlogic.framework.filter.core.LoginAuthHandlerBase;
@@ -383,6 +384,64 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         return value;
     }
 
+    /**
+     * 校验作业入参是否合法
+     *
+     * @param combopVo         组合工具
+     * @param autoexecJobParam 作业入参
+     */
+    private void validateJobParam(AutoexecCombopVo combopVo, AutoexecJobVo autoexecJobParam) {
+        AutoexecCombopConfigVo combopConfig = combopVo.getConfig();
+        AutoexecCombopExecuteConfigVo combopExecuteConfig = combopConfig.getExecuteConfig();
+        AutoexecCombopExecuteConfigVo jobParamExecuteConfig = autoexecJobParam.getExecuteConfig();
+        //执行器组必填（非引用作业参数）
+        if (combopVo.getNeedRunnerGroup()) {
+            //如果组合工具没有配置执行器组
+            if (combopExecuteConfig == null || combopExecuteConfig.getRunnerGroup() == null || combopExecuteConfig.getRunnerGroup().getValue() == null) {
+                if (autoexecJobParam.getRunnerGroup() == null || autoexecJobParam.getRunnerGroup().getValue() == null) {
+                    throw new ApiRuntimeException("执行器组(runnerGroup.value)入参不能为空");
+                }
+            } else {
+                if (!Objects.equals(combopExecuteConfig.getRunnerGroup().getMappingMode(), autoexecJobParam.getRunnerGroup().getMappingMode())) {
+                    throw new ApiRuntimeException(String.format("执行器组(runnerGroup)入参值“%s”中的类型(mappingMode)不合法，组合工具作业层配置的执行器组类型(mappingMode)为“%s”", JSON.toJSONString(autoexecJobParam.getRunnerGroup()), combopExecuteConfig.getRunnerGroup().getMappingMode()));
+                }
+                if (Objects.equals(combopExecuteConfig.getRunnerGroup().getMappingMode(), ParamMappingMode.CONSTANT.getValue()) && (autoexecJobParam.getRunnerGroup() == null || autoexecJobParam.getRunnerGroup().getValue() == null)) {
+                    throw new ApiRuntimeException("执行器组(runnerGroup)入参不能为空");
+                }
+
+            }
+        }
+        //协议
+        if (combopVo.getNeedProtocol() && (jobParamExecuteConfig == null || jobParamExecuteConfig.getProtocolId() == null)) {
+            throw new ApiRuntimeException("协议(executeConfig.protocolId)入参不能为空");
+        }
+        //执行用户
+        if (combopVo.getNeedExecuteUser()) {
+            if (combopExecuteConfig == null || combopExecuteConfig.getExecuteUser() == null || combopExecuteConfig.getExecuteUser().getValue() == null) {
+                if (jobParamExecuteConfig == null || jobParamExecuteConfig.getExecuteUser() == null || jobParamExecuteConfig.getExecuteUser().getValue() == null) {
+                    throw new ApiRuntimeException("执行用户(executeConfig.executeUser.value)入参不能为空");
+                }
+            } else {
+                if (!Objects.equals(combopExecuteConfig.getExecuteUser().getMappingMode(), jobParamExecuteConfig.getExecuteUser().getMappingMode())) {
+                    throw new ApiRuntimeException(String.format("执行用户(executeConfig.executeUser)入参值“%s”中的类型(mappingMode)不合法，组合工具作业层配置的执行用户类型(mappingMode)为“%s”", JSON.toJSONString(jobParamExecuteConfig.getExecuteUser()), combopExecuteConfig.getExecuteUser().getMappingMode()));
+                }
+                if (Objects.equals(combopExecuteConfig.getExecuteUser().getMappingMode(), ParamMappingMode.CONSTANT.getValue()) && (jobParamExecuteConfig.getExecuteUser() == null || jobParamExecuteConfig.getExecuteUser().getValue() == null)) {
+                    throw new ApiRuntimeException("执行用户(runnerGroup)入参不能为空");
+                }
+            }
+        }
+        //作业参数必填
+        List<AutoexecParamVo> combopRuntimeParamList = combopConfig.getRuntimeParamList();
+        if (CollectionUtils.isNotEmpty(combopRuntimeParamList)) {
+            for (AutoexecParamVo combopRuntimeParam : combopRuntimeParamList) {
+                String combopRuntimeParamKey = combopRuntimeParam.getKey();
+                if (combopRuntimeParam.getIsRequired() == 1 && (MapUtils.isEmpty(autoexecJobParam.getParam()) || autoexecJobParam.getParam().get(combopRuntimeParamKey) == null || StringUtils.isBlank(autoexecJobParam.getParam().get(combopRuntimeParamKey).toString()))) {
+                    throw new ApiRuntimeException(String.format("作业参数“%s”不能为空", combopRuntimeParamKey));
+                }
+            }
+        }
+    }
+
     @Override
     public void validateAndCreateJobFromCombop(AutoexecJobVo autoexecJobParam) {
         IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(autoexecJobParam.getSource());
@@ -404,9 +463,10 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         if (CollectionUtils.isEmpty(config.getCombopGroupList())) {
             throw new AutoexecCombopAtLeastOneGroupException();
         }
+        //validateJobParam(combopVo, autoexecJobParam);
+        AutoexecCombopExecuteConfigVo combopExecuteConfigVo = config.getExecuteConfig();
         if (autoexecJobParam.getExecuteConfig() != null) {
             //如果执行传进来的"执行用户"、"协议"为空则使用默认设定的值
-            AutoexecCombopExecuteConfigVo combopExecuteConfigVo = config.getExecuteConfig();
             if (combopExecuteConfigVo == null) {
                 combopExecuteConfigVo = new AutoexecCombopExecuteConfigVo();
             }
@@ -420,6 +480,13 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             if (autoexecJobParam.getExecuteConfig().getExecuteNodeConfig() != null && !autoexecJobParam.getExecuteConfig().getExecuteNodeConfig().isNull()) {
                 combopExecuteConfigVo.setExecuteNodeConfig(autoexecJobParam.getExecuteConfig().getExecuteNodeConfig());
             }
+
+            config.setExecuteConfig(combopExecuteConfigVo);
+            autoexecCombopService.verifyAutoexecCombopConfig(config, true);
+        }
+
+        //如果
+        if (combopExecuteConfigVo != null) {
             if (StringUtils.isBlank(autoexecJobParam.getParallelPolicy())) {
                 if (combopExecuteConfigVo.getParallelPolicy() != null) {
                     autoexecJobParam.setParallelPolicy(combopExecuteConfigVo.getParallelPolicy());
@@ -466,10 +533,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             combopExecuteConfigVo.setParallelPolicy(autoexecJobParam.getParallelPolicy());
             combopExecuteConfigVo.setRoundCount(autoexecJobParam.getRoundCount());
             combopExecuteConfigVo.setParallelCount(autoexecJobParam.getParallelCount());
-            config.setExecuteConfig(combopExecuteConfigVo);
-            autoexecCombopService.verifyAutoexecCombopConfig(config, true);
         }
-
 
         //根据场景名获取场景id
         if (StringUtils.isNotBlank(autoexecJobParam.getScenarioName())) {

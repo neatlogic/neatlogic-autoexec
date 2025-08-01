@@ -267,7 +267,7 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
         List<String> runnerGroupTagList = null;
         Boolean isJobRunnerGroupTag = null;
         List<Long> runnerGroupIdListWithRule = getMatchRuleRunnerGroupList();
-        if(CollectionUtils.isEmpty(runnerGroupIdListWithRule)){
+        if (CollectionUtils.isEmpty(runnerGroupIdListWithRule)) {
             throw new RunnerGroupMatchRuleNotFoundException();
         }
         //优先获取runner phase声明的执行器组标签
@@ -461,30 +461,36 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
                 throw new AutoexecCombopActiveVersionNotFoundException(combopVo.getName());
             }
         }
-        if (versionId != null) {
-            AutoexecCombopVersionVo versionVo = autoexecCombopVersionMapper.getAutoexecCombopVersionById(versionId);
-            if (versionVo == null) {
-                throw new AutoexecCombopVersionNotFoundException(versionId);
-            }
-            AutoexecCombopVersionConfigVo versionConfig = versionVo.getConfig();
-            if (versionConfig != null) {
-                AutoexecCombopConfigVo config = combopVo.getConfig();
-                config.setExecuteConfig(versionConfig.getExecuteConfig());
-                config.setCombopGroupList(versionConfig.getCombopGroupList());
-                config.setCombopPhaseList(versionConfig.getCombopPhaseList());
-                config.setRuntimeParamList(versionConfig.getRuntimeParamList());
-                config.setScenarioList(versionConfig.getScenarioList());
-            }
-            if (autoexecJobParam.getInvokeId() == null) {
-                autoexecJobParam.setInvokeId(versionId);
-            }
-            if (autoexecJobParam.getRouteId() == null) {
-                autoexecJobParam.setRouteId(versionId.toString());
-            }
+        AutoexecCombopVersionVo versionVo = autoexecCombopVersionMapper.getAutoexecCombopVersionById(versionId);
+        if (versionVo == null) {
+            throw new AutoexecCombopVersionNotFoundException(versionId);
+        }
+        autoexecCombopService.needExecuteConfig(versionVo);
+        AutoexecCombopVersionConfigVo versionConfig = versionVo.getConfig();
+        if (versionConfig != null) {
+            AutoexecCombopConfigVo config = combopVo.getConfig();
+            config.setExecuteConfig(versionConfig.getExecuteConfig());
+            config.setCombopGroupList(versionConfig.getCombopGroupList());
+            config.setCombopPhaseList(versionConfig.getCombopPhaseList());
+            config.setRuntimeParamList(versionConfig.getRuntimeParamList());
+            config.setScenarioList(versionConfig.getScenarioList());
+        }
+        if (autoexecJobParam.getInvokeId() == null) {
+            autoexecJobParam.setInvokeId(versionId);
+        }
+        if (autoexecJobParam.getRouteId() == null) {
+            autoexecJobParam.setRouteId(versionId.toString());
         }
         if (StringUtils.isBlank(autoexecJobParam.getName())) {
             autoexecJobParam.setName(combopVo.getName());
         }
+        combopVo.setAllPhasesAreRunnerOrSqlExecMode(versionVo.getAllPhasesAreRunnerOrSqlExecMode());
+        combopVo.setExistRunnerOrSqlExecMode(versionVo.getExistRunnerOrSqlExecMode());
+        combopVo.setNeedExecuteNode(versionVo.getNeedExecuteNode());
+        combopVo.setNeedExecuteUser(versionVo.getNeedExecuteUser());
+        combopVo.setNeedProtocol(versionVo.getNeedProtocol());
+        combopVo.setNeedRoundCount(versionVo.getNeedRoundCount());
+        combopVo.setNeedRunnerGroup(versionVo.getNeedRunnerGroup());
         return combopVo;
     }
 
