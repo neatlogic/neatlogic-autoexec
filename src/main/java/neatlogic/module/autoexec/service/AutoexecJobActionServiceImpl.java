@@ -390,6 +390,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
      * @param combopVo         组合工具
      * @param autoexecJobParam 作业入参
      */
+    //TODO 异常 翻译
     private void validateJobParam(AutoexecCombopVo combopVo, AutoexecJobVo autoexecJobParam) {
         AutoexecCombopConfigVo combopConfig = combopVo.getConfig();
         AutoexecCombopExecuteConfigVo combopExecuteConfig = combopConfig.getExecuteConfig();
