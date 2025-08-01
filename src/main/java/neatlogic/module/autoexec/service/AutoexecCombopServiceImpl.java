@@ -884,19 +884,14 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
     @Override
     public void needExecuteConfig(AutoexecCombopVersionVo autoexecCombopVersionVo, AutoexecCombopPhaseVo autoexecCombopPhaseVo, AutoexecCombopGroupVo autoexecCombopGroupVo) {
         String execMode = autoexecCombopPhaseVo.getExecMode();
-        if (ExecMode.RUNNER.getValue().equals(execMode)) {
+        if (ExecMode.RUNNER.getValue().equals(execMode) || ExecMode.SQL.getValue().equals(execMode)) {
             if (autoexecCombopVersionVo.getAllPhasesAreRunnerOrSqlExecMode() == null) {
                 autoexecCombopVersionVo.setAllPhasesAreRunnerOrSqlExecMode(true);
             }
-            return;
+        } else {
+            autoexecCombopVersionVo.setAllPhasesAreRunnerOrSqlExecMode(false);
         }
-        if (ExecMode.SQL.getValue().equals(execMode)) {
-            if (autoexecCombopVersionVo.getAllPhasesAreRunnerOrSqlExecMode() == null) {
-                autoexecCombopVersionVo.setAllPhasesAreRunnerOrSqlExecMode(true);
-            }
-            return;
-        }
-        autoexecCombopVersionVo.setAllPhasesAreRunnerOrSqlExecMode(false);
+
         boolean needExecuteUser = autoexecCombopVersionVo.getNeedExecuteUser();
         boolean needProtocol = autoexecCombopVersionVo.getNeedProtocol();
         boolean needExecuteNode = autoexecCombopVersionVo.getNeedExecuteNode();
@@ -915,43 +910,48 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             needProtocol = true;
             needExecuteNode = true;
             needRoundCount = true;
+            needRunnerGroup = true;
         } else {
-            if (!needProtocol) {
-                Long protocolId = executeConfigVo.getProtocolId();
-                if (protocolId == null) {
-                    needProtocol = true;
+            if (Objects.equals(execMode, ExecMode.TARGET.getValue()) || Objects.equals(execMode, ExecMode.RUNNER_TARGET.getValue())) {
+                if (!needProtocol) {
+                    Long protocolId = executeConfigVo.getProtocolId();
+                    if (protocolId == null) {
+                        needProtocol = true;
+                    }
                 }
-            }
-            if (!needExecuteUser) {
-                ParamMappingVo executeUser = executeConfigVo.getExecuteUser();
-                if (executeUser == null || StringUtils.isBlank((String) executeUser.getValue())) {
-                    needExecuteUser = true;
+                if (!needExecuteUser) {
+                    ParamMappingVo executeUser = executeConfigVo.getExecuteUser();
+                    if (executeUser == null || StringUtils.isBlank((String) executeUser.getValue())) {
+                        needExecuteUser = true;
+                    }
                 }
-            }
-            if (!needExecuteNode) {
-                AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = executeConfigVo.getExecuteNodeConfig();
-                if (executeNodeConfigVo == null) {
-                    needExecuteNode = true;
-                } else {
-                    List<String> paramList = executeNodeConfigVo.getParamList();
-                    List<AutoexecNodeVo> selectNodeList = executeNodeConfigVo.getSelectNodeList();
-                    List<AutoexecNodeVo> inputNodeList = executeNodeConfigVo.getInputNodeList();
-                    List<String> preOutputList = executeNodeConfigVo.getPreOutputList();
-                    JSONObject filter = executeNodeConfigVo.getFilter();
-                    if (CollectionUtils.isEmpty(paramList) && CollectionUtils.isEmpty(selectNodeList) && CollectionUtils.isEmpty(inputNodeList) && CollectionUtils.isEmpty(preOutputList) && MapUtils.isEmpty(filter)) {
+                if (!needExecuteNode) {
+                    AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = executeConfigVo.getExecuteNodeConfig();
+                    if (executeNodeConfigVo == null) {
                         needExecuteNode = true;
+                    } else {
+                        List<String> paramList = executeNodeConfigVo.getParamList();
+                        List<AutoexecNodeVo> selectNodeList = executeNodeConfigVo.getSelectNodeList();
+                        List<AutoexecNodeVo> inputNodeList = executeNodeConfigVo.getInputNodeList();
+                        List<String> preOutputList = executeNodeConfigVo.getPreOutputList();
+                        JSONObject filter = executeNodeConfigVo.getFilter();
+                        if (CollectionUtils.isEmpty(paramList) && CollectionUtils.isEmpty(selectNodeList) && CollectionUtils.isEmpty(inputNodeList) && CollectionUtils.isEmpty(preOutputList) && MapUtils.isEmpty(filter)) {
+                            needExecuteNode = true;
+                        }
+                    }
+                }
+                if (!needRoundCount) {
+                    if (executeConfigVo.getRoundCount() == null) {
+                        needRoundCount = true;
                     }
                 }
             }
-            if (!needRoundCount) {
-                if (executeConfigVo.getRoundCount() == null) {
-                    needRoundCount = true;
-                }
-            }
-            if (!needRunnerGroup) {
-                ParamMappingVo runnerGroup = executeConfigVo.getRunnerGroup();
-                if (runnerGroup == null || StringUtils.isBlank((String) runnerGroup.getValue())) {
-                    needRunnerGroup = true;
+            if (Objects.equals(execMode, ExecMode.RUNNER.getValue())) {
+                if (!needRunnerGroup) {
+                    ParamMappingVo runnerGroup = executeConfigVo.getRunnerGroup();
+                    if (runnerGroup == null || runnerGroup.getValue() == null) {
+                        needRunnerGroup = true;
+                    }
                 }
             }
         }
