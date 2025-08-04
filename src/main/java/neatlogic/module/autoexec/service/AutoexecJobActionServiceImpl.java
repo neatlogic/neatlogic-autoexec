@@ -400,6 +400,11 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             if (combopExecuteConfig == null || combopExecuteConfig.getRunnerGroup() == null || combopExecuteConfig.getRunnerGroup().getValue() == null) {
                 if (autoexecJobParam.getRunnerGroup() == null || autoexecJobParam.getRunnerGroup().getValue() == null) {
                     throw new RunnerGroupParamNullException();
+                }else {
+                    //页面没有配置常量值是传{}
+                    if (!Objects.equals(autoexecJobParam.getRunnerGroup().getMappingMode(), ParamMappingMode.CONSTANT.getValue())) {
+                        throw new ExecuteUserMappingModeParamInvalidException(JSON.toJSONString(autoexecJobParam.getRunnerGroup()), ParamMappingMode.CONSTANT.getValue());
+                    }
                 }
             } else {
                 if (!Objects.equals(combopExecuteConfig.getRunnerGroup().getMappingMode(), autoexecJobParam.getRunnerGroup().getMappingMode())) {
@@ -420,6 +425,11 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             if (combopExecuteConfig == null || combopExecuteConfig.getExecuteUser() == null || combopExecuteConfig.getExecuteUser().getValue() == null) {
                 if (jobParamExecuteConfig == null || jobParamExecuteConfig.getExecuteUser() == null || jobParamExecuteConfig.getExecuteUser().getValue() == null) {
                     throw new ExecuteUserValueParamNullException();
+                } else {
+                    //页面没有配置常量值是传{}
+                    if (!Objects.equals(jobParamExecuteConfig.getExecuteUser().getMappingMode(), ParamMappingMode.CONSTANT.getValue())) {
+                        throw new ExecuteUserMappingModeParamInvalidException(JSON.toJSONString(jobParamExecuteConfig.getExecuteUser()), ParamMappingMode.CONSTANT.getValue());
+                    }
                 }
             } else {
                 if (!Objects.equals(combopExecuteConfig.getExecuteUser().getMappingMode(), jobParamExecuteConfig.getExecuteUser().getMappingMode())) {
@@ -463,7 +473,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         if (CollectionUtils.isEmpty(config.getCombopGroupList())) {
             throw new AutoexecCombopAtLeastOneGroupException();
         }
-        validateJobParam(combopVo, autoexecJobParam);
+        //validateJobParam(combopVo, autoexecJobParam);
         AutoexecCombopExecuteConfigVo combopExecuteConfigVo = config.getExecuteConfig();
         if (autoexecJobParam.getExecuteConfig() != null) {
             //如果执行传进来的"执行用户"、"协议"为空则使用默认设定的值
