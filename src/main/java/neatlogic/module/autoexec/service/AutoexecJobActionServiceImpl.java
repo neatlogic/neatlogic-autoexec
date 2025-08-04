@@ -43,6 +43,7 @@ import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountVo;
 import neatlogic.framework.common.constvalue.systemuser.SystemUser;
+import neatlogic.framework.config.ConfigManager;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dao.mapper.UserMapper;
 import neatlogic.framework.dto.AuthenticationInfoVo;
@@ -400,43 +401,40 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             if (combopExecuteConfig == null || combopExecuteConfig.getRunnerGroup() == null || combopExecuteConfig.getRunnerGroup().getValue() == null) {
                 if (autoexecJobParam.getRunnerGroup() == null || autoexecJobParam.getRunnerGroup().getValue() == null) {
                     throw new RunnerGroupParamNullException();
-                }else {
-                    //页面没有配置常量值是传{}
+                } else {
+                    //组合工具没有设置，需当作常量处理
                     if (!Objects.equals(autoexecJobParam.getRunnerGroup().getMappingMode(), ParamMappingMode.CONSTANT.getValue())) {
                         throw new ExecuteUserMappingModeParamInvalidException(JSON.toJSONString(autoexecJobParam.getRunnerGroup()), ParamMappingMode.CONSTANT.getValue());
                     }
                 }
             } else {
-                if (!Objects.equals(combopExecuteConfig.getRunnerGroup().getMappingMode(), autoexecJobParam.getRunnerGroup().getMappingMode())) {
+                //如果作业参数设置了mappingMode
+                if (autoexecJobParam.getRunnerGroup() != null && autoexecJobParam.getRunnerGroup().getMappingMode() != null && !Objects.equals(combopExecuteConfig.getRunnerGroup().getMappingMode(), autoexecJobParam.getRunnerGroup().getMappingMode())) {
                     throw new RunnerGroupMappingModeParamInvalidException(JSON.toJSONString(autoexecJobParam.getRunnerGroup()), combopExecuteConfig.getRunnerGroup().getMappingMode());
                 }
-                if (Objects.equals(combopExecuteConfig.getRunnerGroup().getMappingMode(), ParamMappingMode.CONSTANT.getValue()) && (autoexecJobParam.getRunnerGroup() == null || autoexecJobParam.getRunnerGroup().getValue() == null)) {
-                    throw new RunnerGroupParamNullException();
-                }
-
             }
         }
-        //协议
-        if (combopVo.getNeedProtocol() && (jobParamExecuteConfig == null || jobParamExecuteConfig.getProtocolId() == null)) {
+        //协议 组合工具和作业参数都没有设置
+        if (combopVo.getNeedProtocol() && (combopExecuteConfig == null || (combopExecuteConfig.getProtocolId() == null && (jobParamExecuteConfig == null || jobParamExecuteConfig.getProtocolId() == null)))) {
             throw new ProtocolIdParamNullException();
         }
         //执行用户
         if (combopVo.getNeedExecuteUser()) {
+            //如果组合工具没有配置
             if (combopExecuteConfig == null || combopExecuteConfig.getExecuteUser() == null || combopExecuteConfig.getExecuteUser().getValue() == null) {
+                //如果作业参数都没有设置
                 if (jobParamExecuteConfig == null || jobParamExecuteConfig.getExecuteUser() == null || jobParamExecuteConfig.getExecuteUser().getValue() == null) {
                     throw new ExecuteUserValueParamNullException();
                 } else {
-                    //页面没有配置常量值是传{}
+                    //组合工具没有设置，需当作常量处理
                     if (!Objects.equals(jobParamExecuteConfig.getExecuteUser().getMappingMode(), ParamMappingMode.CONSTANT.getValue())) {
                         throw new ExecuteUserMappingModeParamInvalidException(JSON.toJSONString(jobParamExecuteConfig.getExecuteUser()), ParamMappingMode.CONSTANT.getValue());
                     }
                 }
             } else {
-                if (!Objects.equals(combopExecuteConfig.getExecuteUser().getMappingMode(), jobParamExecuteConfig.getExecuteUser().getMappingMode())) {
+                //如果作业参数设置了mappingMode
+                if (jobParamExecuteConfig != null && jobParamExecuteConfig.getExecuteUser() != null && !Objects.equals(combopExecuteConfig.getExecuteUser().getMappingMode(), jobParamExecuteConfig.getExecuteUser().getMappingMode())) {
                     throw new ExecuteUserMappingModeParamInvalidException(JSON.toJSONString(jobParamExecuteConfig.getExecuteUser()), combopExecuteConfig.getExecuteUser().getMappingMode());
-                }
-                if (Objects.equals(combopExecuteConfig.getExecuteUser().getMappingMode(), ParamMappingMode.CONSTANT.getValue()) && (jobParamExecuteConfig.getExecuteUser() == null || jobParamExecuteConfig.getExecuteUser().getValue() == null)) {
-                    throw new ExecuteUserValueParamNullException();
                 }
             }
         }
@@ -473,7 +471,10 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         if (CollectionUtils.isEmpty(config.getCombopGroupList())) {
             throw new AutoexecCombopAtLeastOneGroupException();
         }
-        //validateJobParam(combopVo, autoexecJobParam);
+        String isAutoexecJobParamValid = ConfigManager.getConfig(AutoexecTenantConfig.AUTOEXEC_JOB_PARAM_VALID);
+        if (Objects.equals(isAutoexecJobParamValid, "1")) {
+            validateJobParam(combopVo, autoexecJobParam);
+        }
         AutoexecCombopExecuteConfigVo combopExecuteConfigVo = config.getExecuteConfig();
         if (autoexecJobParam.getExecuteConfig() != null) {
             //如果执行传进来的"执行用户"、"协议"为空则使用默认设定的值
@@ -495,7 +496,6 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             autoexecCombopService.verifyAutoexecCombopConfig(config, true);
         }
 
-        //如果
         if (combopExecuteConfigVo != null) {
             if (StringUtils.isBlank(autoexecJobParam.getParallelPolicy())) {
                 if (combopExecuteConfigVo.getParallelPolicy() != null) {
