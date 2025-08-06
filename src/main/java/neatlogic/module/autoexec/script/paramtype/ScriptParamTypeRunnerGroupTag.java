@@ -96,7 +96,7 @@ public class ScriptParamTypeRunnerGroupTag extends ScriptParamTypeBase {
             if (value.toString().startsWith("[") && value.toString().startsWith("]")) {
                return value;
             } else {
-               return String.format("[%s]", value);
+               return String.format("[\"%s\"]", value);
             }
         }
         return null;
