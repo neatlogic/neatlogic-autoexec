@@ -36,6 +36,7 @@ import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
 import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.autoexec.exception.job.AutoexecJobTargetOrRunnerNotFoundException;
+import neatlogic.framework.autoexec.exception.job.JobParamNullException;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import neatlogic.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import neatlogic.framework.autoexec.job.node.UpdateNodesFactory;
@@ -136,6 +137,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                                         return JSON.toJSONString(runtimeParam.getValue());
                                     }
                                     return runtimeParam.getValue().toString();
+                                }else{
+                                    throw new JobParamNullException(runtimeParam.getKey());
                                 }
                             }
                         }

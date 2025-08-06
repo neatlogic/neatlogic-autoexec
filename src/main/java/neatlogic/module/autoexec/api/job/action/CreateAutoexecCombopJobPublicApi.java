@@ -202,10 +202,12 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
             JSONObject executeConfig = new JSONObject();
             jsonObj.put("executeConfig", executeConfig);
             executeConfig.put("protocol", jsonObj.getString("protocol"));
-            JSONObject executeUser = new JSONObject();
-            executeUser.put("mappingMode", "constant");
-            executeUser.put("value", jsonObj.getString("executeUser"));
-            executeConfig.put("executeUser", executeUser);
+            if(StringUtils.isNotBlank(jsonObj.getString("executeUser"))) {
+                JSONObject executeUser = new JSONObject();
+                executeUser.put("mappingMode", "constant");
+                executeUser.put("value", jsonObj.getString("executeUser"));
+                executeConfig.put("executeUser", executeUser);
+            }
             JSONObject executeNodeConfig = new JSONObject();
             executeNodeConfig.put("inputNodeList", jsonObj.getJSONArray("ipPortList"));
             executeConfig.put("executeNodeConfig", executeNodeConfig);

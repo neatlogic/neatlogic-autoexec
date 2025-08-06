@@ -15,6 +15,8 @@ import neatlogic.framework.autoexec.dto.ISqlNodeDetail;
 import neatlogic.framework.autoexec.dto.combop.*;
 import neatlogic.framework.autoexec.dto.job.*;
 import neatlogic.framework.autoexec.exception.*;
+import neatlogic.framework.autoexec.exception.job.JobParamNullException;
+import neatlogic.framework.autoexec.exception.job.JobParamRunnerGroupNullException;
 import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerBase;
 import neatlogic.framework.autoexec.util.AutoexecUtil;
 import neatlogic.framework.common.util.IpUtil;
@@ -352,18 +354,26 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
             //优先使用runner phase声明的执行器组
             if (ExecMode.RUNNER.getValue().equals(jobPhaseVo.getExecMode()) && combopPhaseExecuteConfigVo != null && combopPhaseExecuteConfigVo.getExecuteConfig() != null
                     && combopPhaseExecuteConfigVo.getExecuteConfig().getRunnerGroup() != null) {
-                String runnerGroupIdStr = autoexecJobService.getFinalParamValue(combopPhaseExecuteConfigVo.getExecuteConfig().getRunnerGroup(), jobVo.getRunTimeParamList());
-                if (StringUtils.isNotBlank(runnerGroupIdStr)) {
-                    runnerGroup = runnerGroupIdStr;
-                    isJobRunnerGroup = false;
+                try {
+                    String runnerGroupIdStr = autoexecJobService.getFinalParamValue(combopPhaseExecuteConfigVo.getExecuteConfig().getRunnerGroup(), jobVo.getRunTimeParamList());
+                    if (StringUtils.isNotBlank(runnerGroupIdStr)) {
+                        runnerGroup = runnerGroupIdStr;
+                        isJobRunnerGroup = false;
+                    }
+                } catch (JobParamNullException e) {
+                    throw new JobParamRunnerGroupNullException(jobPhaseVo.getName(), combopPhaseExecuteConfigVo.getExecuteConfig().getRunnerGroup().getValue());
                 }
             }
 
             if (runnerGroup == null && runnerGroupParam != null) {
-                String runnerGroupIdStr = autoexecJobService.getFinalParamValue(runnerGroupParam, jobVo.getRunTimeParamList());
-                if (StringUtils.isNotBlank(runnerGroupIdStr)) {
-                    runnerGroup = runnerGroupIdStr;
-                    isJobRunnerGroup = true;
+                try {
+                    String runnerGroupIdStr = autoexecJobService.getFinalParamValue(runnerGroupParam, jobVo.getRunTimeParamList());
+                    if (StringUtils.isNotBlank(runnerGroupIdStr)) {
+                        runnerGroup = runnerGroupIdStr;
+                        isJobRunnerGroup = true;
+                    }
+                } catch (JobParamNullException e) {
+                    throw new JobParamRunnerGroupNullException(runnerGroupParam.getValue());
                 }
             }
 

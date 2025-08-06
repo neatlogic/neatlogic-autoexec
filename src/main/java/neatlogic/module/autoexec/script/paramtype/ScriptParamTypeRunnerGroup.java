@@ -21,6 +21,7 @@ import neatlogic.framework.autoexec.constvalue.ParamType;
 import neatlogic.framework.autoexec.script.paramtype.ScriptParamTypeBase;
 import neatlogic.framework.dao.mapper.runner.RunnerMapper;
 import neatlogic.framework.dto.runner.RunnerGroupVo;
+import neatlogic.framework.exception.runner.RunnerGroupNotFoundException;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -103,6 +104,8 @@ public class ScriptParamTypeRunnerGroup extends ScriptParamTypeBase {
                 RunnerGroupVo runnerGroupVo = runnerMapper.getRunnerGroupByName(value.toString());
                 if (runnerGroupVo != null) {
                     runnerGroupId = runnerGroupVo.getId();
+                }else{
+                    throw new RunnerGroupNotFoundException(value.toString());
                 }
             }
 
