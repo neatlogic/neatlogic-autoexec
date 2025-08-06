@@ -23,10 +23,12 @@ import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
+import neatlogic.framework.autoexec.exception.AutoexecJobSourceInvalidException;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
 import neatlogic.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
-import neatlogic.framework.deploy.constvalue.JobSourceType;
+import neatlogic.framework.autoexec.source.AutoexecJobSourceFactory;
+import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.dto.runner.RunnerMapVo;
 import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.lang3.StringUtils;
@@ -76,13 +78,12 @@ public class AutoexecJobNodeIgnoreHandler extends AutoexecJobActionHandlerBase {
         //重置mongodb node 状态
         List<RunnerMapVo> runnerVos = new ArrayList<>();
         IAutoexecJobSourceTypeHandler handler = null;
-        List<Long> sqlIdList = new ArrayList<>();
         if (Objects.equals(currentPhaseVo.getExecMode(), ExecMode.SQL.getValue())) {
-            if (StringUtils.equals(jobVo.getSource(), JobSourceType.DEPLOY.getValue())) {
-                handler = AutoexecJobSourceTypeHandlerFactory.getAction(JobSourceType.DEPLOY.getValue());
-            } else {
-                handler = AutoexecJobSourceTypeHandlerFactory.getAction(neatlogic.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
+            IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
+            if (jobSource == null) {
+                throw new AutoexecJobSourceInvalidException(jobVo.getSource());
             }
+            handler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
             handler.ignoreSql(jobVo.getActionParam(), jobVo);
         } else {
             currentResourceIdListValid(jobVo);
