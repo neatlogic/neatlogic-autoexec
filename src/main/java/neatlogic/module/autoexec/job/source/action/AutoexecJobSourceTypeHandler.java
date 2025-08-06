@@ -17,6 +17,7 @@ import neatlogic.framework.autoexec.dto.job.*;
 import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.autoexec.exception.job.JobParamNullException;
 import neatlogic.framework.autoexec.exception.job.JobParamRunnerGroupNullException;
+import neatlogic.framework.autoexec.exception.job.JobParamRunnerGroupTagNullException;
 import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerBase;
 import neatlogic.framework.autoexec.util.AutoexecUtil;
 import neatlogic.framework.common.util.IpUtil;
@@ -275,24 +276,32 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
         //优先获取runner phase声明的执行器组标签
         if (ExecMode.RUNNER.getValue().equals(jobPhaseVo.getExecMode()) && combopPhaseExecuteConfigVo != null && combopPhaseExecuteConfigVo.getExecuteConfig() != null
                 && combopPhaseExecuteConfigVo.getExecuteConfig().getRunnerGroupTag() != null) {
-            runnerGroupTagStr = autoexecJobService.getFinalParamValue(combopPhaseExecuteConfigVo.getExecuteConfig().getRunnerGroupTag(), jobVo.getRunTimeParamList());
-            if (StringUtils.isNotBlank(runnerGroupTagStr) && runnerGroupTagStr.startsWith("[")) {
-                runnerGroupTagList = JSON.parseArray(runnerGroupTagStr, String.class);
-                if (CollectionUtils.isNotEmpty(runnerGroupTagList)) {
-                    isJobRunnerGroupTag = false;
+            try {
+                runnerGroupTagStr = autoexecJobService.getFinalParamValue(combopPhaseExecuteConfigVo.getExecuteConfig().getRunnerGroupTag(), jobVo.getRunTimeParamList());
+                if (StringUtils.isNotBlank(runnerGroupTagStr) && runnerGroupTagStr.startsWith("[")) {
+                    runnerGroupTagList = JSON.parseArray(runnerGroupTagStr, String.class);
+                    if (CollectionUtils.isNotEmpty(runnerGroupTagList)) {
+                        isJobRunnerGroupTag = false;
+                    }
                 }
+            } catch (JobParamNullException e) {
+                throw new JobParamRunnerGroupTagNullException(jobPhaseVo.getName(), combopPhaseExecuteConfigVo.getExecuteConfig().getRunnerGroupTag().getValue());
             }
         }
         //其次获取创建作业时声明的执行器组标签
         if (CollectionUtils.isEmpty(runnerGroupTagList) && runnerGroupTagParam != null && runnerGroupTagParam.getValue() != null) {
-            runnerGroupTagStr = autoexecJobService.getFinalParamValue(runnerGroupTagParam, jobVo.getRunTimeParamList());
-            if (StringUtils.isNotBlank(runnerGroupTagStr) && runnerGroupTagStr.startsWith("[")) {
-                runnerGroupTagList = JSON.parseArray(runnerGroupTagStr, String.class);
-                if (CollectionUtils.isNotEmpty(runnerGroupTagList)) {
-                    isJobRunnerGroupTag = true;
+            try {
+                runnerGroupTagStr = autoexecJobService.getFinalParamValue(runnerGroupTagParam, jobVo.getRunTimeParamList());
+                if (StringUtils.isNotBlank(runnerGroupTagStr) && runnerGroupTagStr.startsWith("[")) {
+                    runnerGroupTagList = JSON.parseArray(runnerGroupTagStr, String.class);
+                    if (CollectionUtils.isNotEmpty(runnerGroupTagList)) {
+                        isJobRunnerGroupTag = true;
+                    }
+                } else {
+                    throw new AutoexecRunnerGroupTagInvalidException(runnerGroupTagStr);
                 }
-            } else {
-                throw new AutoexecRunnerGroupTagInvalidException(runnerGroupTagStr);
+            } catch (JobParamNullException e) {
+                throw new JobParamRunnerGroupTagNullException(jobPhaseVo.getName(), runnerGroupTagParam.getValue());
             }
         }
 
