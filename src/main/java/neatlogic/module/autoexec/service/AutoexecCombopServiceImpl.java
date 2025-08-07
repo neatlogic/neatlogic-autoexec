@@ -905,14 +905,13 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             AutoexecCombopPhaseConfigVo autoexecCombopPhaseConfigVo = autoexecCombopPhaseVo.getConfig();
             executeConfigVo = autoexecCombopPhaseConfigVo.getExecuteConfig();
         }
-        if (executeConfigVo == null) {
-            needExecuteUser = true;
-            needProtocol = true;
-            needExecuteNode = true;
-            needRoundCount = true;
-            needRunnerGroup = true;
-        } else {
-            if (Objects.equals(execMode, ExecMode.TARGET.getValue()) || Objects.equals(execMode, ExecMode.RUNNER_TARGET.getValue())) {
+        if (Objects.equals(execMode, ExecMode.TARGET.getValue()) || Objects.equals(execMode, ExecMode.RUNNER_TARGET.getValue())) {
+            if (executeConfigVo == null) {
+                needExecuteUser = true;
+                needProtocol = true;
+                needExecuteNode = true;
+                needRoundCount = true;
+            } else {
                 if (!needProtocol) {
                     Long protocolId = executeConfigVo.getProtocolId();
                     if (protocolId == null) {
@@ -946,7 +945,10 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                     }
                 }
             }
-            if (Objects.equals(execMode, ExecMode.RUNNER.getValue())) {
+        } else if (Objects.equals(execMode, ExecMode.RUNNER.getValue())) {
+            if (executeConfigVo == null) {
+                needRunnerGroup = true;
+            } else {
                 if (!needRunnerGroup) {
                     ParamMappingVo runnerGroup = executeConfigVo.getRunnerGroup();
                     if (runnerGroup == null || runnerGroup.getValue() == null) {
