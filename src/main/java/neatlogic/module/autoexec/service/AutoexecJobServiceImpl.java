@@ -36,6 +36,7 @@ import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
 import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.autoexec.exception.job.AutoexecJobTargetOrRunnerNotFoundException;
+import neatlogic.framework.autoexec.exception.job.JobParamNodeNullException;
 import neatlogic.framework.autoexec.exception.job.JobParamNullException;
 import neatlogic.framework.autoexec.exception.job.JobParamUserNameNullException;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
@@ -665,7 +666,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     isGroupConfig = executeConfigVo.getExecuteNodeConfig() != null && !executeConfigVo.getExecuteNodeConfig().isNull();
                     if (isGroupConfig) {
                         jobVo.setNodeFrom(AutoexecJobPhaseNodeFrom.GROUP.getValue());
-                        isHasNode = getJobNodeList(executeConfigVo, jobVo, userName, protocolId, updateTime);
+                        try {
+                            isHasNode = getJobNodeList(executeConfigVo, jobVo, userName, protocolId, updateTime);
+                        } catch (JobParamNodeNullException ex) {
+                            throw new JobParamNodeNullException(jobGroupVo.getSort(), ex.getMessage());
+                        }
                     }
                     String parallelPolicyTmp = executeConfigVo.getParallelPolicy();
                     //兼容老数据不存在policy
@@ -712,7 +717,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 isPhaseConfig = executeConfigVo.getExecuteNodeConfig() != null && !executeConfigVo.getExecuteNodeConfig().isNull();
                 if (isPhaseConfig) {
                     jobVo.setNodeFrom(AutoexecJobPhaseNodeFrom.PHASE.getValue());
-                    isHasNode = getJobNodeList(executeConfigVo, jobVo, userName, protocolId, updateTime);
+                    try {
+                        isHasNode = getJobNodeList(executeConfigVo, jobVo, userName, protocolId, updateTime);
+                    } catch (JobParamNodeNullException ex) {
+                        throw new JobParamNodeNullException(jobPhase.getName(), ex.getMessage());
+                    }
                 }
                 String parallelPolicyTmp = executeConfigVo.getParallelPolicy();
                 //兼容老数据不存在policy
@@ -733,7 +742,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         //如果阶段没有设置执行目标，则使用全局执行目标
         if (!isPhaseConfig && !isGroupConfig) {
             jobVo.setNodeFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
-            isHasNode = getJobNodeList(combopExecuteConfigVo, jobVo, userName, protocolId, updateTime);
+            try {
+                isHasNode = getJobNodeList(combopExecuteConfigVo, jobVo, userName, protocolId, updateTime);
+            } catch (JobParamNodeNullException ex) {
+                throw new JobParamNodeNullException(ex.getMessage(), 1);
+            }
         }
         //如果都找不到执行节点
         if (!isHasNode) {

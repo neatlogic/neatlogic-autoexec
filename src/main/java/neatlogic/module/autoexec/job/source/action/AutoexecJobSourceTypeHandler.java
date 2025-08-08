@@ -17,7 +17,6 @@ import neatlogic.framework.autoexec.dto.job.*;
 import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.autoexec.exception.job.JobParamNullException;
 import neatlogic.framework.autoexec.exception.job.JobParamRunnerGroupNullException;
-import neatlogic.framework.autoexec.exception.job.JobParamRunnerGroupTagNullException;
 import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerBase;
 import neatlogic.framework.autoexec.util.AutoexecUtil;
 import neatlogic.framework.common.util.IpUtil;
@@ -285,7 +284,8 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
                     }
                 }
             } catch (JobParamNullException e) {
-                throw new JobParamRunnerGroupTagNullException(jobPhaseVo.getName(), combopPhaseExecuteConfigVo.getExecuteConfig().getRunnerGroupTag().getValue());
+                //作业执行器组标签非必填
+//                throw new JobParamRunnerGroupTagNullException(jobPhaseVo.getName(), combopPhaseExecuteConfigVo.getExecuteConfig().getRunnerGroupTag().getValue());
             }
         }
         //其次获取创建作业时声明的执行器组标签
@@ -301,7 +301,8 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
                     throw new AutoexecRunnerGroupTagInvalidException(runnerGroupTagStr);
                 }
             } catch (JobParamNullException e) {
-                throw new JobParamRunnerGroupTagNullException(jobPhaseVo.getName(), runnerGroupTagParam.getValue());
+                //作业执行器组标签非必填
+//                throw new JobParamRunnerGroupTagNullException(jobPhaseVo.getName(), runnerGroupTagParam.getValue());
             }
         }
 
