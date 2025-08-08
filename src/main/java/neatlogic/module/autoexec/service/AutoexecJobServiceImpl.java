@@ -1034,7 +1034,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     private boolean getJobNodeList(AutoexecCombopExecuteConfigVo combopExecuteConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId, Date updateTime) {
         //执行用户不能为空
         if (StringUtils.isBlank(userName)) {
-            logger.error("autoexec job username is blank!");
+            //logger.error("autoexec job username is blank!");
             throw new AutoexecUserNameNotFoundException();
         }
         if (combopExecuteConfigVo == null) {
