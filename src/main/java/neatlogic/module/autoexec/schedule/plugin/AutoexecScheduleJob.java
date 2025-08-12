@@ -157,7 +157,7 @@ public class AutoexecScheduleJob extends JobBase {
             jobVo.setRouteId(autoexecScheduleVo.getId().toString());
             jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
             String execUserUuid = autoexecScheduleVo.getLcu();
-            if (StringUtils.isNotBlank(jobObject.getTestUserUuid())) {
+            if (jobObject.isTest() == 1 && StringUtils.isNotBlank(jobObject.getTestUserUuid())) {
                 execUserUuid = jobObject.getTestUserUuid();
             }
             UserVo execUser = userMapper.getUserBaseInfoByUuid(execUserUuid);
