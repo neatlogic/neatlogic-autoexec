@@ -37,7 +37,6 @@ import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dao.mapper.UserMapper;
-import neatlogic.framework.dao.mapper.runner.RunnerMapper;
 import neatlogic.framework.dto.AuthenticationInfoVo;
 import neatlogic.framework.dto.UserVo;
 import neatlogic.framework.exception.user.UserNotFoundException;
@@ -82,12 +81,6 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
 
     @Resource
     private AuthenticationInfoService authenticationInfoService;
-
-    @Resource
-    private RunnerMapper runnerMapper;
-
-    @Resource
-    AuthenticationInfoService authenticationInfoService;
 
     @Override
     public String getName() {
