@@ -1,13 +1,14 @@
 package neatlogic.module.autoexec.job.action.handler.node;
 
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
+import neatlogic.framework.autoexec.exception.AutoexecJobSourceInvalidException;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
 import neatlogic.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
-import neatlogic.framework.deploy.constvalue.JobSourceType;
-import com.alibaba.fastjson.JSONObject;
-import org.apache.commons.lang3.StringUtils;
+import neatlogic.framework.autoexec.source.AutoexecJobSourceFactory;
+import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import org.springframework.stereotype.Service;
 
 /**
@@ -33,14 +34,14 @@ public class AutoexecJobNodeSqlFileDownloadHandler extends AutoexecJobActionHand
     public JSONObject doMyService(AutoexecJobVo jobVo) throws Exception {
         AutoexecJobVo jonInfo = autoexecJobMapper.getJobInfo(jobVo.getCurrentNode().getJobId());
         if (jonInfo != null) {
-            if (StringUtils.equals(jonInfo.getSource(), JobSourceType.DEPLOY.getValue())) {
-                IAutoexecJobSourceTypeHandler jobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(JobSourceType.DEPLOY.getValue());
-                jobSourceActionHandler.downloadJobSqlFile(jobVo);
-            } else {
-                IAutoexecJobSourceTypeHandler jobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(neatlogic.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
-                jobSourceActionHandler.downloadJobSqlFile(jobVo);
+            IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jonInfo.getSource());
+            if (jobSource == null) {
+                throw new AutoexecJobSourceInvalidException(jobVo.getSource());
             }
+            IAutoexecJobSourceTypeHandler jobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
+            jobSourceActionHandler.downloadJobSqlFile(jobVo);
         }
         return null;
     }
 }
+

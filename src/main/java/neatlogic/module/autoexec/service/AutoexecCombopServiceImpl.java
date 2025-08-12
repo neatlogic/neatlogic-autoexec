@@ -652,15 +652,18 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                     if (Objects.equals(preNodeOutputParamVo.getType(), inputParamVo.getType())) {
                         continue;
                     }
-                    // 文本域类型 上游节点输出参数值 文本类型
-                    if (Objects.equals(inputParamVo.getType(), ParamType.TEXTAREA.getValue()) && Objects.equals(preNodeOutputParamVo.getType(), ParamType.TEXT.getValue())) {
+                    // 文本域类型和文本类型 上游节点输出参数值 （可以是任意类型）
+                    if (Objects.equals(inputParamVo.getType(), ParamType.TEXTAREA.getValue()) || Objects.equals(inputParamVo.getType(), ParamType.TEXT.getValue())) {
                         continue;
-
                     }
-                    if (Objects.equals(inputParamVo.getType(), ParamType.TEXT.getValue()) && Objects.equals(preNodeOutputParamVo.getType(), ParamType.TEXTAREA.getValue())) {
-                        continue;
-
-                    }
+//                    if (Objects.equals(inputParamVo.getType(), ParamType.TEXTAREA.getValue()) && Objects.equals(preNodeOutputParamVo.getType(), ParamType.TEXT.getValue())) {
+//                        continue;
+//
+//                    }
+//                    if (Objects.equals(inputParamVo.getType(), ParamType.TEXT.getValue()) && Objects.equals(preNodeOutputParamVo.getType(), ParamType.TEXTAREA.getValue())) {
+//                        continue;
+//
+//                    }
                     throw new AutoexecParamMappingTargetTypeMismatchException(phaseName, operationName, inputParamLabel, conversionPreNodeParamPath(preNodeNameMap, preOperationNameMap, value));
                 } else if (Objects.equals(mappingMode, ParamMappingMode.PRE_NODE_OUTPUT_PARAM_KEY.getValue())) {
                     String value = null;
@@ -881,23 +884,19 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
     @Override
     public void needExecuteConfig(AutoexecCombopVersionVo autoexecCombopVersionVo, AutoexecCombopPhaseVo autoexecCombopPhaseVo, AutoexecCombopGroupVo autoexecCombopGroupVo) {
         String execMode = autoexecCombopPhaseVo.getExecMode();
-        if (ExecMode.RUNNER.getValue().equals(execMode)) {
+        if (ExecMode.RUNNER.getValue().equals(execMode) || ExecMode.SQL.getValue().equals(execMode)) {
             if (autoexecCombopVersionVo.getAllPhasesAreRunnerOrSqlExecMode() == null) {
                 autoexecCombopVersionVo.setAllPhasesAreRunnerOrSqlExecMode(true);
             }
-            return;
+        } else {
+            autoexecCombopVersionVo.setAllPhasesAreRunnerOrSqlExecMode(false);
         }
-        if (ExecMode.SQL.getValue().equals(execMode)) {
-            if (autoexecCombopVersionVo.getAllPhasesAreRunnerOrSqlExecMode() == null) {
-                autoexecCombopVersionVo.setAllPhasesAreRunnerOrSqlExecMode(true);
-            }
-            return;
-        }
-        autoexecCombopVersionVo.setAllPhasesAreRunnerOrSqlExecMode(false);
+
         boolean needExecuteUser = autoexecCombopVersionVo.getNeedExecuteUser();
         boolean needProtocol = autoexecCombopVersionVo.getNeedProtocol();
         boolean needExecuteNode = autoexecCombopVersionVo.getNeedExecuteNode();
         boolean needRoundCount = autoexecCombopVersionVo.getNeedRoundCount();
+        boolean needRunnerGroup = autoexecCombopVersionVo.getNeedRunnerGroup();
         AutoexecCombopExecuteConfigVo executeConfigVo = null;
         if (Objects.equals(AutoexecJobGroupPolicy.GRAYSCALE.getName(), autoexecCombopGroupVo.getPolicy())) {
             AutoexecCombopGroupConfigVo autoexecCombopGroupConfigVo = autoexecCombopGroupVo.getConfig();
@@ -906,42 +905,55 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             AutoexecCombopPhaseConfigVo autoexecCombopPhaseConfigVo = autoexecCombopPhaseVo.getConfig();
             executeConfigVo = autoexecCombopPhaseConfigVo.getExecuteConfig();
         }
-        if (executeConfigVo == null) {
-            needExecuteUser = true;
-            needProtocol = true;
-            needExecuteNode = true;
-            needRoundCount = true;
-        } else {
-            if (!needProtocol) {
-                Long protocolId = executeConfigVo.getProtocolId();
-                if (protocolId == null) {
-                    needProtocol = true;
+        if (Objects.equals(execMode, ExecMode.TARGET.getValue()) || Objects.equals(execMode, ExecMode.RUNNER_TARGET.getValue())) {
+            if (executeConfigVo == null) {
+                needExecuteUser = true;
+                needProtocol = true;
+                needExecuteNode = true;
+                needRoundCount = true;
+            } else {
+                if (!needProtocol) {
+                    Long protocolId = executeConfigVo.getProtocolId();
+                    if (protocolId == null) {
+                        needProtocol = true;
+                    }
                 }
-            }
-            if (!needExecuteUser) {
-                ParamMappingVo executeUser = executeConfigVo.getExecuteUser();
-                if (executeUser == null || StringUtils.isBlank((String) executeUser.getValue())) {
-                    needExecuteUser = true;
+                if (!needExecuteUser) {
+                    ParamMappingVo executeUser = executeConfigVo.getExecuteUser();
+                    if (executeUser == null || StringUtils.isBlank((String) executeUser.getValue())) {
+                        needExecuteUser = true;
+                    }
                 }
-            }
-            if (!needExecuteNode) {
-                AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = executeConfigVo.getExecuteNodeConfig();
-                if (executeNodeConfigVo == null) {
-                    needExecuteNode = true;
-                } else {
-                    List<String> paramList = executeNodeConfigVo.getParamList();
-                    List<AutoexecNodeVo> selectNodeList = executeNodeConfigVo.getSelectNodeList();
-                    List<AutoexecNodeVo> inputNodeList = executeNodeConfigVo.getInputNodeList();
-                    List<String> preOutputList = executeNodeConfigVo.getPreOutputList();
-                    JSONObject filter = executeNodeConfigVo.getFilter();
-                    if (CollectionUtils.isEmpty(paramList) && CollectionUtils.isEmpty(selectNodeList) && CollectionUtils.isEmpty(inputNodeList) && CollectionUtils.isEmpty(preOutputList) && MapUtils.isEmpty(filter)) {
+                if (!needExecuteNode) {
+                    AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = executeConfigVo.getExecuteNodeConfig();
+                    if (executeNodeConfigVo == null) {
                         needExecuteNode = true;
+                    } else {
+                        List<String> paramList = executeNodeConfigVo.getParamList();
+                        List<AutoexecNodeVo> selectNodeList = executeNodeConfigVo.getSelectNodeList();
+                        List<AutoexecNodeVo> inputNodeList = executeNodeConfigVo.getInputNodeList();
+                        List<String> preOutputList = executeNodeConfigVo.getPreOutputList();
+                        JSONObject filter = executeNodeConfigVo.getFilter();
+                        if (CollectionUtils.isEmpty(paramList) && CollectionUtils.isEmpty(selectNodeList) && CollectionUtils.isEmpty(inputNodeList) && CollectionUtils.isEmpty(preOutputList) && MapUtils.isEmpty(filter)) {
+                            needExecuteNode = true;
+                        }
+                    }
+                }
+                if (!needRoundCount) {
+                    if (executeConfigVo.getRoundCount() == null) {
+                        needRoundCount = true;
                     }
                 }
             }
-            if (!needRoundCount) {
-                if (executeConfigVo.getRoundCount() == null) {
-                    needRoundCount = true;
+        } else if (Objects.equals(execMode, ExecMode.RUNNER.getValue())) {
+            if (executeConfigVo == null) {
+                needRunnerGroup = true;
+            } else {
+                if (!needRunnerGroup) {
+                    ParamMappingVo runnerGroup = executeConfigVo.getRunnerGroup();
+                    if (runnerGroup == null || runnerGroup.getValue() == null) {
+                        needRunnerGroup = true;
+                    }
                 }
             }
         }
@@ -949,6 +961,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         autoexecCombopVersionVo.setNeedExecuteNode(needExecuteNode);
         autoexecCombopVersionVo.setNeedProtocol(needProtocol);
         autoexecCombopVersionVo.setNeedRoundCount(needRoundCount);
+        autoexecCombopVersionVo.setNeedRunnerGroup(needRunnerGroup);
     }
 
     @Override

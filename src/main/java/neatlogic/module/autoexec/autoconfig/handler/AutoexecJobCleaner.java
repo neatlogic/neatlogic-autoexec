@@ -85,7 +85,7 @@ public class AutoexecJobCleaner extends AuditCleanerBase {
                         paramJson.put("passThroughEnv", new JSONObject() {{
                             put("runnerId", runner.getRunnerMapId());
                         }});
-                        HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setAuthType(AuthenticateType.BUILDIN).setPayload(paramJson.toJSONString()).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).sendRequest();
+                        HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setAuthType(AuthenticateType.BUILDIN).setPayload(paramJson.toJSONString()).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).setReadTimeout(AutoexecConfig.RUNNER_READ_TIMEOUT()).sendRequest();
                         if (StringUtils.isNotBlank(requestUtil.getError())) {
                             logger.error(requestUtil.getError());
                             //throw new AutoexecJobDeleteException(runner);

@@ -24,12 +24,13 @@ import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
+import neatlogic.framework.autoexec.exception.AutoexecJobSourceInvalidException;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
 import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
 import neatlogic.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
-import neatlogic.framework.deploy.constvalue.JobSourceType;
+import neatlogic.framework.autoexec.source.AutoexecJobSourceFactory;
+import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.module.autoexec.service.AutoexecJobService;
-import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -75,12 +76,11 @@ public class AutoexecJobNodeResetHandler extends AutoexecJobActionHandlerBase {
         AutoexecJobPhaseVo currentPhaseVo = jobVo.getExecutePhase();
         if (Objects.equals(currentPhaseVo.getExecMode(), ExecMode.SQL.getValue())) {
             jobVo.getActionParam().put("phaseName", currentPhaseVo.getName());
-            IAutoexecJobSourceTypeHandler handler;
-            if (StringUtils.equals(jobVo.getSource(), JobSourceType.DEPLOY.getValue())) {
-                handler = AutoexecJobSourceTypeHandlerFactory.getAction(JobSourceType.DEPLOY.getValue());
-            } else {
-                handler = AutoexecJobSourceTypeHandlerFactory.getAction(neatlogic.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue());
+            IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
+            if (jobSource == null) {
+                throw new AutoexecJobSourceInvalidException(jobVo.getSource());
             }
+            IAutoexecJobSourceTypeHandler handler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
             handler.resetSqlStatus(jobVo.getActionParam(), jobVo);
         } else {
             if (!Objects.equals(isAll, 1)) {

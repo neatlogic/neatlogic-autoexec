@@ -121,6 +121,7 @@ public class AutoexecCombopDetailGetApi extends PrivateApiComponentBase {
             autoexecCombopVo.setNeedExecuteUser(autoexecCombopVersionVo.getNeedExecuteUser());
             autoexecCombopVo.setNeedProtocol(autoexecCombopVersionVo.getNeedProtocol());
             autoexecCombopVo.setNeedRoundCount(autoexecCombopVersionVo.getNeedRoundCount());
+            autoexecCombopVo.setNeedRunnerGroup(autoexecCombopVersionVo.getNeedRunnerGroup());
             AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();
             config.setExecuteConfig(versionConfig.getExecuteConfig());
             config.setCombopGroupList(versionConfig.getCombopGroupList());

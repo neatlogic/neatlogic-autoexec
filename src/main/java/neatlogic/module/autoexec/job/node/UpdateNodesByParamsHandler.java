@@ -22,6 +22,7 @@ import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteNodeConfigVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
+import neatlogic.framework.autoexec.exception.job.JobParamNodeNullException;
 import neatlogic.framework.autoexec.job.node.IUpdateNodes;
 import neatlogic.framework.cmdb.crossover.IResourceCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
@@ -75,6 +76,9 @@ public class UpdateNodesByParamsHandler implements IUpdateNodes {
             if (CollectionUtils.isNotEmpty(runTimeParamList)) {
                 List<AutoexecParamVo> paramObjList = runTimeParamList.stream().filter(p -> paramList.contains(p.getKey())).collect(Collectors.toList());
                 paramObjList.forEach(p -> {
+                    if (!(p.getValue() instanceof JSONArray) || CollectionUtils.isEmpty((JSONArray) p.getValue())) {
+                        throw new JobParamNodeNullException(p.getKey());
+                    }
                     if (p.getValue() instanceof JSONArray) {
                         JSONArray valueArray = (JSONArray) p.getValue();
                         for (int i = 0; i < valueArray.size(); i++) {

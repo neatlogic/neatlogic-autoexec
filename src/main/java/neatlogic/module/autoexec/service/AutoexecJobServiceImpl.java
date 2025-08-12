@@ -36,6 +36,9 @@ import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
 import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.autoexec.exception.job.AutoexecJobTargetOrRunnerNotFoundException;
+import neatlogic.framework.autoexec.exception.job.JobParamNodeNullException;
+import neatlogic.framework.autoexec.exception.job.JobParamNullException;
+import neatlogic.framework.autoexec.exception.job.JobParamUserNameNullException;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import neatlogic.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import neatlogic.framework.autoexec.job.node.UpdateNodesFactory;
@@ -111,6 +114,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     @Resource
     private UserMapper userMapper;
 
+    @Resource
+    private AutoexecJobNotSupportedService autoexecJobNotSupportedService;
+
     /**
      * 根据作业参数获取最终参数值
      *
@@ -119,23 +125,27 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      */
     @Override
     public String getFinalParamValue(ParamMappingVo paramMapping, List<AutoexecParamVo> runTimeParamList) {
-        if (paramMapping != null) {
-            if (paramMapping.getValue() != null) {
-                String value = paramMapping.getValue().toString();
-                if (StringUtils.isNotBlank(value)) {
-                    if (Objects.equals(paramMapping.getMappingMode(), ParamMappingMode.CONSTANT.getValue())) {
-                        return value;
-                    } else if (Objects.equals(paramMapping.getMappingMode(), ParamMappingMode.RUNTIME_PARAM.getValue())) {
-                        for (AutoexecParamVo runtimeParam : runTimeParamList) {
-                            if (Objects.equals(value, runtimeParam.getKey())) {
-                                if (runtimeParam.getValue() != null) {
-                                    return runtimeParam.getValue().toString();
+        if (paramMapping != null && paramMapping.getValue() != null) {
+            String value = paramMapping.getValue().toString();
+            if (StringUtils.isNotBlank(value)) {
+                if (Objects.equals(paramMapping.getMappingMode(), ParamMappingMode.CONSTANT.getValue())) {
+                    return value;
+                } else if (Objects.equals(paramMapping.getMappingMode(), ParamMappingMode.RUNTIME_PARAM.getValue())) {
+                    for (AutoexecParamVo runtimeParam : runTimeParamList) {
+                        if (Objects.equals(value, runtimeParam.getKey())) {
+                            if (runtimeParam.getValue() != null && StringUtils.isNotBlank(runtimeParam.getValue().toString())) {
+                                if (runtimeParam.getValue() instanceof ArrayList) {
+                                    return JSON.toJSONString(runtimeParam.getValue());
                                 }
+                                return runtimeParam.getValue().toString();
+                            } else {
+                                throw new JobParamNullException(runtimeParam.getKey());
                             }
                         }
                     }
                 }
             }
+
         }
         return StringUtils.EMPTY;
     }
@@ -159,7 +169,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         AutoexecJobInvokeVo invokeVo = new AutoexecJobInvokeVo(jobVo.getId(), jobVo.getInvokeId(), jobVo.getSource(), jobSource.getType(), jobVo.getRouteId());
         autoexecJobMapper.insertJobInvoke(invokeVo);
         if (StringUtils.isNotBlank(jobVo.getConfigHash())) {
-            autoexecJobMapper.insertJobContent(new AutoexecJobContentVo(jobVo.getConfigHash(), jobVo.getConfigStr()));
+            autoexecJobNotSupportedService.insertIntoJobContent(jobVo.getConfigHash(), jobVo.getConfigStr());
         }
         getFinalRuntimeParamList(jobVo.getRunTimeParamList(), jobVo.getParam());
         if (CollectionUtils.isNotEmpty(jobVo.getRunTimeParamList())) {
@@ -168,7 +178,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             }
         }
         if (StringUtils.isNotBlank(jobVo.getParamHash())) {
-            autoexecJobMapper.insertJobContent(new AutoexecJobContentVo(jobVo.getParamHash(), jobVo.getRunTimeParamListStr()));
+            autoexecJobNotSupportedService.insertIntoJobContent(jobVo.getParamHash(), jobVo.getRunTimeParamListStr());
         }
         //更新父节作业的parentId,-1代表父作业
         if (jobVo.getParentId() != null) {
@@ -190,13 +200,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         jobVo.setIsFirstInit(1);
         //保存作业执行目标
         AutoexecCombopExecuteConfigVo combopExecuteConfigVo = config.getExecuteConfig();
-        String userName = StringUtils.EMPTY;
-        Long protocolId = null;
-        if (combopExecuteConfigVo != null) {
-            //先获取组合工具配置的执行用户和协议
-            userName = getFinalParamValue(combopExecuteConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
-            protocolId = combopExecuteConfigVo.getProtocolId();
-        }
         //获取group Map
         Map<Long, AutoexecJobGroupVo> combopIdJobGroupVoMap = new LinkedHashMap<>();
         for (AutoexecCombopGroupVo combopGroupVo : config.getCombopGroupList()) {
@@ -266,7 +269,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 }
 
                 jobPhaseVo.setLcd(updateTime);
-                AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), jobPhaseVo, "runner", JobNodeStatus.PENDING.getValue(), userName, protocolId);
+                AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(jobVo.getId(), jobPhaseVo, "runner", JobNodeStatus.PENDING.getValue());
                 nodeVo.setRunnerMapId(phaseRunnerMapVo.getRunnerMapId());
                 autoexecJobMapper.insertJobPhaseNode(nodeVo);
                 runnerMapper.insertRunnerMap(phaseRunnerMapVo);
@@ -352,10 +355,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             List<AutoexecCombopPhaseVo> combopPhaseVos = combopConfigVo.getCombopPhaseList();
             if (CollectionUtils.isNotEmpty(combopPhaseVos)) {
                 for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseVos) {
-                    if (Objects.equals(combopPhaseVo.getExecMode(), ExecMode.RUNNER.getValue())
-                            || combopPhaseVo.getGroupSort() <= currentJobPhaseVo.getJobGroupVo().getSort()
-                            || !Objects.equals(currentJobPhaseVo.getJobGroupVo().getPolicy(), AutoexecJobGroupPolicy.ONESHOT.getName())
-                            || Objects.equals(combopPhaseVo.getName(), currentJobPhaseVo.getName())) {
+                    if (Objects.equals(combopPhaseVo.getExecMode(), ExecMode.RUNNER.getValue()) || combopPhaseVo.getGroupSort() <= currentJobPhaseVo.getJobGroupVo().getSort() || !Objects.equals(currentJobPhaseVo.getJobGroupVo().getPolicy(), AutoexecJobGroupPolicy.ONESHOT.getName()) || Objects.equals(combopPhaseVo.getName(), currentJobPhaseVo.getName())) {
                         continue;
                     }
                     AutoexecCombopPhaseConfigVo phaseConfigVo = combopPhaseVo.getConfig();
@@ -443,9 +443,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             List<AutoexecCombopPhaseVo> combopPhaseVos = combopConfigVo.getCombopPhaseList();
             if (CollectionUtils.isNotEmpty(combopPhaseVos)) {
                 for (AutoexecCombopPhaseVo combopPhaseVo : combopPhaseVos) {
-                    if (combopPhaseVo.getGroupSort() <= currentJobPhaseVo.getJobGroupVo().getSort()
-                            || !Objects.equals(currentJobPhaseVo.getJobGroupVo().getPolicy(), AutoexecJobGroupPolicy.ONESHOT.getName())
-                            || Objects.equals(combopPhaseVo.getName(), currentJobPhaseVo.getName())) {
+                    if (combopPhaseVo.getGroupSort() <= currentJobPhaseVo.getJobGroupVo().getSort() || !Objects.equals(currentJobPhaseVo.getJobGroupVo().getPolicy(), AutoexecJobGroupPolicy.ONESHOT.getName()) || Objects.equals(combopPhaseVo.getName(), currentJobPhaseVo.getName())) {
                         continue;
                     }
                     AutoexecCombopPhaseConfigVo phaseConfigVo = combopPhaseVo.getConfig();
@@ -518,7 +516,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             jobPhaseVo.getOperationList().add(jobPhaseOperationVo);
             autoexecJobMapper.insertJobPhaseOperation(jobPhaseOperationVo);
             if (StringUtils.isNotBlank(jobPhaseOperationVo.getParamHash())) {
-                autoexecJobMapper.insertJobContent(new AutoexecJobContentVo(jobPhaseOperationVo.getParamHash(), jobPhaseOperationVo.getParamStr()));
+                autoexecJobNotSupportedService.insertIntoJobContent(jobPhaseOperationVo.getParamHash(), jobPhaseOperationVo.getParamStr());
             }
         }
         return jobPhaseOperationVoList;
@@ -606,28 +604,41 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         String userName = null;
         Long protocolId = null;
         Integer roundCount = null;
-        String parallelPolicy = null;
+        String parallelPolicy = jobVo.getParallelPolicy();
         Integer parallelCount = null;
         AutoexecJobPhaseVo jobPhase = jobVo.getExecutePhase();
+        AutoexecJobGroupVo jobGroupVo = jobVo.getExecutePhase().getJobGroupVo();
+        //作业层执行用户引用作业参数且抛作业参数为空
+        String jobUserNameParamNullKey = StringUtils.EMPTY;
         if (combopExecuteConfigVo != null) {
             //先获取组合工具配置的执行用户和协议
-            userName = getFinalParamValue(combopExecuteConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
+            try {
+                userName = getFinalParamValue(combopExecuteConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
+            } catch (JobParamNullException e) {
+                jobUserNameParamNullKey = combopExecuteConfigVo.getExecuteUser().getValue().toString();
+            }
             protocolId = combopExecuteConfigVo.getProtocolId();
-            roundCount = jobVo.getRoundCount();
-            parallelPolicy = jobVo.getParallelPolicy();
-            parallelCount = jobVo.getParallelCount();
+            //兼容老数据不存在policy
+            if (StringUtils.isBlank(parallelPolicy) && jobVo.getRoundCount() != null) {
+                parallelPolicy = AutoexecParallelPolicy.ROUND_COUNT.getValue();
+            }
             if (StringUtils.isNotBlank(userName)) {
                 jobPhase.setUserNameFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
             }
             if (protocolId != null) {
                 jobPhase.setProtocolFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
             }
-            if (roundCount != null) {
+            if (StringUtils.isNotBlank(parallelPolicy)) {
                 jobPhase.setRoundCountFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
+                if (Objects.equals(AutoexecParallelPolicy.ROUND_COUNT.getValue(), parallelPolicy)) {
+                    roundCount = jobVo.getRoundCount();
+                } else if (Objects.equals(AutoexecParallelPolicy.PARALLEL.getValue(), parallelPolicy)) {
+                    parallelCount = jobVo.getParallelCount();
+                }
+                jobGroupVo.setParallelFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
             }
         }
         AutoexecCombopExecuteConfigVo executeConfigVo;
-        AutoexecJobGroupVo jobGroupVo = jobVo.getExecutePhase().getJobGroupVo();
         //判断group是不是grayScale，如果是则从group中获取执行节点、账号、执行用户
         if (Objects.equals(jobGroupVo.getPolicy(), AutoexecJobGroupPolicy.GRAYSCALE.getName())) {
             AutoexecCombopGroupConfigVo groupConfig = jobGroupVo.getConfig();
@@ -635,10 +646,18 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 executeConfigVo = groupConfig.getExecuteConfig();
                 //判断组执行节点是否配置
                 if (executeConfigVo != null) {
-                    String userNameTmp = getFinalParamValue(executeConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
-                    if (StringUtils.isNotBlank(userNameTmp)) {
-                        userName = userNameTmp;
-                        jobPhase.setUserNameFrom(AutoexecJobPhaseNodeFrom.GROUP.getValue());
+                    if (executeConfigVo.getExecuteUser() != null && executeConfigVo.getExecuteUser().getValue() != null) {
+                        try {
+                            String userNameTmp = getFinalParamValue(executeConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
+                            if (StringUtils.isNotBlank(userNameTmp)) {
+                                userName = userNameTmp;
+                                jobPhase.setUserNameFrom(AutoexecJobPhaseNodeFrom.GROUP.getValue());
+                            }
+                        } catch (JobParamNullException e) {
+                            throw new JobParamUserNameNullException(jobGroupVo.getSort(), executeConfigVo.getExecuteUser().getValue());
+                        }
+                    } else if (StringUtils.isNotBlank(jobUserNameParamNullKey)) {
+                        throw new JobParamUserNameNullException(jobUserNameParamNullKey);
                     }
                     if (executeConfigVo.getProtocolId() != null) {
                         protocolId = executeConfigVo.getProtocolId();
@@ -647,12 +666,29 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     isGroupConfig = executeConfigVo.getExecuteNodeConfig() != null && !executeConfigVo.getExecuteNodeConfig().isNull();
                     if (isGroupConfig) {
                         jobVo.setNodeFrom(AutoexecJobPhaseNodeFrom.GROUP.getValue());
-                        isHasNode = getJobNodeList(executeConfigVo, jobVo, userName, protocolId, updateTime);
+                        try {
+                            isHasNode = getJobNodeList(executeConfigVo, jobVo, userName, protocolId, updateTime);
+                        } catch (JobParamNodeNullException ex) {
+                            throw new JobParamNodeNullException(jobGroupVo.getSort(), ex.getMessage());
+                        }
                     }
-                    if (executeConfigVo.getParallelPolicy() != null) {
-                        roundCount = executeConfigVo.getRoundCount();
-                        parallelPolicy = executeConfigVo.getParallelPolicy();
-                        parallelCount = executeConfigVo.getParallelCount();
+                    String parallelPolicyTmp = executeConfigVo.getParallelPolicy();
+                    //兼容老数据不存在policy
+                    if (StringUtils.isBlank(parallelPolicyTmp) && executeConfigVo.getRoundCount() != null) {
+                        parallelPolicyTmp = AutoexecParallelPolicy.ROUND_COUNT.getValue();
+                    }
+                    if (StringUtils.isNotBlank(parallelPolicyTmp)) {
+                        parallelPolicy = parallelPolicyTmp;
+                        if (Objects.equals(AutoexecParallelPolicy.ROUND_COUNT.getValue(), parallelPolicy)) {
+                            roundCount = executeConfigVo.getRoundCount();
+                            jobGroupVo.setParallelPolicy(parallelPolicy);
+                            jobGroupVo.setRoundCount(roundCount);
+                        } else if (Objects.equals(AutoexecParallelPolicy.PARALLEL.getValue(), parallelPolicy)) {
+                            parallelCount = executeConfigVo.getParallelCount();
+                            jobGroupVo.setParallelPolicy(parallelPolicy);
+                            jobGroupVo.setParallelCount(parallelCount);
+                        }
+                        jobGroupVo.setParallelFrom(AutoexecJobPhaseNodeFrom.GROUP.getValue());
                         jobPhase.setRoundCountFrom(AutoexecJobPhaseNodeFrom.GROUP.getValue());
                     }
                 }
@@ -660,10 +696,18 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         } else {
             executeConfigVo = combopPhaseExecuteConfigVo.getExecuteConfig();
             if (executeConfigVo != null && Objects.equals(executeConfigVo.getIsPresetExecuteConfig(), 1)) {
-                String userNameTmp = getFinalParamValue(executeConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
-                if (StringUtils.isNotBlank(userNameTmp)) {
-                    userName = userNameTmp;
-                    jobPhase.setUserNameFrom(AutoexecJobPhaseNodeFrom.PHASE.getValue());
+                if (executeConfigVo.getExecuteUser() != null && executeConfigVo.getExecuteUser().getValue() != null) {
+                    try {
+                        String userNameTmp = getFinalParamValue(executeConfigVo.getExecuteUser(), jobVo.getRunTimeParamList());
+                        if (StringUtils.isNotBlank(userNameTmp)) {
+                            userName = userNameTmp;
+                            jobPhase.setUserNameFrom(AutoexecJobPhaseNodeFrom.PHASE.getValue());
+                        }
+                    } catch (JobParamNullException e) {
+                        throw new JobParamUserNameNullException(jobPhase.getName(), executeConfigVo.getExecuteUser().getValue());
+                    }
+                } else if (StringUtils.isNotBlank(jobUserNameParamNullKey)) {
+                    throw new JobParamUserNameNullException(jobUserNameParamNullKey);
                 }
                 if (executeConfigVo.getProtocolId() != null) {
                     protocolId = executeConfigVo.getProtocolId();
@@ -673,12 +717,24 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 isPhaseConfig = executeConfigVo.getExecuteNodeConfig() != null && !executeConfigVo.getExecuteNodeConfig().isNull();
                 if (isPhaseConfig) {
                     jobVo.setNodeFrom(AutoexecJobPhaseNodeFrom.PHASE.getValue());
-                    isHasNode = getJobNodeList(executeConfigVo, jobVo, userName, protocolId, updateTime);
+                    try {
+                        isHasNode = getJobNodeList(executeConfigVo, jobVo, userName, protocolId, updateTime);
+                    } catch (JobParamNodeNullException ex) {
+                        throw new JobParamNodeNullException(jobPhase.getName(), ex.getMessage());
+                    }
                 }
-                if (executeConfigVo.getParallelPolicy() != null) {
-                    roundCount = executeConfigVo.getRoundCount();
-                    parallelPolicy = executeConfigVo.getParallelPolicy();
-                    parallelCount = executeConfigVo.getParallelCount();
+                String parallelPolicyTmp = executeConfigVo.getParallelPolicy();
+                //兼容老数据不存在policy
+                if (StringUtils.isBlank(parallelPolicyTmp) && executeConfigVo.getRoundCount() != null) {
+                    parallelPolicyTmp = AutoexecParallelPolicy.ROUND_COUNT.getValue();
+                }
+                if (StringUtils.isNotBlank(parallelPolicyTmp)) {
+                    parallelPolicy = parallelPolicyTmp;
+                    if (Objects.equals(AutoexecParallelPolicy.ROUND_COUNT.getValue(), parallelPolicy)) {
+                        roundCount = executeConfigVo.getRoundCount();
+                    } else if (Objects.equals(AutoexecParallelPolicy.PARALLEL.getValue(), parallelPolicy)) {
+                        parallelCount = executeConfigVo.getParallelCount();
+                    }
                     jobPhase.setRoundCountFrom(AutoexecJobPhaseNodeFrom.PHASE.getValue());
                 }
             }
@@ -686,7 +742,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         //如果阶段没有设置执行目标，则使用全局执行目标
         if (!isPhaseConfig && !isGroupConfig) {
             jobVo.setNodeFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
-            isHasNode = getJobNodeList(combopExecuteConfigVo, jobVo, userName, protocolId, updateTime);
+            try {
+                isHasNode = getJobNodeList(combopExecuteConfigVo, jobVo, userName, protocolId, updateTime);
+            } catch (JobParamNodeNullException ex) {
+                throw new JobParamNodeNullException(ex.getMessage(), 1);
+            }
         }
         //如果都找不到执行节点
         if (!isHasNode) {
@@ -701,6 +761,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
         //如果并发策略是并发数量类型，则需要计算分批数
         if (Objects.equals(parallelPolicy, AutoexecParallelPolicy.PARALLEL.getValue())) {
+            if (parallelCount == null) {
+                throw new AutoexecParallelCountIsRequiredException();
+            }
             if (parallelCount == -1 || parallelCount == 0 || parallelCount == 1) {
                 roundCount = parallelCount;
             } else {
@@ -708,14 +771,25 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 // 向上取整计算批次数
                 roundCount = (phaseNodeCount + parallelCount - 1) / parallelCount;
             }
+            //如果组是grayscale则需要更新对应组的roundCount
+            if (Objects.equals(jobGroupVo.getPolicy(), AutoexecJobGroupPolicy.GRAYSCALE.getName())) {
+                jobGroupVo.setParallelPolicy(AutoexecParallelPolicy.PARALLEL.getValue());
+                jobGroupVo.setRoundCount(roundCount);
+                jobGroupVo.setParallelCount(parallelCount);
+            }
+        } else {
+            //如果组是grayscale则需要更新对应组的roundCount
+            if (Objects.equals(jobGroupVo.getPolicy(), AutoexecJobGroupPolicy.GRAYSCALE.getName())) {
+                jobGroupVo.setParallelPolicy(AutoexecParallelPolicy.ROUND_COUNT.getValue());
+                jobGroupVo.setRoundCount(roundCount);
+            }
         }
 
+        if (roundCount == null) {
+            throw new AutoexecRoundCountIsRequiredException();
+        }
         jobPhase.setProtocol(protocolVo.getName());
         jobPhase.setRoundCount(roundCount);
-        //兼容老数据不存在policy
-        if (StringUtils.isBlank(parallelPolicy) && roundCount != null) {
-            parallelPolicy = AutoexecParallelPolicy.ROUND_COUNT.getValue();
-        }
         jobPhase.setParallelPolicy(parallelPolicy);
         jobPhase.setParallelCount(parallelCount);
         jobPhase.setNodeFrom(jobVo.getNodeFrom());
@@ -754,7 +828,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             autoexecService.validateTextTypeParamValue(runtimeParam, runtimeParam.getValue());
         }
         if (StringUtils.isNotBlank(jobVo.getParamHash())) {
-            autoexecJobMapper.insertJobContent(new AutoexecJobContentVo(jobVo.getParamHash(), jobVo.getRunTimeParamListStr()));
+            autoexecJobNotSupportedService.insertIntoJobContent(jobVo.getParamHash(), jobVo.getRunTimeParamListStr());
             autoexecJobMapper.updateJobParamHashById(jobVo.getId(), jobVo.getParamHash());
         } else {
             autoexecJobMapper.updateJobParamHashById(jobVo.getId(), null);
@@ -960,7 +1034,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     private boolean getJobNodeList(AutoexecCombopExecuteConfigVo combopExecuteConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId, Date updateTime) {
         //执行用户不能为空
         if (StringUtils.isBlank(userName)) {
-            logger.error("autoexec job username is blank!");
+            //logger.error("autoexec job username is blank!");
             throw new AutoexecUserNameNotFoundException();
         }
         if (combopExecuteConfigVo == null) {
@@ -1186,13 +1260,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     @Override
     public void setIsRefresh(List<AutoexecJobPhaseVo> jobPhaseVoList, JSONObject paramObj, AutoexecJobVo jobVo, String jobStatusOld) {
         paramObj.put("isRefresh", 1);
-        if (Objects.equals(JobStatus.READY.getValue(), jobStatusOld) ||
-                (
-                        (Objects.equals(JobStatus.COMPLETED.getValue(), jobStatusOld) && Objects.equals(JobStatus.COMPLETED.getValue(), jobVo.getStatus()))
-                                || (Objects.equals(JobStatus.ABORTED.getValue(), jobStatusOld) && Objects.equals(JobStatus.ABORTED.getValue(), jobVo.getStatus()))
-                                || (Objects.equals(JobStatus.FAILED.getValue(), jobStatusOld) && Objects.equals(JobStatus.FAILED.getValue(), jobVo.getStatus()))
-                ) && jobPhaseVoList.stream().noneMatch(o -> Objects.equals(JobPhaseStatus.RUNNING.getValue(), o.getStatus()))
-        ) {
+        if (Objects.equals(JobStatus.READY.getValue(), jobStatusOld) || ((Objects.equals(JobStatus.COMPLETED.getValue(), jobStatusOld) && Objects.equals(JobStatus.COMPLETED.getValue(), jobVo.getStatus())) || (Objects.equals(JobStatus.ABORTED.getValue(), jobStatusOld) && Objects.equals(JobStatus.ABORTED.getValue(), jobVo.getStatus())) || (Objects.equals(JobStatus.FAILED.getValue(), jobStatusOld) && Objects.equals(JobStatus.FAILED.getValue(), jobVo.getStatus()))) && jobPhaseVoList.stream().noneMatch(o -> Objects.equals(JobPhaseStatus.RUNNING.getValue(), o.getStatus()))) {
             paramObj.put("isRefresh", 0);
         }
     }
@@ -1224,8 +1292,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
         if (jobSource != null) {
             IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
-            if (autoexecJobSourceActionHandler != null)
-                autoexecJobSourceActionHandler.deleteJob(jobVo);
+            if (autoexecJobSourceActionHandler != null) autoexecJobSourceActionHandler.deleteJob(jobVo);
         }
         autoexecJobMapper.deleteJobEvnByJobId(jobId);
         autoexecJobMapper.deleteJobGroupByJobId(jobId);
@@ -1599,8 +1666,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             if (requestUtil.getResponseCode() != 200 || StringUtils.isNotBlank(requestUtil.getError())) {
                 Long statusLcd = System.currentTimeMillis();
                 runnerMapper.updateStatusById(runner.getId(), RunnerStatus.DISCONNECTED.getValue(), new Date(statusLcd));
-                throw new ApiRuntimeException(String.format("Request to %s failed, result: %s, ResponseCode: %s, ErrorMsg: %s, Exception %s",
-                        url, requestUtil.getResult(), requestUtil.getResponseCode(), requestUtil.getErrorMsg(), requestUtil.getError()));
+                throw new ApiRuntimeException(String.format("Request to %s failed, result: %s, ResponseCode: %s, ErrorMsg: %s, Exception %s", url, requestUtil.getResult(), requestUtil.getResponseCode(), requestUtil.getErrorMsg(), requestUtil.getError()));
             }
         }
     }
@@ -1695,8 +1761,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             paramJson.put("execid", String.valueOf(execid));
             HttpRequestUtil httpRequestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).sendRequest();
             if (httpRequestUtil.getResponseCode() != 200 || StringUtils.isNotBlank(httpRequestUtil.getError())) {
-                throw new ApiRuntimeException(String.format("Request to %s failed, result: %s, ResponseCode: %s, ErrorMsg: %s, Exception %s",
-                        url, httpRequestUtil.getResult(), httpRequestUtil.getResponseCode(), httpRequestUtil.getErrorMsg(), httpRequestUtil.getError()));
+                throw new ApiRuntimeException(String.format("Request to %s failed, result: %s, ResponseCode: %s, ErrorMsg: %s, Exception %s", url, httpRequestUtil.getResult(), httpRequestUtil.getResponseCode(), httpRequestUtil.getErrorMsg(), httpRequestUtil.getError()));
             }
             AutoexecJobExecVo execVo = new AutoexecJobExecVo(jobVo.getId(), runner.getRunnerMapId(), execid, jobVo.getAction());
             autoexecJobMapper.insertJobExec(execVo);
@@ -1813,14 +1878,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         List<AutoexecJobPhaseRunnerVo> runnerVos = autoexecJobMapper.getJobPhaseRunnerMapByJobId(jobVo.getId());
         for (AutoexecJobPhaseVo jobPhase : jobVo.getPhaseList()) {
             //如果是waitInput则只允许中止修改作业阶段以及对应runner状态
-            if (Arrays.asList(JobPhaseStatus.RUNNING.getValue(), JobPhaseStatus.WAITING.getValue()).contains(jobPhase.getStatus())
-                    || (Objects.equals(JobAction.ABORT.getValue(), action) && Objects.equals(jobPhase.getStatus(), JobPhaseStatus.WAIT_INPUT.getValue()))) {
+            if (Arrays.asList(JobPhaseStatus.RUNNING.getValue(), JobPhaseStatus.WAITING.getValue()).contains(jobPhase.getStatus()) || (Objects.equals(JobAction.ABORT.getValue(), action) && Objects.equals(jobPhase.getStatus(), JobPhaseStatus.WAIT_INPUT.getValue()))) {
                 jobPhase.setStatus(statusIng);
                 autoexecJobMapper.updateJobPhaseStatus(jobPhase);
                 for (AutoexecJobPhaseRunnerVo jobPhaseRunnerVo : runnerVos) {
-                    if (Objects.equals(jobPhase.getId(), jobPhaseRunnerVo.getJobPhaseId())
-                            && Arrays.asList(JobPhaseStatus.RUNNING.getValue(), JobPhaseStatus.WAITING.getValue()).contains(jobPhaseRunnerVo.getStatus())
-                            || (Objects.equals(JobAction.ABORT.getValue(), action) && Objects.equals(jobPhaseRunnerVo.getStatus(), JobPhaseStatus.WAIT_INPUT.getValue()))) {
+                    if (Objects.equals(jobPhase.getId(), jobPhaseRunnerVo.getJobPhaseId()) && Arrays.asList(JobPhaseStatus.RUNNING.getValue(), JobPhaseStatus.WAITING.getValue()).contains(jobPhaseRunnerVo.getStatus()) || (Objects.equals(JobAction.ABORT.getValue(), action) && Objects.equals(jobPhaseRunnerVo.getStatus(), JobPhaseStatus.WAIT_INPUT.getValue()))) {
                         autoexecJobMapper.updateJobPhaseRunnerStatus(Collections.singletonList(jobPhase.getId()), jobPhaseRunnerVo.getRunnerMapId(), statusIng);
                     }
                 }

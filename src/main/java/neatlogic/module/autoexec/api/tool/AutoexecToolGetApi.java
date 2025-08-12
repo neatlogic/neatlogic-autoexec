@@ -28,18 +28,13 @@ import neatlogic.framework.autoexec.constvalue.ScriptAndToolOperate;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import neatlogic.framework.autoexec.dto.AutoexecToolVo;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
 import neatlogic.framework.autoexec.exception.tool.AutoexecToolNotFoundEditTargetException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.dependency.core.DependencyManager;
-import neatlogic.framework.dependency.dto.DependencyInfoVo;
 import neatlogic.framework.dto.OperateVo;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import neatlogic.module.autoexec.dependency.AutoexecTool2CombopPhaseOperationDependencyHandler;
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -87,21 +82,21 @@ public class AutoexecToolGetApi extends PrivateApiComponentBase {
         if (tool == null) {
             throw new AutoexecToolNotFoundEditTargetException(id);
         }
-        List<Long> combopIdList = new ArrayList<>();
-        List<DependencyInfoVo> dependencyInfoList = DependencyManager.getDependencyList(AutoexecTool2CombopPhaseOperationDependencyHandler.class, id);
-        for (DependencyInfoVo dependencyInfoVo : dependencyInfoList) {
-            JSONObject config = dependencyInfoVo.getConfig();
-            if (MapUtils.isNotEmpty(config)) {
-                Long combopId = config.getLong("combopId");
-                if (combopId != null) {
-                    combopIdList.add(combopId);
-                }
-            }
-        }
-        if (CollectionUtils.isNotEmpty(combopIdList)) {
-            List<AutoexecCombopVo> combopList = autoexecCombopMapper.getAutoexecCombopByIdList(combopIdList);
-            tool.setCombopList(combopList);
-        }
+//        List<Long> combopIdList = new ArrayList<>();
+//        List<DependencyInfoVo> dependencyInfoList = DependencyManager.getDependencyList(AutoexecTool2CombopPhaseOperationDependencyHandler.class, id);
+//        for (DependencyInfoVo dependencyInfoVo : dependencyInfoList) {
+//            JSONObject config = dependencyInfoVo.getConfig();
+//            if (MapUtils.isNotEmpty(config)) {
+//                Long combopId = config.getLong("combopId");
+//                if (combopId != null) {
+//                    combopIdList.add(combopId);
+//                }
+//            }
+//        }
+//        if (CollectionUtils.isNotEmpty(combopIdList)) {
+//            List<AutoexecCombopVo> combopList = autoexecCombopMapper.getAutoexecCombopByIdList(combopIdList);
+//            tool.setCombopList(combopList);
+//        }
 //        tool.setCombopList(autoexecToolMapper.getReferenceListByToolId(id));
         List<OperateVo> operateList = new ArrayList<>();
         tool.setOperateList(operateList);

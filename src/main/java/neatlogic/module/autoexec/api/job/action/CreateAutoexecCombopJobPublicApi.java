@@ -19,14 +19,11 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthAction;
-import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
+import neatlogic.framework.autoexec.auth.AUTOEXEC_CREATE_PUBLIC_JOB;
 import neatlogic.framework.autoexec.constvalue.*;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionConfigVo;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
+import neatlogic.framework.autoexec.dto.combop.*;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecCombopActiveVersionNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecCombopNotFoundException;
@@ -40,6 +37,7 @@ import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dao.mapper.UserMapper;
+import neatlogic.framework.dao.mapper.runner.RunnerMapper;
 import neatlogic.framework.dto.AuthenticationInfoVo;
 import neatlogic.framework.dto.UserVo;
 import neatlogic.framework.exception.user.UserNotFoundException;
@@ -64,7 +62,7 @@ import java.util.stream.Collectors;
  **/
 
 @Service
-@AuthAction(action = AUTOEXEC_BASE.class)
+@AuthAction(action = AUTOEXEC_CREATE_PUBLIC_JOB.class)
 @OperationType(type = OperationTypeEnum.CREATE)
 public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
     @Resource
@@ -81,6 +79,12 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
 
     @Resource
     AutoexecCombopService autoexecCombopService;
+
+    @Resource
+    private AuthenticationInfoService authenticationInfoService;
+
+    @Resource
+    private RunnerMapper runnerMapper;
 
     @Resource
     AuthenticationInfoService authenticationInfoService;
@@ -109,6 +113,8 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
             @Param(name = "planStartTime", type = ApiParamType.LONG, desc = "common.planstarttime"),
             @Param(name = "triggerType", type = ApiParamType.ENUM, member = JobTriggerType.class, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.triggertype"),
             @Param(name = "assignExecUser", type = ApiParamType.STRING, desc = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.assignuser"),
+            @Param(name = "runnerGroup", type = ApiParamType.STRING, desc = "nfac.paramtype.runnergroup"),
+            @Param(name = "runnerGroupTag", type = ApiParamType.STRING, desc = "nfac.paramtype.runnergrouptag")
     })
     @Output({
     })
@@ -152,7 +158,6 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
         }
         AutoexecCombopVersionConfigVo versionConfig = autoexecCombopVersionVo.getConfig();
 
-
         JSONObject param = jsonObj.getJSONObject("param");
         jsonObj.put("param", initParam(param, versionConfig));
         jsonObj.put("execUser", execUserUuid);
@@ -160,7 +165,29 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
         jsonObj.put("source", JobSource.COMBOP.getValue());
         jsonObj.put("operationId", combopVo.getId());
         getExecuteConfig(jsonObj);
+        String runnerGroup = jsonObj.getString("runnerGroup");
+        String runnerGroupTag = jsonObj.getString("runnerGroupTag");
+        jsonObj.remove("runnerGroup");
+        jsonObj.remove("runnerGroupTag");
         AutoexecJobVo autoexecJobParam = JSON.toJavaObject(jsonObj, AutoexecJobVo.class);
+        //runnerGroup
+        if (StringUtils.isNotBlank(runnerGroup)) {
+            ParamMappingVo runnerGroupMappingVo = new ParamMappingVo();
+            runnerGroupMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
+            runnerGroupMappingVo.setValue(runnerGroup);
+            autoexecJobParam.setRunnerGroup(runnerGroupMappingVo);
+        }
+        //runnerGroupTag
+        if (StringUtils.isNotBlank(runnerGroupTag)) {
+            ParamMappingVo runnerGroupTagMappingVo = new ParamMappingVo();
+            runnerGroupTagMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
+            if (runnerGroupTag.startsWith("[") && runnerGroupTag.endsWith("]")) {
+                runnerGroupTagMappingVo.setValue(runnerGroupTag);
+            } else {
+                runnerGroupTagMappingVo.setValue(String.format("[%s]", runnerGroupTag));
+            }
+            autoexecJobParam.setRunnerGroupTag(runnerGroupTagMappingVo);
+        }
         AutoexecCombopExecuteConfigVo executeConfigVo = autoexecJobParam.getExecuteConfig();
         if (executeConfigVo != null && StringUtils.isNotBlank(executeConfigVo.getProtocol())) {
             IResourceAccountCrossoverMapper accountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
@@ -187,10 +214,12 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
             JSONObject executeConfig = new JSONObject();
             jsonObj.put("executeConfig", executeConfig);
             executeConfig.put("protocol", jsonObj.getString("protocol"));
-            JSONObject executeUser = new JSONObject();
-            executeUser.put("mappingMode", "constant");
-            executeUser.put("value", jsonObj.getString("executeUser"));
-            executeConfig.put("executeUser", executeUser);
+            if(StringUtils.isNotBlank(jsonObj.getString("executeUser"))) {
+                JSONObject executeUser = new JSONObject();
+                executeUser.put("mappingMode", "constant");
+                executeUser.put("value", jsonObj.getString("executeUser"));
+                executeConfig.put("executeUser", executeUser);
+            }
             JSONObject executeNodeConfig = new JSONObject();
             executeNodeConfig.put("inputNodeList", jsonObj.getJSONArray("ipPortList"));
             executeConfig.put("executeNodeConfig", executeNodeConfig);
