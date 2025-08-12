@@ -41,8 +41,11 @@ import neatlogic.framework.service.AuthenticationInfoService;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
 import org.apache.commons.collections4.MapUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.quartz.DisallowConcurrentExecution;
 import org.quartz.JobExecutionContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
@@ -56,7 +59,7 @@ import java.util.Objects;
 @Component
 @DisallowConcurrentExecution
 public class AutoexecScheduleJob extends JobBase {
-
+    static Logger logger = LoggerFactory.getLogger(AutoexecScheduleJob.class);
     @Resource
     private AutoexecScheduleMapper autoexecScheduleMapper;
     @Resource
@@ -153,10 +156,19 @@ public class AutoexecScheduleJob extends JobBase {
             jobVo.setInvokeId(autoexecScheduleVo.getId());
             jobVo.setRouteId(autoexecScheduleVo.getId().toString());
             jobVo.setOperationType(CombopOperationType.COMBOP.getValue());
-            UserVo lcuVo = userMapper.getUserByUuid(autoexecScheduleVo.getLcu());
+            String execUserUuid = autoexecScheduleVo.getLcu();
+            if (StringUtils.isNotBlank(jobObject.getTestUserUuid())) {
+                execUserUuid = jobObject.getTestUserUuid();
+            }
+            UserVo execUser = userMapper.getUserBaseInfoByUuid(execUserUuid);
+            if (execUser == null) {
+                schedulerManager.unloadJob(jobObject);
+                logger.error("execUser: {} not exist!", execUserUuid);
+                return;
+            }
             AuthenticationInfoVo authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(autoexecScheduleVo.getFcu());
-            UserContext.init(lcuVo, authenticationInfoVo, SystemUser.SYSTEM.getTimezone());
-            UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(lcuVo).getCc());
+            UserContext.init(execUser, authenticationInfoVo, SystemUser.SYSTEM.getTimezone());
+            UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(execUser).getCc());
             autoexecJobActionService.validateAndCreateJobFromCombop(jobVo);
             jobVo.setAction(JobAction.FIRE.getValue());
             IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
