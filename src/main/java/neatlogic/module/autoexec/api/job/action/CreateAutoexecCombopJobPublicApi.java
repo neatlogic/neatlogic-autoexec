@@ -129,7 +129,7 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
             execUser = neatlogic.framework.autoexec.constvalue.SystemUser.AUTOEXEC.getUserVo();
             authenticationInfoVo = neatlogic.framework.autoexec.constvalue.SystemUser.AUTOEXEC.getAuthenticationInfoVo();
         } else {
-            execUser = userMapper.getUserBaseInfoByUuid(execUserUuid);
+            execUser = userMapper.getUserByUser(execUserUuid);
             if (execUser == null) {
                 throw new UserNotFoundException(execUserUuid);
             }
