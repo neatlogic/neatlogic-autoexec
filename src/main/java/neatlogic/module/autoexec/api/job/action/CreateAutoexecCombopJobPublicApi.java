@@ -37,7 +37,6 @@ import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dao.mapper.UserMapper;
-import neatlogic.framework.dao.mapper.runner.RunnerMapper;
 import neatlogic.framework.dto.AuthenticationInfoVo;
 import neatlogic.framework.dto.UserVo;
 import neatlogic.framework.exception.user.UserNotFoundException;
@@ -83,9 +82,6 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
     @Resource
     private AuthenticationInfoService authenticationInfoService;
 
-    @Resource
-    private RunnerMapper runnerMapper;
-
     @Override
     public String getName() {
         return "nmaaja.createautoexecjobfromcomboppublicapi.getname";
@@ -119,6 +115,27 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
     @ResubmitInterval(value = 2)
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
+        String execUserUuid = jsonObj.getString("assignExecUser");
+        if (StringUtils.isBlank(execUserUuid)) {
+            execUserUuid = UserContext.get().getUserUuid();
+        }
+        UserVo execUser;
+        AuthenticationInfoVo authenticationInfoVo;
+        if (Objects.equals(SystemUser.SYSTEM.getUserUuid(), execUserUuid)) {
+            execUser = SystemUser.SYSTEM.getUserVo();
+            authenticationInfoVo = SystemUser.SYSTEM.getAuthenticationInfoVo();
+        } else if (Objects.equals(neatlogic.framework.autoexec.constvalue.SystemUser.AUTOEXEC.getUserUuid(), execUserUuid)) {
+            //autoexec脚本用的是autoexec虚拟用户
+            execUser = neatlogic.framework.autoexec.constvalue.SystemUser.AUTOEXEC.getUserVo();
+            authenticationInfoVo = neatlogic.framework.autoexec.constvalue.SystemUser.AUTOEXEC.getAuthenticationInfoVo();
+        } else {
+            execUser = userMapper.getUserByUser(execUserUuid);
+            if (execUser == null) {
+                throw new UserNotFoundException(execUserUuid);
+            }
+            authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(execUserUuid);
+        }
+        UserContext.init(execUser, authenticationInfoVo, SystemUser.SYSTEM.getTimezone());
         String combopName = jsonObj.getString("combopName");
         AutoexecCombopVo combopVo = combopMapper.getAutoexecCombopByName(combopName);
         if (combopVo == null) {
@@ -134,21 +151,9 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
         }
         AutoexecCombopVersionConfigVo versionConfig = autoexecCombopVersionVo.getConfig();
 
-        String assignExecUser = UserContext.get().getUserUuid();
-        String assignExecUserParam = jsonObj.getString("assignExecUser");
-        if (StringUtils.isNotBlank(assignExecUserParam)) {
-            UserVo assignUserTmp = userMapper.getUserByUser(assignExecUserParam);
-            if (assignUserTmp != null) {
-                assignExecUser = assignUserTmp.getUuid();
-                AuthenticationInfoVo authenticationInfo = authenticationInfoService.getAuthenticationInfo(assignExecUser);
-                UserContext.init(assignUserTmp, authenticationInfo, SystemUser.SYSTEM.getTimezone());
-            } else {
-                throw new UserNotFoundException(assignExecUserParam);
-            }
-        }
         JSONObject param = jsonObj.getJSONObject("param");
         jsonObj.put("param", initParam(param, versionConfig));
-        jsonObj.put("assignExecUser", assignExecUser);
+        jsonObj.put("execUser", execUserUuid);
         jsonObj.put("operationType", CombopOperationType.COMBOP.getValue());
         jsonObj.put("source", JobSource.COMBOP.getValue());
         jsonObj.put("operationId", combopVo.getId());

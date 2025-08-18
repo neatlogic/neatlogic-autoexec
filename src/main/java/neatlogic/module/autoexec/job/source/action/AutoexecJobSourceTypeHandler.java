@@ -543,16 +543,15 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
         //先校验有没有组合工具权限
         if (Objects.equals(jobVo.getOperationType(), CombopOperationType.COMBOP.getValue())) {
             AutoexecCombopVo combopVo = autoexecCombopMapper.getAutoexecCombopById(jobVo.getOperationId());
-            if (combopVo == null && jobVo.getIsTakeOver() == 0) {
+            if (combopVo == null) {
                 throw new AutoexecCombopNotFoundException(jobVo.getOperationId());
             }
-            if (combopVo != null && !Objects.equals(combopVo.getOwner(), jobVo.getExecUser()) && !autoexecCombopService.checkOperableButton(combopVo, CombopAuthorityAction.EXECUTE)) {
+            if (!Objects.equals(combopVo.getOwner(), jobVo.getExecUser()) && !autoexecCombopService.checkOperableButton(combopVo, CombopAuthorityAction.EXECUTE)) {
                 throw new AutoexecJobCanNotCreateException(combopVo.getName());
             }
-        } else if (Arrays.asList(CombopOperationType.SCRIPT.getValue(), CombopOperationType.TOOL.getValue()).contains(jobVo.getOperationType())) {
-            if (!AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
-                throw new AutoexecScriptJobCanNotExecuteException(jobVo.getId());
-            }
+        } else if (Arrays.asList(CombopOperationType.SCRIPT.getValue(), CombopOperationType.TOOL.getValue()).contains(jobVo.getOperationType())
+                && Boolean.FALSE.equals(AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName()))) {
+            throw new AutoexecScriptJobCanNotExecuteException(jobVo.getId());
         }
     }
 
@@ -566,7 +565,7 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
         if (Objects.equals(jobVo.getSource(), JobSource.TEST.getValue())
                 || Objects.equals(jobVo.getSource(), JobSource.SCRIPT_TEST.getValue())
                 || Objects.equals(jobVo.getSource(), JobSource.TOOL_TEST.getValue())) {
-            if (AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class)) {
+            if (Boolean.TRUE.equals(AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class))) {
                 if (UserContext.get().getUserUuid().equals(jobVo.getExecUser())) {
                     jobVo.setIsCanExecute(1);
                 } else {

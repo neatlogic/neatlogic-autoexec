@@ -1810,9 +1810,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         getAllSubJobList(jobVo.getId(), autoexecJobVos);
         for (AutoexecJobVo job : autoexecJobVos) {
             job.setAction(jobVo.getAction());
-            job.setIsTakeOver(jobVo.getIsTakeOver());
-            IAutoexecJobActionHandler refireAction = AutoexecJobActionHandlerFactory.getAction(jobAction.getValue());
-            refireAction.doService(job);
+            IAutoexecJobActionHandler batchAction = AutoexecJobActionHandlerFactory.getAction(jobAction.getValue());
+            batchAction.doService(job);
         }
     }
 
