@@ -29,7 +29,6 @@ import neatlogic.framework.autoexec.job.node.IUpdateNodes;
 import neatlogic.framework.cmdb.crossover.IResourceCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
-import neatlogic.framework.common.util.PageUtil;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.collections4.CollectionUtils;
@@ -115,21 +114,7 @@ public class UpdateNodesByInputHandler implements IUpdateNodes {
                 searchVo.setIdList(new ArrayList<>(resourceIdSet));
                 searchVo.setMaxPageSize(1000);
                 searchVo.setPageSize(1000);
-                int count = resourceCrossoverMapper.getResourceCount(searchVo);
-                if (count > 0) {
-                    int pageCount = PageUtil.getPageCount(count, searchVo.getPageSize());
-                    for (int i = 1; i <= pageCount; i++) {
-                        searchVo.setCurrentPage(i);
-                        List<Long> idList = resourceCrossoverMapper.getResourceIdList(searchVo);
-                        if (CollectionUtils.isNotEmpty(idList)) {
-                            List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIdList(idList);
-                            if (CollectionUtils.isNotEmpty(resourceList)) {
-                                autoexecJobService.updateJobPhaseNode(jobVo, resourceList, userName, protocolId);
-                                isHasNode = true;
-                            }
-                        }
-                    }
-                }
+                isHasNode = autoexecJobService.updateNode(jobVo, userName, protocolId, searchVo);
             }
         }
         return isHasNode;

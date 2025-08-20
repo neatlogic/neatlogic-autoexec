@@ -25,11 +25,7 @@ import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteNodeConfigVo
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.dto.node.AutoexecNodeVo;
 import neatlogic.framework.autoexec.job.node.IUpdateNodes;
-import neatlogic.framework.cmdb.crossover.IResourceCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
-import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
-import neatlogic.framework.common.util.PageUtil;
-import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -72,7 +68,6 @@ public class UpdateNodesSelectHandler implements IUpdateNodes {
         List<AutoexecNodeVo> nodeVoList = executeNodeConfigVo.getSelectNodeList();
         boolean isHasNode = false;
         if (CollectionUtils.isNotEmpty(nodeVoList)) {
-            IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
             JSONObject preFilter = null;
             if (Objects.equals(jobVo.getNodeFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())) {
                 //如果作业层面的节点则补充前置filter
@@ -85,22 +80,10 @@ public class UpdateNodesSelectHandler implements IUpdateNodes {
             }
             ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, preFilter);
             searchVo.setIdList(nodeVoList.stream().map(AutoexecNodeVo::getId).collect(toList()));
-            int count = resourceCrossoverMapper.getResourceCount(searchVo);
-            if (count > 0) {
-                int pageCount = PageUtil.getPageCount(count, searchVo.getPageSize());
-                for (int i = 1; i <= pageCount; i++) {
-                    searchVo.setCurrentPage(i);
-                    List<Long> idList = resourceCrossoverMapper.getResourceIdList(searchVo);
-                    if (CollectionUtils.isNotEmpty(idList)) {
-                        List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIdList(idList);
-                        if (CollectionUtils.isNotEmpty(resourceList)) {
-                            autoexecJobService.updateJobPhaseNode(jobVo, resourceList, userName, protocolId);
-                            isHasNode = true;
-                        }
-                    }
-                }
-            }
+            isHasNode = autoexecJobService.updateNode(jobVo, userName, protocolId, searchVo);
         }
         return isHasNode;
     }
+
+
 }

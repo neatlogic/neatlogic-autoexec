@@ -342,5 +342,12 @@ public interface AutoexecJobService {
     String updatePartialNodeJobAndPhaseWithRunnerId(AutoexecJobPhaseVo jobPhaseVo, Long runnerId, AutoexecJobVo jobVo, String currentPhaseStatus, Integer phaseRunnerWarnCount);
 
 
-
+    /**
+     * 更新节点
+     * @param jobVo 作业
+     * @param userName 执行用户
+     * @param protocolId 协议id
+     * @param searchVo 过滤条件
+     */
+    boolean updateNode(AutoexecJobVo jobVo, String userName, Long protocolId, ResourceSearchVo searchVo);
 }

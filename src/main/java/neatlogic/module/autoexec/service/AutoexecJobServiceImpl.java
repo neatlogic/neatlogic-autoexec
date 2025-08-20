@@ -49,12 +49,14 @@ import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.autoexec.util.AutoexecUtil;
 import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import neatlogic.framework.cmdb.crossover.IResourceCenterResourceCrossoverService;
+import neatlogic.framework.cmdb.crossover.IResourceCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
 import neatlogic.framework.cmdb.exception.resourcecenter.ResourceCenterAccountProtocolNotFoundException;
 import neatlogic.framework.common.constvalue.RunnerStatus;
 import neatlogic.framework.common.constvalue.systemuser.SystemUser;
+import neatlogic.framework.common.util.PageUtil;
 import neatlogic.framework.config.ConfigManager;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dao.mapper.UserMapper;
@@ -2175,5 +2177,39 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         currentPhaseStatus = getJobPhaseStatus(statusList, currentPhaseStatus);
         autoexecJobMapper.updateJobPhaseRunnerStatusAndWarnCount(jobPhaseVo.getId(), runnerId, currentPhaseStatus, phaseRunnerWarnCount);
         return currentPhaseStatus;
+    }
+
+    @Override
+    public boolean updateNode(AutoexecJobVo jobVo, String userName, Long protocolId, ResourceSearchVo searchVo) {
+        int count;
+        boolean isHasNode = false;
+        StringBuilder sqlSb = new StringBuilder();
+        IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
+        if (searchVo.isCustomCondition()) {
+            searchVo.buildConditionWhereSql(sqlSb, searchVo);
+            count = resourceCrossoverMapper.getResourceCountByDynamicCondition(searchVo, sqlSb.toString());
+        } else {
+            count = resourceCrossoverMapper.getResourceCount(searchVo);
+        }
+        if (count > 0) {
+            int pageCount = PageUtil.getPageCount(count, searchVo.getPageSize());
+            for (int i = 1; i <= pageCount; i++) {
+                searchVo.setCurrentPage(i);
+                List<Long> idList;
+                if (searchVo.isCustomCondition()) {
+                    idList = resourceCrossoverMapper.getResourceIdListByDynamicCondition(searchVo, sqlSb.toString());
+                } else {
+                    idList = resourceCrossoverMapper.getResourceIdList(searchVo);
+                }
+                if (CollectionUtils.isNotEmpty(idList)) {
+                    List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIdList(idList);
+                    if (CollectionUtils.isNotEmpty(resourceList)) {
+                        updateJobPhaseNode(jobVo, resourceList, userName, protocolId);
+                        isHasNode = true;
+                    }
+                }
+            }
+        }
+        return isHasNode;
     }
 }
