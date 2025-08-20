@@ -1807,11 +1807,17 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     @Override
     public void batchExecuteJobAction(AutoexecJobVo jobVo, JobAction jobAction) throws Exception {
         List<AutoexecJobVo> autoexecJobVos = com.google.common.collect.Lists.newArrayList(Collections.singletonList(jobVo));
-        getAllSubJobList(jobVo.getId(), autoexecJobVos);
-        for (AutoexecJobVo job : autoexecJobVos) {
-            job.setAction(jobVo.getAction());
-            IAutoexecJobActionHandler batchAction = AutoexecJobActionHandlerFactory.getAction(jobAction.getValue());
-            batchAction.doService(job);
+        List<Long> subJobIdList = autoexecJobMapper.getJobIdListByParentId(jobVo.getId());
+        if (neatlogic.framework.deploy.constvalue.JobSource.isBatch(jobVo.getSource()) && CollectionUtils.isNotEmpty(subJobIdList)) {
+            getAllSubJobList(jobVo.getId(), autoexecJobVos);
+            for (AutoexecJobVo job : autoexecJobVos) {
+                job.setAction(jobVo.getAction());
+                IAutoexecJobActionHandler batchAction = AutoexecJobActionHandlerFactory.getAction(jobAction.getValue());
+                batchAction.doService(job);
+            }
+        }else{
+            IAutoexecJobActionHandler action = AutoexecJobActionHandlerFactory.getAction(jobAction.getValue());
+            action.doService(jobVo);
         }
     }
 
