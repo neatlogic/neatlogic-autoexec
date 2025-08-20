@@ -415,7 +415,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             }
         }
         //协议 组合工具和作业参数都没有设置
-        if (combopVo.getNeedProtocol() && (combopExecuteConfig == null || (combopExecuteConfig.getProtocolId() == null && (jobParamExecuteConfig == null || jobParamExecuteConfig.getProtocolId() == null)))) {
+        if (combopVo.getNeedProtocol() && (combopExecuteConfig == null || combopExecuteConfig.getProtocolId() == null) && (jobParamExecuteConfig == null || jobParamExecuteConfig.getProtocolId() == null)) {
             throw new ProtocolIdParamNullException();
         }
         //执行用户
