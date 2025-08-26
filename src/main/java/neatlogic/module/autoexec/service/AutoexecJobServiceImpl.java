@@ -1754,6 +1754,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         passThroughEnv.put("isFirstFire", isFirstFire);
         passThroughEnv.put("EXECUSER_TOKEN", userMapper.getUserTokenByUser(UserContext.get().getUserId()));
         passThroughEnv.put("EXECUSER_UUID", UserContext.get().getUserUuid());
+        passThroughEnv.put("PARENT_JOB_ID", jobVo.getParentId());
         for (RunnerMapVo runner : runnerVos) {
             jobVo.getEnvironment().put("RUNNER_ID", runner.getRunnerMapId());
             String url = runner.getUrl() + "api/rest/job/exec";
