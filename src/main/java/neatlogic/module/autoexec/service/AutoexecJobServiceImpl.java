@@ -620,25 +620,25 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 jobUserNameParamNullKey = combopExecuteConfigVo.getExecuteUser().getValue().toString();
             }
             protocolId = combopExecuteConfigVo.getProtocolId();
-            //兼容老数据不存在policy
-            if (StringUtils.isBlank(parallelPolicy) && jobVo.getRoundCount() != null) {
-                parallelPolicy = AutoexecParallelPolicy.ROUND_COUNT.getValue();
-            }
             if (StringUtils.isNotBlank(userName)) {
                 jobPhase.setUserNameFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
             }
             if (protocolId != null) {
                 jobPhase.setProtocolFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
             }
-            if (StringUtils.isNotBlank(parallelPolicy)) {
-                jobPhase.setRoundCountFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
-                if (Objects.equals(AutoexecParallelPolicy.ROUND_COUNT.getValue(), parallelPolicy)) {
-                    roundCount = jobVo.getRoundCount();
-                } else if (Objects.equals(AutoexecParallelPolicy.PARALLEL.getValue(), parallelPolicy)) {
-                    parallelCount = jobVo.getParallelCount();
-                }
-                jobGroupVo.setParallelFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
+        }
+        //兼容老数据不存在policy
+        if (StringUtils.isBlank(parallelPolicy) && jobVo.getRoundCount() != null) {
+            parallelPolicy = AutoexecParallelPolicy.ROUND_COUNT.getValue();
+        }
+        if (StringUtils.isNotBlank(parallelPolicy)) {
+            jobPhase.setRoundCountFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
+            if (Objects.equals(AutoexecParallelPolicy.ROUND_COUNT.getValue(), parallelPolicy)) {
+                roundCount = jobVo.getRoundCount();
+            } else if (Objects.equals(AutoexecParallelPolicy.PARALLEL.getValue(), parallelPolicy)) {
+                parallelCount = jobVo.getParallelCount();
             }
+            jobGroupVo.setParallelFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
         }
         AutoexecCombopExecuteConfigVo executeConfigVo;
         //判断group是不是grayScale，如果是则从group中获取执行节点、账号、执行用户
@@ -779,12 +779,14 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 jobGroupVo.setRoundCount(roundCount);
                 jobGroupVo.setParallelCount(parallelCount);
             }
-        } else {
+        } else if (Objects.equals(parallelPolicy, AutoexecParallelPolicy.ROUND_COUNT.getValue())) {
             //如果组是grayscale则需要更新对应组的roundCount
             if (Objects.equals(jobGroupVo.getPolicy(), AutoexecJobGroupPolicy.GRAYSCALE.getName())) {
                 jobGroupVo.setParallelPolicy(AutoexecParallelPolicy.ROUND_COUNT.getValue());
                 jobGroupVo.setRoundCount(roundCount);
             }
+        } else {
+            throw new AutoexecParallelPolicyInvalidException(parallelPolicy);
         }
 
         if (roundCount == null) {
@@ -1818,7 +1820,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 IAutoexecJobActionHandler batchAction = AutoexecJobActionHandlerFactory.getAction(jobAction.getValue());
                 batchAction.doService(job);
             }
-        }else{
+        } else {
             IAutoexecJobActionHandler action = AutoexecJobActionHandlerFactory.getAction(jobAction.getValue());
             action.doService(jobVo);
         }
