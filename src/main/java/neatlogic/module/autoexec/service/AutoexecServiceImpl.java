@@ -440,6 +440,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
             List<AutoexecParamVo> outputParamList = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(autoexecParamVoList)) {
                 for (AutoexecParamVo paramVo : autoexecParamVoList) {
+                    paramVo.setId(-1L);
                     mergeConfig(paramVo);
                     String mode = paramVo.getMode();
                     if (Objects.equals(mode, ParamMode.INPUT.getValue())) {
