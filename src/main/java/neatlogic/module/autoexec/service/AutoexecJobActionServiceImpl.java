@@ -56,6 +56,7 @@ import neatlogic.framework.scheduler.core.SchedulerManager;
 import neatlogic.framework.scheduler.dto.JobObject;
 import neatlogic.framework.scheduler.exception.ScheduleHandlerNotFoundException;
 import neatlogic.framework.service.AuthenticationInfoService;
+import neatlogic.framework.util.TimeUtil;
 import neatlogic.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecScenarioMapper;
 import neatlogic.module.autoexec.schedule.plugin.AutoexecJobAutoFireJob;
@@ -443,8 +444,9 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         if (CollectionUtils.isNotEmpty(combopRuntimeParamList)) {
             for (AutoexecParamVo combopRuntimeParam : combopRuntimeParamList) {
                 String combopRuntimeParamKey = combopRuntimeParam.getKey();
+                String combopRuntimeParamName = combopRuntimeParam.getName();
                 if (combopRuntimeParam.getIsRequired() == 1 && (MapUtils.isEmpty(autoexecJobParam.getParam()) || autoexecJobParam.getParam().get(combopRuntimeParamKey) == null || StringUtils.isBlank(autoexecJobParam.getParam().get(combopRuntimeParamKey).toString()))) {
-                    throw new JobParamNullException(combopRuntimeParamKey);
+                    throw new JobParamNullException(String.format("%s(%s)", combopRuntimeParamName, combopRuntimeParamKey));
                 }
             }
         }
@@ -616,7 +618,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(execUserUuid);
         }
 
-        UserContext.init(execUser, authenticationInfoVo, "+8:00");
+        UserContext.init(execUser, authenticationInfoVo, TimeUtil.ZONE_TIME);
         UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(execUser).getCc());
     }
 
