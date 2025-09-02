@@ -445,8 +445,13 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             for (AutoexecParamVo combopRuntimeParam : combopRuntimeParamList) {
                 String combopRuntimeParamKey = combopRuntimeParam.getKey();
                 String combopRuntimeParamName = combopRuntimeParam.getName();
-                if (combopRuntimeParam.getIsRequired() == 1 && (MapUtils.isEmpty(autoexecJobParam.getParam()) || autoexecJobParam.getParam().get(combopRuntimeParamKey) == null || StringUtils.isBlank(autoexecJobParam.getParam().get(combopRuntimeParamKey).toString()))) {
+                Object combopRuntimeParamDefaultValue = combopRuntimeParam.getDefaultValue();
+                if (combopRuntimeParam.getIsRequired() == 1
+                        && (MapUtils.isEmpty(autoexecJobParam.getParam()) || autoexecJobParam.getParam().get(combopRuntimeParamKey) == null || StringUtils.isBlank(autoexecJobParam.getParam().get(combopRuntimeParamKey).toString()))
+                        && combopRuntimeParamDefaultValue == null
+                ) {
                     throw new JobParamNullException(String.format("%s(%s)", combopRuntimeParamName, combopRuntimeParamKey));
+
                 }
             }
         }

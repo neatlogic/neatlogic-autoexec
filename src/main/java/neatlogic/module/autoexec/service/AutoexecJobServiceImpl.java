@@ -841,14 +841,17 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     }
 
     private void getFinalRuntimeParamList(List<AutoexecParamVo> runTimeParamList, JSONObject param) {
-        if (MapUtils.isEmpty(param)) {
+        if (CollectionUtils.isEmpty(runTimeParamList)) {
             return;
         }
-        if (CollectionUtils.isNotEmpty(runTimeParamList)) {
-            for (AutoexecParamVo paramVo : runTimeParamList) {
-                if (paramVo != null) {
+        for (AutoexecParamVo paramVo : runTimeParamList) {
+            if (paramVo != null) {
+                if(param.containsKey(paramVo.getKey())) {
                     Object value = param.get(paramVo.getKey());
                     paramVo.setValue(value);
+                }else{
+                    //如果创建作业不传作业参数则使用默认值
+                    paramVo.setValue(paramVo.getDefaultValue());
                 }
             }
         }
