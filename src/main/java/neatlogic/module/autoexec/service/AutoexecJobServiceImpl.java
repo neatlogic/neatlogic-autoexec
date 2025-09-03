@@ -2191,6 +2191,13 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         boolean isHasNode = false;
         StringBuilder sqlSb = new StringBuilder();
         IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
+        //是否存在前置条件
+        if(searchVo.getPreCondition() != null && searchVo.getPreCondition().isCustomCondition()){
+            StringBuilder preSqlSb = new StringBuilder();
+            searchVo.getPreCondition().buildConditionWhereSql(preSqlSb,searchVo.getPreCondition());
+            searchVo.setPreConditionWhereSql(preSqlSb.toString());
+        }
+
         if (searchVo.isCustomCondition()) {
             searchVo.buildConditionWhereSql(sqlSb, searchVo);
             count = resourceCrossoverMapper.getResourceCountByDynamicCondition(searchVo, sqlSb.toString());

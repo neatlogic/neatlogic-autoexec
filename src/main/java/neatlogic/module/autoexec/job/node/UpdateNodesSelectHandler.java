@@ -17,9 +17,7 @@
 
 package neatlogic.module.autoexec.job.node;
 
-import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.AutoexecJobPhaseNodeFrom;
-import neatlogic.framework.autoexec.constvalue.CombopNodeSpecify;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteNodeConfigVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
@@ -28,7 +26,6 @@ import neatlogic.framework.autoexec.job.node.IUpdateNodes;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -68,17 +65,14 @@ public class UpdateNodesSelectHandler implements IUpdateNodes {
         List<AutoexecNodeVo> nodeVoList = executeNodeConfigVo.getSelectNodeList();
         boolean isHasNode = false;
         if (CollectionUtils.isNotEmpty(nodeVoList)) {
-            JSONObject preFilter = null;
+            ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, null);
             if (Objects.equals(jobVo.getNodeFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())) {
                 //如果作业层面的节点则补充前置filter
                 AutoexecCombopConfigVo config = jobVo.getConfig();
-                if (config != null && config.getExecuteConfig() != null && config.getExecuteConfig().getCombopNodeConfig() != null && MapUtils.isNotEmpty(config.getExecuteConfig().getCombopNodeConfig().getFilter())) {
-                    if (Objects.equals(config.getExecuteConfig().getWhenToSpecify(), CombopNodeSpecify.RUNTIME.getValue())) {
-                        preFilter = config.getExecuteConfig().getCombopNodeConfig().getFilter();
-                    }
+                if (config != null && config.getExecuteConfig() != null && config.getExecuteConfig().getPreCondition() != null) {
+                   searchVo.setPreCondition(config.getExecuteConfig().getPreCondition());
                 }
             }
-            ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, preFilter);
             searchVo.setIdList(nodeVoList.stream().map(AutoexecNodeVo::getId).collect(toList()));
             isHasNode = autoexecJobService.updateNode(jobVo, userName, protocolId, searchVo);
         }

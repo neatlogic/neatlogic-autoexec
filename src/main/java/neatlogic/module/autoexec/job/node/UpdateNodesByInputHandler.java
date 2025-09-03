@@ -17,7 +17,6 @@
 
 package neatlogic.module.autoexec.job.node;
 
-import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.AutoexecJobPhaseNodeFrom;
 import neatlogic.framework.autoexec.constvalue.CombopNodeSpecify;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
@@ -32,7 +31,6 @@ import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -75,18 +73,17 @@ public class UpdateNodesByInputHandler implements IUpdateNodes {
                 throw new AutoexecInputOutOfCountException(1000);
             }
             nodeVoList.forEach(o -> ipPortNameList.add(new ResourceVo(o.getIp(), o.getPort(), o.getName())));
-            JSONObject preFilter = null;
+            ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, null);
             if (Objects.equals(jobVo.getNodeFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())) {
                 //如果作业层面的节点则补充前置filter
                 AutoexecCombopConfigVo config = jobVo.getConfig();
                 if (config != null && config.getExecuteConfig() != null
-                        && config.getExecuteConfig().getCombopNodeConfig() != null
-                        && MapUtils.isNotEmpty(config.getExecuteConfig().getCombopNodeConfig().getFilter())
+                        && config.getExecuteConfig().getPreCondition() != null
                         && (Objects.equals(config.getExecuteConfig().getWhenToSpecify(), CombopNodeSpecify.RUNTIME.getValue()))) {
-                    preFilter = config.getExecuteConfig().getCombopNodeConfig().getFilter();
+                    searchVo.setPreCondition(config.getExecuteConfig().getPreCondition());
                 }
             }
-            ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, preFilter);
+
             IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
 
             Set<Long> resourceIdSet = new HashSet<>();

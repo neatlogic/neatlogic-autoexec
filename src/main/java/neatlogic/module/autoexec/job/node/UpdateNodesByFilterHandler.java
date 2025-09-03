@@ -17,7 +17,6 @@
 
 package neatlogic.module.autoexec.job.node;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.AutoexecJobPhaseNodeFrom;
 import neatlogic.framework.autoexec.constvalue.CombopNodeSpecify;
@@ -40,7 +39,6 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 @Service
@@ -50,6 +48,7 @@ public class UpdateNodesByFilterHandler implements IUpdateNodes {
     @Resource
     private AutoexecResourceMapper autoexecResourceMapper;
     private static final Logger logger = LoggerFactory.getLogger(UpdateNodesByFilterHandler.class);
+
     @Override
     public boolean update(AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
         boolean isHasNode = false;
@@ -80,33 +79,29 @@ public class UpdateNodesByFilterHandler implements IUpdateNodes {
         JSONObject filterJson = executeNodeConfigVo.getFilter();
         boolean isHasNode = false;
         if (MapUtils.isNotEmpty(filterJson)) {
+            ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, filterJson);
             //如果作业层面的节点则补充前置filter
             if (Objects.equals(jobVo.getNodeFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())) {
                 AutoexecCombopConfigVo config = jobVo.getConfig();
-                JSONObject preFilter = null;
-                if (config != null && config.getExecuteConfig() != null && config.getExecuteConfig().getCombopNodeConfig() != null && MapUtils.isNotEmpty(config.getExecuteConfig().getCombopNodeConfig().getFilter())) {
-                    if (Objects.equals(config.getExecuteConfig().getWhenToSpecify(), CombopNodeSpecify.RUNTIME.getValue())) {
-                        preFilter = config.getExecuteConfig().getCombopNodeConfig().getFilter();
-                        //以preFilter为主
-                        for (Map.Entry<String, Object> entry : preFilter.entrySet()) {
-                            String key = entry.getKey();
-                            Object value = entry.getValue();
-                            if (value == null || (value instanceof JSONArray && CollectionUtils.isEmpty((JSONArray) value))) {
-                                continue;
-                            }
-                            if (filterJson.containsKey(key)) {
-                                filterJson.put(key, value);
-                            }
-                        }
-                    }
+                if (config != null && config.getExecuteConfig() != null
+                        && config.getExecuteConfig().getPreCondition() != null
+                        && Objects.equals(config.getExecuteConfig().getWhenToSpecify(), CombopNodeSpecify.RUNTIME.getValue())
+                ) {
+                    searchVo.setPreCondition(config.getExecuteConfig().getPreCondition());
                 }
             }
-            ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, filterJson);
+
             searchVo.setMaxPageSize(50000);
             searchVo.setPageSize(50000);
             IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
             List<Long> idList;
             StringBuilder sqlSb = new StringBuilder();
+            //是否存在前置条件
+            if (searchVo.getPreCondition() != null && searchVo.getPreCondition().isCustomCondition()) {
+                StringBuilder preSqlSb = new StringBuilder();
+                searchVo.getPreCondition().buildConditionWhereSql(preSqlSb, searchVo.getPreCondition());
+                searchVo.setPreConditionWhereSql(preSqlSb.toString());
+            }
             if (searchVo.isCustomCondition()) {
                 searchVo.buildConditionWhereSql(sqlSb, searchVo);
                 idList = resourceCrossoverMapper.getResourceIdListByDynamicCondition(searchVo, sqlSb.toString());
