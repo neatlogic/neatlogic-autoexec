@@ -2194,7 +2194,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         if(searchVo.getPreCondition() != null && searchVo.getPreCondition().isCustomCondition()){
             StringBuilder preSqlSb = new StringBuilder();
             searchVo.getPreCondition().buildConditionWhereSql(preSqlSb,searchVo.getPreCondition());
-            searchVo.setPreConditionWhereSql(preSqlSb.toString());
+            searchVo.getPreCondition().setConditionWhereSql(preSqlSb.toString());
         }
 
         if (searchVo.isCustomCondition()) {

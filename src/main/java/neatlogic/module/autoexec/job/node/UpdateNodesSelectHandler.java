@@ -17,6 +17,7 @@
 
 package neatlogic.module.autoexec.job.node;
 
+import com.alibaba.fastjson.JSON;
 import neatlogic.framework.autoexec.constvalue.AutoexecJobPhaseNodeFrom;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
@@ -26,6 +27,7 @@ import neatlogic.framework.autoexec.job.node.IUpdateNodes;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -69,8 +71,8 @@ public class UpdateNodesSelectHandler implements IUpdateNodes {
             if (Objects.equals(jobVo.getNodeFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())) {
                 //如果作业层面的节点则补充前置filter
                 AutoexecCombopConfigVo config = jobVo.getConfig();
-                if (config != null && config.getExecuteConfig() != null && config.getExecuteConfig().getPreCondition() != null) {
-                   searchVo.setPreCondition(config.getExecuteConfig().getPreCondition());
+                if (config != null && config.getExecuteConfig() != null && MapUtils.isNotEmpty(config.getExecuteConfig().getPreCondition())) {
+                   searchVo.setPreCondition(JSON.toJavaObject(config.getExecuteConfig().getPreCondition(),ResourceSearchVo.class));
                 }
             }
             searchVo.setIdList(nodeVoList.stream().map(AutoexecNodeVo::getId).collect(toList()));

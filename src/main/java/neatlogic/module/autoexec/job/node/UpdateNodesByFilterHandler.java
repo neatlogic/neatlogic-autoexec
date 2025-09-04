@@ -17,9 +17,9 @@
 
 package neatlogic.module.autoexec.job.node;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.AutoexecJobPhaseNodeFrom;
-import neatlogic.framework.autoexec.constvalue.CombopNodeSpecify;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
@@ -84,10 +84,9 @@ public class UpdateNodesByFilterHandler implements IUpdateNodes {
             if (Objects.equals(jobVo.getNodeFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())) {
                 AutoexecCombopConfigVo config = jobVo.getConfig();
                 if (config != null && config.getExecuteConfig() != null
-                        && config.getExecuteConfig().getPreCondition() != null
-                        && Objects.equals(config.getExecuteConfig().getWhenToSpecify(), CombopNodeSpecify.RUNTIME.getValue())
+                        && MapUtils.isNotEmpty(config.getExecuteConfig().getPreCondition())
                 ) {
-                    searchVo.setPreCondition(config.getExecuteConfig().getPreCondition());
+                    searchVo.setPreCondition(JSON.toJavaObject(config.getExecuteConfig().getPreCondition(),ResourceSearchVo.class));
                 }
             }
 
@@ -100,7 +99,7 @@ public class UpdateNodesByFilterHandler implements IUpdateNodes {
             if (searchVo.getPreCondition() != null && searchVo.getPreCondition().isCustomCondition()) {
                 StringBuilder preSqlSb = new StringBuilder();
                 searchVo.getPreCondition().buildConditionWhereSql(preSqlSb, searchVo.getPreCondition());
-                searchVo.setPreConditionWhereSql(preSqlSb.toString());
+                searchVo.getPreCondition().setConditionWhereSql(preSqlSb.toString());
             }
             if (searchVo.isCustomCondition()) {
                 searchVo.buildConditionWhereSql(sqlSb, searchVo);
