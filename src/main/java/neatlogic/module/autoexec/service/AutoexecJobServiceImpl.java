@@ -2199,7 +2199,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
 
         if (searchVo.isCustomCondition()) {
             searchVo.buildConditionWhereSql(sqlSb, searchVo);
-            count = resourceCrossoverMapper.getResourceCountByDynamicCondition(searchVo, sqlSb.toString());
+            searchVo.setConditionWhereSql(sqlSb.toString());
+            count = resourceCrossoverMapper.getResourceCountByDynamicCondition(searchVo);
         } else {
             count = resourceCrossoverMapper.getResourceCount(searchVo);
         }
@@ -2209,7 +2210,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 searchVo.setCurrentPage(i);
                 List<Long> idList;
                 if (searchVo.isCustomCondition()) {
-                    idList = resourceCrossoverMapper.getResourceIdListByDynamicCondition(searchVo, sqlSb.toString());
+                    idList = resourceCrossoverMapper.getResourceIdListByDynamicCondition(searchVo);
                 } else {
                     idList = resourceCrossoverMapper.getResourceIdList(searchVo);
                 }

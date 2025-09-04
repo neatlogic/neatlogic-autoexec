@@ -103,7 +103,8 @@ public class UpdateNodesByFilterHandler implements IUpdateNodes {
             }
             if (searchVo.isCustomCondition()) {
                 searchVo.buildConditionWhereSql(sqlSb, searchVo);
-                idList = resourceCrossoverMapper.getResourceIdListByDynamicCondition(searchVo, sqlSb.toString());
+                searchVo.setConditionWhereSql(sqlSb.toString());
+                idList = resourceCrossoverMapper.getResourceIdListByDynamicCondition(searchVo);
             } else {
                 idList = resourceCrossoverMapper.getResourceIdList(searchVo);
             }
