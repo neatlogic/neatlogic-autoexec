@@ -21,7 +21,7 @@ import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.AutoexecJobPhaseNodeFrom;
 import neatlogic.framework.autoexec.constvalue.CombopNodeSpecify;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteNodeConfigVo;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.job.node.IUpdateNodes;
 import neatlogic.framework.cmdb.crossover.IResourceCrossoverMapper;
@@ -50,15 +50,15 @@ public class UpdateNodesByFilterHandler implements IUpdateNodes {
     private static final Logger logger = LoggerFactory.getLogger(UpdateNodesByFilterHandler.class);
 
     @Override
-    public boolean update(AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
+    public boolean update(AutoexecCombopExecuteConfigVo executeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
         boolean isHasNode = false;
-        if (executeNodeConfigVo == null) {
+        if (executeConfigVo == null) {
             return false;
         }
-        if (MapUtils.isNotEmpty(executeNodeConfigVo.getFilter())) {
+        if (executeConfigVo.getExecuteNodeConfig() != null && MapUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getFilter())) {
             logger.debug("##updateNodeResourceByFilter:-------------------------------------------------------------------------------start");
             //long updateNodeResourceByFilter = System.currentTimeMillis();
-            isHasNode = updateNodeResourceByFilter(executeNodeConfigVo, jobVo, userName, protocolId);
+            isHasNode = updateNodeResourceByFilter(executeConfigVo, jobVo, userName, protocolId);
             //System.out.println((System.currentTimeMillis() - updateNodeResourceByFilter) + " ##updateNodeResourceByFilter:-------------------------------------------------------------------------------");
             logger.debug("##updateNodeResourceByFilter:-------------------------------------------------------------------------------end");
 
@@ -70,13 +70,13 @@ public class UpdateNodesByFilterHandler implements IUpdateNodes {
      * filter
      * 根据过滤器 更新节点
      *
-     * @param executeNodeConfigVo 执行节点配置
+     * @param executeConfigVo 执行节点配置
      * @param jobVo               作业
      * @param userName            执行用户
      * @param protocolId          协议id
      */
-    public boolean updateNodeResourceByFilter(AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
-        JSONObject filterJson = executeNodeConfigVo.getFilter();
+    public boolean updateNodeResourceByFilter(AutoexecCombopExecuteConfigVo executeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
+        JSONObject filterJson = executeConfigVo.getExecuteNodeConfig().getFilter();
         boolean isHasNode = false;
         if (MapUtils.isNotEmpty(filterJson)) {
             ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, filterJson);

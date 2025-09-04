@@ -20,7 +20,7 @@ package neatlogic.module.autoexec.job.node;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteNodeConfigVo;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.job.JobParamNodeNullException;
 import neatlogic.framework.autoexec.job.node.IUpdateNodes;
@@ -46,14 +46,14 @@ public class UpdateNodesByParamsHandler implements IUpdateNodes {
     AutoexecJobService autoexecJobService;
 
     @Override
-    public boolean update(AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
+    public boolean update(AutoexecCombopExecuteConfigVo executeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
         boolean isHasNode = false;
-        if (executeNodeConfigVo == null) {
+        if (executeConfigVo == null || executeConfigVo.getExecuteNodeConfig() == null) {
             return false;
         }
 
-        if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getParamList())) {
-            isHasNode = updateNodeResourceByParam(jobVo, executeNodeConfigVo, userName, protocolId);
+        if (CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getParamList())) {
+            isHasNode = updateNodeResourceByParam(jobVo, executeConfigVo, userName, protocolId);
         }
         return isHasNode;
     }
@@ -62,13 +62,13 @@ public class UpdateNodesByParamsHandler implements IUpdateNodes {
      * param
      * 根据运行参数中定义的节点参数 更新作业节点
      *
-     * @param executeNodeConfigVo 执行节点配置
+     * @param executeConfigVo 执行节点配置
      * @param jobVo               作业
      * @param userName            执行用户
      * @param protocolId          协议id
      */
-    private boolean updateNodeResourceByParam(AutoexecJobVo jobVo, AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, String userName, Long protocolId) {
-        List<String> paramList = executeNodeConfigVo.getParamList();
+    private boolean updateNodeResourceByParam(AutoexecJobVo jobVo, AutoexecCombopExecuteConfigVo executeConfigVo, String userName, Long protocolId) {
+        List<String> paramList = executeConfigVo.getExecuteNodeConfig().getParamList();
         if (CollectionUtils.isNotEmpty(paramList)) {
             List<AutoexecParamVo> runTimeParamList = jobVo.getRunTimeParamList();
             Set<Long> resourceIdSet = new HashSet<>();

@@ -20,7 +20,7 @@ package neatlogic.module.autoexec.job.node;
 import neatlogic.framework.autoexec.constvalue.AutoexecJobPhaseNodeFrom;
 import neatlogic.framework.autoexec.constvalue.CombopNodeSpecify;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteNodeConfigVo;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.dto.node.AutoexecNodeVo;
 import neatlogic.framework.autoexec.exception.job.AutoexecInputOutOfCountException;
@@ -43,14 +43,14 @@ public class UpdateNodesByInputHandler implements IUpdateNodes {
     AutoexecJobService autoexecJobService;
 
     @Override
-    public boolean update(AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
+    public boolean update(AutoexecCombopExecuteConfigVo executeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
         boolean isHasNode = false;
-        if (executeNodeConfigVo == null) {
+        if (executeConfigVo == null || executeConfigVo.getExecuteNodeConfig() == null) {
             return false;
         }
 
-        if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getInputNodeList())) {
-            isHasNode = updateNodeResourceByInput(executeNodeConfigVo, jobVo, userName, protocolId);
+        if (CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getInputNodeList())) {
+            isHasNode = updateNodeResourceByInput(executeConfigVo, jobVo, userName, protocolId);
         }
         return isHasNode;
     }
@@ -59,13 +59,13 @@ public class UpdateNodesByInputHandler implements IUpdateNodes {
      * inputNodeList、selectNodeList
      * 根据输入和选择节点 更新作业节点
      *
-     * @param executeNodeConfigVo 执行节点配置
+     * @param executeConfigVo 执行节点配置
      * @param jobVo               作业
      * @param userName            执行用户
      * @param protocolId          协议id
      */
-    private boolean updateNodeResourceByInput(AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
-        List<AutoexecNodeVo> nodeVoList = executeNodeConfigVo.getInputNodeList();
+    private boolean updateNodeResourceByInput(AutoexecCombopExecuteConfigVo executeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
+        List<AutoexecNodeVo> nodeVoList = executeConfigVo.getExecuteNodeConfig().getInputNodeList();
         boolean isHasNode = false;
         List<ResourceVo> ipPortNameList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(nodeVoList)) {

@@ -22,7 +22,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.ExecMode;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteNodeConfigVo;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseOperationVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
@@ -58,14 +58,14 @@ public class UpdateNodesByPrePhaseOutputHandler implements IUpdateNodes {
     private MongoTemplate mongoTemplate;
 
     @Override
-    public boolean update(AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
+    public boolean update(AutoexecCombopExecuteConfigVo executeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
         boolean isHasNode = false;
-        if (executeNodeConfigVo == null) {
+        if (executeConfigVo == null || executeConfigVo.getExecuteNodeConfig() == null) {
             return false;
         }
 
-        if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getPreOutputList())) {
-            isHasNode = updateNodeResourceByPrePhaseOutput(jobVo, executeNodeConfigVo, userName, protocolId);
+        if (CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getPreOutputList())) {
+            isHasNode = updateNodeResourceByPrePhaseOutput(jobVo, executeConfigVo, userName, protocolId);
         }
         return isHasNode;
     }
@@ -74,13 +74,13 @@ public class UpdateNodesByPrePhaseOutputHandler implements IUpdateNodes {
      * param
      * 根据上游阶段出参 更新作业节点
      *
-     * @param executeNodeConfigVo 执行节点配置
+     * @param executeConfigVo 执行节点配置
      * @param jobVo               作业
      * @param userName            执行用户
      * @param protocolId          协议id
      */
-    private boolean updateNodeResourceByPrePhaseOutput(AutoexecJobVo jobVo, AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, String userName, Long protocolId) {
-        List<String> preOutputList = executeNodeConfigVo.getPreOutputList();
+    private boolean updateNodeResourceByPrePhaseOutput(AutoexecJobVo jobVo, AutoexecCombopExecuteConfigVo executeConfigVo, String userName, Long protocolId) {
+        List<String> preOutputList = executeConfigVo.getExecuteNodeConfig().getPreOutputList();
         if (CollectionUtils.isEmpty(preOutputList) && preOutputList.size() != 3) {
             throw new AutoexecJobUpdateNodeByPreOutPutListException(jobVo);
         }

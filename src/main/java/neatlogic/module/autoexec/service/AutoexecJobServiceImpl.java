@@ -1049,8 +1049,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
         jobVo.getExecutePhase().setLcd(updateTime);
 
-        AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = combopExecuteConfigVo.getExecuteNodeConfig();
-        boolean isHasNode = UpdateNodesFactory.updateNodes(executeNodeConfigVo, jobVo, userName, protocolId);
+        boolean isHasNode = UpdateNodesFactory.updateNodes(combopExecuteConfigVo, jobVo, userName, protocolId);
         logger.debug("##AfterUpdateNodes:-------------------------------------------------------------------------------start");
         //long ccc = System.currentTimeMillis();
         AutoexecJobPhaseVo jobPhaseVo = jobVo.getExecutePhase();
