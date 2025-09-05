@@ -2200,20 +2200,19 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         if (searchVo.isCustomCondition()) {
             searchVo.buildConditionWhereSql(sqlSb, searchVo);
             searchVo.setConditionWhereSql(sqlSb.toString());
-            count = resourceCrossoverMapper.getResourceCountByDynamicCondition(searchVo);
-        } else {
-            count = resourceCrossoverMapper.getResourceCount(searchVo);
+//            count = resourceCrossoverMapper.getResourceCountByDynamicCondition(searchVo);
         }
+        count = resourceCrossoverMapper.getResourceCount(searchVo);
         if (count > 0) {
             int pageCount = PageUtil.getPageCount(count, searchVo.getPageSize());
             for (int i = 1; i <= pageCount; i++) {
                 searchVo.setCurrentPage(i);
-                List<Long> idList;
-                if (searchVo.isCustomCondition()) {
-                    idList = resourceCrossoverMapper.getResourceIdListByDynamicCondition(searchVo);
-                } else {
-                    idList = resourceCrossoverMapper.getResourceIdList(searchVo);
-                }
+                List<Long> idList = resourceCrossoverMapper.getResourceIdList(searchVo);
+//                if (searchVo.isCustomCondition()) {
+//                    idList = resourceCrossoverMapper.getResourceIdListByDynamicCondition(searchVo);
+//                } else {
+//                    idList = resourceCrossoverMapper.getResourceIdList(searchVo);
+//                }
                 if (CollectionUtils.isNotEmpty(idList)) {
                     List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIdList(idList);
                     if (CollectionUtils.isNotEmpty(resourceList)) {
