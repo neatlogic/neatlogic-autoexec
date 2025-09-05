@@ -24,12 +24,11 @@ import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.job.JobParamNodeNullException;
 import neatlogic.framework.autoexec.job.node.IUpdateNodes;
-import neatlogic.framework.cmdb.crossover.IResourceCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
-import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -58,17 +57,18 @@ public class UpdateNodesByParamsHandler implements IUpdateNodes {
      * 根据运行参数中定义的节点参数 更新作业节点
      *
      * @param executeConfigVo 执行节点配置
-     * @param jobVo               作业
-     * @param userName            执行用户
-     * @param protocolId          协议id
+     * @param jobVo           作业
+     * @param userName        执行用户
+     * @param protocolId      协议id
      */
     private boolean updateNodeResourceByParam(AutoexecJobVo jobVo, AutoexecCombopExecuteConfigVo executeConfigVo, String userName, Long protocolId) {
+        boolean isHasNode = false;
         List<String> paramList = executeConfigVo.getExecuteNodeConfig().getParamList();
         if (CollectionUtils.isNotEmpty(paramList)) {
             List<AutoexecParamVo> runTimeParamList = jobVo.getRunTimeParamList();
             Set<Long> resourceIdSet = new HashSet<>();
-            List<ResourceSearchVo> resourceSearchList = new ArrayList<>();
             if (CollectionUtils.isNotEmpty(runTimeParamList)) {
+                List<ResourceVo> ipPortNameList = new ArrayList<>();
                 List<AutoexecParamVo> paramObjList = runTimeParamList.stream().filter(p -> paramList.contains(p.getKey())).collect(Collectors.toList());
                 paramObjList.forEach(p -> {
                     if (!(p.getValue() instanceof JSONArray) || CollectionUtils.isEmpty((JSONArray) p.getValue())) {
@@ -86,36 +86,37 @@ public class UpdateNodesByParamsHandler implements IUpdateNodes {
                                 if (StringUtils.isNotBlank(ip)) {
                                     Integer port = valueObj.getInteger("port");
                                     String name = valueObj.getString("name");
-                                    ResourceSearchVo resourceSearchVo = new ResourceSearchVo();
-                                    resourceSearchVo.setIp(ip);
-                                    if (port != null) {
-                                        resourceSearchVo.setPort(port.toString());
-                                    }
-                                    resourceSearchVo.setName(name);
-                                    resourceSearchList.add(resourceSearchVo);
+                                    ipPortNameList.add(new ResourceVo(ip, port, name));
                                 }
                             }
                         }
                     }
                 });
-                IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
-                if (CollectionUtils.isNotEmpty(resourceSearchList)) {
-                    for (ResourceSearchVo resourceSearchVo : resourceSearchList) {
-                        Long id = resourceCrossoverMapper.getResourceIdByIpAndPortAndName(resourceSearchVo);
-                        if (id != null) {
-                            resourceIdSet.add(id);
-                        }
+                ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, null);
+                JSONObject preCondition = executeConfigVo.getPreCondition();
+                if (MapUtils.isNotEmpty(preCondition)) {
+                    searchVo.setPreCondition(autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, preCondition));
+                    //存在前置条件是高级模式
+                    if (searchVo.getPreCondition() != null && searchVo.getPreCondition().isCustomCondition()) {
+                        StringBuilder preSqlSb = new StringBuilder();
+                        searchVo.getPreCondition().buildConditionWhereSql(preSqlSb, searchVo.getPreCondition());
+                        searchVo.getPreCondition().setConditionWhereSql(preSqlSb.toString());
+                    }
+                }
+                if (CollectionUtils.isNotEmpty(ipPortNameList)) {
+                    boolean isHasNodeTmp = autoexecJobService.updateNodeByIpPortNameList(ipPortNameList, searchVo, jobVo, userName, protocolId);
+                    if (isHasNodeTmp) {
+                        isHasNode = true;
                     }
                 }
                 if (CollectionUtils.isNotEmpty(resourceIdSet)) {
-                    List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceByIdList(new ArrayList<>(resourceIdSet));
-                    if (CollectionUtils.isNotEmpty(resourceVoList)) {
-                        autoexecJobService.updateJobPhaseNode(jobVo, resourceVoList, userName, protocolId);
-                        return true;
+                    boolean isHasNodeTmp = autoexecJobService.updateNodeByResourceIdList(new ArrayList<>(resourceIdSet), searchVo, jobVo, userName, protocolId);
+                    if (isHasNodeTmp) {
+                        isHasNode = true;
                     }
                 }
             }
         }
-        return false;
+        return isHasNode;
     }
 }

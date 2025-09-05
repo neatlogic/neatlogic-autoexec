@@ -18,7 +18,6 @@
 package neatlogic.module.autoexec.job.node;
 
 import com.alibaba.fastjson.JSONObject;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.job.node.IUpdateNodes;
@@ -70,37 +69,27 @@ public class UpdateNodesByFilterHandler implements IUpdateNodes {
         boolean isHasNode = false;
         if (MapUtils.isNotEmpty(filterJson)) {
             ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, filterJson);
-            AutoexecCombopConfigVo config = jobVo.getConfig();
-            JSONObject preCondition = null;
-            //如果局部存在前置过滤器，优先使用局部的
-            if (MapUtils.isNotEmpty(executeConfigVo.getPreCondition())) {
-                preCondition = executeConfigVo.getPreCondition();
-            } else if (config != null && config.getExecuteConfig() != null
-                    && MapUtils.isNotEmpty(config.getExecuteConfig().getPreCondition())
-            ) {
-                preCondition = config.getExecuteConfig().getPreCondition();
-            }
+            JSONObject preCondition = executeConfigVo.getPreCondition();
             if (MapUtils.isNotEmpty(preCondition)) {
                 searchVo.setPreCondition(autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, preCondition));
+                //存在前置条件是高级模式
+                if (searchVo.getPreCondition() != null && searchVo.getPreCondition().isCustomCondition()) {
+                    StringBuilder preSqlSb = new StringBuilder();
+                    searchVo.getPreCondition().buildConditionWhereSql(preSqlSb, searchVo.getPreCondition());
+                    searchVo.getPreCondition().setConditionWhereSql(preSqlSb.toString());
+                }
             }
-
-            searchVo.setMaxPageSize(50000);
-            searchVo.setPageSize(50000);
-            IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
-            List<Long> idList;
             StringBuilder sqlSb = new StringBuilder();
-            //是否存在前置条件
-            if (searchVo.getPreCondition() != null && searchVo.getPreCondition().isCustomCondition()) {
-                StringBuilder preSqlSb = new StringBuilder();
-                searchVo.getPreCondition().buildConditionWhereSql(preSqlSb, searchVo.getPreCondition());
-                searchVo.getPreCondition().setConditionWhereSql(preSqlSb.toString());
-            }
+            //存在条件是高级模式
             if (searchVo.isCustomCondition()) {
                 searchVo.buildConditionWhereSql(sqlSb, searchVo);
                 searchVo.setConditionWhereSql(sqlSb.toString());
-//                idList = resourceCrossoverMapper.getResourceIdListByDynamicCondition(searchVo);
             }
-            idList = resourceCrossoverMapper.getResourceIdList(searchVo);
+            searchVo.setMaxPageSize(50000);
+            searchVo.setPageSize(50000);
+            IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
+
+            List<Long> idList = resourceCrossoverMapper.getResourceIdList(searchVo);
             int count = idList.size();
             if (count > 0) {
                 int index = 0;
