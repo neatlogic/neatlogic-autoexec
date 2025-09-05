@@ -21,6 +21,7 @@ import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.job.node.IUpdateNodes;
+import neatlogic.framework.cmdb.crossover.IResourceCenterResourceCrossoverService;
 import neatlogic.framework.cmdb.crossover.IResourceCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
@@ -88,8 +89,8 @@ public class UpdateNodesByFilterHandler implements IUpdateNodes {
             searchVo.setMaxPageSize(50000);
             searchVo.setPageSize(50000);
             IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
-
-            List<Long> idList = resourceCrossoverMapper.getResourceIdList(searchVo);
+            IResourceCenterResourceCrossoverService resourceCenterResourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
+            List<Long> idList = resourceCenterResourceCrossoverService.getResourceIdList(searchVo);
             int count = idList.size();
             if (count > 0) {
                 int index = 0;
@@ -103,7 +104,7 @@ public class UpdateNodesByFilterHandler implements IUpdateNodes {
                     i--;
                     logger.debug("##getResourceListByIdList:-------------------------------------------------------------------------------start");
                     //long bbb = System.currentTimeMillis();
-                    List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIdList(idPageList);
+                    List<ResourceVo> resourceList = resourceCenterResourceCrossoverService.getResourceListByIdList(idPageList);
                     //System.out.println((System.currentTimeMillis() - bbb) + " ##bbb:-------------------------------------------------------------------------------");
                     logger.debug("##getResourceListByIdList:-------------------------------------------------------------------------------end");
                     if (CollectionUtils.isNotEmpty(resourceList)) {
@@ -120,7 +121,7 @@ public class UpdateNodesByFilterHandler implements IUpdateNodes {
                 if (CollectionUtils.isNotEmpty(idPageList)) {
                     logger.debug("##getResourceListByIdList last:-------------------------------------------------------------------------------start");
                     //long bbb = System.currentTimeMillis();
-                    List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIdList(idPageList);
+                    List<ResourceVo> resourceList = resourceCenterResourceCrossoverService.getResourceListByIdList(idPageList);
                     //System.out.println((System.currentTimeMillis() - bbb) + " ##bbb:-------------------------------------------------------------------------------");
                     logger.debug("##getResourceListByIdList last:-------------------------------------------------------------------------------end");
                     if (CollectionUtils.isNotEmpty(resourceList)) {

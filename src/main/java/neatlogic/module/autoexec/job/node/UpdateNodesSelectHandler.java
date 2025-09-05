@@ -22,6 +22,7 @@ import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.dto.node.AutoexecNodeVo;
 import neatlogic.framework.autoexec.job.node.IUpdateNodes;
+import neatlogic.framework.cmdb.crossover.IResourceCenterResourceCrossoverService;
 import neatlogic.framework.cmdb.crossover.IResourceCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
@@ -76,14 +77,15 @@ public class UpdateNodesSelectHandler implements IUpdateNodes {
             searchVo.setIdList(nodeVoList.stream().map(AutoexecNodeVo::getId).collect(toList()));
             int count;
             IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
-            count = resourceCrossoverMapper.getResourceCount(searchVo);
+            IResourceCenterResourceCrossoverService resourceCenterResourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
+            count = resourceCenterResourceCrossoverService.getResourceCount(searchVo);
             if (count > 0) {
                 int pageCount = PageUtil.getPageCount(count, searchVo.getPageSize());
                 for (int i = 1; i <= pageCount; i++) {
                     searchVo.setCurrentPage(i);
-                    List<Long> idList = resourceCrossoverMapper.getResourceIdList(searchVo);
+                    List<Long> idList = resourceCenterResourceCrossoverService.getResourceIdList(searchVo);
                     if (CollectionUtils.isNotEmpty(idList)) {
-                        List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIdList(idList);
+                        List<ResourceVo> resourceList = resourceCenterResourceCrossoverService.getResourceListByIdList(idList);
                         if (CollectionUtils.isNotEmpty(resourceList)) {
                             autoexecJobService.updateJobPhaseNode(jobVo, resourceList, userName, protocolId);
                             isHasNode = true;

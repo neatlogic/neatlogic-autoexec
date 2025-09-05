@@ -42,6 +42,7 @@ import neatlogic.framework.autoexec.source.AutoexecJobSourceFactory;
 import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import neatlogic.framework.cmdb.crossover.IResourceCenterAccountCrossoverService;
+import neatlogic.framework.cmdb.crossover.IResourceCenterResourceCrossoverService;
 import neatlogic.framework.cmdb.crossover.IResourceCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountBaseVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
@@ -293,13 +294,13 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
                                 autoexecJobSourceActionHandler.addExtraJobPhaseNodeBlueGreenInfoByList(jobVo.getId(), autoexecJobPhaseNodeVoList);
                             }
 
-                            IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
+                            IResourceCenterResourceCrossoverService resourceCenterResourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
                             List<Long> resourceIdList = autoexecJobPhaseNodeVoList.stream().map(AutoexecJobPhaseNodeVo::getResourceId).filter(Objects::nonNull).collect(Collectors.toList());
                             List<Long> resourceIncludeOsIdList = new ArrayList<>(resourceIdList);
                             //针对巡检 批量补充对应资产的appSystemId
                             if (CollectionUtils.isNotEmpty(resourceIdList)) {
                                 if (isInspect) {
-                                    List<ResourceVo> ipObjectResourceList = resourceCrossoverMapper.getResourceListByIdList(resourceIdList);
+                                    List<ResourceVo> ipObjectResourceList = resourceCenterResourceCrossoverService.getResourceListByIdList(resourceIdList);
                                     if (CollectionUtils.isNotEmpty(ipObjectResourceList)) {
                                         resourceAppSystemMap.putAll(ipObjectResourceList.stream().filter(o -> o.getAppSystemId() != null).collect(Collectors.toMap(ResourceVo::getId, o -> {
                                             List<Long> appSystemIdList = new ArrayList<>();
