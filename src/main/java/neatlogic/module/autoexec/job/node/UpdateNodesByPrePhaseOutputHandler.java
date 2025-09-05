@@ -59,15 +59,10 @@ public class UpdateNodesByPrePhaseOutputHandler implements IUpdateNodes {
 
     @Override
     public boolean update(AutoexecCombopExecuteConfigVo executeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
-        boolean isHasNode = false;
-        if (executeConfigVo == null || executeConfigVo.getExecuteNodeConfig() == null) {
+        if (CollectionUtils.isEmpty(executeConfigVo.getExecuteNodeConfig().getPreOutputList())) {
             return false;
         }
-
-        if (CollectionUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getPreOutputList())) {
-            isHasNode = updateNodeResourceByPrePhaseOutput(jobVo, executeConfigVo, userName, protocolId);
-        }
-        return isHasNode;
+        return updateNodeResourceByPrePhaseOutput(jobVo, executeConfigVo, userName, protocolId);
     }
 
     /**

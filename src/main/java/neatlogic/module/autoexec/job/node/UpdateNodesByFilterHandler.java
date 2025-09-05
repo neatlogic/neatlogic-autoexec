@@ -17,9 +17,7 @@
 
 package neatlogic.module.autoexec.job.node;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import neatlogic.framework.autoexec.constvalue.AutoexecJobPhaseNodeFrom;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
@@ -28,7 +26,6 @@ import neatlogic.framework.cmdb.crossover.IResourceCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
-import neatlogic.module.autoexec.dao.mapper.AutoexecResourceMapper;
 import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -39,30 +36,23 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 @Service
 public class UpdateNodesByFilterHandler implements IUpdateNodes {
     @Resource
     AutoexecJobService autoexecJobService;
-    @Resource
-    private AutoexecResourceMapper autoexecResourceMapper;
     private static final Logger logger = LoggerFactory.getLogger(UpdateNodesByFilterHandler.class);
 
     @Override
     public boolean update(AutoexecCombopExecuteConfigVo executeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
-        boolean isHasNode = false;
-        if (executeConfigVo == null) {
+        if (MapUtils.isEmpty(executeConfigVo.getExecuteNodeConfig().getFilter())) {
             return false;
         }
-        if (executeConfigVo.getExecuteNodeConfig() != null && MapUtils.isNotEmpty(executeConfigVo.getExecuteNodeConfig().getFilter())) {
-            logger.debug("##updateNodeResourceByFilter:-------------------------------------------------------------------------------start");
-            //long updateNodeResourceByFilter = System.currentTimeMillis();
-            isHasNode = updateNodeResourceByFilter(executeConfigVo, jobVo, userName, protocolId);
-            //System.out.println((System.currentTimeMillis() - updateNodeResourceByFilter) + " ##updateNodeResourceByFilter:-------------------------------------------------------------------------------");
-            logger.debug("##updateNodeResourceByFilter:-------------------------------------------------------------------------------end");
-
-        }
+        logger.debug("##updateNodeResourceByFilter:-------------------------------------------------------------------------------start");
+        //long updateNodeResourceByFilter = System.currentTimeMillis();
+        boolean isHasNode = updateNodeResourceByFilter(executeConfigVo, jobVo, userName, protocolId);
+        //System.out.println((System.currentTimeMillis() - updateNodeResourceByFilter) + " ##updateNodeResourceByFilter:-------------------------------------------------------------------------------");
+        logger.debug("##updateNodeResourceByFilter:-------------------------------------------------------------------------------end");
         return isHasNode;
     }
 
@@ -71,23 +61,27 @@ public class UpdateNodesByFilterHandler implements IUpdateNodes {
      * 根据过滤器 更新节点
      *
      * @param executeConfigVo 执行节点配置
-     * @param jobVo               作业
-     * @param userName            执行用户
-     * @param protocolId          协议id
+     * @param jobVo           作业
+     * @param userName        执行用户
+     * @param protocolId      协议id
      */
     public boolean updateNodeResourceByFilter(AutoexecCombopExecuteConfigVo executeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
         JSONObject filterJson = executeConfigVo.getExecuteNodeConfig().getFilter();
         boolean isHasNode = false;
         if (MapUtils.isNotEmpty(filterJson)) {
             ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, filterJson);
-            //如果作业层面的节点则补充前置filter
-            if (Objects.equals(jobVo.getNodeFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())) {
-                AutoexecCombopConfigVo config = jobVo.getConfig();
-                if (config != null && config.getExecuteConfig() != null
-                        && MapUtils.isNotEmpty(config.getExecuteConfig().getPreCondition())
-                ) {
-                    searchVo.setPreCondition(JSON.toJavaObject(config.getExecuteConfig().getPreCondition(),ResourceSearchVo.class));
-                }
+            AutoexecCombopConfigVo config = jobVo.getConfig();
+            JSONObject preCondition = null;
+            //如果局部存在前置过滤器，优先使用局部的
+            if (MapUtils.isNotEmpty(executeConfigVo.getPreCondition())) {
+                preCondition = executeConfigVo.getPreCondition();
+            } else if (config != null && config.getExecuteConfig() != null
+                    && MapUtils.isNotEmpty(config.getExecuteConfig().getPreCondition())
+            ) {
+                preCondition = config.getExecuteConfig().getPreCondition();
+            }
+            if (MapUtils.isNotEmpty(preCondition)) {
+                searchVo.setPreCondition(autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, preCondition));
             }
 
             searchVo.setMaxPageSize(50000);
