@@ -74,21 +74,21 @@ public class UpdateNodesByFilterHandler implements IUpdateNodes {
             if (MapUtils.isNotEmpty(preCondition)) {
                 searchVo.setPreCondition(autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, preCondition));
                 //存在前置条件是高级模式
-                if (searchVo.getPreCondition() != null && searchVo.getPreCondition().isCustomCondition()) {
-                    StringBuilder preSqlSb = new StringBuilder();
-                    searchVo.getPreCondition().buildConditionWhereSql(preSqlSb, searchVo.getPreCondition());
-                    searchVo.getPreCondition().setConditionWhereSql(preSqlSb.toString());
-                }
+//                if (searchVo.getPreCondition() != null && searchVo.getPreCondition().isCustomCondition()) {
+//                    StringBuilder preSqlSb = new StringBuilder();
+//                    searchVo.getPreCondition().buildConditionWhereSql(preSqlSb, searchVo.getPreCondition());
+//                    searchVo.getPreCondition().setConditionWhereSql(preSqlSb.toString());
+//                }
             }
-            StringBuilder sqlSb = new StringBuilder();
-            //存在条件是高级模式
-            if (searchVo.isCustomCondition()) {
-                searchVo.buildConditionWhereSql(sqlSb, searchVo);
-                searchVo.setConditionWhereSql(sqlSb.toString());
-            }
+//            StringBuilder sqlSb = new StringBuilder();
+//            //存在条件是高级模式
+//            if (searchVo.isCustomCondition()) {
+//                searchVo.buildConditionWhereSql(sqlSb, searchVo);
+//                searchVo.setConditionWhereSql(sqlSb.toString());
+//            }
             searchVo.setMaxPageSize(50000);
             searchVo.setPageSize(50000);
-            IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
+//            IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
             IResourceCenterResourceCrossoverService resourceCenterResourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
             List<Long> idList = resourceCenterResourceCrossoverService.getResourceIdList(searchVo);
             int count = idList.size();

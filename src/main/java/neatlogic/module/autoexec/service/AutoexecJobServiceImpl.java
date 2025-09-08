@@ -1162,8 +1162,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
         IResourceCenterResourceCrossoverService resourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
         ResourceSearchVo searchVo = resourceCrossoverService.assembleResourceSearchVo(filterJson);
-        resourceCrossoverService.handleBatchSearchList(searchVo);
-        resourceCrossoverService.setIpFieldAttrIdAndNameFieldAttrId(searchVo);
+//        resourceCrossoverService.handleBatchSearchList(searchVo);
+//        resourceCrossoverService.setIpFieldAttrIdAndNameFieldAttrId(searchVo);
         return searchVo;
     }
 

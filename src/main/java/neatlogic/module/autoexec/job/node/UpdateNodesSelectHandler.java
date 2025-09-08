@@ -68,15 +68,15 @@ public class UpdateNodesSelectHandler implements IUpdateNodes {
             if (MapUtils.isNotEmpty(executeConfigVo.getPreCondition())) {
                 searchVo.setPreCondition(JSON.toJavaObject(executeConfigVo.getPreCondition(), ResourceSearchVo.class));
                 //存在前置条件是高级模式
-                if (searchVo.getPreCondition() != null && searchVo.getPreCondition().isCustomCondition()) {
-                    StringBuilder preSqlSb = new StringBuilder();
-                    searchVo.getPreCondition().buildConditionWhereSql(preSqlSb, searchVo.getPreCondition());
-                    searchVo.getPreCondition().setConditionWhereSql(preSqlSb.toString());
-                }
+//                if (searchVo.getPreCondition() != null && searchVo.getPreCondition().isCustomCondition()) {
+//                    StringBuilder preSqlSb = new StringBuilder();
+//                    searchVo.getPreCondition().buildConditionWhereSql(preSqlSb, searchVo.getPreCondition());
+//                    searchVo.getPreCondition().setConditionWhereSql(preSqlSb.toString());
+//                }
             }
             searchVo.setIdList(nodeVoList.stream().map(AutoexecNodeVo::getId).collect(toList()));
             int count;
-            IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
+//            IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
             IResourceCenterResourceCrossoverService resourceCenterResourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
             count = resourceCenterResourceCrossoverService.getResourceCount(searchVo);
             if (count > 0) {

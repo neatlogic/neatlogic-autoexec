@@ -135,11 +135,11 @@ public class UpdateNodesByPrePhaseOutputHandler implements IUpdateNodes {
             if (MapUtils.isNotEmpty(preCondition)) {
                 searchVo.setPreCondition(autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, preCondition));
                 //存在前置条件是高级模式
-                if (searchVo.getPreCondition() != null && searchVo.getPreCondition().isCustomCondition()) {
-                    StringBuilder preSqlSb = new StringBuilder();
-                    searchVo.getPreCondition().buildConditionWhereSql(preSqlSb, searchVo.getPreCondition());
-                    searchVo.getPreCondition().setConditionWhereSql(preSqlSb.toString());
-                }
+//                if (searchVo.getPreCondition() != null && searchVo.getPreCondition().isCustomCondition()) {
+//                    StringBuilder preSqlSb = new StringBuilder();
+//                    searchVo.getPreCondition().buildConditionWhereSql(preSqlSb, searchVo.getPreCondition());
+//                    searchVo.getPreCondition().setConditionWhereSql(preSqlSb.toString());
+//                }
             }
             autoexecJobService.updateNodeByIpPortNameList(ipPortNameList, searchVo, jobVo, userName, protocolId);
         }
