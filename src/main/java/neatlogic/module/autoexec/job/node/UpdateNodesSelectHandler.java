@@ -23,7 +23,6 @@ import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.dto.node.AutoexecNodeVo;
 import neatlogic.framework.autoexec.job.node.IUpdateNodes;
 import neatlogic.framework.cmdb.crossover.IResourceCenterResourceCrossoverService;
-import neatlogic.framework.cmdb.crossover.IResourceCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
 import neatlogic.framework.common.util.PageUtil;
@@ -67,16 +66,9 @@ public class UpdateNodesSelectHandler implements IUpdateNodes {
             ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, null);
             if (MapUtils.isNotEmpty(executeConfigVo.getPreCondition())) {
                 searchVo.setPreCondition(JSON.toJavaObject(executeConfigVo.getPreCondition(), ResourceSearchVo.class));
-                //存在前置条件是高级模式
-//                if (searchVo.getPreCondition() != null && searchVo.getPreCondition().isCustomCondition()) {
-//                    StringBuilder preSqlSb = new StringBuilder();
-//                    searchVo.getPreCondition().buildConditionWhereSql(preSqlSb, searchVo.getPreCondition());
-//                    searchVo.getPreCondition().setConditionWhereSql(preSqlSb.toString());
-//                }
             }
             searchVo.setIdList(nodeVoList.stream().map(AutoexecNodeVo::getId).collect(toList()));
             int count;
-//            IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
             IResourceCenterResourceCrossoverService resourceCenterResourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
             count = resourceCenterResourceCrossoverService.getResourceCount(searchVo);
             if (count > 0) {

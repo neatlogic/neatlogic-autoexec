@@ -96,12 +96,6 @@ public class UpdateNodesByParamsHandler implements IUpdateNodes {
                 JSONObject preCondition = executeConfigVo.getPreCondition();
                 if (MapUtils.isNotEmpty(preCondition)) {
                     searchVo.setPreCondition(autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, preCondition));
-                    //存在前置条件是高级模式
-//                    if (searchVo.getPreCondition() != null && searchVo.getPreCondition().isCustomCondition()) {
-//                        StringBuilder preSqlSb = new StringBuilder();
-//                        searchVo.getPreCondition().buildConditionWhereSql(preSqlSb, searchVo.getPreCondition());
-//                        searchVo.getPreCondition().setConditionWhereSql(preSqlSb.toString());
-//                    }
                 }
                 if (CollectionUtils.isNotEmpty(ipPortNameList)) {
                     boolean isHasNodeTmp = autoexecJobService.updateNodeByIpPortNameList(ipPortNameList, searchVo, jobVo, userName, protocolId);
