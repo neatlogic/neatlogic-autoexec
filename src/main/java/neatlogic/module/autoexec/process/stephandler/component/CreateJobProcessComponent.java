@@ -219,72 +219,93 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
                             continue;
                         }
                         if (Objects.equals(createJobConfigConfigVo.getType(), "service")) {
-                            JSONObject paramObj = null;
-                            Long processTaskId = processTaskStepVo.getProcessTaskId();
-                            // 如果工单有表单信息，则查询出表单配置及数据
-                            IProcessTaskCrossoverService processTaskCrossoverService = CrossoverServiceFactory.getApi(IProcessTaskCrossoverService.class);
-                            List<FormAttributeVo> formAttributeList = processTaskCrossoverService.getFormAttributeListByProcessTaskIdAngTagNew(processTaskId, createJobConfigConfigVo.getFormTag());
-                            if (CollectionUtils.isNotEmpty(formAttributeList)) {
-                                List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskIdAndTagNew(processTaskId, createJobConfigConfigVo.getFormTag());
-                                for (ProcessTaskFormAttributeDataVo attributeDataVo : processTaskFormAttributeDataList) {
-                                    if (Objects.equals(attributeDataVo.getAttributeUuid(), createJobConfigConfigVo.getFormAttributeUuid())) {
-                                        paramObj = (JSONObject) attributeDataVo.getDataObj();
-                                        break;
+                            Long combopId = null;
+                            String jobName = null;
+                            try {
+                                JSONObject paramObj = null;
+                                Long processTaskId = processTaskStepVo.getProcessTaskId();
+                                // 如果工单有表单信息，则查询出表单配置及数据
+                                IProcessTaskCrossoverService processTaskCrossoverService = CrossoverServiceFactory.getApi(IProcessTaskCrossoverService.class);
+                                List<FormAttributeVo> formAttributeList = processTaskCrossoverService.getFormAttributeListByProcessTaskIdAngTagNew(processTaskId, createJobConfigConfigVo.getFormTag());
+                                if (CollectionUtils.isNotEmpty(formAttributeList)) {
+                                    List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskIdAndTagNew(processTaskId, createJobConfigConfigVo.getFormTag());
+                                    for (ProcessTaskFormAttributeDataVo attributeDataVo : processTaskFormAttributeDataList) {
+                                        if (Objects.equals(attributeDataVo.getAttributeUuid(), createJobConfigConfigVo.getFormAttributeUuid())) {
+                                            paramObj = (JSONObject) attributeDataVo.getDataObj();
+                                            break;
+                                        }
                                     }
                                 }
-                            }
-                            if (MapUtils.isNotEmpty(paramObj)) {
-                                Long serviceId = paramObj.getLong("serviceId");
-                                AutoexecServiceVo autoexecServiceVo = autoexecServiceMapper.getAutoexecServiceById(serviceId);
-                                if (autoexecServiceVo == null) {
-                                    throw new AutoexecServiceNotFoundException(serviceId);
+                                if (MapUtils.isNotEmpty(paramObj)) {
+                                    Long serviceId = paramObj.getLong("serviceId");
+                                    String name = paramObj.getString("name");
+                                    jobName = name;
+                                    AutoexecServiceVo autoexecServiceVo = autoexecServiceMapper.getAutoexecServiceById(serviceId);
+                                    if (autoexecServiceVo == null) {
+                                        throw new AutoexecServiceNotFoundException(serviceId);
+                                    }
+                                    if (Objects.equals(autoexecServiceVo.getConfigExpired(), 1)) {
+                                        throw new AutoexecServiceConfigExpiredException(autoexecServiceVo.getName());
+                                    }
+                                    combopId = autoexecServiceVo.getCombopId();
+                                    AutoexecCombopVersionVo autoexecCombopVersionVo = autoexecCombopVersionMapper.getAutoexecCombopActiveVersionByCombopId(combopId);
+                                    if (autoexecCombopVersionVo == null) {
+                                        throw new AutoexecCombopActiveVersionNotFoundException(combopId);
+                                    }
+                                    Long scenarioId = paramObj.getLong("scenarioId");
+                                    JSONArray formAttributeDataList = paramObj.getJSONArray("formAttributeDataList");
+                                    JSONArray hidecomponentList = paramObj.getJSONArray("hidecomponentList");
+                                    Integer roundCount = paramObj.getInteger("roundCount");
+                                    Integer parallelCount = paramObj.getInteger("parallelCount");
+                                    String parallelPolicy = paramObj.getString("parallelPolicy");
+                                    String executeUser = paramObj.getString("executeUser");
+                                    Long protocol = paramObj.getLong("protocol");
+                                    AutoexecCombopExecuteNodeConfigVo executeNodeConfig = paramObj.getObject("executeNodeConfig", AutoexecCombopExecuteNodeConfigVo.class);
+                                    JSONObject runtimeParamMap = paramObj.getJSONObject("runtimeParamMap");
+                                    ParamMappingVo runnerGroup = null;
+                                    JSONObject runnerGroupObj = paramObj.getJSONObject("runnerGroup");
+                                    if (MapUtils.isNotEmpty(runnerGroupObj)) {
+                                        runnerGroup = runnerGroupObj.toJavaObject(ParamMappingVo.class);
+                                    }
+                                    ParamMappingVo runnerGroupTag = null;
+                                    JSONObject runnerGroupTagObj = paramObj.getJSONObject("runnerGroupTag");
+                                    if (MapUtils.isNotEmpty(runnerGroupTagObj)) {
+                                        runnerGroupTag = runnerGroupTagObj.toJavaObject(ParamMappingVo.class);
+                                    }
+                                    AutoexecJobBuilder autoexecJobBuilder = autoexecServiceService.getAutoexecJobBuilder(autoexecServiceVo, autoexecCombopVersionVo, name, scenarioId, formAttributeDataList, hidecomponentList, roundCount, parallelCount, parallelPolicy, executeUser, protocol, executeNodeConfig, runtimeParamMap, runnerGroup, runnerGroupTag);
+                                    if (autoexecJobBuilder != null) {
+                                        builderList.add(autoexecJobBuilder);
+                                    }
                                 }
-                                if (Objects.equals(autoexecServiceVo.getConfigExpired(), 1)) {
-                                    throw new AutoexecServiceConfigExpiredException(autoexecServiceVo.getName());
-                                }
-                                Long combopId = autoexecServiceVo.getCombopId();
-                                AutoexecCombopVersionVo autoexecCombopVersionVo = autoexecCombopVersionMapper.getAutoexecCombopActiveVersionByCombopId(combopId);
-                                if (autoexecCombopVersionVo == null) {
-                                    throw new AutoexecCombopActiveVersionNotFoundException(combopId);
-                                }
-                                String name = paramObj.getString("name");
-                                Long scenarioId = paramObj.getLong("scenarioId");
-                                JSONArray formAttributeDataList = paramObj.getJSONArray("formAttributeDataList");
-                                JSONArray hidecomponentList = paramObj.getJSONArray("hidecomponentList");
-                                Integer roundCount = paramObj.getInteger("roundCount");
-                                Integer parallelCount = paramObj.getInteger("parallelCount");
-                                String parallelPolicy = paramObj.getString("parallelPolicy");
-                                String executeUser = paramObj.getString("executeUser");
-                                Long protocol = paramObj.getLong("protocol");
-                                AutoexecCombopExecuteNodeConfigVo executeNodeConfig = paramObj.getObject("executeNodeConfig", AutoexecCombopExecuteNodeConfigVo.class);
-                                JSONObject runtimeParamMap = paramObj.getJSONObject("runtimeParamMap");
-                                ParamMappingVo runnerGroup = null;
-                                JSONObject runnerGroupObj = paramObj.getJSONObject("runnerGroup");
-                                if (MapUtils.isNotEmpty(runnerGroupObj)) {
-                                    runnerGroup = runnerGroupObj.toJavaObject(ParamMappingVo.class);
-                                }
-                                ParamMappingVo runnerGroupTag = null;
-                                JSONObject runnerGroupTagObj = paramObj.getJSONObject("runnerGroupTag");
-                                if (MapUtils.isNotEmpty(runnerGroupTagObj)) {
-                                    runnerGroupTag = runnerGroupTagObj.toJavaObject(ParamMappingVo.class);
-                                }
-                                AutoexecJobBuilder autoexecJobBuilder = autoexecServiceService.getAutoexecJobBuilder(autoexecServiceVo, autoexecCombopVersionVo, name, scenarioId, formAttributeDataList, hidecomponentList, roundCount,parallelCount,parallelPolicy, executeUser, protocol, executeNodeConfig, runtimeParamMap, runnerGroup, runnerGroupTag);
-                                if (autoexecJobBuilder != null) {
-                                    builderList.add(autoexecJobBuilder);
-                                }
+                            } catch (Exception e) {
+                                logger.error(e.getMessage(), e);
+                                AutoexecJobBuilder autoexecJobBuilder = new AutoexecJobBuilder(combopId);
+                                autoexecJobBuilder.setJobName(jobName);
+                                autoexecJobBuilder.setError(e.getMessage());
+                                builderList.add(autoexecJobBuilder);
                             }
                         } else {
-                            Long activeVersionId = autoexecCombopVersionMapper.getAutoexecCombopActiveVersionIdByCombopId(createJobConfigConfigVo.getCombopId());
-                            if (activeVersionId == null) {
-                                throw new AutoexecCombopActiveVersionNotFoundException(createJobConfigConfigVo.getCombopId());
+                            try {
+                                Long activeVersionId = autoexecCombopVersionMapper.getAutoexecCombopActiveVersionIdByCombopId(createJobConfigConfigVo.getCombopId());
+                                if (activeVersionId == null) {
+                                    throw new AutoexecCombopActiveVersionNotFoundException(createJobConfigConfigVo.getCombopId());
+                                }
+                                AutoexecCombopVersionVo autoexecCombopVersionVo = autoexecCombopService.getAutoexecCombopVersionById(activeVersionId);
+                                if (autoexecCombopVersionVo == null) {
+                                    throw new AutoexecCombopVersionNotFoundException(activeVersionId);
+                                }
+                                // 根据配置信息创建AutoexecJobBuilder对象
+                                List<AutoexecJobBuilder> list = CreateJobConfigUtil.createAutoexecJobBuilderList(processTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo);
+                                if (CollectionUtils.isNotEmpty(list)) {
+                                    builderList.addAll(list);
+                                }
+                            } catch (Exception e) {
+                                logger.error(e.getMessage(), e);
+                                AutoexecJobBuilder autoexecJobBuilder = new AutoexecJobBuilder(createJobConfigConfigVo.getCombopId());
+                                autoexecJobBuilder.setJobName(createJobConfigConfigVo.getJobName());
+                                autoexecJobBuilder.setError(e.getMessage());
+                                builderList.add(autoexecJobBuilder);
                             }
-                            AutoexecCombopVersionVo autoexecCombopVersionVo = autoexecCombopService.getAutoexecCombopVersionById(activeVersionId);
-                            if (autoexecCombopVersionVo == null) {
-                                throw new AutoexecCombopVersionNotFoundException(activeVersionId);
-                            }
-                            // 根据配置信息创建AutoexecJobBuilder对象
-                            List<AutoexecJobBuilder> list = CreateJobConfigUtil.createAutoexecJobBuilderList(processTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo);
-                            builderList.addAll(list);
                         }
 
                     }
