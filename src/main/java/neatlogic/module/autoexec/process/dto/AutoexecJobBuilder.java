@@ -55,6 +55,8 @@ public class AutoexecJobBuilder {
     @EntityField(name = "作业参数数据", type = ApiParamType.JSONOBJECT)
     private JSONObject param;
 
+    private String error;
+
     public Long getCombopId() {
         return combopId;
     }
@@ -129,6 +131,14 @@ public class AutoexecJobBuilder {
 
     public void setParallelPolicy(String parallelPolicy) {
         this.parallelPolicy = parallelPolicy;
+    }
+
+    public String getError() {
+        return error;
+    }
+
+    public void setError(String error) {
+        this.error = error;
     }
 
     public AutoexecJobBuilder(Long combopId) {
