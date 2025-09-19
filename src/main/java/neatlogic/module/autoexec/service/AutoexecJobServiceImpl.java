@@ -844,7 +844,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
         for (AutoexecParamVo paramVo : runTimeParamList) {
             if (paramVo != null) {
-                if(param.containsKey(paramVo.getKey())) {
+                if(MapUtils.isNotEmpty(param) && param.containsKey(paramVo.getKey())) {
                     Object value = param.get(paramVo.getKey());
                     paramVo.setValue(value);
                 }else{
