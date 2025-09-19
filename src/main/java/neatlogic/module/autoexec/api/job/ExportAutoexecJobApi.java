@@ -110,7 +110,7 @@ public class ExportAutoexecJobApi extends PrivateBinaryStreamApiComponentBase {
             }
         }
         List<AutoexecJobPhaseVo> phaseVoList = autoexecJobMapper.getJobPhaseListWithGroupByJobId(jobId);
-        if (phaseVoList.size() > 0) {
+        if (!phaseVoList.isEmpty()) {
             ExcelBuilder builder = new ExcelBuilder(SXSSFWorkbook.class);
             builder.withBorderColor(HSSFColor.HSSFColorPredefined.GREY_40_PERCENT)
                     .withHeadFontColor(HSSFColor.HSSFColorPredefined.WHITE)
@@ -122,21 +122,16 @@ public class ExportAutoexecJobApi extends PrivateBinaryStreamApiComponentBase {
                     handler.exportJobPhaseNodeWithNodeOutputParam(jobVo, phaseVo, phaseOutputParamMap.get(phaseVo.getName()), builder, getHeadList(phaseVo.getExecMode()), getColumnList(phaseVo.getExecMode()));
                 }
             }
-            Workbook workbook = builder.build();
-            if (workbook != null) {
-                String fileName = FileUtil.getEncodedFileName(jobVo.getName() + ".xlsx");
-                response.setContentType("application/vnd.ms-excel;charset=utf-8");
-                response.setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
-
-                try (OutputStream os = response.getOutputStream()) {
+            try (Workbook workbook = builder.build();
+                 OutputStream os = response.getOutputStream()) {
+                if (workbook != null) {
+                    String fileName = FileUtil.getEncodedFileName(jobVo.getName() + ".xlsx");
+                    response.setContentType("application/vnd.ms-excel;charset=utf-8");
+                    response.setHeader("Content-Disposition", "attachment; filename=\"" + fileName + "\"");
                     workbook.write(os);
-                } catch (IOException e) {
-                    logger.error(e.getMessage(), e);
-                } finally {
-                    if (workbook != null) {
-                        ((SXSSFWorkbook) workbook).dispose();
-                    }
                 }
+            } catch (IOException e) {
+                logger.error(e.getMessage(), e);
             }
         }
         return null;
