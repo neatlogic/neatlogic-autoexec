@@ -340,7 +340,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         List<AutoexecParamVo> autoexecParamVoList = config.getRuntimeParamList();
         if (CollectionUtils.isNotEmpty(autoexecParamVoList)) {
             autoexecService.validateRuntimeParamList(autoexecParamVoList);
-            runtimeParamMap = autoexecParamVoList.stream().collect(Collectors.toMap(e -> e.getKey(), e -> e));
+            runtimeParamMap = autoexecParamVoList.stream().collect(Collectors.toMap(AutoexecParamVo::getKey, e -> e));
         }
         Map<String, AutoexecParamVo> preNodeOutputParamMap = new HashMap<>();
         Map<String, String> preNodeNameMap = new HashMap<>();
@@ -514,7 +514,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             if (profileId != null) {
                 List<AutoexecProfileParamVo> profileParamList = autoexecProfileService.getProfileParamListById(profileId);
                 if (CollectionUtils.isNotEmpty(profileParamList)) {
-                    profileParamMap = profileParamList.stream().collect(Collectors.toMap(e -> e.getKey(), e -> e));
+                    profileParamMap = profileParamList.stream().collect(Collectors.toMap(AutoexecParamVo::getKey, e -> e));
                 }
             }
             //验证输入参数
@@ -574,20 +574,6 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             Map<String, String> preOperationNameMap
     ) {
         if (CollectionUtils.isNotEmpty(mappingList)) {
-            // 输入参数文本框能映射的类型
-            List<String> textMappingParamTypeList = new ArrayList<>();
-            textMappingParamTypeList.add(ParamType.DATE.getValue());
-            textMappingParamTypeList.add(ParamType.TIME.getValue());
-            textMappingParamTypeList.add(ParamType.DATETIME.getValue());
-            textMappingParamTypeList.add(ParamType.SELECT.getValue());
-            textMappingParamTypeList.add(ParamType.RADIO.getValue());
-            textMappingParamTypeList.add(ParamType.TEXTAREA.getValue());
-            textMappingParamTypeList.add(ParamType.PHASE.getValue());
-            textMappingParamTypeList.add(ParamType.PASSWORD.getValue());
-            // 输入参数文本域能映射的类型
-            List<String> textareaMappingParamTypeList = new ArrayList<>();
-            textareaMappingParamTypeList.add(ParamType.TEXT.getValue());
-            textareaMappingParamTypeList.add(ParamType.TEXTAREA.getValue());
             // 输入参数JSON能映射的类型
             List<String> jsonMappingParamTypeList = new ArrayList<>();
             jsonMappingParamTypeList.add(ParamType.JSON.getValue());
@@ -610,6 +596,10 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                     continue;
                 }
                 Object valueObj = paramMappingVo.getValue();
+                //如果是文本和文本域类型则不做限制
+                if (Objects.equals(inputParamVo.getType(), ParamType.TEXTAREA.getValue()) || Objects.equals(inputParamVo.getType(), ParamType.TEXT.getValue())) {
+                    continue;
+                }
                 if (Objects.equals(mappingMode, ParamMappingMode.CONSTANT.getValue())) {
                     if (valueObj == null) {
                         throw new AutoexecParamCannotBeEmptyException(phaseName, operationName, inputParamLabel);
@@ -629,6 +619,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                     // 文本类型参数值校验
                     if (Objects.equals(inputParamVo.getType(), ParamType.TEXT.getValue())) {
                         if (!autoexecService.validateTextTypeParamValue(inputParamVo, valueObj)) {
+                            assert valueObj instanceof String;
                             throw new AutoexecParamValueIrregularException(phaseName, operationName, inputParamVo.getName(), inputParamVo.getKey(), (String) valueObj);
                         }
                     }
@@ -652,18 +643,6 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                     if (Objects.equals(preNodeOutputParamVo.getType(), inputParamVo.getType())) {
                         continue;
                     }
-                    // 文本域类型和文本类型 上游节点输出参数值 （可以是任意类型）
-                    if (Objects.equals(inputParamVo.getType(), ParamType.TEXTAREA.getValue()) || Objects.equals(inputParamVo.getType(), ParamType.TEXT.getValue())) {
-                        continue;
-                    }
-//                    if (Objects.equals(inputParamVo.getType(), ParamType.TEXTAREA.getValue()) && Objects.equals(preNodeOutputParamVo.getType(), ParamType.TEXT.getValue())) {
-//                        continue;
-//
-//                    }
-//                    if (Objects.equals(inputParamVo.getType(), ParamType.TEXT.getValue()) && Objects.equals(preNodeOutputParamVo.getType(), ParamType.TEXTAREA.getValue())) {
-//                        continue;
-//
-//                    }
                     throw new AutoexecParamMappingTargetTypeMismatchException(phaseName, operationName, inputParamLabel, conversionPreNodeParamPath(preNodeNameMap, preOperationNameMap, value));
                 } else if (Objects.equals(mappingMode, ParamMappingMode.PRE_NODE_OUTPUT_PARAM_KEY.getValue())) {
                     String value = null;
@@ -696,16 +675,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                     if (Objects.equals(runtimeParamVo.getType(), inputParamVo.getType())) {
                         continue;
                     }
-                    if (inputParamVo.getType().equals(ParamType.TEXT.getValue())) {
-                        if (textMappingParamTypeList.contains(runtimeParamVo.getType())) {
-                            continue;
-                        }
-                    } else if (Objects.equals(inputParamVo.getType(), ParamType.TEXTAREA.getValue())) {
-                        // 文本域类型 上游节点输出参数值 文本类型
-                        if (textareaMappingParamTypeList.contains(runtimeParamVo.getType())) {
-                            continue;
-                        }
-                    } else if (Objects.equals(inputParamVo.getType(), ParamType.JSON.getValue())) {
+                    if (Objects.equals(inputParamVo.getType(), ParamType.JSON.getValue())) {
                         if (jsonMappingParamTypeList.contains(runtimeParamVo.getType())) {
                             continue;
                         }
@@ -714,7 +684,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 } else if (Objects.equals(mappingMode, ParamMappingMode.PROFILE.getValue())) {
                     AutoexecProfileParamVo profileParamVo = profileParamMap.get(key);
                     if (profileParamVo == null) {
-                        throw new AutoexecParamMappingTargetNotFoundException(phaseName, operationName, inputParamLabel, profileParamVo.getName() + "(" + profileParamVo.getKey() + ")");
+                        throw new AutoexecParamMappingTargetNotFoundException(phaseName, operationName, inputParamLabel, key);
                     }
                     if (!Objects.equals(profileParamVo.getType(), inputParamVo.getType())) {
                         throw new AutoexecParamMappingTargetTypeMismatchException(phaseName, operationName, inputParamLabel, profileParamVo.getName() + "(" + profileParamVo.getKey() + ")");
@@ -727,16 +697,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                     if (Objects.equals(globalParamVo.getType(), inputParamVo.getType())) {
                         continue;
                     }
-                    if (inputParamVo.getType().equals(ParamType.TEXT.getValue())) {
-                        if (textMappingParamTypeList.contains(globalParamVo.getType())) {
-                            continue;
-                        }
-                    } else if (Objects.equals(inputParamVo.getType(), ParamType.TEXTAREA.getValue())) {
-                        // 文本域类型 上游节点输出参数值 文本类型
-                        if (textareaMappingParamTypeList.contains(globalParamVo.getType())) {
-                            continue;
-                        }
-                    } else if (Objects.equals(inputParamVo.getType(), ParamType.JSON.getValue())) {
+                    if (Objects.equals(inputParamVo.getType(), ParamType.JSON.getValue())) {
                         if (jsonMappingParamTypeList.contains(globalParamVo.getType())) {
                             continue;
                         }
@@ -1327,12 +1288,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         if (autoexecCombopVersionVo == null) {
             return null;
         }
-//        List<AutoexecParamVo> runtimeParamList = autoexecCombopVersionMapper.getAutoexecCombopVersionParamListByCombopVersionId(id);
-//        for (AutoexecParamVo autoexecParamVo : runtimeParamList) {
-//            autoexecService.mergeConfig(autoexecParamVo);
-//        }
         AutoexecCombopVersionConfigVo config = autoexecCombopVersionVo.getConfig();
-//        config.setRuntimeParamList(runtimeParamList);
         autoexecService.updateAutoexecCombopVersionConfig(config);
         return autoexecCombopVersionVo;
     }
@@ -1587,7 +1543,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         AutoexecCombopVersionVo oldAutoexecCombopVersion = autoexecCombopVersionMapper.getAutoexecCombopVersionById(autoexecCombopVersionVo.getId());
         AutoexecCombopVersionConfigVo config = autoexecCombopVersionVo.getConfig();
         String configStr = JSONObject.toJSONString(config);
-        /** 保存前，校验组合工具是否配置正确，不正确不可以保存 **/
+        /* 保存前，校验组合工具是否配置正确，不正确不可以保存 */
         verifyAutoexecCombopVersionConfig(config, false);
         autoexecCombopVersionVo.setConfigStr(configStr);
         config = autoexecCombopVersionVo.getConfig();
@@ -1611,12 +1567,12 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             if (StringUtils.isNotBlank(maxNumOfCombopVersion)) {
                 try {
                     maxNum = Integer.parseInt(maxNumOfCombopVersion);
-                } catch (NumberFormatException e) {
+                } catch (NumberFormatException ignored) {
 
                 }
             }
             List<AutoexecCombopVersionVo> versionList = autoexecCombopVersionMapper.getAutoexecCombopVersionListByCombopId(autoexecCombopVersionVo.getCombopId());
-            if (versionList.size() > maxNum) {
+            if (maxNum != null && versionList.size() > maxNum) {
                 // 需要删除个数
                 int deleteCount = versionList.size() - maxNum;
                 // 根据版本id升序排序
