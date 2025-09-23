@@ -135,7 +135,7 @@ public class UpdateNodesByPrePhaseOutputHandler implements IUpdateNodes {
             if (MapUtils.isNotEmpty(preCondition)) {
                 searchVo.setPreCondition(autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, preCondition));
             }
-            autoexecJobService.updateNodeByIpPortNameList(ipPortNameList, searchVo, jobVo, userName, protocolId);
+            return autoexecJobService.updateNodeByIpPortNameList(ipPortNameList, searchVo, jobVo, userName, protocolId);
         }
         return false;
     }
