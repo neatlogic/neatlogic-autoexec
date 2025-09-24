@@ -609,10 +609,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         Integer parallelCount = null;
         AutoexecJobPhaseVo jobPhase = jobVo.getExecutePhase();
         AutoexecJobGroupVo jobGroupVo = jobVo.getExecutePhase().getJobGroupVo();
-        //动态节点是在上游节点执行完后才更新节点动态节点，需要依赖创建作业时的groupTag参数
-        if(jobVo.getRunnerGroupTag() == null){
-            jobVo.setRunnerGroupTag(combopExecuteConfigVo.getRunnerGroupTag());
-        }
         //作业层执行用户引用作业参数且抛作业参数为空
         String jobUserNameParamNullKey = StringUtils.EMPTY;
         if (combopExecuteConfigVo != null) {
@@ -628,6 +624,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             }
             if (protocolId != null) {
                 jobPhase.setProtocolFrom(AutoexecJobPhaseNodeFrom.JOB.getValue());
+            }
+            //动态节点是在上游节点执行完后才更新节点动态节点，需要依赖创建作业时的groupTag参数
+            if(jobVo.getRunnerGroupTag() == null){
+                jobVo.setRunnerGroupTag(combopExecuteConfigVo.getRunnerGroupTag());
             }
         }
         //兼容老数据不存在policy
