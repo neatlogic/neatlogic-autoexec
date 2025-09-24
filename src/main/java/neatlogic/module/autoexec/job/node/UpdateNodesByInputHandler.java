@@ -18,26 +18,21 @@
 package neatlogic.module.autoexec.job.node;
 
 import com.alibaba.fastjson.JSONObject;
-import neatlogic.framework.autoexec.constvalue.AutoexecJobPhaseNodeFrom;
-import neatlogic.framework.autoexec.constvalue.CombopNodeSpecify;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteNodeConfigVo;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.dto.node.AutoexecNodeVo;
 import neatlogic.framework.autoexec.exception.job.AutoexecInputOutOfCountException;
 import neatlogic.framework.autoexec.job.node.IUpdateNodes;
-import neatlogic.framework.cmdb.crossover.IResourceCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
-import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.ArrayList;
+import java.util.List;
 
 @Service
 public class UpdateNodesByInputHandler implements IUpdateNodes {
@@ -45,29 +40,24 @@ public class UpdateNodesByInputHandler implements IUpdateNodes {
     AutoexecJobService autoexecJobService;
 
     @Override
-    public boolean update(AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
-        boolean isHasNode = false;
-        if (executeNodeConfigVo == null) {
+    public boolean update(AutoexecCombopExecuteConfigVo executeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
+        if (CollectionUtils.isEmpty(executeConfigVo.getExecuteNodeConfig().getInputNodeList())) {
             return false;
         }
-
-        if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getInputNodeList())) {
-            isHasNode = updateNodeResourceByInput(executeNodeConfigVo, jobVo, userName, protocolId);
-        }
-        return isHasNode;
+        return updateNodeResourceByInput(executeConfigVo, jobVo, userName, protocolId);
     }
 
     /**
      * inputNodeList、selectNodeList
      * 根据输入和选择节点 更新作业节点
      *
-     * @param executeNodeConfigVo 执行节点配置
-     * @param jobVo               作业
-     * @param userName            执行用户
-     * @param protocolId          协议id
+     * @param executeConfigVo 执行节点配置
+     * @param jobVo           作业
+     * @param userName        执行用户
+     * @param protocolId      协议id
      */
-    private boolean updateNodeResourceByInput(AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
-        List<AutoexecNodeVo> nodeVoList = executeNodeConfigVo.getInputNodeList();
+    private boolean updateNodeResourceByInput(AutoexecCombopExecuteConfigVo executeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
+        List<AutoexecNodeVo> nodeVoList = executeConfigVo.getExecuteNodeConfig().getInputNodeList();
         boolean isHasNode = false;
         List<ResourceVo> ipPortNameList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(nodeVoList)) {
@@ -75,47 +65,12 @@ public class UpdateNodesByInputHandler implements IUpdateNodes {
                 throw new AutoexecInputOutOfCountException(1000);
             }
             nodeVoList.forEach(o -> ipPortNameList.add(new ResourceVo(o.getIp(), o.getPort(), o.getName())));
-            JSONObject preFilter = null;
-            if (Objects.equals(jobVo.getNodeFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())) {
-                //如果作业层面的节点则补充前置filter
-                AutoexecCombopConfigVo config = jobVo.getConfig();
-                if (config != null && config.getExecuteConfig() != null
-                        && config.getExecuteConfig().getCombopNodeConfig() != null
-                        && MapUtils.isNotEmpty(config.getExecuteConfig().getCombopNodeConfig().getFilter())
-                        && (Objects.equals(config.getExecuteConfig().getWhenToSpecify(), CombopNodeSpecify.RUNTIME.getValue()))) {
-                    preFilter = config.getExecuteConfig().getCombopNodeConfig().getFilter();
-                }
+            ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, null);
+            JSONObject preCondition = executeConfigVo.getPreCondition();
+            if (MapUtils.isNotEmpty(preCondition)) {
+                searchVo.setPreCondition(autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, preCondition));
             }
-            ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, preFilter);
-            IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
-
-            Set<Long> resourceIdSet = new HashSet<>();
-            List<ResourceVo> inputNodeResourceList = new ArrayList<>();
-            for (ResourceVo resourceVo : ipPortNameList) {
-                inputNodeResourceList.add(resourceVo);
-                if (inputNodeResourceList.size() > 500) {
-                    searchVo.setInputNodeList(inputNodeResourceList);
-                    List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIpAndPortAndNameWithFilter(searchVo);
-                    if (CollectionUtils.isNotEmpty(resourceList)) {
-                        resourceIdSet.addAll(resourceList.stream().map(ResourceVo::getId).collect(Collectors.toList()));
-                    }
-                    inputNodeResourceList.clear();
-                }
-            }
-            if (CollectionUtils.isNotEmpty(inputNodeResourceList)) {
-                searchVo.setInputNodeList(inputNodeResourceList);
-                List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIpAndPortAndNameWithFilter(searchVo);
-                if (CollectionUtils.isNotEmpty(resourceList)) {
-                    resourceIdSet.addAll(resourceList.stream().map(ResourceVo::getId).collect(Collectors.toList()));
-                }
-                inputNodeResourceList.clear();
-            }
-            if (CollectionUtils.isNotEmpty(resourceIdSet)) {
-                searchVo.setIdList(new ArrayList<>(resourceIdSet));
-                searchVo.setMaxPageSize(1000);
-                searchVo.setPageSize(1000);
-                isHasNode = autoexecJobService.updateNode(jobVo, userName, protocolId, searchVo);
-            }
+            isHasNode = autoexecJobService.updateNodeByIpPortNameList(ipPortNameList, searchVo, jobVo, userName, protocolId);
         }
         return isHasNode;
     }

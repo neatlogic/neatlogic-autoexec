@@ -332,11 +332,12 @@ public interface AutoexecJobService {
 
     /**
      * 获取最终的阶段状态
-     * @param statusList 节点或阶段runner的状态列表
+     *
+     * @param statusList         节点或阶段runner的状态列表
      * @param currentPhaseStatus 当前阶段状态，目前只有updateStatusApi用到
      * @return 作业状态
      */
-    String getJobPhaseStatus(List<String> statusList,String currentPhaseStatus);
+    String getJobPhaseStatus(List<String> statusList, String currentPhaseStatus);
 
 
     String updatePartialNodeJobAndPhaseWithRunnerId(AutoexecJobPhaseVo jobPhaseVo, Long runnerId, AutoexecJobVo jobVo, String currentPhaseStatus, Integer phaseRunnerWarnCount);
@@ -344,10 +345,22 @@ public interface AutoexecJobService {
 
     /**
      * 更新节点
-     * @param jobVo 作业
-     * @param userName 执行用户
+     *
+     * @param jobVo      作业
+     * @param userName   执行用户
      * @param protocolId 协议id
-     * @param searchVo 过滤条件
+     * @param searchVo   过滤条件
      */
-    boolean updateNode(AutoexecJobVo jobVo, String userName, Long protocolId, ResourceSearchVo searchVo);
+    boolean updateNodeByIpPortNameList(List<ResourceVo> ipPortNameList, ResourceSearchVo searchVo, AutoexecJobVo jobVo, String userName, Long protocolId);
+
+
+    /**
+     * 更新节点
+     *
+     * @param jobVo      作业
+     * @param userName   执行用户
+     * @param protocolId 协议id
+     * @param searchVo   过滤条件
+     */
+    boolean updateNodeByResourceIdList(List<Long> resourceIdList, ResourceSearchVo searchVo, AutoexecJobVo jobVo, String userName, Long protocolId);
 }

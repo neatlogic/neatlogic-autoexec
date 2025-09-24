@@ -22,7 +22,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.ExecMode;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteNodeConfigVo;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseOperationVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
@@ -31,10 +31,8 @@ import neatlogic.framework.autoexec.exception.AutoexecJobNodePreParamValueNotInv
 import neatlogic.framework.autoexec.exception.AutoexecJobPhaseOperationNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecJobUpdateNodeByPreOutPutListException;
 import neatlogic.framework.autoexec.job.node.IUpdateNodes;
-import neatlogic.framework.cmdb.crossover.IResourceCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
-import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -58,29 +56,24 @@ public class UpdateNodesByPrePhaseOutputHandler implements IUpdateNodes {
     private MongoTemplate mongoTemplate;
 
     @Override
-    public boolean update(AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
-        boolean isHasNode = false;
-        if (executeNodeConfigVo == null) {
+    public boolean update(AutoexecCombopExecuteConfigVo executeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
+        if (CollectionUtils.isEmpty(executeConfigVo.getExecuteNodeConfig().getPreOutputList())) {
             return false;
         }
-
-        if (CollectionUtils.isNotEmpty(executeNodeConfigVo.getPreOutputList())) {
-            isHasNode = updateNodeResourceByPrePhaseOutput(jobVo, executeNodeConfigVo, userName, protocolId);
-        }
-        return isHasNode;
+        return updateNodeResourceByPrePhaseOutput(jobVo, executeConfigVo, userName, protocolId);
     }
 
     /**
      * param
      * 根据上游阶段出参 更新作业节点
      *
-     * @param executeNodeConfigVo 执行节点配置
-     * @param jobVo               作业
-     * @param userName            执行用户
-     * @param protocolId          协议id
+     * @param executeConfigVo 执行节点配置
+     * @param jobVo           作业
+     * @param userName        执行用户
+     * @param protocolId      协议id
      */
-    private boolean updateNodeResourceByPrePhaseOutput(AutoexecJobVo jobVo, AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, String userName, Long protocolId) {
-        List<String> preOutputList = executeNodeConfigVo.getPreOutputList();
+    private boolean updateNodeResourceByPrePhaseOutput(AutoexecJobVo jobVo, AutoexecCombopExecuteConfigVo executeConfigVo, String userName, Long protocolId) {
+        List<String> preOutputList = executeConfigVo.getExecuteNodeConfig().getPreOutputList();
         if (CollectionUtils.isEmpty(preOutputList) && preOutputList.size() != 3) {
             throw new AutoexecJobUpdateNodeByPreOutPutListException(jobVo);
         }
@@ -137,16 +130,12 @@ public class UpdateNodesByPrePhaseOutputHandler implements IUpdateNodes {
         List<ResourceVo> ipPortNameList = new ArrayList<>();
         if (CollectionUtils.isNotEmpty(nodeVoList)) {
             nodeVoList.forEach(o -> ipPortNameList.add(new ResourceVo(o.getIp(), o.getPort(), o.getName())));
-            IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
-            ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo);
-            List<ResourceVo> resourceVoList = resourceCrossoverMapper.getResourceListByResourceVoList(ipPortNameList, searchVo);
-            if (CollectionUtils.isNotEmpty(resourceVoList)) {
-                autoexecJobService.updateJobPhaseNode(jobVo, resourceVoList, userName, protocolId);
-                //重置节点状态
-                //List<AutoexecJobPhaseNodeVo> jobNodeVoList = autoexecJobMapper.getJobPhaseNodeListWithRunnerByJobPhaseIdAndExceptStatusList(jobVo.getCurrentPhase().getId(), Collections.singletonList(JobNodeStatus.IGNORED.getValue()));
-                //resetJobNodeStatus(jobVo, jobNodeVoList);
-                return true;
+            ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, null);
+            JSONObject preCondition = executeConfigVo.getPreCondition();
+            if (MapUtils.isNotEmpty(preCondition)) {
+                searchVo.setPreCondition(autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, preCondition));
             }
+            return autoexecJobService.updateNodeByIpPortNameList(ipPortNameList, searchVo, jobVo, userName, protocolId);
         }
         return false;
     }

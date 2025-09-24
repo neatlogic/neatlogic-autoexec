@@ -17,19 +17,14 @@
 
 package neatlogic.module.autoexec.job.node;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import neatlogic.framework.autoexec.constvalue.AutoexecJobPhaseNodeFrom;
-import neatlogic.framework.autoexec.constvalue.CombopNodeSpecify;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteNodeConfigVo;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.job.node.IUpdateNodes;
-import neatlogic.framework.cmdb.crossover.IResourceCrossoverMapper;
+import neatlogic.framework.cmdb.crossover.IResourceCenterResourceCrossoverService;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
-import neatlogic.module.autoexec.dao.mapper.AutoexecResourceMapper;
 import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
@@ -40,30 +35,23 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 
 @Service
 public class UpdateNodesByFilterHandler implements IUpdateNodes {
     @Resource
     AutoexecJobService autoexecJobService;
-    @Resource
-    private AutoexecResourceMapper autoexecResourceMapper;
     private static final Logger logger = LoggerFactory.getLogger(UpdateNodesByFilterHandler.class);
+
     @Override
-    public boolean update(AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
-        boolean isHasNode = false;
-        if (executeNodeConfigVo == null) {
+    public boolean update(AutoexecCombopExecuteConfigVo executeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
+        if (MapUtils.isEmpty(executeConfigVo.getExecuteNodeConfig().getFilter())) {
             return false;
         }
-        if (MapUtils.isNotEmpty(executeNodeConfigVo.getFilter())) {
-            logger.debug("##updateNodeResourceByFilter:-------------------------------------------------------------------------------start");
-            //long updateNodeResourceByFilter = System.currentTimeMillis();
-            isHasNode = updateNodeResourceByFilter(executeNodeConfigVo, jobVo, userName, protocolId);
-            //System.out.println((System.currentTimeMillis() - updateNodeResourceByFilter) + " ##updateNodeResourceByFilter:-------------------------------------------------------------------------------");
-            logger.debug("##updateNodeResourceByFilter:-------------------------------------------------------------------------------end");
-
-        }
+        logger.debug("##updateNodeResourceByFilter:-------------------------------------------------------------------------------start");
+        //long updateNodeResourceByFilter = System.currentTimeMillis();
+        boolean isHasNode = updateNodeResourceByFilter(executeConfigVo, jobVo, userName, protocolId);
+        //System.out.println((System.currentTimeMillis() - updateNodeResourceByFilter) + " ##updateNodeResourceByFilter:-------------------------------------------------------------------------------");
+        logger.debug("##updateNodeResourceByFilter:-------------------------------------------------------------------------------end");
         return isHasNode;
     }
 
@@ -71,48 +59,24 @@ public class UpdateNodesByFilterHandler implements IUpdateNodes {
      * filter
      * 根据过滤器 更新节点
      *
-     * @param executeNodeConfigVo 执行节点配置
-     * @param jobVo               作业
-     * @param userName            执行用户
-     * @param protocolId          协议id
+     * @param executeConfigVo 执行节点配置
+     * @param jobVo           作业
+     * @param userName        执行用户
+     * @param protocolId      协议id
      */
-    public boolean updateNodeResourceByFilter(AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
-        JSONObject filterJson = executeNodeConfigVo.getFilter();
+    public boolean updateNodeResourceByFilter(AutoexecCombopExecuteConfigVo executeConfigVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
+        JSONObject filterJson = executeConfigVo.getExecuteNodeConfig().getFilter();
         boolean isHasNode = false;
         if (MapUtils.isNotEmpty(filterJson)) {
-            //如果作业层面的节点则补充前置filter
-            if (Objects.equals(jobVo.getNodeFrom(), AutoexecJobPhaseNodeFrom.JOB.getValue())) {
-                AutoexecCombopConfigVo config = jobVo.getConfig();
-                JSONObject preFilter = null;
-                if (config != null && config.getExecuteConfig() != null && config.getExecuteConfig().getCombopNodeConfig() != null && MapUtils.isNotEmpty(config.getExecuteConfig().getCombopNodeConfig().getFilter())) {
-                    if (Objects.equals(config.getExecuteConfig().getWhenToSpecify(), CombopNodeSpecify.RUNTIME.getValue())) {
-                        preFilter = config.getExecuteConfig().getCombopNodeConfig().getFilter();
-                        //以preFilter为主
-                        for (Map.Entry<String, Object> entry : preFilter.entrySet()) {
-                            String key = entry.getKey();
-                            Object value = entry.getValue();
-                            if (value == null || (value instanceof JSONArray && CollectionUtils.isEmpty((JSONArray) value))) {
-                                continue;
-                            }
-                            if (filterJson.containsKey(key)) {
-                                filterJson.put(key, value);
-                            }
-                        }
-                    }
-                }
-            }
             ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, filterJson);
+            JSONObject preCondition = executeConfigVo.getPreCondition();
+            if (MapUtils.isNotEmpty(preCondition)) {
+                searchVo.setPreCondition(autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, preCondition));
+            }
             searchVo.setMaxPageSize(50000);
             searchVo.setPageSize(50000);
-            IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
-            List<Long> idList;
-            StringBuilder sqlSb = new StringBuilder();
-            if (searchVo.isCustomCondition()) {
-                searchVo.buildConditionWhereSql(sqlSb, searchVo);
-                idList = resourceCrossoverMapper.getResourceIdListByDynamicCondition(searchVo, sqlSb.toString());
-            } else {
-                idList = resourceCrossoverMapper.getResourceIdList(searchVo);
-            }
+            IResourceCenterResourceCrossoverService resourceCenterResourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
+            List<Long> idList = resourceCenterResourceCrossoverService.getResourceIdList(searchVo);
             int count = idList.size();
             if (count > 0) {
                 int index = 0;
@@ -126,7 +90,7 @@ public class UpdateNodesByFilterHandler implements IUpdateNodes {
                     i--;
                     logger.debug("##getResourceListByIdList:-------------------------------------------------------------------------------start");
                     //long bbb = System.currentTimeMillis();
-                    List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIdList(idPageList);
+                    List<ResourceVo> resourceList = resourceCenterResourceCrossoverService.getResourceListByIdList(idPageList);
                     //System.out.println((System.currentTimeMillis() - bbb) + " ##bbb:-------------------------------------------------------------------------------");
                     logger.debug("##getResourceListByIdList:-------------------------------------------------------------------------------end");
                     if (CollectionUtils.isNotEmpty(resourceList)) {
@@ -143,7 +107,7 @@ public class UpdateNodesByFilterHandler implements IUpdateNodes {
                 if (CollectionUtils.isNotEmpty(idPageList)) {
                     logger.debug("##getResourceListByIdList last:-------------------------------------------------------------------------------start");
                     //long bbb = System.currentTimeMillis();
-                    List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIdList(idPageList);
+                    List<ResourceVo> resourceList = resourceCenterResourceCrossoverService.getResourceListByIdList(idPageList);
                     //System.out.println((System.currentTimeMillis() - bbb) + " ##bbb:-------------------------------------------------------------------------------");
                     logger.debug("##getResourceListByIdList last:-------------------------------------------------------------------------------end");
                     if (CollectionUtils.isNotEmpty(resourceList)) {

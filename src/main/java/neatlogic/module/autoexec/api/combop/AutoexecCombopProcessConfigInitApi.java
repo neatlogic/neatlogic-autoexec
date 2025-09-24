@@ -253,6 +253,14 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
         JSONArray executeParamList = new JSONArray();
         if (executeConfigVo != null) {
             if (needExecuteNode) {
+                //补充前置过滤器
+                if(executeConfigVo.getPreCondition() != null) {
+                    JSONObject preCondition = new JSONObject();
+                    preCondition.put("key", "preCondition");
+                    preCondition.put("name", "前置过滤器");
+                    preCondition.put("value", executeConfigVo.getPreCondition());
+                    executeParamList.add(preCondition);
+                }
                 JSONObject executeNode = new JSONObject();
                 executeNode.put("key", "executeNodeConfig");
                 executeNode.put("name", "执行目标");

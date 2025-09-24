@@ -49,14 +49,12 @@ import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.autoexec.util.AutoexecUtil;
 import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import neatlogic.framework.cmdb.crossover.IResourceCenterResourceCrossoverService;
-import neatlogic.framework.cmdb.crossover.IResourceCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
 import neatlogic.framework.cmdb.exception.resourcecenter.ResourceCenterAccountProtocolNotFoundException;
 import neatlogic.framework.common.constvalue.RunnerStatus;
 import neatlogic.framework.common.constvalue.systemuser.SystemUser;
-import neatlogic.framework.common.util.PageUtil;
 import neatlogic.framework.config.ConfigManager;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.dao.mapper.UserMapper;
@@ -388,6 +386,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      */
     @Override
     public void updateNodeByPreOutput(AutoexecJobVo jobVo, AutoexecJobPhaseVo currentJobPhaseVo) {
+        getAutoexecJobDetail(jobVo);
         jobVo.setPreOutputPhase(currentJobPhaseVo);
         List<AutoexecCombopPhaseVo> combopPhaseVoList = new ArrayList<>();
         List<AutoexecJobPhaseVo> jobPhaseVoList = getJobPhaseListByPreOutput(jobVo, currentJobPhaseVo, combopPhaseVoList);
@@ -610,6 +609,10 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         Integer parallelCount = null;
         AutoexecJobPhaseVo jobPhase = jobVo.getExecutePhase();
         AutoexecJobGroupVo jobGroupVo = jobVo.getExecutePhase().getJobGroupVo();
+        //动态节点是在上游节点执行完后才更新节点动态节点，需要依赖创建作业时的groupTag参数
+        if(jobVo.getRunnerGroupTag() == null){
+            jobVo.setRunnerGroupTag(combopExecuteConfigVo.getRunnerGroupTag());
+        }
         //作业层执行用户引用作业参数且抛作业参数为空
         String jobUserNameParamNullKey = StringUtils.EMPTY;
         if (combopExecuteConfigVo != null) {
@@ -1049,8 +1052,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
         jobVo.getExecutePhase().setLcd(updateTime);
 
-        AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = combopExecuteConfigVo.getExecuteNodeConfig();
-        boolean isHasNode = UpdateNodesFactory.updateNodes(executeNodeConfigVo, jobVo, userName, protocolId);
+        boolean isHasNode = UpdateNodesFactory.updateNodes(combopExecuteConfigVo, jobVo, userName, protocolId);
         logger.debug("##AfterUpdateNodes:-------------------------------------------------------------------------------start");
         //long ccc = System.currentTimeMillis();
         AutoexecJobPhaseVo jobPhaseVo = jobVo.getExecutePhase();
@@ -1165,8 +1167,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
         IResourceCenterResourceCrossoverService resourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
         ResourceSearchVo searchVo = resourceCrossoverService.assembleResourceSearchVo(filterJson);
-        resourceCrossoverService.handleBatchSearchList(searchVo);
-        resourceCrossoverService.setIpFieldAttrIdAndNameFieldAttrId(searchVo);
+//        resourceCrossoverService.handleBatchSearchList(searchVo);
+//        resourceCrossoverService.setIpFieldAttrIdAndNameFieldAttrId(searchVo);
         return searchVo;
     }
 
@@ -2186,33 +2188,67 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     }
 
     @Override
-    public boolean updateNode(AutoexecJobVo jobVo, String userName, Long protocolId, ResourceSearchVo searchVo) {
-        int count;
+    public boolean updateNodeByIpPortNameList(List<ResourceVo> ipPortNameList, ResourceSearchVo searchVo, AutoexecJobVo jobVo, String userName, Long protocolId) {
         boolean isHasNode = false;
-        StringBuilder sqlSb = new StringBuilder();
-        IResourceCrossoverMapper resourceCrossoverMapper = CrossoverServiceFactory.getApi(IResourceCrossoverMapper.class);
-        if (searchVo.isCustomCondition()) {
-            searchVo.buildConditionWhereSql(sqlSb, searchVo);
-            count = resourceCrossoverMapper.getResourceCountByDynamicCondition(searchVo, sqlSb.toString());
-        } else {
-            count = resourceCrossoverMapper.getResourceCount(searchVo);
-        }
-        if (count > 0) {
-            int pageCount = PageUtil.getPageCount(count, searchVo.getPageSize());
-            for (int i = 1; i <= pageCount; i++) {
-                searchVo.setCurrentPage(i);
-                List<Long> idList;
-                if (searchVo.isCustomCondition()) {
-                    idList = resourceCrossoverMapper.getResourceIdListByDynamicCondition(searchVo, sqlSb.toString());
-                } else {
-                    idList = resourceCrossoverMapper.getResourceIdList(searchVo);
-                }
+        IResourceCenterResourceCrossoverService resourceCenterResourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
+        List<ResourceVo> inputNodeResourceList = new ArrayList<>();
+        for (ResourceVo resourceVo : ipPortNameList) {
+            inputNodeResourceList.add(resourceVo);
+            if (inputNodeResourceList.size() > 1000) {
+                searchVo.setInputNodeList(inputNodeResourceList);
+                List<Long> idList = resourceCenterResourceCrossoverService.getResourceIdList(searchVo);
                 if (CollectionUtils.isNotEmpty(idList)) {
-                    List<ResourceVo> resourceList = resourceCrossoverMapper.getResourceListByIdList(idList);
+                    List<ResourceVo> resourceList = resourceCenterResourceCrossoverService.getResourceListByIdList(idList);
                     if (CollectionUtils.isNotEmpty(resourceList)) {
                         updateJobPhaseNode(jobVo, resourceList, userName, protocolId);
                         isHasNode = true;
                     }
+                }
+                inputNodeResourceList.clear();
+            }
+        }
+        if (CollectionUtils.isNotEmpty(inputNodeResourceList)) {
+            searchVo.setInputNodeList(inputNodeResourceList);
+            List<Long> idList = resourceCenterResourceCrossoverService.getResourceIdList(searchVo);
+            if (CollectionUtils.isNotEmpty(idList)) {
+                List<ResourceVo> resourceList = resourceCenterResourceCrossoverService.getResourceListByIdList(idList);
+                if (CollectionUtils.isNotEmpty(resourceList)) {
+                    updateJobPhaseNode(jobVo, resourceList, userName, protocolId);
+                    isHasNode = true;
+                }
+            }
+        }
+        return isHasNode;
+    }
+
+    @Override
+    public boolean updateNodeByResourceIdList(List<Long> idList,ResourceSearchVo searchVo,AutoexecJobVo jobVo,String userName,Long protocolId) {
+        boolean isHasNode = false;
+        IResourceCenterResourceCrossoverService resourceCenterResourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
+        List<Long> resourceIdList = new ArrayList<>();
+        for (Long id : idList) {
+            resourceIdList.add(id);
+            if (resourceIdList.size() > 1000) {
+                searchVo.setIdList(resourceIdList);
+                List<Long> invalidIdList = resourceCenterResourceCrossoverService.getResourceIdList(searchVo);
+                if (CollectionUtils.isNotEmpty(invalidIdList)) {
+                    List<ResourceVo> resourceList = resourceCenterResourceCrossoverService.getResourceListByIdList(invalidIdList);
+                    if (CollectionUtils.isNotEmpty(resourceList)) {
+                        updateJobPhaseNode(jobVo, resourceList, userName, protocolId);
+                        isHasNode = true;
+                    }
+                }
+                resourceIdList.clear();
+            }
+        }
+        if (CollectionUtils.isNotEmpty(resourceIdList)) {
+            searchVo.setIdList(resourceIdList);
+            List<Long> invalidIdList = resourceCenterResourceCrossoverService.getResourceIdList(searchVo);
+            if (CollectionUtils.isNotEmpty(invalidIdList)) {
+                List<ResourceVo> resourceList = resourceCenterResourceCrossoverService.getResourceListByIdList(invalidIdList);
+                if (CollectionUtils.isNotEmpty(resourceList)) {
+                    updateJobPhaseNode(jobVo, resourceList, userName, protocolId);
+                    isHasNode = true;
                 }
             }
         }
