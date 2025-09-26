@@ -76,7 +76,7 @@ public class AutoexecJobConsoleLogAuditListHandler extends AutoexecJobActionHand
         JSONObject result = new JSONObject();
         JSONObject paramObj = jobVo.getActionParam();
         String url = paramObj.getString("runnerUrl") + "/api/rest/job/console/log/audit/list";
-        HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).sendRequest();
+        HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).setReadTimeout(AutoexecConfig.RUNNER_READ_TIMEOUT()).sendRequest();
         if(StringUtils.isNotBlank(requestUtil.getError())){
             throw new RunnerConnectRefusedException(url);
         }

@@ -213,7 +213,7 @@ public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
         for (RunnerMapVo runnerVo : runnerVos) {
             String url = String.format("%s/api/rest/job/phase/socket/write", runnerVo.getUrl());
             HttpRequestUtil request = HttpRequestUtil.post(url)
-                    .setPayload(jsonObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT())
+                    .setPayload(jsonObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).setReadTimeout(AutoexecConfig.RUNNER_READ_TIMEOUT())
                     .sendRequest();
             if (request.getResponseCode() != 200) {
                 String errMsg = String.format("test account failed, ResponseCode:%d, ErrorMsg: %s, Exception: %s, Result: %s", request.getResponseCode(), request.getErrorMsg(), request.getError(), request.getResult());

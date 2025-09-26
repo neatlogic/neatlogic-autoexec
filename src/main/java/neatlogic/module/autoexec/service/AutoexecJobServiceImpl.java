@@ -1613,7 +1613,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         for (RunnerMapVo runner : runnerVos) {
             autoexecJobMapper.updateJobPhaseRunnerStatusByPhaseIdAndRunnerIdAndStatus(currentPhaseVo.getId(), runner.getRunnerMapId(), JobPhaseStatus.PENDING.getValue());
             String url = runner.getUrl() + "api/rest/job/phase/node/status/reset";
-            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).sendRequest();
+            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).setReadTimeout(AutoexecConfig.RUNNER_READ_TIMEOUT()).sendRequest();
             if (StringUtils.isNotBlank(requestUtil.getError())) {
                 throw new RunnerHttpRequestException(url + ":" + requestUtil.getError());
             }
@@ -1645,7 +1645,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         paramJson.put("nodeStatus", nodeStatus);
         for (RunnerMapVo runner : runnerVos) {
             String url = runner.getUrl() + "api/rest/job/phase/node/status/update";
-            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).sendRequest();
+            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).setReadTimeout(AutoexecConfig.RUNNER_READ_TIMEOUT()).sendRequest();
             if (StringUtils.isNotBlank(requestUtil.getError())) {
                 throw new RunnerHttpRequestException(url + ":" + requestUtil.getError());
             }
@@ -1671,7 +1671,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 throw new AutoexecJobRunnerNotFoundException(runner.getRunnerMapId());
             }
             url = runner.getUrl() + "api/rest/health/check";
-            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(new JSONObject().toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).sendRequest();
+            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(new JSONObject().toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).setReadTimeout(AutoexecConfig.RUNNER_READ_TIMEOUT()).sendRequest();
             if (requestUtil.getResponseCode() != 200 || StringUtils.isNotBlank(requestUtil.getError())) {
                 Long statusLcd = System.currentTimeMillis();
                 runnerMapper.updateStatusById(runner.getId(), RunnerStatus.DISCONNECTED.getValue(), new Date(statusLcd));
@@ -1769,7 +1769,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             paramJson.put("passThroughEnv", passThroughEnv);
             paramJson.put("environment", jobVo.getEnvironment());
             paramJson.put("execid", String.valueOf(execid));
-            HttpRequestUtil httpRequestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).sendRequest();
+            HttpRequestUtil httpRequestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).setReadTimeout(AutoexecConfig.RUNNER_READ_TIMEOUT()).sendRequest();
             if (httpRequestUtil.getResponseCode() != 200 || StringUtils.isNotBlank(httpRequestUtil.getError())) {
                 throw new ApiRuntimeException(String.format("Request to %s failed, result: %s, ResponseCode: %s, ErrorMsg: %s, Exception %s", url, httpRequestUtil.getResult(), httpRequestUtil.getResponseCode(), httpRequestUtil.getErrorMsg(), httpRequestUtil.getError()));
             }
@@ -1851,7 +1851,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         checkRunnerHealth(runnerVos);
         for (RunnerMapVo runner : runnerVos) {
             String url = runner.getUrl() + "api/rest/job/waiting/detail/get";
-            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(params.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).sendRequest();
+            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(params.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).setReadTimeout(AutoexecConfig.RUNNER_READ_TIMEOUT()).sendRequest();
             if (requestUtil.getResponseCode() != 200 || StringUtils.isNotBlank(requestUtil.getError())) {
                 throw new RunnerHttpRequestException("Request failed! " + url + ":" + requestUtil.getError());
             }
@@ -1927,7 +1927,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                     put("EXECUSER_UUID", UserContext.get().getUserUuid(true));
                 }});
                 url = runner.getUrl() + "api/rest/job/" + action;
-                HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).sendRequest();
+                HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).setReadTimeout(AutoexecConfig.RUNNER_READ_TIMEOUT()).sendRequest();
                 if (StringUtils.isNotBlank(requestUtil.getError())) {
                     throw new RunnerHttpRequestException(url + ":" + requestUtil.getError());
                 }
@@ -1956,7 +1956,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 paramJson.put("passThroughEnv", new JSONObject() {{
                     put("runnerId", runner.getRunnerMapId());
                 }});
-                HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setAuthType(AuthenticateType.BUILDIN).setPayload(paramJson.toJSONString()).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).sendRequest();
+                HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setAuthType(AuthenticateType.BUILDIN).setPayload(paramJson.toJSONString()).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).setReadTimeout(AutoexecConfig.RUNNER_READ_TIMEOUT()).sendRequest();
                 if (StringUtils.isNotBlank(requestUtil.getError())) {
                     logger.error(requestUtil.getError());
                     throw new AutoexecJobDeleteException(runner);
