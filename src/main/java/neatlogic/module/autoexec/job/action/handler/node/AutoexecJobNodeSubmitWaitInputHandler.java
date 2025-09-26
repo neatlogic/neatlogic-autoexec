@@ -17,13 +17,13 @@ package neatlogic.module.autoexec.job.action.handler.node;
 
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
-import neatlogic.framework.autoexec.config.AutoexecConfig;
 import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobInteractException;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
+import neatlogic.framework.common.config.Config;
 import neatlogic.framework.exception.runner.RunnerHttpRequestException;
 import neatlogic.framework.integration.authentication.enums.AuthenticateType;
 import neatlogic.framework.util.HttpRequestUtil;
@@ -93,7 +93,7 @@ public class AutoexecJobNodeSubmitWaitInputHandler extends AutoexecJobActionHand
         }
         String url = String.format("%s/api/rest/job/phase/node/submit/waitInput", nodeVo.getRunnerUrl());
         String result = HttpRequestUtil.post(url)
-                .setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT())
+                .setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(Config.RUNNER_CONNECT_TIMEOUT())
                 .sendRequest().getError();
         if (StringUtils.isNotBlank(result)) {
             throw new RunnerHttpRequestException(url + ":" + result);

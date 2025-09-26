@@ -16,7 +16,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 package neatlogic.module.autoexec.job.action.handler;
 
 import com.alibaba.fastjson.JSONObject;
-import neatlogic.framework.autoexec.config.AutoexecConfig;
 import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.constvalue.JobNodeStatus;
 import neatlogic.framework.autoexec.constvalue.JobPhaseStatus;
@@ -27,6 +26,7 @@ import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobActionInvalidException;
 import neatlogic.framework.autoexec.exception.AutoexecJobPhaseRunnerNotFoundException;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
+import neatlogic.framework.common.config.Config;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.deploy.constvalue.JobSource;
 import neatlogic.framework.deploy.crossover.IDeployBatchJobCrossoverService;
@@ -155,7 +155,7 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
                 //put("phaseSort", jobVo.getCurrentGroupSort());
             }});
 
-            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(AutoexecConfig.RUNNER_CONNECT_TIMEOUT()).sendRequest();
+            HttpRequestUtil requestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(Config.RUNNER_CONNECT_TIMEOUT()).sendRequest();
             if (StringUtils.isNotBlank(requestUtil.getError())) {
                 throw new RunnerHttpRequestException(url + ":" + requestUtil.getError());
             }
