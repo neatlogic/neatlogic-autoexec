@@ -215,7 +215,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.-->
                 #{isActive},
                 #{status},
                 #{reviewer},
-                #{configStr},
+                #{configStr, typeHandler=CompressHandler},
                 NOW(3),
                 #{lcu})
     </insert>
@@ -224,7 +224,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.-->
         UPDATE `autoexec_combop_version`
         SET `name`             = #{name},
             `status`           = #{status},
-            `config`           = #{configStr},
+            `config`           = #{configStr, typeHandler=CompressHandler},
             `lcu` = #{lcu},
             `lcd` = NOW(3)
         WHERE `id` = #{id}
@@ -250,7 +250,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.-->
     </update>
 
     <update id="updateAutoexecCombopVersionConfigById" parameterType="java.util.Map">
-        UPDATE `autoexec_combop_version` SET `config` = #{configStr} WHERE `id` = #{id}
+        UPDATE `autoexec_combop_version` SET `config` = #{configStr, typeHandler=CompressHandler} WHERE `id` = #{id}
     </update>
 
     <delete id="deleteAutoexecCombopVersionByCombopId" parameterType="java.lang.Long">

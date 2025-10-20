@@ -26,14 +26,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.-->
             UPDATE `key`           = #{key},
                    `name`          = #{name},
                    `type`= #{type},
-                   `default_value` = #{defaultValueStr},
-                   `description`   = #{description},
+                   `default_value` = #{defaultValueStr, typeHandler=CompressHandler},
+                   `description`   = #{description, typeHandler=CompressHandler},
                    `lcu`           = #{lcu},
                    `lcd`           = now(3)
     </insert>
     <update id="updateGlobalParamPasswordById">
         update autoexec_global_param
-        set default_value = #{password}
+        set default_value = #{password, typeHandler=CompressHandler}
         where id = #{id}
     </update>
 
