@@ -196,7 +196,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                             continue;
                         }
                         JSONObject result = save(scriptVo, isReplace);
-                        if (result.containsKey("failReasonList")) {
+                        if (result.containsKey("list")) {
                             failReasonList.add(result);
                             failureCount++;
                         } else if (result.containsKey("hasSubmittedVersion") && result.getBoolean("hasSubmittedVersion")) {
@@ -455,7 +455,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
         }
         if (CollectionUtils.isNotEmpty(failReasonList)) {
             result.put("item", "导入：" + name + "时出现如下问题：");
-            result.put("failReasonList", failReasonList);
+            result.put("list", failReasonList);
         }
         return result;
     }
