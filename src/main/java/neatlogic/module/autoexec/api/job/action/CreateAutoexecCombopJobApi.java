@@ -23,6 +23,8 @@ import neatlogic.framework.autoexec.constvalue.CombopOperationType;
 import neatlogic.framework.autoexec.constvalue.JobSource;
 import neatlogic.framework.autoexec.constvalue.JobTriggerType;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
@@ -98,6 +100,13 @@ public class CreateAutoexecCombopJobApi extends PrivateApiComponentBase {
             if (autoexecCombopVersionVo == null) {
                 throw new AutoexecCombopVersionNotFoundException(combopVersionId);
             }
+            AutoexecCombopVersionConfigVo versionVoConfig = autoexecCombopVersionVo.getConfig();
+            if (versionVoConfig != null) {
+                AutoexecCombopExecuteConfigVo executeConfig = versionVoConfig.getExecuteConfig();
+                if (executeConfig != null) {
+                    jobVo.setPreCondition(executeConfig.getPreCondition());
+                }
+            }
             jobVo.setCombopVersionId(combopVersionId);
             jobVo.setInvokeId(combopVersionId);
             jobVo.setRouteId(combopVersionId.toString());
@@ -107,8 +116,15 @@ public class CreateAutoexecCombopJobApi extends PrivateApiComponentBase {
             if (autoexecCombopVersionVo == null) {
                 throw new AutoexecCombopActiveVersionNotFoundException(autoexecCombopVo.getName());
             }
+            AutoexecCombopVersionConfigVo versionVoConfig = autoexecCombopVersionVo.getConfig();
+            if (versionVoConfig != null) {
+                AutoexecCombopExecuteConfigVo executeConfig = versionVoConfig.getExecuteConfig();
+                if (executeConfig != null) {
+                    jobVo.setPreCondition(executeConfig.getPreCondition());
+                }
+            }
             jobVo.setCombopVersionId(autoexecCombopVersionVo.getId());
-            jobVo.setInvokeId(autoexecCombopVersionVo.getId());;
+            jobVo.setInvokeId(autoexecCombopVersionVo.getId());
             jobVo.setRouteId(autoexecCombopVersionVo.getId().toString());
             jobVo.setSource(JobSource.COMBOP.getValue());
         }

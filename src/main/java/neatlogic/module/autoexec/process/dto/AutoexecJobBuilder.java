@@ -37,6 +37,9 @@ public class AutoexecJobBuilder {
     @EntityField(name = "作业执行参数", type = ApiParamType.JSONOBJECT)
     private AutoexecCombopExecuteConfigVo executeConfig;
 
+    @EntityField(name = "前置执行目标配置", type = ApiParamType.JSONOBJECT)
+    private JSONObject preCondition;
+
     @EntityField(name = "runner执行组", type = ApiParamType.JSONOBJECT)
     private ParamMappingVo runnerGroup;
 
@@ -83,6 +86,14 @@ public class AutoexecJobBuilder {
 
     public void setExecuteConfig(AutoexecCombopExecuteConfigVo executeConfig) {
         this.executeConfig = executeConfig;
+    }
+
+    public JSONObject getPreCondition() {
+        return preCondition;
+    }
+
+    public void setPreCondition(JSONObject preCondition) {
+        this.preCondition = preCondition;
     }
 
     public ParamMappingVo getRunnerGroup() {
@@ -152,6 +163,7 @@ public class AutoexecJobBuilder {
         jobVo.setRunnerGroupTag(runnerGroupTag);
         jobVo.setScenarioId(scenarioId);
         jobVo.setExecuteConfig(executeConfig);
+        jobVo.setPreCondition(preCondition);
         if (roundCount != null) {
             jobVo.setRoundCount(roundCount);
         }
