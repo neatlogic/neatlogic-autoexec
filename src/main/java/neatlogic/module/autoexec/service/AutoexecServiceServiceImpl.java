@@ -826,6 +826,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
             }
         }
         builder.setExecuteConfig(executeConfigVo);
+        builder.setPreCondition(config.getPreCondition());
         AutoexecCombopVersionConfigVo versionConfigVo = autoexecCombopVersionVo.getConfig();
         List<AutoexecParamVo> lastRuntimeParamList = versionConfigVo.getRuntimeParamList();
         JSONObject param = new JSONObject();
@@ -900,6 +901,9 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                     executeNodeConfig.setMappingMode(ParamMappingMode.CONSTANT.getValue());
                     executeNodeConfig.setValue(executeConfig.getExecuteNodeConfig());
                     config.setExecuteNodeConfig(executeNodeConfig);
+                }
+                if (config.getPreCondition() == null && executeConfig.getPreCondition() != null) {
+                    config.setPreCondition(executeConfig.getPreCondition());
                 }
             } else {
                 config.setExecuteNodeConfig(null);
