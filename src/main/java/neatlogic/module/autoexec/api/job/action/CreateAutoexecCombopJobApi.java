@@ -105,6 +105,7 @@ public class CreateAutoexecCombopJobApi extends PrivateApiComponentBase {
                 AutoexecCombopExecuteConfigVo executeConfig = versionVoConfig.getExecuteConfig();
                 if (executeConfig != null) {
                     jobVo.setPreCondition(executeConfig.getPreCondition());
+                    jobVo.setWhenToSpecify(executeConfig.getWhenToSpecify());
                 }
             }
             jobVo.setCombopVersionId(combopVersionId);
@@ -121,6 +122,7 @@ public class CreateAutoexecCombopJobApi extends PrivateApiComponentBase {
                 AutoexecCombopExecuteConfigVo executeConfig = versionVoConfig.getExecuteConfig();
                 if (executeConfig != null) {
                     jobVo.setPreCondition(executeConfig.getPreCondition());
+                    jobVo.setWhenToSpecify(executeConfig.getWhenToSpecify());
                 }
             }
             jobVo.setCombopVersionId(autoexecCombopVersionVo.getId());

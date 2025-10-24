@@ -37,6 +37,9 @@ public class AutoexecJobBuilder {
     @EntityField(name = "作业执行参数", type = ApiParamType.JSONOBJECT)
     private AutoexecCombopExecuteConfigVo executeConfig;
 
+    @EntityField(name = "如何指定执行目标，（现在指定执行目标、运行时再指定执行目标、运行参数作为执行目标）", type = ApiParamType.STRING)
+    private String whenToSpecify;
+
     @EntityField(name = "前置执行目标配置", type = ApiParamType.JSONOBJECT)
     private JSONObject preCondition;
 
@@ -86,6 +89,14 @@ public class AutoexecJobBuilder {
 
     public void setExecuteConfig(AutoexecCombopExecuteConfigVo executeConfig) {
         this.executeConfig = executeConfig;
+    }
+
+    public String getWhenToSpecify() {
+        return whenToSpecify;
+    }
+
+    public void setWhenToSpecify(String whenToSpecify) {
+        this.whenToSpecify = whenToSpecify;
     }
 
     public JSONObject getPreCondition() {
@@ -163,6 +174,7 @@ public class AutoexecJobBuilder {
         jobVo.setRunnerGroupTag(runnerGroupTag);
         jobVo.setScenarioId(scenarioId);
         jobVo.setExecuteConfig(executeConfig);
+        jobVo.setWhenToSpecify(whenToSpecify);
         jobVo.setPreCondition(preCondition);
         if (roundCount != null) {
             jobVo.setRoundCount(roundCount);
