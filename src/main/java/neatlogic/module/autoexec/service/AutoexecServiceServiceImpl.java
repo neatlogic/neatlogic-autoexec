@@ -828,6 +828,10 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
         builder.setExecuteConfig(executeConfigVo);
         builder.setPreCondition(config.getPreCondition());
         AutoexecCombopVersionConfigVo versionConfigVo = autoexecCombopVersionVo.getConfig();
+        AutoexecCombopExecuteConfigVo executeConfig = versionConfigVo.getExecuteConfig();
+        if (executeConfig != null) {
+            builder.setWhenToSpecify(executeConfig.getWhenToSpecify());
+        }
         List<AutoexecParamVo> lastRuntimeParamList = versionConfigVo.getRuntimeParamList();
         JSONObject param = new JSONObject();
         if (CollectionUtils.isNotEmpty(lastRuntimeParamList)) {

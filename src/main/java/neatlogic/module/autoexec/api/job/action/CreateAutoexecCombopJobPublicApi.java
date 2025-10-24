@@ -190,6 +190,13 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
             }
             executeConfigVo.setProtocolId(accountProtocolVo.getId());
         }
+        if (versionConfig != null) {
+            AutoexecCombopExecuteConfigVo executeConfig = versionConfig.getExecuteConfig();
+            if (executeConfig != null) {
+                autoexecJobParam.setPreCondition(executeConfig.getPreCondition());
+                autoexecJobParam.setWhenToSpecify(executeConfig.getWhenToSpecify());
+            }
+        }
         autoexecJobActionService.validateAndCreateJobFromCombop(autoexecJobParam);
         autoexecJobActionService.settingJobFireMode(autoexecJobParam);
         JSONObject result = new JSONObject();
