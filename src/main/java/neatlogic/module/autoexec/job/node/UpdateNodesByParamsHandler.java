@@ -92,11 +92,7 @@ public class UpdateNodesByParamsHandler implements IUpdateNodes {
                         }
                     }
                 });
-                ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, null);
-                JSONObject preCondition = executeConfigVo.getPreCondition();
-                if (MapUtils.isNotEmpty(preCondition)) {
-                    searchVo.setPreCondition(autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, preCondition));
-                }
+                ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, null, executeConfigVo.getPreCondition());
                 if (CollectionUtils.isNotEmpty(ipPortNameList)) {
                     boolean isHasNodeTmp = autoexecJobService.updateNodeByIpPortNameList(ipPortNameList, searchVo, jobVo, userName, protocolId);
                     if (isHasNodeTmp) {

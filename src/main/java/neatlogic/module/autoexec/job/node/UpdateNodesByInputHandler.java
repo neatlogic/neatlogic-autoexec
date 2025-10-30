@@ -65,11 +65,7 @@ public class UpdateNodesByInputHandler implements IUpdateNodes {
                 throw new AutoexecInputOutOfCountException(1000);
             }
             nodeVoList.forEach(o -> ipPortNameList.add(new ResourceVo(o.getIp(), o.getPort(), o.getName())));
-            ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, null);
-            JSONObject preCondition = executeConfigVo.getPreCondition();
-            if (MapUtils.isNotEmpty(preCondition)) {
-                searchVo.setPreCondition(autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, preCondition));
-            }
+            ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, null, executeConfigVo.getPreCondition());
             isHasNode = autoexecJobService.updateNodeByIpPortNameList(ipPortNameList, searchVo, jobVo, userName, protocolId);
         }
         return isHasNode;

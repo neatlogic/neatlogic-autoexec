@@ -63,10 +63,7 @@ public class UpdateNodesSelectHandler implements IUpdateNodes {
         List<AutoexecNodeVo> nodeVoList = executeConfigVo.getExecuteNodeConfig().getSelectNodeList();
         boolean isHasNode = false;
         if (CollectionUtils.isNotEmpty(nodeVoList)) {
-            ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, null);
-            if (MapUtils.isNotEmpty(executeConfigVo.getPreCondition())) {
-                searchVo.setPreCondition(JSON.toJavaObject(executeConfigVo.getPreCondition(), ResourceSearchVo.class));
-            }
+            ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, null, executeConfigVo.getPreCondition());
             searchVo.setIdList(nodeVoList.stream().map(AutoexecNodeVo::getId).collect(toList()));
             int count;
             IResourceCenterResourceCrossoverService resourceCenterResourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
