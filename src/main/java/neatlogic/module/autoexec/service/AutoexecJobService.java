@@ -275,8 +275,9 @@ public interface AutoexecJobService {
      *
      * @param jobVo      作业
      * @param filterJson 过滤参数
+     * @param preCondition 前置过滤参数
      */
-    ResourceSearchVo getResourceSearchVoWithCmdbGroupType(AutoexecJobVo jobVo, JSONObject filterJson);
+    ResourceSearchVo getResourceSearchVoWithCmdbGroupType(AutoexecJobVo jobVo, JSONObject filterJson, JSONObject preCondition);
 
 
     /**

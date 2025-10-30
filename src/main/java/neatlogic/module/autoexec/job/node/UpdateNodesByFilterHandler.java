@@ -68,11 +68,7 @@ public class UpdateNodesByFilterHandler implements IUpdateNodes {
         JSONObject filterJson = executeConfigVo.getExecuteNodeConfig().getFilter();
         boolean isHasNode = false;
         if (MapUtils.isNotEmpty(filterJson)) {
-            ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, filterJson);
-            JSONObject preCondition = executeConfigVo.getPreCondition();
-            if (MapUtils.isNotEmpty(preCondition)) {
-                searchVo.setPreCondition(autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, preCondition));
-            }
+            ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, filterJson, executeConfigVo.getPreCondition());
             searchVo.setMaxPageSize(50000);
             searchVo.setPageSize(50000);
             IResourceCenterResourceCrossoverService resourceCenterResourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);

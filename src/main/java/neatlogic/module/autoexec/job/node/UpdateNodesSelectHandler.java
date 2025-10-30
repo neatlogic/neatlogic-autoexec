@@ -17,7 +17,6 @@
 
 package neatlogic.module.autoexec.job.node;
 
-import com.alibaba.fastjson.JSON;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.dto.node.AutoexecNodeVo;
@@ -29,7 +28,6 @@ import neatlogic.framework.common.util.PageUtil;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -63,10 +61,7 @@ public class UpdateNodesSelectHandler implements IUpdateNodes {
         List<AutoexecNodeVo> nodeVoList = executeConfigVo.getExecuteNodeConfig().getSelectNodeList();
         boolean isHasNode = false;
         if (CollectionUtils.isNotEmpty(nodeVoList)) {
-            ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, null);
-            if (MapUtils.isNotEmpty(executeConfigVo.getPreCondition())) {
-                searchVo.setPreCondition(JSON.toJavaObject(executeConfigVo.getPreCondition(), ResourceSearchVo.class));
-            }
+            ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, null, executeConfigVo.getPreCondition());
             searchVo.setIdList(nodeVoList.stream().map(AutoexecNodeVo::getId).collect(toList()));
             int count;
             IResourceCenterResourceCrossoverService resourceCenterResourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
