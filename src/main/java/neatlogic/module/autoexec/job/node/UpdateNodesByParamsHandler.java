@@ -28,7 +28,6 @@ import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
 import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -92,11 +91,7 @@ public class UpdateNodesByParamsHandler implements IUpdateNodes {
                         }
                     }
                 });
-                ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, null);
-                JSONObject preCondition = executeConfigVo.getPreCondition();
-                if (MapUtils.isNotEmpty(preCondition)) {
-                    searchVo.setPreCondition(autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, preCondition));
-                }
+                ResourceSearchVo searchVo = autoexecJobService.getResourceSearchVoWithCmdbGroupType(jobVo, null, executeConfigVo.getPreCondition());
                 if (CollectionUtils.isNotEmpty(ipPortNameList)) {
                     boolean isHasNodeTmp = autoexecJobService.updateNodeByIpPortNameList(ipPortNameList, searchVo, jobVo, userName, protocolId);
                     if (isHasNodeTmp) {
