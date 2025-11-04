@@ -49,6 +49,7 @@ import neatlogic.framework.dao.mapper.UserMapper;
 import neatlogic.framework.dto.AuthenticationInfoVo;
 import neatlogic.framework.dto.UserVo;
 import neatlogic.framework.exception.type.ParamIrregularException;
+import neatlogic.framework.exception.type.ParamTypeNotFoundException;
 import neatlogic.framework.exception.user.UserNotFoundException;
 import neatlogic.framework.filter.core.LoginAuthHandlerBase;
 import neatlogic.framework.scheduler.core.IJob;
@@ -445,10 +446,15 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             for (AutoexecParamVo combopRuntimeParam : combopRuntimeParamList) {
                 String combopRuntimeParamKey = combopRuntimeParam.getKey();
                 String combopRuntimeParamName = combopRuntimeParam.getName();
+                ParamType paramType = ParamType.getParamType(combopRuntimeParam.getType());
+                if (paramType == null) {
+                    throw new ParamTypeNotFoundException(combopRuntimeParam.getType());
+                }
                 Object combopRuntimeParamDefaultValue = combopRuntimeParam.getDefaultValue();
-                if (combopRuntimeParam.getIsRequired() == 1
-                        && (MapUtils.isEmpty(autoexecJobParam.getParam()) || autoexecJobParam.getParam().get(combopRuntimeParamKey) == null || StringUtils.isBlank(autoexecJobParam.getParam().get(combopRuntimeParamKey).toString()))
-                        && combopRuntimeParamDefaultValue == null
+                if (
+                        combopRuntimeParam.getIsRequired() == 1 &&
+                         (MapUtils.isEmpty(autoexecJobParam.getParam()) || autoexecJobParam.getParam().get(combopRuntimeParamKey) == null || paramType.isValueEmpty(autoexecJobParam.getParam().get(combopRuntimeParamKey)))
+                        && paramType.isValueEmpty(combopRuntimeParamDefaultValue)
                 ) {
                     throw new JobParamNullException(String.format("%s(%s)", combopRuntimeParamName, combopRuntimeParamKey));
 
