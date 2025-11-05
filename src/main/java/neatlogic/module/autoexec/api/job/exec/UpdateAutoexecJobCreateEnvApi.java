@@ -21,6 +21,7 @@ import neatlogic.framework.autoexec.auth.AUTOEXEC_JOB_MODIFY;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobEnvVo;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -33,7 +34,7 @@ import javax.annotation.Resource;
  * @since 2021/9/16 14:15
  **/
 @Service
-@SystemUser("autoexec")
+@AuthUser(SystemUser.AUTOEXEC)
 @AuthAction(action = AUTOEXEC_JOB_MODIFY.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class UpdateAutoexecJobCreateEnvApi extends PrivateApiComponentBase {

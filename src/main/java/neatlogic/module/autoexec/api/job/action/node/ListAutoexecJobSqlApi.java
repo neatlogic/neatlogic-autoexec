@@ -1,5 +1,7 @@
 package neatlogic.module.autoexec.api.job.action.node;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
@@ -10,6 +12,7 @@ import neatlogic.framework.cmdb.crossover.ICiEntityCrossoverService;
 import neatlogic.framework.cmdb.dto.ci.AttrVo;
 import neatlogic.framework.cmdb.dto.cientity.CiEntityVo;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.deploy.constvalue.JobSourceType;
 import neatlogic.framework.deploy.crossover.IDeploySqlCrossoverMapper;
@@ -17,8 +20,6 @@ import neatlogic.framework.deploy.dto.sql.DeploySqlNodeDetailVo;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
@@ -34,7 +35,7 @@ import java.util.stream.Collectors;
  * @date 2022/4/25 6:33 下午
  */
 @Service
-@SystemUser("autoexec")
+@AuthUser(SystemUser.AUTOEXEC)
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class ListAutoexecJobSqlApi extends PrivateApiComponentBase {

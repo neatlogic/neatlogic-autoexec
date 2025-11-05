@@ -61,7 +61,7 @@ import java.util.stream.Collectors;
  **/
 
 @Service
-@neatlogic.framework.restful.annotation.SystemUser("autoexec")
+@AuthUser(SystemUser.AUTOEXEC)
 @AuthAction(action = AUTOEXEC_CREATE_PUBLIC_JOB.class)
 @OperationType(type = OperationTypeEnum.CREATE)
 public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
@@ -125,10 +125,10 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
         if (Objects.equals(SystemUser.SYSTEM.getUserUuid(), execUserUuid)) {
             execUser = SystemUser.SYSTEM.getUserVo();
             authenticationInfoVo = SystemUser.SYSTEM.getAuthenticationInfoVo();
-        } else if (Objects.equals(neatlogic.framework.autoexec.constvalue.SystemUser.AUTOEXEC.getUserUuid(), execUserUuid)) {
+        } else if (Objects.equals(SystemUser.AUTOEXEC.getUserUuid(), execUserUuid)) {
             //autoexec脚本用的是autoexec虚拟用户
-            execUser = neatlogic.framework.autoexec.constvalue.SystemUser.AUTOEXEC.getUserVo();
-            authenticationInfoVo = neatlogic.framework.autoexec.constvalue.SystemUser.AUTOEXEC.getAuthenticationInfoVo();
+            execUser = SystemUser.AUTOEXEC.getUserVo();
+            authenticationInfoVo = SystemUser.AUTOEXEC.getAuthenticationInfoVo();
         } else {
             execUser = userMapper.getUserByUser(execUserUuid);
             if (execUser == null) {

@@ -23,6 +23,7 @@ import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -40,7 +41,7 @@ import java.util.List;
 @Service
 @AuthAction(action = AUTOEXEC_JOB_MODIFY.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
-@SystemUser("autoexec")
+@AuthUser(SystemUser.AUTOEXEC)
 public class GetAutoexecJobCreateParamApi extends PrivateApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;

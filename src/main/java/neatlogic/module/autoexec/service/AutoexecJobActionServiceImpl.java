@@ -61,6 +61,7 @@ import neatlogic.framework.util.TimeUtil;
 import neatlogic.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecScenarioMapper;
 import neatlogic.module.autoexec.schedule.plugin.AutoexecJobAutoFireJob;
+import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -616,10 +617,10 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         if (Objects.equals(SystemUser.SYSTEM.getUserUuid(), execUserUuid)) {
             execUser = SystemUser.SYSTEM.getUserVo();
             authenticationInfoVo = SystemUser.SYSTEM.getAuthenticationInfoVo();
-        } else if (Objects.equals(neatlogic.framework.autoexec.constvalue.SystemUser.AUTOEXEC.getUserUuid(), execUserUuid)) {
+        } else if (Objects.equals(SystemUser.AUTOEXEC.getUserUuid(), execUserUuid)) {
             //autoexec脚本用的是autoexec虚拟用户
-            execUser = neatlogic.framework.autoexec.constvalue.SystemUser.AUTOEXEC.getUserVo();
-            authenticationInfoVo = neatlogic.framework.autoexec.constvalue.SystemUser.AUTOEXEC.getAuthenticationInfoVo();
+            execUser = SystemUser.AUTOEXEC.getUserVo();
+            authenticationInfoVo = SystemUser.AUTOEXEC.getAuthenticationInfoVo();
         } else {
             execUser = userMapper.getUserBaseInfoByUuid(execUserUuid);
             if (execUser == null) {

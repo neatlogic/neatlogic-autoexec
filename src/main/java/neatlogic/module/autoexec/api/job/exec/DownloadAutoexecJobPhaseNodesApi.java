@@ -51,6 +51,7 @@ import neatlogic.framework.cmdb.dto.resourcecenter.entity.SoftwareServiceOSVo;
 import neatlogic.framework.cmdb.enums.resourcecenter.Protocol;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.constvalue.CacheControlType;
+import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.common.util.PageUtil;
 import neatlogic.framework.common.util.RC4Util;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
@@ -86,7 +87,7 @@ import static neatlogic.framework.common.util.CommonUtil.distinctByKey;
 @Transactional
 @AuthAction(action = AUTOEXEC_JOB_MODIFY.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
-@SystemUser("autoexec")
+@AuthUser(SystemUser.AUTOEXEC)
 public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComponentBase {
     Logger logger = LoggerFactory.getLogger(DownloadAutoexecJobPhaseNodesApi.class);
     @Resource

@@ -31,6 +31,7 @@ import neatlogic.framework.autoexec.exception.AutoexecJobPhaseNotFoundException;
 import neatlogic.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
 import neatlogic.framework.common.config.Config;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.dto.runner.RunnerMapVo;
 import neatlogic.framework.exception.core.ApiRuntimeException;
 import neatlogic.framework.exception.runner.RunnerHttpRequestException;
@@ -58,7 +59,7 @@ import static java.util.stream.Collectors.*;
  * @since 2021/4/14 14:15
  **/
 @Service
-@SystemUser("autoexec")
+@AuthUser(SystemUser.AUTOEXEC)
 @Transactional
 @AuthAction(action = AUTOEXEC_JOB_MODIFY.class)
 @OperationType(type = OperationTypeEnum.UPDATE)

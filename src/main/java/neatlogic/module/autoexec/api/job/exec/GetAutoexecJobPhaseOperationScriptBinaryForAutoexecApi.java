@@ -29,6 +29,7 @@ import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
 import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.common.util.FileUtil;
 import neatlogic.framework.exception.type.ParamIrregularException;
 import neatlogic.framework.file.dao.mapper.FileMapper;
@@ -56,7 +57,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
-@SystemUser("autoexec")
+@AuthUser(SystemUser.AUTOEXEC)
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class GetAutoexecJobPhaseOperationScriptBinaryForAutoexecApi extends PrivateBinaryStreamApiComponentBase {

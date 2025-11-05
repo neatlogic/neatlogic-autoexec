@@ -21,6 +21,7 @@ import neatlogic.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
 import neatlogic.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
@@ -33,7 +34,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 
 @Service
-@SystemUser("autoexec")
+@AuthUser(SystemUser.AUTOEXEC)
 @Transactional
 @AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
