@@ -33,6 +33,7 @@ import org.springframework.transaction.annotation.Transactional;
  */
 
 @Service
+@SystemUser("autoexec")
 @Transactional
 @AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.UPDATE)

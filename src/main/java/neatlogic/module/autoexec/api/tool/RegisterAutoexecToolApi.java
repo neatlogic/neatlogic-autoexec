@@ -35,6 +35,7 @@ import neatlogic.framework.exception.type.ParamIrregularException;
 import neatlogic.framework.exception.type.ParamNotExistsException;
 import neatlogic.framework.exception.type.ParamTypeNotFoundException;
 import neatlogic.framework.restful.annotation.*;
+import neatlogic.framework.restful.annotation.SystemUser;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.framework.transaction.util.TransactionUtil;
@@ -56,6 +57,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
+@SystemUser("autoexec")
 @AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.OPERATE)
 public class RegisterAutoexecToolApi extends PrivateApiComponentBase {

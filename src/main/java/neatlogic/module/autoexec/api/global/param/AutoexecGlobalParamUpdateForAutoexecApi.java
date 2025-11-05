@@ -7,10 +7,7 @@ import neatlogic.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
 import neatlogic.framework.autoexec.exception.AutoexecGlobalParamIsNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.util.RC4Util;
-import neatlogic.framework.restful.annotation.Description;
-import neatlogic.framework.restful.annotation.Input;
-import neatlogic.framework.restful.annotation.OperationType;
-import neatlogic.framework.restful.annotation.Param;
+import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.framework.util.RegexUtils;
@@ -22,6 +19,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 
 @Service
+@SystemUser("autoexec")
 @AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class AutoexecGlobalParamUpdateForAutoexecApi extends PrivateApiComponentBase {

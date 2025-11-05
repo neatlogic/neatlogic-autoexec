@@ -17,7 +17,7 @@ package neatlogic.module.autoexec.api.job.exec;
 
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
-import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
+import neatlogic.framework.autoexec.auth.AUTOEXEC_JOB_MODIFY;
 import neatlogic.framework.autoexec.constvalue.AutoexecJobPhaseNodeFrom;
 import neatlogic.framework.autoexec.constvalue.CombopOperationType;
 import neatlogic.framework.autoexec.constvalue.ExecMode;
@@ -43,7 +43,6 @@ import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import neatlogic.framework.cmdb.crossover.IResourceCenterAccountCrossoverService;
 import neatlogic.framework.cmdb.crossover.IResourceCenterResourceCrossoverService;
-import neatlogic.framework.cmdb.crossover.IResourceCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountBaseVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountVo;
@@ -85,8 +84,9 @@ import static neatlogic.framework.common.util.CommonUtil.distinctByKey;
 
 @Service
 @Transactional
-@AuthAction(action = AUTOEXEC_BASE.class)
+@AuthAction(action = AUTOEXEC_JOB_MODIFY.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
+@SystemUser("autoexec")
 public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComponentBase {
     Logger logger = LoggerFactory.getLogger(DownloadAutoexecJobPhaseNodesApi.class);
     @Resource

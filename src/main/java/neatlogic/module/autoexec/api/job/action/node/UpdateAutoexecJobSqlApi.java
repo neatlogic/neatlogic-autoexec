@@ -21,6 +21,7 @@ import javax.annotation.Resource;
  * @date 2022/4/26 10:12 上午
  */
 @Service
+@SystemUser("autoexec")
 @Transactional
 @AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.UPDATE)

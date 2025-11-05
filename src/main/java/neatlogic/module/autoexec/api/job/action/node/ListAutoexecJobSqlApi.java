@@ -34,6 +34,7 @@ import java.util.stream.Collectors;
  * @date 2022/4/25 6:33 下午
  */
 @Service
+@SystemUser("autoexec")
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class ListAutoexecJobSqlApi extends PrivateApiComponentBase {

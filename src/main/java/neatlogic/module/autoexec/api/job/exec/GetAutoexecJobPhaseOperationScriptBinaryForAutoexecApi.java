@@ -56,6 +56,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 @Service
+@SystemUser("autoexec")
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class GetAutoexecJobPhaseOperationScriptBinaryForAutoexecApi extends PrivateBinaryStreamApiComponentBase {

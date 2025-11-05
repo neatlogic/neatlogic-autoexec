@@ -38,6 +38,7 @@ import javax.annotation.Resource;
  **/
 
 @Service
+@SystemUser("autoexec")
 @Transactional
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.OPERATE)

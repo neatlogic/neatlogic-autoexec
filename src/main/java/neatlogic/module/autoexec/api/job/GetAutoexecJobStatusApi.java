@@ -41,6 +41,7 @@ import java.util.Map;
  **/
 
 @Service
+@SystemUser("autoexec")
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class GetAutoexecJobStatusApi extends PrivateApiComponentBase {

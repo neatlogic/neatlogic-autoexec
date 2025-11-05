@@ -19,7 +19,7 @@ import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.thread.NeatLogicThread;
 import neatlogic.framework.asynchronization.threadpool.TransactionSynchronizationPool;
 import neatlogic.framework.auth.core.AuthAction;
-import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
+import neatlogic.framework.autoexec.auth.AUTOEXEC_JOB_MODIFY;
 import neatlogic.framework.autoexec.constvalue.JobPhaseStatus;
 import neatlogic.framework.autoexec.constvalue.JobStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
@@ -58,8 +58,9 @@ import static java.util.stream.Collectors.*;
  * @since 2021/4/14 14:15
  **/
 @Service
+@SystemUser("autoexec")
 @Transactional
-@AuthAction(action = AUTOEXEC_BASE.class)
+@AuthAction(action = AUTOEXEC_JOB_MODIFY.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class UpdateAutoexecJobPhaseStatusApi extends PrivateApiComponentBase {
     private final Logger logger = LoggerFactory.getLogger(UpdateAutoexecJobPhaseStatusApi.class);

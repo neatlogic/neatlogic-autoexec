@@ -61,6 +61,7 @@ import java.util.stream.Collectors;
  **/
 
 @Service
+@neatlogic.framework.restful.annotation.SystemUser("autoexec")
 @AuthAction(action = AUTOEXEC_CREATE_PUBLIC_JOB.class)
 @OperationType(type = OperationTypeEnum.CREATE)
 public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {

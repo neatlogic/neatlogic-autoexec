@@ -41,6 +41,7 @@ import java.util.Objects;
 
 @Service
 @Transactional
+@SystemUser("autoexec")
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.OPERATE)
 public class TakeOverAutoexecJobApi extends PrivateApiComponentBase {

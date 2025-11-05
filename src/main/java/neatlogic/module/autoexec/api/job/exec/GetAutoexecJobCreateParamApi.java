@@ -17,7 +17,7 @@ package neatlogic.module.autoexec.api.job.exec;
 
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
-import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
+import neatlogic.framework.autoexec.auth.AUTOEXEC_JOB_MODIFY;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
@@ -38,8 +38,9 @@ import java.util.List;
  * @since 2021/5/19 14:15
  **/
 @Service
-@AuthAction(action = AUTOEXEC_BASE.class)
+@AuthAction(action = AUTOEXEC_JOB_MODIFY.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
+@SystemUser("autoexec")
 public class GetAutoexecJobCreateParamApi extends PrivateApiComponentBase {
     @Resource
     AutoexecJobMapper autoexecJobMapper;

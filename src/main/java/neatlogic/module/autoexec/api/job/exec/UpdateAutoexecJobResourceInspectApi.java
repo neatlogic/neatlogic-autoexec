@@ -35,6 +35,7 @@ import javax.annotation.Resource;
  * @since 2021/9/16 14:15
  **/
 @Service
+@SystemUser("autoexec")
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class UpdateAutoexecJobResourceInspectApi extends PrivateApiComponentBase {

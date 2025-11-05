@@ -39,6 +39,7 @@ import java.math.BigDecimal;
 import java.util.Objects;
 
 @Service
+@SystemUser("autoexec")
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class GetAutoexecScriptActiveVersionApi extends PrivateApiComponentBase {

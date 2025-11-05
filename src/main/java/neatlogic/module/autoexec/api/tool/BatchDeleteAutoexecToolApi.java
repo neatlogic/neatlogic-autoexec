@@ -33,6 +33,7 @@ import java.util.List;
 
 @Service
 @Transactional
+@SystemUser("autoexec")
 @AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.OPERATE)
 public class BatchDeleteAutoexecToolApi extends PrivateApiComponentBase {
