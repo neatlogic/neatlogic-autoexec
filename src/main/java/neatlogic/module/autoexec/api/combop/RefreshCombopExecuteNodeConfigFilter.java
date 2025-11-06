@@ -19,6 +19,8 @@ package neatlogic.module.autoexec.api.combop;
 
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.auth.core.AuthAction;
+import neatlogic.framework.auth.label.NoAuth;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVersionVo;
 import neatlogic.framework.autoexec.exception.AutoexecCombopVersionNotFoundException;
@@ -41,6 +43,7 @@ import java.util.Map;
  * 临时刷新数据用，后续废除
  */
 @Service
+@AuthAction(action = NoAuth.class)
 public class RefreshCombopExecuteNodeConfigFilter extends PrivateApiComponentBase {
 
     @Resource
