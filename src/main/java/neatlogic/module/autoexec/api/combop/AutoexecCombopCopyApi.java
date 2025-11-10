@@ -134,19 +134,30 @@ public class AutoexecCombopCopyApi extends PrivateApiComponentBase {
         autoexecCombopVo.setIsActive(fromAutoexecCombopVo.getIsActive());
 //        autoexecCombopVo.setDescription(jsonObj.getString("description"));
         Long combopId = autoexecCombopVo.getId();
-        List<AutoexecCombopVersionVo> versionList = autoexecCombopVersionMapper.getAutoexecCombopVersionListByCombopId(id);
-        if (CollectionUtils.isNotEmpty(versionList)) {
-            for (AutoexecCombopVersionVo autoexecCombopVersionVo : versionList) {
-                autoexecCombopVersionVo.setId(null);
-                autoexecCombopVersionVo.setCombopId(combopId);
-                AutoexecCombopVersionConfigVo versionConfig = autoexecCombopVersionVo.getConfig();
-                autoexecCombopService.resetIdAutoexecCombopVersionConfig(versionConfig);
-                autoexecCombopService.setAutoexecCombopPhaseGroupId(versionConfig);
-                autoexecCombopVersionVo.setConfigStr(null);
-                autoexecCombopVersionMapper.insertAutoexecCombopVersion(autoexecCombopVersionVo);
-                autoexecCombopService.saveDependency(autoexecCombopVersionVo);
-            }
-        }
+//        List<AutoexecCombopVersionVo> versionList = autoexecCombopVersionMapper.getAutoexecCombopVersionListByCombopId(id);
+//        if (CollectionUtils.isNotEmpty(versionList)) {
+//            for (AutoexecCombopVersionVo autoexecCombopVersionVo : versionList) {
+//                autoexecCombopVersionVo.setId(null);
+//                autoexecCombopVersionVo.setCombopId(combopId);
+//                AutoexecCombopVersionConfigVo versionConfig = autoexecCombopVersionVo.getConfig();
+//                autoexecCombopService.resetIdAutoexecCombopVersionConfig(versionConfig);
+//                autoexecCombopService.setAutoexecCombopPhaseGroupId(versionConfig);
+//                autoexecCombopVersionVo.setConfigStr(null);
+//                autoexecCombopVersionMapper.insertAutoexecCombopVersion(autoexecCombopVersionVo);
+//                autoexecCombopService.saveDependency(autoexecCombopVersionVo);
+//            }
+//        }
+        // 复制组合工具时，只复制激活版本，其他版本不需要复制
+        AutoexecCombopVersionVo autoexecCombopVersionVo = autoexecCombopVersionMapper.getAutoexecCombopActiveVersionByCombopId(id);
+        autoexecCombopVersionVo.setId(null);
+        autoexecCombopVersionVo.setCombopId(combopId);
+        AutoexecCombopVersionConfigVo versionConfig = autoexecCombopVersionVo.getConfig();
+        autoexecCombopService.resetIdAutoexecCombopVersionConfig(versionConfig);
+        autoexecCombopService.setAutoexecCombopPhaseGroupId(versionConfig);
+        autoexecCombopVersionVo.setConfigStr(null);
+        autoexecCombopVersionMapper.insertAutoexecCombopVersion(autoexecCombopVersionVo);
+        autoexecCombopService.saveDependency(autoexecCombopVersionVo);
+
         autoexecCombopVo.setConfigStr(null);
         autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
         autoexecCombopService.saveDependency(autoexecCombopVo);
