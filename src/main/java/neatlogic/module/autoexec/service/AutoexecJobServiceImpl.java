@@ -1152,7 +1152,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
      */
 
     @Override
-    public ResourceSearchVo getResourceSearchVoWithCmdbGroupType(AutoexecJobVo jobVo, JSONObject filterJson, JSONObject preCondition) {
+    public ResourceSearchVo getResourceSearchVoWithCmdbGroupType(AutoexecJobVo jobVo, JSONObject filterJson, JSONObject combopPreCondition) {
         if (MapUtils.isEmpty(filterJson)) {
             filterJson = new JSONObject();
         }
@@ -1164,7 +1164,14 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
         IResourceCenterResourceCrossoverService resourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
         ResourceSearchVo searchVo = resourceCrossoverService.assembleResourceSearchVo(filterJson);
-        if (MapUtils.isNotEmpty(preCondition)) {
+        JSONObject preCondition = null;
+        if(MapUtils.isNotEmpty(jobVo.getPreCondition())){
+            preCondition = jobVo.getPreCondition();
+        }else if (MapUtils.isNotEmpty(combopPreCondition)) {
+            preCondition = combopPreCondition;
+        }
+
+        if(MapUtils.isNotEmpty(preCondition)) {
             ResourceSearchVo preConditionVo = resourceCrossoverService.assembleResourceSearchVo(preCondition);
             searchVo.setPreCondition(preConditionVo);
         }
