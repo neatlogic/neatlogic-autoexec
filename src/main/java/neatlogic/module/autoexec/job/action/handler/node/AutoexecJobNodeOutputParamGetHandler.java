@@ -76,7 +76,7 @@ public class AutoexecJobNodeOutputParamGetHandler extends AutoexecJobActionHandl
         if (MapUtils.isNotEmpty(statusJson)) {
             Long jobId = paramJson.getLong("jobId");
             Long jobPhaseId = paramJson.getLong("phaseId");
-            List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationListWithoutParentByJobIdAndPhaseId(jobId, jobPhaseId);
+            List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationListWithVersionAndParentByJobIdAndPhaseId(jobId, jobPhaseId);
             List<String> toolContentList = operationVoList.stream().filter(o -> Objects.equals(o.getType(), CombopOperationType.TOOL.getValue())).map(AutoexecJobPhaseOperationVo::getParamHash).collect(Collectors.toList());
             Map<String, String> toolHashContentMap = new HashMap<>();
             if(CollectionUtils.isNotEmpty(toolContentList)) {
