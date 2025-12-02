@@ -20,6 +20,7 @@ import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.ParamType;
 import neatlogic.framework.autoexec.script.paramtype.ScriptParamTypeBase;
 import neatlogic.framework.common.util.RC4Util;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 /**
@@ -88,7 +89,10 @@ public class ScriptParamTypePassword extends ScriptParamTypeBase {
     @Override
     protected Object getMyTextByValue(Object value, JSONObject config) {
         String valueStr = value.toString();
-        return RC4Util.encrypt(valueStr);
+        if (StringUtils.isNotBlank(valueStr)) {
+            return RC4Util.encrypt(valueStr);
+        }
+        return value;
     }
 
     @Override
