@@ -1457,9 +1457,11 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 if (paramVo == null) {
                     continue;
                 }
-                Object value = paramVo.getDefaultValue();
-                if (value != null && Objects.equals(paramVo.getType(), ParamType.PASSWORD.getValue())) {
-                    paramVo.setDefaultValue(RC4Util.encrypt((String) value));
+                if (paramVo.getDefaultValue() != null && Objects.equals(paramVo.getType(), ParamType.PASSWORD.getValue())) {
+                    String value = paramVo.getDefaultValue().toString();
+                    if (StringUtils.isNotBlank(value)) {
+                        paramVo.setDefaultValue(RC4Util.encrypt(value));
+                    }
                 }
             }
         }
@@ -1480,8 +1482,13 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 List<ParamMappingVo> paramMappingList = operationConfig.getParamMappingList();
                 if (CollectionUtils.isNotEmpty(paramMappingList)) {
                     for (ParamMappingVo paramMappingVo : paramMappingList) {
-                        if (Objects.equals(paramMappingVo.getType(), ParamType.PASSWORD.getValue()) && paramMappingVo.getValue() != null && Objects.equals(paramMappingVo.getMappingMode(), ParamMappingMode.CONSTANT.getValue())) {
-                            paramMappingVo.setValue(RC4Util.encrypt((String) paramMappingVo.getValue()));
+                        if (Objects.equals(paramMappingVo.getType(), ParamType.PASSWORD.getValue())
+                                && paramMappingVo.getValue() != null
+                                && Objects.equals(paramMappingVo.getMappingMode(), ParamMappingMode.CONSTANT.getValue())) {
+                            String value = paramMappingVo.getValue().toString();
+                            if (StringUtils.isNotBlank(value)) {
+                                paramMappingVo.setValue(RC4Util.encrypt(value));
+                            }
                         }
                     }
                 }
