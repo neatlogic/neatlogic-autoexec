@@ -108,10 +108,11 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
 
     @Override
     public List<AutoexecScriptVersionVo> getScriptVersionDetailListByScriptId(AutoexecScriptVersionVo vo) {
+        List<AutoexecScriptVersionVo> resultList = new ArrayList<>();
         List<AutoexecScriptVersionVo> versionList = autoexecScriptMapper.getVersionListIncludeLineByScriptId(vo);
         if (CollectionUtils.isNotEmpty(versionList)) {
-
-            List<Long> versionIdList = versionList.stream().map(AutoexecScriptVersionVo::getId).collect(Collectors.toList());
+            // 20251208改成只复制当前版本
+            List<Long> versionIdList = versionList.stream().filter(Objects::nonNull).filter(e -> Objects.equals(e.getIsActive(), 1)).map(AutoexecScriptVersionVo::getId).collect(Collectors.toList());
             Map<Long, AutoexecScriptArgumentVo> argumentMap = new HashMap<>();
             Map<Long, List<AutoexecScriptVersionParamVo>> paramMap = new HashMap<>();
             Map<Long, List<Long>> useLibMap = new HashMap<>();
@@ -133,16 +134,17 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
                 useLibNameMap = versionVoIncludeUseLibNameList.stream().collect(Collectors.toMap(AutoexecScriptVersionVo::getId, AutoexecScriptVersionVo::getUseLibName));
             }
 
-            if (CollectionUtils.isNotEmpty(versionList)) {
-                for (AutoexecScriptVersionVo version : versionList) {
+            for (AutoexecScriptVersionVo version : versionList) {
+                if (versionIdList.contains(version.getId())) {
                     version.setParamList(paramMap.get(version.getId()));
                     version.setArgument(argumentMap.get(version.getId()));
                     version.setUseLib(useLibMap.get(version.getId()));
                     version.setUseLibName(useLibNameMap.get(version.getId()));
+                    resultList.add(version);
                 }
             }
         }
-        return versionList;
+        return resultList;
     }
 
     /**
