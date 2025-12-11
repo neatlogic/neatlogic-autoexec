@@ -1348,7 +1348,9 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 autoexecCombopAuthorityVo.setAction(CombopAuthorityAction.VIEW.getValue());
                 autoexecCombopAuthorityList.add(autoexecCombopAuthorityVo);
             }
-            autoexecCombopMapper.insertAutoexecCombopAuthorityVoList(autoexecCombopAuthorityList);
+            if (CollectionUtils.isNotEmpty(autoexecCombopAuthorityList)) {
+                autoexecCombopMapper.insertAutoexecCombopAuthorityVoList(autoexecCombopAuthorityList);
+            }
         }
         List<String> editAuthorityList = autoexecCombopVo.getEditAuthorityList();
         if (CollectionUtils.isNotEmpty(editAuthorityList)) {
@@ -1362,7 +1364,9 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 autoexecCombopAuthorityVo.setAction(CombopAuthorityAction.EDIT.getValue());
                 autoexecCombopAuthorityList.add(autoexecCombopAuthorityVo);
             }
-            autoexecCombopMapper.insertAutoexecCombopAuthorityVoList(autoexecCombopAuthorityList);
+            if (CollectionUtils.isNotEmpty(autoexecCombopAuthorityList)) {
+                autoexecCombopMapper.insertAutoexecCombopAuthorityVoList(autoexecCombopAuthorityList);
+            }
         }
         List<String> executeAuthorityList = autoexecCombopVo.getExecuteAuthorityList();
         if (CollectionUtils.isNotEmpty(executeAuthorityList)) {
@@ -1376,7 +1380,9 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 autoexecCombopAuthorityVo.setAction(CombopAuthorityAction.EXECUTE.getValue());
                 autoexecCombopAuthorityList.add(autoexecCombopAuthorityVo);
             }
-            autoexecCombopMapper.insertAutoexecCombopAuthorityVoList(autoexecCombopAuthorityList);
+            if (CollectionUtils.isNotEmpty(autoexecCombopAuthorityList)) {
+                autoexecCombopMapper.insertAutoexecCombopAuthorityVoList(autoexecCombopAuthorityList);
+            }
         }
     }
 
