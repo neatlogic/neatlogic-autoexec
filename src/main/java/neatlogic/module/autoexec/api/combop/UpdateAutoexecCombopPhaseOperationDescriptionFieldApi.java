@@ -31,6 +31,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 //@Service
@@ -77,6 +78,7 @@ public class UpdateAutoexecCombopPhaseOperationDescriptionFieldApi extends Priva
                 List<Long> idList = autoexecCombopMapper.getAutoexecCombopIdList(searchVo);
                 if (CollectionUtils.isNotEmpty(idList)) {
                     autoexecCombopList = autoexecCombopMapper.getAutoexecCombopByIdList(idList);
+                    autoexecCombopList.sort(Comparator.comparingInt(o -> idList.indexOf(o.getId())));
                 }
                 for (AutoexecCombopVo autoexecCombopVo : autoexecCombopList) {
                     autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(autoexecCombopVo.getId());

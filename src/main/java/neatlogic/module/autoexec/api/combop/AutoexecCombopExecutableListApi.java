@@ -86,6 +86,7 @@ public class AutoexecCombopExecutableListApi extends PrivateApiComponentBase {
         if (CollectionUtils.isNotEmpty(defaultValue)) {
             List<Long> idList = defaultValue.toJavaList(Long.class);
             autoexecCombopList = autoexecCombopMapper.getAutoexecCombopByIdList(idList);
+            autoexecCombopList.sort(Comparator.comparingInt(o -> idList.indexOf(o.getId())));
             searchVo.setRowNum(autoexecCombopList.size());
             return TableResultUtil.getResult(autoexecCombopList, searchVo);
         }
@@ -110,9 +111,10 @@ public class AutoexecCombopExecutableListApi extends PrivateApiComponentBase {
         int rowNum = autoexecCombopMapper.getAutoexecCombopCount(searchVo);
         if (rowNum > 0) {
             searchVo.setRowNum(rowNum);
-            List<Long> combopIdList = autoexecCombopMapper.getAutoexecCombopIdList(searchVo);
-            if (CollectionUtils.isNotEmpty(combopIdList)) {
-                autoexecCombopList = autoexecCombopMapper.getAutoexecCombopByIdList(combopIdList);
+            List<Long> idList = autoexecCombopMapper.getAutoexecCombopIdList(searchVo);
+            if (CollectionUtils.isNotEmpty(idList)) {
+                autoexecCombopList = autoexecCombopMapper.getAutoexecCombopByIdList(idList);
+                autoexecCombopList.sort(Comparator.comparingInt(o -> idList.indexOf(o.getId())));
             }
         }
         return TableResultUtil.getResult(autoexecCombopList, searchVo);

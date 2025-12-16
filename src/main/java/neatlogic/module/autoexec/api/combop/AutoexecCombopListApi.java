@@ -100,6 +100,7 @@ public class AutoexecCombopListApi extends PrivateApiComponentBase {
         if (CollectionUtils.isNotEmpty(defaultValue)) {
             List<Long> idList = defaultValue.toJavaList(Long.class);
             List<AutoexecCombopVo> autoexecCombopList = autoexecCombopMapper.getAutoexecCombopByIdList(idList);
+            autoexecCombopList.sort(Comparator.comparingInt(o -> idList.indexOf(o.getId())));
             resultObj.put("tbodyList", autoexecCombopList);
             return resultObj;
         }
@@ -138,10 +139,11 @@ public class AutoexecCombopListApi extends PrivateApiComponentBase {
                     searchVo.setRowNum(rowNum);
                     Map<Object, Integer> countMap = new HashMap<>();
                     List<AutoexecCombopVo> autoexecCombopList = new ArrayList<>();
-                    List<Long> combopIdList = autoexecCombopMapper.getAutoexecCombopIdList(searchVo);
-                    if (CollectionUtils.isNotEmpty(combopIdList)) {
-                        autoexecCombopList = autoexecCombopMapper.getAutoexecCombopByIdList(combopIdList);
-                        countMap = DependencyManager.getBatchDependencyCount(AutoexecFromType.COMBOP, combopIdList);
+                    List<Long> idList = autoexecCombopMapper.getAutoexecCombopIdList(searchVo);
+                    if (CollectionUtils.isNotEmpty(idList)) {
+                        autoexecCombopList = autoexecCombopMapper.getAutoexecCombopByIdList(idList);
+                        autoexecCombopList.sort(Comparator.comparingInt(o -> idList.indexOf(o.getId())));
+                        countMap = DependencyManager.getBatchDependencyCount(AutoexecFromType.COMBOP, idList);
                     }
                     for (AutoexecCombopVo autoexecCombopVo : autoexecCombopList) {
                         AutoexecTypeVo autoexecTypeVo = autoexecTypeMapper.getTypeById(autoexecCombopVo.getTypeId());
