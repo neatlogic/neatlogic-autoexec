@@ -86,7 +86,7 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
         if (CollectionUtils.isNotEmpty(idArray)) {
             combopIdList = idArray.toJavaList(Long.class);
         }
-        AutoexecCombopVo searchVo = new AutoexecCombopVo();
+        AutoexecCombopSearchVo searchVo = new AutoexecCombopSearchVo();
         int rowNum = autoexecCombopMapper.getAutoexecCombopCount(searchVo);
         if (rowNum > 0) {
             searchVo.setPageSize(100);

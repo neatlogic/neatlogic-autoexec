@@ -156,13 +156,6 @@
         WHERE `combop_id` = #{value}
     </select>
 
-    <select id="getAutoexecCombopIdListByStatus" parameterType="java.lang.String" resultType="java.lang.Long">
-        SELECT
-            DISTINCT `combop_id`
-        FROM `autoexec_combop_version`
-        WHERE `status` = #{value}
-    </select>
-
     <select id="getAutoexecCombopMaxVersionIdByCombopIdAndStatus" parameterType="java.util.Map" resultType="java.lang.Long">
         SELECT
             max(`id`)

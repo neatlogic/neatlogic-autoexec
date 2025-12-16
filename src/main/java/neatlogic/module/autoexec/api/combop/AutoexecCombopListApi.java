@@ -14,23 +14,27 @@ package neatlogic.module.autoexec.api.combop;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthAction;
+import neatlogic.framework.auth.core.AuthActionChecker;
 import neatlogic.framework.autoexec.auth.AUTOEXEC;
+import neatlogic.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import neatlogic.framework.autoexec.constvalue.AutoexecFromType;
 import neatlogic.framework.autoexec.constvalue.ScriptVersionStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import neatlogic.framework.autoexec.dto.AutoexecTypeVo;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopSearchVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
 import neatlogic.framework.cmdb.enums.CmdbTenantConfig;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.dto.BasePageVo;
 import neatlogic.framework.config.ConfigManager;
 import neatlogic.framework.dependency.core.DependencyManager;
+import neatlogic.framework.dto.AuthenticationInfoVo;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -52,9 +56,6 @@ public class AutoexecCombopListApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
-
-    @Resource
-    private AutoexecCombopVersionMapper autoexecCombopVersionMapper;
 
     @Resource
     private AutoexecTypeMapper autoexecTypeMapper;
@@ -94,7 +95,7 @@ public class AutoexecCombopListApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject resultObj = new JSONObject();
-        AutoexecCombopVo searchVo = jsonObj.toJavaObject(AutoexecCombopVo.class);
+        AutoexecCombopSearchVo searchVo = jsonObj.toJavaObject(AutoexecCombopSearchVo.class);
         JSONArray defaultValue = searchVo.getDefaultValue();
         if (CollectionUtils.isNotEmpty(defaultValue)) {
             List<Long> idList = defaultValue.toJavaList(Long.class);
@@ -102,7 +103,7 @@ public class AutoexecCombopListApi extends PrivateApiComponentBase {
             resultObj.put("tbodyList", autoexecCombopList);
             return resultObj;
         }
-        String versionStatus = jsonObj.getString("versionStatus");
+        String versionStatus = searchVo.getVersionStatus();
         if (StringUtils.isBlank(versionStatus)) {
             versionStatus = ScriptVersionStatus.PASSED.getValue();
         }
@@ -112,18 +113,36 @@ public class AutoexecCombopListApi extends PrivateApiComponentBase {
                 ScriptVersionStatus.SUBMITTED.getValue(),
                 ScriptVersionStatus.REJECTED.getValue()
         );
+        searchVo.setUserUuid(UserContext.get().getUserUuid());
+        List<String> uuidList = new ArrayList<>();
+        uuidList.add(UserContext.get().getUserUuid());
+        AuthenticationInfoVo authenticationInfoVo = UserContext.get().getAuthenticationInfoVo();
+        if (CollectionUtils.isNotEmpty(authenticationInfoVo.getTeamUuidList())) {
+            uuidList.addAll(authenticationInfoVo.getTeamUuidList());
+        }
+        if (CollectionUtils.isNotEmpty(authenticationInfoVo.getRoleUuidList())) {
+            uuidList.addAll(authenticationInfoVo.getRoleUuidList());
+        }
+        searchVo.setUuidList(uuidList);
+        if (AuthActionChecker.check(AUTOEXEC_MODIFY.class)) {
+            searchVo.setIsHasAllAuthority(1);
+        } else {
+            searchVo.setIsHasAllAuthority(0);
+        }
         Map<String, Integer> versionStatusCountMap = new HashMap<>();
         for (String status : versionStatusList) {
-            List<Long> combopIdList = autoexecCombopVersionMapper.getAutoexecCombopIdListByStatus(status);
-            if (CollectionUtils.isNotEmpty(combopIdList)) {
-                Map<Object, Integer> countMap = DependencyManager.getBatchDependencyCount(AutoexecFromType.COMBOP, combopIdList);
-                JSONArray idArray = new JSONArray();
-                combopIdList.forEach(item -> idArray.add(item));
-                searchVo.setDefaultValue(idArray);
-                int rowNum = autoexecCombopMapper.getAutoexecCombopCount(searchVo);
-                if (rowNum > 0 && Objects.equals(status, versionStatus)) {
+            searchVo.setVersionStatus(status);
+            int rowNum = autoexecCombopMapper.getAutoexecCombopCount(searchVo);
+            if (rowNum > 0) {
+                if (Objects.equals(status, versionStatus)) {
                     searchVo.setRowNum(rowNum);
-                    List<AutoexecCombopVo> autoexecCombopList = autoexecCombopMapper.getAutoexecCombopList(searchVo);
+                    Map<Object, Integer> countMap = new HashMap<>();
+                    List<AutoexecCombopVo> autoexecCombopList = new ArrayList<>();
+                    List<Long> combopIdList = autoexecCombopMapper.getAutoexecCombopIdList(searchVo);
+                    if (CollectionUtils.isNotEmpty(combopIdList)) {
+                        autoexecCombopList = autoexecCombopMapper.getAutoexecCombopByIdList(combopIdList);
+                        countMap = DependencyManager.getBatchDependencyCount(AutoexecFromType.COMBOP, combopIdList);
+                    }
                     for (AutoexecCombopVo autoexecCombopVo : autoexecCombopList) {
                         AutoexecTypeVo autoexecTypeVo = autoexecTypeMapper.getTypeById(autoexecCombopVo.getTypeId());
                         if (autoexecTypeVo != null) {
