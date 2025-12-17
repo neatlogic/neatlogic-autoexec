@@ -30,6 +30,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 //@Service
@@ -64,7 +66,7 @@ public class UpdateAutoexecCombopPhaseOperationDescriptionFieldApi extends Priva
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         JSONArray resultList = new JSONArray();
-        AutoexecCombopVo searchVo = new AutoexecCombopVo();
+        AutoexecCombopSearchVo searchVo = new AutoexecCombopSearchVo();
         int rowNum = autoexecCombopMapper.getAutoexecCombopCount(searchVo);
         if (rowNum > 0) {
             searchVo.setRowNum(rowNum);
@@ -72,7 +74,12 @@ public class UpdateAutoexecCombopPhaseOperationDescriptionFieldApi extends Priva
             int pageCount = searchVo.getPageCount();
             for (int currentPage = 1; currentPage <= pageCount; currentPage++) {
                 searchVo.setCurrentPage(currentPage);
-                List<AutoexecCombopVo> autoexecCombopList = autoexecCombopMapper.getAutoexecCombopList(searchVo);
+                List<AutoexecCombopVo> autoexecCombopList = new ArrayList<>();
+                List<Long> idList = autoexecCombopMapper.getAutoexecCombopIdList(searchVo);
+                if (CollectionUtils.isNotEmpty(idList)) {
+                    autoexecCombopList = autoexecCombopMapper.getAutoexecCombopByIdList(idList);
+                    autoexecCombopList.sort(Comparator.comparingInt(o -> idList.indexOf(o.getId())));
+                }
                 for (AutoexecCombopVo autoexecCombopVo : autoexecCombopList) {
                     autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(autoexecCombopVo.getId());
                     AutoexecCombopConfigVo config = autoexecCombopVo.getConfig();

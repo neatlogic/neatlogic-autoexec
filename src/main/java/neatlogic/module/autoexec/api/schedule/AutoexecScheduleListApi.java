@@ -84,7 +84,7 @@ public class AutoexecScheduleListApi extends PrivateApiComponentBase {
             if (searchVo.getCurrentPage() <= searchVo.getPageCount()) {
                 autoexecScheduleList = autoexecScheduleMapper.getAutoexecScheduleList(searchVo);
                 Set<Long> autoexecCombopIdSet = autoexecScheduleList.stream().map(AutoexecScheduleVo::getAutoexecCombopId).collect(Collectors.toSet());
-                List<AutoexecCombopVo> autoexecCombopVoList = autoexecCombopMapper.getAutoexecCombopListByIdList(new ArrayList<>(autoexecCombopIdSet));
+                List<AutoexecCombopVo> autoexecCombopVoList = autoexecCombopMapper.getAutoexecCombopByIdList(new ArrayList<>(autoexecCombopIdSet));
                 Map<Long, AutoexecCombopVo> autoexecCombopMap = autoexecCombopVoList.stream().collect(Collectors.toMap(e -> e.getId(), e -> e));
                 List<Long> idList = autoexecScheduleList.stream().map(AutoexecScheduleVo::getId).collect(Collectors.toList());
                 List<AutoexecJobInvokeVo> execCountList = autoexecJobMapper.getJobIdCountListByInvokeIdList(idList);

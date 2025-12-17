@@ -30,8 +30,6 @@ public interface AutoexecCombopVersionMapper {
 
     Integer getAutoexecCombopMaxVersionByCombopId(Long combopId);
 
-    List<Long> getAutoexecCombopIdListByStatus(String status);
-
     Long getAutoexecCombopMaxVersionIdByCombopIdAndStatus(@Param("combopId") Long combopId, @Param("status") String versionStatus);
 
     int getAutoexecCombopVersionCountForUpdateConfig();

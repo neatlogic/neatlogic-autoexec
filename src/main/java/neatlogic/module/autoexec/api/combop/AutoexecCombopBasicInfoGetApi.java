@@ -30,6 +30,7 @@ import neatlogic.framework.autoexec.exception.combop.AutoexecCombopVersionNotFou
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.constvalue.GroupSearch;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
+import neatlogic.framework.exception.type.PermissionDeniedException;
 import neatlogic.framework.notify.crossover.INotifyServiceCrossoverService;
 import neatlogic.framework.notify.dto.InvokeNotifyPolicyConfigVo;
 import neatlogic.framework.restful.annotation.*;
@@ -95,13 +96,16 @@ public class AutoexecCombopBasicInfoGetApi extends PrivateApiComponentBase {
         if (autoexecCombopVo == null) {
             throw new AutoexecCombopNotFoundEditTargetException(id);
         }
+        autoexecCombopService.setOperableButtonList(autoexecCombopVo);
+        if (!Objects.equals(autoexecCombopVo.getViewable(), 1)) {
+            throw new PermissionDeniedException();
+        }
         AutoexecTypeVo autoexecTypeVo = autoexecTypeMapper.getTypeById(autoexecCombopVo.getTypeId());
         if (autoexecTypeVo != null) {
             autoexecCombopVo.setTypeName(autoexecTypeVo.getName() + "[" + autoexecTypeVo.getDescription() + "]");
         } else {
             autoexecCombopVo.setTypeName(autoexecCombopVo.getTypeId().toString());
         }
-        autoexecCombopService.setOperableButtonList(autoexecCombopVo);
         // owner字段必须在校验权限后，再加上前缀user#
         autoexecCombopVo.setOwner(GroupSearch.USER.getValuePlugin() + autoexecCombopVo.getOwner());
         Long activeVersionId = autoexecCombopVo.getActiveVersionId();
