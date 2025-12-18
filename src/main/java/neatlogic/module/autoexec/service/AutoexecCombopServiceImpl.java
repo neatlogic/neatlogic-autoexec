@@ -416,54 +416,56 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             }
         }
         AutoexecCombopExecuteConfigVo executeConfigVo = config.getExecuteConfig();
-        if (executeConfigVo != null) {
-            ParamMappingVo executeUser = executeConfigVo.getExecuteUser();
-            if (executeUser != null) {
-                if (Objects.equals(executeUser.getMappingMode(), ParamMappingMode.RUNTIME_PARAM.getValue())) {
-                    String key = (String) executeUser.getValue();
-                    if (StringUtils.isNotBlank(key)) {
-                        if (!runtimeParamMap.containsKey(key)) {
-                            throw new AutoexecParamMappingTargetNotFoundException(key);
-                        }
+        if (executeConfigVo == null) {
+            executeConfigVo = new AutoexecCombopExecuteConfigVo();
+            config.setExecuteConfig(executeConfigVo);
+        }
+        ParamMappingVo executeUser = executeConfigVo.getExecuteUser();
+        if (executeUser != null) {
+            if (Objects.equals(executeUser.getMappingMode(), ParamMappingMode.RUNTIME_PARAM.getValue())) {
+                String key = (String) executeUser.getValue();
+                if (StringUtils.isNotBlank(key)) {
+                    if (!runtimeParamMap.containsKey(key)) {
+                        throw new AutoexecParamMappingTargetNotFoundException(key);
                     }
                 }
             }
-            if (Objects.equals(executeConfigVo.getWhenToSpecify(), CombopNodeSpecify.NOW.getValue())) {
-                if (isExecuteJob) {
-                    executeUser = executeConfigVo.getExecuteUser();
-                    if ((executeUser == null || StringUtils.isBlank((String) executeUser.getValue())) && isNeedExecuteUser) {
-                        throw new AutoexecCombopExecuteUserCannotBeEmptyException();
-                    }
-                    if (executeConfigVo.getProtocolId() == null && isNeedExecuteNodeConfig) {
-                        throw new AutoexecCombopProtocolCannotBeEmptyException();
-                    }
+        }
+        if (Objects.equals(executeConfigVo.getWhenToSpecify(), CombopNodeSpecify.NOW.getValue())) {
+            if (isExecuteJob) {
+                executeUser = executeConfigVo.getExecuteUser();
+                if ((executeUser == null || StringUtils.isBlank((String) executeUser.getValue())) && isNeedExecuteUser) {
+                    throw new AutoexecCombopExecuteUserCannotBeEmptyException();
                 }
-                AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = executeConfigVo.getExecuteNodeConfig();
-                if (executeNodeConfigVo == null) {
-                    if (isNeedExecuteNodeConfig) {
-                        throw new AutoexecCombopExecuteNodeCannotBeEmptyException();
-                    }
-                } else {
-                    List<AutoexecNodeVo> selectNodeList = executeNodeConfigVo.getSelectNodeList();
-                    List<AutoexecNodeVo> inputNodeList = executeNodeConfigVo.getInputNodeList();
-                    JSONObject filter = executeNodeConfigVo.getFilter();
-                    if (isNeedExecuteNodeConfig && CollectionUtils.isEmpty(selectNodeList) && CollectionUtils.isEmpty(inputNodeList) && MapUtils.isEmpty(filter)) {
-                        throw new AutoexecCombopExecuteNodeCannotBeEmptyException();
-                    }
+                if (executeConfigVo.getProtocolId() == null && isNeedExecuteNodeConfig) {
+                    throw new AutoexecCombopProtocolCannotBeEmptyException();
                 }
             }
-            //如果runnerGroup的值不合法则默认给常量“随意分配”
-            ParamMappingVo paramMappingVo = config.getExecuteConfig().getRunnerGroup();
-            if (paramMappingVo == null || paramMappingVo.getValue() == null || StringUtils.isBlank(paramMappingVo.getValue().toString())) {
-                paramMappingVo = new ParamMappingVo();
-                config.getExecuteConfig().setRunnerGroup(paramMappingVo);
-                paramMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
-                paramMappingVo.setValue("-1");
+            AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = executeConfigVo.getExecuteNodeConfig();
+            if (executeNodeConfigVo == null) {
+                if (isNeedExecuteNodeConfig) {
+                    throw new AutoexecCombopExecuteNodeCannotBeEmptyException();
+                }
+            } else {
+                List<AutoexecNodeVo> selectNodeList = executeNodeConfigVo.getSelectNodeList();
+                List<AutoexecNodeVo> inputNodeList = executeNodeConfigVo.getInputNodeList();
+                JSONObject filter = executeNodeConfigVo.getFilter();
+                if (isNeedExecuteNodeConfig && CollectionUtils.isEmpty(selectNodeList) && CollectionUtils.isEmpty(inputNodeList) && MapUtils.isEmpty(filter)) {
+                    throw new AutoexecCombopExecuteNodeCannotBeEmptyException();
+                }
             }
-            //兼容老数据：如果只有roundCount且parallelPolicy为null则parallelPolicy为roundCount
-            if (StringUtils.isBlank(config.getExecuteConfig().getParallelPolicy()) && config.getExecuteConfig().getRoundCount() != null) {
-                config.getExecuteConfig().setParallelPolicy(AutoexecParallelPolicy.ROUND_COUNT.getValue());
-            }
+        }
+        //如果runnerGroup的值不合法则默认给常量“随意分配”
+        ParamMappingVo paramMappingVo = config.getExecuteConfig().getRunnerGroup();
+        if (paramMappingVo == null || paramMappingVo.getValue() == null || StringUtils.isBlank(paramMappingVo.getValue().toString())) {
+            paramMappingVo = new ParamMappingVo();
+            config.getExecuteConfig().setRunnerGroup(paramMappingVo);
+            paramMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
+            paramMappingVo.setValue("-1");
+        }
+        //兼容老数据：如果只有roundCount且parallelPolicy为null则parallelPolicy为roundCount
+        if (StringUtils.isBlank(config.getExecuteConfig().getParallelPolicy()) && config.getExecuteConfig().getRoundCount() != null) {
+            config.getExecuteConfig().setParallelPolicy(AutoexecParallelPolicy.ROUND_COUNT.getValue());
         }
 
         return true;
