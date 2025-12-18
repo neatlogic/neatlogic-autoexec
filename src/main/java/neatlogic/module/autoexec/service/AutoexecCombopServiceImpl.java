@@ -1554,9 +1554,9 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
     public void saveAutoexecCombopVersion(AutoexecCombopVersionVo autoexecCombopVersionVo) {
         AutoexecCombopVersionVo oldAutoexecCombopVersion = autoexecCombopVersionMapper.getAutoexecCombopVersionById(autoexecCombopVersionVo.getId());
         AutoexecCombopVersionConfigVo config = autoexecCombopVersionVo.getConfig();
-        String configStr = JSONObject.toJSONString(config);
         /* 保存前，校验组合工具是否配置正确，不正确不可以保存 */
         verifyAutoexecCombopVersionConfig(config, false);
+        String configStr = JSONObject.toJSONString(config);
         autoexecCombopVersionVo.setConfigStr(configStr);
         config = autoexecCombopVersionVo.getConfig();
         passwordParamEncrypt(config);
