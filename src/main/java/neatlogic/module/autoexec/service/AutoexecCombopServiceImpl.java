@@ -1550,13 +1550,83 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         }
     }
 
+    /**
+     * 纠正数据，兼容老组合工具
+     *
+     * @param config 配置
+     */
+    private void updateAutoexecCombopVersionConfig(AutoexecCombopVersionConfigVo config) {
+        if (config == null) {
+            throw new AutoexecCombopAtLeastOnePhaseException();
+        }
+        List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();
+        if (CollectionUtils.isEmpty(combopPhaseList)) {
+            throw new AutoexecCombopAtLeastOnePhaseException();
+        }
+
+        for (AutoexecCombopPhaseVo autoexecCombopPhaseVo : combopPhaseList) {
+            if (autoexecCombopPhaseVo == null) {
+                continue;
+            }
+            AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
+            if (phaseConfig == null) {
+                throw new AutoexecCombopPhaseAtLeastOneOperationException();
+            }
+            //如果阶段存在任意"执行用户"、"协议"、"节点配置"
+            AutoexecCombopExecuteConfigVo phaseExecuteConfig = phaseConfig.getExecuteConfig();
+            if (phaseExecuteConfig != null) {
+                //兼容老数据：如果只有roundCount且parallelPolicy为null则parallelPolicy为roundCount
+                if (StringUtils.isBlank(phaseExecuteConfig.getParallelPolicy()) && phaseExecuteConfig.getRoundCount() != null) {
+                    phaseExecuteConfig.setParallelPolicy(AutoexecParallelPolicy.ROUND_COUNT.getValue());
+                }
+            }
+        }
+        List<AutoexecCombopGroupVo> combopGroupList = config.getCombopGroupList();
+        if (CollectionUtils.isNotEmpty(combopGroupList)) {
+            for (AutoexecCombopGroupVo combopGroupVo : combopGroupList) {
+                AutoexecCombopGroupConfigVo combopGroupConfig = combopGroupVo.getConfig();
+                if (combopGroupConfig == null) {
+                    continue;
+                }
+                AutoexecCombopExecuteConfigVo executeConfigVo = combopGroupConfig.getExecuteConfig();
+                if (executeConfigVo == null) {
+                    continue;
+                }
+
+                //兼容老数据：如果只有roundCount且parallelPolicy为null则parallelPolicy为roundCount
+                if (StringUtils.isBlank(executeConfigVo.getParallelPolicy()) && executeConfigVo.getRoundCount() != null) {
+                    executeConfigVo.setParallelPolicy(AutoexecParallelPolicy.ROUND_COUNT.getValue());
+                }
+            }
+        }
+        AutoexecCombopExecuteConfigVo executeConfigVo = config.getExecuteConfig();
+        if (executeConfigVo == null) {
+            executeConfigVo = new AutoexecCombopExecuteConfigVo();
+            config.setExecuteConfig(executeConfigVo);
+        }
+
+        //如果runnerGroup的值不合法则默认给常量“随意分配”
+        ParamMappingVo paramMappingVo = config.getExecuteConfig().getRunnerGroup();
+        if (paramMappingVo == null || paramMappingVo.getValue() == null || StringUtils.isBlank(paramMappingVo.getValue().toString())) {
+            paramMappingVo = new ParamMappingVo();
+            config.getExecuteConfig().setRunnerGroup(paramMappingVo);
+            paramMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
+            paramMappingVo.setValue("-1");
+        }
+        //兼容老数据：如果只有roundCount且parallelPolicy为null则parallelPolicy为roundCount
+        if (StringUtils.isBlank(config.getExecuteConfig().getParallelPolicy()) && config.getExecuteConfig().getRoundCount() != null) {
+            config.getExecuteConfig().setParallelPolicy(AutoexecParallelPolicy.ROUND_COUNT.getValue());
+        }
+    }
+
     @Override
     public void saveAutoexecCombopVersion(AutoexecCombopVersionVo autoexecCombopVersionVo) {
         AutoexecCombopVersionVo oldAutoexecCombopVersion = autoexecCombopVersionMapper.getAutoexecCombopVersionById(autoexecCombopVersionVo.getId());
         AutoexecCombopVersionConfigVo config = autoexecCombopVersionVo.getConfig();
+        updateAutoexecCombopVersionConfig(config);
+        String configStr = JSONObject.toJSONString(config);
         /* 保存前，校验组合工具是否配置正确，不正确不可以保存 */
         verifyAutoexecCombopVersionConfig(config, false);
-        String configStr = JSONObject.toJSONString(config);
         autoexecCombopVersionVo.setConfigStr(configStr);
         config = autoexecCombopVersionVo.getConfig();
         passwordParamEncrypt(config);
