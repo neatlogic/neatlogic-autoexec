@@ -1165,7 +1165,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         IResourceCenterResourceCrossoverService resourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
         ResourceSearchVo searchVo = resourceCrossoverService.assembleResourceSearchVo(filterJson);
         JSONObject preCondition = null;
-        if(MapUtils.isNotEmpty(jobVo.getPreCondition())){
+        if(jobVo.getPreCondition() != null){
             preCondition = jobVo.getPreCondition();
         }else if (MapUtils.isNotEmpty(combopPreCondition)) {
             preCondition = combopPreCondition;
