@@ -684,7 +684,7 @@ public class CreateJobProcessComponent extends ProcessStepHandlerBase {
 
     @Override
     protected int myRedo(ProcessTaskStepVo currentProcessTaskStepVo) throws ProcessTaskException {
-        return 0;
+        return myActive(currentProcessTaskStepVo);
     }
 
     @Override
