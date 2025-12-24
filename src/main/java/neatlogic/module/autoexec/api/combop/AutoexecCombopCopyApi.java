@@ -158,11 +158,7 @@ public class AutoexecCombopCopyApi extends PrivateApiComponentBase {
         autoexecCombopVersionMapper.insertAutoexecCombopVersion(autoexecCombopVersionVo);
         autoexecCombopService.saveDependency(autoexecCombopVersionVo);
 
-        autoexecCombopVo.setConfigStr(null);
-        autoexecCombopMapper.insertAutoexecCombop(autoexecCombopVo);
-        autoexecCombopService.saveDependency(autoexecCombopVo);
-        autoexecCombopService.saveAuthority(autoexecCombopVo);
-
+        autoexecCombopService.saveAutoexecCombop(autoexecCombopVo);
         return combopId;
     }
 

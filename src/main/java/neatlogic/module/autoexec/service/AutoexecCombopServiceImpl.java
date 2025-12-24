@@ -1338,9 +1338,9 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
     @Override
     public void saveAuthority(AutoexecCombopVo autoexecCombopVo) {
         Long combopId = autoexecCombopVo.getId();
+        List<AutoexecCombopAuthorityVo> autoexecCombopAuthorityList = new ArrayList<>();
         List<String> viewAuthorityList = autoexecCombopVo.getViewAuthorityList();
         if (CollectionUtils.isNotEmpty(viewAuthorityList)) {
-            List<AutoexecCombopAuthorityVo> autoexecCombopAuthorityList = new ArrayList<>();
             for (String authorityStr : viewAuthorityList) {
                 AutoexecCombopAuthorityVo autoexecCombopAuthorityVo = convertAutoexecCombopAuthorityVo(authorityStr);
                 if (autoexecCombopAuthorityVo == null) {
@@ -1350,13 +1350,20 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 autoexecCombopAuthorityVo.setAction(CombopAuthorityAction.VIEW.getValue());
                 autoexecCombopAuthorityList.add(autoexecCombopAuthorityVo);
             }
-            if (CollectionUtils.isNotEmpty(autoexecCombopAuthorityList)) {
-                autoexecCombopMapper.insertAutoexecCombopAuthorityVoList(autoexecCombopAuthorityList);
-            }
         }
+        if (CollectionUtils.isEmpty(autoexecCombopAuthorityList)) {
+            AutoexecCombopAuthorityVo autoexecCombopAuthorityVo = new AutoexecCombopAuthorityVo();
+            autoexecCombopAuthorityVo.setUuid(UserType.ALL.getValue());
+            autoexecCombopAuthorityVo.setType(GroupSearch.COMMON.getValue());
+            autoexecCombopAuthorityVo.setCombopId(combopId);
+            autoexecCombopAuthorityVo.setAction(CombopAuthorityAction.VIEW.getValue());
+            autoexecCombopAuthorityList.add(autoexecCombopAuthorityVo);
+        }
+        autoexecCombopMapper.insertAutoexecCombopAuthorityVoList(autoexecCombopAuthorityList);
+
+        autoexecCombopAuthorityList.clear();
         List<String> editAuthorityList = autoexecCombopVo.getEditAuthorityList();
         if (CollectionUtils.isNotEmpty(editAuthorityList)) {
-            List<AutoexecCombopAuthorityVo> autoexecCombopAuthorityList = new ArrayList<>();
             for (String authorityStr : editAuthorityList) {
                 AutoexecCombopAuthorityVo autoexecCombopAuthorityVo = convertAutoexecCombopAuthorityVo(authorityStr);
                 if (autoexecCombopAuthorityVo == null) {
@@ -1366,13 +1373,20 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 autoexecCombopAuthorityVo.setAction(CombopAuthorityAction.EDIT.getValue());
                 autoexecCombopAuthorityList.add(autoexecCombopAuthorityVo);
             }
-            if (CollectionUtils.isNotEmpty(autoexecCombopAuthorityList)) {
-                autoexecCombopMapper.insertAutoexecCombopAuthorityVoList(autoexecCombopAuthorityList);
-            }
         }
+        if (CollectionUtils.isEmpty(autoexecCombopAuthorityList)) {
+            AutoexecCombopAuthorityVo autoexecCombopAuthorityVo = new AutoexecCombopAuthorityVo();
+            autoexecCombopAuthorityVo.setUuid(UserType.ALL.getValue());
+            autoexecCombopAuthorityVo.setType(GroupSearch.COMMON.getValue());
+            autoexecCombopAuthorityVo.setCombopId(combopId);
+            autoexecCombopAuthorityVo.setAction(CombopAuthorityAction.EDIT.getValue());
+            autoexecCombopAuthorityList.add(autoexecCombopAuthorityVo);
+        }
+        autoexecCombopMapper.insertAutoexecCombopAuthorityVoList(autoexecCombopAuthorityList);
+
+        autoexecCombopAuthorityList.clear();
         List<String> executeAuthorityList = autoexecCombopVo.getExecuteAuthorityList();
         if (CollectionUtils.isNotEmpty(executeAuthorityList)) {
-            List<AutoexecCombopAuthorityVo> autoexecCombopAuthorityList = new ArrayList<>();
             for (String authorityStr : executeAuthorityList) {
                 AutoexecCombopAuthorityVo autoexecCombopAuthorityVo = convertAutoexecCombopAuthorityVo(authorityStr);
                 if (autoexecCombopAuthorityVo == null) {
@@ -1382,10 +1396,16 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
                 autoexecCombopAuthorityVo.setAction(CombopAuthorityAction.EXECUTE.getValue());
                 autoexecCombopAuthorityList.add(autoexecCombopAuthorityVo);
             }
-            if (CollectionUtils.isNotEmpty(autoexecCombopAuthorityList)) {
-                autoexecCombopMapper.insertAutoexecCombopAuthorityVoList(autoexecCombopAuthorityList);
-            }
         }
+        if (CollectionUtils.isEmpty(autoexecCombopAuthorityList)) {
+            AutoexecCombopAuthorityVo autoexecCombopAuthorityVo = new AutoexecCombopAuthorityVo();
+            autoexecCombopAuthorityVo.setUuid(UserType.ALL.getValue());
+            autoexecCombopAuthorityVo.setType(GroupSearch.COMMON.getValue());
+            autoexecCombopAuthorityVo.setCombopId(combopId);
+            autoexecCombopAuthorityVo.setAction(CombopAuthorityAction.EXECUTE.getValue());
+            autoexecCombopAuthorityList.add(autoexecCombopAuthorityVo);
+        }
+        autoexecCombopMapper.insertAutoexecCombopAuthorityVoList(autoexecCombopAuthorityList);
     }
 
     private AutoexecCombopAuthorityVo convertAutoexecCombopAuthorityVo(String authority) {
