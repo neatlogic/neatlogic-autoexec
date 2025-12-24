@@ -55,6 +55,7 @@ import java.util.zip.ZipOutputStream;
 @Service
 @AuthAction(action = AUTOEXEC_COMBOP_ADD.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
+@Deprecated
 public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase {
 
     private final static Logger logger = LoggerFactory.getLogger(AutoexecCombopExportApi.class);

@@ -84,6 +84,7 @@ import java.util.zip.ZipInputStream;
 @Transactional
 @OperationType(type = OperationTypeEnum.CREATE)
 @AuthAction(action = AUTOEXEC_COMBOP_ADD.class)
+@Deprecated
 public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase {
 
     private final Logger logger = LoggerFactory.getLogger(AutoexecCombopImportApi.class);
@@ -431,6 +432,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                 autoexecCombopVersionMapper.deleteAutoexecCombopVersionByCombopId(autoexecCombopVo.getId());
             }
             autoexecCombopService.saveDependency(autoexecCombopVo);
+            autoexecCombopService.saveAuthority(autoexecCombopVo);
             for (AutoexecCombopVersionVo autoexecCombopVersionVo : versionList) {
                 autoexecCombopVersionMapper.insertAutoexecCombopVersion(autoexecCombopVersionVo);
                 autoexecCombopService.saveDependency(autoexecCombopVersionVo);
