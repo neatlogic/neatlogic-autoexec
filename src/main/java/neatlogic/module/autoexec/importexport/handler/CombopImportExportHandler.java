@@ -1,6 +1,8 @@
 package neatlogic.module.autoexec.importexport.handler;
 
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
+import neatlogic.framework.auth.core.AuthActionChecker;
+import neatlogic.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import neatlogic.framework.autoexec.constvalue.*;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dto.AutoexecParamConfigVo;
@@ -74,10 +76,12 @@ public class CombopImportExportHandler extends ImportExportHandlerBase {
         AutoexecCombopVo oldAutoexecCombop = autoexecCombopMapper.getAutoexecCombopByName(importExportVo.getName());
         if (oldAutoexecCombop != null) {
             autoexecCombop.setId(oldAutoexecCombop.getId());
+            autoexecCombop.setOperationType(oldAutoexecCombop.getOperationType());
         } else {
             if (autoexecCombopMapper.checkAutoexecCombopIsExists(autoexecCombop.getId()) > 0) {
                 autoexecCombop.setId(null);
             }
+            autoexecCombop.setOperationType(CombopOperationType.COMBOP.getValue());
         }
         importHandle(autoexecCombop, primaryChangeList);
         autoexecCombopService.saveAutoexecCombop(autoexecCombop);
