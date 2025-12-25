@@ -737,12 +737,12 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 }
             }
         }
-        AutoexecCombopExecuteConfigVo executeConfigVo = new AutoexecCombopExecuteConfigVo();
+//        AutoexecCombopExecuteConfigVo executeConfigVo = new AutoexecCombopExecuteConfigVo();
         if (autoexecCombopVersionVo.getNeedExecuteUser()) {
             ParamMappingVo executeUserParamMappingVo = config.getExecuteUser();
             if (executeUserParamMappingVo != null) {
                 if (Objects.equals(executeUserParamMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue())) {
-                    executeConfigVo.setExecuteUser(executeUserParamMappingVo);
+                    builder.setExecuteUser(executeUserParamMappingVo);
                 } else {
                     if (StringUtils.isNotBlank(formUuid)) {
                         if (Objects.equals(executeUserParamMappingVo.getMappingMode(), ServiceParamMappingMode.FORMATTR.getValue()) && executeUserParamMappingVo.getValue() != null) {
@@ -751,7 +751,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                                 ParamMappingVo paramMappingVo = new ParamMappingVo();
                                 paramMappingVo.setMappingMode(ServiceParamMappingMode.CONSTANT.getValue());
                                 paramMappingVo.setValue(value);
-                                executeConfigVo.setExecuteUser(paramMappingVo);
+                                builder.setExecuteUser(paramMappingVo);
                             }
                         }
                     } else {
@@ -759,7 +759,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             ParamMappingVo paramMappingVo = new ParamMappingVo();
                             paramMappingVo.setMappingMode(ServiceParamMappingMode.CONSTANT.getValue());
                             paramMappingVo.setValue(executeUser);
-                            executeConfigVo.setExecuteUser(paramMappingVo);
+                            builder.setExecuteUser(paramMappingVo);
                         } else {
                             throw new ParamNotExistsException("执行用户(executeUser)必须设置， 请联系管理员重新编辑该服务");
                         }
@@ -771,18 +771,18 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
             ParamMappingVo protocolParamMappingVo = config.getProtocol();
             if (protocolParamMappingVo != null) {
                 if (Objects.equals(protocolParamMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue()) && protocolParamMappingVo.getValue() != null) {
-                    executeConfigVo.setProtocolId((Long) protocolParamMappingVo.getValue());
+                    builder.setProtocolId((Long) protocolParamMappingVo.getValue());
                 } else {
                     if (StringUtils.isNotBlank(formUuid)) {
                         if (Objects.equals(protocolParamMappingVo.getMappingMode(), ServiceParamMappingMode.FORMATTR.getValue())) {
                             Object value = formAttributeDataMap.get(protocolParamMappingVo.getValue().toString());
                             if (value != null) {
-                                executeConfigVo.setProtocolId((Long) value);
+                                builder.setProtocolId((Long) value);
                             }
                         }
                     } else {
                         if (protocol != null) {
-                            executeConfigVo.setProtocolId(protocol);
+                            builder.setProtocolId(protocol);
                         } else {
                             throw new ParamNotExistsException("连接协议(protocol)必须设置， 请联系管理员重新编辑该服务");
                         }
@@ -796,10 +796,10 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 if (Objects.equals(executeNodeParamMappingVo.getMappingMode(), ServiceParamMappingMode.CONSTANT.getValue()) && executeNodeParamMappingVo.getValue() != null) {
                     Object value = executeNodeParamMappingVo.getValue();
                     if (value instanceof AutoexecCombopExecuteNodeConfigVo) {
-                        executeConfigVo.setExecuteNodeConfig((AutoexecCombopExecuteNodeConfigVo) value);
+                        builder.setExecuteNodeConfig((AutoexecCombopExecuteNodeConfigVo) value);
                     } else if (value instanceof JSONObject) {
                         AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = JSONObject.toJavaObject((JSONObject) executeNodeParamMappingVo.getValue(), AutoexecCombopExecuteNodeConfigVo.class);
-                        executeConfigVo.setExecuteNodeConfig(executeNodeConfigVo);
+                        builder.setExecuteNodeConfig(executeNodeConfigVo);
                     }
                 } else {
                     if (StringUtils.isNotBlank(formUuid)) {
@@ -809,20 +809,20 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                                 JSONArray jsonArray = new JSONArray();
                                 jsonArray.add(value);
                                 AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = CreateJobConfigUtil.getExecuteNodeConfig(jsonArray);
-                                executeConfigVo.setExecuteNodeConfig(executeNodeConfigVo);
+                                builder.setExecuteNodeConfig(executeNodeConfigVo);
                             }
                         }
                     } else {
                         if (executeNodeConfig.isNull()) {
                             throw new ParamNotExistsException("执行目标(executeNodeConfig)必须设置， 请联系管理员重新编辑该服务");
                         } else {
-                            executeConfigVo.setExecuteNodeConfig(executeNodeConfig);
+                            builder.setExecuteNodeConfig(executeNodeConfig);
                         }
                     }
                 }
             }
         }
-        builder.setExecuteConfig(executeConfigVo);
+//        builder.setExecuteConfig(executeConfigVo);
         builder.setPreCondition(config.getPreCondition());
         AutoexecCombopVersionConfigVo versionConfigVo = autoexecCombopVersionVo.getConfig();
         AutoexecCombopExecuteConfigVo executeConfig = versionConfigVo.getExecuteConfig();

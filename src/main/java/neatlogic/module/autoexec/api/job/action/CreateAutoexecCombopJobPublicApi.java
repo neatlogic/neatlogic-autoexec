@@ -44,6 +44,8 @@ import neatlogic.framework.service.AuthenticationInfoService;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
+import neatlogic.module.autoexec.service.AutoexecJobService;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
@@ -64,6 +66,9 @@ import java.util.stream.Collectors;
 public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
     @Resource
     AutoexecJobActionService autoexecJobActionService;
+
+    @Resource
+    AutoexecJobService autoexecJobService;
 
     @Resource
     AutoexecCombopMapper combopMapper;
@@ -100,7 +105,11 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
             @Param(name = "parallelPolicy", type = ApiParamType.ENUM, member = AutoexecParallelPolicy.class, desc = "nmaaja.createautoexeccombopjobapi.input.param.desc.parallelpolicy"),
             @Param(name = "roundCount", type = ApiParamType.LONG, desc = "term.autoexec.roundcount"),
             @Param(name = "parallelCount", type = ApiParamType.LONG, desc = "term.autoexec.roundcount"),
-            @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.executeconfig"),
+//            @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.executeconfig"),
+            @Param(name = "protocol", type = ApiParamType.STRING, desc = "协议名"),
+            @Param(name = "protocolId", type = ApiParamType.LONG, desc = "协议id"),
+            @Param(name = "executeUser", type = ApiParamType.JSONOBJECT, desc = "执行用户"),
+            @Param(name = "executeNodeConfig", type = ApiParamType.JSONOBJECT, desc = "执行目标配置"),
             @Param(name = "planStartTime", type = ApiParamType.LONG, desc = "common.planstarttime"),
             @Param(name = "triggerType", type = ApiParamType.ENUM, member = JobTriggerType.class, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.triggertype"),
             @Param(name = "assignExecUser", type = ApiParamType.STRING, desc = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.assignuser"),
@@ -160,7 +169,7 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
         String runnerGroupTag = jsonObj.getString("runnerGroupTag");
         jsonObj.remove("runnerGroup");
         jsonObj.remove("runnerGroupTag");
-        AutoexecJobVo autoexecJobParam = JSON.toJavaObject(jsonObj, AutoexecJobVo.class);
+        AutoexecJobVo autoexecJobParam = jsonObj.toJavaObject(AutoexecJobVo.class);
         //runnerGroup
         if (StringUtils.isNotBlank(runnerGroup)) {
             ParamMappingVo runnerGroupMappingVo = new ParamMappingVo();
@@ -179,14 +188,19 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
             }
             autoexecJobParam.setRunnerGroupTag(runnerGroupTagMappingVo);
         }
-        AutoexecCombopExecuteConfigVo executeConfigVo = autoexecJobParam.getExecuteConfig();
-        if (executeConfigVo != null && StringUtils.isNotBlank(executeConfigVo.getProtocol())) {
-            IResourceAccountCrossoverMapper accountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
-            AccountProtocolVo accountProtocolVo = accountCrossoverMapper.getAccountProtocolVoByProtocolName(executeConfigVo.getProtocol());
-            if (accountProtocolVo == null) {
-                throw new ResourceCenterAccountProtocolNotFoundException(executeConfigVo.getProtocol());
-            }
-            executeConfigVo.setProtocolId(accountProtocolVo.getId());
+//        AutoexecCombopExecuteConfigVo executeConfigVo = autoexecJobParam.getExecuteConfig();
+//        if (executeConfigVo != null && StringUtils.isNotBlank(executeConfigVo.getProtocol())) {
+//            IResourceAccountCrossoverMapper accountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
+//            AccountProtocolVo accountProtocolVo = accountCrossoverMapper.getAccountProtocolVoByProtocolName(executeConfigVo.getProtocol());
+//            if (accountProtocolVo == null) {
+//                throw new ResourceCenterAccountProtocolNotFoundException(executeConfigVo.getProtocol());
+//            }
+//            executeConfigVo.setProtocolId(accountProtocolVo.getId());
+//        }
+        JSONObject executeConfigObj = jsonObj.getJSONObject("executeConfig");
+        if (MapUtils.isNotEmpty(executeConfigObj)) {
+            AutoexecCombopExecuteConfigVo executeConfigVo = executeConfigObj.toJavaObject(AutoexecCombopExecuteConfigVo.class);
+            autoexecJobService.handleOldDataExecuteConfig(executeConfigVo, autoexecJobParam);
         }
         if (versionConfig != null) {
             AutoexecCombopExecuteConfigVo executeConfig = versionConfig.getExecuteConfig();

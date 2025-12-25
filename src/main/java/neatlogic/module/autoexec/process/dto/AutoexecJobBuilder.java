@@ -13,7 +13,7 @@
 package neatlogic.module.autoexec.process.dto;
 
 import com.alibaba.fastjson.JSONObject;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteNodeConfigVo;
 import neatlogic.framework.autoexec.dto.combop.ParamMappingVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.common.constvalue.ApiParamType;
@@ -29,8 +29,17 @@ public class AutoexecJobBuilder {
     @EntityField(name = "场景id", type = ApiParamType.LONG)
     private Long scenarioId;
 
-    @EntityField(name = "作业执行参数", type = ApiParamType.JSONOBJECT)
-    private AutoexecCombopExecuteConfigVo executeConfig;
+//    @EntityField(name = "作业执行参数", type = ApiParamType.JSONOBJECT)
+//    private AutoexecCombopExecuteConfigVo executeConfig;
+
+    @EntityField(name = "协议id", type = ApiParamType.LONG)
+    private Long protocolId;
+
+    @EntityField(name = "执行用户", type = ApiParamType.JSONOBJECT)
+    private ParamMappingVo executeUser;
+
+    @EntityField(name = "执行目标配置", type = ApiParamType.JSONOBJECT)
+    private AutoexecCombopExecuteNodeConfigVo executeNodeConfig;
 
     @EntityField(name = "如何指定执行目标，（现在指定执行目标、运行时再指定执行目标、运行参数作为执行目标）", type = ApiParamType.STRING)
     private String whenToSpecify;
@@ -78,12 +87,36 @@ public class AutoexecJobBuilder {
         this.scenarioId = scenarioId;
     }
 
-    public AutoexecCombopExecuteConfigVo getExecuteConfig() {
-        return executeConfig;
+//    public AutoexecCombopExecuteConfigVo getExecuteConfig() {
+//        return executeConfig;
+//    }
+//
+//    public void setExecuteConfig(AutoexecCombopExecuteConfigVo executeConfig) {
+//        this.executeConfig = executeConfig;
+//    }
+
+    public Long getProtocolId() {
+        return protocolId;
     }
 
-    public void setExecuteConfig(AutoexecCombopExecuteConfigVo executeConfig) {
-        this.executeConfig = executeConfig;
+    public void setProtocolId(Long protocolId) {
+        this.protocolId = protocolId;
+    }
+
+    public ParamMappingVo getExecuteUser() {
+        return executeUser;
+    }
+
+    public void setExecuteUser(ParamMappingVo executeUser) {
+        this.executeUser = executeUser;
+    }
+
+    public AutoexecCombopExecuteNodeConfigVo getExecuteNodeConfig() {
+        return executeNodeConfig;
+    }
+
+    public void setExecuteNodeConfig(AutoexecCombopExecuteNodeConfigVo executeNodeConfig) {
+        this.executeNodeConfig = executeNodeConfig;
     }
 
     public String getWhenToSpecify() {
@@ -168,7 +201,10 @@ public class AutoexecJobBuilder {
         jobVo.setRunnerGroup(runnerGroup);
         jobVo.setRunnerGroupTag(runnerGroupTag);
         jobVo.setScenarioId(scenarioId);
-        jobVo.setExecuteConfig(executeConfig);
+//        jobVo.setExecuteConfig(executeConfig);
+        jobVo.setProtocolId(protocolId);
+        jobVo.setExecuteUser(executeUser);
+        jobVo.setExecuteNodeConfig(executeNodeConfig);
         jobVo.setWhenToSpecify(whenToSpecify);
         jobVo.setPreCondition(preCondition);
         if (roundCount != null) {

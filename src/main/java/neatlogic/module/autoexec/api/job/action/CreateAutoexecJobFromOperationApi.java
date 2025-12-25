@@ -78,7 +78,10 @@ public class CreateAutoexecJobFromOperationApi extends PrivateApiComponentBase {
             @Param(name = "operationId", type = ApiParamType.LONG, isRequired = true, desc = "自定义工具库版本ID|工具库ID"),
             @Param(name = "param", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "执行参数"),
             @Param(name = "type", type = ApiParamType.ENUM, rule = "script,tool", isRequired = true, desc = "类型 script|tool   自定义工具库|工具库"),
-            @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, desc = "执行目标", isRequired = true),
+//            @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, desc = "执行目标", isRequired = true),
+            @Param(name = "protocolId", type = ApiParamType.LONG, desc = "协议id"),
+            @Param(name = "executeUser", type = ApiParamType.JSONOBJECT, desc = "执行用户"),
+            @Param(name = "executeNodeConfig", type = ApiParamType.JSONOBJECT, desc = "执行目标配置"),
             @Param(name = "argumentMappingList", type = ApiParamType.JSONARRAY, desc = "自由参数"),
     })
     @Output({
@@ -88,18 +91,20 @@ public class CreateAutoexecJobFromOperationApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecCombopVo combopVo = buildCombopVo(jsonObj);
-        //设置作业执行节点
-        if (combopVo.getConfig() != null && jsonObj.containsKey("executeConfig")) {
-            AutoexecCombopExecuteConfigVo executeConfigVo = JSON.toJavaObject(jsonObj.getJSONObject("executeConfig"), AutoexecCombopExecuteConfigVo.class);
-            combopVo.getConfig().setExecuteConfig(executeConfigVo);
-        }
         String type = jsonObj.getString("type");
         if (Objects.equals(CombopOperationType.SCRIPT.getValue(), type)) {
             jsonObj.put("source", JobSource.SCRIPT_TEST.getValue());
         } else if (Objects.equals(CombopOperationType.TOOL.getValue(), type)) {
             jsonObj.put("source", JobSource.TOOL_TEST.getValue());
         }
-        AutoexecJobVo jobVo = JSON.toJavaObject(jsonObj, AutoexecJobVo.class);
+        AutoexecJobVo jobVo = jsonObj.toJavaObject(AutoexecJobVo.class);
+        //设置作业执行节点
+        JSONObject executeConfigObj = jsonObj.getJSONObject("executeConfig");
+        if (executeConfigObj != null) {
+            AutoexecCombopExecuteConfigVo executeConfigVo = executeConfigObj.toJavaObject(AutoexecCombopExecuteConfigVo.class);
+            combopVo.getConfig().setExecuteConfig(executeConfigVo);
+            autoexecJobService.handleOldDataExecuteConfig(executeConfigVo, jobVo);
+        }
         jobVo.setRunTimeParamList(combopVo.getConfig().getRuntimeParamList() == null ? new ArrayList<>() : combopVo.getConfig().getRuntimeParamList());
         jobVo.setOperationType(type);
         jobVo.setAction(JobAction.FIRE.getValue());

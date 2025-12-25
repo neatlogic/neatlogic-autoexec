@@ -269,49 +269,49 @@ public class CreateJobConfigUtil {
         if (combopExecuteConfig == null) {
             combopExecuteConfig = new AutoexecCombopExecuteConfigVo();
         }
-        AutoexecCombopExecuteConfigVo executeConfig = new AutoexecCombopExecuteConfigVo();
+//        AutoexecCombopExecuteConfigVo executeConfig = new AutoexecCombopExecuteConfigVo();
         if (needExecuteNode) {
             String whenToSpecify = combopExecuteConfig.getWhenToSpecify();
             if (Objects.equals(CombopNodeSpecify.NOW.getValue(), whenToSpecify)) {
-                executeConfig.setWhenToSpecify(CombopNodeSpecify.NOW.getValue());
+                builder.setWhenToSpecify(CombopNodeSpecify.NOW.getValue());
                 AutoexecCombopExecuteNodeConfigVo executeNodeConfig = combopExecuteConfig.getExecuteNodeConfig();
                 if (executeNodeConfig != null) {
-                    executeConfig.setExecuteNodeConfig(executeNodeConfig);
+                    builder.setExecuteNodeConfig(executeNodeConfig);
                 }
             } else if (Objects.equals(CombopNodeSpecify.RUNTIMEPARAM.getValue(), whenToSpecify)) {
-                executeConfig.setWhenToSpecify(CombopNodeSpecify.RUNTIMEPARAM.getValue());
+                builder.setWhenToSpecify(CombopNodeSpecify.RUNTIMEPARAM.getValue());
                 AutoexecCombopExecuteNodeConfigVo executeNodeConfig = combopExecuteConfig.getExecuteNodeConfig();
                 if (executeNodeConfig != null) {
-                    executeConfig.setExecuteNodeConfig(executeNodeConfig);
+                    builder.setExecuteNodeConfig(executeNodeConfig);
                 }
             } else if (Objects.equals(CombopNodeSpecify.RUNTIME.getValue(), whenToSpecify)) {
-                executeConfig.setWhenToSpecify(CombopNodeSpecify.RUNTIME.getValue());
+                builder.setWhenToSpecify(CombopNodeSpecify.RUNTIME.getValue());
                 CreateJobConfigMappingGroupVo mappingGroupVo = executeParamMappingGroupMap.get("executeNodeConfig");
                 if (mappingGroupVo != null) {
                     JSONArray jsonArray = parseCreateJobConfigMappingGroup(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, formCommonComponentDataMap, processTaskParam);
                     AutoexecCombopExecuteNodeConfigVo executeNodeConfigVo = getExecuteNodeConfig(jsonArray);
                     if (executeNodeConfigVo != null) {
-                        executeConfig.setExecuteNodeConfig(executeNodeConfigVo);
+                        builder.setExecuteNodeConfig(executeNodeConfigVo);
                     }
                 }
             }
         }
         if (needProtocol) {
             if (combopExecuteConfig.getProtocolId() != null) {
-                executeConfig.setProtocolId(combopExecuteConfig.getProtocolId());
+                builder.setProtocolId(combopExecuteConfig.getProtocolId());
             } else {
                 CreateJobConfigMappingGroupVo mappingGroupVo = executeParamMappingGroupMap.get("protocolId");
                 if (mappingGroupVo != null) {
                     JSONArray jsonArray = parseCreateJobConfigMappingGroup(mappingGroupVo, formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, formCommonComponentDataMap, processTaskParam);
                     Long protocolId = getProtocolId(jsonArray);
-                    executeConfig.setProtocolId(protocolId);
+                    builder.setProtocolId(protocolId);
                 }
             }
         }
         if (needExecuteUser) {
             ParamMappingVo executeUserMappingVo = combopExecuteConfig.getExecuteUser();
             if (executeUserMappingVo != null && StringUtils.isNotBlank((String) executeUserMappingVo.getValue())) {
-                executeConfig.setExecuteUser(executeUserMappingVo);
+                builder.setExecuteUser(executeUserMappingVo);
             } else {
                 CreateJobConfigMappingGroupVo mappingGroupVo = executeParamMappingGroupMap.get("executeUser");
                 if (mappingGroupVo != null) {
@@ -321,7 +321,7 @@ public class CreateJobConfigUtil {
                         ParamMappingVo paramMappingVo = new ParamMappingVo();
                         paramMappingVo.setMappingMode("constant");
                         paramMappingVo.setValue(executeUser);
-                        executeConfig.setExecuteUser(paramMappingVo);
+                        builder.setExecuteUser(paramMappingVo);
                     }
                 }
             }
@@ -331,7 +331,7 @@ public class CreateJobConfigUtil {
             Integer roundCount = null;
             if(StringUtils.isNotBlank(combopExecuteConfig.getParallelPolicy())){
                 parallelPolicy = combopExecuteConfig.getParallelPolicy();
-                executeConfig.setParallelPolicy(parallelPolicy);
+                builder.setParallelPolicy(parallelPolicy);
             }else{
                 CreateJobConfigMappingGroupVo mappingGroupVo = executeParamMappingGroupMap.get("parallelPolicy");
                 if(mappingGroupVo != null && (CollectionUtils.isNotEmpty(mappingGroupVo.getMappingList()) && mappingGroupVo.getMappingList().get(0) != null && mappingGroupVo.getMappingList().get(0).getValue() != null)) {
@@ -343,7 +343,7 @@ public class CreateJobConfigUtil {
 
             if (combopExecuteConfig.getRoundCount() != null) {
                 roundCount = combopExecuteConfig.getRoundCount();
-                executeConfig.setRoundCount(roundCount);
+                builder.setRoundCount(roundCount);
             } else {
                 CreateJobConfigMappingGroupVo mappingGroupVo = executeParamMappingGroupMap.get("roundCount");
                 if (mappingGroupVo != null) {
@@ -361,7 +361,7 @@ public class CreateJobConfigUtil {
             }
             if(Objects.equals(parallelPolicy,AutoexecParallelPolicy.PARALLEL.getValue())){
                 if (combopExecuteConfig.getParallelCount() != null) {
-                    executeConfig.setParallelCount(combopExecuteConfig.getParallelCount());
+                    builder.setParallelCount(combopExecuteConfig.getParallelCount());
                 } else {
                     CreateJobConfigMappingGroupVo mappingGroupVo = executeParamMappingGroupMap.get("parallelCount");
                     if (mappingGroupVo != null) {
@@ -376,7 +376,7 @@ public class CreateJobConfigUtil {
 
 
         }
-        builder.setExecuteConfig(executeConfig);
+//        builder.setExecuteConfig(executeConfig);
 
         // 执行器组
         ParamMappingVo runnerGroup = combopExecuteConfig.getRunnerGroup();
@@ -391,7 +391,7 @@ public class CreateJobConfigUtil {
         }
 
         String jobNamePrefixMappingValue = createJobConfigConfigVo.getJobNamePrefixMappingValue();
-        String jobNamePrefixValue = getJobNamePrefix(jobNamePrefixMappingValue, builder.getExecuteConfig(), builder.getParam());
+        String jobNamePrefixValue = getJobNamePrefix(jobNamePrefixMappingValue, builder);
         builder.setJobName(jobNamePrefixValue + jobName);
         return builder;
     }
@@ -624,17 +624,20 @@ public class CreateJobConfigUtil {
      * 根据设置找到作业名称前缀值
      *
      * @param jobNamePrefixMappingValue 作业名称前缀映射值
-     * @param executeConfig    目标参数
-     * @param param            作业参数
+     * @param builder    builder
      * @return 返回作业名称前缀值
      */
-    private static String getJobNamePrefix(String jobNamePrefixMappingValue, AutoexecCombopExecuteConfigVo executeConfig, JSONObject param) {
+    private static String getJobNamePrefix(String jobNamePrefixMappingValue, AutoexecJobBuilder builder) {
         String jobNamePrefixValue = StringUtils.EMPTY;
         if (StringUtils.isBlank(jobNamePrefixMappingValue)) {
             return jobNamePrefixValue;
         }
+        JSONObject param = builder.getParam();
+        if (param == null) {
+            param = new JSONObject();
+        }
         if (Objects.equals(jobNamePrefixMappingValue, "executeNodeConfig")) {
-            AutoexecCombopExecuteNodeConfigVo executeNodeConfig = executeConfig.getExecuteNodeConfig();
+            AutoexecCombopExecuteNodeConfigVo executeNodeConfig = builder.getExecuteNodeConfig();
             List<AutoexecNodeVo> inputNodeList = executeNodeConfig.getInputNodeList();
             List<AutoexecNodeVo> selectNodeList = executeNodeConfig.getSelectNodeList();
             List<String> paramList = executeNodeConfig.getParamList();
@@ -665,7 +668,7 @@ public class CreateJobConfigUtil {
                 jobNamePrefixValue = String.join("", list);
             }
         } else if (Objects.equals(jobNamePrefixMappingValue, "executeUser")) {
-            ParamMappingVo executeUser = executeConfig.getExecuteUser();
+            ParamMappingVo executeUser = builder.getExecuteUser();
             if (executeUser != null) {
                 Object value = executeUser.getValue();
                 if (value != null) {
@@ -682,12 +685,12 @@ public class CreateJobConfigUtil {
                 }
             }
         } else if (Objects.equals(jobNamePrefixMappingValue, "protocolId")) {
-            Long protocolId = executeConfig.getProtocolId();
+            Long protocolId = builder.getProtocolId();
             if (protocolId != null) {
                 jobNamePrefixValue = protocolId.toString();
             }
         } else if (Objects.equals(jobNamePrefixMappingValue, "roundCount")) {
-            Integer roundCount = executeConfig.getRoundCount();
+            Integer roundCount = builder.getRoundCount();
             if (roundCount != null) {
                 jobNamePrefixValue = roundCount.toString();
             }

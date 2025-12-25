@@ -2262,4 +2262,32 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
         return isHasNode;
     }
+
+    /**
+     * 处理老数据中的executeConfigVo
+     *
+     * @param executeConfigVo 老数据
+     * @param autoexecJobVo
+     */
+    @Override
+    public void handleOldDataExecuteConfig(AutoexecCombopExecuteConfigVo executeConfigVo, AutoexecJobVo autoexecJobVo) {
+        if (autoexecJobVo.getProtocolId() == null) {
+            if (StringUtils.isNotBlank(executeConfigVo.getProtocol())) {
+                IResourceAccountCrossoverMapper accountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
+                AccountProtocolVo accountProtocolVo = accountCrossoverMapper.getAccountProtocolVoByProtocolName(executeConfigVo.getProtocol());
+                if (accountProtocolVo == null) {
+                    throw new ResourceCenterAccountProtocolNotFoundException(executeConfigVo.getProtocol());
+                }
+                autoexecJobVo.setProtocolId(accountProtocolVo.getId());
+            } else if (executeConfigVo.getProtocolId() != null) {
+                autoexecJobVo.setProtocolId(executeConfigVo.getProtocolId());
+            }
+        }
+        if (autoexecJobVo.getExecuteUser() == null && executeConfigVo.getExecuteUser() != null) {
+            autoexecJobVo.setExecuteUser(executeConfigVo.getExecuteUser());
+        }
+        if (autoexecJobVo.getExecuteNodeConfig() == null && executeConfigVo.getExecuteNodeConfig() != null) {
+            autoexecJobVo.setExecuteNodeConfig(executeConfigVo.getExecuteNodeConfig());
+        }
+    }
 }

@@ -393,7 +393,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
     private void validateJobParam(AutoexecCombopVo combopVo, AutoexecJobVo autoexecJobParam) {
         AutoexecCombopConfigVo combopConfig = combopVo.getConfig();
         AutoexecCombopExecuteConfigVo combopExecuteConfig = combopConfig.getExecuteConfig();
-        AutoexecCombopExecuteConfigVo jobParamExecuteConfig = autoexecJobParam.getExecuteConfig();
+//        AutoexecCombopExecuteConfigVo jobParamExecuteConfig = autoexecJobParam.getExecuteConfig();
         //执行器组必填（非引用作业参数）
         if (combopVo.getNeedRunnerGroup()) {
             //如果组合工具没有配置执行器组
@@ -414,7 +414,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             }
         }
         //协议 组合工具和作业参数都没有设置
-        if (combopVo.getNeedProtocol() && (combopExecuteConfig == null || combopExecuteConfig.getProtocolId() == null) && (jobParamExecuteConfig == null || jobParamExecuteConfig.getProtocolId() == null)) {
+        if (combopVo.getNeedProtocol() && (combopExecuteConfig == null || combopExecuteConfig.getProtocolId() == null) && autoexecJobParam.getProtocolId() == null) {
             throw new ProtocolIdParamNullException();
         }
         //执行用户
@@ -422,18 +422,18 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             //如果组合工具没有配置
             if (combopExecuteConfig == null || combopExecuteConfig.getExecuteUser() == null || combopExecuteConfig.getExecuteUser().getValue() == null) {
                 //如果作业参数都没有设置
-                if (jobParamExecuteConfig == null || jobParamExecuteConfig.getExecuteUser() == null || jobParamExecuteConfig.getExecuteUser().getValue() == null) {
+                if (autoexecJobParam.getExecuteUser() == null || autoexecJobParam.getExecuteUser().getValue() == null) {
                     throw new ExecuteUserValueParamNullException();
                 } else {
                     //组合工具没有设置，需当作常量处理
-                    if (!Objects.equals(jobParamExecuteConfig.getExecuteUser().getMappingMode(), ParamMappingMode.CONSTANT.getValue())) {
-                        throw new ExecuteUserMappingModeParamInvalidException(JSON.toJSONString(jobParamExecuteConfig.getExecuteUser()), ParamMappingMode.CONSTANT.getValue());
+                    if (!Objects.equals(autoexecJobParam.getExecuteUser().getMappingMode(), ParamMappingMode.CONSTANT.getValue())) {
+                        throw new ExecuteUserMappingModeParamInvalidException(JSON.toJSONString(autoexecJobParam.getExecuteUser()), ParamMappingMode.CONSTANT.getValue());
                     }
                 }
             } else {
                 //如果作业参数设置了mappingMode
-                if (jobParamExecuteConfig != null && jobParamExecuteConfig.getExecuteUser() != null && !Objects.equals(combopExecuteConfig.getExecuteUser().getMappingMode(), jobParamExecuteConfig.getExecuteUser().getMappingMode())) {
-                    throw new ExecuteUserMappingModeParamInvalidException(JSON.toJSONString(jobParamExecuteConfig.getExecuteUser()), combopExecuteConfig.getExecuteUser().getMappingMode());
+                if (autoexecJobParam.getExecuteUser() != null && !Objects.equals(combopExecuteConfig.getExecuteUser().getMappingMode(), autoexecJobParam.getExecuteUser().getMappingMode())) {
+                    throw new ExecuteUserMappingModeParamInvalidException(JSON.toJSONString(autoexecJobParam.getExecuteUser()), combopExecuteConfig.getExecuteUser().getMappingMode());
                 }
             }
         }
@@ -486,24 +486,24 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             validateJobParam(combopVo, autoexecJobParam);
         }
         AutoexecCombopExecuteConfigVo combopExecuteConfigVo = config.getExecuteConfig();
-        if (autoexecJobParam.getExecuteConfig() != null) {
+//        if (autoexecJobParam.getExecuteConfig() != null) {
             //如果执行传进来的"执行用户"、"协议"为空则使用默认设定的值
             if (combopExecuteConfigVo == null) {
                 combopExecuteConfigVo = new AutoexecCombopExecuteConfigVo();
             }
-            if (autoexecJobParam.getExecuteConfig().getProtocolId() != null) {
-                combopExecuteConfigVo.setProtocolId(autoexecJobParam.getExecuteConfig().getProtocolId());
+            if (autoexecJobParam.getProtocolId() != null) {
+                combopExecuteConfigVo.setProtocolId(autoexecJobParam.getProtocolId());
             }
-            if (autoexecJobParam.getExecuteConfig().getExecuteUser() != null) {
-                combopExecuteConfigVo.setExecuteUser(autoexecJobParam.getExecuteConfig().getExecuteUser());
+            if (autoexecJobParam.getExecuteUser() != null) {
+                combopExecuteConfigVo.setExecuteUser(autoexecJobParam.getExecuteUser());
             }
-            if (autoexecJobParam.getExecuteConfig().getExecuteNodeConfig() != null && !autoexecJobParam.getExecuteConfig().getExecuteNodeConfig().isNull()) {
-                combopExecuteConfigVo.setExecuteNodeConfig(autoexecJobParam.getExecuteConfig().getExecuteNodeConfig());
+            if (autoexecJobParam.getExecuteNodeConfig() != null && !autoexecJobParam.getExecuteNodeConfig().isNull()) {
+                combopExecuteConfigVo.setExecuteNodeConfig(autoexecJobParam.getExecuteNodeConfig());
             }
 
             config.setExecuteConfig(combopExecuteConfigVo);
             autoexecCombopService.verifyAutoexecCombopConfig(config, true);
-        }
+//        }
 
         if (combopExecuteConfigVo != null) {
             if (StringUtils.isBlank(autoexecJobParam.getParallelPolicy())) {

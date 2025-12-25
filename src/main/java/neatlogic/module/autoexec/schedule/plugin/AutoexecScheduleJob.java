@@ -12,6 +12,7 @@
 
 package neatlogic.module.autoexec.schedule.plugin;
 
+import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.autoexec.constvalue.CombopOperationType;
@@ -19,6 +20,7 @@ import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.constvalue.JobSource;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecScheduleMapper;
+import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.dto.schedule.AutoexecScheduleVo;
@@ -37,6 +39,7 @@ import neatlogic.framework.scheduler.dto.JobVo;
 import neatlogic.framework.service.AuthenticationInfoService;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
+import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.quartz.DisallowConcurrentExecution;
@@ -64,6 +67,9 @@ public class AutoexecScheduleJob extends JobBase {
 
     @Resource
     private AutoexecJobActionService autoexecJobActionService;
+
+    @Resource
+    private AutoexecJobService autoexecJobService;
 
     @Resource
     UserMapper userMapper;
@@ -143,8 +149,14 @@ public class AutoexecScheduleJob extends JobBase {
         } else {
 //        System.out.println(new Date() + "执行定时作业：'" + autoexecScheduleVo.getName() + "'");
             AutoexecJobVo jobVo;
-            if (MapUtils.isNotEmpty(autoexecScheduleVo.getConfig())) {
-                jobVo = autoexecScheduleVo.getConfig().toJavaObject(AutoexecJobVo.class);
+            JSONObject config = autoexecScheduleVo.getConfig();
+            if (MapUtils.isNotEmpty(config)) {
+                jobVo = config.toJavaObject(AutoexecJobVo.class);
+                JSONObject executeConfigObj = config.getJSONObject("executeConfig");
+                if (MapUtils.isNotEmpty(executeConfigObj)) {
+                    AutoexecCombopExecuteConfigVo executeConfigVo = executeConfigObj.toJavaObject(AutoexecCombopExecuteConfigVo.class);
+                    autoexecJobService.handleOldDataExecuteConfig(executeConfigVo, jobVo);
+                }
             } else {
                 jobVo = new AutoexecJobVo();
             }

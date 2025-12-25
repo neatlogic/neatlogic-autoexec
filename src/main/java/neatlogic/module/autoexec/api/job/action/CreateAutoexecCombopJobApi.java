@@ -34,6 +34,8 @@ import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
+import neatlogic.module.autoexec.service.AutoexecJobService;
+import org.apache.commons.collections4.MapUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -49,6 +51,8 @@ public class CreateAutoexecCombopJobApi extends PrivateApiComponentBase {
     private AutoexecCombopVersionMapper autoexecCombopVersionMapper;
     @Resource
     private AutoexecJobActionService autoexecJobActionService;
+    @Resource
+    private AutoexecJobService autoexecJobService;
 
     @Override
     public String getName() {
@@ -70,7 +74,10 @@ public class CreateAutoexecCombopJobApi extends PrivateApiComponentBase {
             @Param(name = "roundCount", type = ApiParamType.LONG, desc = "nmaaja.createautoexeccombopjobapi.input.param.roundcount"),
             @Param(name = "parallelCount", type = ApiParamType.LONG, desc = "nmaaja.createautoexeccombopjobapi.input.param.desc.parallelcount"),
             @Param(name = "parallelPolicy", type = ApiParamType.ENUM, member = AutoexecParallelPolicy.class,desc = "nmaaja.createautoexeccombopjobapi.input.param.desc.parallelpolicy"),
-            @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.executeconfig"),
+//            @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.executeconfig"),
+            @Param(name = "protocolId", type = ApiParamType.LONG, desc = "协议id"),
+            @Param(name = "executeUser", type = ApiParamType.JSONOBJECT, desc = "执行用户"),
+            @Param(name = "executeNodeConfig", type = ApiParamType.JSONOBJECT, desc = "执行目标配置"),
             @Param(name = "planStartTime", type = ApiParamType.LONG, desc = "common.planstarttime"),
             @Param(name = "triggerType", type = ApiParamType.ENUM, member = JobTriggerType.class, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.triggertype"),
             @Param(name = "runnerGroup", type = ApiParamType.JSONOBJECT, desc = "nfac.paramtype.runnergroup"),
@@ -84,6 +91,11 @@ public class CreateAutoexecCombopJobApi extends PrivateApiComponentBase {
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecJobVo jobVo = paramObj.toJavaObject(AutoexecJobVo.class);
+        JSONObject executeConfigObj = paramObj.getJSONObject("executeConfig");
+        if (MapUtils.isNotEmpty(executeConfigObj)) {
+            AutoexecCombopExecuteConfigVo executeConfigVo = executeConfigObj.toJavaObject(AutoexecCombopExecuteConfigVo.class);
+            autoexecJobService.handleOldDataExecuteConfig(executeConfigVo, jobVo);
+        }
         Long combopId = paramObj.getLong("combopId");
         AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(combopId);
         if (autoexecCombopVo == null) {

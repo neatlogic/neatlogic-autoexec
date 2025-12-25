@@ -361,4 +361,11 @@ public interface AutoexecJobService {
      * @param searchVo   过滤条件
      */
     boolean updateNodeByResourceIdList(List<Long> resourceIdList, ResourceSearchVo searchVo, AutoexecJobVo jobVo, String userName, Long protocolId);
+
+    /**
+     * 处理老数据中的executeConfigVo
+     * @param executeConfigVo 老数据
+     * @param autoexecJobVo
+     */
+    void handleOldDataExecuteConfig(AutoexecCombopExecuteConfigVo executeConfigVo, AutoexecJobVo autoexecJobVo);
 }
