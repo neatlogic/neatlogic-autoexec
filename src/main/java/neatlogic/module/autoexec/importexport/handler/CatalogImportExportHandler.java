@@ -22,10 +22,12 @@ import neatlogic.framework.importexport.dto.ImportExportBaseInfoVo;
 import neatlogic.framework.importexport.dto.ImportExportPrimaryChangeVo;
 import neatlogic.framework.importexport.dto.ImportExportVo;
 import neatlogic.module.autoexec.service.AutoexecCatalogService;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import javax.annotation.Resource;
 import java.util.List;
+import java.util.Objects;
 import java.util.zip.ZipOutputStream;
 
 @Component
@@ -53,15 +55,21 @@ public class CatalogImportExportHandler extends ImportExportHandlerBase {
 
     @Override
     public boolean checkIsExists(ImportExportBaseInfoVo importExportBaseInfoVo) {
-        if (autoexecCatalogMapper.getAutoexecCatalogByName(importExportBaseInfoVo.getName()) != null) {
-            return true;
+        if (importExportBaseInfoVo.getName().contains("/")) {
+            return autoexecCatalogMapper.getAutoexecCatalogByFullName(importExportBaseInfoVo.getName()) != null;
+        } else {
+            return autoexecCatalogMapper.getAutoexecCatalogByName(importExportBaseInfoVo.getName()) != null;
         }
-        return false;
     }
 
     @Override
     public Object getPrimaryByName(ImportExportVo importExportVo) {
-        AutoexecCatalogVo oldAutoexecCatalogVo = autoexecCatalogMapper.getAutoexecCatalogByName(importExportVo.getName());
+        AutoexecCatalogVo oldAutoexecCatalogVo = null;
+        if (importExportVo.getName().contains("/")) {
+            oldAutoexecCatalogVo = autoexecCatalogMapper.getAutoexecCatalogByFullName(importExportVo.getName());
+        } else {
+            oldAutoexecCatalogVo = autoexecCatalogMapper.getAutoexecCatalogByName(importExportVo.getName());
+        }
         if (oldAutoexecCatalogVo == null) {
             throw new AutoexecCatalogNotFoundException(importExportVo.getName());
         }
@@ -71,7 +79,18 @@ public class CatalogImportExportHandler extends ImportExportHandlerBase {
     @Override
     public Long importData(ImportExportVo importExportVo, List<ImportExportPrimaryChangeVo> primaryChangeList) {
         AutoexecCatalogVo autoexecCatalogVo = importExportVo.getData().toJavaObject(AutoexecCatalogVo.class);
-        AutoexecCatalogVo oldAutoexecCatalogVo = autoexecCatalogMapper.getAutoexecCatalogByName(autoexecCatalogVo.getName());
+        if (!Objects.equals(autoexecCatalogVo.getParentId(), AutoexecCatalogVo.ROOT_ID)) {
+            Object newPrimaryKey = getNewPrimaryKey(AutoexecImportExportHandlerType.AUTOEXEC_CATALOG, autoexecCatalogVo.getParentId(), primaryChangeList);
+            if (newPrimaryKey != null) {
+                autoexecCatalogVo.setParentId((Long) newPrimaryKey);
+            }
+        }
+        AutoexecCatalogVo oldAutoexecCatalogVo = null;
+        if (StringUtils.isNotBlank(autoexecCatalogVo.getUpwardNamePath())) {
+            oldAutoexecCatalogVo = autoexecCatalogMapper.getAutoexecCatalogByFullName(autoexecCatalogVo.getUpwardNamePath());
+        } else {
+            oldAutoexecCatalogVo = autoexecCatalogMapper.getAutoexecCatalogByName(autoexecCatalogVo.getName());
+        }
         if (oldAutoexecCatalogVo != null) {
             return oldAutoexecCatalogVo.getId();
         }
@@ -94,7 +113,14 @@ public class CatalogImportExportHandler extends ImportExportHandlerBase {
         if (autoexecCatalogVo == null) {
             throw new AutoexecCatalogNotFoundException(id);
         }
-        ImportExportVo importExportVo = new ImportExportVo(this.getType().getValue(), primaryKey, autoexecCatalogVo.getName());
+        if (!Objects.equals(autoexecCatalogVo.getParentId(), AutoexecCatalogVo.ROOT_ID)) {
+            doExportData(AutoexecImportExportHandlerType.AUTOEXEC_CATALOG, autoexecCatalogVo.getParentId(), dependencyList, zipOutputStream);
+        }
+        String name = autoexecCatalogVo.getName();
+        if (StringUtils.isNotBlank(autoexecCatalogVo.getUpwardNamePath())) {
+            name = autoexecCatalogVo.getUpwardNamePath();
+        }
+        ImportExportVo importExportVo = new ImportExportVo(this.getType().getValue(), primaryKey, name);
         importExportVo.setDataWithObject(autoexecCatalogVo);
         return importExportVo;
     }

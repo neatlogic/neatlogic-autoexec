@@ -18,6 +18,7 @@ import neatlogic.framework.autoexec.constvalue.ScriptAction;
 import neatlogic.framework.autoexec.constvalue.ScriptParser;
 import neatlogic.framework.autoexec.constvalue.ScriptVersionStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecScriptMapper;
+import neatlogic.framework.autoexec.dto.catalog.AutoexecCatalogVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
@@ -38,6 +39,7 @@ import org.springframework.stereotype.Component;
 import javax.annotation.Resource;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.zip.ZipOutputStream;
 
 @Component
@@ -117,7 +119,7 @@ public class ScriptImportExportHandler extends ImportExportHandlerBase {
                 autoexecScriptVo.setDefaultProfileId((Long) newPrimaryKey);
             }
         }
-        if (autoexecScriptVo.getCatalogId() != null) {
+        if (autoexecScriptVo.getCatalogId() != null && !Objects.equals(autoexecScriptVo.getCatalogId(), AutoexecCatalogVo.ROOT_ID)) {
             Object newPrimaryKey = getNewPrimaryKey(AutoexecImportExportHandlerType.AUTOEXEC_CATALOG, autoexecScriptVo.getCatalogId(), primaryChangeList);
             if (newPrimaryKey != null) {
                 autoexecScriptVo.setCatalogId((Long) newPrimaryKey);
@@ -177,7 +179,7 @@ public class ScriptImportExportHandler extends ImportExportHandlerBase {
                 autoexecScriptVo.setDefaultProfileName(null);
             }
         }
-        if (autoexecScriptVo.getCatalogId() != null) {
+        if (autoexecScriptVo.getCatalogId() != null && !Objects.equals(autoexecScriptVo.getCatalogId(), AutoexecCatalogVo.ROOT_ID)) {
             doExportData(AutoexecImportExportHandlerType.AUTOEXEC_CATALOG, autoexecScriptVo.getCatalogId(), dependencyList, zipOutputStream);
         }
         AutoexecScriptVersionVo version = autoexecScriptMapper.getActiveVersionByScriptId(id);
