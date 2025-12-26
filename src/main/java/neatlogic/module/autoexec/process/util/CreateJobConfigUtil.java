@@ -284,7 +284,7 @@ public class CreateJobConfigUtil {
                 if (executeNodeConfig != null) {
                     builder.setExecuteNodeConfig(executeNodeConfig);
                 }
-            } else if (Objects.equals(CombopNodeSpecify.RUNTIME.getValue(), whenToSpecify)) {
+            } else if (StringUtils.isBlank(whenToSpecify) || Objects.equals(CombopNodeSpecify.RUNTIME.getValue(), whenToSpecify)) {
                 builder.setWhenToSpecify(CombopNodeSpecify.RUNTIME.getValue());
                 CreateJobConfigMappingGroupVo mappingGroupVo = executeParamMappingGroupMap.get("executeNodeConfig");
                 if (mappingGroupVo != null) {
