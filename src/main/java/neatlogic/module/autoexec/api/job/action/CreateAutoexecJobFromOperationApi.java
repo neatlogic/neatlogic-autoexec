@@ -78,10 +78,10 @@ public class CreateAutoexecJobFromOperationApi extends PrivateApiComponentBase {
             @Param(name = "operationId", type = ApiParamType.LONG, isRequired = true, desc = "自定义工具库版本ID|工具库ID"),
             @Param(name = "param", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "执行参数"),
             @Param(name = "type", type = ApiParamType.ENUM, rule = "script,tool", isRequired = true, desc = "类型 script|tool   自定义工具库|工具库"),
-//            @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, desc = "执行目标", isRequired = true),
-            @Param(name = "protocolId", type = ApiParamType.LONG, desc = "协议id"),
-            @Param(name = "executeUser", type = ApiParamType.JSONOBJECT, desc = "执行用户"),
-            @Param(name = "executeNodeConfig", type = ApiParamType.JSONOBJECT, desc = "执行目标配置"),
+            @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, desc = "执行目标", isRequired = true),
+//            @Param(name = "protocolId", type = ApiParamType.LONG, desc = "协议id"),
+//            @Param(name = "executeUser", type = ApiParamType.JSONOBJECT, desc = "执行用户"),
+//            @Param(name = "executeNodeConfig", type = ApiParamType.JSONOBJECT, desc = "执行目标配置"),
             @Param(name = "argumentMappingList", type = ApiParamType.JSONARRAY, desc = "自由参数"),
     })
     @Output({
