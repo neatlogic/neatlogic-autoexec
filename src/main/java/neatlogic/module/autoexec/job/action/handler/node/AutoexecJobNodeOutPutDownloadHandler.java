@@ -13,7 +13,7 @@
 package neatlogic.module.autoexec.job.action.handler.node;
 
 import com.alibaba.fastjson.JSONObject;
-import neatlogic.framework.asynchronization.threadlocal.UserContext;
+import neatlogic.framework.asynchronization.threadlocal.RequestContext;
 import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
@@ -63,10 +63,10 @@ public class AutoexecJobNodeOutPutDownloadHandler extends AutoexecJobActionHandl
         paramObj.put("runnerUrl", nodeVo.getRunnerUrl());
         paramObj.put("execMode", phaseVo.getExecMode());
         String fileName = FileUtil.getEncodedFileName(nodeVo.getHost() + (nodeVo.getPort() == null ? StringUtils.EMPTY : "-" + nodeVo.getPort()) + (nodeVo.getResourceId() == null ? StringUtils.EMPTY : "-" + nodeVo.getResourceId()) + ".log");
-        UserContext.get().getResponse().setContentType("text/plain");
-        UserContext.get().getResponse().setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
+        RequestContext.get().getResponse().setContentType("text/plain");
+        RequestContext.get().getResponse().setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
         String url = String.format("%s/api/binary/job/phase/node/output/download", nodeVo.getRunnerUrl());
-        String result = HttpRequestUtil.download(url, "POST", UserContext.get().getResponse().getOutputStream()).setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest().getError();
+        String result = HttpRequestUtil.download(url, "POST", RequestContext.get().getResponse().getOutputStream()).setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest().getError();
         if (StringUtils.isNotBlank(result)) {
             throw new RunnerHttpRequestException(url + ":" + result);
         }

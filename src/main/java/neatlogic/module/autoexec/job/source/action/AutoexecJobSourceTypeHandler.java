@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.nacos.common.utils.CollectionUtils;
+import neatlogic.framework.asynchronization.threadlocal.RequestContext;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthActionChecker;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_JOB_MODIFY;
@@ -99,10 +100,10 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
         JSONObject paramObj = jobVo.getActionParam();
         paramObj.put("jobId", nodeVo.getJobId());
         paramObj.put("phase", nodeVo.getJobPhaseName());
-        UserContext.get().getResponse().setContentType("text/plain");
-        UserContext.get().getResponse().setHeader("Content-Disposition", " attachment; filename=\"" + paramObj.getString("sqlName") + "\"");
+        RequestContext.get().getResponse().setContentType("text/plain");
+        RequestContext.get().getResponse().setHeader("Content-Disposition", " attachment; filename=\"" + paramObj.getString("sqlName") + "\"");
         String url = nodeVo.getRunnerUrl() + "/api/binary/job/phase/node/sql/file/download";
-        String result = HttpRequestUtil.download(url, "POST", UserContext.get().getResponse().getOutputStream()).setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest().getError();
+        String result = HttpRequestUtil.download(url, "POST", RequestContext.get().getResponse().getOutputStream()).setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest().getError();
 
         if (StringUtils.isNotBlank(result)) {
             throw new RunnerHttpRequestException(url + ":" + result);

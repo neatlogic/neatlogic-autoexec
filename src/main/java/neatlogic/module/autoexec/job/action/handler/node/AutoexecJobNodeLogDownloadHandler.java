@@ -16,7 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 package neatlogic.module.autoexec.job.action.handler.node;
 
 import com.alibaba.fastjson.JSONObject;
-import neatlogic.framework.asynchronization.threadlocal.UserContext;
+import neatlogic.framework.asynchronization.threadlocal.RequestContext;
 import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
@@ -70,8 +70,8 @@ public class AutoexecJobNodeLogDownloadHandler extends AutoexecJobActionHandlerB
         paramObj.put("runnerUrl", nodeVo.getRunnerUrl());
         paramObj.put("execMode", phaseVo.getExecMode());
         String fileName = FileUtil.getEncodedFileName(nodeVo.getJobPhaseName() + "-" + nodeVo.getHost() + "-" + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".log");
-        UserContext.get().getResponse().setContentType("text/plain");
-        UserContext.get().getResponse().setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
+        RequestContext.get().getResponse().setContentType("text/plain");
+        RequestContext.get().getResponse().setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
         String url = String.format("%s/api/binary/job/phase/node/log/download", nodeVo.getRunnerUrl());
         RestVo restVo = new RestVo.Builder(url, AuthenticateType.BUILDIN.getValue()).setPayload(paramObj).build();
         String result = RestUtil.sendPostRequestForStream(restVo);

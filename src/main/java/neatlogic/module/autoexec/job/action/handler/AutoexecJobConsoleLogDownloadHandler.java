@@ -16,7 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 package neatlogic.module.autoexec.job.action.handler;
 
 import com.alibaba.fastjson.JSONObject;
-import neatlogic.framework.asynchronization.threadlocal.UserContext;
+import neatlogic.framework.asynchronization.threadlocal.RequestContext;
 import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
@@ -67,8 +67,8 @@ public class AutoexecJobConsoleLogDownloadHandler extends AutoexecJobActionHandl
     public JSONObject doMyService(AutoexecJobVo jobVo) throws Exception {
         JSONObject paramObj = jobVo.getActionParam();
         String fileName = FileUtil.getEncodedFileName(paramObj.getString("jobId") + "-" + paramObj.getString("runnerIp") + "-" + paramObj.getString("runnerPort") + ".log");
-        UserContext.get().getResponse().setContentType("text/plain");
-        UserContext.get().getResponse().setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
+        RequestContext.get().getResponse().setContentType("text/plain");
+        RequestContext.get().getResponse().setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
         String url = String.format("%s/api/binary/job/console/log/download", paramObj.getString("runnerUrl"));
         RestVo restVo = new RestVo.Builder(url, AuthenticateType.BUILDIN.getValue()).setPayload(paramObj).build();
         String result = RestUtil.sendPostRequestForStream(restVo);

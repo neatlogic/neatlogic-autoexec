@@ -73,7 +73,6 @@ public class DownloadAutoexecJobOutputFileBatchApi extends PrivateBinaryStreamAp
             throw new AutoexecJobNotFoundException(jobId);
         }
         UserContext.init(SystemUser.SYSTEM);
-        UserContext.get().setResponse(response);
         List<RunnerVo> runnerVoList = autoexecJobMapper.getJobRunnerListByJobId(jobId);
         for(RunnerVo runnerVo : runnerVoList){
             String url = String.format("%s/api/binary/job/output/file/batch/download", runnerVo.getUrl());
