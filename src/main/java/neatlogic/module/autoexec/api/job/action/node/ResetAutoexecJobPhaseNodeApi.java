@@ -12,6 +12,7 @@
 
 package neatlogic.module.autoexec.api.job.action.node;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
@@ -22,9 +23,11 @@ import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import neatlogic.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.exception.type.ParamIrregularException;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -67,6 +70,11 @@ public class ResetAutoexecJobPhaseNodeApi extends PrivateApiComponentBase {
     @Description(desc = "重置作业节点")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
+        JSONArray resourceIdList = jsonObj.getJSONArray("resourceIdList");
+        Integer isAll = jsonObj.getInteger("isAll");
+        if(CollectionUtils.isEmpty(resourceIdList) && isAll == null) {
+            throw new ParamIrregularException("resourceIdList | isAll");
+        }
         Long jobId = jsonObj.getLong("jobId");
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         if (jobVo == null) {
