@@ -1362,10 +1362,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             //Map<Long, AutoexecJobVo> autoexecJobVoMap = autoexecJobVos.stream().collect(toMap(AutoexecJobVo::getId, o -> o));
 
             Map<Long, List<AutoexecJobVo>> parentJobChildrenListMap = new HashMap<>();
-            if (StringUtils.isNotBlank(jobVo.getKeyword()) && CollectionUtils.isNotEmpty(jobVoList)) {
+            if (CollectionUtils.isNotEmpty(jobVoList) ) {
                 List<AutoexecJobVo> parentJobList = jobVoList.stream().filter(e -> e.getParentId() != null).collect(Collectors.toList());
                 if (CollectionUtils.isNotEmpty(parentJobList)) {
-                    List<AutoexecJobVo> parentInfoJobList = autoexecJobMapper.getParentAutoexecJobListIdList(parentJobList.stream().map(AutoexecJobVo::getId).collect(Collectors.toList()));
+                    jobVo.setParentIdList(parentJobList.stream().map(AutoexecJobVo::getId).collect(Collectors.toList()));
+                    List<AutoexecJobVo> parentInfoJobList = autoexecJobMapper.getAutoexecSubJobListByFilter(jobVo);
                     if (CollectionUtils.isNotEmpty(parentInfoJobList)) {
                         parentJobChildrenListMap = parentInfoJobList.stream().collect(Collectors.toMap(AutoexecJobVo::getId, AutoexecJobVo::getChildren));
                     }
