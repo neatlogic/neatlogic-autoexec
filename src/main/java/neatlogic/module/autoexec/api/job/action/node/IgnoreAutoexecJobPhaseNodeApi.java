@@ -12,6 +12,7 @@
 
 package neatlogic.module.autoexec.api.job.action.node;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
@@ -22,9 +23,11 @@ import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import neatlogic.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import neatlogic.framework.common.constvalue.ApiParamType;
+import neatlogic.framework.exception.type.ParamIrregularException;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
+import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,13 +62,19 @@ public class IgnoreAutoexecJobPhaseNodeApi extends PrivateApiComponentBase {
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
             @Param(name = "jobPhaseId", type = ApiParamType.STRING, desc = "作业阶段Id", isRequired = true),
-            @Param(name = "resourceIdList", type = ApiParamType.JSONARRAY, desc = "作业节点资产idList", isRequired = true),
+            @Param(name = "resourceIdList", type = ApiParamType.JSONARRAY, desc = "作业节点资产idList"),
+            @Param(name = "isAll", type = ApiParamType.INTEGER, desc = "是否全部忽略,1:是 0:否,则resourceIdList不能为空"),
     })
     @Output({
     })
     @Description(desc = "忽略作业节点")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
+        JSONArray resourceIdList = jsonObj.getJSONArray("resourceIdList");
+        Integer isAll = jsonObj.getInteger("isAll");
+        if(CollectionUtils.isEmpty(resourceIdList) && isAll == null) {
+            throw new ParamIrregularException("resourceIdList | isAll");
+        }
         Long jobId = jsonObj.getLong("jobId");
         AutoexecJobVo jobVo = autoexecJobMapper.getJobLockByJobId(jobId);
         if (jobVo == null) {

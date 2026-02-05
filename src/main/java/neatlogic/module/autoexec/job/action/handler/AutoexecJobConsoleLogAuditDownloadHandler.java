@@ -13,7 +13,7 @@
 package neatlogic.module.autoexec.job.action.handler;
 
 import com.alibaba.fastjson.JSONObject;
-import neatlogic.framework.asynchronization.threadlocal.UserContext;
+import neatlogic.framework.asynchronization.threadlocal.RequestContext;
 import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobRunnerNotFoundException;
@@ -67,9 +67,9 @@ public class AutoexecJobConsoleLogAuditDownloadHandler extends AutoexecJobAction
         String fileName = FileUtil.getEncodedFileName(paramObj.getString("jobId") + "-"
                 + paramObj.getString("runnerIp") + "-" + paramObj.getString("runnerPort") + TimeUtil.convertDateToString(new Date(paramObj.getLong("startTime")), TimeUtil.YYYYMMDD_HHMMSS) + ".log");
         String url = String.format("%s/api/binary/job/console/log/audit/download", paramObj.getString("runnerUrl"));
-        UserContext.get().getResponse().setContentType("text/plain");
-        UserContext.get().getResponse().setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
-        String result = HttpRequestUtil.download(url, "POST", UserContext.get().getResponse().getOutputStream())
+        RequestContext.get().getResponse().setContentType("text/plain");
+        RequestContext.get().getResponse().setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
+        String result = HttpRequestUtil.download(url, "POST", RequestContext.get().getResponse().getOutputStream())
                 .setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN)
                 .sendRequest().getError();
         if (StringUtils.isNotBlank(result)) {

@@ -16,7 +16,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 package neatlogic.module.autoexec.api.job.action;
 
 import com.alibaba.fastjson.JSONObject;
-import neatlogic.framework.asynchronization.threadlocal.UserContext;
+import neatlogic.framework.asynchronization.threadlocal.RequestContext;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
@@ -107,7 +107,7 @@ public class DownloadAutoexecJobDataApi extends PrivateBinaryStreamApiComponentB
                 String url = String.format("%s/api/binary/job/data/download", runnerMapVo.getUrl());
                 // 每次从一个runner下载数据
                 ByteArrayOutputStream baos = new ByteArrayOutputStream();
-                String result = HttpRequestUtil.download(url, "POST", UserContext.get().getResponse().getOutputStream()).setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest().getError();
+                String result = HttpRequestUtil.download(url, "POST", RequestContext.get().getResponse().getOutputStream()).setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).sendRequest().getError();
                 if (StringUtils.isNotBlank(result)) {
                     throw new RunnerHttpRequestException(url + ":" + result);
                 }
