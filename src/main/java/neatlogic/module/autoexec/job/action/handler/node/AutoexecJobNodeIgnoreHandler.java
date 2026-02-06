@@ -91,7 +91,7 @@ public class AutoexecJobNodeIgnoreHandler extends AutoexecJobActionHandlerBase {
                 int rowNum = PageUtil.getPageCount(count, pageSize);
                 for (int i = 0; i < rowNum; i++) {
                     List<AutoexecJobPhaseNodeVo> nodes = autoexecJobMapper.getAutoexecJobNodeListByJobPhaseIdAndExcludeStatusList(currentPhaseVo.getId(),
-                            List.of(JobNodeStatus.RUNNING.getValue(), JobNodeStatus.IGNORED.getValue(), JobNodeStatus.SUCCEED.getValue()), i, pageSize);
+                            List.of(JobNodeStatus.RUNNING.getValue(), JobNodeStatus.IGNORED.getValue(), JobNodeStatus.SUCCEED.getValue(), JobNodeStatus.INVALID.getValue()), i, pageSize);
                     jobVo.setExecuteJobNodeVoList(nodes);
                     ignoreNodes(jobVo);
                 }

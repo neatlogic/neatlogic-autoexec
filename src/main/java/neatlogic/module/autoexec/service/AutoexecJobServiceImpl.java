@@ -874,7 +874,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         jobVo.setConfigStr(autoexecJobMapper.getJobContent(jobVo.getConfigHash()).getContent());
         //重跑获取已存在节点的resourceId -> runnerMapId
         List<AutoexecJobPhaseNodeVo> nodeList = autoexecJobMapper.getJobPhaseNodeListWithRunnerByJobId(jobId);
-        jobVo.setNodeResourceIdRunnerIdMap(nodeList.stream().filter(o -> o.getResourceId() != null).filter(distinctByKey(AutoexecJobPhaseNodeVo::getResourceId)).collect(Collectors.toMap(AutoexecJobPhaseNodeVo::getResourceId, AutoexecJobPhaseNodeVo::getRunnerMapId)));
+        jobVo.setNodeResourceIdRunnerIdMap(nodeList.stream().filter(o -> o.getResourceId() != null && o.getRunnerMapId() != null).filter(distinctByKey(AutoexecJobPhaseNodeVo::getResourceId)).collect(Collectors.toMap(AutoexecJobPhaseNodeVo::getResourceId, AutoexecJobPhaseNodeVo::getRunnerMapId)));
         getAutoexecJobDetail(jobVo);
         AutoexecCombopConfigVo configVo = jobVo.getConfig();
         //获取组合工具执行目标 执行用户和协议
