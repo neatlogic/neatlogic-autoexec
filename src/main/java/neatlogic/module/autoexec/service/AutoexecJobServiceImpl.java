@@ -1638,6 +1638,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         String jobPhaseStatus = getJobPhaseStatus(currentPhase);
         currentPhase.setStatus(jobPhaseStatus);
         autoexecJobMapper.updateJobPhaseStatus(currentPhase);
+        //补充阶段开始时间，比如：忽略待运行的runner阶段
+        autoexecJobMapper.updateJobPhaseCreateTime(currentPhase.getId());
         String jobStatus = getJobStatus(jobVo.getId(), null);
         jobVo.setStatus(jobStatus);
         autoexecJobMapper.updateJobStatus(jobVo);
