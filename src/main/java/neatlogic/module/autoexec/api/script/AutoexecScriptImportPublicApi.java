@@ -26,7 +26,7 @@ import neatlogic.framework.fulltextindex.core.IFullTextIndexHandler;
 import neatlogic.framework.restful.annotation.Description;
 import neatlogic.framework.restful.annotation.OperationType;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
-import neatlogic.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
+import neatlogic.framework.restful.core.privateapi.binarystream.PrivateBinaryStreamApiComponentBase;
 import neatlogic.module.autoexec.fulltextindex.AutoexecFullTextIndexType;
 import neatlogic.module.autoexec.service.AutoexecScriptService;
 import neatlogic.module.autoexec.service.AutoexecService;

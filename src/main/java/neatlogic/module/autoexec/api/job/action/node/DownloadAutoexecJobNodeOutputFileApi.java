@@ -25,7 +25,7 @@ import neatlogic.framework.exception.runner.RunnerHttpRequestException;
 import neatlogic.framework.integration.authentication.enums.AuthenticateType;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
-import neatlogic.framework.restful.core.privateapi.PrivateBinaryStreamApiComponentBase;
+import neatlogic.framework.restful.core.privateapi.binarystream.PrivateBinaryStreamApiComponentBase;
 import neatlogic.framework.util.HttpRequestUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
