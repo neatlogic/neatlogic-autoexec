@@ -28,9 +28,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -72,7 +70,19 @@ public class SearchAutoexecTypeApi extends PrivateApiComponentBase {
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
         AutoexecTypeVo typeVo = JSON.toJavaObject(jsonObj, AutoexecTypeVo.class);
-        List<AutoexecTypeVo> typeList = autoexecTypeMapper.searchType(typeVo);
+        List<AutoexecTypeVo> typeList = new ArrayList<>();
+        List<Long> typeIdList = autoexecTypeMapper.searchTypeIdList(typeVo);
+        if (CollectionUtils.isNotEmpty(typeIdList)) {
+            List<AutoexecTypeVo> list = autoexecTypeMapper.getTypeListByIdList(typeIdList);
+            for (Long id : typeIdList) {
+                for (AutoexecTypeVo autoexecTypeVo : list) {
+                    if (Objects.equals(autoexecTypeVo.getId(), id)) {
+                        typeList.add(autoexecTypeVo);
+                        break;
+                    }
+                }
+            }
+        }
         result.put("tbodyList", typeList);
         if (CollectionUtils.isNotEmpty(typeList)) {
             List<Long> idList = typeList.stream().map(AutoexecTypeVo::getId).collect(Collectors.toList());
