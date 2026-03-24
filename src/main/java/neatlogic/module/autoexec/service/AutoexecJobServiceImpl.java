@@ -2070,6 +2070,11 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
 
     @Override
     public String getJobPhaseStatus(List<String> statusList, String currentPhaseStatus) {
+        //如果都是非法节点则 statusList会为空
+        if(CollectionUtils.isEmpty(statusList)) {
+            return JobPhaseStatus.COMPLETED.getValue();
+        }
+
         int pendingCount = 0;
         int runningCount = 0;
         int waitInputCount = 0;

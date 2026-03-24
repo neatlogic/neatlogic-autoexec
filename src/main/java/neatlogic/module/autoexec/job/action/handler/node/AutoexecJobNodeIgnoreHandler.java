@@ -29,6 +29,7 @@ import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.common.util.PageUtil;
 import neatlogic.framework.dto.runner.RunnerMapVo;
 import neatlogic.module.autoexec.service.AutoexecJobService;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -82,22 +83,36 @@ public class AutoexecJobNodeIgnoreHandler extends AutoexecJobActionHandlerBase {
             handler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
             handler.ignoreSql(jobVo.getActionParam(), jobVo);
         } else {
+            List<String> ignoredNodeStatusBlackList = List.of(JobNodeStatus.RUNNING.getValue(), JobNodeStatus.IGNORED.getValue(), JobNodeStatus.SUCCEED.getValue(), JobNodeStatus.INVALID.getValue());
             if (Objects.equals(isAll, 1)) {
-                Integer count = autoexecJobMapper.getAutoexecJobNodeCountByJobPhaseIdAndExcludeStatusList(currentPhaseVo.getId(), List.of(JobNodeStatus.RUNNING.getValue(), JobNodeStatus.IGNORED.getValue(), JobNodeStatus.SUCCEED.getValue()));
+                Integer count = autoexecJobMapper.getAutoexecJobNodeCountByJobPhaseIdAndExcludeStatusList(currentPhaseVo.getId(), ignoredNodeStatusBlackList);
                 if (count == 0) {
                     return null;
                 }
                 int pageSize = 1000;
                 int rowNum = PageUtil.getPageCount(count, pageSize);
                 for (int i = 0; i < rowNum; i++) {
-                    List<AutoexecJobPhaseNodeVo> nodes = autoexecJobMapper.getAutoexecJobNodeListByJobPhaseIdAndExcludeStatusList(currentPhaseVo.getId(),
-                            List.of(JobNodeStatus.RUNNING.getValue(), JobNodeStatus.IGNORED.getValue(), JobNodeStatus.SUCCEED.getValue(), JobNodeStatus.INVALID.getValue()), i, pageSize);
-                    jobVo.setExecuteJobNodeVoList(nodes);
-                    ignoreNodes(jobVo);
+                    List<AutoexecJobPhaseNodeVo> nodes = autoexecJobMapper.getAutoexecJobNodeListByJobPhaseIdAndExcludeStatusList(currentPhaseVo.getId(), ignoredNodeStatusBlackList, i, pageSize);
+                    if (CollectionUtils.isNotEmpty(nodes)) {
+                        jobVo.setExecuteJobNodeVoList(nodes);
+                        ignoreNodes(jobVo);
+                    }
                 }
             } else {
                 currentResourceIdListValid(jobVo);
-                ignoreNodes(jobVo);
+                if (CollectionUtils.isNotEmpty(jobVo.getExecuteJobNodeVoList())) {
+                    List<AutoexecJobPhaseNodeVo> needIgnoreNodes = new ArrayList<>();
+                    //过滤掉无需忽略的节点
+                    jobVo.getExecuteJobNodeVoList().forEach(node -> {
+                        if (!ignoredNodeStatusBlackList.contains(node.getStatus())) {
+                            needIgnoreNodes.add(node);
+                        }
+                    });
+                    jobVo.setExecuteJobNodeVoList(needIgnoreNodes);
+                    if (CollectionUtils.isNotEmpty(jobVo.getExecuteJobNodeVoList())) {
+                        ignoreNodes(jobVo);
+                    }
+                }
             }
         }
         return null;
