@@ -71,6 +71,7 @@ public class AutoexecJobSearchApi extends PrivateApiComponentBase {
             @Param(name = "combopName", type = ApiParamType.STRING, desc = "组合工具"),
             @Param(name = "combopId", type = ApiParamType.LONG, desc = "组合工具Id"),
             @Param(name = "scheduleId", type = ApiParamType.LONG, desc = "组合工具定时作业Id"),
+            @Param(name = "routeId", type = ApiParamType.STRING, desc = "来源路由id"),
             @Param(name = "startTime", type = ApiParamType.JSONOBJECT, desc = "时间过滤"),
             @Param(name = "hasParent", type = ApiParamType.BOOLEAN, desc = "是否拥有父作业"),
             @Param(name = "sortOrder", type = ApiParamType.JSONOBJECT, desc = "排序"),
