@@ -14,6 +14,7 @@ package neatlogic.module.autoexec.api.schedule;
 
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
+import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_SCHEDULE_MODIFY;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
@@ -92,7 +93,8 @@ public class AutoexecScheduleIsActiveUpdateApi extends PrivateApiComponentBase {
         if (Objects.equals(autoexecCombopVo.getExecutable(), 0)) {
             throw new PermissionDeniedException();
         }
-        autoexecScheduleMapper.updateAutoexecScheduleIsActiveById(id);
+        autoexecScheduleVo.setLcu(UserContext.get().getUserUuid(true));
+        autoexecScheduleMapper.updateAutoexecScheduleIsActiveById(autoexecScheduleVo);
         autoexecScheduleVo = autoexecScheduleMapper.getAutoexecScheduleById(id);
         IJob jobHandler = SchedulerManager.getHandler(AutoexecScheduleJob.class.getName());
         if (jobHandler == null) {
@@ -113,6 +115,9 @@ public class AutoexecScheduleIsActiveUpdateApi extends PrivateApiComponentBase {
         }
         JSONObject resultObj = new JSONObject();
         resultObj.put("isActive", autoexecScheduleVo.getIsActive());
+        resultObj.put("lcd", autoexecScheduleVo.getLcd());
+        resultObj.put("lcu", autoexecScheduleVo.getLcu());
+        resultObj.put("lcuVo", autoexecScheduleVo.getLcuVo());
         return resultObj;
     }
 }
