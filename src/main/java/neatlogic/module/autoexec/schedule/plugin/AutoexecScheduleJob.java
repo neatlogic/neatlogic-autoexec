@@ -56,6 +56,11 @@ import java.util.Objects;
 @Component
 @DisallowConcurrentExecution
 public class AutoexecScheduleJob extends JobBase {
+    @Override
+    public String getName() {
+        return "自动化定时作业执行";
+    }
+
     static Logger logger = LoggerFactory.getLogger(AutoexecScheduleJob.class);
     @Resource
     private AutoexecScheduleMapper autoexecScheduleMapper;
