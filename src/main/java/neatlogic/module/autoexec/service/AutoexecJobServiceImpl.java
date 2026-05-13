@@ -15,6 +15,8 @@ package neatlogic.module.autoexec.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.asynchronization.thread.NeatLogicThread;
+import neatlogic.framework.asynchronization.threadpool.TransactionSynchronizationPool;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.autoexec.constvalue.*;
@@ -1771,19 +1773,37 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         passThroughEnv.put("EXECUSER_TOKEN", userMapper.getUserTokenByUser(UserContext.get().getUserId()));
         passThroughEnv.put("EXECUSER_UUID", UserContext.get().getUserUuid());
         passThroughEnv.put("PARENT_JOB_ID", jobVo.getParentId());
+        Long jobId = jobVo.getId();
+        String action = jobVo.getAction();
         for (RunnerMapVo runner : runnerVos) {
-            jobVo.getEnvironment().put("RUNNER_ID", runner.getRunnerMapId());
             String url = runner.getUrl() + "api/rest/job/exec";
-            passThroughEnv.put("runnerId", runner.getRunnerMapId());
-            paramJson.put("passThroughEnv", passThroughEnv);
-            paramJson.put("environment", jobVo.getEnvironment());
-            paramJson.put("execid", String.valueOf(execid));
-            HttpRequestUtil httpRequestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(Config.RUNNER_CONNECT_TIMEOUT()).setReadTimeout(Config.RUNNER_READ_TIMEOUT()).sendRequest();
-            if (httpRequestUtil.getResponseCode() != 200 || StringUtils.isNotBlank(httpRequestUtil.getError())) {
-                throw new ApiRuntimeException(String.format("Request to %s failed, result: %s, ResponseCode: %s, ErrorMsg: %s, Exception %s", url, httpRequestUtil.getResult(), httpRequestUtil.getResponseCode(), httpRequestUtil.getErrorMsg(), httpRequestUtil.getError()));
-            }
-            AutoexecJobExecVo execVo = new AutoexecJobExecVo(jobVo.getId(), runner.getRunnerMapId(), execid, jobVo.getAction());
-            autoexecJobMapper.insertJobExec(execVo);
+            Long runnerMapId = runner.getRunnerMapId();
+            JSONObject runnerPassThroughEnv = new JSONObject(passThroughEnv);
+            runnerPassThroughEnv.put("runnerId", runnerMapId);
+            JSONObject runnerEnvironment = new JSONObject(jobVo.getEnvironment());
+            runnerEnvironment.put("RUNNER_ID", runnerMapId);
+            JSONObject runnerParamJson = new JSONObject(paramJson);
+            runnerParamJson.put("passThroughEnv", runnerPassThroughEnv);
+            runnerParamJson.put("environment", runnerEnvironment);
+            runnerParamJson.put("execid", String.valueOf(execid));
+            String payload = runnerParamJson.toJSONString();
+            //解决作业事务还没提交，autoexec-backend就开始执行了
+            TransactionSynchronizationPool.execute(new NeatLogicThread("AUTOEXEC-JOB-EXEC-" + jobId + "-" + runnerMapId) {
+                @Override
+                protected void execute() {
+                    try {
+                        HttpRequestUtil httpRequestUtil = HttpRequestUtil.post(url).setPayload(payload).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(Config.RUNNER_CONNECT_TIMEOUT()).setReadTimeout(Config.RUNNER_READ_TIMEOUT()).sendRequest();
+                        if (httpRequestUtil.getResponseCode() != 200 || StringUtils.isNotBlank(httpRequestUtil.getError())) {
+                            logger.error(String.format("Request to %s failed, result: %s, ResponseCode: %s, ErrorMsg: %s, Exception %s", url, httpRequestUtil.getResult(), httpRequestUtil.getResponseCode(), httpRequestUtil.getErrorMsg(), httpRequestUtil.getError()));
+                            return;
+                        }
+                        AutoexecJobExecVo execVo = new AutoexecJobExecVo(jobId, runnerMapId, execid, action);
+                        autoexecJobMapper.insertJobExec(execVo);
+                    } catch (Exception ex) {
+                        logger.error(ex.getMessage(), ex);
+                    }
+                }
+            });
         }
 
     }
