@@ -30,7 +30,9 @@ import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.framework.scheduler.core.IJob;
 import neatlogic.framework.scheduler.core.SchedulerManager;
+import neatlogic.framework.scheduler.dao.mapper.SchedulerMapper;
 import neatlogic.framework.scheduler.dto.JobObject;
+import neatlogic.framework.scheduler.dto.JobStatusVo;
 import neatlogic.framework.scheduler.exception.ScheduleHandlerNotFoundException;
 import neatlogic.module.autoexec.schedule.plugin.AutoexecScheduleJob;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
@@ -57,6 +59,8 @@ public class AutoexecScheduleIsActiveUpdateApi extends PrivateApiComponentBase {
     private AutoexecCombopService autoexecCombopService;
     @Resource
     private SchedulerManager schedulerManager;
+    @Resource
+    private SchedulerMapper schedulerMapper;
 
     @Override
     public String getToken() {
@@ -118,6 +122,8 @@ public class AutoexecScheduleIsActiveUpdateApi extends PrivateApiComponentBase {
         resultObj.put("lcd", autoexecScheduleVo.getLcd());
         resultObj.put("lcu", autoexecScheduleVo.getLcu());
         resultObj.put("lcuVo", autoexecScheduleVo.getLcuVo());
+        JobStatusVo jobStatusVo = schedulerMapper.getJobStatusByJobNameGroup(autoexecScheduleVo.getUuid(), jobHandler.getGroupName(), System.currentTimeMillis());
+        resultObj.put("jobStatus", jobStatusVo);
         return resultObj;
     }
 }
