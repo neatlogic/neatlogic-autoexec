@@ -15,8 +15,6 @@ package neatlogic.module.autoexec.service;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import neatlogic.framework.asynchronization.thread.NeatLogicThread;
-import neatlogic.framework.asynchronization.threadpool.TransactionSynchronizationPool;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.autoexec.constvalue.*;
@@ -1167,13 +1165,13 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         IResourceCenterResourceCrossoverService resourceCrossoverService = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
         ResourceSearchVo searchVo = resourceCrossoverService.assembleResourceSearchVo(filterJson);
         JSONObject preCondition = null;
-        if(jobVo.getPreCondition() != null){
+        if (jobVo.getPreCondition() != null) {
             preCondition = jobVo.getPreCondition();
-        }else if (MapUtils.isNotEmpty(combopPreCondition)) {
+        } else if (MapUtils.isNotEmpty(combopPreCondition)) {
             preCondition = combopPreCondition;
         }
 
-        if(MapUtils.isNotEmpty(preCondition)) {
+        if (MapUtils.isNotEmpty(preCondition)) {
             ResourceSearchVo preConditionVo = resourceCrossoverService.assembleResourceSearchVo(preCondition);
             searchVo.setPreCondition(preConditionVo);
         }
@@ -1364,7 +1362,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             //Map<Long, AutoexecJobVo> autoexecJobVoMap = autoexecJobVos.stream().collect(toMap(AutoexecJobVo::getId, o -> o));
 
             Map<Long, List<AutoexecJobVo>> parentJobChildrenListMap = new HashMap<>();
-            if (CollectionUtils.isNotEmpty(jobVoList) ) {
+            if (CollectionUtils.isNotEmpty(jobVoList)) {
                 List<AutoexecJobVo> parentJobList = jobVoList.stream().filter(e -> e.getParentId() != null).collect(Collectors.toList());
                 if (CollectionUtils.isNotEmpty(parentJobList)) {
                     jobVo.setParentIdList(parentJobList.stream().map(AutoexecJobVo::getId).collect(Collectors.toList()));
@@ -1774,33 +1772,18 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         passThroughEnv.put("EXECUSER_UUID", UserContext.get().getUserUuid());
         passThroughEnv.put("PARENT_JOB_ID", jobVo.getParentId());
         for (RunnerMapVo runner : runnerVos) {
+            jobVo.getEnvironment().put("RUNNER_ID", runner.getRunnerMapId());
             String url = runner.getUrl() + "api/rest/job/exec";
-            Long runnerMapId = runner.getRunnerMapId();
-            JSONObject runnerPassThroughEnv = new JSONObject(passThroughEnv);
-            runnerPassThroughEnv.put("runnerId", runnerMapId);
-            JSONObject runnerEnvironment = new JSONObject(jobVo.getEnvironment());
-            runnerEnvironment.put("RUNNER_ID", runnerMapId);
-            JSONObject runnerParamJson = new JSONObject(paramJson);
-            runnerParamJson.put("passThroughEnv", runnerPassThroughEnv);
-            runnerParamJson.put("environment", runnerEnvironment);
-            runnerParamJson.put("execid", String.valueOf(execid));
-            //解决作业事务还没提交，autoexec-backend就开始执行了
-            TransactionSynchronizationPool.execute(new NeatLogicThread("AUTOEXEC-JOB-EXEC-" + jobVo.getId() + "-" + runnerMapId) {
-                @Override
-                protected void execute() {
-                    try {
-                        HttpRequestUtil httpRequestUtil = HttpRequestUtil.post(url).setPayload(runnerParamJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(Config.RUNNER_CONNECT_TIMEOUT()).setReadTimeout(Config.RUNNER_READ_TIMEOUT()).sendRequest();
-                        if (httpRequestUtil.getResponseCode() != 200 || StringUtils.isNotBlank(httpRequestUtil.getError())) {
-                            logger.error(String.format("Request to %s failed, result: %s, ResponseCode: %s, ErrorMsg: %s, Exception %s", url, httpRequestUtil.getResult(), httpRequestUtil.getResponseCode(), httpRequestUtil.getErrorMsg(), httpRequestUtil.getError()));
-                            return;
-                        }
-                        AutoexecJobExecVo execVo = new AutoexecJobExecVo(jobVo.getId(), runnerMapId, execid, jobVo.getAction());
-                        autoexecJobMapper.insertJobExec(execVo);
-                    } catch (Exception ex) {
-                        logger.error(ex.getMessage(), ex);
-                    }
-                }
-            });
+            passThroughEnv.put("runnerId", runner.getRunnerMapId());
+            paramJson.put("passThroughEnv", passThroughEnv);
+            paramJson.put("environment", jobVo.getEnvironment());
+            paramJson.put("execid", String.valueOf(execid));
+            HttpRequestUtil httpRequestUtil = HttpRequestUtil.post(url).setPayload(paramJson.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(Config.RUNNER_CONNECT_TIMEOUT()).setReadTimeout(Config.RUNNER_READ_TIMEOUT()).sendRequest();
+            if (httpRequestUtil.getResponseCode() != 200 || StringUtils.isNotBlank(httpRequestUtil.getError())) {
+                throw new ApiRuntimeException(String.format("Request to %s failed, result: %s, ResponseCode: %s, ErrorMsg: %s, Exception %s", url, httpRequestUtil.getResult(), httpRequestUtil.getResponseCode(), httpRequestUtil.getErrorMsg(), httpRequestUtil.getError()));
+            }
+            AutoexecJobExecVo execVo = new AutoexecJobExecVo(jobVo.getId(), runner.getRunnerMapId(), execid, jobVo.getAction());
+            autoexecJobMapper.insertJobExec(execVo);
         }
 
     }
