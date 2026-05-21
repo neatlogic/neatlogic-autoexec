@@ -75,6 +75,8 @@ public class JobUserTypeGroupHandler implements IGroupSearchHandler {
                 }
             }
         }
+        groupSearchVo.setPageSize(userTypeList.size());
+        groupSearchVo.setRowNum(userTypeList.size());
         return userTypeList;
     }
 
@@ -101,7 +103,7 @@ public class JobUserTypeGroupHandler implements IGroupSearchHandler {
 
     @Override
     public int getSort() {
-        return 1;
+        return 6;
     }
 
     @Override
