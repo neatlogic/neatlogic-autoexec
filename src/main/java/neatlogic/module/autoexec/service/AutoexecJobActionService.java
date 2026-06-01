@@ -54,6 +54,22 @@ public interface AutoexecJobActionService {
      */
     void getJobDetailAndFireJob(AutoexecJobVo jobVo) throws Exception;
 
+    /**
+     * 创建组合工具作业并立即执行
+     *
+     * @param jobVo 作业
+     * @return 作业信息
+     */
+    JSONObject createCombopJobAndFire(AutoexecJobVo jobVo) throws Exception;
+
+    /**
+     * 查询自动化作业状态
+     *
+     * @param jobId 作业id
+     * @return 状态信息
+     */
+    JSONObject getJobStatus(Long jobId);
+
 
     /**
      * 初始化执行用户上下文

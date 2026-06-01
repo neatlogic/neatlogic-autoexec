@@ -599,6 +599,30 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
     }
 
     @Override
+    public JSONObject createCombopJobAndFire(AutoexecJobVo jobVo) throws Exception {
+        validateAndCreateJobFromCombop(jobVo);
+        getJobDetailAndFireJob(jobVo);
+        JSONObject result = new JSONObject();
+        result.put("jobId", jobVo.getId());
+        result.put("jobName", jobVo.getName());
+        result.put("status", jobVo.getStatus());
+        return result;
+    }
+
+    @Override
+    public JSONObject getJobStatus(Long jobId) {
+        JSONObject result = new JSONObject();
+        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+        if (jobVo != null) {
+            result.put("jobId", jobVo.getId());
+            result.put("jobName", jobVo.getName());
+            result.put("status", jobVo.getStatus());
+            result.put("statusName", JobStatus.getText(jobVo.getStatus()));
+        }
+        return result;
+    }
+
+    @Override
     public void initExecuteUserContext(AutoexecJobVo jobVo, JSONObject passThroughEnv) throws Exception {
         if (MapUtils.isEmpty(passThroughEnv)) {
             throw new ParamIrregularException("passThroughEnv");
