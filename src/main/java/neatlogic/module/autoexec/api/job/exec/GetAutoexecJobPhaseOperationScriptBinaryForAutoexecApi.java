@@ -90,7 +90,7 @@ public class GetAutoexecJobPhaseOperationScriptBinaryForAutoexecApi extends Priv
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id"),
             @Param(name = "operationId", type = ApiParamType.STRING, desc = "作业操作id（opName_opId）"),
             @Param(name = "scriptId", type = ApiParamType.LONG, desc = "工具id"),
             @Param(name = "lastModified", type = ApiParamType.DOUBLE, desc = "最后修改时间（秒，支持小数位）"),
@@ -108,13 +108,13 @@ public class GetAutoexecJobPhaseOperationScriptBinaryForAutoexecApi extends Priv
         Long jobId = jsonObj.getLong("jobId");
         boolean acceptStream = jsonObj.getBoolean("acceptStream") == null || jsonObj.getBoolean("acceptStream");
 
-        AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
-        if (jobVo == null) {
-            throw new AutoexecJobNotFoundException(jobId.toString());
-        }
         AutoexecScriptVo scriptVo = null;
         AutoexecScriptVersionVo scriptVersionVo = null;
         if (StringUtils.isNotBlank(operationId) && !Objects.equals(operationId, "None")) {
+            AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
+            if (jobVo == null) {
+                throw new AutoexecJobNotFoundException(jobId.toString());
+            }
             Long opId = Long.valueOf(operationId.substring(operationId.lastIndexOf("_") + 1));
             AutoexecJobPhaseOperationVo jobPhaseOperationVo = autoexecJobMapper.getJobPhaseOperationByOperationId(opId);
             if (jobPhaseOperationVo == null) {
