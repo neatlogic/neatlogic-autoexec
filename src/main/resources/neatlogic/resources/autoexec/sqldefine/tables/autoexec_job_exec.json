@@ -1,0 +1,47 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_job_exec",
+  "label": "作业实时执行记录",
+  "description": "作业实时执行记录，用于判断是否有正在进行中的进程 可用于自动化相关的时间维度统计、关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "job_id",
+      "type": "bigint",
+      "description": "作业id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "runner_map_id",
+      "type": "bigint",
+      "description": "执行器id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "exec_id",
+      "type": "bigint",
+      "description": "执行id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "action",
+      "type": "varchar(50)",
+      "description": "执行动作。"
+    },
+    {
+      "name": "fcd",
+      "type": "timestamp(3)",
+      "description": "执行时间。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "job_id",
+        "runner_map_id",
+        "exec_id"
+      ],
+      "description": "主键索引，覆盖 job_id、runner_map_id、exec_id 字段，适合用于唯一定位记录和主表关联查询。"
+    }
+  ]
+}

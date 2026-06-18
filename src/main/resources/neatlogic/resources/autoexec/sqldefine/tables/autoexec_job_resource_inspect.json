@@ -1,0 +1,51 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_job_resource_inspect",
+  "label": "自动化作业资源巡检",
+  "description": "自动化作业资源巡检 可用于自动化相关的时间维度统计、关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "resource_id",
+      "type": "bigint",
+      "description": "资产id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "job_id",
+      "type": "bigint",
+      "description": "作业id，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "phase_id",
+      "type": "bigint",
+      "description": "作业阶段id。"
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp(3)",
+      "description": "巡检时间。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "resource_id"
+      ],
+      "description": "主键索引，覆盖 resource_id 字段，适合用于唯一定位记录和主表关联查询。"
+    },
+    {
+      "name": "index_jobid_phaseId",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "job_id",
+        "phase_id"
+      ],
+      "description": "普通索引，覆盖 job_id、phase_id 字段，适合用于过滤、关联或排序查询。"
+    }
+  ]
+}

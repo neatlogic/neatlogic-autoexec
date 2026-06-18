@@ -1,0 +1,50 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_service_config",
+  "label": "自动化service_config表",
+  "description": "自动化service_config表，属于自动化模块的数据表。 可用于自动化相关的关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "service_id",
+      "type": "bigint",
+      "description": "service关联ID，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "combop_id",
+      "type": "bigint",
+      "description": "combop关联ID。"
+    },
+    {
+      "name": "form_uuid",
+      "type": "char(32)",
+      "description": "form关联UUID。"
+    },
+    {
+      "name": "config_expired",
+      "type": "tinyint",
+      "description": "配置已失效。"
+    },
+    {
+      "name": "config_expired_reason",
+      "type": "mediumtext",
+      "description": "配置失效原因。"
+    },
+    {
+      "name": "config",
+      "type": "mediumtext",
+      "description": "配置。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "service_id"
+      ],
+      "description": "主键索引，覆盖 service_id 字段，适合用于唯一定位记录和主表关联查询。"
+    }
+  ]
+}

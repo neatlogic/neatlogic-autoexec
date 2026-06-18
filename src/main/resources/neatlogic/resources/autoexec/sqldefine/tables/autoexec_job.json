@@ -1,0 +1,200 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_job",
+  "label": "自动化作业表",
+  "description": "自动化作业表 可用于自动化相关的状态跟踪、时间维度统计、关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "name",
+      "type": "varchar(128)",
+      "description": "名称。"
+    },
+    {
+      "name": "status",
+      "type": "enum('running','pausing','paused','completed','pending','aborting','aborted','succeed','failed','waitInput','ready','revoked','saved','checked','waiting')",
+      "description": "作业状态，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "plan_start_time",
+      "type": "timestamp(3)",
+      "description": "计划开始时间。"
+    },
+    {
+      "name": "start_time",
+      "type": "timestamp(3)",
+      "description": "开始时间。"
+    },
+    {
+      "name": "end_time",
+      "type": "timestamp(3)",
+      "description": "结束时间。"
+    },
+    {
+      "name": "operation_id",
+      "type": "bigint",
+      "description": "脚本/工具/流水线id。"
+    },
+    {
+      "name": "operation_type",
+      "type": "enum('script','tool','combop','pipeline')",
+      "description": "脚本/工具/流水线，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "source",
+      "type": "varchar(50)",
+      "description": "作业来源，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "round_count",
+      "type": "smallint",
+      "description": "分组数。"
+    },
+    {
+      "name": "parallel_count",
+      "type": "int",
+      "description": "并发数量。"
+    },
+    {
+      "name": "parallel_policy",
+      "type": "varchar(50)",
+      "description": "并发策略。"
+    },
+    {
+      "name": "thread_count",
+      "type": "smallint",
+      "description": "执行线程数。"
+    },
+    {
+      "name": "param_hash",
+      "type": "char(32)",
+      "description": "全局参数hash。"
+    },
+    {
+      "name": "exec_user",
+      "type": "char(32)",
+      "description": "执行用户/角色/组 uuid。"
+    },
+    {
+      "name": "exec_user_type",
+      "type": "enum('team','user','role')",
+      "description": "执行用户类型。"
+    },
+    {
+      "name": "config",
+      "type": "longtext",
+      "description": "流水线配置。"
+    },
+    {
+      "name": "trigger_type",
+      "type": "enum('auto','manual')",
+      "description": "触发方式(auto:自动触发;manual)。"
+    },
+    {
+      "name": "lncd",
+      "type": "timestamp(3)",
+      "description": "最近一次节点变动时间。"
+    },
+    {
+      "name": "config_hash",
+      "type": "char(32)",
+      "description": "配置hash。"
+    },
+    {
+      "name": "parent_id",
+      "type": "bigint",
+      "description": "父id，值为-1时，代表该数据是父作业，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "reviewer",
+      "type": "char(32)",
+      "description": "审核人。"
+    },
+    {
+      "name": "review_status",
+      "type": "enum('passed','failed','waiting')",
+      "description": "审核状态。"
+    },
+    {
+      "name": "review_time",
+      "type": "timestamp(3)",
+      "description": "审核时间。"
+    },
+    {
+      "name": "scenario_id",
+      "type": "bigint",
+      "description": "场景id。"
+    },
+    {
+      "name": "runner_map_id",
+      "type": "bigint",
+      "description": "runner执行类型phase的runnerId。"
+    },
+    {
+      "name": "fcd",
+      "type": "timestamp(3)",
+      "description": "创建时间。"
+    },
+    {
+      "name": "fcu",
+      "type": "char(32)",
+      "description": "创建人。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "主键索引，覆盖 id 字段，适合用于唯一定位记录和主表关联查询。"
+    },
+    {
+      "name": "idx_parent_id",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "parent_id"
+      ],
+      "description": "普通索引，覆盖 parent_id 字段，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "idx_source",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "source"
+      ],
+      "description": "普通索引，覆盖 source 字段，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "idx_status",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "status"
+      ],
+      "description": "普通索引，覆盖 status 字段，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "idx_typeid",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "operation_type"
+      ],
+      "description": "普通索引，覆盖 operation_type 字段，适合用于过滤、关联或排序查询。"
+    }
+  ]
+}

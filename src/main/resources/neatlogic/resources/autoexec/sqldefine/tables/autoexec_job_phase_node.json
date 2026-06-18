@@ -1,0 +1,163 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_job_phase_node",
+  "label": "自动化作业阶段节点表",
+  "description": "自动化作业阶段节点表 可用于自动化相关的状态跟踪、时间维度统计、关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "job_id",
+      "type": "bigint",
+      "description": "作业id，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "job_phase_id",
+      "type": "bigint",
+      "description": "作业阶段id，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "host",
+      "type": "varchar(50)",
+      "description": "主机ip。"
+    },
+    {
+      "name": "port",
+      "type": "int",
+      "description": "服务端口号。"
+    },
+    {
+      "name": "user_name",
+      "type": "varchar(50)",
+      "description": "执行目标账号。"
+    },
+    {
+      "name": "resource_id",
+      "type": "bigint",
+      "description": "资源id。"
+    },
+    {
+      "name": "protocol_id",
+      "type": "varchar(50)",
+      "description": "协议。"
+    },
+    {
+      "name": "name",
+      "type": "varchar(200)",
+      "description": "节点名（如：数据库名等）。"
+    },
+    {
+      "name": "type",
+      "type": "varchar(200)",
+      "description": "节点类型。"
+    },
+    {
+      "name": "start_time",
+      "type": "timestamp(3)",
+      "description": "开始时间。"
+    },
+    {
+      "name": "end_time",
+      "type": "timestamp(3)",
+      "description": "结束时间。"
+    },
+    {
+      "name": "status",
+      "type": "enum('succeed','pending','failed','ignored','running','aborted','aborting','waitInput','pausing','paused','invalid','waiting')",
+      "description": "状态。"
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp(3)",
+      "description": "最近一次更新时间。"
+    },
+    {
+      "name": "is_delete",
+      "type": "tinyint",
+      "description": "是否已删除，目前用于重跑刷新节点。"
+    },
+    {
+      "name": "warn_count",
+      "type": "int",
+      "description": "警告数量。"
+    },
+    {
+      "name": "is_executed",
+      "type": "tinyint(1)",
+      "description": "是否执行过。"
+    },
+    {
+      "name": "runner_map_id",
+      "type": "bigint",
+      "description": "执行器id。"
+    },
+    {
+      "name": "update_tag",
+      "type": "bigint",
+      "description": "最近一次更新标记。"
+    },
+    {
+      "name": "error_type",
+      "type": "int",
+      "description": "异常信息。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "主键索引，覆盖 id 字段，适合用于唯一定位记录和主表关联查询。"
+    },
+    {
+      "name": "idx_jobid",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "job_id"
+      ],
+      "description": "普通索引，覆盖 job_id 字段，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "idx_jobphaseid_status",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "job_phase_id",
+        "status"
+      ],
+      "description": "普通索引，覆盖 job_phase_id、status 字段，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "idx_phaseid_resourceid",
+      "type": "BTREE",
+      "unique": true,
+      "primary": false,
+      "columns": [
+        "job_phase_id",
+        "resource_id"
+      ],
+      "description": "唯一索引，覆盖 job_phase_id、resource_id 字段，适合用于精确检索、唯一性判断和去重查询。"
+    },
+    {
+      "name": "idx_phaseid_updatetag",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "job_phase_id",
+        "update_tag"
+      ],
+      "description": "普通索引，覆盖 job_phase_id、update_tag 字段，适合用于过滤、关联或排序查询。"
+    }
+  ]
+}

@@ -1,0 +1,280 @@
+{
+  "moduleId": "autoexec",
+  "tables": [
+    {
+      "name": "autoexec_catalog",
+      "label": "工具目录",
+      "description": "工具目录 可用于自动化相关的关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_combop",
+      "label": "组合工具信息表",
+      "description": "组合工具信息表 可用于自动化相关的启用状态筛选、时间维度统计、关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_combop_authority",
+      "label": "组合工具授权表",
+      "description": "组合工具授权表 可用于自动化相关的关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_combop_group",
+      "label": "组合工具组",
+      "description": "组合工具组 可用于自动化相关的关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_combop_param",
+      "label": "组合工具参数表",
+      "description": "组合工具参数表 可用于自动化相关的关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_combop_param_matrix",
+      "label": "组合工具参数引用矩阵关系表",
+      "description": "组合工具参数引用矩阵关系表 可用于自动化相关的关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_combop_version",
+      "label": "自动化combop_version表",
+      "description": "自动化combop_version表，属于自动化模块的数据表。 可用于自动化相关的状态跟踪、启用状态筛选、时间维度统计、关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_customtemplate",
+      "label": "自动化自定义模板",
+      "description": "自动化自定义模板 可用于自动化相关的启用状态筛选、时间维度统计等报表查询场景。"
+    },
+    {
+      "name": "autoexec_execrtool_audit",
+      "label": "execrtool执行审计",
+      "description": "execrtool执行审计 可用于自动化相关的状态跟踪、关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_global_param",
+      "label": "发布全局参数表",
+      "description": "发布全局参数表 可用于自动化相关的时间维度统计等报表查询场景。"
+    },
+    {
+      "name": "autoexec_job",
+      "label": "自动化作业表",
+      "description": "自动化作业表 可用于自动化相关的状态跟踪、时间维度统计、关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_job_content",
+      "label": "自动化作业参数内容表",
+      "description": "自动化作业参数内容表 可用于自动化相关数据的查询、筛选和报表展示。"
+    },
+    {
+      "name": "autoexec_job_env",
+      "label": "作业环境变量表",
+      "description": "作业环境变量表 可用于自动化相关的关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_job_exec",
+      "label": "作业实时执行记录",
+      "description": "作业实时执行记录，用于判断是否有正在进行中的进程 可用于自动化相关的时间维度统计、关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_job_group",
+      "label": "自动化作业组",
+      "description": "自动化作业组 可用于自动化相关的关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_job_invoke",
+      "label": "自动化作业来源表",
+      "description": "自动化作业来源表 可用于自动化相关的关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_job_phase",
+      "label": "自动化作业阶段表",
+      "description": "自动化作业阶段表 可用于自动化相关的状态跟踪、时间维度统计、关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_job_phase_node",
+      "label": "自动化作业阶段节点表",
+      "description": "自动化作业阶段节点表 可用于自动化相关的状态跟踪、时间维度统计、关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_job_phase_node_runner",
+      "label": "自动化作业阶段节点runner表",
+      "description": "自动化作业阶段节点runner表 可用于自动化相关的关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_job_phase_operation",
+      "label": "自动化作业阶段操作表",
+      "description": "自动化作业阶段操作表 可用于自动化相关的关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_job_phase_runner",
+      "label": "自动化作业阶段runner表",
+      "description": "自动化作业阶段runner表 可用于自动化相关的状态跟踪、时间维度统计、关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_job_processtask_step",
+      "label": "自动化步骤最新批次作业ID",
+      "description": "自动化步骤最新批次作业ID 可用于自动化相关的关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_job_resource_inspect",
+      "label": "自动化作业资源巡检",
+      "description": "自动化作业资源巡检 可用于自动化相关的时间维度统计、关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_job_runner",
+      "label": "作业runner状态",
+      "description": "作业runner状态 可用于自动化相关的状态跟踪、时间维度统计、关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_job_sql_detail",
+      "label": "自动化sql详情表",
+      "description": "自动化sql详情表 可用于自动化相关的状态跟踪、关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_operation_generate_combop",
+      "label": "组合工具关联表",
+      "description": "组合工具关联表 可用于自动化相关的关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_profile",
+      "label": "发布工具profile表",
+      "description": "发布工具profile表 可用于自动化相关的时间维度统计、关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_profile_cientity",
+      "label": "发布工具profile配置项关系表",
+      "description": "发布工具profile配置项关系表 可用于自动化相关的关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_profile_operation",
+      "label": "发布工具profile和tool、script关系表",
+      "description": "发布工具profile和tool、script关系表 可用于自动化相关的关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_profile_param",
+      "label": "自动化profile参数表",
+      "description": "自动化profile参数表 可用于自动化相关的关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_profile_param_value_invoke",
+      "label": "自动化profile参数值引用表",
+      "description": "自动化profile参数值引用表 可用于自动化相关的时间维度统计、关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_risk",
+      "label": "自动化操作级别表",
+      "description": "自动化操作级别表 可用于自动化相关的启用状态筛选、时间维度统计等报表查询场景。"
+    },
+    {
+      "name": "autoexec_scenario",
+      "label": "自动化场景定义表",
+      "description": "自动化场景定义表 可用于自动化相关的时间维度统计等报表查询场景。"
+    },
+    {
+      "name": "autoexec_scenario_cientity",
+      "label": "自动化场景应用关系表",
+      "description": "自动化场景应用关系表 可用于自动化相关的关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_schedule",
+      "label": "定时作业信息表",
+      "description": "定时作业信息表 可用于自动化相关的启用状态筛选、时间维度统计、关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_script",
+      "label": "自动化自定义工具表",
+      "description": "自动化自定义工具表 可用于自动化相关的时间维度统计、关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_script_audit",
+      "label": "自动化自定义工具活动表",
+      "description": "自动化自定义工具活动表 可用于自动化相关的时间维度统计、关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_script_audit_detail",
+      "label": "自动化自定义工具活动内容表",
+      "description": "自动化自定义工具活动内容表 可用于自动化相关数据的查询、筛选和报表展示。"
+    },
+    {
+      "name": "autoexec_script_execrtool_authority",
+      "label": "脚本execrtool执行授权",
+      "description": "脚本execrtool执行授权 可用于自动化相关的关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_script_line",
+      "label": "自动化自定义工具内容行表",
+      "description": "自动化自定义工具内容行表 可用于自动化相关的关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_script_line_content",
+      "label": "自动化自定义工具内容表",
+      "description": "自动化自定义工具内容表 可用于自动化相关数据的查询、筛选和报表展示。"
+    },
+    {
+      "name": "autoexec_script_validate",
+      "label": "自动化自定义工具危险代码表",
+      "description": "自动化自定义工具危险代码表 可用于自动化相关的时间维度统计等报表查询场景。"
+    },
+    {
+      "name": "autoexec_script_validate_type",
+      "label": "自动化自定义工具危险代码类型表",
+      "description": "自动化自定义工具危险代码类型表 可用于自动化相关的关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_script_version",
+      "label": "自动化自定义工具版本表",
+      "description": "自动化自定义工具版本表 可用于自动化相关的状态跟踪、启用状态筛选、时间维度统计、关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_script_version_argument",
+      "label": "自定义工具库自由参数",
+      "description": "自定义工具库自由参数 可用于自动化相关的关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_script_version_lib",
+      "label": "自动化脚本依赖表",
+      "description": "自动化脚本依赖表 可用于自动化相关的关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_script_version_param",
+      "label": "自动化自定义工具参数表",
+      "description": "自动化自定义工具参数表 可用于自动化相关的关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_service",
+      "label": "自动化service表",
+      "description": "自动化service表，属于自动化模块的数据表。 可用于自动化相关的启用状态筛选、关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_service_authority",
+      "label": "自动化service_authority表",
+      "description": "自动化service_authority表，属于自动化模块的数据表。 可用于自动化相关的关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_service_config",
+      "label": "自动化service_config表",
+      "description": "自动化service_config表，属于自动化模块的数据表。 可用于自动化相关的关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_service_user",
+      "label": "用户收藏服务",
+      "description": "用户收藏服务 可用于自动化相关的时间维度统计、关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_tag",
+      "label": "自动化标签表",
+      "description": "自动化标签表 可用于自动化相关数据的查询、筛选和报表展示。"
+    },
+    {
+      "name": "autoexec_tool",
+      "label": "自动化工具表",
+      "description": "自动化工具表 可用于自动化相关的启用状态筛选、时间维度统计、关联查询等报表查询场景。"
+    },
+    {
+      "name": "autoexec_type",
+      "label": "自动化类型表",
+      "description": "自动化类型表 可用于自动化相关的时间维度统计等报表查询场景。"
+    },
+    {
+      "name": "autoexec_type_authority",
+      "label": "自动化分类权限表",
+      "description": "自动化分类权限表 可用于自动化相关的关联查询等报表查询场景。"
+    }
+  ]
+}

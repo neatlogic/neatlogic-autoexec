@@ -1,0 +1,100 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_service",
+  "label": "自动化service表",
+  "description": "自动化service表，属于自动化模块的数据表。 可用于自动化相关的启用状态筛选、关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "主键ID，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "name",
+      "type": "varchar(200)",
+      "description": "唯一标识，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "is_active",
+      "type": "tinyint(1)",
+      "description": "是否激活。"
+    },
+    {
+      "name": "type",
+      "type": "enum('service','catalog')",
+      "description": "类型。"
+    },
+    {
+      "name": "parent_id",
+      "type": "bigint",
+      "description": "parent关联ID，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "lft",
+      "type": "int",
+      "description": "自动化service表的lft字段，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "rht",
+      "type": "int",
+      "description": "自动化service表的rht字段，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "description",
+      "type": "mediumtext",
+      "description": "描述。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "主键索引，覆盖 id 字段，适合用于唯一定位记录和主表关联查询。"
+    },
+    {
+      "name": "idx_lft",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "lft"
+      ],
+      "description": "普通索引，覆盖 lft 字段，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "idx_name",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "name"
+      ],
+      "description": "普通索引，覆盖 name 字段，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "idx_parent_id",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "parent_id"
+      ],
+      "description": "普通索引，覆盖 parent_id 字段，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "idx_rht",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "rht"
+      ],
+      "description": "普通索引，覆盖 rht 字段，适合用于过滤、关联或排序查询。"
+    }
+  ]
+}

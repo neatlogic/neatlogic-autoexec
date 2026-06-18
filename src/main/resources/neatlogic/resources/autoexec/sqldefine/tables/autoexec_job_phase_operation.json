@@ -1,0 +1,127 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_job_phase_operation",
+  "label": "自动化作业阶段操作表",
+  "description": "自动化作业阶段操作表 可用于自动化相关的关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "job_id",
+      "type": "bigint",
+      "description": "作业id，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "job_phase_id",
+      "type": "bigint",
+      "description": "作业阶段id，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "operation_id",
+      "type": "bigint",
+      "description": "作业/工具id。"
+    },
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "作业脚本/工具id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "name",
+      "type": "varchar(50)",
+      "description": "脚本/工具名。"
+    },
+    {
+      "name": "letter",
+      "type": "varchar(20)",
+      "description": "脚本/工具名后缀。"
+    },
+    {
+      "name": "type",
+      "type": "enum('script','tool')",
+      "description": "脚本/工具。"
+    },
+    {
+      "name": "parser",
+      "type": "varchar(20)",
+      "description": "解析器。"
+    },
+    {
+      "name": "exec_mode",
+      "type": "varchar(20)",
+      "description": "执行方式。"
+    },
+    {
+      "name": "fail_policy",
+      "type": "enum('stop','goon')",
+      "description": "失败策略：ignore失败忽略 stop失败中止。"
+    },
+    {
+      "name": "param_hash",
+      "type": "char(32)",
+      "description": "参数hash。"
+    },
+    {
+      "name": "sort",
+      "type": "int",
+      "description": "排序。"
+    },
+    {
+      "name": "version_id",
+      "type": "bigint",
+      "description": "脚本版本id。"
+    },
+    {
+      "name": "profile_id",
+      "type": "bigint",
+      "description": "预设参数集id。"
+    },
+    {
+      "name": "parent_operation_id",
+      "type": "bigint",
+      "description": "父工具id。"
+    },
+    {
+      "name": "parent_operation_type",
+      "type": "varchar(50)",
+      "description": "父工具类型,如if-block的if|else。"
+    },
+    {
+      "name": "uuid",
+      "type": "char(32)",
+      "description": "前端工具uuid。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "主键索引，覆盖 id 字段，适合用于唯一定位记录和主表关联查询。"
+    },
+    {
+      "name": "idx_jobid_operationId",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "job_id",
+        "operation_id"
+      ],
+      "description": "普通索引，覆盖 job_id、operation_id 字段，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "idx_phaseid_opid",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "job_phase_id",
+        "operation_id"
+      ],
+      "description": "普通索引，覆盖 job_phase_id、operation_id 字段，适合用于过滤、关联或排序查询。"
+    }
+  ]
+}

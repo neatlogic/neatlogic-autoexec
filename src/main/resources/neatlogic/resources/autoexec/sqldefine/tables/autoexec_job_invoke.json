@@ -1,0 +1,55 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_job_invoke",
+  "label": "自动化作业来源表",
+  "description": "自动化作业来源表 可用于自动化相关的关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "job_id",
+      "type": "bigint",
+      "description": "作业id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "invoke_id",
+      "type": "bigint",
+      "description": "来源id，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "source",
+      "type": "varchar(50)",
+      "description": "来源。"
+    },
+    {
+      "name": "type",
+      "type": "enum('auto','deploy')",
+      "description": "来源类型。"
+    },
+    {
+      "name": "route_id",
+      "type": "varchar(32)",
+      "description": "配置路由ID。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "job_id"
+      ],
+      "description": "主键索引，覆盖 job_id 字段，适合用于唯一定位记录和主表关联查询。"
+    },
+    {
+      "name": "idx_invoke_id",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "invoke_id"
+      ],
+      "description": "普通索引，覆盖 invoke_id 字段，适合用于过滤、关联或排序查询。"
+    }
+  ]
+}

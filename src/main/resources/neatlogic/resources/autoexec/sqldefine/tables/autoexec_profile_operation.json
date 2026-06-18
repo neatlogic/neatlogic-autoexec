@@ -1,0 +1,41 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_profile_operation",
+  "label": "发布工具profile和tool、script关系表",
+  "description": "发布工具profile和tool、script关系表 可用于自动化相关的关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "operation_id",
+      "type": "bigint",
+      "description": "工具库工具id/自定义工具id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "profile_id",
+      "type": "bigint",
+      "description": "profile id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "type",
+      "type": "enum('script','tool')",
+      "description": "工具类型。"
+    },
+    {
+      "name": "update_tag",
+      "type": "bigint",
+      "description": "修改时间。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "operation_id",
+        "profile_id"
+      ],
+      "description": "主键索引，覆盖 operation_id、profile_id 字段，适合用于唯一定位记录和主表关联查询。"
+    }
+  ]
+}

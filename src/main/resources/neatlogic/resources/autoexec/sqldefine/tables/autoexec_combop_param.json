@@ -1,0 +1,71 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_combop_param",
+  "label": "组合工具参数表",
+  "description": "组合工具参数表 可用于自动化相关的关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "combop_id",
+      "type": "bigint",
+      "description": "流水线id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "key",
+      "type": "varchar(70)",
+      "description": "参数名，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "name",
+      "type": "varchar(50)",
+      "description": "中文名。"
+    },
+    {
+      "name": "default_value",
+      "type": "text",
+      "description": "参数值。"
+    },
+    {
+      "name": "description",
+      "type": "text",
+      "description": "描述。"
+    },
+    {
+      "name": "is_required",
+      "type": "tinyint(1)",
+      "description": "是否必填 1:必填 0:选填。"
+    },
+    {
+      "name": "type",
+      "type": "varchar(100)",
+      "description": "文本、密码、文件、日期、节点信息、全局变量、json对象。"
+    },
+    {
+      "name": "sort",
+      "type": "int",
+      "description": "排序。"
+    },
+    {
+      "name": "config",
+      "type": "text",
+      "description": "配置信息。"
+    },
+    {
+      "name": "editable",
+      "type": "tinyint(1)",
+      "description": "是否可编辑。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "combop_id",
+        "key"
+      ],
+      "description": "主键索引，覆盖 combop_id、key 字段，适合用于唯一定位记录和主表关联查询。"
+    }
+  ]
+}

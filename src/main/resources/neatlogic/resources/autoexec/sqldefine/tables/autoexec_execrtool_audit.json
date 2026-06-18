@@ -1,0 +1,110 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_execrtool_audit",
+  "label": "execrtool执行审计",
+  "description": "execrtool执行审计 可用于自动化相关的状态跟踪、关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "流水id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "script_version_id",
+      "type": "bigint",
+      "description": "脚本激活版本id。"
+    },
+    {
+      "name": "runner_id",
+      "type": "bigint",
+      "description": "执行器映射id，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "exec_user",
+      "type": "varchar(64)",
+      "description": "执行人，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "param_json",
+      "type": "longtext",
+      "description": "入参json。"
+    },
+    {
+      "name": "return_json",
+      "type": "longtext",
+      "description": "runner返回json。"
+    },
+    {
+      "name": "status",
+      "type": "varchar(20)",
+      "description": "状态: pending/running/success/failed，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "error_message",
+      "type": "text",
+      "description": "错误摘要。"
+    },
+    {
+      "name": "start_time",
+      "type": "datetime(3)",
+      "description": "开始时间，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "end_time",
+      "type": "datetime(3)",
+      "description": "结束时间。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "主键索引，覆盖 id 字段，适合用于唯一定位记录和主表关联查询。"
+    },
+    {
+      "name": "idx_exec_user",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "exec_user"
+      ],
+      "description": "普通索引，覆盖 exec_user 字段，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "idx_runner_id",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "runner_id"
+      ],
+      "description": "普通索引，覆盖 runner_id 字段，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "idx_start_time",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "start_time"
+      ],
+      "description": "普通索引，覆盖 start_time 字段，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "idx_status",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "status"
+      ],
+      "description": "普通索引，覆盖 status 字段，适合用于过滤、关联或排序查询。"
+    }
+  ]
+}

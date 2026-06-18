@@ -1,0 +1,106 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_script_version",
+  "label": "自动化自定义工具版本表",
+  "description": "自动化自定义工具版本表 可用于自动化相关的状态跟踪、启用状态筛选、时间维度统计、关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "script_id",
+      "type": "bigint",
+      "description": "脚本id，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "title",
+      "type": "varchar(50)",
+      "description": "标题。"
+    },
+    {
+      "name": "version",
+      "type": "int",
+      "description": "版本号。"
+    },
+    {
+      "name": "encoding",
+      "type": "enum('UTF-8','GBK')",
+      "description": "脚本编码。"
+    },
+    {
+      "name": "parser",
+      "type": "varchar(20)",
+      "description": "脚本解析器。"
+    },
+    {
+      "name": "status",
+      "type": "enum('draft','rejected','passed','submitted')",
+      "description": "draft:编辑中、rejected:已驳回、passed:已通过、submitted:待审批，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "reviewer",
+      "type": "char(32)",
+      "description": "审批人。"
+    },
+    {
+      "name": "is_active",
+      "type": "tinyint(1)",
+      "description": "是否激活。"
+    },
+    {
+      "name": "config",
+      "type": "longtext",
+      "description": "脚本配置信息。"
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp(3)",
+      "description": "最后修改时间。"
+    },
+    {
+      "name": "lcu",
+      "type": "char(32)",
+      "description": "最后修改人。"
+    },
+    {
+      "name": "package_file_id",
+      "type": "bigint",
+      "description": "包文件id。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "主键索引，覆盖 id 字段，适合用于唯一定位记录和主表关联查询。"
+    },
+    {
+      "name": "idx_status",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "status"
+      ],
+      "description": "普通索引，覆盖 status 字段，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "uniq_scriptid_version",
+      "type": "BTREE",
+      "unique": true,
+      "primary": false,
+      "columns": [
+        "script_id",
+        "version"
+      ],
+      "description": "唯一索引，覆盖 script_id、version 字段，适合用于精确检索、唯一性判断和去重查询。"
+    }
+  ]
+}

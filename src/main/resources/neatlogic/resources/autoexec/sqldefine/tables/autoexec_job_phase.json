@@ -1,0 +1,223 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_job_phase",
+  "label": "自动化作业阶段表",
+  "description": "自动化作业阶段表 可用于自动化相关的状态跟踪、时间维度统计、关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "job_id",
+      "type": "bigint",
+      "description": "作业id，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "name",
+      "type": "varchar(50)",
+      "description": "剧本名。"
+    },
+    {
+      "name": "status",
+      "type": "enum('pending','running','pausing','paused','completed','failed','waiting','aborted','aborting','waitInput','ignored')",
+      "description": "作业剧本状态。"
+    },
+    {
+      "name": "start_time",
+      "type": "timestamp(3)",
+      "description": "开始时间。"
+    },
+    {
+      "name": "end_time",
+      "type": "timestamp(3)",
+      "description": "结束时间。"
+    },
+    {
+      "name": "exec_user",
+      "type": "char(32)",
+      "description": "执行人。"
+    },
+    {
+      "name": "exec_mode",
+      "type": "varchar(50)",
+      "description": "执行方式 target runner。"
+    },
+    {
+      "name": "user_name",
+      "type": "varchar(50)",
+      "description": "执行用户。"
+    },
+    {
+      "name": "protocol",
+      "type": "varchar(50)",
+      "description": "执行协议。"
+    },
+    {
+      "name": "round_count",
+      "type": "int",
+      "description": "分批数。"
+    },
+    {
+      "name": "parallel_count",
+      "type": "int",
+      "description": "并发数。"
+    },
+    {
+      "name": "parallel_policy",
+      "type": "varchar(50)",
+      "description": "并发策略。"
+    },
+    {
+      "name": "sort",
+      "type": "int",
+      "description": "阶段排序。"
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp(3)",
+      "description": "最近一次更新时间，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "lncd",
+      "type": "timestamp(3)",
+      "description": "最近一次节点变动时间。"
+    },
+    {
+      "name": "node_from",
+      "type": "varchar(50)",
+      "description": "节点来源，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "round_count_from",
+      "type": "varchar(50)",
+      "description": "分批数来源。"
+    },
+    {
+      "name": "user_name_from",
+      "type": "varchar(50)",
+      "description": "用户来源，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "protocol_from",
+      "type": "varchar(50)",
+      "description": "协议来源，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "runner_group_from",
+      "type": "varchar(50)",
+      "description": "执行器组来源。"
+    },
+    {
+      "name": "group_id",
+      "type": "bigint",
+      "description": "组id。"
+    },
+    {
+      "name": "execute_policy",
+      "type": "enum('first','middle','last')",
+      "description": "执行策略。"
+    },
+    {
+      "name": "warn_count",
+      "type": "int",
+      "description": "警告数量。"
+    },
+    {
+      "name": "uuid",
+      "type": "char(32)",
+      "description": "前端uuid。"
+    },
+    {
+      "name": "is_pre_output_update_node",
+      "type": "tinyint(1)",
+      "description": "是否通过上游参数更新执行目标。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "主键索引，覆盖 id 字段，适合用于唯一定位记录和主表关联查询。"
+    },
+    {
+      "name": "idx_jobid_groupid",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "job_id",
+        "group_id"
+      ],
+      "description": "普通索引，覆盖 job_id、group_id 字段，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "idx_jobid_name",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "job_id",
+        "name"
+      ],
+      "description": "普通索引，覆盖 job_id、name 字段，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "idx_jobid_sort",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "job_id",
+        "sort"
+      ],
+      "description": "普通索引，覆盖 job_id、sort 字段，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "idx_lcd",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "lcd"
+      ],
+      "description": "普通索引，覆盖 lcd 字段，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "idx_node_from",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "node_from"
+      ],
+      "description": "普通索引，覆盖 node_from 字段，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "idx_protocol_from",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "protocol_from"
+      ],
+      "description": "普通索引，覆盖 protocol_from 字段，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "idx_user_name_from",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "user_name_from"
+      ],
+      "description": "普通索引，覆盖 user_name_from 字段，适合用于过滤、关联或排序查询。"
+    }
+  ]
+}

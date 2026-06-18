@@ -1,0 +1,115 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_script",
+  "label": "自动化自定义工具表",
+  "description": "自动化自定义工具表 可用于自动化相关的时间维度统计、关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "uk",
+      "type": "varchar(50)",
+      "description": "唯一标识(英文名)。"
+    },
+    {
+      "name": "name",
+      "type": "varchar(50)",
+      "description": "名称，数据库中要求唯一，适合用于精确查询和去重判断。"
+    },
+    {
+      "name": "type_id",
+      "type": "bigint",
+      "description": "分类id，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "catalog_id",
+      "type": "bigint",
+      "description": "工具目录id，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "exec_mode",
+      "type": "varchar(50)",
+      "description": "执行方式。"
+    },
+    {
+      "name": "risk_id",
+      "type": "bigint",
+      "description": "操作级别id。"
+    },
+    {
+      "name": "customtemplate_id",
+      "type": "bigint",
+      "description": "自定义模版id。"
+    },
+    {
+      "name": "description",
+      "type": "text",
+      "description": "描述。"
+    },
+    {
+      "name": "fcd",
+      "type": "timestamp(3)",
+      "description": "创建时间。"
+    },
+    {
+      "name": "default_profile_id",
+      "type": "bigint",
+      "description": "默认profile id。"
+    },
+    {
+      "name": "fcu",
+      "type": "char(32)",
+      "description": "创建人。"
+    },
+    {
+      "name": "is_lib",
+      "type": "tinyint",
+      "description": "是否库文件。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "主键索引，覆盖 id 字段，适合用于唯一定位记录和主表关联查询。"
+    },
+    {
+      "name": "idx_catalog_id",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "catalog_id"
+      ],
+      "description": "普通索引，覆盖 catalog_id 字段，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "idx_type_id",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "type_id"
+      ],
+      "description": "普通索引，覆盖 type_id 字段，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "uk_name",
+      "type": "BTREE",
+      "unique": true,
+      "primary": false,
+      "columns": [
+        "name"
+      ],
+      "description": "唯一索引，覆盖 name 字段，适合用于精确检索、唯一性判断和去重查询。"
+    }
+  ]
+}

@@ -1,0 +1,75 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_profile",
+  "label": "发布工具profile表",
+  "description": "发布工具profile表 可用于自动化相关的时间维度统计、关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "主键，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "name",
+      "type": "varchar(50)",
+      "description": "名称。"
+    },
+    {
+      "name": "description",
+      "type": "text",
+      "description": "描述。"
+    },
+    {
+      "name": "config",
+      "type": "longtext",
+      "description": "工具参数。"
+    },
+    {
+      "name": "fcd",
+      "type": "timestamp(3)",
+      "description": "创建时间。"
+    },
+    {
+      "name": "fcu",
+      "type": "char(32)",
+      "description": "创建人。"
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp(3)",
+      "description": "修改时间。"
+    },
+    {
+      "name": "lcu",
+      "type": "char(32)",
+      "description": "修改人。"
+    },
+    {
+      "name": "system_id",
+      "type": "bigint",
+      "description": "所属系统id，已建立普通索引，适合用于过滤、关联或排序查询。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "主键索引，覆盖 id 字段，适合用于唯一定位记录和主表关联查询。"
+    },
+    {
+      "name": " idx_system_id",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "system_id"
+      ],
+      "description": "普通索引，覆盖 system_id 字段，适合用于过滤、关联或排序查询。"
+    }
+  ]
+}

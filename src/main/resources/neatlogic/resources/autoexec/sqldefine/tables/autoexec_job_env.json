@@ -1,0 +1,36 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_job_env",
+  "label": "作业环境变量表",
+  "description": "作业环境变量表 可用于自动化相关的关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "job_id",
+      "type": "bigint",
+      "description": "作业id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "name",
+      "type": "varchar(50)",
+      "description": "环境变量名，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "value",
+      "type": "text",
+      "description": "环境变量值。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "job_id",
+        "name"
+      ],
+      "description": "主键索引，覆盖 job_id、name 字段，适合用于唯一定位记录和主表关联查询。"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_global_param",
+  "label": "发布全局参数表",
+  "description": "发布全局参数表 可用于自动化相关的时间维度统计等报表查询场景。",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "主键id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "key",
+      "type": "varchar(50)",
+      "description": "参数名。"
+    },
+    {
+      "name": "name",
+      "type": "varchar(50)",
+      "description": "显示名。"
+    },
+    {
+      "name": "description",
+      "type": "text",
+      "description": "描述。"
+    },
+    {
+      "name": "fcu",
+      "type": "char(32)",
+      "description": "创建人。"
+    },
+    {
+      "name": "fcd",
+      "type": "timestamp(3)",
+      "description": "创建时间。"
+    },
+    {
+      "name": "lcu",
+      "type": "char(32)",
+      "description": "修改人。"
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp(3)",
+      "description": "修改时间。"
+    },
+    {
+      "name": "default_value",
+      "type": "text",
+      "description": "参数值。"
+    },
+    {
+      "name": "type",
+      "type": "varchar(100)",
+      "description": "值类型。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "主键索引，覆盖 id 字段，适合用于唯一定位记录和主表关联查询。"
+    }
+  ]
+}

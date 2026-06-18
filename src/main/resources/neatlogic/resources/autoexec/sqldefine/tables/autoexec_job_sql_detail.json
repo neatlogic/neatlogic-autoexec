@@ -1,0 +1,149 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_job_sql_detail",
+  "label": "自动化sql详情表",
+  "description": "自动化sql详情表 可用于自动化相关的状态跟踪、关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "主键 id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "status",
+      "type": "enum('pending','running','aborting','aborted','succeed','failed','ignored','waitInput')",
+      "description": "状态。"
+    },
+    {
+      "name": "sql_file",
+      "type": "varchar(50)",
+      "description": "sql文件名称。"
+    },
+    {
+      "name": "md5",
+      "type": "varchar(200)",
+      "description": "sql文件md5。"
+    },
+    {
+      "name": "job_id",
+      "type": "bigint",
+      "description": "作业 id，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "runner_id",
+      "type": "bigint",
+      "description": "runner id。"
+    },
+    {
+      "name": "resource_id",
+      "type": "bigint",
+      "description": "资产 id，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "node_name",
+      "type": "varchar(50)",
+      "description": "作业节点名。"
+    },
+    {
+      "name": "job_phase_id",
+      "type": "bigint",
+      "description": "作业剧本id。"
+    },
+    {
+      "name": "job_phase_name",
+      "type": "varchar(50)",
+      "description": "作业剧本名称。"
+    },
+    {
+      "name": "is_delete",
+      "type": "tinyint",
+      "description": "是否已删除。"
+    },
+    {
+      "name": "update_tag",
+      "type": "bigint",
+      "description": "修改时间。"
+    },
+    {
+      "name": "start_time",
+      "type": "timestamp(3)",
+      "description": "开始时间。"
+    },
+    {
+      "name": "end_time",
+      "type": "timestamp(3)",
+      "description": "结束时间。"
+    },
+    {
+      "name": "host",
+      "type": "varchar(50)",
+      "description": "ip。"
+    },
+    {
+      "name": "port",
+      "type": "int",
+      "description": "端口。"
+    },
+    {
+      "name": "node_type",
+      "type": "varchar(50)",
+      "description": "节点类型。"
+    },
+    {
+      "name": "user_name",
+      "type": "varchar(50)",
+      "description": "用户名。"
+    },
+    {
+      "name": "sort",
+      "type": "int",
+      "description": "排序。"
+    },
+    {
+      "name": "is_modified",
+      "type": "int",
+      "description": "是否改动。"
+    },
+    {
+      "name": "warn_count",
+      "type": "int",
+      "description": "告警个数。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "主键索引，覆盖 id 字段，适合用于唯一定位记录和主表关联查询。"
+    },
+    {
+      "name": "idx_job_id_job_phase_name",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "job_id",
+        "job_phase_name"
+      ],
+      "description": "普通索引，覆盖 job_id、job_phase_name 字段，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "idx_resource_id_job_id_job_phase_name_sql_file",
+      "type": "BTREE",
+      "unique": true,
+      "primary": false,
+      "columns": [
+        "resource_id",
+        "job_id",
+        "job_phase_name",
+        "sql_file"
+      ],
+      "description": "唯一索引，覆盖 resource_id、job_id、job_phase_name、sql_file 字段，适合用于精确检索、唯一性判断和去重查询。"
+    }
+  ]
+}

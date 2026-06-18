@@ -1,0 +1,45 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_operation_generate_combop",
+  "label": "组合工具关联表",
+  "description": "组合工具关联表 可用于自动化相关的关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "combop_id",
+      "type": "bigint",
+      "description": "组合工具id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "operation_type",
+      "type": "enum('script','tool')",
+      "description": "工具或自定义工具。"
+    },
+    {
+      "name": "operation_id",
+      "type": "bigint",
+      "description": "工具id或自定义工具id，已建立普通索引，适合用于过滤、关联或排序查询。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "combop_id"
+      ],
+      "description": "主键索引，覆盖 combop_id 字段，适合用于唯一定位记录和主表关联查询。"
+    },
+    {
+      "name": "idx_operation_id",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "operation_id"
+      ],
+      "description": "普通索引，覆盖 operation_id 字段，适合用于过滤、关联或排序查询。"
+    }
+  ]
+}

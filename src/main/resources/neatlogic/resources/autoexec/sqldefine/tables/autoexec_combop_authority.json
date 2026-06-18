@@ -1,0 +1,42 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_combop_authority",
+  "label": "组合工具授权表",
+  "description": "组合工具授权表 可用于自动化相关的关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "combop_id",
+      "type": "bigint",
+      "description": "流水线id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "type",
+      "type": "enum('common','role','user','team')",
+      "description": "对象类型。"
+    },
+    {
+      "name": "uuid",
+      "type": "varchar(32)",
+      "description": "对象uuid，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "action",
+      "type": "enum('edit','execute','view')",
+      "description": "授权类型，作为当前表记录的主键或唯一定位字段。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "combop_id",
+        "uuid",
+        "action"
+      ],
+      "description": "主键索引，覆盖 combop_id、uuid、action 字段，适合用于唯一定位记录和主表关联查询。"
+    }
+  ]
+}

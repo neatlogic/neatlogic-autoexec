@@ -1,0 +1,48 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_script_execrtool_authority",
+  "label": "脚本execrtool执行授权",
+  "description": "脚本execrtool执行授权 可用于自动化相关的关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "script_id",
+      "type": "bigint",
+      "description": "脚本id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "type",
+      "type": "varchar(20)",
+      "description": "授权对象类型: common/user/team/role，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "uuid",
+      "type": "varchar(64)",
+      "description": "授权对象uuid，所有人为alluser，作为当前表记录的主键或唯一定位字段。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "script_id",
+        "type",
+        "uuid"
+      ],
+      "description": "主键索引，覆盖 script_id、type、uuid 字段，适合用于唯一定位记录和主表关联查询。"
+    },
+    {
+      "name": "idx_type_uuid",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "type",
+        "uuid"
+      ],
+      "description": "普通索引，覆盖 type、uuid 字段，适合用于过滤、关联或排序查询。"
+    }
+  ]
+}

@@ -1,0 +1,105 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_tool",
+  "label": "自动化工具表",
+  "description": "自动化工具表 可用于自动化相关的启用状态筛选、时间维度统计、关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "name",
+      "type": "varchar(50)",
+      "description": "名称，数据库中要求唯一，适合用于精确查询和去重判断。"
+    },
+    {
+      "name": "is_active",
+      "type": "tinyint(1)",
+      "description": "是否激活。"
+    },
+    {
+      "name": "exec_mode",
+      "type": "varchar(50)",
+      "description": "执行方式。"
+    },
+    {
+      "name": "type_id",
+      "type": "bigint",
+      "description": "分类id。"
+    },
+    {
+      "name": "risk_id",
+      "type": "bigint",
+      "description": "操作级别id。"
+    },
+    {
+      "name": "description",
+      "type": "text",
+      "description": "描述说明。"
+    },
+    {
+      "name": "parser",
+      "type": "varchar(50)",
+      "description": "解析器。"
+    },
+    {
+      "name": "customtemplate_id",
+      "type": "bigint",
+      "description": "自定义模版id。"
+    },
+    {
+      "name": "default_profile_id",
+      "type": "bigint",
+      "description": "默认profile id。"
+    },
+    {
+      "name": "config",
+      "type": "longtext",
+      "description": "参数配置。"
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp(3)",
+      "description": "最后修改时间。"
+    },
+    {
+      "name": "lcu",
+      "type": "char(32)",
+      "description": "最后修改人。"
+    },
+    {
+      "name": "is_lib",
+      "type": "tinyint",
+      "description": "是否库文件。"
+    },
+    {
+      "name": "import_time",
+      "type": "bigint",
+      "description": "最后导入时间的秒数。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "主键索引，覆盖 id 字段，适合用于唯一定位记录和主表关联查询。"
+    },
+    {
+      "name": "unique_name",
+      "type": "BTREE",
+      "unique": true,
+      "primary": false,
+      "columns": [
+        "name"
+      ],
+      "description": "唯一索引，覆盖 name 字段，适合用于精确检索、唯一性判断和去重查询。"
+    }
+  ]
+}

@@ -1,0 +1,70 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_job_group",
+  "label": "自动化作业组",
+  "description": "自动化作业组 可用于自动化相关的关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "job_id",
+      "type": "bigint",
+      "description": "作业id。"
+    },
+    {
+      "name": "sort",
+      "type": "int",
+      "description": "序号。"
+    },
+    {
+      "name": "policy",
+      "type": "enum('oneShot','grayScale')",
+      "description": "oneShot:并发 grayScale:按批次轮询组内phase。"
+    },
+    {
+      "name": "lncd",
+      "type": "timestamp(3)",
+      "description": "最近一次节点变动时间。"
+    },
+    {
+      "name": "config",
+      "type": "text",
+      "description": "组配置。"
+    },
+    {
+      "name": "round_count",
+      "type": "int",
+      "description": "分批数。"
+    },
+    {
+      "name": "parallel_count",
+      "type": "int",
+      "description": "并发数。"
+    },
+    {
+      "name": "parallel_policy",
+      "type": "varchar(50)",
+      "description": "并发策略。"
+    },
+    {
+      "name": "parallel_from",
+      "type": "varchar(50)",
+      "description": "并发策略来自。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "主键索引，覆盖 id 字段，适合用于唯一定位记录和主表关联查询。"
+    }
+  ]
+}

@@ -1,0 +1,92 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_job_phase_runner",
+  "label": "自动化作业阶段runner表",
+  "description": "自动化作业阶段runner表 可用于自动化相关的状态跟踪、时间维度统计、关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "job_id",
+      "type": "bigint",
+      "description": "作业id，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "job_group_id",
+      "type": "bigint",
+      "description": "作业组id。"
+    },
+    {
+      "name": "job_phase_id",
+      "type": "bigint",
+      "description": "作业剧本id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "runner_map_id",
+      "type": "bigint",
+      "description": "作业剧本runner 映射id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "status",
+      "type": "enum('pending','completed','failed','paused','aborted','running','aborting','pausing','waitInput','ignored','waiting')",
+      "description": "状态。"
+    },
+    {
+      "name": "is_fire_next",
+      "type": "tinyint(1)",
+      "description": "是否激活firenext。"
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp(3)",
+      "description": "最近一次更新时间，已建立普通索引，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "warn_count",
+      "type": "int",
+      "description": "警告数量。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "job_phase_id",
+        "runner_map_id"
+      ],
+      "description": "主键索引，覆盖 job_phase_id、runner_map_id 字段，适合用于唯一定位记录和主表关联查询。"
+    },
+    {
+      "name": "idx_jobid_status",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "job_id",
+        "status"
+      ],
+      "description": "普通索引，覆盖 job_id、status 字段，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "idx_lcd",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "lcd"
+      ],
+      "description": "普通索引，覆盖 lcd 字段，适合用于过滤、关联或排序查询。"
+    },
+    {
+      "name": "idx_runner_map_id",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "runner_map_id"
+      ],
+      "description": "普通索引，覆盖 runner_map_id 字段，适合用于过滤、关联或排序查询。"
+    }
+  ]
+}

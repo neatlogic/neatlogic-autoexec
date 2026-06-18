@@ -1,0 +1,105 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_combop",
+  "label": "组合工具信息表",
+  "description": "组合工具信息表 可用于自动化相关的启用状态筛选、时间维度统计、关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "如果从工具/脚本则直接生成combop则使用对应id，否则id自动生成，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "uk",
+      "type": "varchar(100)",
+      "description": "唯一标识。"
+    },
+    {
+      "name": "name",
+      "type": "varchar(100)",
+      "description": "名称，数据库中要求唯一，适合用于精确查询和去重判断。"
+    },
+    {
+      "name": "description",
+      "type": "text",
+      "description": "描述。"
+    },
+    {
+      "name": "type_id",
+      "type": "bigint",
+      "description": "类型id。"
+    },
+    {
+      "name": "op_type",
+      "type": "varchar(50)",
+      "description": "操作类型。"
+    },
+    {
+      "name": "is_active",
+      "type": "tinyint(1)",
+      "description": "状态 1：启用 0：禁用。"
+    },
+    {
+      "name": "operation_type",
+      "type": "enum('script','tool','combop')",
+      "description": "工具/脚本/流水线。"
+    },
+    {
+      "name": "notify_policy_id",
+      "type": "bigint",
+      "description": "通知策略id。"
+    },
+    {
+      "name": "owner",
+      "type": "char(32)",
+      "description": "维护人。"
+    },
+    {
+      "name": "config",
+      "type": "longtext",
+      "description": "配置。"
+    },
+    {
+      "name": "fcd",
+      "type": "timestamp(3)",
+      "description": "创建时间。"
+    },
+    {
+      "name": "fcu",
+      "type": "char(32)",
+      "description": "创建用户。"
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp(3)",
+      "description": "最后修改时间。"
+    },
+    {
+      "name": "lcu",
+      "type": "char(32)",
+      "description": "最后修改用户。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "主键索引，覆盖 id 字段，适合用于唯一定位记录和主表关联查询。"
+    },
+    {
+      "name": "uniq_name",
+      "type": "BTREE",
+      "unique": true,
+      "primary": false,
+      "columns": [
+        "name"
+      ],
+      "description": "唯一索引，覆盖 name 字段，适合用于精确检索、唯一性判断和去重查询。"
+    }
+  ]
+}

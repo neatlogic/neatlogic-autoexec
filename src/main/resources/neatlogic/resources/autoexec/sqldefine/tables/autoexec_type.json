@@ -1,0 +1,60 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_type",
+  "label": "自动化类型表",
+  "description": "自动化类型表 可用于自动化相关的时间维度统计等报表查询场景。",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "name",
+      "type": "varchar(50)",
+      "description": "分类名，数据库中要求唯一，适合用于精确查询和去重判断。"
+    },
+    {
+      "name": "description",
+      "type": "text",
+      "description": "描述。"
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp(3)",
+      "description": "最后修改时间。"
+    },
+    {
+      "name": "lcu",
+      "type": "char(32)",
+      "description": "最后修改人。"
+    },
+    {
+      "name": "type",
+      "type": "enum('factory','custom')",
+      "description": "类型。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "主键索引，覆盖 id 字段，适合用于唯一定位记录和主表关联查询。"
+    },
+    {
+      "name": "uk_name",
+      "type": "BTREE",
+      "unique": true,
+      "primary": false,
+      "columns": [
+        "name"
+      ],
+      "description": "唯一索引，覆盖 name 字段，适合用于精确检索、唯一性判断和去重查询。"
+    }
+  ]
+}

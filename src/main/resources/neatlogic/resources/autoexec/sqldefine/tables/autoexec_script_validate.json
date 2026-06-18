@@ -1,0 +1,50 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_script_validate",
+  "label": "自动化自定义工具危险代码表",
+  "description": "自动化自定义工具危险代码表 可用于自动化相关的时间维度统计等报表查询场景。",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "name",
+      "type": "varchar(255)",
+      "description": "名称。"
+    },
+    {
+      "name": "code",
+      "type": "varchar(255)",
+      "description": "危险代码。"
+    },
+    {
+      "name": "level",
+      "type": "enum('warning','critical')",
+      "description": "等级。"
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp(3)",
+      "description": "最后修改时间。"
+    },
+    {
+      "name": "lcu",
+      "type": "char(32)",
+      "description": "最后修改用户。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "主键索引，覆盖 id 字段，适合用于唯一定位记录和主表关联查询。"
+    }
+  ]
+}

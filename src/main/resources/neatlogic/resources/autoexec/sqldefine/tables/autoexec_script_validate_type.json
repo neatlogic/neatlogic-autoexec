@@ -1,0 +1,35 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_script_validate_type",
+  "label": "自动化自定义工具危险代码类型表",
+  "description": "自动化自定义工具危险代码类型表 可用于自动化相关的关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "validate_id",
+      "type": "bigint",
+      "description": "高危代码id。"
+    },
+    {
+      "name": "script_type",
+      "type": "enum('xml','python','vbs','shell','perl','powershell','bat')",
+      "description": "脚本类型。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "主键索引，覆盖 id 字段，适合用于唯一定位记录和主表关联查询。"
+    }
+  ]
+}

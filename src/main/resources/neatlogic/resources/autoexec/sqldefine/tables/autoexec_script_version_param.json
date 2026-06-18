@@ -1,0 +1,77 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_script_version_param",
+  "label": "自动化自定义工具参数表",
+  "description": "自动化自定义工具参数表 可用于自动化相关的关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "script_version_id",
+      "type": "bigint",
+      "description": "脚本版本id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "key",
+      "type": "varchar(50)",
+      "description": "参数名，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "name",
+      "type": "varchar(50)",
+      "description": "中文名。"
+    },
+    {
+      "name": "default_value",
+      "type": "text",
+      "description": "参数默认值。"
+    },
+    {
+      "name": "mode",
+      "type": "enum('output','input')",
+      "description": "参数类型：出参、入参，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "type",
+      "type": "varchar(100)",
+      "description": "文本、密码、文件、日期、节点信息、全局变量、json对象、文件路径。"
+    },
+    {
+      "name": "mapping_mode",
+      "type": "varchar(255)",
+      "description": "参数映射模式。"
+    },
+    {
+      "name": "is_required",
+      "type": "tinyint(1)",
+      "description": "是否必填(1:是;0:否)。"
+    },
+    {
+      "name": "description",
+      "type": "varchar(255)",
+      "description": "说明。"
+    },
+    {
+      "name": "sort",
+      "type": "int",
+      "description": "排序。"
+    },
+    {
+      "name": "config",
+      "type": "text",
+      "description": "配置信息。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "script_version_id",
+        "key",
+        "mode"
+      ],
+      "description": "主键索引，覆盖 script_version_id、key、mode 字段，适合用于唯一定位记录和主表关联查询。"
+    }
+  ]
+}

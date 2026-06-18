@@ -1,0 +1,61 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_script_version_argument",
+  "label": "自定义工具库自由参数",
+  "description": "自定义工具库自由参数 可用于自动化相关的关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "script_version_id",
+      "type": "bigint",
+      "description": "脚本版本id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "name",
+      "type": "varchar(50)",
+      "description": "参数名，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "default_value",
+      "type": "varchar(200)",
+      "description": "默认值。"
+    },
+    {
+      "name": "argument_count",
+      "type": "int",
+      "description": "数量限制。"
+    },
+    {
+      "name": "description",
+      "type": "varchar(500)",
+      "description": "描述。"
+    },
+    {
+      "name": "is_required",
+      "type": "tinyint(1)",
+      "description": "是否必填。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "script_version_id",
+        "name"
+      ],
+      "description": "主键索引，覆盖 script_version_id、name 字段，适合用于唯一定位记录和主表关联查询。"
+    },
+    {
+      "name": "idx_script_version_id",
+      "type": "BTREE",
+      "unique": true,
+      "primary": false,
+      "columns": [
+        "script_version_id"
+      ],
+      "description": "唯一索引，覆盖 script_version_id 字段，适合用于精确检索、唯一性判断和去重查询。"
+    }
+  ]
+}

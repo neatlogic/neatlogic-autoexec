@@ -1,0 +1,70 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_combop_version",
+  "label": "自动化combop_version表",
+  "description": "自动化combop_version表，属于自动化模块的数据表。 可用于自动化相关的状态跟踪、启用状态筛选、时间维度统计、关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "主键ID，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "combop_id",
+      "type": "bigint",
+      "description": "组合工具ID。"
+    },
+    {
+      "name": "name",
+      "type": "varchar(200)",
+      "description": "名称。"
+    },
+    {
+      "name": "is_active",
+      "type": "tinyint(1)",
+      "description": "状态。"
+    },
+    {
+      "name": "version",
+      "type": "int",
+      "description": "版本号。"
+    },
+    {
+      "name": "status",
+      "type": "enum('draft','rejected','passed','submitted')",
+      "description": "状态。"
+    },
+    {
+      "name": "reviewer",
+      "type": "char(32)",
+      "description": "审核人。"
+    },
+    {
+      "name": "config",
+      "type": "longtext",
+      "description": "配置信息。"
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp",
+      "description": "最后修改时间。"
+    },
+    {
+      "name": "lcu",
+      "type": "char(32)",
+      "description": "最后修改人。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "主键索引，覆盖 id 字段，适合用于唯一定位记录和主表关联查询。"
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_type_authority",
+  "label": "自动化分类权限表",
+  "description": "自动化分类权限表 可用于自动化相关的关联查询等报表查询场景。",
+  "fields": [
+    {
+      "name": "type_id",
+      "type": "bigint",
+      "description": "工具类型id，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "action",
+      "type": "varchar(50)",
+      "description": "操作类型，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "auth_type",
+      "type": "enum('common','user','team','role')",
+      "description": "权限类型，作为当前表记录的主键或唯一定位字段。"
+    },
+    {
+      "name": "auth_uuid",
+      "type": "varbinary(255)",
+      "description": "权限Uuid，作为当前表记录的主键或唯一定位字段。"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "type_id",
+        "auth_uuid",
+        "auth_type",
+        "action"
+      ],
+      "description": "主键索引，覆盖 type_id、auth_uuid、auth_type、action 字段，适合用于唯一定位记录和主表关联查询。"
+    }
+  ]
+}
