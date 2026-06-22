@@ -63,7 +63,9 @@ public class AutoexecTypeServiceImpl implements AutoexecTypeService {
                 autoexecTypeAuthVo.setAction(AutoexecTypeAuthorityAction.ADD.getValue());
                 autoexecTypeAuthList.add(autoexecTypeAuthVo);
             }
-            autoexecTypeMapper.insertTypeAuthList(autoexecTypeAuthList);
+            if(CollectionUtils.isNotEmpty(autoexecTypeAuthList)){
+                autoexecTypeMapper.insertTypeAuthList(autoexecTypeAuthList);
+            }
         }
         List<String> reviewAuthList = typeVo.getReviewAuthList();
         if (CollectionUtils.isNotEmpty(reviewAuthList)) {
