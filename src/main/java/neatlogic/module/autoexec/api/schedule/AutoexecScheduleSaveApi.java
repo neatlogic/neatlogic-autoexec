@@ -22,6 +22,7 @@ import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.framework.scheduler.core.IJob;
 import neatlogic.framework.scheduler.core.SchedulerManager;
 import neatlogic.framework.scheduler.dto.JobObject;
+import neatlogic.framework.scheduler.enums.JobLoadTriggerType;
 import neatlogic.framework.scheduler.exception.ScheduleHandlerNotFoundException;
 import neatlogic.framework.scheduler.exception.ScheduleIllegalParameterException;
 import neatlogic.framework.scheduler.exception.ScheduleJobNameRepeatException;
@@ -131,7 +132,15 @@ public class AutoexecScheduleSaveApi extends PrivateApiComponentBase {
 //                .needAudit(autoexecScheduleVo.getNeedAudit())
                     .setType("private")
                     .build();
-            schedulerManager.loadJob(jobObject);
+            schedulerManager.loadJob(jobObject, JobLoadTriggerType.INITIAL_CREATE);
+        } else {
+            JobObject jobObject = new JobObject.Builder(autoexecScheduleVo.getUuid(), jobHandler.getGroupName(), jobHandler.getClassName(), tenantUuid)
+                    .withCron(autoexecScheduleVo.getCron()).withBeginTime(autoexecScheduleVo.getBeginTime())
+                    .withEndTime(autoexecScheduleVo.getEndTime())
+//                .needAudit(autoexecScheduleVo.getNeedAudit())
+                    .setType("private")
+                    .build();
+            schedulerManager.saveJobSource(jobObject);
         }
 
         JSONObject resultObj = new JSONObject();

@@ -31,6 +31,7 @@ import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.framework.scheduler.core.IJob;
 import neatlogic.framework.scheduler.core.SchedulerManager;
 import neatlogic.framework.scheduler.dto.JobObject;
+import neatlogic.framework.scheduler.enums.JobLoadTriggerType;
 import neatlogic.framework.scheduler.exception.ScheduleHandlerNotFoundException;
 import neatlogic.module.autoexec.schedule.plugin.AutoexecJobAutoFireJob;
 import org.apache.commons.lang3.StringUtils;
@@ -117,7 +118,7 @@ public class UpdateAutoexecJobFromCombopApi extends PrivateApiComponentBase {
             throw new ScheduleHandlerNotFoundException(AutoexecJobAutoFireJob.class.getName());
         }
         schedulerManager.unloadJob(builder);
-        jobHandler.reloadJob(builder);
+        jobHandler.reloadJob(builder, JobLoadTriggerType.INITIAL_CREATE);
     }
 
     @Override

@@ -34,6 +34,7 @@ import neatlogic.framework.filter.core.LoginAuthHandlerBase;
 import neatlogic.framework.scheduler.core.JobBase;
 import neatlogic.framework.scheduler.dto.JobObject;
 import neatlogic.framework.scheduler.dto.JobVo;
+import neatlogic.framework.scheduler.enums.JobLoadTriggerType;
 import neatlogic.framework.service.AuthenticationInfoService;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
@@ -98,7 +99,7 @@ public class AutoexecScheduleJob extends JobBase {
     }
 
     @Override
-    public void reloadJob(JobObject jobObject) {
+    public void reloadJob(JobObject jobObject, JobLoadTriggerType triggerType) {
         String tenantUuid = jobObject.getTenantUuid();
         TenantContext.get().switchTenant(tenantUuid);
         String uuid = jobObject.getJobName();
@@ -109,7 +110,7 @@ public class AutoexecScheduleJob extends JobBase {
                     .withEndTime(autoexecScheduleVo.getEndTime())
 //                .needAudit(autoexecScheduleVo.getNeedAudit())
                     .build();
-            schedulerManager.loadJob(newJobObjectBuilder);
+            schedulerManager.loadJob(newJobObjectBuilder, triggerType);
         }
     }
 
@@ -128,7 +129,7 @@ public class AutoexecScheduleJob extends JobBase {
                 JobObject.Builder jobObjectBuilder = new JobObject
                         .Builder(autoexecScheduleVo.getUuid(), this.getGroupName(), this.getClassName(), TenantContext.get().getTenantUuid());
                 JobObject jobObject = jobObjectBuilder.build();
-                this.reloadJob(jobObject);
+                this.reloadJob(jobObject, JobLoadTriggerType.SERVER_RESTART);
             }
         }
     }
