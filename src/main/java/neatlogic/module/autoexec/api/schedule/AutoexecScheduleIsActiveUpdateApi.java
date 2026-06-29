@@ -33,6 +33,7 @@ import neatlogic.framework.scheduler.core.SchedulerManager;
 import neatlogic.framework.scheduler.dao.mapper.SchedulerMapper;
 import neatlogic.framework.scheduler.dto.JobObject;
 import neatlogic.framework.scheduler.dto.JobStatusVo;
+import neatlogic.framework.scheduler.enums.JobLoadTriggerType;
 import neatlogic.framework.scheduler.exception.ScheduleHandlerNotFoundException;
 import neatlogic.module.autoexec.schedule.plugin.AutoexecScheduleJob;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
@@ -113,7 +114,7 @@ public class AutoexecScheduleIsActiveUpdateApi extends PrivateApiComponentBase {
                 .setType("private")
                 .build();
         if (Objects.equals(autoexecScheduleVo.getIsActive(), 1)) {
-            schedulerManager.loadJob(jobObject);
+            schedulerManager.loadJob(jobObject, JobLoadTriggerType.INITIAL_CREATE);
         } else {
             schedulerManager.unloadJob(jobObject);
         }

@@ -52,6 +52,7 @@ import neatlogic.framework.filter.core.LoginAuthHandlerBase;
 import neatlogic.framework.scheduler.core.IJob;
 import neatlogic.framework.scheduler.core.SchedulerManager;
 import neatlogic.framework.scheduler.dto.JobObject;
+import neatlogic.framework.scheduler.enums.JobLoadTriggerType;
 import neatlogic.framework.scheduler.exception.ScheduleHandlerNotFoundException;
 import neatlogic.framework.service.AuthenticationInfoService;
 import neatlogic.framework.util.TimeUtil;
@@ -666,7 +667,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
                 throw new ScheduleHandlerNotFoundException(AutoexecJobAutoFireJob.class.getName());
             }
             JobObject.Builder jobObjectBuilder = new JobObject.Builder(jobVo.getId().toString(), jobHandler.getGroupName(), jobHandler.getClassName(), TenantContext.get().getTenantUuid());
-            jobHandler.reloadJob(jobObjectBuilder.build());
+            jobHandler.reloadJob(jobObjectBuilder.build(), JobLoadTriggerType.INITIAL_CREATE);
         }
     }
 }
