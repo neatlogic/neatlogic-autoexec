@@ -10,6 +10,7 @@ import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobInvokeVo;
 import neatlogic.framework.autoexec.dto.schedule.AutoexecScheduleVo;
 import neatlogic.framework.autoexec.exception.AutoexecCombopNotFoundException;
+import neatlogic.framework.common.config.Config;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.dto.BasePageVo;
 import neatlogic.framework.restful.annotation.*;
@@ -78,6 +79,7 @@ public class AutoexecScheduleListApi extends PrivateApiComponentBase {
             }
         }
         List<AutoexecScheduleVo> autoexecScheduleList = new ArrayList<>();
+        searchVo.setSourceServerGroup(Config.SCHEDULE_SERVER_GROUP());
         int rowNum = autoexecScheduleMapper.getAutoexecScheduleCount(searchVo);
         if (rowNum > 0) {
             searchVo.setRowNum(rowNum);
