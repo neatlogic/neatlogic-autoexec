@@ -91,6 +91,7 @@ public class GetAutoexecJobPhaseOperationScriptBinaryForAutoexecApi extends Priv
 
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id"),
+            @Param(name = "operationType", type = ApiParamType.STRING, desc = "操作类型"),
             @Param(name = "operationId", type = ApiParamType.STRING, desc = "作业操作id（opName_opId）"),
             @Param(name = "scriptId", type = ApiParamType.LONG, desc = "工具id"),
             @Param(name = "lastModified", type = ApiParamType.DOUBLE, desc = "最后修改时间（秒，支持小数位）"),
@@ -103,6 +104,7 @@ public class GetAutoexecJobPhaseOperationScriptBinaryForAutoexecApi extends Priv
     @Override
     public Object myDoService(JSONObject jsonObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         JSONObject result = new JSONObject();
+        String operationType = jsonObj.getString("operationType");
         String operationId = jsonObj.getString("operationId");
         Long scriptId = jsonObj.getLong("scriptId");
         Long jobId = jsonObj.getLong("jobId");
@@ -110,7 +112,26 @@ public class GetAutoexecJobPhaseOperationScriptBinaryForAutoexecApi extends Priv
 
         AutoexecScriptVo scriptVo = null;
         AutoexecScriptVersionVo scriptVersionVo = null;
-        if (StringUtils.isNotBlank(operationId) && !Objects.equals(operationId, "None")) {
+        if (StringUtils.isNotBlank(operationType)) {
+            // execrtool 直连脚本没有作业操作上下文，operationId 在这里表示脚本 ID。
+            if (!Objects.equals(operationType, "script") || StringUtils.isBlank(operationId) || Objects.equals(operationId, "None")) {
+                throw new ParamIrregularException("operationType | operationId");
+            }
+            Long scriptOperationId;
+            try {
+                scriptOperationId = Long.valueOf(operationId);
+            } catch (NumberFormatException ex) {
+                throw new ParamIrregularException("operationId");
+            }
+            scriptVo = autoexecScriptMapper.getScriptBaseInfoById(scriptOperationId);
+            if (scriptVo == null) {
+                throw new AutoexecScriptNotFoundException(scriptOperationId);
+            }
+            scriptVersionVo = autoexecScriptMapper.getActiveVersionWithUseLibsByScriptId(scriptOperationId);
+            if (scriptVersionVo == null) {
+                throw new AutoexecScriptHasNoActiveVersionException(scriptVo.getName());
+            }
+        } else if (StringUtils.isNotBlank(operationId) && !Objects.equals(operationId, "None")) {
             AutoexecJobVo jobVo = autoexecJobMapper.getJobInfo(jobId);
             if (jobVo == null) {
                 throw new AutoexecJobNotFoundException(jobId.toString());
