@@ -42,6 +42,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -87,6 +88,8 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
             @Param(name = "versionStatus", type = ApiParamType.ENUM, rule = "draft,submitted,passed,rejected", desc = "状态"),
             @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
             @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "用于回显的脚本ID列表"),
+            @Param(name = "execrtoolAuthorityStatus", type = ApiParamType.ENUM, rule = "authorized,unauthorized", desc = "common.execrtoolauthoritystatus"),
+            @Param(name = "execrtoolAuthorityUuidList", type = ApiParamType.JSONARRAY, desc = "common.execrtoolauthorityuuidlist"),
             @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
             @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
             @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true")
@@ -95,6 +98,7 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
             @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecScriptVo[].class, desc = "脚本列表"),
             @Param(name = "statusList", type = ApiParamType.JSONARRAY, desc = "已通过、草稿、待审批、已驳回状态的数量"),
             @Param(name = "operateList", type = ApiParamType.JSONARRAY, desc = "操作按钮"),
+            @Param(name = "execrtoolAuthorityList", type = ApiParamType.JSONARRAY, desc = "common.executeauthoritylist"),
             @Param(explode = BasePageVo.class)
     })
     @Description(desc = "查询脚本")
@@ -110,7 +114,12 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
         scriptVo.setCatalogIdList(autoexecScriptService.getCatalogIdList(scriptVo.getCatalogId()));
 
         scriptVo.setIsLib(jsonObj.getInteger("isLib") != null ? jsonObj.getInteger("isLib") : null);
-        List<AutoexecScriptVo> scriptVoList = autoexecScriptMapper.searchScript(scriptVo);
+        // 先按筛选条件分页获取脚本ID，再通过主键批量查询脚本及权限明细，避免一对多关联干扰分页。
+        List<Long> scriptIdList = autoexecScriptMapper.searchScriptIdList(scriptVo);
+        List<AutoexecScriptVo> scriptVoList = Collections.emptyList();
+        if (CollectionUtils.isNotEmpty(scriptIdList)) {
+            scriptVoList = autoexecScriptMapper.getScriptListForSearchByIdList(scriptIdList);
+        }
         if (!scriptVoList.isEmpty()) {
             List<AutoexecCatalogVo> catalogList = autoexecCatalogMapper.getCatalogListByIdList(scriptVoList.stream().map(AutoexecScriptVo::getCatalogId).collect(Collectors.toList()));
             Map<Long, AutoexecCatalogVo> catalogMap = catalogList.stream().collect(Collectors.toMap(AutoexecCatalogVo::getId, o -> o));

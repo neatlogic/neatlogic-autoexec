@@ -78,7 +78,11 @@ public class ListAutoexecScriptApi extends PrivateApiComponentBase {
         List<AutoexecScriptVo> returnList = new ArrayList<>();
         if (rowNum > 0) {
             scriptVo.setRowNum(rowNum);
-            returnList = autoexecScriptMapper.searchScript(scriptVo);
+            // 先分页查询脚本ID，再按主键回取VO，避免一对多结果映射导致分页结果丢失或重复。
+            List<Long> scriptIdList = autoexecScriptMapper.searchScriptIdList(scriptVo);
+            if (!scriptIdList.isEmpty()) {
+                returnList = autoexecScriptMapper.getScriptListForSearchByIdList(scriptIdList);
+            }
         }
         return TableResultUtil.getResult(returnList, scriptVo);
     }

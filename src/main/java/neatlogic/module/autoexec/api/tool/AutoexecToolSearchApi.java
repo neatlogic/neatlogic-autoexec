@@ -67,6 +67,8 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
             @Param(name = "customTemplateIdList", type = ApiParamType.JSONARRAY, desc = "自定义模版ID列表"),
             @Param(name = "isActive", type = ApiParamType.INTEGER, desc = "是否激活"),
             @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
+            @Param(name = "execrtoolAuthorityStatus", type = ApiParamType.ENUM, rule = "authorized,unauthorized", desc = "common.execrtoolauthoritystatus"),
+            @Param(name = "execrtoolAuthorityUuidList", type = ApiParamType.JSONARRAY, desc = "common.execrtoolauthorityuuidlist"),
             @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
             @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
             @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true")
@@ -74,6 +76,7 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
     @Output({
             @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecToolVo[].class, desc = "工具列表"),
             @Param(name = "operateList", type = ApiParamType.JSONARRAY, desc = "操作按钮"),
+            @Param(name = "execrtoolAuthorityList", type = ApiParamType.JSONARRAY, desc = "common.executeauthoritylist"),
             @Param(explode = BasePageVo.class)
     })
     @Description(desc = "查询工具")
@@ -85,7 +88,12 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
             toolVo.setCustomTemplateId(0L);
             toolVo.setCustomTemplateIdList(null);
         }
-        List<AutoexecToolVo> toolVoList = autoexecToolMapper.searchTool(toolVo);
+        // 先按筛选条件分页获取工具ID，再通过主键批量查询工具及权限明细，避免一对多关联干扰分页。
+        List<Long> toolIdList = autoexecToolMapper.searchToolIdList(toolVo);
+        List<AutoexecToolVo> toolVoList = Collections.emptyList();
+        if (CollectionUtils.isNotEmpty(toolIdList)) {
+            toolVoList = autoexecToolMapper.getToolListForSearchByIdList(toolIdList);
+        }
         result.put("tbodyList", toolVoList);
         if (CollectionUtils.isNotEmpty(toolVoList)) {
             List<Long> idList = toolVoList.stream().map(AutoexecToolVo::getId).collect(Collectors.toList());
