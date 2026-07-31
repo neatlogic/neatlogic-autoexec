@@ -148,6 +148,6 @@ public class CreateJobProcessUtilHandler extends ProcessStepInternalHandlerBase 
 
     @Override
     public String[] getRegulateKeyList() {
-        return new String[]{"enableAuthority", "authorityList", "notifyPolicyConfig", "actionConfig", "customButtonList", "customStatusList", "replaceableTextList", "createJobConfig", "workerPolicyConfig", "tagList", "formSceneUuid", "formSceneName"};
+        return new String[]{"enableAuthority", "authorityList", "notifyPolicyConfig", "actionConfig", "customButtonList", "customStatusList", "replaceableTextList", "createJobConfig", "workerPolicyConfig", "tagList", "formSceneUuid", "formSceneName", "isAllowProcessOnMobile"};
     }
 }
