@@ -11,25 +11,22 @@
 package neatlogic.module.autoexec.portal.widget;
 
 import neatlogic.framework.portal.widget.core.IPortalWidget;
-import neatlogic.framework.portal.widget.core.IPortalWidgetGroup;
 
 public enum AutoexecPortalWidget implements IPortalWidget {
-    autoexecJobAttention("autoexecJobAttention", "执行中任务", 1, AutoexecPortalWidgetGroup.autoexecGroup1),
-    autoexecFailedJob("autoexecFailedJob", "失败作业", 2, AutoexecPortalWidgetGroup.autoexecGroup1),
-    autoexecPendingApproval("autoexecPendingApproval", "待审批任务", 3, AutoexecPortalWidgetGroup.autoexecGroup2),
-    autoexecSuccessTrend("autoexecSuccessTrend", "近7日执行成功率", 4, AutoexecPortalWidgetGroup.autoexecGroup2),
+    autoexecJobAttention("autoexecJobAttention", "执行中任务", 1),
+    autoexecFailedJob("autoexecFailedJob", "失败作业", 2),
+    autoexecPendingApproval("autoexecPendingApproval", "待审批任务", 3),
+    autoexecSuccessTrend("autoexecSuccessTrend", "近7日执行成功率", 4),
 
     ;
     private final String value;
     private final String text;
     private final Integer sort;
-    private final IPortalWidgetGroup group;
 
-    AutoexecPortalWidget(String value, String text, Integer sort, IPortalWidgetGroup group) {
+    AutoexecPortalWidget(String value, String text, Integer sort) {
         this.value = value;
         this.text = text;
         this.sort = sort;
-        this.group = group;
     }
 
     @Override
@@ -45,10 +42,5 @@ public enum AutoexecPortalWidget implements IPortalWidget {
     @Override
     public Integer getSort() {
         return this.sort;
-    }
-
-    @Override
-    public IPortalWidgetGroup getGroup() {
-        return this.group;
     }
 }
