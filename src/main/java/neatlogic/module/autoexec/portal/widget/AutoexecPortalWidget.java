@@ -13,10 +13,10 @@ package neatlogic.module.autoexec.portal.widget;
 import neatlogic.framework.portal.widget.core.IPortalWidget;
 
 public enum AutoexecPortalWidget implements IPortalWidget {
-    autoexecJobAttention("autoexecJobAttention", "执行中任务", 1),
-    autoexecFailedJob("autoexecFailedJob", "失败作业", 2),
-    autoexecPendingApproval("autoexecPendingApproval", "待审批任务", 3),
-    autoexecSuccessTrend("autoexecSuccessTrend", "近7日执行成功率", 4),
+//    autoexecJobAttention("autoexecJobAttention", "执行中任务", 1),
+//    autoexecFailedJob("autoexecFailedJob", "失败作业", 2),
+//    autoexecPendingApproval("autoexecPendingApproval", "待审批任务", 3),
+//    autoexecSuccessTrend("autoexecSuccessTrend", "近7日执行成功率", 4),
 
     ;
     private final String value;
