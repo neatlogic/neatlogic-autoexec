@@ -39,7 +39,7 @@ import javax.servlet.http.HttpServletResponse;
 public class DownloadAutoexecJobPhaseNodeAuditApi extends PrivateBinaryStreamApiComponentBase {
     @Override
     public String getName() {
-        return "下载作业剧本节点操作记录";
+        return "nmaa.downloadautoexecjobphasenodeauditapi.getname";
     }
 
     @Override
@@ -48,16 +48,16 @@ public class DownloadAutoexecJobPhaseNodeAuditApi extends PrivateBinaryStreamApi
     }
 
     @Input({
-            @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本Id"),
-            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id"),
-            @Param(name = "sqlName", type = ApiParamType.STRING, desc = "sql名"),
-            @Param(name = "startTime", type = ApiParamType.STRING, desc = "执行开始时间", isRequired = true),
-            @Param(name = "status", type = ApiParamType.STRING, desc = "执行状态", isRequired = true),
-            @Param(name = "execUser", type = ApiParamType.STRING, desc = "执行用户", isRequired = true),
+            @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.jobphaseid"),
+            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "term.cmdb.resourceid"),
+            @Param(name = "sqlName", type = ApiParamType.STRING, desc = "term.autoexec.jobsqlname"),
+            @Param(name = "startTime", type = ApiParamType.STRING, desc = "common.starttime", isRequired = true),
+            @Param(name = "status", type = ApiParamType.STRING, desc = "term.autoexec.executionstatus", isRequired = true),
+            @Param(name = "execUser", type = ApiParamType.STRING, desc = "term.autoexec.executeuser", isRequired = true),
     })
     @Output({
     })
-    @Description(desc = "获取作业剧本节点操作记录")
+    @Description(desc = "nmaa.downloadautoexecjobphasenodeauditapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         AutoexecJobVo jobVo = new AutoexecJobVo();

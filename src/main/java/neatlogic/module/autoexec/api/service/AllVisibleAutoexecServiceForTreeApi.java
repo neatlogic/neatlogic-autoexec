@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.api.service;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
@@ -50,7 +52,7 @@ public class AllVisibleAutoexecServiceForTreeApi extends PrivateApiComponentBase
 
     @Override
     public String getName() {
-        return "获取当前用户可见的服务目录树结构数据";
+        return "nmaa.allvisibleautoexecservicefortreeapi.getname";
     }
 
     @Override
@@ -59,12 +61,12 @@ public class AllVisibleAutoexecServiceForTreeApi extends PrivateApiComponentBase
     }
 
     @Input({
-            @Param(name = "needService", type = ApiParamType.BOOLEAN, defaultValue = "false", desc = "是否需要服务节点数据")
+            @Param(name = "needService", type = ApiParamType.BOOLEAN, defaultValue = "false", desc = "nmaa.allvisibleautoexecservicefortreeapi.input.param.desc.needservice")
     })
     @Output({
-            @Param(explode = AutoexecServiceNodeVo[].class, desc = "服务目录树结构数据")
+            @Param(explode = AutoexecServiceNodeVo[].class, desc = "term.autoexec.servicetreedata")
     })
-    @Description(desc = "获取当前用户可见的服务目录树结构数据")
+    @Description(desc = "nmaa.allvisibleautoexecservicefortreeapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecServiceSearchVo searchVo = new AutoexecServiceSearchVo();
@@ -76,7 +78,7 @@ public class AllVisibleAutoexecServiceForTreeApi extends PrivateApiComponentBase
         }
         AutoexecServiceNodeVo rootNode = new AutoexecServiceNodeVo();
         rootNode.setId(0L);
-        rootNode.setName("所有");
+        rootNode.setName($.t("common.all"));
         rootNode.setParentId(-1L);
         rootNode.setLft(1);
         List<AutoexecServiceNodeVo> allNodeList = new ArrayList<>();

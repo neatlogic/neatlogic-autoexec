@@ -50,7 +50,7 @@ public class CleanAutoexecJobApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "清除runner历史作业文件";
+        return "nmaa.cleanautoexecjobapi.getname";
     }
 
     @Override
@@ -59,12 +59,12 @@ public class CleanAutoexecJobApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "dayBefore", type = ApiParamType.INTEGER, desc = "保留天数", isRequired = true),
-            @Param(name = "runnerNameList", type = ApiParamType.JSONARRAY, desc = "执行器名列表")
+            @Param(name = "dayBefore", type = ApiParamType.INTEGER, desc = "nmaa.cleanautoexecjobapi.input.param.desc.daybefore", isRequired = true),
+            @Param(name = "runnerNameList", type = ApiParamType.JSONARRAY, desc = "nmaa.cleanautoexecjobapi.input.param.desc.runnernamelist")
     })
     @Output({
     })
-    @Description(desc = "清除runner历史作业文件")
+    @Description(desc = "nmaa.cleanautoexecjobapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONArray runnerNameArray = jsonObj.getJSONArray("runnerNameList");

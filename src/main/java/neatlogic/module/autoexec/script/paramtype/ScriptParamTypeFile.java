@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.script.paramtype;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.ParamType;
@@ -53,7 +55,7 @@ public class ScriptParamTypeFile extends ScriptParamTypeBase {
      */
     @Override
     public String getDescription() {
-        return "支持多个文件同时上传，执行时，自动上传文件到目标主机特定目录下，保留原文件名";
+        return $.t("nmaspt.scriptparamtypefile.description");
     }
 
     /**
@@ -78,7 +80,7 @@ public class ScriptParamTypeFile extends ScriptParamTypeBase {
                 this.put("type", "file");
                 this.put("dataType", "autoexec");
                 this.put("formatList", new ArrayList<>());
-                this.put("placeholder", "请上传");
+                this.put("placeholder", $.t("nmaspt.scriptparamtypefile.placeholder"));
             }
         };
     }

@@ -42,7 +42,7 @@ public class UpdateAutoexecJobResourceInspectApi extends PrivateApiComponentBase
 
     @Override
     public String getName() {
-        return "更新巡检资源作业";
+        return "nmaa.updateautoexecjobresourceinspectapi.getname";
     }
 
     @Override
@@ -51,14 +51,14 @@ public class UpdateAutoexecJobResourceInspectApi extends PrivateApiComponentBase
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
-            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资产id", isRequired = true),
-            @Param(name = "phaseName", type = ApiParamType.STRING, desc = "阶段名"),
-            @Param(name = "inspectTime", type = ApiParamType.LONG, desc = "巡检时间", isRequired = true)
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
+            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "term.cmdb.resourceid", isRequired = true),
+            @Param(name = "phaseName", type = ApiParamType.STRING, desc = "nmaa.updateautoexecjobresourceinspectapi.input.param.desc.phasename"),
+            @Param(name = "inspectTime", type = ApiParamType.LONG, desc = "nmaa.updateautoexecjobresourceinspectapi.input.param.desc.inspecttime", isRequired = true)
     })
     @Output({
     })
-    @Description(desc = "更新巡检资源作业接口")
+    @Description(desc = "nmaa.updateautoexecjobresourceinspectapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         String phaseName = jsonObj.getString("phaseName");

@@ -59,7 +59,7 @@ public class AutoexecScriptSubmitApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "脚本提交审核";
+        return "nmaa.autoexecscriptsubmitapi.getname";
     }
 
     @Override
@@ -68,11 +68,11 @@ public class AutoexecScriptSubmitApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "versionId", type = ApiParamType.LONG, isRequired = true, desc = "脚本版本ID"),
+            @Param(name = "versionId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.scriptversionid"),
     })
     @Output({
     })
-    @Description(desc = "脚本提交审核")
+    @Description(desc = "nmaa.autoexecscriptsubmitapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();

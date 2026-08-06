@@ -36,7 +36,7 @@ public class ResetAutoexecJobPhaseSqlStatusApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "重置sql文件状态";
+        return "nmaa.resetautoexecjobphasesqlstatusapi.getname";
     }
 
     @Override
@@ -50,10 +50,10 @@ public class ResetAutoexecJobPhaseSqlStatusApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
-            @Param(name = "sqlIdList", type = ApiParamType.JSONARRAY, desc = "sql文件列表"),
-            @Param(name = "phaseName", type = ApiParamType.STRING, desc = "剧本名称"),
-            @Param(name = "isAll", type = ApiParamType.INTEGER, desc = "是否全部重置,1:是 0:否,则sqlIdList不能为空"),
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
+            @Param(name = "sqlIdList", type = ApiParamType.JSONARRAY, desc = "term.autoexec.sqlidlist"),
+            @Param(name = "phaseName", type = ApiParamType.STRING, desc = "nmaa.resetautoexecjobphasesqlstatusapi.input.param.desc.phasename"),
+            @Param(name = "isAll", type = ApiParamType.INTEGER, desc = "nmaa.resetautoexecjobphasesqlstatusapi.input.param.desc.isall"),
     })
     @Output({
     })

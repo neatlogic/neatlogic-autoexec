@@ -44,7 +44,7 @@ public class AutoexecCatalogMoveApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "移动工具目录";
+        return "nmaa.autoexeccatalogmoveapi.getname";
     }
 
     @Override
@@ -53,11 +53,11 @@ public class AutoexecCatalogMoveApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "目录id", isRequired = true),
-            @Param(name = "parentId", type = ApiParamType.LONG, desc = "父id", isRequired = true, minLength = 1),
-            @Param(name = "sort", type = ApiParamType.INTEGER, desc = "sort(目标父级的位置，从0开始)", isRequired = true)
+            @Param(name = "id", type = ApiParamType.LONG, desc = "term.autoexec.catalogid", isRequired = true),
+            @Param(name = "parentId", type = ApiParamType.LONG, desc = "common.parentid", isRequired = true, minLength = 1),
+            @Param(name = "sort", type = ApiParamType.INTEGER, desc = "nmaa.autoexeccatalogmoveapi.input.param.desc.sort", isRequired = true)
     })
-    @Description(desc = "移动工具目录")
+    @Description(desc = "nmaa.autoexeccatalogmoveapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");

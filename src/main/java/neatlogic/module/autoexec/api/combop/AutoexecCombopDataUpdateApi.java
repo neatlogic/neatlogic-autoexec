@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.api.combop;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
@@ -57,7 +59,7 @@ public class AutoexecCombopDataUpdateApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "更新组合工具数据";
+        return "nmaa.autoexeccombopdataupdateapi.getname";
     }
 
     @Override
@@ -67,7 +69,7 @@ public class AutoexecCombopDataUpdateApi extends PrivateApiComponentBase {
 
     @Prop({})
     @Output({})
-    @Description(desc = "更新组合工具数据")
+    @Description(desc = "nmaa.autoexeccombopdataupdateapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         JSONObject resultObj = new JSONObject();
@@ -88,7 +90,7 @@ public class AutoexecCombopDataUpdateApi extends PrivateApiComponentBase {
                     try {
                         config = JSONObject.parseObject(configStr);
                     } catch (JSONException e) {
-                        //System.out.println("格式不对");
+                        //System.out.println($.t("nmar.update.invalidformat"));
                     }
                     if (MapUtils.isEmpty(config)) {
                         continue;
@@ -128,7 +130,7 @@ public class AutoexecCombopDataUpdateApi extends PrivateApiComponentBase {
             }
         }
         int rowNum = autoexecCombopVersionMapper.getAutoexecCombopVersionCountForUpdateConfig();
-        resultObj.put("总数", rowNum);
+        resultObj.put($.t("nmar.update.total"), rowNum);
         if (rowNum == 0) {
             return resultObj;
         }
@@ -150,7 +152,7 @@ public class AutoexecCombopDataUpdateApi extends PrivateApiComponentBase {
                 try {
                     config = JSONObject.parseObject(configStr);
                 } catch (JSONException e) {
-                    System.out.println("格式不对");
+                    System.out.println($.t("nmar.update.invalidformat"));
                 }
                 if (MapUtils.isEmpty(config)) {
                     continue;
@@ -210,8 +212,8 @@ public class AutoexecCombopDataUpdateApi extends PrivateApiComponentBase {
             }
 //            break;
         }
-        resultObj.put("已更新个数", updatedCount);
-        resultObj.put("需要更新个数", needUpdateCount);
+        resultObj.put($.t("nmar.update.updatedcount"), updatedCount);
+        resultObj.put($.t("nmar.update.requiredcount"), needUpdateCount);
 //        AutoexecCombopVo search = new AutoexecCombopVo();
 //        int rowNum = autoexecCombopMapper.getAutoexecCombopCount(search);
 //        if (rowNum == 0) {

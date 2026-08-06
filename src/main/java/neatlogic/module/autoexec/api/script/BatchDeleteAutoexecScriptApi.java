@@ -51,7 +51,7 @@ public class BatchDeleteAutoexecScriptApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "批量删除脚本";
+        return "nmaa.batchdeleteautoexecscriptapi.getname";
     }
 
     @Override
@@ -60,11 +60,11 @@ public class BatchDeleteAutoexecScriptApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "idList", type = ApiParamType.JSONARRAY, desc = "脚本ID列表", isRequired = true),
+            @Param(name = "idList", type = ApiParamType.JSONARRAY, desc = "term.autoexec.scriptidlist", isRequired = true),
     })
     @Output({
     })
-    @Description(desc = "批量删除脚本")
+    @Description(desc = "nmaa.batchdeleteautoexecscriptapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         List<String> failedList = new ArrayList<>();

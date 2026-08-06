@@ -45,7 +45,7 @@ public class AutoexecCombopVersionCountApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "查询组合工具版本列表";
+        return "nmaa.autoexeccombopversioncountapi.getname";
     }
 
     @Override
@@ -54,12 +54,12 @@ public class AutoexecCombopVersionCountApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "组合工具id")
+            @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.combopid")
     })
     @Output({
-            @Param(name = "count", type = ApiParamType.INTEGER, desc = "组合工具版本数量")
+            @Param(name = "count", type = ApiParamType.INTEGER, desc = "nmaa.autoexeccombopversioncountapi.output.param.desc.count")
     })
-    @Description(desc = "查询组合工具版本数量")
+    @Description(desc = "nmaa.autoexeccombopversioncountapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long combopId = paramObj.getLong("combopId");

@@ -51,7 +51,7 @@ public class AutoexecJobPhaseRunnerGetApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取作业runner执行方式剧本的runner信息";
+        return "nmaa.autoexecjobphaserunnergetapi.getname";
     }
 
     @Override
@@ -60,13 +60,13 @@ public class AutoexecJobPhaseRunnerGetApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
-            @Param(name = "jobPhaseId", type = ApiParamType.LONG, desc = "作业阶段id", isRequired = true)
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
+            @Param(name = "jobPhaseId", type = ApiParamType.LONG, desc = "term.autoexec.jobphaseid", isRequired = true)
     })
     @Output({
-            @Param(explode = RunnerVo.class, desc = "runner信息")
+            @Param(explode = RunnerVo.class, desc = "nmaa.autoexecjobphaserunnergetapi.output.param.desc.return")
     })
-    @Description(desc = "获取作业runner执行方式剧本的runner信息")
+    @Description(desc = "nmaa.autoexecjobphaserunnergetapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");

@@ -61,7 +61,7 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
 
     @Override
     public String getName() {
-        return "批量更新组合工具配置信息";
+        return "nmaa.autoexeccombopconfigupdatebatchapi.getname";
     }
 
     @Override
@@ -75,10 +75,10 @@ public class AutoexecCombopConfigUpdateBatchApi extends PrivateApiComponentBase 
     }
 
     @Input({
-            @Param(name = "idList", type = ApiParamType.JSONARRAY, desc = "id列表")
+            @Param(name = "idList", type = ApiParamType.JSONARRAY, desc = "nmaa.autoexeccombopconfigupdatebatchapi.input.param.desc.idlist")
     })
     @Output({})
-    @Description(desc = "批量更新组合工具配置信息")
+    @Description(desc = "nmaa.autoexeccombopconfigupdatebatchapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         List<Long> combopIdList = new ArrayList<>();

@@ -66,7 +66,7 @@ public class AutoexecCombopImportListApi extends PrivateBinaryStreamApiComponent
 
     @Override
     public String getName() {
-        return "导入组合工具列表";
+        return "nmaa.autoexeccombopimportlistapi.getname";
     }
 
     @Override
@@ -75,9 +75,9 @@ public class AutoexecCombopImportListApi extends PrivateBinaryStreamApiComponent
     }
 
     @Output({
-            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, desc = "组合工具列表")
+            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, desc = "term.autoexec.comboplist")
     })
-    @Description(desc = "导入组合工具列表")
+    @Description(desc = "nmaa.autoexeccombopimportlistapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;

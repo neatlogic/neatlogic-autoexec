@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.script.paramtype;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.ParamType;
@@ -51,7 +53,7 @@ public class ScriptParamTypePhase extends ScriptParamTypeBase {
      */
     @Override
     public String getDescription() {
-        return "可选择阶段";
+        return $.t("nmaspt.scriptparamtypephase.description");
     }
 
     /**
@@ -74,7 +76,7 @@ public class ScriptParamTypePhase extends ScriptParamTypeBase {
         return new JSONObject() {
             {
                 this.put("type", "phase");
-                this.put("placeholder", "请选择");
+                this.put("placeholder", $.t("nmaspt.common.placeholder.select"));
                 this.put("multiple", false);
             }
         };

@@ -39,7 +39,7 @@ public class CheckinAutoexecJobSqlApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "检查作业执行sql文件状态";
+        return "nmaa.checkinautoexecjobsqlapi.getname";
     }
 
     @Override
@@ -53,19 +53,19 @@ public class CheckinAutoexecJobSqlApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "sqlInfoList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "sql文件列表"),
-            @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "作业id"),
-            @Param(name = "phaseName", type = ApiParamType.STRING, isRequired = true, desc = "作业剧本名（导入sql）"),
-            @Param(name = "targetPhaseName", type = ApiParamType.STRING, isRequired = true, desc = "目标作业剧本名（执行sql）"),
-            @Param(name = "sysId", type = ApiParamType.LONG, desc = "系统id"),
-            @Param(name = "moduleId", type = ApiParamType.LONG, desc = "模块id"),
-            @Param(name = "envId", type = ApiParamType.LONG, desc = "环境id"),
-            @Param(name = "version", type = ApiParamType.STRING, desc = "版本"),
-            @Param(name = "operType", type = ApiParamType.ENUM, rule = "auto,deploy", isRequired = true, desc = "来源类型")
+            @Param(name = "sqlInfoList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "nmaa.checkinautoexecjobsqlapi.input.param.desc.sqlinfolist"),
+            @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.jobid"),
+            @Param(name = "phaseName", type = ApiParamType.STRING, isRequired = true, desc = "nmaa.checkinautoexecjobsqlapi.input.param.desc.phasename"),
+            @Param(name = "targetPhaseName", type = ApiParamType.STRING, isRequired = true, desc = "nmaa.checkinautoexecjobsqlapi.input.param.desc.targetphasename"),
+            @Param(name = "sysId", type = ApiParamType.LONG, desc = "term.autoexec.systemid"),
+            @Param(name = "moduleId", type = ApiParamType.LONG, desc = "term.cmdb.moduleid"),
+            @Param(name = "envId", type = ApiParamType.LONG, desc = "term.cmdb.envid"),
+            @Param(name = "version", type = ApiParamType.STRING, desc = "term.autoexec.version"),
+            @Param(name = "operType", type = ApiParamType.ENUM, rule = "auto,deploy", isRequired = true, desc = "term.autoexec.sqlsourcetype")
     })
     @Output({
     })
-    @Description(desc = "检查作业执行sql文件状态")
+    @Description(desc = "nmaa.checkinautoexecjobsqlapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         IAutoexecJobSourceTypeHandler handler = AutoexecJobSourceTypeHandlerFactory.getAction(paramObj.getString("operType"));

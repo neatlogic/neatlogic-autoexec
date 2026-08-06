@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.script.paramtype;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.ParamType;
@@ -51,7 +53,7 @@ public class ScriptParamTypeTime extends ScriptParamTypeBase {
      */
     @Override
     public String getDescription() {
-        return "时间选择器";
+        return $.t("nmaspt.common.description.time");
     }
 
     /**
@@ -75,7 +77,7 @@ public class ScriptParamTypeTime extends ScriptParamTypeBase {
             {
                 this.put("type", "time");
                 this.put("format", "HH:mm:ss");
-                this.put("placeholder", "请选择时间");
+                this.put("placeholder", $.t("nmaspt.scriptparamtypetime.placeholder"));
             }
         };
     }

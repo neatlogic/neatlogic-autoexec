@@ -62,7 +62,7 @@ public class FireAutoexecJobNextGroupApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "激活作业下一组";
+        return "nmaa.fireautoexecjobnextgroupapi.getname";
     }
 
     @Override
@@ -71,16 +71,16 @@ public class FireAutoexecJobNextGroupApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
-            @Param(name = "groupNo", type = ApiParamType.STRING, desc = "上一个组（排序）序号", isRequired = true),
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
+            @Param(name = "groupNo", type = ApiParamType.STRING, desc = "nmaa.fireautoexecjobnextgroupapi.input.param.desc.groupno", isRequired = true),
             @Param(name = "runnerId", type = ApiParamType.LONG, desc = "runnerId", isRequired = true),
-            @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数", isRequired = true),
+            @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.passthroughenv", isRequired = true),
             @Param(name = "execId", type = ApiParamType.LONG, desc = "nmaaje.updateautoexecjobphasestatusapi.input.param.desc"),
-            @Param(name = "time", type = ApiParamType.DOUBLE, desc = "回调时间")
+            @Param(name = "time", type = ApiParamType.DOUBLE, desc = "nmaa.fireautoexecjobnextgroupapi.input.param.desc.time")
     })
     @Output({
     })
-    @Description(desc = "激活作业下一组")
+    @Description(desc = "nmaa.fireautoexecjobnextgroupapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");

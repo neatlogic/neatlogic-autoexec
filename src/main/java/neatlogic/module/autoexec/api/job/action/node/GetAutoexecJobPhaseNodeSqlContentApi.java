@@ -38,7 +38,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class GetAutoexecJobPhaseNodeSqlContentApi extends PrivateApiComponentBase {
     @Override
     public String getName() {
-        return "获取作业节点sql文件内容";
+        return "nmaa.getautoexecjobphasenodesqlcontentapi.getname";
     }
 
     @Override
@@ -47,14 +47,14 @@ public class GetAutoexecJobPhaseNodeSqlContentApi extends PrivateApiComponentBas
     }
 
     @Input({
-            @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本Id"),
-            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id"),
-            @Param(name = "sqlName", type = ApiParamType.STRING, desc = "sql名"),
-            @Param(name = "encoding", type = ApiParamType.STRING, desc = "字符编码", defaultValue = "UTF-8")
+            @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.jobphaseid"),
+            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "term.cmdb.resourceid"),
+            @Param(name = "sqlName", type = ApiParamType.STRING, desc = "term.autoexec.jobsqlname"),
+            @Param(name = "encoding", type = ApiParamType.STRING, desc = "term.autoexec.encoding", defaultValue = "UTF-8")
     })
     @Output({
     })
-    @Description(desc = "获取作业节点sql文件内容")
+    @Description(desc = "nmaa.getautoexecjobphasenodesqlcontentapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecJobVo jobVo = new AutoexecJobVo();

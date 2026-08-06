@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.script.paramtype;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.ParamType;
@@ -51,7 +53,7 @@ public class ScriptParamTypeText extends ScriptParamTypeBase {
      */
     @Override
     public String getDescription() {
-        return "可输出字符串、数字";
+        return $.t("nmaspt.common.description.textoutput");
     }
 
     /**
@@ -75,7 +77,7 @@ public class ScriptParamTypeText extends ScriptParamTypeBase {
             {
                 this.put("type", "text");
                 this.put("maxlength", 2000);
-                this.put("placeholder", "请输入");
+                this.put("placeholder", $.t("nmaspt.common.placeholder.input"));
             }
         };
     }

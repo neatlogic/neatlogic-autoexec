@@ -59,7 +59,7 @@ public class InformAutoexecJobPhaseRoundEndApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "激活作业下一阶段round";
+        return "nmaa.informautoexecjobphaseroundendapi.getname";
     }
 
     @Override
@@ -80,7 +80,7 @@ public class InformAutoexecJobPhaseRoundEndApi extends PrivateApiComponentBase {
     })
     @Output({
     })
-    @Description(desc = "激活作业下一个round")
+    @Description(desc = "nmaa.informautoexecjobphaseroundendapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");

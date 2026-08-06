@@ -46,7 +46,7 @@ public class AutoexecScriptFulltextIndexRebuildApi extends PrivateApiComponentBa
 
     @Override
     public String getName() {
-        return "重建自定义工具版本索引";
+        return "nmaa.autoexecscriptfulltextindexrebuildapi.getname";
     }
 
     @Override
@@ -54,7 +54,7 @@ public class AutoexecScriptFulltextIndexRebuildApi extends PrivateApiComponentBa
         return null;
     }
 
-    @Input({@Param(name = "versionIdList", type = ApiParamType.JSONARRAY, desc = "版本号idList")})
+    @Input({@Param(name = "versionIdList", type = ApiParamType.JSONARRAY, desc = "nmaa.autoexecscriptfulltextindexrebuildapi.input.param.desc.versionidlist")})
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONArray versionIdArray = jsonObj.getJSONArray("versionIdList");

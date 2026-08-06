@@ -54,7 +54,7 @@ public class AutoexecJobSearchApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "作业搜索（作业执行列表）";
+        return "nmaa.autoexecjobsearchapi.getname";
     }
 
     @Override
@@ -63,28 +63,28 @@ public class AutoexecJobSearchApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "statusList", type = ApiParamType.JSONARRAY, desc = "作业状态"),
-            @Param(name = "sourceList", type = ApiParamType.JSONARRAY, desc = "作业来源"),
-            @Param(name = "typeIdList", type = ApiParamType.JSONARRAY, desc = "组合工具类型"),
-            @Param(name = "idList", type = ApiParamType.JSONARRAY, desc = "作业id列表，用于精确刷新作业状态"),
-            @Param(name = "parentId", type = ApiParamType.LONG, desc = "父作业id"),
-            @Param(name = "combopName", type = ApiParamType.STRING, desc = "组合工具"),
-            @Param(name = "combopId", type = ApiParamType.LONG, desc = "组合工具Id"),
-            @Param(name = "scheduleId", type = ApiParamType.LONG, desc = "组合工具定时作业Id"),
-            @Param(name = "routeId", type = ApiParamType.STRING, desc = "来源路由id"),
-            @Param(name = "startTime", type = ApiParamType.JSONOBJECT, desc = "时间过滤"),
-            @Param(name = "hasParent", type = ApiParamType.BOOLEAN, desc = "是否拥有父作业"),
-            @Param(name = "sortOrder", type = ApiParamType.JSONOBJECT, desc = "排序"),
-            @Param(name = "execUserList", type = ApiParamType.JSONARRAY, desc = "操作人"),
-            @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
-            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
-            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
+            @Param(name = "statusList", type = ApiParamType.JSONARRAY, desc = "term.autoexec.jobstatuslist"),
+            @Param(name = "sourceList", type = ApiParamType.JSONARRAY, desc = "term.autoexec.jobsourcelist"),
+            @Param(name = "typeIdList", type = ApiParamType.JSONARRAY, desc = "nmaa.autoexecjobsearchapi.input.param.desc.typeidlist"),
+            @Param(name = "idList", type = ApiParamType.JSONARRAY, desc = "nmaa.autoexecjobsearchapi.input.param.desc.idlist"),
+            @Param(name = "parentId", type = ApiParamType.LONG, desc = "term.autoexec.parentjobid"),
+            @Param(name = "combopName", type = ApiParamType.STRING, desc = "term.autoexec.combopname"),
+            @Param(name = "combopId", type = ApiParamType.LONG, desc = "term.autoexec.combopid"),
+            @Param(name = "scheduleId", type = ApiParamType.LONG, desc = "nmaa.autoexecjobsearchapi.input.param.desc.scheduleid"),
+            @Param(name = "routeId", type = ApiParamType.STRING, desc = "nmaa.autoexecjobsearchapi.input.param.desc.routeid"),
+            @Param(name = "startTime", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.starttimefilter"),
+            @Param(name = "hasParent", type = ApiParamType.BOOLEAN, desc = "nmaa.autoexecjobsearchapi.input.param.desc.hasparent"),
+            @Param(name = "sortOrder", type = ApiParamType.JSONOBJECT, desc = "common.sort"),
+            @Param(name = "execUserList", type = ApiParamType.JSONARRAY, desc = "nmaa.autoexecjobsearchapi.input.param.desc.execuserlist"),
+            @Param(name = "keyword", type = ApiParamType.STRING, desc = "common.keyword", xss = true),
+            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "common.currentpage"),
+            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "common.pagesize"),
     })
     @Output({
-            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecJobVo[].class, desc = "列表"),
+            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecJobVo[].class, desc = "nmaa.common.output.param.desc.datalist"),
             @Param(explode = BasePageVo.class)
     })
-    @Description(desc = "作业搜索（作业执行视图）")
+    @Description(desc = "nmaa.autoexecjobsearchapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject startTimeJson = jsonObj.getJSONObject("startTime");

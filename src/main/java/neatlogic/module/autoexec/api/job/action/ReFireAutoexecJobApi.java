@@ -50,7 +50,7 @@ public class ReFireAutoexecJobApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "重跑作业";
+        return "nmaa.refireautoexecjobapi.getname";
     }
 
     @Override
@@ -59,12 +59,12 @@ public class ReFireAutoexecJobApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
-            @Param(name = "type", type = ApiParamType.ENUM, rule = "refireResetAll,refireAll", desc = "重跑类型：   重置并重跑所有：refireResetAll；重跑所有：refireAll", isRequired = true)
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
+            @Param(name = "type", type = ApiParamType.ENUM, rule = "refireResetAll,refireAll", desc = "nmaa.refireautoexecjobapi.input.param.desc.type", isRequired = true)
     })
     @Output({
     })
-    @Description(desc = "重跑作业")
+    @Description(desc = "nmaa.refireautoexecjobapi.getname")
     @ResubmitInterval(value = 4)
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {

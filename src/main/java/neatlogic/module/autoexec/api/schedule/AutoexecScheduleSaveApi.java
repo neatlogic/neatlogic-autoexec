@@ -56,7 +56,7 @@ public class AutoexecScheduleSaveApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "保存定时作业信息";
+        return "nmaa.autoexecschedulesaveapi.getname";
     }
 
     @Override
@@ -65,19 +65,19 @@ public class AutoexecScheduleSaveApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "定时作业id"),
-            @Param(name = "name", type = ApiParamType.STRING, isRequired = true, desc = "定时作业名称"),
-            @Param(name = "autoexecCombopId", type = ApiParamType.LONG, isRequired = true, desc = "组合工具id"),
-            @Param(name = "beginTime", type = ApiParamType.LONG, desc = "开始时间"),
-            @Param(name = "endTime", type = ApiParamType.LONG, desc = "结束时间"),
-            @Param(name = "cron", type = ApiParamType.STRING, isRequired = true, desc = "corn表达式"),
-            @Param(name = "isActive", type = ApiParamType.ENUM, isRequired = true, rule = "0,1", desc = "是否激活(0:禁用，1：激活)"),
-            @Param(name = "config", type = ApiParamType.JSONOBJECT, desc = "执行配置信息，包含param、executeConfig、roundCount等字段")
+            @Param(name = "id", type = ApiParamType.LONG, desc = "term.autoexec.scheduleid"),
+            @Param(name = "name", type = ApiParamType.STRING, isRequired = true, desc = "term.autoexec.schedulename"),
+            @Param(name = "autoexecCombopId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.combopid"),
+            @Param(name = "beginTime", type = ApiParamType.LONG, desc = "common.starttime"),
+            @Param(name = "endTime", type = ApiParamType.LONG, desc = "common.endtime"),
+            @Param(name = "cron", type = ApiParamType.STRING, isRequired = true, desc = "nmaa.autoexecschedulesaveapi.input.param.desc.cron"),
+            @Param(name = "isActive", type = ApiParamType.ENUM, isRequired = true, rule = "0,1", desc = "nmaa.autoexecschedulesaveapi.input.param.desc.isactive"),
+            @Param(name = "config", type = ApiParamType.JSONOBJECT, desc = "nmaa.autoexecschedulesaveapi.input.param.desc.config")
     })
     @Output({
-            @Param(name = "id", type = ApiParamType.STRING, isRequired = true, desc = "定时作业id")
+            @Param(name = "id", type = ApiParamType.STRING, isRequired = true, desc = "term.autoexec.scheduleid")
     })
-    @Description(desc = "保存定时作业信息")
+    @Description(desc = "nmaa.autoexecschedulesaveapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long autoexecCombopId = paramObj.getLong("autoexecCombopId");

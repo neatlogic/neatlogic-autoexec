@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.api.tool;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.auth.core.AuthActionChecker;
@@ -107,22 +109,22 @@ public class AutoexecToolGetApi extends PrivateApiComponentBase {
             if (autoexecToolMapper.checkToolHasBeenGeneratedToCombop(id) > 0) {
                 tool.setHasBeenGeneratedToCombop(1);
                 generateToCombop.setDisabled(1);
-                generateToCombop.setDisabledReason("已发布为组合工具");
+                generateToCombop.setDisabledReason($.t("nmar.operate.publishedascombop"));
             } else if (!Objects.equals(tool.getIsActive(), 1)) {
                 generateToCombop.setDisabled(1);
-                generateToCombop.setDisabledReason("当前工具未激活，无法发布为组合工具");
+                generateToCombop.setDisabledReason($.t("nmar.operate.inactivetoolcannotpublish"));
             }
         } else {
             generateToCombop.setDisabled(1);
-            generateToCombop.setDisabledReason("无权限，请联系管理员");
+            generateToCombop.setDisabledReason($.t("nmar.operate.permissiondenied"));
         }
         if (!AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
             test.setDisabled(1);
-            test.setDisabledReason("无权限，请联系管理员");
+            test.setDisabledReason($.t("nmar.operate.permissiondenied"));
         }
         if (!AuthActionChecker.check(AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())) {
             active.setDisabled(1);
-            active.setDisabledReason("无权限，请联系管理员");
+            active.setDisabledReason($.t("nmar.operate.permissiondenied"));
         }
         tool.setType(CombopOperationType.TOOL.getValue());
         int count = DependencyManager.getDependencyCount(AutoexecFromType.TOOL, tool.getId());

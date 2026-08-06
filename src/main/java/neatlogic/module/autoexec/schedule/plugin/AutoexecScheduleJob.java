@@ -59,7 +59,7 @@ import java.util.Objects;
 public class AutoexecScheduleJob extends JobBase {
     @Override
     public String getName() {
-        return "自动化定时作业执行";
+        return "nmaa.autoexecschedulejob.getname";
     }
 
     static Logger logger = LoggerFactory.getLogger(AutoexecScheduleJob.class);

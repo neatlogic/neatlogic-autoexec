@@ -29,7 +29,7 @@ public class AutoexecOperationParamListApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取自动化工具参数列表";
+        return "nmaa.autoexecoperationparamlistapi.getname";
     }
 
     @Override
@@ -43,11 +43,11 @@ public class AutoexecOperationParamListApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "autoexecOperationVoList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "关联的工具和脚本列表")
+            @Param(name = "autoexecOperationVoList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "term.autoexec.associatedtoollist")
     })
     @Output({
     })
-    @Description(desc = "获取自动化工具参数列表接口")
+    @Description(desc = "nmaa.autoexecoperationparamlistapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         return autoexecService.getAutoexecOperationParamVoList(paramObj.getJSONArray("autoexecOperationVoList").toJavaList(AutoexecOperationVo.class));

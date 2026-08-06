@@ -55,7 +55,7 @@ public class GetAutoexecScriptActiveVersionApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取操作当前激活版本脚本内容";
+        return "nmaa.getautoexecscriptactiveversionapi.getname";
     }
 
     @Override
@@ -64,13 +64,13 @@ public class GetAutoexecScriptActiveVersionApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "operationId", type = ApiParamType.LONG, desc = "操作id", isRequired = true),
-            @Param(name = "lastModified", type = ApiParamType.DOUBLE, desc = "最后修改时间（秒，支持小数位）")
+            @Param(name = "operationId", type = ApiParamType.LONG, desc = "term.autoexec.operationid", isRequired = true),
+            @Param(name = "lastModified", type = ApiParamType.DOUBLE, desc = "nmaa.common.input.param.desc.lastmodified")
     })
     @Output({
-            @Param(name = "scriptVersionVo", explode = AutoexecScriptVersionVo.class, desc = "脚本内容")
+            @Param(name = "scriptVersionVo", explode = AutoexecScriptVersionVo.class, desc = "nmaa.getautoexecscriptactiveversionapi.output.param.desc.scriptversionvo")
     })
-    @Description(desc = "获取操作当前激活版本脚本内容")
+    @Description(desc = "nmaa.getautoexecscriptactiveversionapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long operationId = jsonObj.getLong("operationId");

@@ -46,7 +46,7 @@ public class AutoexecScriptVersionListForSelectApi extends PrivateApiComponentBa
 
     @Override
     public String getName() {
-        return "获取脚本版本号列表(下拉)";
+        return "nmaa.autoexecscriptversionlistforselectapi.getname";
     }
 
     @Override
@@ -55,17 +55,17 @@ public class AutoexecScriptVersionListForSelectApi extends PrivateApiComponentBa
     }
 
     @Input({
-            @Param(name = "scriptId", type = ApiParamType.LONG, isRequired = true, desc = "脚本ID"),
-            @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词"),
-            @Param(name = "excludeList", type = ApiParamType.JSONARRAY, desc = "需要排除的版本ID列表"),
-            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
-            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
-            @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true")
+            @Param(name = "scriptId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.scriptid"),
+            @Param(name = "keyword", type = ApiParamType.STRING, desc = "common.keyword"),
+            @Param(name = "excludeList", type = ApiParamType.JSONARRAY, desc = "nmaa.autoexecscriptversionlistforselectapi.input.param.desc.excludelist"),
+            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "common.currentpage"),
+            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "common.pagesize"),
+            @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "nmaa.common.input.param.desc.needpage")
     })
     @Output({
-            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecScriptVersionVo[].class, desc = "版本号列表"),
+            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecScriptVersionVo[].class, desc = "nmaa.autoexecscriptversionlistforselectapi.output.param.desc.tbodylist"),
     })
-    @Description(desc = "获取脚本版本号列表(下拉)")
+    @Description(desc = "nmaa.autoexecscriptversionlistforselectapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();

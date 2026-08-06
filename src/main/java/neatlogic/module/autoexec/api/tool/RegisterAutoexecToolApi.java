@@ -99,16 +99,8 @@ public class RegisterAutoexecToolApi extends PrivateApiComponentBase {
             @Param(name = "interpreter", type = ApiParamType.ENUM, rule = "python,ruby,vbscript,perl,powershell,cmd,bash,ksh,csh,sh,javascript", isRequired = true, desc = "term.autoexec.scriptparser"),
             @Param(name = "description", type = ApiParamType.STRING, desc = "common.description"),
             @Param(name = "option", type = ApiParamType.JSONARRAY, desc = "term.autoexec.inputparamlist",
-                    help = "当控件类型为[select,multiselect,radio,checkbox]时，需要在dataSource字段填写数据源，格式如下：[{\"text\":\"否\",\"value\":\"0\"},{\"text\":\"是\",\"value\":\"1\"}]，defaultValue字段填写数据源中的value值"),
-            @Param(name = "argument", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.freeparam", help = "{\n" +
-                    "        \"name\":\"日志路径\",\n" +
-                    "        \"help\":\"日志路径，支持通配符和反引号\",\n" +
-                    "        \"type\":\"input\",\n" +
-                    "        \"isConst\":\"false\",\n" +
-                    "        \"defaultValue\":\"\",\n" +
-                    "        \"required\":\"true\",\n" +
-                    "        \"validate\":\"\"\n" +
-                    "    }"),
+                    help = "nmaa.registerautoexectoolapi.input.param.help.option"),
+            @Param(name = "argument", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.freeparam", help = "nmaa.registerautoexectoolapi.input.param.help.argument"),
             @Param(name = "output", type = ApiParamType.JSONARRAY, desc = "term.autoexec.outputparamlist"),
             @Param(name = "defaultProfile", type = ApiParamType.STRING, desc = ""),
             @Param(name = "importTime", type = ApiParamType.LONG, isRequired = true, desc = "common.editdate")

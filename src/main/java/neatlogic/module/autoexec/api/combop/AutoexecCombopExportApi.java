@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.api.combop;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
@@ -76,7 +78,7 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
 
     @Override
     public String getName() {
-        return "导出组合工具";
+        return "nmaa.autoexeccombopexportapi.getname";
     }
 
     @Override
@@ -85,9 +87,9 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
     }
 
     @Input({
-            @Param(name = "idList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "组合工具id列表")
+            @Param(name = "idList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "nmaa.autoexeccombopexportapi.input.param.desc.idlist")
     })
-    @Description(desc = "导出组合工具")
+    @Description(desc = "nmaa.autoexeccombopexportapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         List<Long> idList = paramObj.getJSONArray("idList").toJavaList(Long.class);
@@ -120,7 +122,7 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
         List<AutoexecTypeVo> autoexecTypeList = autoexecTypeMapper.getTypeListByIdList(new ArrayList<>(typeIdSet));
         Map<Long, AutoexecTypeVo> autoexecTypeMap = autoexecTypeList.stream().collect(Collectors.toMap(e -> e.getId(), e -> e));
         //设置导出文件名
-        String fileName = FileUtil.getEncodedFileName("组合工具." + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak");
+        String fileName = FileUtil.getEncodedFileName($.t("nmar.export.combopfilename") + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak");
         response.setContentType("application/octet-stream");
         response.setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
 

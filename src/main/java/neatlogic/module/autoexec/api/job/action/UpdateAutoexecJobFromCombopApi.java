@@ -60,7 +60,7 @@ public class UpdateAutoexecJobFromCombopApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "作业修改（来自组合工具）";
+        return "nmaa.updateautoexecjobfromcombopapi.getname";
     }
 
     @Override
@@ -69,13 +69,13 @@ public class UpdateAutoexecJobFromCombopApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "作业ID"),
-            @Param(name = "planStartTime", type = ApiParamType.LONG, desc = "计划时间"),
-            @Param(name = "triggerType", type = ApiParamType.ENUM, rule = "auto,manual", desc = "触发方式"),
+            @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.jobid"),
+            @Param(name = "planStartTime", type = ApiParamType.LONG, desc = "nmaa.updateautoexecjobfromcombopapi.input.param.desc.planstarttime"),
+            @Param(name = "triggerType", type = ApiParamType.ENUM, rule = "auto,manual", desc = "term.autoexec.triggertype"),
     })
     @Output({
     })
-    @Description(desc = "作业修改（来自组合工具）")
+    @Description(desc = "nmaa.updateautoexecjobfromcombopapi.getname")
     @ResubmitInterval(value = 2)
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {

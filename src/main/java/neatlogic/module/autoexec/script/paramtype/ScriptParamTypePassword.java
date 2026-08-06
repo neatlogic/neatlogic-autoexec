@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.script.paramtype;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.ParamType;
@@ -53,7 +55,7 @@ public class ScriptParamTypePassword extends ScriptParamTypeBase {
      */
     @Override
     public String getDescription() {
-        return "可输入数字或字符串，页面显示为密文";
+        return $.t("nmaspt.common.description.password");
     }
 
     /**
@@ -78,7 +80,7 @@ public class ScriptParamTypePassword extends ScriptParamTypeBase {
                 this.put("type", "password");
 //                this.put("maxlength", 50);
                 this.put("showPassword", true);
-                this.put("placeholder", "请输入");
+                this.put("placeholder", $.t("nmaspt.common.placeholder.input"));
             }
         };
     }

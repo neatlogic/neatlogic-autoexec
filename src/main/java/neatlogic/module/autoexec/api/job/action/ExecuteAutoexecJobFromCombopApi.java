@@ -68,7 +68,7 @@ public class ExecuteAutoexecJobFromCombopApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "执行作业（来自组合工具）";
+        return "nmaa.executeautoexecjobfromcombopapi.getname";
     }
 
     @Override
@@ -77,11 +77,11 @@ public class ExecuteAutoexecJobFromCombopApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
     })
     @Output({
     })
-    @Description(desc = "执行作业（来自组合工具）")
+    @Description(desc = "nmaa.executeautoexecjobfromcombopapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");

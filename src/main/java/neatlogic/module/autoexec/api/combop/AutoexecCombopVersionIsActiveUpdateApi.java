@@ -46,7 +46,7 @@ public class AutoexecCombopVersionIsActiveUpdateApi extends PrivateApiComponentB
 
     @Override
     public String getName() {
-        return "激活组合工具版本";
+        return "nmaa.autoexeccombopversionisactiveupdateapi.getname";
     }
 
     @Override
@@ -55,9 +55,9 @@ public class AutoexecCombopVersionIsActiveUpdateApi extends PrivateApiComponentB
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "组合工具版本id")
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.combopversionid")
     })
-    @Description(desc = "激活组合工具版本")
+    @Description(desc = "nmaa.autoexeccombopversionisactiveupdateapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long id = paramObj.getLong("id");

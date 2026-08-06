@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.api.risk;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.auth.core.AuthActionChecker;
@@ -50,7 +52,7 @@ public class AutoexecRiskSearchApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "查询操作级别";
+        return "nmaa.autoexecrisksearchapi.getname";
     }
 
     @Override
@@ -59,17 +61,17 @@ public class AutoexecRiskSearchApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "isActive", type = ApiParamType.ENUM, rule = "0,1", desc = "状态"),
-            @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
-            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
-            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
-            @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true")
+            @Param(name = "isActive", type = ApiParamType.ENUM, rule = "0,1", desc = "common.isactive"),
+            @Param(name = "keyword", type = ApiParamType.STRING, desc = "common.keyword", xss = true),
+            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "common.currentpage"),
+            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "common.pagesize"),
+            @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "nmaa.common.input.param.desc.needpage")
     })
     @Output({
-            @Param(type = ApiParamType.JSONARRAY, explode = AutoexecRiskVo[].class, desc = "操作级别列表"),
+            @Param(type = ApiParamType.JSONARRAY, explode = AutoexecRiskVo[].class, desc = "term.autoexec.risklist"),
             @Param(explode = BasePageVo[].class)
     })
-    @Description(desc = "查询操作级别")
+    @Description(desc = "nmaa.autoexecrisksearchapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject resultObj = new JSONObject();
@@ -93,8 +95,8 @@ public class AutoexecRiskSearchApi extends PrivateApiComponentBase {
                         .collect(Collectors.toMap(AutoexecRiskVo::getId, AutoexecRiskVo::getReferenceCountForScript));
             }
             for (AutoexecRiskVo riskVo : riskList) {
-                OperateVo edit = new OperateVo("edit", "编辑");
-                OperateVo delete = new OperateVo("delete", "删除");
+                OperateVo edit = new OperateVo("edit", $.t("common.edit"));
+                OperateVo delete = new OperateVo("delete", $.t("common.delete"));
                 riskVo.getOperateList().add(edit);
                 riskVo.getOperateList().add(delete);
                 Integer referenceCountForTool = referenceCountForToolMap.get(riskVo.getId());
@@ -104,13 +106,13 @@ public class AutoexecRiskSearchApi extends PrivateApiComponentBase {
                 if (hasAuth) {
                     if ((referenceCountForTool != null && referenceCountForTool > 0) || (referenceCountForScript != null && referenceCountForScript > 0)) {
                         delete.setDisabled(1);
-                        delete.setDisabledReason("当前操作级别已被引用，不可删除");
+                        delete.setDisabledReason($.t("nmar.operate.riskreferenced"));
                     }
                 } else {
                     edit.setDisabled(1);
-                    edit.setDisabledReason("无权限，请联系管理员");
+                    edit.setDisabledReason($.t("nmar.operate.permissiondenied"));
                     delete.setDisabled(1);
-                    delete.setDisabledReason("无权限，请联系管理员");
+                    delete.setDisabledReason($.t("nmar.operate.permissiondenied"));
                 }
             }
         }

@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.dependency;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.autoexec.constvalue.AutoexecFromType;
@@ -54,12 +56,12 @@ public class AutoexecScript2ScriptDependencyHandler extends DefaultDependencyHan
         dependencyInfoConfig.put("versionId", versionVo.getId());
         dependencyInfoConfig.put("status", versionVo.getStatus());
         if (Objects.equals(versionVo.getIsActive(), 1)) {
-            lastName = "版本" + versionVo.getVersion() + "(" + versionVo.getTitle() + ")";
+            lastName = $.t("nmar.dependency.versionprefix") + versionVo.getVersion() + "(" + versionVo.getTitle() + ")";
             urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/script-detail?scriptId=${DATA.scriptId}&status=${DATA.status}";
         } else {
             urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/script-detail?versionId=${DATA.versionId}&status=${DATA.status}";
             if (Objects.equals(versionVo.getStatus(), ScriptVersionStatus.PASSED.getValue())) {
-                lastName = "版本" + versionVo.getVersion() + "(" + versionVo.getTitle() + ")";
+                lastName = $.t("nmar.dependency.versionprefix") + versionVo.getVersion() + "(" + versionVo.getTitle() + ")";
             } else {
                 lastName = ScriptVersionStatus.getText(versionVo.getStatus()) + "(" + versionVo.getTitle() + ")";
                 if (Objects.equals(versionVo.getStatus(), ScriptVersionStatus.SUBMITTED.getValue())) {
@@ -69,7 +71,7 @@ public class AutoexecScript2ScriptDependencyHandler extends DefaultDependencyHan
         }
 
         List<String> pathList = new ArrayList<>();
-        pathList.add("自定义工具库(" + scriptVo.getName() + ")");
+        pathList.add($.t("nmar.dependency.scriptlibraryprefix") + scriptVo.getName() + ")");
         return new DependencyInfoVo(Long.valueOf(dependencyVo.getTo()), dependencyInfoConfig, lastName, pathList, urlFormat, this.getGroupName());
     }
 

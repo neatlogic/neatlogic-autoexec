@@ -70,7 +70,7 @@ public class AutoexecScheduleIsActiveUpdateApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "启用/禁用定时作业";
+        return "nmaa.autoexecscheduleisactiveupdateapi.getname";
     }
 
     @Override
@@ -79,10 +79,10 @@ public class AutoexecScheduleIsActiveUpdateApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "定时作业id")
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.scheduleid")
     })
     @Output({})
-    @Description(desc = "启用/禁用定时作业")
+    @Description(desc = "nmaa.autoexecscheduleisactiveupdateapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long id = paramObj.getLong("id");

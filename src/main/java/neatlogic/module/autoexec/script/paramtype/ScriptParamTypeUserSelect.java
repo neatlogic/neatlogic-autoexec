@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.script.paramtype;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.ParamType;
@@ -67,7 +69,7 @@ public class ScriptParamTypeUserSelect extends ScriptParamTypeBase {
      */
     @Override
     public String getDescription() {
-        return "用于选择系统用户、分组、角色";
+        return $.t("nmaspt.scriptparamtypeuserselect.description");
     }
 
     /**
@@ -90,7 +92,7 @@ public class ScriptParamTypeUserSelect extends ScriptParamTypeBase {
         return new JSONObject() {
             {
                 this.put("type", "userselect");
-                this.put("placeholder", "请选择");
+                this.put("placeholder", $.t("nmaspt.common.placeholder.select"));
             }
         };
     }

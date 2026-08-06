@@ -8,8 +8,8 @@ import neatlogic.framework.util.$;
 import java.util.List;
 
 public enum FailPolicy implements IEnum {
-    HANG("hang", "人工处理"),
-    KEEP_ON("keepon", "向后流转")
+    HANG("hang", "nmacv.failpolicy.text.hang"),
+    KEEP_ON("keepon", "nmacv.failpolicy.text.keep_on")
     ;
 
     private String value;

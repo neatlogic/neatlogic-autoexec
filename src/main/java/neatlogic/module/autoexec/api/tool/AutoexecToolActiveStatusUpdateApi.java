@@ -41,7 +41,7 @@ public class AutoexecToolActiveStatusUpdateApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "激活或禁用工具";
+        return "nmaa.autoexectoolactivestatusupdateapi.getname";
     }
 
     @Override
@@ -50,12 +50,12 @@ public class AutoexecToolActiveStatusUpdateApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "工具ID"),
-            @Param(name = "isActive", type = ApiParamType.ENUM, rule = "0,1", isRequired = true, desc = "1:激活;0:禁用"),
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.operationid"),
+            @Param(name = "isActive", type = ApiParamType.ENUM, rule = "0,1", isRequired = true, desc = "nmaa.autoexectoolactivestatusupdateapi.input.param.desc.isactive"),
     })
     @Output({
     })
-    @Description(desc = "激活或禁用脚本版本")
+    @Description(desc = "nmaa.autoexectoolactivestatusupdateapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");

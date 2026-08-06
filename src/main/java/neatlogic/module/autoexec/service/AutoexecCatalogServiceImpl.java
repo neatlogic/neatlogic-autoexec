@@ -21,6 +21,7 @@ import neatlogic.framework.autoexec.exception.AutoexecCatalogNotFoundException;
 import neatlogic.framework.lrcode.LRCodeManager;
 import neatlogic.framework.lrcode.dao.mapper.TreeMapper;
 import neatlogic.framework.lrcode.dto.TreeNodeVo;
+import neatlogic.framework.util.$;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -42,7 +43,7 @@ public class AutoexecCatalogServiceImpl implements AutoexecCatalogService {
         Integer maxRhtCode = autoexecCatalogMapper.getMaxRhtCode();
         AutoexecCatalogVo root = new AutoexecCatalogVo();
         root.setId(AutoexecCatalogVo.ROOT_ID);
-        root.setName(AutoexecCatalogVo.ROOT_NAME);
+        root.setName($.t(AutoexecCatalogVo.ROOT_NAME));
         root.setParentId(AutoexecCatalogVo.ROOT_PARENTID);
         root.setLft(1);
         root.setRht(maxRhtCode == null ? 2 : maxRhtCode.intValue() + 1);

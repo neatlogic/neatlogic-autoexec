@@ -56,7 +56,7 @@ public class ExportAutoexecScriptVersionApi extends PrivateBinaryStreamApiCompon
 
     @Override
     public String getName() {
-        return "导出某个版本的脚本内容";
+        return "nmaa.exportautoexecscriptversionapi.getname";
     }
 
     @Override
@@ -70,12 +70,12 @@ public class ExportAutoexecScriptVersionApi extends PrivateBinaryStreamApiCompon
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "脚本id"),
-            @Param(name = "versionId", type = ApiParamType.LONG, isRequired = true, desc = "脚本版本id"),
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.scriptid"),
+            @Param(name = "versionId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.scriptversionid"),
     })
     @Output({
     })
-    @Description(desc = "导出某个版本的脚本内容")
+    @Description(desc = "nmaa.exportautoexecscriptversionapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         Long id = paramObj.getLong("id");

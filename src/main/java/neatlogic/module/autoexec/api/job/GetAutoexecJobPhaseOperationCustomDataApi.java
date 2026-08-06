@@ -45,7 +45,7 @@ public class GetAutoexecJobPhaseOperationCustomDataApi extends PrivateApiCompone
 
     @Override
     public String getName() {
-        return "获取阶段工具个性化数据";
+        return "nmaa.getautoexecjobphaseoperationcustomdataapi.getname";
     }
 
     @Override
@@ -54,9 +54,9 @@ public class GetAutoexecJobPhaseOperationCustomDataApi extends PrivateApiCompone
     }
 
     @Input({
-            @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本Id"),
-            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id"),
-            @Param(name = "operationId", type = ApiParamType.LONG, isRequired = true, desc = "工具id"),
+            @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.jobphaseid"),
+            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "term.cmdb.resourceid"),
+            @Param(name = "operationId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.operationid"),
     })
     @Output({
     })

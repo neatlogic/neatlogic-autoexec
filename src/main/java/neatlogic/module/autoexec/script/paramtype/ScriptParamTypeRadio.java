@@ -15,6 +15,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 package neatlogic.module.autoexec.script.paramtype;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.ParamType;
@@ -58,7 +60,7 @@ public class ScriptParamTypeRadio extends ScriptParamTypeBase {
      */
     @Override
     public String getDescription() {
-        return "单选选择器";
+        return $.t("nmaspt.scriptparamtyperadio.description");
     }
 
     /**
@@ -81,7 +83,7 @@ public class ScriptParamTypeRadio extends ScriptParamTypeBase {
         return new JSONObject() {
             {
                 this.put("type", "radio");
-                this.put("placeholder", "请选择");
+                this.put("placeholder", $.t("nmaspt.common.placeholder.select"));
             }
         };
     }

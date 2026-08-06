@@ -50,7 +50,7 @@ public class DownloadAutoexecJobNodeOutputFileApi extends PrivateBinaryStreamApi
 
     @Override
     public String getName() {
-        return "下载作业节点输出文件";
+        return "nmaa.downloadautoexecjobnodeoutputfileapi.getname";
     }
 
     @Override
@@ -59,15 +59,15 @@ public class DownloadAutoexecJobNodeOutputFileApi extends PrivateBinaryStreamApi
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
-            @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本Id"),
-            @Param(name = "path", type = ApiParamType.STRING, isRequired = true, desc = "附件出参相对路径"),
-            @Param(name = "type", type = ApiParamType.STRING, isRequired = true, desc = "类型，output、input"),
-            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id")
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
+            @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.jobphaseid"),
+            @Param(name = "path", type = ApiParamType.STRING, isRequired = true, desc = "nmaa.downloadautoexecjobnodeoutputfileapi.input.param.desc.path"),
+            @Param(name = "type", type = ApiParamType.STRING, isRequired = true, desc = "nmaa.downloadautoexecjobnodeoutputfileapi.input.param.desc.type"),
+            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "term.cmdb.resourceid")
     })
     @Output({
     })
-    @Description(desc = "下载作业节点输出文件")
+    @Description(desc = "nmaa.downloadautoexecjobnodeoutputfileapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         Long jobId = jsonObj.getLong("jobId");

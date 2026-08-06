@@ -54,7 +54,7 @@ public class AutoexecScheduleDeleteApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "删除定时作业";
+        return "nmaa.autoexecscheduledeleteapi.getname";
     }
 
     @Override
@@ -63,9 +63,9 @@ public class AutoexecScheduleDeleteApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "定时作业id")
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.scheduleid")
     })
-    @Description(desc = "删除定时作业")
+    @Description(desc = "nmaa.autoexecscheduledeleteapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long id = paramObj.getLong("id");

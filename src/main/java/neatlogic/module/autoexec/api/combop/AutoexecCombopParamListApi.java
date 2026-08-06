@@ -58,7 +58,7 @@ public class AutoexecCombopParamListApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "查询组合工具顶层参数列表";
+        return "nmaa.autoexeccombopparamlistapi.getname";
     }
 
     @Override
@@ -67,13 +67,13 @@ public class AutoexecCombopParamListApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "主键id"),
-            @Param(name = "versionId", type = ApiParamType.LONG, desc = "版本id")
+            @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.combopid"),
+            @Param(name = "versionId", type = ApiParamType.LONG, desc = "common.versionid")
     })
     @Output({
-            @Param(explode = AutoexecParamVo[].class, desc = "参数列表")
+            @Param(explode = AutoexecParamVo[].class, desc = "term.autoexec.paramlist")
     })
-    @Description(desc = "查询组合工具顶层参数列表")
+    @Description(desc = "nmaa.autoexeccombopparamlistapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long combopId = jsonObj.getLong("combopId");

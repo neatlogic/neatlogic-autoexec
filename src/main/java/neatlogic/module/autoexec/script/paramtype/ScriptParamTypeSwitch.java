@@ -15,6 +15,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 package neatlogic.module.autoexec.script.paramtype;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.ParamType;
@@ -54,7 +56,7 @@ public class ScriptParamTypeSwitch extends ScriptParamTypeBase {
      */
     @Override
     public String getDescription() {
-        return "开关";
+        return $.t("nmaspt.scriptparamtypeswitch.description");
     }
 
     /**

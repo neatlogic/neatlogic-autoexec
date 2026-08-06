@@ -56,7 +56,7 @@ public class SearchAutoexecJobPhaseSqlApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "搜索作业剧本sql文件节点";
+        return "nmaa.searchautoexecjobphasesqlapi.getname";
     }
 
     @Override
@@ -70,17 +70,17 @@ public class SearchAutoexecJobPhaseSqlApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobPhaseId", type = ApiParamType.LONG, desc = "作业剧本id", isRequired = true),
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
-            @Param(name = "statusList", type = ApiParamType.JSONARRAY, desc = "sql文件状态"),
-            @Param(name = "isDelete", type = ApiParamType.INTEGER, desc = "是否删除"),
-            @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词(节点名称或ip)", xss = true),
-            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
-            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
-            @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true")
+            @Param(name = "jobPhaseId", type = ApiParamType.LONG, desc = "term.autoexec.jobphaseid", isRequired = true),
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
+            @Param(name = "statusList", type = ApiParamType.JSONARRAY, desc = "nmaa.searchautoexecjobphasesqlapi.input.param.desc.statuslist"),
+            @Param(name = "isDelete", type = ApiParamType.INTEGER, desc = "nmaa.common.input.param.desc.isdeleted"),
+            @Param(name = "keyword", type = ApiParamType.STRING, desc = "nmaa.common.input.param.desc.nodekeyword", xss = true),
+            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "common.currentpage"),
+            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "common.pagesize"),
+            @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "nmaa.common.input.param.desc.needpage")
     })
     @Output({
-            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, desc = "sql文件列表")
+            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, desc = "nmaa.searchautoexecjobphasesqlapi.output.param.desc.tbodylist")
     })
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {

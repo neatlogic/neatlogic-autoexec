@@ -58,7 +58,7 @@ public class UpdateAutoexecJobPhaseNodeStatusApi extends PrivateApiComponentBase
 
     @Override
     public String getName() {
-        return "回调更新作业剧本节点状态";
+        return "nmaa.updateautoexecjobphasenodestatusapi.getname";
     }
 
     @Override
@@ -67,17 +67,17 @@ public class UpdateAutoexecJobPhaseNodeStatusApi extends PrivateApiComponentBase
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
-            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资产Id", isRequired = true),
-            @Param(name = "phase", type = ApiParamType.STRING, desc = "作业剧本Name", isRequired = true),
-            @Param(name = "host", type = ApiParamType.STRING, desc = "节点ip"),
-            @Param(name = "port", type = ApiParamType.STRING, desc = "节点port"),
-            @Param(name = "status", type = ApiParamType.STRING, desc = "状态", isRequired = true),
-            @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数")
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
+            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "term.cmdb.resourceid", isRequired = true),
+            @Param(name = "phase", type = ApiParamType.STRING, desc = "nmaa.updateautoexecjobphasenodestatusapi.input.param.desc.phase", isRequired = true),
+            @Param(name = "host", type = ApiParamType.STRING, desc = "nmaa.updateautoexecjobphasenodestatusapi.input.param.desc.host"),
+            @Param(name = "port", type = ApiParamType.STRING, desc = "nmaa.updateautoexecjobphasenodestatusapi.input.param.desc.port"),
+            @Param(name = "status", type = ApiParamType.STRING, desc = "common.status", isRequired = true),
+            @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.passthroughenv")
     })
     @Output({
     })
-    @Description(desc = "回调更新作业剧本节点状态")
+    @Description(desc = "nmaa.updateautoexecjobphasenodestatusapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");

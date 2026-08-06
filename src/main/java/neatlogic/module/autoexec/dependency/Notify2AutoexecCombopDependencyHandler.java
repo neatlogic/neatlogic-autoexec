@@ -11,6 +11,8 @@
  */
 package neatlogic.module.autoexec.dependency;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
@@ -49,7 +51,7 @@ public class Notify2AutoexecCombopDependencyHandler extends DefaultDependencyHan
         JSONObject dependencyInfoConfig = new JSONObject();
         dependencyInfoConfig.put("combopId", combopId);
         List<String> pathList = new ArrayList<>();
-        pathList.add("组合工具");
+        pathList.add($.t("term.autoexec.combop"));
         String urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/action-detail?id=${DATA.combopId}&versionStatus=passed";
         return new DependencyInfoVo(Long.valueOf(dependencyVo.getTo()), dependencyInfoConfig, autoexecCombopVo.getName(), pathList, urlFormat, this.getGroupName());
     }

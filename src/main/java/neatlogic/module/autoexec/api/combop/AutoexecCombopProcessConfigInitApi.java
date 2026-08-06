@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.api.combop;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
@@ -65,7 +67,7 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
 
     @Override
     public String getName() {
-        return "组合工具流程自动化节点配置初始化";
+        return "nmaa.autoexeccombopprocessconfiginitapi.getname";
     }
 
     @Override
@@ -74,14 +76,14 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
     }
 
     @Input({
-            @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "主键id")
+            @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.combopid")
     })
     @Output({
-            @Param(name = "runtimeParamList", type = ApiParamType.JSONARRAY, desc = "运行参数列表"),
-            @Param(name = "executeParamList", type = ApiParamType.JSONARRAY, desc = "执行参数列表"),
-            @Param(name = "exportParamList", type = ApiParamType.JSONARRAY, desc = "输出参数列表")
+            @Param(name = "runtimeParamList", type = ApiParamType.JSONARRAY, desc = "nmaa.autoexeccombopprocessconfiginitapi.output.param.desc.runtimeparamlist"),
+            @Param(name = "executeParamList", type = ApiParamType.JSONARRAY, desc = "nmaa.autoexeccombopprocessconfiginitapi.output.param.desc.executeparamlist"),
+            @Param(name = "exportParamList", type = ApiParamType.JSONARRAY, desc = "nmaa.autoexeccombopprocessconfiginitapi.output.param.desc.exportparamlist")
     })
-    @Description(desc = "查询组合工具授权信息")
+    @Description(desc = "nmaa.autoexeccombopprocessconfiginitapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long combopId = paramObj.getLong("combopId");
@@ -185,7 +187,7 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
             JSONArray scenarioParamList = new JSONArray();
             JSONObject scenarioParam = new JSONObject();
             scenarioParam.put("key", "scenarioId");
-            scenarioParam.put("name", "场景");
+            scenarioParam.put("name", $.t("term.autoexec.scenario"));
             scenarioParam.put("isRequired", 1);
             if (versionConfig.getDefaultScenarioId() != null) {
                 scenarioParam.put("mappingMode", ParamMappingMode.CONSTANT.getValue());
@@ -257,13 +259,13 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
                 if(executeConfigVo.getPreCondition() != null) {
                     JSONObject preCondition = new JSONObject();
                     preCondition.put("key", "preCondition");
-                    preCondition.put("name", "前置过滤器");
+                    preCondition.put("name", $.t("nmar.config.precondition"));
                     preCondition.put("value", executeConfigVo.getPreCondition());
                     executeParamList.add(preCondition);
                 }
                 JSONObject executeNode = new JSONObject();
                 executeNode.put("key", "executeNodeConfig");
-                executeNode.put("name", "执行目标");
+                executeNode.put("name", $.t("term.autoexec.executeconfig"));
                 executeNode.put("isRequired", 1);
                 String whenToSpecify = executeConfigVo.getWhenToSpecify();
                 if (CombopNodeSpecify.RUNTIME.getValue().equals(whenToSpecify)) {
@@ -292,7 +294,7 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
             if (needProtocol) {
                 JSONObject protocol = new JSONObject();
                 protocol.put("key", "protocolId");
-                protocol.put("name", "连接协议");
+                protocol.put("name", $.t("nmar.config.protocol"));
                 protocol.put("isRequired", 1);
                 Long protocolId = executeConfigVo.getProtocolId();
                 if (protocolId != null) {
@@ -307,7 +309,7 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
             if (needExecuteUser) {
                 JSONObject executeUserObj = new JSONObject();
                 executeUserObj.put("key", "executeUser");
-                executeUserObj.put("name", "执行用户");
+                executeUserObj.put("name", $.t("term.autoexec.executeuser"));
                 executeUserObj.put("isRequired", 1);
                 ParamMappingVo executeUser = executeConfigVo.getExecuteUser();
                 if (executeUser != null && StringUtils.isNotBlank((String) executeUser.getValue())) {
@@ -322,7 +324,7 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
             if (needRoundCount) {
                 JSONObject roundCountObj = new JSONObject();
                 roundCountObj.put("key", "roundCount");
-                roundCountObj.put("name", "分批数量");
+                roundCountObj.put("name", $.t("term.autoexec.roundcount"));
                 roundCountObj.put("isRequired", 1);
                 Integer roundCount = executeConfigVo.getRoundCount();
                 if (roundCount != null) {
@@ -336,7 +338,7 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
                 //并发数
                 JSONObject parallelCountObj = new JSONObject();
                 parallelCountObj.put("key", "parallelCount");
-                parallelCountObj.put("name", "并发数量");
+                parallelCountObj.put("name", $.t("nmar.config.concurrency"));
                 parallelCountObj.put("isRequired", 1);
                 Integer parallelCount = executeConfigVo.getParallelCount();
                 if (parallelCount != null) {
@@ -350,7 +352,7 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
                 //并发策略
                 JSONObject parallelPolicyObj = new JSONObject();
                 parallelPolicyObj.put("key", "parallelPolicy");
-                parallelPolicyObj.put("name", "并发策略");
+                parallelPolicyObj.put("name", $.t("term.autoexec.parallelpolicy"));
                 parallelPolicyObj.put("isRequired", 1);
                 String parallelPolicy = executeConfigVo.getParallelPolicy();
                 //兼容老数据
@@ -370,7 +372,7 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
             if (needExecuteNode) {
                 JSONObject executeNode = new JSONObject();
                 executeNode.put("key", "executeNodeConfig");
-                executeNode.put("name", "执行目标");
+                executeNode.put("name", $.t("term.autoexec.executeconfig"));
                 executeNode.put("isRequired", 1);
                 //运行时再指定执行目标
                 executeNode.put("mappingMode", "");
@@ -380,7 +382,7 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
             if (needProtocol) {
                 JSONObject protocol = new JSONObject();
                 protocol.put("key", "protocolId");
-                protocol.put("name", "连接协议");
+                protocol.put("name", $.t("nmar.config.protocol"));
                 protocol.put("isRequired", 1);
                 protocol.put("mappingMode", "");
                 protocol.put("value", "");
@@ -389,7 +391,7 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
             if (needExecuteUser) {
                 JSONObject executeUserObj = new JSONObject();
                 executeUserObj.put("key", "executeUser");
-                executeUserObj.put("name", "执行用户");
+                executeUserObj.put("name", $.t("term.autoexec.executeuser"));
                 executeUserObj.put("isRequired", 1);
                 executeUserObj.put("mappingMode", "");
                 executeUserObj.put("value", "");
@@ -398,7 +400,7 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
             if (needRoundCount) {
                 JSONObject roundCountObj = new JSONObject();
                 roundCountObj.put("key", "roundCount");
-                roundCountObj.put("name", "分批数量");
+                roundCountObj.put("name", $.t("term.autoexec.roundcount"));
                 roundCountObj.put("isRequired", 1);
                 roundCountObj.put("mappingMode", "");
                 roundCountObj.put("value", "");
@@ -406,7 +408,7 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
                 //并发数
                 JSONObject parallelCountObj = new JSONObject();
                 parallelCountObj.put("key", "parallelCount");
-                parallelCountObj.put("name", "并发数量");
+                parallelCountObj.put("name", $.t("nmar.config.concurrency"));
                 parallelCountObj.put("isRequired", 1);
                 parallelCountObj.put("mappingMode", "");
                 parallelCountObj.put("value", "");
@@ -414,7 +416,7 @@ public class AutoexecCombopProcessConfigInitApi extends PrivateApiComponentBase 
                 //并发策略
                 JSONObject parallelPolicyObj = new JSONObject();
                 parallelPolicyObj.put("key", "parallelPolicy");
-                parallelPolicyObj.put("name", "并发策略");
+                parallelPolicyObj.put("name", $.t("term.autoexec.parallelpolicy"));
                 parallelPolicyObj.put("isRequired", 1);
                 parallelPolicyObj.put("mappingMode", "");
                 parallelPolicyObj.put("value", "");

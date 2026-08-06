@@ -51,7 +51,7 @@ public class PauseAutoexecJobApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "暂停作业";
+        return "nmaa.pauseautoexecjobapi.getname";
     }
 
     @Override
@@ -60,11 +60,11 @@ public class PauseAutoexecJobApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
     })
     @Output({
     })
-    @Description(desc = "暂停作业")
+    @Description(desc = "nmaa.pauseautoexecjobapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");

@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.api.service;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
@@ -54,7 +56,7 @@ public class SearchAutoexecServiceBreadcrumbApi extends PrivateApiComponentBase 
 
     @Override
     public String getName() {
-        return "搜索某个服务目录下的当前用户可见的服务目录路径列表";
+        return "nmaa.searchautoexecservicebreadcrumbapi.getname";
     }
 
     @Override
@@ -63,16 +65,16 @@ public class SearchAutoexecServiceBreadcrumbApi extends PrivateApiComponentBase 
     }
 
     @Input({
-            @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键字，匹配名称"),
-            @Param(name = "parentId", type = ApiParamType.LONG, defaultValue = "0", desc = "父级ID"),
-            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页条目"),
-            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页")
+            @Param(name = "keyword", type = ApiParamType.STRING, desc = "nmaa.common.input.param.desc.keywordmatchname"),
+            @Param(name = "parentId", type = ApiParamType.LONG, defaultValue = "0", desc = "common.parentid"),
+            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "common.pagesize"),
+            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "common.currentpage")
     })
     @Output({
             @Param(explode= BasePageVo.class),
-            @Param(name = "tbodyList", explode = AutoexecServiceBreadcrumbVo[].class, desc = "服务目录路径列表")
+            @Param(name = "tbodyList", explode = AutoexecServiceBreadcrumbVo[].class, desc = "nmaa.searchautoexecservicebreadcrumbapi.output.param.desc.tbodylist")
     })
-    @Description(desc = "搜索某个服务目录下的当前用户可见的服务目录路径列表")
+    @Description(desc = "nmaa.searchautoexecservicebreadcrumbapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecServiceSearchVo searchVo = paramObj.toJavaObject(AutoexecServiceSearchVo.class);
@@ -94,7 +96,7 @@ public class SearchAutoexecServiceBreadcrumbApi extends PrivateApiComponentBase 
         }
         AutoexecServiceNodeVo rootNode = new AutoexecServiceNodeVo();
         rootNode.setId(0L);
-        rootNode.setName("所有");
+        rootNode.setName($.t("common.all"));
         rootNode.setParentId(-1L);
         rootNode.setLft(1);
         List<AutoexecServiceNodeVo> allNodeList = new ArrayList<>();

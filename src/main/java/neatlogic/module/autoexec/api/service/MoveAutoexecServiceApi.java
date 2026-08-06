@@ -50,7 +50,7 @@ public class MoveAutoexecServiceApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "移动服务目录信息";
+        return "nmaa.moveautoexecserviceapi.getname";
     }
 
     @Override
@@ -59,11 +59,11 @@ public class MoveAutoexecServiceApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.STRING, isRequired = true, desc = "被移动的服务目录id"),
-            @Param(name = "targetId", type = ApiParamType.STRING, isRequired = true, desc = "目标节点id"),
-            @Param(name = "moveType", type = ApiParamType.ENUM, rule = "inner,prev,next", isRequired = true, desc = "移动类型")
+            @Param(name = "id", type = ApiParamType.STRING, isRequired = true, desc = "nmaa.moveautoexecserviceapi.input.param.desc.id"),
+            @Param(name = "targetId", type = ApiParamType.STRING, isRequired = true, desc = "nmaa.moveautoexecserviceapi.input.param.desc.targetid"),
+            @Param(name = "moveType", type = ApiParamType.ENUM, rule = "inner,prev,next", isRequired = true, desc = "nmaa.moveautoexecserviceapi.input.param.desc.movetype")
     })
-    @Description(desc = "移动服务目录信息")
+    @Description(desc = "nmaa.moveautoexecserviceapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long id = paramObj.getLong("id");

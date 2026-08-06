@@ -56,7 +56,7 @@ public class GetAutoexecScriptOrToolArgumentApi extends PrivateApiComponentBase 
 
     @Override
     public String getName() {
-        return "获取工具或自定义工具自由参数";
+        return "nmaa.getautoexecscriptortoolargumentapi.getname";
     }
 
     @Override
@@ -65,14 +65,14 @@ public class GetAutoexecScriptOrToolArgumentApi extends PrivateApiComponentBase 
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "工具ID或自定义工具版本ID"),
-            @Param(name = "scriptId", type = ApiParamType.LONG, desc = "自定义工具ID"),
-            @Param(name = "type", type = ApiParamType.ENUM, rule = "script,tool", isRequired = true, desc = "工具或自定义工具"),
+            @Param(name = "id", type = ApiParamType.LONG, desc = "nmaa.getautoexecscriptortoolargumentapi.input.param.desc.id"),
+            @Param(name = "scriptId", type = ApiParamType.LONG, desc = "term.autoexec.scriptid"),
+            @Param(name = "type", type = ApiParamType.ENUM, rule = "script,tool", isRequired = true, desc = "nmaa.getautoexecscriptortoolargumentapi.input.param.desc.type"),
     })
     @Output({
-            @Param(name = "argument", explode = AutoexecScriptArgumentVo.class, desc = "自由参数"),
+            @Param(name = "argument", explode = AutoexecScriptArgumentVo.class, desc = "term.autoexec.freeparam"),
     })
-    @Description(desc = "获取工具或自定义工具自由参数")
+    @Description(desc = "nmaa.getautoexecscriptortoolargumentapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id =jsonObj.getLong("id");

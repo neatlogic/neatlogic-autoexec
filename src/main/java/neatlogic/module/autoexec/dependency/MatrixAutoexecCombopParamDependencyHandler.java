@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.dependency;
 
+import neatlogic.framework.util.$;
+
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
 import neatlogic.framework.dependency.constvalue.FrameworkFromType;
@@ -77,11 +79,11 @@ public class MatrixAutoexecCombopParamDependencyHandler extends CustomDependency
 ////                    dependencyInfoConfig.put("combopName", autoexecCombopVo.getName());
 ////                    dependencyInfoConfig.put("paramName", autoexecCombopParamVo.getName());
 //                    List<String> pathList = new ArrayList<>();
-//                    pathList.add("组合工具");
+//                    pathList.add($.t("term.autoexec.combop"));
 //                    pathList.add(autoexecCombopVo.getName());
-//                    pathList.add("作业参数");
+//                    pathList.add($.t("term.autoexec.jobparam"));
 //                    String lastName = autoexecCombopParamVo.getName();
-////                    String pathFormat = "组合工具-${DATA.combopName}-运行参数-${DATA.paramName}";
+////                    String pathFormat = $.t("nmar.dependency.combopruntimeparamtitle");
 //                    String urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/action-detail?id=${DATA.combopId}";
 //                    return new DependencyInfoVo(autoexecCombopVo.getId(), dependencyInfoConfig, lastName, pathList, urlFormat, this.getGroupName());
 //                }

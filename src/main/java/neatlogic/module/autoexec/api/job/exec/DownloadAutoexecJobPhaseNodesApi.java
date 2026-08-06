@@ -118,7 +118,7 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
 
     @Override
     public String getName() {
-        return "下载作业剧本节点";
+        return "nmaa.downloadautoexecjobphasenodesapi.getname";
     }
 
     @Override
@@ -128,15 +128,15 @@ public class DownloadAutoexecJobPhaseNodesApi extends PrivateBinaryStreamApiComp
 
     @CacheControl(cacheControlType = CacheControlType.MAXAGE, maxAge = 30000)
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
-            @Param(name = "phase", type = ApiParamType.STRING, desc = "阶段"),
-            @Param(name = "nodeFrom", type = ApiParamType.STRING, desc = "节点来源 job｜group｜phase", isRequired = true),
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
+            @Param(name = "phase", type = ApiParamType.STRING, desc = "term.autoexec.phase"),
+            @Param(name = "nodeFrom", type = ApiParamType.STRING, desc = "nmaa.downloadautoexecjobphasenodesapi.input.param.desc.nodefrom", isRequired = true),
             @Param(name = "runnerId", type = ApiParamType.LONG, desc = "runner id", isRequired = true),
-            @Param(name = "groupNo", type = ApiParamType.INTEGER, desc = "组No"),
-            @Param(name = "lastModified", type = ApiParamType.DOUBLE, desc = "最后修改时间（秒，支持小数位）", isRequired = true),
-            @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "返回参数")
+            @Param(name = "groupNo", type = ApiParamType.INTEGER, desc = "nmaa.downloadautoexecjobphasenodesapi.input.param.desc.groupno"),
+            @Param(name = "lastModified", type = ApiParamType.DOUBLE, desc = "nmaa.common.input.param.desc.lastmodified", isRequired = true),
+            @Param(name = "passThroughEnv", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.passthroughenv")
     })
-    @Description(desc = "下载作业剧本节点")
+    @Description(desc = "nmaa.downloadautoexecjobphasenodesapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         Long jobId = paramObj.getLong("jobId");

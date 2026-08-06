@@ -46,7 +46,7 @@ public class UpdateAutoexecServiceIsActiveApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "更新服务目录激活状态";
+        return "nmaa.updateautoexecserviceisactiveapi.getname";
     }
 
     @Override
@@ -55,10 +55,10 @@ public class UpdateAutoexecServiceIsActiveApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "服务id"),
-            @Param(name = "isActive", type = ApiParamType.INTEGER, isRequired = true, desc = "是否激活")
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "common.serviceid"),
+            @Param(name = "isActive", type = ApiParamType.INTEGER, isRequired = true, desc = "common.isactive")
     })
-    @Description(desc = "更新服务目录激活状态")
+    @Description(desc = "nmaa.updateautoexecserviceisactiveapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecServiceVo searchVo = paramObj.toJavaObject(AutoexecServiceVo.class);

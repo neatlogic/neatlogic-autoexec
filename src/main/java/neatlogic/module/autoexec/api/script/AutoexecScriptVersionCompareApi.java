@@ -90,7 +90,7 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "脚本版本对比";
+        return "nmaa.autoexecscriptversioncompareapi.getname";
     }
 
     @Override
@@ -104,15 +104,15 @@ public class AutoexecScriptVersionCompareApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "sourceVersionId", type = ApiParamType.LONG, isRequired = true, desc = "源版本ID"),
-            @Param(name = "targetVersionId", type = ApiParamType.LONG, desc = "目标版本ID(查看待审核版本时，默认进入对比页，故无需传目标版本ID，只有手动对比时才需要)"),
-            @Param(name = "needToCompare", type = ApiParamType.ENUM, rule = "0,1", desc = "是否需要对比(不传时默认开启对比，值为0时关闭对比，但targetVersionId不为空时，一定会对比)"),
+            @Param(name = "sourceVersionId", type = ApiParamType.LONG, isRequired = true, desc = "nmaa.autoexecscriptversioncompareapi.input.param.desc.sourceversionid"),
+            @Param(name = "targetVersionId", type = ApiParamType.LONG, desc = "nmaa.autoexecscriptversioncompareapi.input.param.desc.targetversionid"),
+            @Param(name = "needToCompare", type = ApiParamType.ENUM, rule = "0,1", desc = "nmaa.autoexecscriptversioncompareapi.input.param.desc.needtocompare"),
     })
     @Output({
-            @Param(name = "sourceVersion", explode = AutoexecScriptVersionVo[].class, desc = "源版本"),
-            @Param(name = "targetVersion", explode = AutoexecScriptVersionVo[].class, desc = "目标版本"),
+            @Param(name = "sourceVersion", explode = AutoexecScriptVersionVo[].class, desc = "nmaa.autoexecscriptversioncompareapi.output.param.desc.sourceversion"),
+            @Param(name = "targetVersion", explode = AutoexecScriptVersionVo[].class, desc = "nmaa.autoexecscriptversioncompareapi.output.param.desc.targetversion"),
     })
-    @Description(desc = "脚本版本对比")
+    @Description(desc = "nmaa.autoexecscriptversioncompareapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         /**

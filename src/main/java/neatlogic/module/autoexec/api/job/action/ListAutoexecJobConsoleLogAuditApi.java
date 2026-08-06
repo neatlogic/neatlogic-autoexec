@@ -41,7 +41,7 @@ import javax.annotation.Resource;
 public class ListAutoexecJobConsoleLogAuditApi extends PrivateApiComponentBase {
     @Override
     public String getName() {
-        return "获取作业控制台操作记录";
+        return "nmaa.listautoexecjobconsolelogauditapi.getname";
     }
 
     @Override
@@ -53,13 +53,13 @@ public class ListAutoexecJobConsoleLogAuditApi extends PrivateApiComponentBase {
     private AutoexecJobMapper autoexecJobMapper;
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "作业Id"),
+            @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.jobid"),
             @Param(name = "runnerId", type = ApiParamType.LONG, desc = "runner Id")
     })
     @Output({
-            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecJobPhaseNodeAuditVo[].class, desc = "节点操作记录列表")
+            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecJobPhaseNodeAuditVo[].class, desc = "term.autoexec.nodeauditlist")
     })
-    @Description(desc = "获取作业控制台操作记录")
+    @Description(desc = "nmaa.listautoexecjobconsolelogauditapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long jobId = paramObj.getLong("jobId");

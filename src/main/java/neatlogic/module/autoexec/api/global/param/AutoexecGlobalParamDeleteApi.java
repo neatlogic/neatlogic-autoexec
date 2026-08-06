@@ -34,7 +34,7 @@ public class AutoexecGlobalParamDeleteApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "删除自动化全局参数";
+        return "nmaa.autoexecglobalparamdeleteapi.getname";
     }
 
     @Override
@@ -48,9 +48,9 @@ public class AutoexecGlobalParamDeleteApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "参数id")
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.globalparamid")
     })
-    @Description(desc = "删除自动化全局参数接口")
+    @Description(desc = "nmaa.autoexecglobalparamdeleteapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long paramId = paramObj.getLong("id");

@@ -41,14 +41,14 @@ public class SearchCustomTemplateApi extends PrivateApiComponentBase {
 
 
     @Input({
-            @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键字"),
-            @Param(name = "isActive", type = ApiParamType.INTEGER, desc = "是否激活")
+            @Param(name = "keyword", type = ApiParamType.STRING, desc = "common.keyword"),
+            @Param(name = "isActive", type = ApiParamType.INTEGER, desc = "common.isactive")
     })
     @Output({
             @Param(explode = BasePageVo.class),
             @Param(name = "tbodyList", explode = CustomTemplateVo[].class)
     })
-    @Description(desc = "查询自定义模板接口")
+    @Description(desc = "nmaa.searchcustomtemplateapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         CustomTemplateVo customTemplateVo = JSONObject.toJavaObject(jsonObj, CustomTemplateVo.class);
@@ -79,7 +79,7 @@ public class SearchCustomTemplateApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "查询自定义模板";
+        return "nmaa.searchcustomtemplateapi.getname";
     }
 
     @Override

@@ -42,7 +42,7 @@ public class ListAutoexecJobPhaseNodeSqlApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取作业节点sql列表";
+        return "nmaa.listautoexecjobphasenodesqlapi.getname";
     }
 
     @Override
@@ -51,13 +51,13 @@ public class ListAutoexecJobPhaseNodeSqlApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本Id"),
-            @Param(name = "status", type = ApiParamType.STRING, desc = "当前节点状态"),
-            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id")
+            @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.jobphaseid"),
+            @Param(name = "status", type = ApiParamType.STRING, desc = "nmaa.listautoexecjobphasenodesqlapi.input.param.desc.status"),
+            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "term.cmdb.resourceid")
     })
     @Output({
     })
-    @Description(desc = "获取作业节点sql列表")
+    @Description(desc = "nmaa.listautoexecjobphasenodesqlapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecJobVo jobVo = new AutoexecJobVo();

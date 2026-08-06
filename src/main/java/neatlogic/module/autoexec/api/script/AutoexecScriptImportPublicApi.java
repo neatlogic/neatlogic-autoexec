@@ -1,5 +1,7 @@
 package neatlogic.module.autoexec.api.script;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
@@ -84,7 +86,7 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
 
     @Override
     public String getName() {
-        return "导入脚本(通过固定格式json文件)";
+        return "nmaa.autoexecscriptimportpublicapi.getname";
     }
 
     @Override
@@ -92,7 +94,7 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
         return null;
     }
 
-    @Description(desc = "导入脚本(通过固定格式json文件)")
+    @Description(desc = "nmaa.autoexecscriptimportpublicapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
 
@@ -140,47 +142,47 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
             String catalogName = newScriptVo.getCatalogName();
             Long catalogId = null;
             if (StringUtils.isBlank(newScriptVo.getName())) {
-                faultMessages.add("自定义工具名称为空");
+                faultMessages.add($.t("nmar.import.scriptnameempty"));
             }
             if (StringUtils.isBlank(catalogName)) {
-                faultMessages.add("工具目录为空");
+                faultMessages.add($.t("nmar.import.catalogempty"));
             }
             if (newScriptVo.getIsLib() == 0 && StringUtils.isBlank(newScriptVo.getRiskName())) {
-                faultMessages.add("操作级别为空");
+                faultMessages.add($.t("nmar.import.riskempty"));
             }
             if (StringUtils.isBlank(newScriptVo.getTypeName())) {
-                faultMessages.add("工具分类为空");
+                faultMessages.add($.t("nmar.import.typeempty"));
             }
             if (newScriptVo.getIsLib() == 0 && StringUtils.isBlank(newScriptVo.getExecMode())) {
-                faultMessages.add("执行方式为空");
+                faultMessages.add($.t("nmar.import.execmodeempty"));
             }
             if (StringUtils.isBlank(newScriptVo.getParser())) {
-                faultMessages.add("脚本解析器为空");
+                faultMessages.add($.t("nmar.import.parserempty"));
             }
             if (StringUtils.equals(newScriptVo.getParser(), ScriptParser.PACKAGE.getValue())) {
                 if (newScriptVo.getPackageFileName() == null) {
-                    faultMessages.add("脚本依赖包名字为空");
+                    faultMessages.add($.t("nmar.import.packagenameempty"));
                 }
             } else {
                 if (CollectionUtils.isEmpty(newScriptVo.getLineList())) {
-                    faultMessages.add("脚本内容为空");
+                    faultMessages.add($.t("nmar.import.scriptcontentempty"));
                 }
             }
             if (StringUtils.isNotBlank(newScriptVo.getTypeName()) && autoexecTypeMapper.getTypeIdByName(newScriptVo.getTypeName()) == null) {
-                faultMessages.add("工具分类：'" + newScriptVo.getTypeName() + "'不存在");
+                faultMessages.add($.t("nmar.import.typenotfoundprefix") + newScriptVo.getTypeName() + $.t("nmar.import.notfoundsuffix"));
             }
             // 从外部导入的自定义工具，catalogName可能是路径，也可能只是名称，如果是路径，要根据每一层的名称查询对应的目录
             if (StringUtils.isNotBlank(catalogName)) {
                 catalogId = autoexecScriptService.createCatalogByCatalogPath(catalogName);
             }
             if (newScriptVo.getIsLib() == 0 && StringUtils.isNotBlank(newScriptVo.getRiskName()) && autoexecRiskMapper.getRiskIdByName(newScriptVo.getRiskName()) == null) {
-                faultMessages.add("操作级别：'" + newScriptVo.getRiskName() + "'不存在");
+                faultMessages.add($.t("nmar.import.risknotfoundprefix") + newScriptVo.getRiskName() + $.t("nmar.import.notfoundsuffix"));
             }
             if (newScriptVo.getIsLib() == 0 && StringUtils.isNotBlank(newScriptVo.getExecMode()) && ScriptExecMode.getExecMode(newScriptVo.getExecMode()) == null) {
-                faultMessages.add("执行方式：'" + newScriptVo.getExecMode() + "'不存在");
+                faultMessages.add($.t("nmar.import.execmodenotfoundprefix") + newScriptVo.getExecMode() + $.t("nmar.import.notfoundsuffix"));
             }
             if (StringUtils.isNotBlank(newScriptVo.getParser()) && ScriptParser.getScriptParser(newScriptVo.getParser()) == null) {
-                faultMessages.add("脚本解析器：'" + newScriptVo.getParser() + "'不存在");
+                faultMessages.add($.t("nmar.import.parsernotfoundprefix") + newScriptVo.getParser() + $.t("nmar.import.notfoundsuffix"));
             }
             if (newScriptVo.getArgument() != null) {
                 try {
@@ -209,10 +211,10 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
                         }
                     }
                     if (CollectionUtils.isNotEmpty(notExistNameList)) {
-                        faultMessages.add("以下依赖工具不存在：" + notExistNameList);
+                        faultMessages.add($.t("nmar.import.missingtools") + notExistNameList);
                     }
                 } else {
-                    faultMessages.add("以下依赖工具不存在：" + newScriptVo.getUseLibName());
+                    faultMessages.add($.t("nmar.import.missingtools") + newScriptVo.getUseLibName());
                 }
             }
             if (MapUtils.isNotEmpty(scriptFileNameMap) && StringUtils.equals(newScriptVo.getParser(), ScriptParser.PACKAGE.getValue()) && newScriptVo.getPackageFileName() != null) {
@@ -232,7 +234,7 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
                     fileMapper.insertFile(fileVo);
                 } else {
                     //错误信息
-                    faultMessages.add("以下依赖脚本包（tar）未上传：" + packageFile.getName());
+                    faultMessages.add($.t("nmar.import.missingpackages") + packageFile.getName());
                 }
             }
             if (CollectionUtils.isEmpty(faultMessages)) {
@@ -320,9 +322,9 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
                 JSONObject faultObj = new JSONObject();
                 String item;
                 if (StringUtils.isNotBlank(newScriptVo.getName())) {
-                    item = "导入" + newScriptVo.getName() + "失败";
+                    item = $.t("nmar.import.import") + newScriptVo.getName() + $.t("nmar.import.failed");
                 } else {
-                    item = "导入第[" + i + "]个失败";
+                    item = $.t("nmar.import.itemprefix") + i + $.t("nmar.import.itemsuffix");
                 }
                 faultObj.put("item", item);
                 faultObj.put("faultMessages", faultMessages);

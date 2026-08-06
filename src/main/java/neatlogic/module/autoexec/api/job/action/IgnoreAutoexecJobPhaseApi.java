@@ -49,7 +49,7 @@ public class IgnoreAutoexecJobPhaseApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "忽略作业阶段";
+        return "nmaa.ignoreautoexecjobphaseapi.getname";
     }
 
     @Override
@@ -58,12 +58,12 @@ public class IgnoreAutoexecJobPhaseApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
-            @Param(name = "jobPhaseId", type = ApiParamType.STRING, desc = "作业阶段Id", isRequired = true)
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
+            @Param(name = "jobPhaseId", type = ApiParamType.STRING, desc = "term.autoexec.jobphaseid", isRequired = true)
     })
     @Output({
     })
-    @Description(desc = "忽略作业节点")
+    @Description(desc = "nmaa.ignoreautoexecjobphaseapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");

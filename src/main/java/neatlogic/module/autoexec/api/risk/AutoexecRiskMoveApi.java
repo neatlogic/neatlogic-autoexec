@@ -44,7 +44,7 @@ public class AutoexecRiskMoveApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "移动操作级别";
+        return "nmaa.autoexecriskmoveapi.getname";
     }
 
     @Override
@@ -54,11 +54,11 @@ public class AutoexecRiskMoveApi extends PrivateApiComponentBase {
 
     @Input({
             @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "id"),
-            @Param(name = "sort", type = ApiParamType.INTEGER, isRequired = true, desc = "移动后的序号")
+            @Param(name = "sort", type = ApiParamType.INTEGER, isRequired = true, desc = "nmaa.autoexecriskmoveapi.input.param.desc.sort")
     })
     @Output({
     })
-    @Description(desc = "移动操作级别")
+    @Description(desc = "nmaa.autoexecriskmoveapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");

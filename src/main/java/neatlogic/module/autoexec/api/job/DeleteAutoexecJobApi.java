@@ -47,7 +47,7 @@ public class DeleteAutoexecJobApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "删除作业";
+        return "nmaa.deleteautoexecjobapi.getname";
     }
 
     @Override
@@ -56,11 +56,11 @@ public class DeleteAutoexecJobApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
     })
     @Output({
     })
-    @Description(desc = "删除作业")
+    @Description(desc = "nmaa.deleteautoexecjobapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");

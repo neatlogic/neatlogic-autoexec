@@ -43,7 +43,7 @@ public class AutoexecJobCombopSearchApi extends PrivateApiComponentBase {
     AutoexecJobMapper autoexecJobMapper;
     @Override
     public String getName() {
-        return "作业搜索（组合工具视图）";
+        return "nmaa.autoexecjobcombopsearchapi.getname";
     }
 
     @Override
@@ -52,22 +52,22 @@ public class AutoexecJobCombopSearchApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "statusList", type = ApiParamType.JSONARRAY, desc = "作业状态"),
-            @Param(name = "sourceList", type = ApiParamType.JSONARRAY, desc = "作业来源"),
-            @Param(name = "combopOperationTypeList", type = ApiParamType.JSONARRAY, desc = "组合工具类型"),
-            @Param(name = "combopName", type = ApiParamType.STRING, desc = "组合工具"),
-            @Param(name = "startTime", type = ApiParamType.JSONOBJECT, desc = "时间过滤"),
-            @Param(name = "execUser", type = ApiParamType.STRING, desc = "操作人"),
-            @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
-            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
-            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
-            @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true")
+            @Param(name = "statusList", type = ApiParamType.JSONARRAY, desc = "term.autoexec.jobstatuslist"),
+            @Param(name = "sourceList", type = ApiParamType.JSONARRAY, desc = "term.autoexec.jobsourcelist"),
+            @Param(name = "combopOperationTypeList", type = ApiParamType.JSONARRAY, desc = "nmaa.autoexecjobcombopsearchapi.input.param.desc.combopoperationtypelist"),
+            @Param(name = "combopName", type = ApiParamType.STRING, desc = "term.autoexec.combopname"),
+            @Param(name = "startTime", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.starttimefilter"),
+            @Param(name = "execUser", type = ApiParamType.STRING, desc = "nmaa.autoexecjobcombopsearchapi.input.param.desc.execuser"),
+            @Param(name = "keyword", type = ApiParamType.STRING, desc = "common.keyword", xss = true),
+            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "common.currentpage"),
+            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "common.pagesize"),
+            @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "nmaa.common.input.param.desc.needpage")
     })
     @Output({
-            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecJobVo[].class, desc = "列表"),
+            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecJobVo[].class, desc = "nmaa.common.output.param.desc.datalist"),
             @Param(explode = BasePageVo.class)
     })
-    @Description(desc = "作业搜索（组合工具视图）")
+    @Description(desc = "nmaa.autoexecjobcombopsearchapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();

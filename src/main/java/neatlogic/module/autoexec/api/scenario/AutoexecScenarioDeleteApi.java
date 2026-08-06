@@ -33,7 +33,7 @@ public class AutoexecScenarioDeleteApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "删除场景";
+        return "nmaa.autoexecscenariodeleteapi.getname";
     }
 
     @Override
@@ -47,9 +47,9 @@ public class AutoexecScenarioDeleteApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "场景id")
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.scenarioid")
     })
-    @Description(desc = "删除场景接口")
+    @Description(desc = "nmaa.autoexecscenariodeleteapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long paramId = paramObj.getLong("id");

@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.dependency;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.autoexec.constvalue.AutoexecFromType;
@@ -45,7 +47,7 @@ public class AutoexecCombop2AutoexecServiceDependencyHandler extends DefaultDepe
         JSONObject dependencyInfoConfig = new JSONObject();
         dependencyInfoConfig.put("id", autoexecServiceNodeVo.getId());
         List<String> pathList = new ArrayList<>();
-        pathList.add("服务目录管理");
+        pathList.add($.t("nmar.dependency.servicecatalogmanagement"));
         if (CollectionUtils.isNotEmpty(upwardNameList)) {
             upwardNameList.remove(upwardNameList.size() - 1);
             pathList.addAll(upwardNameList);

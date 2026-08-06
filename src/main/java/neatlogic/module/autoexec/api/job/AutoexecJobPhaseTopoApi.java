@@ -55,7 +55,7 @@ public class AutoexecJobPhaseTopoApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取作业阶段流程图";
+        return "nmaa.autoexecjobphasetopoapi.getname";
     }
 
     @Override
@@ -64,10 +64,10 @@ public class AutoexecJobPhaseTopoApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true)
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true)
     })
     @Output({@Param(name = "topo", type = ApiParamType.STRING)})
-    @Description(desc = "获取作业阶段流程图")
+    @Description(desc = "nmaa.autoexecjobphasetopoapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");

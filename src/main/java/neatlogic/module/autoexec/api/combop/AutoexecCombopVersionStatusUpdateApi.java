@@ -47,7 +47,7 @@ public class AutoexecCombopVersionStatusUpdateApi extends PrivateApiComponentBas
 
     @Override
     public String getName() {
-        return "更新组合工具版本状态";
+        return "nmaa.autoexeccombopversionstatusupdateapi.getname";
     }
 
     @Override
@@ -56,10 +56,10 @@ public class AutoexecCombopVersionStatusUpdateApi extends PrivateApiComponentBas
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "组合工具版本id"),
-            @Param(name = "status", type =ApiParamType.ENUM, rule = "draft,passed,rejected", isRequired = true, desc = "状态")
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.combopversionid"),
+            @Param(name = "status", type =ApiParamType.ENUM, rule = "draft,passed,rejected", isRequired = true, desc = "common.status")
     })
-    @Description(desc = "更新组合工具版本状态")
+    @Description(desc = "nmaa.autoexeccombopversionstatusupdateapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long id = paramObj.getLong("id");

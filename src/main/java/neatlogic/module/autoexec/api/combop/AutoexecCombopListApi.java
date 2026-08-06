@@ -70,7 +70,7 @@ public class AutoexecCombopListApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "查询组合工具列表";
+        return "nmaa.autoexeccomboplistapi.getname";
     }
 
     @Override
@@ -79,19 +79,19 @@ public class AutoexecCombopListApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "keyword", type = ApiParamType.STRING, desc = "模糊查询，支持名称或唯一标识"),
-            @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "默认值"),
-            @Param(name = "typeId", type = ApiParamType.LONG, desc = "类型id"),
-            @Param(name = "isActive", type = ApiParamType.ENUM, rule = "0,1", desc = "状态"),
-            @Param(name = "versionStatus", type = ApiParamType.ENUM, rule = "draft,submitted,passed,rejected", desc = "状态"),
-            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页数"),
-            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页条数")
+            @Param(name = "keyword", type = ApiParamType.STRING, desc = "nmaa.autoexeccomboplistapi.input.param.desc.keyword"),
+            @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "term.autoexec.defaultvalue"),
+            @Param(name = "typeId", type = ApiParamType.LONG, desc = "common.typeid"),
+            @Param(name = "isActive", type = ApiParamType.ENUM, rule = "0,1", desc = "common.isactive"),
+            @Param(name = "versionStatus", type = ApiParamType.ENUM, rule = "draft,submitted,passed,rejected", desc = "term.autoexec.versionstatus"),
+            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "common.currentpage"),
+            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "common.pagesize")
     })
     @Output({
             @Param(explode = BasePageVo.class),
-            @Param(name = "tbodyList", explode = AutoexecCombopVo[].class, desc = "组合工具列表")
+            @Param(name = "tbodyList", explode = AutoexecCombopVo[].class, desc = "term.autoexec.comboplist")
     })
-    @Description(desc = "查询组合工具列表")
+    @Description(desc = "nmaa.autoexeccomboplistapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject resultObj = new JSONObject();

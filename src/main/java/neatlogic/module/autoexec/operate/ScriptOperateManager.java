@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.operate;
 
+import neatlogic.framework.util.$;
+
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthActionChecker;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
@@ -57,11 +59,11 @@ public class ScriptOperateManager {
             OperateVo vo = new OperateVo(ScriptAndToolOperate.DELETE.getValue(), ScriptAndToolOperate.DELETE.getText());
             if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())) {
                 vo.setDisabled(1);
-                vo.setDisabledReason("无权限，请联系管理员");
+                vo.setDisabledReason($.t("nmar.operate.permissiondenied"));
 //            } else if (autoexecScriptMapper.getReferenceCountByScriptId(id) > 0) {
             } else if (DependencyManager.getDependencyCount(AutoexecFromType.SCRIPT, id) > 0) {
                 vo.setDisabled(1);
-                vo.setDisabledReason("当前自定义工具已被组合工具引用，无法删除");
+                vo.setDisabledReason($.t("nmar.operate.scriptreferenced"));
             }
             return vo;
         });
@@ -74,10 +76,10 @@ public class ScriptOperateManager {
                 int versionCount = autoexecScriptMapper.getVersionCountByScriptId(version.getScriptId());
                 if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())) {
                     vo.setDisabled(1);
-                    vo.setDisabledReason("无权限，请联系管理员");
+                    vo.setDisabledReason($.t("nmar.operate.permissiondenied"));
                 } else if (versionCount <= 1 || Objects.equals(version.getIsActive(), 1)) {
                     vo.setDisabled(1);
-                    vo.setDisabledReason("只剩一个版本或当前版本处于激活状态时，不可删除");
+                    vo.setDisabledReason($.t("nmar.operate.versioncannotdelete"));
                 }
                 return vo;
             }
@@ -88,7 +90,7 @@ public class ScriptOperateManager {
             OperateVo vo = new OperateVo(ScriptAndToolOperate.COPY.getValue(), ScriptAndToolOperate.COPY.getText());
             if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
                 vo.setDisabled(1);
-                vo.setDisabledReason("无权限，请联系管理员");
+                vo.setDisabledReason($.t("nmar.operate.permissiondenied"));
             }
             return vo;
         });
@@ -97,7 +99,7 @@ public class ScriptOperateManager {
             OperateVo vo = new OperateVo(ScriptAndToolOperate.TEST.getValue(), ScriptAndToolOperate.TEST.getText());
             if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
                 vo.setDisabled(1);
-                vo.setDisabledReason("无权限，请联系管理员");
+                vo.setDisabledReason($.t("nmar.operate.permissiondenied"));
             }
             return vo;
         });
@@ -106,7 +108,7 @@ public class ScriptOperateManager {
             OperateVo vo = new OperateVo(ScriptAndToolOperate.COMPARE.getValue(), ScriptAndToolOperate.COMPARE.getText());
             if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_SEARCH.class.getSimpleName())) {
                 vo.setDisabled(1);
-                vo.setDisabledReason("无权限，请联系管理员");
+                vo.setDisabledReason($.t("nmar.operate.permissiondenied"));
             }
             return vo;
         });
@@ -118,11 +120,11 @@ public class ScriptOperateManager {
                 OperateVo vo = new OperateVo(ScriptAndToolOperate.VALIDATE.getValue(), ScriptAndToolOperate.VALIDATE.getText());
                 if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
                     vo.setDisabled(1);
-                    vo.setDisabledReason("无权限，请联系管理员");
+                    vo.setDisabledReason($.t("nmar.operate.permissiondenied"));
                 } else if (!Objects.equals(ScriptVersionStatus.DRAFT.getValue(), version.getStatus())
                         && !Objects.equals(ScriptVersionStatus.REJECTED.getValue(), version.getStatus())) {
                     vo.setDisabled(1);
-                    vo.setDisabledReason("版本处于草稿或已驳回状态才能校验");
+                    vo.setDisabledReason($.t("nmar.operate.versioncannotvalidate"));
                 }
                 return vo;
             }
@@ -136,11 +138,11 @@ public class ScriptOperateManager {
                 OperateVo vo = new OperateVo(ScriptAndToolOperate.SAVE.getValue(), ScriptAndToolOperate.SAVE.getText());
                 if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
                     vo.setDisabled(1);
-                    vo.setDisabledReason("无权限，请联系管理员");
+                    vo.setDisabledReason($.t("nmar.operate.permissiondenied"));
                 } else if (!Objects.equals(ScriptVersionStatus.DRAFT.getValue(), version.getStatus())
                         && !Objects.equals(ScriptVersionStatus.REJECTED.getValue(), version.getStatus())) {
                     vo.setDisabled(1);
-                    vo.setDisabledReason("版本处于草稿或已驳回状态才能保存");
+                    vo.setDisabledReason($.t("nmar.operate.versioncannotsave"));
                 }
                 return vo;
             }
@@ -154,11 +156,11 @@ public class ScriptOperateManager {
                 OperateVo vo = new OperateVo(ScriptAndToolOperate.SUBMIT.getValue(), ScriptAndToolOperate.SUBMIT.getText());
                 if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
                     vo.setDisabled(1);
-                    vo.setDisabledReason("无权限，请联系管理员");
+                    vo.setDisabledReason($.t("nmar.operate.permissiondenied"));
                 } else if (!Objects.equals(ScriptVersionStatus.DRAFT.getValue(), version.getStatus())
                         && !Objects.equals(ScriptVersionStatus.REJECTED.getValue(), version.getStatus())) {
                     vo.setDisabled(1);
-                    vo.setDisabledReason("版本处于草稿或已驳回状态才能提交审核");
+                    vo.setDisabledReason($.t("nmar.operate.versioncannotsubmit"));
                 }
                 return vo;
             }
@@ -172,10 +174,10 @@ public class ScriptOperateManager {
                 OperateVo vo = new OperateVo(ScriptAndToolOperate.PASS.getValue(), ScriptAndToolOperate.PASS.getText());
                 if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())) {
                     vo.setDisabled(1);
-                    vo.setDisabledReason("无权限，请联系管理员");
+                    vo.setDisabledReason($.t("nmar.operate.permissiondenied"));
                 } else if (!Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), version.getStatus())) {
                     vo.setDisabled(1);
-                    vo.setDisabledReason("版本处于待审核状态才能审核通过");
+                    vo.setDisabledReason($.t("nmar.operate.versioncannotapprove"));
                 }
                 return vo;
             }
@@ -189,10 +191,10 @@ public class ScriptOperateManager {
                 OperateVo vo = new OperateVo(ScriptAndToolOperate.REJECT.getValue(), ScriptAndToolOperate.REJECT.getText());
                 if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())) {
                     vo.setDisabled(1);
-                    vo.setDisabledReason("无权限，请联系管理员");
+                    vo.setDisabledReason($.t("nmar.operate.permissiondenied"));
                 } else if (!Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), version.getStatus())) {
                     vo.setDisabled(1);
-                    vo.setDisabledReason("版本处于待审核状态才能驳回");
+                    vo.setDisabledReason($.t("nmar.operate.versioncannotreject"));
                 }
                 return vo;
             }
@@ -203,20 +205,20 @@ public class ScriptOperateManager {
             OperateVo vo = new OperateVo(ScriptAndToolOperate.GENERATETOCOMBOP.getValue(), ScriptAndToolOperate.GENERATETOCOMBOP.getText());
             if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_COMBOP_ADD.class.getSimpleName())) {
                 vo.setDisabled(1);
-                vo.setDisabledReason("无权限，请联系管理员");
+                vo.setDisabledReason($.t("nmar.operate.permissiondenied"));
             } else {
                 int hasBeenGeneratedToCombop = autoexecScriptMapper.checkScriptHasBeenGeneratedToCombop(id);
                 Integer currentVersion = autoexecScriptMapper.getActiveVersionNumberByScriptId(id);
                 AutoexecScriptVo scriptVo = autoexecScriptMapper.getScriptBaseInfoById(id);
                 if (hasBeenGeneratedToCombop > 0) {
                     vo.setDisabled(1);
-                    vo.setDisabledReason("已发布为组合工具");
+                    vo.setDisabledReason($.t("nmar.operate.publishedascombop"));
                 } else if (currentVersion == null) {
                     vo.setDisabled(1);
-                    vo.setDisabledReason("当前自定义工具未有激活版本，无法发布为组合工具");
+                    vo.setDisabledReason($.t("nmar.operate.noactivescriptversion"));
                 } else if (scriptVo != null && scriptVo.getIsLib() == 1) {
                     vo.setDisabled(1);
-                    vo.setDisabledReason("当前自定义工具是库文件，无法发布为组合工具");
+                    vo.setDisabledReason($.t("nmar.operate.librarycannotpublish"));
                 }
             }
             return vo;
@@ -226,7 +228,7 @@ public class ScriptOperateManager {
             OperateVo vo = new OperateVo(ScriptAndToolOperate.EXPORT.getValue(), ScriptAndToolOperate.EXPORT.getText());
             if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_SEARCH.class.getSimpleName())) {
                 vo.setDisabled(1);
-                vo.setDisabledReason("无权限，请联系管理员");
+                vo.setDisabledReason($.t("nmar.operate.permissiondenied"));
             }
             return null;
         });
@@ -288,39 +290,39 @@ public class ScriptOperateManager {
 //                if (MapUtils.isNotEmpty(hasBeenGeneratedToCombopMap) && Objects.equals(hasBeenGeneratedToCombopMap.get(id), true)) {
                 if (hasBeenGeneratedToCombopList.contains(id)) {
                     generateToCombop.setDisabled(1);
-                    generateToCombop.setDisabledReason("已发布为组合工具");
+                    generateToCombop.setDisabledReason($.t("nmar.operate.publishedascombop"));
                 } else if (MapUtils.isNotEmpty(hasActiveVersionMap) && !Objects.equals(hasActiveVersionMap.get(id), true)) {
                     generateToCombop.setDisabled(1);
-                    generateToCombop.setDisabledReason("当前自定义工具未有激活版本，无法发布为组合工具");
+                    generateToCombop.setDisabledReason($.t("nmar.operate.noactivescriptversion"));
                 } else if (isLibScriptIdList.contains(id)) {
                     test.setDisabled(1);
-                    test.setDisabledReason("当前自定义工具是库文件，不能测试");
+                    test.setDisabledReason($.t("nmar.operate.librarycannottest"));
                     generateToCombop.setDisabled(1);
-                    generateToCombop.setDisabledReason("当前自定义工具是库文件，无法发布为组合工具");
+                    generateToCombop.setDisabledReason($.t("nmar.operate.librarycannotpublish"));
                 }
             } else {
                 generateToCombop.setDisabled(1);
-                generateToCombop.setDisabledReason("无权限，请联系管理员");
+                generateToCombop.setDisabledReason($.t("nmar.operate.permissiondenied"));
             }
             if (!hasModifyAuth) {
                 test.setDisabled(1);
-                test.setDisabledReason("无权限，请联系管理员");
+                test.setDisabledReason($.t("nmar.operate.permissiondenied"));
                 copy.setDisabled(1);
-                copy.setDisabledReason("无权限，请联系管理员");
+                copy.setDisabledReason($.t("nmar.operate.permissiondenied"));
             }
             if (!hasSearchAuth) {
                 export.setDisabled(1);
-                export.setDisabledReason("无权限，请联系管理员");
+                export.setDisabledReason($.t("nmar.operate.permissiondenied"));
             }
             if (hasManageAuth) {
 //                if (MapUtils.isNotEmpty(referenceCountMap) && Objects.equals(referenceCountMap.get(id), true)) {
                 if (DependencyManager.getDependencyCount(AutoexecFromType.SCRIPT, id) > 0) {
                     delete.setDisabled(1);
-                    delete.setDisabledReason("当前自定义工具已被组合工具引用，无法删除");
+                    delete.setDisabledReason($.t("nmar.operate.scriptreferenced"));
                 }
             } else {
                 delete.setDisabled(1);
-                delete.setDisabledReason("无权限，请联系管理员");
+                delete.setDisabledReason($.t("nmar.operate.permissiondenied"));
             }
             if (CollectionUtils.isNotEmpty(operateList)) {
                 resultMap.put(id, operateList);

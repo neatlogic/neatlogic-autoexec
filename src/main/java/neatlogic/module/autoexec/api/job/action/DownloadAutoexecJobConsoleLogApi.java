@@ -48,7 +48,7 @@ public class DownloadAutoexecJobConsoleLogApi extends PrivateBinaryStreamApiComp
 
     @Override
     public String getName() {
-        return "下载作业控制台执行日志";
+        return "nmaa.downloadautoexecjobconsolelogapi.getname";
     }
 
     @Override
@@ -60,7 +60,7 @@ public class DownloadAutoexecJobConsoleLogApi extends PrivateBinaryStreamApiComp
     private AutoexecJobMapper autoexecJobMapper;
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "作业Id"),
+            @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.jobid"),
             @Param(name = "runnerId", type = ApiParamType.LONG, isRequired = true, desc = "runnerId")
     })
     @Override

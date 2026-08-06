@@ -38,7 +38,7 @@ public class AutoexecCombopVersionListApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "查询组合工具版本列表";
+        return "nmaa.autoexeccombopversionlistapi.getname";
     }
 
     @Override
@@ -47,16 +47,16 @@ public class AutoexecCombopVersionListApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "组合工具id"),
-            @Param(name = "status", type = ApiParamType.ENUM, rule = "notPassed,passed", isRequired = true, desc = "是否已经审核通过"),
-            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页数"),
-            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页条数")
+            @Param(name = "combopId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.combopid"),
+            @Param(name = "status", type = ApiParamType.ENUM, rule = "notPassed,passed", isRequired = true, desc = "term.autoexec.reviewstatus"),
+            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "common.currentpage"),
+            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "common.pagesize")
     })
     @Output({
-            @Param(explode = AutoexecCombopVersionVo[].class, desc = "组合工具版本列表"),
+            @Param(explode = AutoexecCombopVersionVo[].class, desc = "nmaa.autoexeccombopversionlistapi.output.param.desc.return"),
             @Param(explode = BasePageVo.class)
     })
-    @Description(desc = "查询组合工具版本列表")
+    @Description(desc = "nmaa.autoexeccombopversionlistapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecCombopVersionVo autoexecCombopVersionVo = paramObj.toJavaObject(AutoexecCombopVersionVo.class);

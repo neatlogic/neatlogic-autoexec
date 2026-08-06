@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.script.paramtype;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.ParamType;
@@ -55,7 +57,7 @@ public class ScriptParamTypeCheckbox extends ScriptParamTypeBase {
      */
     @Override
     public String getDescription() {
-        return "复选选择器";
+        return $.t("nmaspt.scriptparamtypecheckbox.description");
     }
 
     /**
@@ -78,7 +80,7 @@ public class ScriptParamTypeCheckbox extends ScriptParamTypeBase {
         return new JSONObject() {
             {
                 this.put("type", "checkbox");
-                this.put("placeholder", "请选择");
+                this.put("placeholder", $.t("nmaspt.common.placeholder.select"));
             }
         };
     }

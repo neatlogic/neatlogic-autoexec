@@ -35,7 +35,7 @@ public class AutoexecScenarioSaveApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "保存场景";
+        return "nmaa.autoexecscenariosaveapi.getname";
     }
 
     @Override
@@ -49,11 +49,11 @@ public class AutoexecScenarioSaveApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "场景id"),
-            @Param(name = "name", type = ApiParamType.STRING, isRequired = true, desc = "名称"),
-            @Param(name = "description", type = ApiParamType.STRING, desc = "描述")
+            @Param(name = "id", type = ApiParamType.LONG, desc = "term.autoexec.scenarioid"),
+            @Param(name = "name", type = ApiParamType.STRING, isRequired = true, desc = "common.name"),
+            @Param(name = "description", type = ApiParamType.STRING, desc = "common.description")
     })
-    @Description(desc = "保存场景接口")
+    @Description(desc = "nmaa.autoexecscenariosaveapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecScenarioVo paramScenarioVo = paramObj.toJavaObject(AutoexecScenarioVo.class);

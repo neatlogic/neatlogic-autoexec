@@ -51,7 +51,7 @@ public class IgnoreAutoexecJobPhaseNodeApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "忽略作业节点";
+        return "nmaa.ignoreautoexecjobphasenodeapi.getname";
     }
 
     @Override
@@ -60,14 +60,14 @@ public class IgnoreAutoexecJobPhaseNodeApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
-            @Param(name = "jobPhaseId", type = ApiParamType.STRING, desc = "作业阶段Id", isRequired = true),
-            @Param(name = "resourceIdList", type = ApiParamType.JSONARRAY, desc = "作业节点资产idList"),
-            @Param(name = "isAll", type = ApiParamType.INTEGER, desc = "是否全部忽略,1:是 0:否,则resourceIdList不能为空"),
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
+            @Param(name = "jobPhaseId", type = ApiParamType.STRING, desc = "term.autoexec.jobphaseid", isRequired = true),
+            @Param(name = "resourceIdList", type = ApiParamType.JSONARRAY, desc = "term.autoexec.resourceidlist"),
+            @Param(name = "isAll", type = ApiParamType.INTEGER, desc = "nmaa.ignoreautoexecjobphasenodeapi.input.param.desc.isall"),
     })
     @Output({
     })
-    @Description(desc = "忽略作业节点")
+    @Description(desc = "nmaa.ignoreautoexecjobphasenodeapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONArray resourceIdList = jsonObj.getJSONArray("resourceIdList");

@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.api.tool;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
@@ -52,7 +54,7 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "查询工具";
+        return "nmaa.autoexectoolsearchapi.getname";
     }
 
     @Override
@@ -61,25 +63,25 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sqlfile,native", desc = "执行方式"),
-            @Param(name = "typeIdList", type = ApiParamType.JSONARRAY, desc = "分类ID列表"),
-            @Param(name = "riskIdList", type = ApiParamType.JSONARRAY, desc = "操作级别ID列表"),
-            @Param(name = "customTemplateIdList", type = ApiParamType.JSONARRAY, desc = "自定义模版ID列表"),
-            @Param(name = "isActive", type = ApiParamType.INTEGER, desc = "是否激活"),
-            @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
+            @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sqlfile,native", desc = "term.autoexec.execmode"),
+            @Param(name = "typeIdList", type = ApiParamType.JSONARRAY, desc = "term.autoexec.typeidlist"),
+            @Param(name = "riskIdList", type = ApiParamType.JSONARRAY, desc = "term.autoexec.riskidlist"),
+            @Param(name = "customTemplateIdList", type = ApiParamType.JSONARRAY, desc = "term.autoexec.customtemplateidlist"),
+            @Param(name = "isActive", type = ApiParamType.INTEGER, desc = "common.isactive"),
+            @Param(name = "keyword", type = ApiParamType.STRING, desc = "common.keyword", xss = true),
             @Param(name = "execrtoolAuthorityStatus", type = ApiParamType.ENUM, rule = "authorized,unauthorized", desc = "common.execrtoolauthoritystatus"),
             @Param(name = "execrtoolAuthorityUuidList", type = ApiParamType.JSONARRAY, desc = "common.execrtoolauthorityuuidlist"),
-            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
-            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
-            @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true")
+            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "common.currentpage"),
+            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "common.pagesize"),
+            @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "nmaa.common.input.param.desc.needpage")
     })
     @Output({
-            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecToolVo[].class, desc = "工具列表"),
-            @Param(name = "operateList", type = ApiParamType.JSONARRAY, desc = "操作按钮"),
+            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecToolVo[].class, desc = "nmaa.autoexectoolsearchapi.output.param.desc.tbodylist"),
+            @Param(name = "operateList", type = ApiParamType.JSONARRAY, desc = "nmaa.common.output.param.desc.actionlist"),
             @Param(name = "execrtoolAuthorityList", type = ApiParamType.JSONARRAY, desc = "common.executeauthoritylist"),
             @Param(explode = BasePageVo.class)
     })
-    @Description(desc = "查询工具")
+    @Description(desc = "nmaa.autoexectoolsearchapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();
@@ -116,24 +118,24 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
                 operateList.add(generateToCombop);
                 if (!hasScriptManageAuth) {
                     active.setDisabled(1);
-                    active.setDisabledReason("无权限，请联系管理员");
+                    active.setDisabledReason($.t("nmar.operate.permissiondenied"));
                 }
                 if (!hasScriptModifyAuth) {
                     test.setDisabled(1);
-                    test.setDisabledReason("无权限，请联系管理员");
+                    test.setDisabledReason($.t("nmar.operate.permissiondenied"));
                 }
                 if (hasCombopAddAuth) {
 //                    if (MapUtils.isNotEmpty(hasBeenGeneratedToCombopMap) && Objects.equals(hasBeenGeneratedToCombopMap.get(o.getId()), true)) {
                     if (hasBeenGeneratedToCombopList.contains(o.getId())) {
                         generateToCombop.setDisabled(1);
-                        generateToCombop.setDisabledReason("已发布为组合工具");
+                        generateToCombop.setDisabledReason($.t("nmar.operate.publishedascombop"));
                     } else if (!Objects.equals(o.getIsActive(), 1)) {
                         generateToCombop.setDisabled(1);
-                        generateToCombop.setDisabledReason("当前工具未激活，无法发布为组合工具");
+                        generateToCombop.setDisabledReason($.t("nmar.operate.inactivetoolcannotpublish"));
                     }
                 } else {
                     generateToCombop.setDisabled(1);
-                    generateToCombop.setDisabledReason("无权限，请联系管理员");
+                    generateToCombop.setDisabledReason($.t("nmar.operate.permissiondenied"));
                 }
                 if (CollectionUtils.isNotEmpty(operateList)) {
                     o.setOperateList(operateList);

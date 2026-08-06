@@ -49,7 +49,7 @@ public class AutoexecScheduleListApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "查询定时作业列表";
+        return "nmaa.autoexecschedulelistapi.getname";
     }
 
     @Override
@@ -58,17 +58,17 @@ public class AutoexecScheduleListApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "keyword", type = ApiParamType.STRING, desc = "模糊查询"),
-            @Param(name = "isActive", type = ApiParamType.ENUM, rule = "0,1", desc = "是否启用"),
-            @Param(name = "autoexecCombopId", type = ApiParamType.LONG, desc = "组合工具id"),
-            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页码"),
-            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "页大小")
+            @Param(name = "keyword", type = ApiParamType.STRING, desc = "nmaa.autoexecschedulelistapi.input.param.desc.keyword"),
+            @Param(name = "isActive", type = ApiParamType.ENUM, rule = "0,1", desc = "common.isactive"),
+            @Param(name = "autoexecCombopId", type = ApiParamType.LONG, desc = "term.autoexec.combopid"),
+            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "nmaa.autoexecschedulelistapi.input.param.desc.currentpage"),
+            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "nmaa.autoexecschedulelistapi.input.param.desc.pagesize")
     })
     @Output({
             @Param(explode = BasePageVo.class),
-            @Param(name = "tbodyList", explode = AutoexecScheduleVo[].class, desc = "定时作业列表"),
+            @Param(name = "tbodyList", explode = AutoexecScheduleVo[].class, desc = "nmaa.autoexecschedulelistapi.output.param.desc.tbodylist"),
     })
-    @Description(desc = "查询定时作业列表")
+    @Description(desc = "nmaa.autoexecschedulelistapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecScheduleVo searchVo = JSONObject.toJavaObject(paramObj, AutoexecScheduleVo.class);

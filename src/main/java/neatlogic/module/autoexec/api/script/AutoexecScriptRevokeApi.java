@@ -56,7 +56,7 @@ public class AutoexecScriptRevokeApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "脚本撤回提交审核";
+        return "nmaa.autoexecscriptrevokeapi.getname";
     }
 
     @Override
@@ -65,11 +65,11 @@ public class AutoexecScriptRevokeApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "versionId", type = ApiParamType.LONG, isRequired = true, desc = "脚本版本ID"),
+            @Param(name = "versionId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.scriptversionid"),
     })
     @Output({
     })
-    @Description(desc = "脚本撤回提交审核")
+    @Description(desc = "nmaa.autoexecscriptrevokeapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();

@@ -63,7 +63,7 @@ public class AutoexecScriptOrToolInputParamGetApi extends PrivateApiComponentBas
 
     @Override
     public String getName() {
-        return "获取工具或自定义工具输入参数";
+        return "nmaa.autoexecscriptortoolinputparamgetapi.getname";
     }
 
     @Override
@@ -72,14 +72,14 @@ public class AutoexecScriptOrToolInputParamGetApi extends PrivateApiComponentBas
     }
 
     @Input({
-            @Param(name = "operationId", type = ApiParamType.LONG, isRequired = true, desc = "执行对象ID"),
-            @Param(name = "operationType", type = ApiParamType.ENUM, rule = "script,tool", isRequired = true, desc = "执行对象类型"),
+            @Param(name = "operationId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.operationid"),
+            @Param(name = "operationType", type = ApiParamType.ENUM, rule = "script,tool", isRequired = true, desc = "term.autoexec.operationtype"),
     })
     @Output({
-            @Param(name = "name", type = ApiParamType.STRING, desc = "名称"),
-            @Param(name = "inputParamList", explode = AutoexecParamVo[].class, desc = "输入参数"),
+            @Param(name = "name", type = ApiParamType.STRING, desc = "common.name"),
+            @Param(name = "inputParamList", explode = AutoexecParamVo[].class, desc = "nmaa.autoexecscriptortoolinputparamgetapi.output.param.desc.inputparamlist"),
     })
-    @Description(desc = "获取工具或自定义工具输入参数")
+    @Description(desc = "nmaa.autoexecscriptortoolinputparamgetapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();

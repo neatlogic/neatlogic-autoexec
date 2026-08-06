@@ -15,6 +15,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 package neatlogic.module.autoexec.script.paramtype;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.ParamType;
@@ -54,7 +56,7 @@ public class ScriptParamTypeTextarea extends ScriptParamTypeBase {
      */
     @Override
     public String getDescription() {
-        return "可输出字符串、数字";
+        return $.t("nmaspt.common.description.textoutput");
     }
 
     /**
@@ -78,7 +80,7 @@ public class ScriptParamTypeTextarea extends ScriptParamTypeBase {
             {
                 this.put("type", "textarea");
                 this.put("maxlength", 6114);
-                this.put("placeholder", "请输入");
+                this.put("placeholder", $.t("nmaspt.common.placeholder.input"));
             }
         };
     }

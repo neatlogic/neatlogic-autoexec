@@ -30,7 +30,7 @@ public class AutoexecGlobalParamUpdateForAutoexecApi extends PrivateApiComponent
 
     @Override
     public String getName() {
-        return "更新自动化全局参数";
+        return "nmaa.autoexecglobalparamupdateforautoexecapi.getname";
     }
 
     @Override
@@ -45,10 +45,10 @@ public class AutoexecGlobalParamUpdateForAutoexecApi extends PrivateApiComponent
 
 
     @Input({
-            @Param(name = "key", type = ApiParamType.REGEX, rule = RegexUtils.ENGLISH_NUMBER_NAME, isRequired = true, desc = "参数名"),
-            @Param(name = "defaultValue", type = ApiParamType.NOAUTH, isRequired = true, desc = "值"),
+            @Param(name = "key", type = ApiParamType.REGEX, rule = RegexUtils.ENGLISH_NUMBER_NAME, isRequired = true, desc = "term.autoexec.paramname"),
+            @Param(name = "defaultValue", type = ApiParamType.NOAUTH, isRequired = true, desc = "term.autoexec.defaultvalue"),
     })
-    @Description(desc = "更新自动化全局参数,用于autoexec")
+    @Description(desc = "nmaa.autoexecglobalparamupdateforautoexecapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         String key = paramObj.getString("key");

@@ -44,7 +44,7 @@ public class GetAutoexecTypeApi extends PrivateApiComponentBase {
     private AutoexecTypeMapper autoexecTypeMapper;
     @Override
     public String getName() {
-        return "获取自动化工具分类";
+        return "nmaa.getautoexectypeapi.getname";
     }
 
     @Override
@@ -58,12 +58,12 @@ public class GetAutoexecTypeApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "工具分类 id")
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "nmaa.getautoexectypeapi.input.param.desc.id")
     })
     @Output({
-            @Param(explode = AutoexecTypeVo.class, desc = "自动化工具分信息")
+            @Param(explode = AutoexecTypeVo.class, desc = "nmaa.getautoexectypeapi.output.param.desc.return")
     })
-    @Description(desc = "获取自动化工具分类")
+    @Description(desc = "nmaa.getautoexectypeapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long id = paramObj.getLong("id");

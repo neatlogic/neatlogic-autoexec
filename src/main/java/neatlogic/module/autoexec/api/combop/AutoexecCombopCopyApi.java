@@ -81,7 +81,7 @@ public class AutoexecCombopCopyApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "复制组合工具";
+        return "nmaa.autoexeccombopcopyapi.getname";
     }
 
     @Override
@@ -90,20 +90,20 @@ public class AutoexecCombopCopyApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "被复制的组合工具id"),
-            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, isRequired = true, minLength = 1, maxLength = 70, desc = "新组合工具名"),
-            @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
-            @Param(name = "typeId", type = ApiParamType.LONG, isRequired = true, desc = "类型id"),
-            @Param(name = "typeName", type = ApiParamType.STRING, isRequired = true, desc = "类型名"),
-            @Param(name = "viewAuthorityList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "查看权限列表"),
-            @Param(name = "editAuthorityList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "编辑权限列表"),
-            @Param(name = "executeAuthorityList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "执行权限列表"),
-            @Param(name = "config", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "配置信息")
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "nmaa.autoexeccombopcopyapi.input.param.desc.id"),
+            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, isRequired = true, minLength = 1, maxLength = 70, desc = "nmaa.autoexeccombopcopyapi.input.param.desc.name"),
+            @Param(name = "description", type = ApiParamType.STRING, desc = "common.description"),
+            @Param(name = "typeId", type = ApiParamType.LONG, isRequired = true, desc = "common.typeid"),
+            @Param(name = "typeName", type = ApiParamType.STRING, isRequired = true, desc = "nmaa.autoexeccombopcopyapi.input.param.desc.typename"),
+            @Param(name = "viewAuthorityList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "nmaa.autoexeccombopcopyapi.input.param.desc.viewauthoritylist"),
+            @Param(name = "editAuthorityList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "nmaa.autoexeccombopcopyapi.input.param.desc.editauthoritylist"),
+            @Param(name = "executeAuthorityList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "nmaa.autoexeccombopcopyapi.input.param.desc.executeauthoritylist"),
+            @Param(name = "config", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "common.config")
     })
     @Output({
-            @Param(name = "Return", type = ApiParamType.LONG, desc = "主键id")
+            @Param(name = "Return", type = ApiParamType.LONG, desc = "term.autoexec.combopid")
     })
-    @Description(desc = "复制组合工具")
+    @Description(desc = "nmaa.autoexeccombopcopyapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");

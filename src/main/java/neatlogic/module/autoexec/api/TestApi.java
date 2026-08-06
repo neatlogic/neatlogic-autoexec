@@ -150,7 +150,7 @@ public class TestApi extends PrivateApiComponentBase {
 
         enumMap.entrySet().stream().sorted(Map.Entry.comparingByKey()).forEach(System.out::println);
 
-        return $.t("用户管理权限");
+        return $.t("nmar.testapi.usermanagementpermission");
     }
 
 
@@ -279,4 +279,3 @@ public class TestApi extends PrivateApiComponentBase {
 
 
 }
-

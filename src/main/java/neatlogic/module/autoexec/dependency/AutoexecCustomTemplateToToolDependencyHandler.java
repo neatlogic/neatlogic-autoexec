@@ -1,5 +1,7 @@
 package neatlogic.module.autoexec.dependency;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.autoexec.constvalue.AutoexecFromType;
@@ -50,7 +52,7 @@ public class AutoexecCustomTemplateToToolDependencyHandler extends CustomDepende
             JSONObject dependencyInfoConfig = new JSONObject();
             dependencyInfoConfig.put("toolId", map.get("id"));
             List<String> pathList = new ArrayList<>();
-            pathList.add("工具库");
+            pathList.add($.t("nmar.dependency.toollibrary"));
             String urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/tool-detail?id=${DATA.toolId}";
             return new DependencyInfoVo(map.get("id"), dependencyInfoConfig, map.get("name").toString(), pathList, urlFormat, this.getGroupName());
         }

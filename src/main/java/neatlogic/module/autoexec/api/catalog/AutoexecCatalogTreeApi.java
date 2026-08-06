@@ -34,7 +34,7 @@ public class AutoexecCatalogTreeApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取工具目录架构树";
+        return "nmaa.autoexeccatalogtreeapi.getname";
     }
 
     @Override
@@ -43,16 +43,16 @@ public class AutoexecCatalogTreeApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "parentId", desc = "父id", type = ApiParamType.LONG),
-            @Param(name = "currentPage", desc = "当前页", type = ApiParamType.INTEGER),
-            @Param(name = "needPage", desc = "是否分页", type = ApiParamType.BOOLEAN),
-            @Param(name = "pageSize", desc = "每页最大数", type = ApiParamType.INTEGER)
+            @Param(name = "parentId", desc = "common.parentid", type = ApiParamType.LONG),
+            @Param(name = "currentPage", desc = "common.currentpage", type = ApiParamType.INTEGER),
+            @Param(name = "needPage", desc = "common.needpage", type = ApiParamType.BOOLEAN),
+            @Param(name = "pageSize", desc = "common.pagesize", type = ApiParamType.INTEGER)
     })
     @Output({
-            @Param(name = "tbodyList", explode = AutoexecCatalogVo[].class, desc = "目录集合"),
+            @Param(name = "tbodyList", explode = AutoexecCatalogVo[].class, desc = "nmaa.autoexeccatalogtreeapi.output.param.desc.tbodylist"),
             @Param(explode = BasePageVo.class)
     })
-    @Description(desc = "获取工具目录架构树")
+    @Description(desc = "nmaa.autoexeccatalogtreeapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecCatalogVo catalogVo = JSON.toJavaObject(jsonObj, AutoexecCatalogVo.class);

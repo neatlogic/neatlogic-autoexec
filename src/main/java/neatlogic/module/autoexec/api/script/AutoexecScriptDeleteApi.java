@@ -60,7 +60,7 @@ public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "删除脚本或版本";
+        return "nmaa.autoexecscriptdeleteapi.getname";
     }
 
     @Override
@@ -69,12 +69,12 @@ public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "脚本ID(两个参数二选一)"),
-            @Param(name = "versionId", type = ApiParamType.LONG, desc = "版本ID"),
+            @Param(name = "id", type = ApiParamType.LONG, desc = "nmaa.autoexecscriptdeleteapi.input.param.desc.id"),
+            @Param(name = "versionId", type = ApiParamType.LONG, desc = "common.versionid"),
     })
     @Output({
     })
-    @Description(desc = "删除脚本或版本")
+    @Description(desc = "nmaa.autoexecscriptdeleteapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");

@@ -43,11 +43,11 @@ public class SaveCustomTemplateApi extends PrivateApiComponentBase {
 
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "common.id", help = "不提供代表新增"),
+            @Param(name = "id", type = ApiParamType.LONG, desc = "common.id", help = "nmaa.savecustomtemplateapi.input.param.help.id"),
             @Param(name = "name", type = ApiParamType.STRING, isRequired = true, desc = "common.name"),
             @Param(name = "isActive", type = ApiParamType.INTEGER, isRequired = true, desc = "common.isactive"),
             @Param(name = "template", type = ApiParamType.STRING, desc = "common.content", isRequired = true),
-            @Param(name = "config", type = ApiParamType.STRING, desc = "common.config", help = "json格式的字符串")
+            @Param(name = "config", type = ApiParamType.STRING, desc = "common.config", help = "nmaa.savecustomtemplateapi.input.param.help.config")
     })
     @Description(desc = "nmaac.savecustomtemplateapi.getname")
     @Override

@@ -84,9 +84,9 @@ public class AutoexecScriptGetApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "common.id", help = "表示不指定版本查看，两个参数二选一"),
-            @Param(name = "versionId", type = ApiParamType.LONG, desc = "common.versionid", help = "表示指定版本查看"),
-            @Param(name = "status", type = ApiParamType.ENUM, rule = "draft,passed,rejected", desc = "common.status", help = "传id而非versionId时，表示从列表查看脚本，此时必须传status参数"),
+            @Param(name = "id", type = ApiParamType.LONG, desc = "common.id", help = "nmaa.autoexecscriptgetapi.input.param.help.id"),
+            @Param(name = "versionId", type = ApiParamType.LONG, desc = "common.versionid", help = "nmaa.autoexecscriptgetapi.input.param.help.versionid"),
+            @Param(name = "status", type = ApiParamType.ENUM, rule = "draft,passed,rejected", desc = "common.status", help = "nmaa.autoexecscriptgetapi.input.param.help.status"),
     })
     @Output({
             @Param(name = "script", explode = AutoexecScriptVo.class, desc = "term.autoexec.scriptinfo"),

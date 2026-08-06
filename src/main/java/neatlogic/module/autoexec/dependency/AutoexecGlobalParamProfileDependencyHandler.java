@@ -1,5 +1,7 @@
 package neatlogic.module.autoexec.dependency;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.autoexec.constvalue.AutoexecFromType;
@@ -39,7 +41,7 @@ public class AutoexecGlobalParamProfileDependencyHandler extends DefaultDependen
             }
             dependencyInfoConfig.put("profileId", profileId);
             List<String> pathList = new ArrayList<>();
-            pathList.add("预制参数集");
+            pathList.add($.t("term.autoexec.profile"));
             String urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/tool-profile-manage?id=${DATA.profileId}";
             return new DependencyInfoVo(profileVo.getId(), dependencyInfoConfig, profileVo.getName(), pathList, urlFormat, this.getGroupName());
 

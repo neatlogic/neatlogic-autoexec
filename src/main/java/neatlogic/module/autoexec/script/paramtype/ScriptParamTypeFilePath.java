@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.script.paramtype;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.OutputParamType;
@@ -51,7 +53,7 @@ public class ScriptParamTypeFilePath extends ScriptParamTypeBase {
      */
     @Override
     public String getDescription() {
-        return "可输出文件路径参数";
+        return $.t("nmaspt.scriptparamtypefilepath.description");
     }
 
     /**
@@ -75,7 +77,7 @@ public class ScriptParamTypeFilePath extends ScriptParamTypeBase {
             {
                 this.put("type", "text");
                 this.put("maxlength", 500);
-                this.put("placeholder", "请输入");
+                this.put("placeholder", $.t("nmaspt.common.placeholder.input"));
             }
         };
     }

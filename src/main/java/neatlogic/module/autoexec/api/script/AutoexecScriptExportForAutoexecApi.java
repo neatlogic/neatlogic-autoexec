@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.api.script;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
@@ -81,7 +83,7 @@ public class AutoexecScriptExportForAutoexecApi extends PrivateBinaryStreamApiCo
 
     @Override
     public String getName() {
-        return "导出脚本(供外部调用)";
+        return "nmaa.autoexecscriptexportforautoexecapi.getname";
     }
 
     @Override
@@ -90,12 +92,12 @@ public class AutoexecScriptExportForAutoexecApi extends PrivateBinaryStreamApiCo
     }
 
     @Input({
-            @Param(name = "catalogName", type = ApiParamType.STRING, desc = "目录名称（完整路径）"),
-            @Param(name = "catalogList", type = ApiParamType.JSONARRAY, desc = "目录名称（完整路径）列表"),
+            @Param(name = "catalogName", type = ApiParamType.STRING, desc = "nmaa.autoexecscriptexportforautoexecapi.input.param.desc.catalogname"),
+            @Param(name = "catalogList", type = ApiParamType.JSONARRAY, desc = "nmaa.autoexecscriptexportforautoexecapi.input.param.desc.cataloglist"),
     })
     @Output({
     })
-    @Description(desc = "导出脚本(供外部调用)")
+    @Description(desc = "nmaa.autoexecscriptexportforautoexecapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         Set<Long> catalogIdSet = new HashSet<>();
@@ -132,7 +134,7 @@ public class AutoexecScriptExportForAutoexecApi extends PrivateBinaryStreamApiCo
         if (!idList.isEmpty()) {
 
             List<Long> packageFileIdList = new ArrayList<>();
-            String fileName = FileUtil.getEncodedFileName("自定义工具." + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".zip");
+            String fileName = FileUtil.getEncodedFileName($.t("nmar.export.scriptfilename") + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".zip");
             response.setContentType("application/zip");
             response.setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
             try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {

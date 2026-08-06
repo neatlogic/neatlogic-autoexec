@@ -40,7 +40,7 @@ public class AutoexecGlobalParamSaveApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "保存自动化全局参数";
+        return "nmaa.autoexecglobalparamsaveapi.getname";
     }
 
     @Override
@@ -55,14 +55,14 @@ public class AutoexecGlobalParamSaveApi extends PrivateApiComponentBase {
 
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "参数id"),
-            @Param(name = "key", type = ApiParamType.REGEX, rule = RegexUtils.ENGLISH_NUMBER_NAME, isRequired = true, desc = "参数名"),
-            @Param(name = "name", type = ApiParamType.STRING, isRequired = true, desc = "显示名"),
-            @Param(name = "type", type = ApiParamType.STRING, isRequired = true, desc = "类型"),
-            @Param(name = "defaultValue", type = ApiParamType.NOAUTH, isRequired = true, desc = "值"),
-            @Param(name = "description", type = ApiParamType.STRING, desc = "描述")
+            @Param(name = "id", type = ApiParamType.LONG, desc = "term.autoexec.globalparamid"),
+            @Param(name = "key", type = ApiParamType.REGEX, rule = RegexUtils.ENGLISH_NUMBER_NAME, isRequired = true, desc = "term.autoexec.paramname"),
+            @Param(name = "name", type = ApiParamType.STRING, isRequired = true, desc = "term.autoexec.displayname"),
+            @Param(name = "type", type = ApiParamType.STRING, isRequired = true, desc = "common.type"),
+            @Param(name = "defaultValue", type = ApiParamType.NOAUTH, isRequired = true, desc = "term.autoexec.defaultvalue"),
+            @Param(name = "description", type = ApiParamType.STRING, desc = "common.description")
     })
-    @Description(desc = "保存自动化全局参数接口")
+    @Description(desc = "nmaa.autoexecglobalparamsaveapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecGlobalParamVo globalParamVo = paramObj.toJavaObject(AutoexecGlobalParamVo.class);

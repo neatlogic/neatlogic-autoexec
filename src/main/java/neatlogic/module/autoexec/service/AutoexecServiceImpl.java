@@ -15,6 +15,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 package neatlogic.module.autoexec.service;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.*;
@@ -208,7 +210,7 @@ public class AutoexecServiceImpl implements AutoexecService, IAutoexecServiceCro
                     throw new AutoexecParamIrregularException(index, key, type);
                 }
                 if (Objects.equals(ParamType.TEXT.getValue(), autoexecParamVo.getType()) && !validateTextTypeParamValue(autoexecParamVo, autoexecParamVo.getDefaultValue())) {
-                    throw new AutoexecParamValueIrregularException("作业参数", autoexecParamVo.getName(), autoexecParamVo.getKey(), (String) autoexecParamVo.getDefaultValue());
+                    throw new AutoexecParamValueIrregularException($.t("term.autoexec.jobparam"), autoexecParamVo.getName(), autoexecParamVo.getKey(), (String) autoexecParamVo.getDefaultValue());
                 }
                 index++;
             }

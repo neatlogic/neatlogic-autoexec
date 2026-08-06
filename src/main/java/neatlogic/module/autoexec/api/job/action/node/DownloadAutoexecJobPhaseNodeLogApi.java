@@ -45,7 +45,7 @@ public class DownloadAutoexecJobPhaseNodeLogApi extends PrivateBinaryStreamApiCo
 
     @Override
     public String getName() {
-        return "下载剧本节点执行日志";
+        return "nmaa.downloadautoexecjobphasenodelogapi.getname";
     }
 
     @Override
@@ -54,9 +54,9 @@ public class DownloadAutoexecJobPhaseNodeLogApi extends PrivateBinaryStreamApiCo
     }
 
     @Input({
-            @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本Id"),
-            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id"),
-            @Param(name = "sqlName", type = ApiParamType.STRING, desc = "sql名")
+            @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.jobphaseid"),
+            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "term.cmdb.resourceid"),
+            @Param(name = "sqlName", type = ApiParamType.STRING, desc = "term.autoexec.jobsqlname")
     })
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {

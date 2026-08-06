@@ -40,7 +40,7 @@ public class GetCustomTemplateApi extends PrivateApiComponentBase {
     @Output({
             @Param(explode = CustomTemplateVo.class)
     })
-    @Description(desc = "获取自定义模板接口")
+    @Description(desc = "nmaa.getcustomtemplateapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         return autoexecCustomTemplateMapper.getCustomTemplateById(jsonObj.getLong("id"));
@@ -49,7 +49,7 @@ public class GetCustomTemplateApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取自定义模板";
+        return "nmaa.getcustomtemplateapi.getname";
     }
 
     @Override

@@ -49,7 +49,7 @@ public class AutoexecJobPhaseNodeListApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取作业阶段节点列表";
+        return "nmaa.autoexecjobphasenodelistapi.getname";
     }
 
     @Override
@@ -58,16 +58,16 @@ public class AutoexecJobPhaseNodeListApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
-            @Param(name = "jobPhaseStatus", type = ApiParamType.STRING, desc = "作业阶段状态", isRequired = true),
-            @Param(name = "nodeIdList", type = ApiParamType.JSONARRAY, desc = "作业阶段节点idList"),
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
+            @Param(name = "jobPhaseStatus", type = ApiParamType.STRING, desc = "nmaa.autoexecjobphasenodelistapi.input.param.desc.jobphasestatus", isRequired = true),
+            @Param(name = "nodeIdList", type = ApiParamType.JSONARRAY, desc = "nmaa.autoexecjobphasenodelistapi.input.param.desc.nodeidlist"),
     })
     @Output({
-            @Param(name = "status", type = ApiParamType.STRING, desc = "作业状态"),
-            @Param(name = "statusName", type = ApiParamType.STRING, desc = "作业状态名"),
-            @Param(name = "nodeList", explode = AutoexecJobPhaseNodeVo[].class, desc = "作业阶段节点list"),
+            @Param(name = "status", type = ApiParamType.STRING, desc = "term.autoexec.jobstatuslabel"),
+            @Param(name = "statusName", type = ApiParamType.STRING, desc = "term.autoexec.jobstatusname"),
+            @Param(name = "nodeList", explode = AutoexecJobPhaseNodeVo[].class, desc = "nmaa.autoexecjobphasenodelistapi.output.param.desc.nodelist"),
     })
-    @Description(desc = "获取作业阶段节点列表接口")
+    @Description(desc = "nmaa.autoexecjobphasenodelistapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();

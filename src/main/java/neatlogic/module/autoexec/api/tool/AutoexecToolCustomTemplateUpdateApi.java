@@ -46,7 +46,7 @@ public class AutoexecToolCustomTemplateUpdateApi extends PrivateApiComponentBase
 
     @Override
     public String getName() {
-        return "更新工具绑定的自定义模版";
+        return "nmaa.autoexectoolcustomtemplateupdateapi.getname";
     }
 
     @Override
@@ -55,12 +55,12 @@ public class AutoexecToolCustomTemplateUpdateApi extends PrivateApiComponentBase
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "工具ID"),
-            @Param(name = "customTemplateId", type = ApiParamType.LONG, desc = "自定义模版ID"),
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.operationid"),
+            @Param(name = "customTemplateId", type = ApiParamType.LONG, desc = "term.autoexec.customtemplateid"),
     })
     @Output({
     })
-    @Description(desc = "更新工具绑定的自定义模版")
+    @Description(desc = "nmaa.autoexectoolcustomtemplateupdateapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");

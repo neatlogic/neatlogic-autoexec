@@ -45,7 +45,7 @@ public class DeleteAutoexecServiceUserApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "删除收藏服务";
+        return "nmaa.deleteautoexecserviceuserapi.getname";
     }
 
     @Override
@@ -54,9 +54,9 @@ public class DeleteAutoexecServiceUserApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "服务id")
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "common.serviceid")
     })
-    @Description(desc = "删除收藏服务接口")
+    @Description(desc = "nmaa.deleteautoexecserviceuserapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         autoexecServiceMapper.deleteAutoexecServiceUserByServiceIdAndUserUuid(paramObj.getLong("id"), UserContext.get().getUserUuid());

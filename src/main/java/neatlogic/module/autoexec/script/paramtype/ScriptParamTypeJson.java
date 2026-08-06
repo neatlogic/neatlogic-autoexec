@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.script.paramtype;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.ParamType;
@@ -51,7 +53,7 @@ public class ScriptParamTypeJson extends ScriptParamTypeBase {
      */
     @Override
     public String getDescription() {
-        return "支持json对象和json数组，输入内容需是合法Json格式";
+        return $.t("nmaspt.scriptparamtypejson.description");
     }
 
     /**
@@ -74,7 +76,7 @@ public class ScriptParamTypeJson extends ScriptParamTypeBase {
         return new JSONObject() {
             {
                 this.put("type", "textarea");
-                this.put("placeholder", "请输入");
+                this.put("placeholder", $.t("nmaspt.common.placeholder.input"));
             }
         };
     }

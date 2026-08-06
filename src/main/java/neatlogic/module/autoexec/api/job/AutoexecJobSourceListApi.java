@@ -43,7 +43,7 @@ public class AutoexecJobSourceListApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取作业来源";
+        return "nmaa.autoexecjobsourcelistapi.getname";
     }
 
     @Override
@@ -56,7 +56,7 @@ public class AutoexecJobSourceListApi extends PrivateApiComponentBase {
     })
     @Output({
     })
-    @Description(desc = "获取作业来源")
+    @Description(desc = "nmaa.autoexecjobsourcelistapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONArray sourceArray = new JSONArray();

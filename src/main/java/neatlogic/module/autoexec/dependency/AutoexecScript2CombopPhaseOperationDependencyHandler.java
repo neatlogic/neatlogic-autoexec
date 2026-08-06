@@ -15,6 +15,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 package neatlogic.module.autoexec.dependency;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.autoexec.constvalue.AutoexecFromType;
@@ -104,9 +106,9 @@ public class AutoexecScript2CombopPhaseOperationDependencyHandler extends Defaul
                 dependencyInfoConfig.put("combopId", autoexecCombopVo.getId());
                 dependencyInfoConfig.put("versionId", autoexecCombopVersionVo.getId());
                 List<String> pathList = new ArrayList<>();
-                pathList.add("组合工具(" + combopName + ")");
-                pathList.add("版本" + autoexecCombopVersionVo.getVersion() + "(" + autoexecCombopVersionVo.getName() + ")");
-                pathList.add("阶段(" + phaseName + ")");
+                pathList.add($.t("nmar.dependency.combopprefix") + combopName + ")");
+                pathList.add($.t("nmar.dependency.versionprefix") + autoexecCombopVersionVo.getVersion() + "(" + autoexecCombopVersionVo.getName() + ")");
+                pathList.add($.t("nmar.dependency.phaseprefix") + phaseName + ")");
                 String urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/action-detail?id=${DATA.combopId}&versionId=${DATA.versionId}";
                 return new DependencyInfoVo(id, dependencyInfoConfig, operationName, pathList, urlFormat, this.getGroupName());
             }

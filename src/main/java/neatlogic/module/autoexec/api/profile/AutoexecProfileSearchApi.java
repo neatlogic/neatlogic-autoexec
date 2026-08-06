@@ -40,7 +40,7 @@ public class AutoexecProfileSearchApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "查询自动化工具profile列表";
+        return "nmaa.autoexecprofilesearchapi.getname";
     }
 
     @Override
@@ -54,21 +54,21 @@ public class AutoexecProfileSearchApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "operationId", desc = "工具id", type = ApiParamType.LONG),
-            @Param(name = "type", desc = "工具类型", type = ApiParamType.STRING),
-            @Param(name = "ciEntityId", type = ApiParamType.LONG, desc = "关联配置项id"),
-            @Param(name = "fromSystemId", type = ApiParamType.LONG, desc = "所属系统id"),
-            @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "默认值"),
-            @Param(name = "keyword", desc = "关键词（名称、描述）", type = ApiParamType.STRING),
-            @Param(name = "currentPage", desc = "当前页", type = ApiParamType.INTEGER),
-            @Param(name = "needPage", desc = "是否分页", type = ApiParamType.BOOLEAN),
-            @Param(name = "pageSize", desc = "每页最大数", type = ApiParamType.INTEGER)
+            @Param(name = "operationId", desc = "term.autoexec.operationid", type = ApiParamType.LONG),
+            @Param(name = "type", desc = "term.autoexec.operationtype", type = ApiParamType.STRING),
+            @Param(name = "ciEntityId", type = ApiParamType.LONG, desc = "term.cmdb.cientityid"),
+            @Param(name = "fromSystemId", type = ApiParamType.LONG, desc = "term.autoexec.sourcesystemid"),
+            @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "term.autoexec.defaultvalue"),
+            @Param(name = "keyword", desc = "nmaa.autoexecprofilesearchapi.input.param.desc.keyword", type = ApiParamType.STRING),
+            @Param(name = "currentPage", desc = "common.currentpage", type = ApiParamType.INTEGER),
+            @Param(name = "needPage", desc = "common.needpage", type = ApiParamType.BOOLEAN),
+            @Param(name = "pageSize", desc = "common.pagesize", type = ApiParamType.INTEGER)
     })
     @Output({
-            @Param(name = "tbodyList", explode = AutoexecProfileVo[].class, desc = "工具profile列表"),
+            @Param(name = "tbodyList", explode = AutoexecProfileVo[].class, desc = "nmaa.autoexecprofilesearchapi.output.param.desc.tbodylist"),
             @Param(explode = BasePageVo.class)
     })
-    @Description(desc = "自动化profile列表查询接口")
+    @Description(desc = "nmaa.autoexecprofilesearchapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecProfileVo paramProfileVo = JSON.toJavaObject(paramObj, AutoexecProfileVo.class);

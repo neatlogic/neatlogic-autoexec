@@ -64,7 +64,7 @@ public class AutoexecCombopProfileListApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "查询组合工具预置参数集列表";
+        return "nmaa.autoexeccombopprofilelistapi.getname";
     }
 
     @Override
@@ -73,14 +73,14 @@ public class AutoexecCombopProfileListApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "combopId", type = ApiParamType.LONG, desc = "主键id"),
-            @Param(name = "versionId", type = ApiParamType.LONG, desc = "版本id"),
-            @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "默认值")
+            @Param(name = "combopId", type = ApiParamType.LONG, desc = "term.autoexec.combopid"),
+            @Param(name = "versionId", type = ApiParamType.LONG, desc = "common.versionid"),
+            @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "term.autoexec.defaultvalue")
     })
     @Output({
-            @Param(explode = AutoexecProfileVo[].class, desc = "参数列表")
+            @Param(explode = AutoexecProfileVo[].class, desc = "term.autoexec.paramlist")
     })
-    @Description(desc = "查询组合工具预置参数集列表")
+    @Description(desc = "nmaa.autoexeccombopprofilelistapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Set<Long> profileIdSet = new HashSet<>();

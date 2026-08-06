@@ -103,9 +103,9 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
             @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.executeconfig"),
             @Param(name = "planStartTime", type = ApiParamType.LONG, desc = "common.planstarttime"),
             @Param(name = "triggerType", type = ApiParamType.ENUM, member = JobTriggerType.class, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.triggertype"),
-            @Param(name = "assignExecUser", type = ApiParamType.STRING, desc = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.assignuser"),
-            @Param(name = "runnerGroup", type = ApiParamType.STRING, desc = "nfac.paramtype.runnergroup"),
-            @Param(name = "runnerGroupTag", type = ApiParamType.STRING, desc = "nfac.paramtype.runnergrouptag")
+            @Param(name = "assignExecUser", type = ApiParamType.STRING, desc = "term.autoexec.assignexecuser"),
+            @Param(name = "runnerGroup", type = ApiParamType.STRING, desc = "common.runnergroup"),
+            @Param(name = "runnerGroupTag", type = ApiParamType.STRING, desc = "common.runnergrouptag")
     })
     @Output({
     })

@@ -56,7 +56,7 @@ public class AutoexecScriptCopyApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "复制脚本";
+        return "nmaa.autoexecscriptcopyapi.getname";
     }
 
     @Override
@@ -65,21 +65,21 @@ public class AutoexecScriptCopyApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "脚本ID"),
-//            @Param(name = "uk", type = ApiParamType.REGEX, rule = "^[A-Za-z]+$", isRequired = true, xss = true, desc = "唯一标识"),
-            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, maxLength = 50, isRequired = true, xss = true, desc = "名称"),
-            @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sqlfile,native", desc = "执行方式"),
-            @Param(name = "typeId", type = ApiParamType.LONG, desc = "脚本分类ID", isRequired = true),
-            @Param(name = "catalogId", type = ApiParamType.LONG, desc = "工具目录ID", isRequired = true),
-            @Param(name = "riskId", type = ApiParamType.LONG, desc = "操作级别ID"),
-            @Param(name = "isLib", type = ApiParamType.INTEGER, desc = "是否库文件（1：是，0：否，默认否）", isRequired = true),
-            @Param(name = "customTemplateId", type = ApiParamType.LONG, desc = "自定义模版ID"),
-            @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.scriptid"),
+//            @Param(name = "uk", type = ApiParamType.REGEX, rule = "^[A-Za-z]+$", isRequired = true, xss = true, desc = "term.autoexec.uniquekey"),
+            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, maxLength = 50, isRequired = true, xss = true, desc = "common.name"),
+            @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sqlfile,native", desc = "term.autoexec.execmode"),
+            @Param(name = "typeId", type = ApiParamType.LONG, desc = "term.autoexec.typeid", isRequired = true),
+            @Param(name = "catalogId", type = ApiParamType.LONG, desc = "term.autoexec.catalogid", isRequired = true),
+            @Param(name = "riskId", type = ApiParamType.LONG, desc = "term.autoexec.riskid"),
+            @Param(name = "isLib", type = ApiParamType.INTEGER, desc = "nmaa.common.input.param.desc.islib", isRequired = true),
+            @Param(name = "customTemplateId", type = ApiParamType.LONG, desc = "term.autoexec.customtemplateid"),
+            @Param(name = "description", type = ApiParamType.STRING, desc = "common.description"),
     })
     @Output({
-            @Param(type = ApiParamType.LONG, desc = "复制生成的脚本ID"),
+            @Param(type = ApiParamType.LONG, desc = "nmaa.autoexecscriptcopyapi.output.param.desc.return"),
     })
-    @Description(desc = "复制脚本")
+    @Description(desc = "nmaa.autoexecscriptcopyapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecScriptVo targetScript = jsonObj.toJavaObject(AutoexecScriptVo.class);

@@ -48,7 +48,7 @@ public class GetAutoexecJobPhaseOperationScriptApi extends PrivateApiComponentBa
 
     @Override
     public String getName() {
-        return "获取作业剧本操作脚本内容";
+        return "nmaa.getautoexecjobphaseoperationscriptapi.getname";
     }
 
     @Override
@@ -57,13 +57,13 @@ public class GetAutoexecJobPhaseOperationScriptApi extends PrivateApiComponentBa
     }
 
     @Input({
-            @Param(name = "operationId", type = ApiParamType.STRING, desc = "作业操作id（opName_opId）", isRequired = true),
-            @Param(name = "isActive", type = ApiParamType.INTEGER, desc = "是否获取最新版本的脚本（1：是，0：不是，默认是）"),
+            @Param(name = "operationId", type = ApiParamType.STRING, desc = "term.autoexec.operationid", isRequired = true),
+            @Param(name = "isActive", type = ApiParamType.INTEGER, desc = "nmaa.getautoexecjobphaseoperationscriptapi.input.param.desc.isactive"),
     })
     @Output({
-            @Param(name = "lineList", type = ApiParamType.JSONARRAY, desc = "脚本内容行列表")
+            @Param(name = "lineList", type = ApiParamType.JSONARRAY, desc = "term.autoexec.linelist")
     })
-    @Description(desc = "获取作业剧本操作脚本内容")
+    @Description(desc = "nmaa.getautoexecjobphaseoperationscriptapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long opId = jsonObj.getLong("operationId");

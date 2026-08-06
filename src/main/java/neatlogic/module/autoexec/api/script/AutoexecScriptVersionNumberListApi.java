@@ -44,7 +44,7 @@ public class AutoexecScriptVersionNumberListApi extends PrivateApiComponentBase 
 
     @Override
     public String getName() {
-        return "获取脚本版本号列表";
+        return "nmaa.autoexecscriptversionnumberlistapi.getname";
     }
 
     @Override
@@ -53,12 +53,12 @@ public class AutoexecScriptVersionNumberListApi extends PrivateApiComponentBase 
     }
 
     @Input({
-            @Param(name = "scriptId", type = ApiParamType.LONG, isRequired = true, desc = "脚本ID"),
+            @Param(name = "scriptId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.scriptid"),
     })
     @Output({
-            @Param(type = ApiParamType.JSONARRAY, explode = ValueTextVo[].class, desc = "版本号列表"),
+            @Param(type = ApiParamType.JSONARRAY, explode = ValueTextVo[].class, desc = "nmaa.autoexecscriptversionnumberlistapi.output.param.desc.return"),
     })
-    @Description(desc = "获取脚本版本号列表")
+    @Description(desc = "nmaa.autoexecscriptversionnumberlistapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long scriptId = jsonObj.getLong("scriptId");

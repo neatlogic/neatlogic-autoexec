@@ -80,7 +80,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 } else {
                     JSONObject jsonObj = new JSONObject();
                     jsonObj.put("key", "formUuid");
-                    jsonObj.put("description", $.t("表单：“{0}”不存在", formUuid));
+                    jsonObj.put("description", $.t("nmar.service.formnotfound", formUuid));
                     reasonList.add(jsonObj);
                     return reasonList;
                 }
@@ -92,7 +92,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 } else {
                     JSONObject jsonObj = new JSONObject();
                     jsonObj.put("key", "formUuid");
-                    jsonObj.put("description", $.t("表单：“{0}”没有激活版本", formVo.getName()));
+                    jsonObj.put("description", $.t("nmar.service.formnoactiveversion", formVo.getName()));
                     reasonList.add(jsonObj);
                     return reasonList;
                 }
@@ -111,7 +111,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
             } else {
                 JSONObject jsonObj = new JSONObject();
                 jsonObj.put("key", "combopId");
-                jsonObj.put("description", $.t("组合工具：“{0}”不存在", serviceVo.getCombopId()));
+                jsonObj.put("description", $.t("nfae.autoexeccombopnotfoundexception.autoexeccombopnotfoundexception", serviceVo.getCombopId()));
                 reasonList.add(jsonObj);
                 return reasonList;
             }
@@ -123,7 +123,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
             } else {
                 JSONObject jsonObj = new JSONObject();
                 jsonObj.put("key", "combopId");
-                jsonObj.put("description", $.t("组合工具：“{0}”没有激活版本", autoexecCombopVo.getName()));
+                jsonObj.put("description", $.t("nfae.autoexeccombopactiveversionnotfoundexception.autoexeccombopactiveversionnotfoundexception", autoexecCombopVo.getName()));
                 reasonList.add(jsonObj);
                 return reasonList;
             }
@@ -138,7 +138,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
             } else {
                 JSONObject jsonObj = new JSONObject();
                 jsonObj.put("key", "scenarioId");
-                jsonObj.put("description", $.t("场景必须设置"));
+                jsonObj.put("description", $.t("nfae.autoexecscenarioisrequiredexception.autoexecscenarioisrequiredexception"));
                 reasonList.add(jsonObj);
             }
         }
@@ -152,7 +152,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                     } else {
                         JSONObject jsonObj = new JSONObject();
                         jsonObj.put("key", "roundCount");
-                        jsonObj.put("description", $.t("分批数量必须设置"));
+                        jsonObj.put("description", $.t("nfae.autoexecroundcountisrequiredexception.autoexecroundcountisrequiredexception"));
                         reasonList.add(jsonObj);
                     }
                 } else {
@@ -165,7 +165,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             } else {
                                 JSONObject jsonObj = new JSONObject();
                                 jsonObj.put("key", "roundCount");
-                                jsonObj.put("description", $.t("分批数量必须设置"));
+                                jsonObj.put("description", $.t("nfae.autoexecroundcountisrequiredexception.autoexecroundcountisrequiredexception"));
                                 reasonList.add(jsonObj);
                             }
                         }
@@ -176,7 +176,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             } else {
                                 JSONObject jsonObj = new JSONObject();
                                 jsonObj.put("key", "roundCount");
-                                jsonObj.put("description", $.t("服务目录未引用表单，不能映射表单属性"));
+                                jsonObj.put("description", $.t("nfae.autoexecservicenotreferencedformexception.autoexecservicenotreferencedformexception"));
                                 reasonList.add(jsonObj);
                             }
                         } else if (StringUtils.isBlank((String) value)) {
@@ -185,7 +185,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             } else {
                                 JSONObject jsonObj = new JSONObject();
                                 jsonObj.put("key", "roundCount");
-                                jsonObj.put("description", $.t("分批数量必须设置"));
+                                jsonObj.put("description", $.t("nfae.autoexecroundcountisrequiredexception.autoexecroundcountisrequiredexception"));
                                 reasonList.add(jsonObj);
                             }
                         } else {
@@ -196,7 +196,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                                 } else {
                                     JSONObject jsonObj = new JSONObject();
                                     jsonObj.put("key", "roundCount");
-                                    jsonObj.put("description", $.t("表单”{0}“中找不到“{1}”属性", formName, value));
+                                    jsonObj.put("description", $.t("nmar.service.formattributenotfound", formName, value));
                                     reasonList.add(jsonObj);
                                 }
                             }
@@ -211,7 +211,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                     } else {
                         JSONObject jsonObj = new JSONObject();
                         jsonObj.put("key", "parallelCount");
-                        jsonObj.put("description", $.t("并发数量必须设置1"));
+                        jsonObj.put("description", $.t("nmar.service.concurrencyrequired"));
                         reasonList.add(jsonObj);
                     }
                 } else {
@@ -224,7 +224,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             } else {
                                 JSONObject jsonObj = new JSONObject();
                                 jsonObj.put("key", "parallelCount");
-                                jsonObj.put("description", $.t("并发数量必须设置2"));
+                                jsonObj.put("description", $.t("nmar.service.concurrencyrequired"));
                                 reasonList.add(jsonObj);
                             }
                         }
@@ -235,7 +235,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             } else {
                                 JSONObject jsonObj = new JSONObject();
                                 jsonObj.put("key", "parallelCount");
-                                jsonObj.put("description", $.t("服务目录未引用表单，不能映射表单属性"));
+                                jsonObj.put("description", $.t("nfae.autoexecservicenotreferencedformexception.autoexecservicenotreferencedformexception"));
                                 reasonList.add(jsonObj);
                             }
                         } else if (StringUtils.isBlank((String) value)) {
@@ -244,7 +244,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             } else {
                                 JSONObject jsonObj = new JSONObject();
                                 jsonObj.put("key", "parallelCount");
-                                jsonObj.put("description", $.t("并发数量必须设置3"));
+                                jsonObj.put("description", $.t("nmar.service.concurrencyrequired"));
                                 reasonList.add(jsonObj);
                             }
                         } else {
@@ -255,7 +255,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                                 } else {
                                     JSONObject jsonObj = new JSONObject();
                                     jsonObj.put("key", "parallelCount");
-                                    jsonObj.put("description", $.t("表单”{0}“中找不到“{1}”属性", formName, value));
+                                    jsonObj.put("description", $.t("nmar.service.formattributenotfound", formName, value));
                                     reasonList.add(jsonObj);
                                 }
                             }
@@ -272,7 +272,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 } else {
                     JSONObject jsonObj = new JSONObject();
                     jsonObj.put("key", "protocol");
-                    jsonObj.put("description", $.t("连接协议必须设置"));
+                    jsonObj.put("description", $.t("nfae.autoexecprotocolisrequiredexception.autoexecprotocolisrequiredexception"));
                     reasonList.add(jsonObj);
                 }
             } else {
@@ -285,7 +285,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", "protocol");
-                            jsonObj.put("description", $.t("连接协议必须设置"));
+                            jsonObj.put("description", $.t("nfae.autoexecprotocolisrequiredexception.autoexecprotocolisrequiredexception"));
                             reasonList.add(jsonObj);
                         }
                     }
@@ -296,7 +296,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", "protocol");
-                            jsonObj.put("description", $.t("服务目录未引用表单，不能映射表单属性"));
+                            jsonObj.put("description", $.t("nfae.autoexecservicenotreferencedformexception.autoexecservicenotreferencedformexception"));
                             reasonList.add(jsonObj);
                         }
                     } else if (StringUtils.isBlank((String) value)) {
@@ -305,7 +305,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", "protocol");
-                            jsonObj.put("description", $.t("连接协议必须设置"));
+                            jsonObj.put("description", $.t("nfae.autoexecprotocolisrequiredexception.autoexecprotocolisrequiredexception"));
                             reasonList.add(jsonObj);
                         }
                     } else {
@@ -316,7 +316,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             } else {
                                 JSONObject jsonObj = new JSONObject();
                                 jsonObj.put("key", "protocol");
-                                jsonObj.put("description", $.t("表单”{0}“中找不到“{1}”属性", formName, value));
+                                jsonObj.put("description", $.t("nmar.service.formattributenotfound", formName, value));
                                 reasonList.add(jsonObj);
                             }
                         }
@@ -332,7 +332,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 } else {
                     JSONObject jsonObj = new JSONObject();
                     jsonObj.put("key", "executeUser");
-                    jsonObj.put("description", $.t("执行用户必须设置"));
+                    jsonObj.put("description", $.t("nfae.autoexecexecuteuserisrequiredexception.autoexecexecuteuserisrequiredexception"));
                     reasonList.add(jsonObj);
                 }
             } else {
@@ -345,7 +345,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", "executeUser");
-                            jsonObj.put("description", $.t("执行用户必须设置"));
+                            jsonObj.put("description", $.t("nfae.autoexecexecuteuserisrequiredexception.autoexecexecuteuserisrequiredexception"));
                             reasonList.add(jsonObj);
                         }
                     }
@@ -356,7 +356,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", "executeUser");
-                            jsonObj.put("description", $.t("服务目录未引用表单，不能映射表单属性"));
+                            jsonObj.put("description", $.t("nfae.autoexecservicenotreferencedformexception.autoexecservicenotreferencedformexception"));
                             reasonList.add(jsonObj);
                         }
                     } else if (StringUtils.isBlank((String) value)) {
@@ -365,7 +365,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", "executeUser");
-                            jsonObj.put("description", $.t("执行用户必须设置"));
+                            jsonObj.put("description", $.t("nfae.autoexecexecuteuserisrequiredexception.autoexecexecuteuserisrequiredexception"));
                             reasonList.add(jsonObj);
                         }
                     } else {
@@ -376,7 +376,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             } else {
                                 JSONObject jsonObj = new JSONObject();
                                 jsonObj.put("key", "executeUser");
-                                jsonObj.put("description", $.t("表单”{0}“中找不到“{1}”属性", formName, value));
+                                jsonObj.put("description", $.t("nmar.service.formattributenotfound", formName, value));
                                 reasonList.add(jsonObj);
                             }
                         }
@@ -392,7 +392,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 } else {
                     JSONObject jsonObj = new JSONObject();
                     jsonObj.put("key", "executeNodeConfig");
-                    jsonObj.put("description", $.t("执行目标必须设置"));
+                    jsonObj.put("description", $.t("nfae.autoexecexecutenodeisrequiredexception.autoexecexecutenodeisrequiredexception"));
                     reasonList.add(jsonObj);
                 }
             } else {
@@ -405,7 +405,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", "executeNodeConfig");
-                            jsonObj.put("description", $.t("执行目标必须设置"));
+                            jsonObj.put("description", $.t("nfae.autoexecexecutenodeisrequiredexception.autoexecexecutenodeisrequiredexception"));
                             reasonList.add(jsonObj);
                         }
                     }
@@ -416,7 +416,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", "executeNodeConfig");
-                            jsonObj.put("description", $.t("服务目录未引用表单，不能映射表单属性"));
+                            jsonObj.put("description", $.t("nfae.autoexecservicenotreferencedformexception.autoexecservicenotreferencedformexception"));
                             reasonList.add(jsonObj);
                         }
                     } else if (StringUtils.isBlank((String) value)) {
@@ -425,7 +425,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", "executeNodeConfig");
-                            jsonObj.put("description", $.t("执行目标必须设置"));
+                            jsonObj.put("description", $.t("nfae.autoexecexecutenodeisrequiredexception.autoexecexecutenodeisrequiredexception"));
                             reasonList.add(jsonObj);
                         }
                     } else {
@@ -436,7 +436,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             } else {
                                 JSONObject jsonObj = new JSONObject();
                                 jsonObj.put("key", "executeNodeConfig");
-                                jsonObj.put("description", $.t("表单”{0}“中找不到“{1}”属性", formName, value));
+                                jsonObj.put("description", $.t("nmar.service.formattributenotfound", formName, value));
                                 reasonList.add(jsonObj);
                             }
                         }
@@ -470,7 +470,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                     } else {
                         JSONObject jsonObj = new JSONObject();
                         jsonObj.put("key", key);
-                        jsonObj.put("description", $.t("组合工具“{0}”的作业参数中没有“{1}”的参数", autoexecCombopVo.getName(), name + "(" + key + ")"));
+                        jsonObj.put("description", $.t("nfae.autoexecjobparamnotfoundexception.autoexecjobparamnotfoundexception", autoexecCombopVo.getName(), name + "(" + key + ")"));
                         reasonList.add(jsonObj);
                     }
                 } else if (!Objects.equals(runtimeParamMapping.getType(), runtimeParamVo.getType())) {
@@ -479,7 +479,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                     } else {
                         JSONObject jsonObj = new JSONObject();
                         jsonObj.put("key", key);
-                        jsonObj.put("description", $.t("组合工具“{0}”的作业参数“{1}“类型发生变化，由“{2}”变成“{3}”类型", autoexecCombopVo.getName(), name + "(" + key + ")", runtimeParamMapping.getType(), runtimeParamVo.getType()));
+                        jsonObj.put("description", $.t("nfae.autoexecjobparamtypechangedexception.autoexecjobparamtypechangedexception", autoexecCombopVo.getName(), name + "(" + key + ")", runtimeParamMapping.getType(), runtimeParamVo.getType()));
                         reasonList.add(jsonObj);
                     }
                 } else if (Objects.equals(mappingMode, ServiceParamMappingMode.CONSTANT.getValue())) {
@@ -489,7 +489,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", key);
-                            jsonObj.put("description", $.t("组合工具“{0}”的作业参数“{1}“必须设置", autoexecCombopVo.getName(), name + "(" + key + ")"));
+                            jsonObj.put("description", $.t("nfae.autoexecjobparamisrequiredexception.autoexecjobparamisrequiredexception", autoexecCombopVo.getName(), name + "(" + key + ")"));
                             reasonList.add(jsonObj);
                         }
                     }
@@ -500,7 +500,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", key);
-                            jsonObj.put("description", $.t("服务目录未引用表单，不能映射表单属性"));
+                            jsonObj.put("description", $.t("nfae.autoexecservicenotreferencedformexception.autoexecservicenotreferencedformexception"));
                             reasonList.add(jsonObj);
                         }
                     } else if (StringUtils.isBlank((String) value)) {
@@ -509,7 +509,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", key);
-                            jsonObj.put("description", $.t("组合工具“{0}”的作业参数“{1}“必须设置", autoexecCombopVo.getName(), name + "(" + key + ")"));
+                            jsonObj.put("description", $.t("nfae.autoexecjobparamisrequiredexception.autoexecjobparamisrequiredexception", autoexecCombopVo.getName(), name + "(" + key + ")"));
                             reasonList.add(jsonObj);
                         }
                     } else {
@@ -520,7 +520,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             } else {
                                 JSONObject jsonObj = new JSONObject();
                                 jsonObj.put("key", key);
-                                jsonObj.put("description", $.t("表单”{0}“中找不到“{1}”属性", formName, value));
+                                jsonObj.put("description", $.t("nmar.service.formattributenotfound", formName, value));
                                 reasonList.add(jsonObj);
                             }
                         }
@@ -532,7 +532,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", key);
-                            jsonObj.put("description", $.t("组合工具“{0}”的作业参数“{1}“不能为空", autoexecCombopVo.getName(), name + "(" + key + ")"));
+                            jsonObj.put("description", $.t("nfae.autoexecjobparamcannotbeemptyexception.autoexecjobparamcannotbeemptyexception", autoexecCombopVo.getName(), name + "(" + key + ")"));
                             reasonList.add(jsonObj);
                         }
                     }
@@ -543,7 +543,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         } else {
                             JSONObject jsonObj = new JSONObject();
                             jsonObj.put("key", key);
-                            jsonObj.put("description", $.t("组合工具“{0}”的作业参数“{1}“必须设置", autoexecCombopVo.getName(), name + "(" + key + ")"));
+                            jsonObj.put("description", $.t("nfae.autoexecjobparamisrequiredexception.autoexecjobparamisrequiredexception", autoexecCombopVo.getName(), name + "(" + key + ")"));
                             reasonList.add(jsonObj);
                         }
                     }
@@ -558,7 +558,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                 } else {
                     JSONObject jsonObj = new JSONObject();
                     jsonObj.put("key", runtimeParamVo.getKey());
-                    jsonObj.put("description", $.t("组合工具“{0}”的作业参数“{1}“必须设置", autoexecCombopVo.getName(), runtimeParamVo.getName() + "(" + runtimeParamVo.getKey() + ")"));
+                    jsonObj.put("description", $.t("nfae.autoexecjobparamisrequiredexception.autoexecjobparamisrequiredexception", autoexecCombopVo.getName(), runtimeParamVo.getName() + "(" + runtimeParamVo.getKey() + ")"));
                     reasonList.add(jsonObj);
                 }
             }
@@ -686,7 +686,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         if (StringUtils.isNotBlank(parallelPolicy)) {
                             builder.setParallelPolicy(parallelPolicy);
                         } else {
-                            throw new ParamNotExistsException("并发策略(parallel)必须设置， 请联系管理员重新编辑该服务");
+                            throw new ParamNotExistsException($.t("nmar.service.parallelpolicyrequired"));
                         }
                     }
                 }
@@ -708,7 +708,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             if (roundCount != null) {
                                 builder.setRoundCount(roundCount);
                             } else {
-                                throw new ParamNotExistsException("分批数量(roundCount)必须设置， 请联系管理员重新编辑该服务");
+                                throw new ParamNotExistsException($.t("nmar.service.roundcountrequired"));
                             }
                         }
                     }
@@ -730,7 +730,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             if (parallelCount != null) {
                                 builder.setParallelCount(parallelCount);
                             } else {
-                                throw new ParamNotExistsException("并发数量(roundCount)必须设置， 请联系管理员重新编辑该服务");
+                                throw new ParamNotExistsException($.t("nmar.service.parallelcountrequired"));
                             }
                         }
                     }
@@ -761,7 +761,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                             paramMappingVo.setValue(executeUser);
                             executeConfigVo.setExecuteUser(paramMappingVo);
                         } else {
-                            throw new ParamNotExistsException("执行用户(executeUser)必须设置， 请联系管理员重新编辑该服务");
+                            throw new ParamNotExistsException($.t("nmar.service.executeuserrequired"));
                         }
                     }
                 }
@@ -784,7 +784,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         if (protocol != null) {
                             executeConfigVo.setProtocolId(protocol);
                         } else {
-                            throw new ParamNotExistsException("连接协议(protocol)必须设置， 请联系管理员重新编辑该服务");
+                            throw new ParamNotExistsException($.t("nmar.service.protocolrequired"));
                         }
                     }
                 }
@@ -814,7 +814,7 @@ public class AutoexecServiceServiceImpl implements AutoexecServiceService {
                         }
                     } else {
                         if (executeNodeConfig.isNull()) {
-                            throw new ParamNotExistsException("执行目标(executeNodeConfig)必须设置， 请联系管理员重新编辑该服务");
+                            throw new ParamNotExistsException($.t("nmar.service.targetrequired"));
                         } else {
                             executeConfigVo.setExecuteNodeConfig(executeNodeConfig);
                         }

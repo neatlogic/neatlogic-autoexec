@@ -44,7 +44,7 @@ public class AutoexecRiskListApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取操作级别列表";
+        return "nmaa.autoexecrisklistapi.getname";
     }
 
     @Override
@@ -55,9 +55,9 @@ public class AutoexecRiskListApi extends PrivateApiComponentBase {
     @Input({
     })
     @Output({
-            @Param(type = ApiParamType.JSONARRAY, explode = ValueTextVo[].class, desc = "操作级别列表"),
+            @Param(type = ApiParamType.JSONARRAY, explode = ValueTextVo[].class, desc = "term.autoexec.risklist"),
     })
-    @Description(desc = "获取操作级别列表")
+    @Description(desc = "nmaa.autoexecrisklistapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         List<ValueTextVo> riskList = autoexecRiskMapper.getAllActiveRisk();

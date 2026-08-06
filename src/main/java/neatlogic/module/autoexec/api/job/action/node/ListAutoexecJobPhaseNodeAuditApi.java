@@ -37,7 +37,7 @@ import org.springframework.stereotype.Service;
 public class ListAutoexecJobPhaseNodeAuditApi extends PrivateApiComponentBase {
     @Override
     public String getName() {
-        return "获取作业剧本节点操作记录";
+        return "nmaa.listautoexecjobphasenodeauditapi.getname";
     }
 
     @Override
@@ -46,14 +46,14 @@ public class ListAutoexecJobPhaseNodeAuditApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本Id"),
-            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id"),
-            @Param(name = "sqlName", type = ApiParamType.STRING, desc = "sql名")
+            @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.jobphaseid"),
+            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "term.cmdb.resourceid"),
+            @Param(name = "sqlName", type = ApiParamType.STRING, desc = "term.autoexec.jobsqlname")
     })
     @Output({
-            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecJobPhaseNodeAuditVo[].class, desc = "节点操作记录列表")
+            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecJobPhaseNodeAuditVo[].class, desc = "term.autoexec.nodeauditlist")
     })
-    @Description(desc = "获取作业剧本节点操作记录")
+    @Description(desc = "nmaa.listautoexecjobphasenodeauditapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecJobVo jobVo = new AutoexecJobVo();

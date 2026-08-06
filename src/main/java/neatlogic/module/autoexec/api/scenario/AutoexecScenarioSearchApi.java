@@ -40,7 +40,7 @@ public class AutoexecScenarioSearchApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "查询场景列表";
+        return "nmaa.autoexecscenariosearchapi.getname";
     }
 
     @Override
@@ -54,13 +54,13 @@ public class AutoexecScenarioSearchApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
-            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
-            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
-            @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "默认值"),
-            @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true")
+            @Param(name = "keyword", type = ApiParamType.STRING, desc = "common.keyword", xss = true),
+            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "common.currentpage"),
+            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "common.pagesize"),
+            @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "term.autoexec.defaultvalue"),
+            @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "nmaa.common.input.param.desc.needpage")
     })
-    @Description(desc = "查询场景列表")
+    @Description(desc = "nmaa.autoexecscenariosearchapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecScenarioVo paramScenarioVo = new AutoexecScenarioVo();

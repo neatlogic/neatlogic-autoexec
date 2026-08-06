@@ -35,7 +35,7 @@ public class AutoexecCatalogTreeSearchApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "查询工具目录(树结构)";
+        return "nmaa.autoexeccatalogtreesearchapi.getname";
     }
 
     @Override
@@ -44,13 +44,13 @@ public class AutoexecCatalogTreeSearchApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "主键ID"),
-            @Param(name = "keyword", type = ApiParamType.STRING, xss = true, desc = "关键字"),
+            @Param(name = "id", type = ApiParamType.LONG, desc = "nmaa.autoexeccatalogtreesearchapi.input.param.desc.id"),
+            @Param(name = "keyword", type = ApiParamType.STRING, xss = true, desc = "common.keyword"),
     })
     @Output({
-            @Param(name = "children", type = ApiParamType.JSONARRAY, explode = AutoexecCatalogVo[].class, desc = "工具目录架构集合")
+            @Param(name = "children", type = ApiParamType.JSONARRAY, explode = AutoexecCatalogVo[].class, desc = "nmaa.autoexeccatalogtreesearchapi.output.param.desc.children")
     })
-    @Description(desc = "查询工具目录(树结构)")
+    @Description(desc = "nmaa.autoexeccatalogtreesearchapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();

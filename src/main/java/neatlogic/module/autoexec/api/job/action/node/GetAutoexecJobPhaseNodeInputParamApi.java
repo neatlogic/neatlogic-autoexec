@@ -38,7 +38,7 @@ public class GetAutoexecJobPhaseNodeInputParamApi extends PrivateApiComponentBas
 
     @Override
     public String getName() {
-        return "获取作业节点输出参数";
+        return "nmaa.getautoexecjobphasenodeinputparamapi.getname";
     }
 
     @Override
@@ -47,13 +47,13 @@ public class GetAutoexecJobPhaseNodeInputParamApi extends PrivateApiComponentBas
     }
 
     @Input({
-            @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本Id"),
-            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id")
+            @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.jobphaseid"),
+            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "term.cmdb.resourceid")
     })
     @Output({
-            @Param(explode = AutoexecJobPhaseNodeOperationStatusVo[].class, desc = "作业剧本节点操作状态列表"),
+            @Param(explode = AutoexecJobPhaseNodeOperationStatusVo[].class, desc = "term.autoexec.jobphasenodetoolstatuslist"),
     })
-    @Description(desc = "获取作业节点输出参数")
+    @Description(desc = "nmaa.getautoexecjobphasenodeinputparamapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecJobVo jobVo = new AutoexecJobVo();

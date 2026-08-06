@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.script.paramtype;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.ParamType;
@@ -51,7 +53,7 @@ public class ScriptParamTypeDate extends ScriptParamTypeBase {
      */
     @Override
     public String getDescription() {
-        return "日期选择器";
+        return $.t("nmaspt.common.description.date");
     }
 
     /**
@@ -75,7 +77,7 @@ public class ScriptParamTypeDate extends ScriptParamTypeBase {
             {
                 this.put("type", "date");
                 this.put("format", "yyyy-MM-dd");
-                this.put("placeholder", "请选择日期");
+                this.put("placeholder", $.t("nmaspt.scriptparamtypedate.placeholder"));
             }
         };
     }

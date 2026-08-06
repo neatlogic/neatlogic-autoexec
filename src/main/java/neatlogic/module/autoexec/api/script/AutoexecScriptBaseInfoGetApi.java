@@ -44,7 +44,7 @@ public class AutoexecScriptBaseInfoGetApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "查看脚本基本信息";
+        return "nmaa.autoexecscriptbaseinfogetapi.getname";
     }
 
     @Override
@@ -53,12 +53,12 @@ public class AutoexecScriptBaseInfoGetApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "脚本ID"),
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.scriptid"),
     })
     @Output({
-            @Param(name = "Return", explode = AutoexecScriptVo.class, desc = "脚本内容"),
+            @Param(name = "Return", explode = AutoexecScriptVo.class, desc = "nmaa.autoexecscriptbaseinfogetapi.output.param.desc.return"),
     })
-    @Description(desc = "查看脚本基本信息")
+    @Description(desc = "nmaa.autoexecscriptbaseinfogetapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");

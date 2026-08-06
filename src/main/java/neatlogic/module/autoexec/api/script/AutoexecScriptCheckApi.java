@@ -44,7 +44,7 @@ public class AutoexecScriptCheckApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "校验脚本内容";
+        return "nmaa.autoexecscriptcheckapi.getname";
     }
 
     @Override
@@ -53,13 +53,13 @@ public class AutoexecScriptCheckApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "parser", type = ApiParamType.STRING, isRequired = true, desc = "脚本解析器"),
-            @Param(name = "lineList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "脚本内容行数据列表,e.g:[{\"content\":\"#!/usr/bin/env bash\"},{\"content\":\"show_ascii_berry()\"}]"),
+            @Param(name = "parser", type = ApiParamType.STRING, isRequired = true, desc = "term.autoexec.scriptparser"),
+            @Param(name = "lineList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "nmaa.autoexecscriptcheckapi.input.param.desc.linelist"),
     })
     @Output({
-            @Param(type = ApiParamType.JSONARRAY, explode = AutoexecScriptLineVo[].class, desc = "经过校验后的行数据列表"),
+            @Param(type = ApiParamType.JSONARRAY, explode = AutoexecScriptLineVo[].class, desc = "nmaa.autoexecscriptcheckapi.output.param.desc.return"),
     })
-    @Description(desc = "校验脚本内容")
+    @Description(desc = "nmaa.autoexecscriptcheckapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         String parser = jsonObj.getString("parser");

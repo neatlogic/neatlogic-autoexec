@@ -47,7 +47,7 @@ public class AutoexecJobRunnerListApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取作业runner列表";
+        return "nmaa.autoexecjobrunnerlistapi.getname";
     }
 
     @Override
@@ -56,10 +56,10 @@ public class AutoexecJobRunnerListApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "作业Id")
+            @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.jobid")
     })
     @Output({
-            @Param(explode = RunnerVo.class, desc = "runner 列表")
+            @Param(explode = RunnerVo.class, desc = "nmaa.autoexecjobrunnerlistapi.output.param.desc.return")
     })
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {

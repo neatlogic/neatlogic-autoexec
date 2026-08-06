@@ -65,7 +65,7 @@ public class AutoexecCombopDeleteApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "删除组合工具";
+        return "nmaa.autoexeccombopdeleteapi.getname";
     }
 
     @Override
@@ -74,9 +74,9 @@ public class AutoexecCombopDeleteApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "主键id")
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "nmaa.autoexeccombopdeleteapi.input.param.desc.id")
     })
-    @Description(desc = "删除组合工具")
+    @Description(desc = "nmaa.autoexeccombopdeleteapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");

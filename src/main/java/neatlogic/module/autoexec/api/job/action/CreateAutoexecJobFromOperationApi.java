@@ -66,7 +66,7 @@ public class CreateAutoexecJobFromOperationApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "作业创建（来自 工具库|自定义工具库）";
+        return "nmaa.createautoexecjobfromoperationapi.getname";
     }
 
     @Override
@@ -75,15 +75,15 @@ public class CreateAutoexecJobFromOperationApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "operationId", type = ApiParamType.LONG, isRequired = true, desc = "自定义工具库版本ID|工具库ID"),
-            @Param(name = "param", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "执行参数"),
-            @Param(name = "type", type = ApiParamType.ENUM, rule = "script,tool", isRequired = true, desc = "类型 script|tool   自定义工具库|工具库"),
-            @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, desc = "执行目标", isRequired = true),
-            @Param(name = "argumentMappingList", type = ApiParamType.JSONARRAY, desc = "自由参数"),
+            @Param(name = "operationId", type = ApiParamType.LONG, isRequired = true, desc = "nmaa.createautoexecjobfromoperationapi.input.param.desc.operationid"),
+            @Param(name = "param", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "nmaa.createautoexecjobfromoperationapi.input.param.desc.param"),
+            @Param(name = "type", type = ApiParamType.ENUM, rule = "script,tool", isRequired = true, desc = "nmaa.createautoexecjobfromoperationapi.input.param.desc.type"),
+            @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, desc = "nmaa.createautoexecjobfromoperationapi.input.param.desc.executeconfig", isRequired = true),
+            @Param(name = "argumentMappingList", type = ApiParamType.JSONARRAY, desc = "nmaa.createautoexecjobfromoperationapi.input.param.desc.argumentmappinglist"),
     })
     @Output({
     })
-    @Description(desc = "作业创建（来自 工具库|自定义工具库）")
+    @Description(desc = "nmaa.createautoexecjobfromoperationapi.getname")
     @ResubmitInterval(value = 2)
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {

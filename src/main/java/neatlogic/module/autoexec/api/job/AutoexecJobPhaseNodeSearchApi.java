@@ -51,7 +51,7 @@ public class AutoexecJobPhaseNodeSearchApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "搜索作业剧本节点";
+        return "nmaa.autoexecjobphasenodesearchapi.getname";
     }
 
     @Override
@@ -60,21 +60,21 @@ public class AutoexecJobPhaseNodeSearchApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobPhaseId", type = ApiParamType.LONG, desc = "作业剧本id", isRequired = true),
-            @Param(name = "statusList", type = ApiParamType.JSONARRAY, desc = "作业状态"),
-            @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词(节点名称或ip)", xss = true),
-            @Param(name = "isDelete", type = ApiParamType.STRING, desc = "是否删除"),
-            @Param(name = "nodeIdList", type = ApiParamType.JSONARRAY, desc = "作业阶段节点idList,用于刷新节点"),
-            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
-            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
+            @Param(name = "jobPhaseId", type = ApiParamType.LONG, desc = "term.autoexec.jobphaseid", isRequired = true),
+            @Param(name = "statusList", type = ApiParamType.JSONARRAY, desc = "term.autoexec.jobstatuslist"),
+            @Param(name = "keyword", type = ApiParamType.STRING, desc = "nmaa.common.input.param.desc.nodekeyword", xss = true),
+            @Param(name = "isDelete", type = ApiParamType.STRING, desc = "nmaa.common.input.param.desc.isdeleted"),
+            @Param(name = "nodeIdList", type = ApiParamType.JSONARRAY, desc = "nmaa.autoexecjobphasenodesearchapi.input.param.desc.nodeidlist"),
+            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "common.currentpage"),
+            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "common.pagesize"),
     })
     @Output({
-            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecJobPhaseNodeVo[].class, desc = "列表"),
-            @Param(name = "status", type = ApiParamType.STRING, desc = "作业状态"),
-            @Param(name = "statusName", type = ApiParamType.STRING, desc = "作业状态名"),
+            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecJobPhaseNodeVo[].class, desc = "nmaa.common.output.param.desc.datalist"),
+            @Param(name = "status", type = ApiParamType.STRING, desc = "term.autoexec.jobstatuslabel"),
+            @Param(name = "statusName", type = ApiParamType.STRING, desc = "term.autoexec.jobstatusname"),
             @Param(explode = BasePageVo.class),
     })
-    @Description(desc = "作业剧本节点搜索接口")
+    @Description(desc = "nmaa.autoexecjobphasenodesearchapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecJobPhaseNodeVo jobPhaseNodeVo = JSONObject.toJavaObject(jsonObj, AutoexecJobPhaseNodeVo.class);

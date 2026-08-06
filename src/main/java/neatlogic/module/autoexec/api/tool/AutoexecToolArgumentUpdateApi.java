@@ -44,7 +44,7 @@ public class AutoexecToolArgumentUpdateApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "工具argument结构转换";
+        return "nmaa.autoexectoolargumentupdateapi.getname";
     }
 
     @Override
@@ -56,7 +56,7 @@ public class AutoexecToolArgumentUpdateApi extends PrivateApiComponentBase {
     })
     @Output({
     })
-    @Description(desc = "工具argument结构转换")
+    @Description(desc = "nmaa.autoexectoolargumentupdateapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         List<AutoexecToolVo> allTool = autoexecToolMapper.getAllTool();

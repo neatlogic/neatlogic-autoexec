@@ -40,7 +40,7 @@ public class GetAutoexecJobEnvApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取作业环境";
+        return "nmaa.getautoexecjobenvapi.getname";
     }
 
     @Override
@@ -49,12 +49,12 @@ public class GetAutoexecJobEnvApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true)
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true)
     })
     @Output({
-            @Param(explode = AutoexecJobVo.class, desc = "列表"),
+            @Param(explode = AutoexecJobVo.class, desc = "nmaa.getautoexecjobenvapi.output.param.desc.return"),
     })
-    @Description(desc = "获取作业详情")
+    @Description(desc = "nmaa.getautoexecjobenvapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");

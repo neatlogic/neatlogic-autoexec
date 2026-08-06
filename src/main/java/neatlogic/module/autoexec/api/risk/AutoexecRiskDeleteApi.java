@@ -42,7 +42,7 @@ public class AutoexecRiskDeleteApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "删除操作级别";
+        return "nmaa.autoexecriskdeleteapi.getname";
     }
 
     @Override
@@ -55,7 +55,7 @@ public class AutoexecRiskDeleteApi extends PrivateApiComponentBase {
     })
     @Output({
     })
-    @Description(desc = "删除操作级别")
+    @Description(desc = "nmaa.autoexecriskdeleteapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");

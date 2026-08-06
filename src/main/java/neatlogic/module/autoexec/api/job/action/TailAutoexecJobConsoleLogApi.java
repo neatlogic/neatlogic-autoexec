@@ -49,7 +49,7 @@ public class TailAutoexecJobConsoleLogApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取作业console日志";
+        return "nmaa.tailautoexecjobconsolelogapi.getname";
     }
 
     @Override
@@ -61,20 +61,20 @@ public class TailAutoexecJobConsoleLogApi extends PrivateApiComponentBase {
     private AutoexecJobMapper autoexecJobMapper;
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "作业Id"),
+            @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.jobid"),
             @Param(name = "runnerId", type = ApiParamType.LONG, isRequired = true, desc = "runnerId"),
-            @Param(name = "logPos", type = ApiParamType.LONG, isRequired = true, desc = "日志读取位置,-1:获取最新的数据"),
-            @Param(name = "status", type = ApiParamType.STRING, desc = "当前作业状态"),
-            @Param(name = "direction", type = ApiParamType.ENUM, rule = "up,down", isRequired = true, desc = "读取方向，up:向上读，down:向下读"),
-            @Param(name = "encoding", type = ApiParamType.STRING, desc = "字符编码", defaultValue = "UTF-8")
+            @Param(name = "logPos", type = ApiParamType.LONG, isRequired = true, desc = "nmaa.tailautoexecjobconsolelogapi.input.param.desc.logpos"),
+            @Param(name = "status", type = ApiParamType.STRING, desc = "nmaa.tailautoexecjobconsolelogapi.input.param.desc.status"),
+            @Param(name = "direction", type = ApiParamType.ENUM, rule = "up,down", isRequired = true, desc = "nmaa.common.input.param.desc.logdirection"),
+            @Param(name = "encoding", type = ApiParamType.STRING, desc = "term.autoexec.encoding", defaultValue = "UTF-8")
     })
     @Output({
-            @Param(name = "tailContent", type = ApiParamType.LONG, isRequired = true, desc = "内容"),
-            @Param(name = "startPos", type = ApiParamType.LONG, isRequired = true, desc = "日志读取开始位置"),
-            @Param(name = "endPos", type = ApiParamType.LONG, isRequired = true, desc = "日志读取结束位置"),
-            @Param(name = "logPos", type = ApiParamType.LONG, isRequired = true, desc = "读取到的位置"),
-            @Param(name = "last", type = ApiParamType.LONG, isRequired = true, desc = "日志读取内容"),
-            @Param(name = "isRefresh", type = ApiParamType.INTEGER, isRequired = true, desc = "是否需要继续定时刷新，1:继续 0:停止")
+            @Param(name = "tailContent", type = ApiParamType.LONG, isRequired = true, desc = "nmaa.common.output.param.desc.tailcontent"),
+            @Param(name = "startPos", type = ApiParamType.LONG, isRequired = true, desc = "nmaa.common.output.param.desc.logstartposition"),
+            @Param(name = "endPos", type = ApiParamType.LONG, isRequired = true, desc = "nmaa.common.output.param.desc.logendposition"),
+            @Param(name = "logPos", type = ApiParamType.LONG, isRequired = true, desc = "nmaa.common.output.param.desc.logposition"),
+            @Param(name = "last", type = ApiParamType.LONG, isRequired = true, desc = "nmaa.common.output.param.desc.logcontent"),
+            @Param(name = "isRefresh", type = ApiParamType.INTEGER, isRequired = true, desc = "nmaa.common.output.param.desc.isrefresh")
     })
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {

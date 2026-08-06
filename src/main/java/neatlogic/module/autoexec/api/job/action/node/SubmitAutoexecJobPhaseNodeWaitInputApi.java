@@ -57,7 +57,7 @@ public class SubmitAutoexecJobPhaseNodeWaitInputApi extends PrivateApiComponentB
 
     @Override
     public String getName() {
-        return "提交作业节点waitInput";
+        return "nmaa.submitautoexecjobphasenodewaitinputapi.getname";
     }
 
     @Override
@@ -66,15 +66,15 @@ public class SubmitAutoexecJobPhaseNodeWaitInputApi extends PrivateApiComponentB
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
-            @Param(name = "jobPhaseId", type = ApiParamType.STRING, desc = "作业阶段Id", isRequired = true),
-            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id"),
-            @Param(name = "sqlName", type = ApiParamType.STRING, desc = "sql名"),
-            @Param(name = "option", type = ApiParamType.STRING, desc = "提交选项", isRequired = true)
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
+            @Param(name = "jobPhaseId", type = ApiParamType.STRING, desc = "term.autoexec.jobphaseid", isRequired = true),
+            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "term.cmdb.resourceid"),
+            @Param(name = "sqlName", type = ApiParamType.STRING, desc = "term.autoexec.jobsqlname"),
+            @Param(name = "option", type = ApiParamType.STRING, desc = "nmaa.submitautoexecjobphasenodewaitinputapi.input.param.desc.option", isRequired = true)
     })
     @Output({
     })
-    @Description(desc = "提交作业节点waitInput接口")
+    @Description(desc = "nmaa.submitautoexecjobphasenodewaitinputapi.getname")
     @ResubmitInterval(value = 5)
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {

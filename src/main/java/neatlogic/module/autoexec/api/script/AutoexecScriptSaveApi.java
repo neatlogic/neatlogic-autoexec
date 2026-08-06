@@ -73,15 +73,15 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "common.id", help = "没有id和versionId,表示首次创建脚本;有id没有versionId,表示新增一个版本;没有id有versionId,表示编辑某个版本"),
+            @Param(name = "id", type = ApiParamType.LONG, desc = "common.id", help = "nmaa.autoexecscriptsaveapi.input.param.help.id"),
             @Param(name = "versionId", type = ApiParamType.LONG, desc = "common.versionid"),
-//            @Param(name = "uk", type = ApiParamType.REGEX, rule = "^[A-Za-z]+$", isRequired = true, xss = true, desc = "唯一标识"),
+//            @Param(name = "uk", type = ApiParamType.REGEX, rule = "^[A-Za-z]+$", isRequired = true, xss = true, desc = "term.autoexec.uniquekey"),
             @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, maxLength = 50, isRequired = true, xss = true, desc = "common.name"),
             @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sqlfile,native,null", desc = "term.autoexec.execmode"),
             @Param(name = "typeId", type = ApiParamType.LONG, desc = "term.autoexec.typeid", isRequired = true),
             @Param(name = "catalogId", type = ApiParamType.LONG, desc = "term.autoexec.catalogid", isRequired = true),
             @Param(name = "riskId", type = ApiParamType.LONG, desc = "term.autoexec.riskid"),
-            @Param(name = "isLib", type = ApiParamType.INTEGER, desc = "term.autoexec.islib", isRequired = true, help = "1：是，0：否，默认否"),
+            @Param(name = "isLib", type = ApiParamType.INTEGER, desc = "term.autoexec.islib", isRequired = true, help = "nmaa.autoexecscriptsaveapi.input.param.help.islib"),
             @Param(name = "userLib", type = ApiParamType.JSONARRAY, desc = "term.autoexec.userlib"),
             @Param(name = "customTemplateId", type = ApiParamType.LONG, desc = "term.autoexec.customtemplateid"),
             @Param(name = "description", type = ApiParamType.STRING, desc = "common.description"),
@@ -96,7 +96,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
     @Output({
             @Param(name = "id", type = ApiParamType.LONG, desc = "common.id"),
             @Param(name = "versionId", type = ApiParamType.LONG, desc = "common.versionid"),
-            @Param(name = "isReviewable", type = ApiParamType.ENUM, rule = "0,1", desc = "common.isreviewable", help = "1:能;0:不能"),
+            @Param(name = "isReviewable", type = ApiParamType.ENUM, rule = "0,1", desc = "common.isreviewable", help = "nmaa.autoexecscriptsaveapi.output.param.help.isreviewable"),
     })
     @Description(desc = "nmaas.autoexecscriptsaveapi.getname")
     @Override

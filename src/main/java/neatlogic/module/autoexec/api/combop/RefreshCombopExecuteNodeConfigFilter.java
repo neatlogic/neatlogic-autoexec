@@ -45,9 +45,9 @@ public class RefreshCombopExecuteNodeConfigFilter extends PrivateApiComponentBas
     AutoexecCombopVersionMapper autoexecCombopVerMapper;
 
     @Input({
-            @Param(name = "combopId", type = ApiParamType.LONG, desc = "组合工具ID")
+            @Param(name = "combopId", type = ApiParamType.LONG, desc = "term.autoexec.combopid")
     })
-    @Description(desc = "刷新历史执行时再指定执行目标的过滤器到前置过滤器")
+    @Description(desc = "nmaa.refreshcombopexecutenodeconfigfilter.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long combopId = paramObj.getLong("combopId");
@@ -116,6 +116,6 @@ public class RefreshCombopExecuteNodeConfigFilter extends PrivateApiComponentBas
 
     @Override
     public String getName() {
-        return "刷新历史执行时再指定执行目标的过滤器";
+        return "nmaa.refreshcombopexecutenodeconfigfilter.getname";
     }
 }

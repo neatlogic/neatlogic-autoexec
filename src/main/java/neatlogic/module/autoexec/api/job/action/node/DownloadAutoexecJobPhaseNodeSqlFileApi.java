@@ -29,7 +29,7 @@ public class DownloadAutoexecJobPhaseNodeSqlFileApi extends PrivateBinaryStreamA
 
     @Override
     public String getName() {
-        return "下载节点sql文件";
+        return "nmaa.downloadautoexecjobphasenodesqlfileapi.getname";
     }
 
     @Override
@@ -43,10 +43,10 @@ public class DownloadAutoexecJobPhaseNodeSqlFileApi extends PrivateBinaryStreamA
     }
 
     @Input({
-            @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本Id"),
-            @Param(name = "resourceId", type = ApiParamType.LONG, isRequired = true, desc = "资源Id"),
+            @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.jobphaseid"),
+            @Param(name = "resourceId", type = ApiParamType.LONG, isRequired = true, desc = "term.cmdb.resourceid"),
             @Param(name = "sqlId", type = ApiParamType.LONG, isRequired = true, desc = "sql id"),
-            @Param(name = "sqlName", type = ApiParamType.STRING, isRequired = true, desc = "sql名")
+            @Param(name = "sqlName", type = ApiParamType.STRING, isRequired = true, desc = "term.autoexec.jobsqlname")
     })
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {

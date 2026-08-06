@@ -34,7 +34,7 @@ public class AutoexecGlobalParamGetApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取自动化全局参数";
+        return "nmaa.autoexecglobalparamgetapi.getname";
     }
 
     @Override
@@ -48,9 +48,9 @@ public class AutoexecGlobalParamGetApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "参数id")
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.globalparamid")
     })
-    @Description(desc = "获取自动化全局参数接口")
+    @Description(desc = "nmaa.autoexecglobalparamgetapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long paramId = paramObj.getLong("id");

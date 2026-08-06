@@ -15,6 +15,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 package neatlogic.module.autoexec.api.script;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONException;
 import com.alibaba.fastjson.JSONObject;
@@ -116,7 +118,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
 
     @Override
     public String getName() {
-        return "导入脚本";
+        return "nmaa.autoexecscriptimportapi.getname";
     }
 
     @Override
@@ -125,15 +127,15 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
     }
 
     @Input({
-            @Param(name = "isReplace", type = ApiParamType.INTEGER, desc = "是否覆盖原来的待审核脚本，默认不覆盖"),
-            @Param(name = "scriptIdList", type = ApiParamType.STRING, desc = "需要导入的脚本id列表"),
+            @Param(name = "isReplace", type = ApiParamType.INTEGER, desc = "nmaa.autoexecscriptimportapi.input.param.desc.isreplace"),
+            @Param(name = "scriptIdList", type = ApiParamType.STRING, desc = "nmaa.autoexecscriptimportapi.input.param.desc.scriptidlist"),
     })
     @Output({
-            @Param(name = "successCount", type = ApiParamType.INTEGER, desc = "导入成功数量"),
-            @Param(name = "failureCount", type = ApiParamType.INTEGER, desc = "导入失败数量"),
-            @Param(name = "failureReasonList", type = ApiParamType.JSONARRAY, desc = "失败原因")
+            @Param(name = "successCount", type = ApiParamType.INTEGER, desc = "nmaa.autoexecscriptimportapi.output.param.desc.successcount"),
+            @Param(name = "failureCount", type = ApiParamType.INTEGER, desc = "nmaa.autoexecscriptimportapi.output.param.desc.failurecount"),
+            @Param(name = "failureReasonList", type = ApiParamType.JSONARRAY, desc = "nmaa.autoexecscriptimportapi.output.param.desc.failurereasonlist")
     })
-    @Description(desc = "导入脚本")
+    @Description(desc = "nmaa.autoexecscriptimportapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         JSONObject resultObj = new JSONObject();
@@ -307,7 +309,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
         Long typeId = autoexecTypeMapper.getTypeIdByName(scriptVo.getTypeName());
         scriptVo.setTypeId(typeId);
         if (typeId == null) {
-            failReasonList.add("不存在的工具类型：" + scriptVo.getTypeName());
+            failReasonList.add($.t("nmar.import.invalidtype") + scriptVo.getTypeName());
         }
         // 根据全目录名称匹配，只有当目录存在时才保存目录id，目录名称为空或目录不存在时，挂在所有下
         scriptVo.setCatalogId(AutoexecCatalogVo.ROOT_ID);
@@ -323,10 +325,10 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
             Long risk = autoexecRiskMapper.getRiskIdByName(scriptVo.getRiskName());
             scriptVo.setRiskId(risk);
             if (risk == null) {
-                failReasonList.add("不存在的操作级别：" + scriptVo.getRiskName());
+                failReasonList.add($.t("nmar.import.invalidrisk") + scriptVo.getRiskName());
             }
             if (ScriptExecMode.getExecMode(scriptVo.getExecMode()) == null) {
-                failReasonList.add("不存在的执行方式：" + scriptVo.getExecMode());
+                failReasonList.add($.t("nmar.import.invalidexecmode") + scriptVo.getExecMode());
             }
         }
 
@@ -361,18 +363,18 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                 failReasonList.add(ex.getMessage());
             }
             if (StringUtils.isBlank(scriptVo.getParser())) {
-                failReasonList.add("脚本解析器为空");
+                failReasonList.add($.t("nmar.import.parserempty"));
             } else if (ScriptParser.getScriptParser(scriptVo.getParser()) == null) {
-                failReasonList.add("不存在的脚本解析器[" + scriptVo.getParser() + "]");
+                failReasonList.add($.t("nmar.import.invalidparserprefix") + scriptVo.getParser() + "]");
             }
             if (StringUtils.equals(scriptVo.getParser(), ScriptParser.PACKAGE.getValue())) {
                 FileVo fileVo = scriptVo.getPackageFile();
                 if (fileVo == null) {
-                    failReasonList.add("脚本依赖包缺失");
+                    failReasonList.add($.t("nmar.import.packagemissing"));
                 } else {
                     fileVo.setId(null);
                     if (StringUtils.isNotEmpty(fileVo.getName()) && !fileVo.getName().endsWith(".tar")) {
-                        failReasonList.add("脚本依赖包必须是tar文件");
+                        failReasonList.add($.t("nmar.import.packagemustbetar"));
                     }
                     result.put("newPackageFileName", fileVo.getName());
                     result.put("newPackageFileId", fileVo.getId());
@@ -400,7 +402,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
 
 //            if (CollectionUtils.isNotEmpty(versionList)) {
 //                for (AutoexecScriptVersionVo versionVo : versionList) {
-//                    String versionStr = "版本-" + versionVo.getVersion() + "：";
+//                    String versionStr = $.t("nmar.import.versionprefix") + versionVo.getVersion() + "：";
 //                    AutoexecScriptArgumentVo argument = versionVo.getArgument();
 //                    try {
 //                        if (CollectionUtils.isNotEmpty(versionVo.getParamList())) {
@@ -414,10 +416,10 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
 //                        continue;
 //                    }
 //                    if (StringUtils.isBlank(versionVo.getParser())) {
-//                        failReasonList.add(versionStr + "脚本解析器为空");
+//                        failReasonList.add(versionStr + $.t("nmar.import.parserempty"));
 //                        continue;
 //                    } else if (ScriptParser.getScriptParser(versionVo.getParser()) == null) {
-//                        failReasonList.add(versionStr + "不存在的脚本解析器[" + versionVo.getParser() + "]");
+//                        failReasonList.add(versionStr + $.t("nmar.import.invalidparserprefix") + versionVo.getParser() + "]");
 //                        continue;
 //                    }
 //                    AutoexecScriptVersionVo oldVersion = autoexecScriptMapper.getVersionByVersionIdForUpdate(versionVo.getId());
@@ -454,7 +456,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
 //            }
         }
         if (CollectionUtils.isNotEmpty(failReasonList)) {
-            result.put("item", "导入：" + name + "时出现如下问题：");
+            result.put("item", $.t("nmar.import.detailprefix") + name + $.t("nmar.import.detailsuffix"));
             result.put("list", failReasonList);
         }
         return result;

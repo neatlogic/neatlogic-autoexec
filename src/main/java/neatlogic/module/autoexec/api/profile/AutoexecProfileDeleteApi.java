@@ -42,7 +42,7 @@ public class AutoexecProfileDeleteApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "删除自动化工具profile";
+        return "nmaa.autoexecprofiledeleteapi.getname";
     }
 
     @Override
@@ -58,7 +58,7 @@ public class AutoexecProfileDeleteApi extends PrivateApiComponentBase {
     @Input({
             @Param(name = "id", desc = "profile id", isRequired = true, type = ApiParamType.LONG)
     })
-    @Description(desc = "自动化工具profile删除接口")
+    @Description(desc = "nmaa.autoexecprofiledeleteapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long id = paramObj.getLong("id");

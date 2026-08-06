@@ -15,6 +15,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 package neatlogic.module.autoexec.api.script;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthAction;
@@ -73,7 +75,7 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
 
     @Override
     public String getName() {
-        return "导出脚本";
+        return "nmaa.autoexecscriptexportapi.getname";
     }
 
     @Override
@@ -82,11 +84,11 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
     }
 
     @Input({
-            @Param(name = "idList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "脚本ID列表"),
+            @Param(name = "idList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "term.autoexec.scriptidlist"),
     })
     @Output({
     })
-    @Description(desc = "导出脚本")
+    @Description(desc = "nmaa.autoexecscriptexportapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         List<Long> idList = paramObj.getJSONArray("idList").toJavaList(Long.class);
@@ -123,7 +125,7 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
         if (CollectionUtils.isNotEmpty(versionVoIncludeFileList)) {
             fileVoMap = versionVoIncludeFileList.stream().collect(Collectors.toMap(AutoexecScriptVersionVo::getScriptId, AutoexecScriptVersionVo::getPackageFile));
         }
-        String fileName = FileUtil.getEncodedFileName("自定义工具." + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak");
+        String fileName = FileUtil.getEncodedFileName($.t("nmar.export.scriptfilename") + new SimpleDateFormat("yyyyMMddHHmmss").format(new Date()) + ".pak");
         response.setContentType("application/zip");
         response.setHeader("Content-Disposition", " attachment; filename=\"" + fileName + "\"");
         try (ZipOutputStream zos = new ZipOutputStream(response.getOutputStream())) {

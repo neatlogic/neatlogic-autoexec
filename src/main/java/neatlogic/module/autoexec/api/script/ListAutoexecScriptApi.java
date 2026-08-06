@@ -44,7 +44,7 @@ public class ListAutoexecScriptApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "查询脚本列表";
+        return "nmaa.listautoexecscriptapi.getname";
     }
 
     @Override
@@ -58,19 +58,19 @@ public class ListAutoexecScriptApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
-            @Param(name = "typeIdList", type = ApiParamType.JSONARRAY, desc = "分类id列表"),
-            @Param(name = "versionStatus", type = ApiParamType.ENUM, rule = "draft,submitted,passed,rejected", desc = "状态"),
-            @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "用于回显的脚本id列表"),
-            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
-            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
-            @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true")
+            @Param(name = "keyword", type = ApiParamType.STRING, desc = "common.keyword", xss = true),
+            @Param(name = "typeIdList", type = ApiParamType.JSONARRAY, desc = "term.autoexec.typeidlist"),
+            @Param(name = "versionStatus", type = ApiParamType.ENUM, rule = "draft,submitted,passed,rejected", desc = "term.autoexec.versionstatus"),
+            @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "nmaa.listautoexecscriptapi.input.param.desc.defaultvalue"),
+            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "common.currentpage"),
+            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "common.pagesize"),
+            @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "nmaa.common.input.param.desc.needpage")
     })
     @Output({
-            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecScriptVo[].class, desc = "查询脚本列表"),
+            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecScriptVo[].class, desc = "nmaa.listautoexecscriptapi.output.param.desc.tbodylist"),
             @Param(explode = BasePageVo.class)
     })
-    @Description(desc = "脚本列表")
+    @Description(desc = "nmaa.listautoexecscriptapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecScriptVo scriptVo = JSON.toJavaObject(paramObj, AutoexecScriptVo.class);

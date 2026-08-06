@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.file;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthActionChecker;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
@@ -44,7 +46,7 @@ public class AutoexecFileHandler extends FileTypeHandlerBase {
 
     @Override
     public String getDisplayName() {
-        return "自动化附件";
+        return $.t("nmar.file.displayname");
     }
 
     @Override

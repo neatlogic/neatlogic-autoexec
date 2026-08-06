@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.script.paramtype;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.ParamType;
@@ -56,7 +58,7 @@ public class ScriptParamTypeAccount extends ScriptParamTypeBase {
      */
     @Override
     public String getDescription() {
-        return "服务的连接协议、账号，用户连接主机上的数据库，中间件等服务";
+        return $.t("nmaspt.scriptparamtypeaccount.description");
     }
 
     /**
@@ -79,7 +81,7 @@ public class ScriptParamTypeAccount extends ScriptParamTypeBase {
         return new JSONObject() {
             {
                 this.put("type", "account");
-                this.put("placeholder", "请选择");
+                this.put("placeholder", $.t("nmaspt.common.placeholder.select"));
             }
         };
     }

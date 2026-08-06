@@ -43,7 +43,7 @@ public class ListAutoexecJobPhaseOperationCustomTemplateApi extends PrivateApiCo
 
     @Override
     public String getName() {
-        return "获取阶段工具引用的自定义模版列表";
+        return "nmaa.listautoexecjobphaseoperationcustomtemplateapi.getname";
     }
 
     @Override
@@ -52,10 +52,10 @@ public class ListAutoexecJobPhaseOperationCustomTemplateApi extends PrivateApiCo
     }
 
     @Input({
-            @Param(name = "jobPhaseId", type = ApiParamType.LONG, desc = "作业阶段id", isRequired = true),
+            @Param(name = "jobPhaseId", type = ApiParamType.LONG, desc = "term.autoexec.jobphaseid", isRequired = true),
     })
     @Output({})
-    @Description(desc = "获取自动化作业阶段工具引用的自定义模版列表")
+    @Description(desc = "nmaa.listautoexecjobphaseoperationcustomtemplateapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         /*

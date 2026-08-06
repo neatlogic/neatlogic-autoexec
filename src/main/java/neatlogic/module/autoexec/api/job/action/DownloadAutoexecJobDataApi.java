@@ -59,7 +59,7 @@ public class DownloadAutoexecJobDataApi extends PrivateBinaryStreamApiComponentB
 
     @Override
     public String getName() {
-        return "下载作业data";
+        return "nmaa.downloadautoexecjobdataapi.getname";
     }
 
     @Override
@@ -74,8 +74,8 @@ public class DownloadAutoexecJobDataApi extends PrivateBinaryStreamApiComponentB
     private RunnerMapper runnerMapper;
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "作业Id"),
-            @Param(name = "runnerName", type = ApiParamType.STRING, desc = "执行器名")
+            @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.jobid"),
+            @Param(name = "runnerName", type = ApiParamType.STRING, desc = "nmaa.downloadautoexecjobdataapi.input.param.desc.runnername")
     })
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {

@@ -47,7 +47,7 @@ public class AutoexecScriptBaseInfoSaveApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "保存脚本基本信息";
+        return "nmaa.autoexecscriptbaseinfosaveapi.getname";
     }
 
     @Override
@@ -56,20 +56,20 @@ public class AutoexecScriptBaseInfoSaveApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "脚本ID"),
-            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, maxLength = 50, isRequired = true, xss = true, desc = "名称"),
-            @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sqlfile,native", desc = "执行方式"),
-            @Param(name = "typeId", type = ApiParamType.LONG, desc = "脚本分类ID", isRequired = true),
-            @Param(name = "catalogId", type = ApiParamType.LONG, desc = "工具目录ID", isRequired = true),
-            @Param(name = "riskId", type = ApiParamType.LONG, desc = "操作级别ID"),
-            @Param(name = "isLib", type = ApiParamType.INTEGER, desc = "是否库文件（1：是，0：否，默认否）", isRequired = true),
-            @Param(name = "customTemplateId", type = ApiParamType.LONG, desc = "自定义模版ID"),
-            @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
-            @Param(name = "defaultProfileId", type = ApiParamType.LONG, desc = "默认的profileId"),
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.scriptid"),
+            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, maxLength = 50, isRequired = true, xss = true, desc = "common.name"),
+            @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sqlfile,native", desc = "term.autoexec.execmode"),
+            @Param(name = "typeId", type = ApiParamType.LONG, desc = "term.autoexec.typeid", isRequired = true),
+            @Param(name = "catalogId", type = ApiParamType.LONG, desc = "term.autoexec.catalogid", isRequired = true),
+            @Param(name = "riskId", type = ApiParamType.LONG, desc = "term.autoexec.riskid"),
+            @Param(name = "isLib", type = ApiParamType.INTEGER, desc = "nmaa.common.input.param.desc.islib", isRequired = true),
+            @Param(name = "customTemplateId", type = ApiParamType.LONG, desc = "term.autoexec.customtemplateid"),
+            @Param(name = "description", type = ApiParamType.STRING, desc = "common.description"),
+            @Param(name = "defaultProfileId", type = ApiParamType.LONG, desc = "nmaa.autoexecscriptbaseinfosaveapi.input.param.desc.defaultprofileid"),
     })
     @Output({
     })
-    @Description(desc = "保存脚本基本信息")
+    @Description(desc = "nmaa.autoexecscriptbaseinfosaveapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecScriptVo scriptVo = JSON.toJavaObject(jsonObj, AutoexecScriptVo.class);

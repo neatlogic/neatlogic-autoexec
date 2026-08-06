@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.api.job;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
@@ -74,7 +76,7 @@ public class ExportAutoexecJobApi extends PrivateBinaryStreamApiComponentBase {
 
     @Override
     public String getName() {
-        return "导出作业";
+        return "nmaa.exportautoexecjobapi.getname";
     }
 
     @Override
@@ -83,9 +85,9 @@ public class ExportAutoexecJobApi extends PrivateBinaryStreamApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
     })
-    @Description(desc = "导出作业")
+    @Description(desc = "nmaa.exportautoexecjobapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         Long jobId = paramObj.getLong("jobId");
@@ -137,16 +139,16 @@ public class ExportAutoexecJobApi extends PrivateBinaryStreamApiComponentBase {
     private List<String> getHeadList(String execMode) {
         List<String> headList = new ArrayList<>();
         if (ExecMode.SQL.getValue().equals(execMode)) {
-            headList.add("文件名");
+            headList.add($.t("nmar.export.filename"));
         }
         headList.add("IP");
-        headList.add("节点名称");
-        headList.add("状态");
-        headList.add("耗时");
-        headList.add("开始时间");
-        headList.add("结束时间");
-        headList.add("执行代理");
-        headList.add("输出参数");
+        headList.add($.t("term.autoexec.nodename"));
+        headList.add($.t("common.status"));
+        headList.add($.t("common.timecost"));
+        headList.add($.t("common.starttime"));
+        headList.add($.t("common.endtime"));
+        headList.add($.t("nmar.export.runner"));
+        headList.add($.t("nmar.export.outputparameters"));
         return headList;
     }
 

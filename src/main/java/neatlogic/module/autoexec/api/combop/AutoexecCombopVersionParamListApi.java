@@ -50,7 +50,7 @@ public class AutoexecCombopVersionParamListApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "查询组合工具版本作业参数列表";
+        return "nmaa.autoexeccombopversionparamlistapi.getname";
     }
 
     @Override
@@ -59,12 +59,12 @@ public class AutoexecCombopVersionParamListApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "combopVersionId", type = ApiParamType.LONG, isRequired = true, desc = "组合工具版本ID")
+            @Param(name = "combopVersionId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.combopversionid")
     })
     @Output({
-            @Param(explode = AutoexecParamVo[].class, desc = "参数列表")
+            @Param(explode = AutoexecParamVo[].class, desc = "term.autoexec.paramlist")
     })
-    @Description(desc = "查询组合工具版本作业参数列表")
+    @Description(desc = "nmaa.autoexeccombopversionparamlistapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long combopVersionId = jsonObj.getLong("combopVersionId");

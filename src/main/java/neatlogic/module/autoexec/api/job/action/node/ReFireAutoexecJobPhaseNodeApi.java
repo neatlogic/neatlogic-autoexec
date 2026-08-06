@@ -48,7 +48,7 @@ public class ReFireAutoexecJobPhaseNodeApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "重跑作业节点";
+        return "nmaa.refireautoexecjobphasenodeapi.getname";
     }
 
     @Override
@@ -57,13 +57,13 @@ public class ReFireAutoexecJobPhaseNodeApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
-            @Param(name = "jobPhaseId", type = ApiParamType.LONG, desc = "作业phaseId", isRequired = true),
-            @Param(name = "resourceIdList", type = ApiParamType.JSONARRAY, desc = "重跑的节点资产idList", isRequired = true)
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
+            @Param(name = "jobPhaseId", type = ApiParamType.LONG, desc = "nmaa.refireautoexecjobphasenodeapi.input.param.desc.jobphaseid", isRequired = true),
+            @Param(name = "resourceIdList", type = ApiParamType.JSONARRAY, desc = "nmaa.refireautoexecjobphasenodeapi.input.param.desc.resourceidlist", isRequired = true)
     })
     @Output({
     })
-    @Description(desc = "重跑作业节点")
+    @Description(desc = "nmaa.refireautoexecjobphasenodeapi.getname")
     @ResubmitInterval(value = 5)
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {

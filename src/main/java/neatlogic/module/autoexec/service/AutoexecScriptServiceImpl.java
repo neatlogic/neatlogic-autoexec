@@ -15,6 +15,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.*/
 
 package neatlogic.module.autoexec.service;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
@@ -332,7 +334,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
                     OperateVo submit = new OperateVo(ScriptAndToolOperate.SUBMIT.getValue(), ScriptAndToolOperate.SUBMIT.getText());
                     if (autoexecScriptMapper.checkScriptHasSubmittedVersionByScriptId(version.getScriptId()) > 0) {
                         submit.setDisabled(1);
-                        submit.setDisabledReason("当前自定义工具已经有其他待审核版本");
+                        submit.setDisabledReason($.t("nmar.script.othersubmittedversion"));
                     }
                     operateList.add(submit);
                     operateList.add(new OperateVo(ScriptAndToolOperate.VALIDATE.getValue(), ScriptAndToolOperate.VALIDATE.getText()));
@@ -354,7 +356,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
                     OperateVo submit = new OperateVo(ScriptAndToolOperate.SUBMIT.getValue(), ScriptAndToolOperate.SUBMIT.getText());
                     if (autoexecScriptMapper.checkScriptHasSubmittedVersionByScriptId(version.getScriptId()) > 0) {
                         submit.setDisabled(1);
-                        submit.setDisabledReason("当前自定义工具已经有其他待审核版本");
+                        submit.setDisabledReason($.t("nmar.script.othersubmittedversion"));
                     }
                     operateList.add(submit);
                     operateList.add(new OperateVo(ScriptAndToolOperate.TEST.getValue(), ScriptAndToolOperate.TEST.getText()));
@@ -529,9 +531,9 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
             dependencyInfoConfig.put("versionStatus", version.getStatus());
             dependencyInfoConfig.put("versionStatusText", ScriptVersionStatus.getText(version.getStatus()));
             List<String> pathList = new ArrayList<>();
-            pathList.add("自定义工具库");
+            pathList.add($.t("nmar.script.library"));
             String lastName = scriptVo.getName();
-//            String pathFormatString =  "自定义工具库-${DATA.scriptName}";
+//            String pathFormatString =  $.t("nmar.script.notificationtitle");
             String urlFormat;
             //submitted的页面不一样
             if (Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), version.getStatus())) {

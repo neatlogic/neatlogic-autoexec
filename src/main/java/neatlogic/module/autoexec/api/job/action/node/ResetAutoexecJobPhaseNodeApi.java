@@ -49,7 +49,7 @@ public class ResetAutoexecJobPhaseNodeApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "重置作业节点";
+        return "nmaa.resetautoexecjobphasenodeapi.getname";
     }
 
     @Override
@@ -58,16 +58,16 @@ public class ResetAutoexecJobPhaseNodeApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
-            @Param(name = "jobPhaseId", type = ApiParamType.STRING, desc = "作业阶段Id", isRequired = true),
-            @Param(name = "sqlIdList", type = ApiParamType.JSONARRAY, desc = "sql文件列表"),
-            @Param(name = "resourceIdList", type = ApiParamType.JSONARRAY, desc = "作业节点资产idList"),
-            @Param(name = "isAll", type = ApiParamType.INTEGER, desc = "是否全部重置,1:是 0:否,则resourceIdList不能为空"),
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
+            @Param(name = "jobPhaseId", type = ApiParamType.STRING, desc = "term.autoexec.jobphaseid", isRequired = true),
+            @Param(name = "sqlIdList", type = ApiParamType.JSONARRAY, desc = "term.autoexec.sqlidlist"),
+            @Param(name = "resourceIdList", type = ApiParamType.JSONARRAY, desc = "term.autoexec.resourceidlist"),
+            @Param(name = "isAll", type = ApiParamType.INTEGER, desc = "nmaa.resetautoexecjobphasenodeapi.input.param.desc.isall"),
 
     })
     @Output({
     })
-    @Description(desc = "重置作业节点")
+    @Description(desc = "nmaa.resetautoexecjobphasenodeapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONArray resourceIdList = jsonObj.getJSONArray("resourceIdList");

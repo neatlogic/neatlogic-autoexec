@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.api.tool;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
@@ -50,7 +52,7 @@ public class AutoexecToolDeleteApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "删除内置工具";
+        return "nmaa.autoexectooldeleteapi.getname";
     }
 
     @Override
@@ -59,11 +61,11 @@ public class AutoexecToolDeleteApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "nameList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "工具名称列表"),
+            @Param(name = "nameList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "nmaa.autoexectooldeleteapi.input.param.desc.namelist"),
     })
     @Output({
     })
-    @Description(desc = "删除内置工具")
+    @Description(desc = "nmaa.autoexectooldeleteapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         List<String> nameList = jsonObj.getJSONArray("nameList").toJavaList(String.class);
@@ -91,9 +93,9 @@ public class AutoexecToolDeleteApi extends PrivateApiComponentBase {
         }
         if (!canNotDeleteTool.isEmpty()) {
             StringBuilder sb = new StringBuilder();
-            sb.append("以下工具已被组合工具引用，无法删除\n");
+            sb.append($.t("nmar.tooldelete.referenced"));
             for (Map.Entry<String, String> entry : canNotDeleteTool.entrySet()) {
-                sb.append(entry.getKey()).append("(关联的组合工具：").append(entry.getValue()).append(")\n");
+                sb.append(entry.getKey()).append($.t("nmar.tooldelete.combopsprefix")).append(entry.getValue()).append(")\n");
             }
             return sb.toString();
         }

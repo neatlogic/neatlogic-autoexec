@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.globallock;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.JobSourceType;
 import neatlogic.framework.dto.globallock.GlobalLockVo;
@@ -35,7 +37,7 @@ public class AutoexecJobGlobalLockHandler extends GlobalLockHandlerBase {
 
     @Override
     public String getHandlerName() {
-        return "自动化 fileLock";
+        return $.t("nmar.globallock.name");
     }
 
     @Override

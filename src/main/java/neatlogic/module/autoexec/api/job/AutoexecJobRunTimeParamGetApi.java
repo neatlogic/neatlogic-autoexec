@@ -48,7 +48,7 @@ public class AutoexecJobRunTimeParamGetApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取作业运行参数";
+        return "nmaa.autoexecjobruntimeparamgetapi.getname";
     }
 
     @Override
@@ -57,12 +57,12 @@ public class AutoexecJobRunTimeParamGetApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
     })
     @Output({
 
     })
-    @Description(desc = "获取作业运行参数")
+    @Description(desc = "nmaa.autoexecjobruntimeparamgetapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();

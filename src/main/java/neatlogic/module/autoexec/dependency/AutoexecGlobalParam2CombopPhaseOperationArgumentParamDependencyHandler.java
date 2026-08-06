@@ -11,6 +11,8 @@
  */
 package neatlogic.module.autoexec.dependency;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.autoexec.constvalue.AutoexecFromType;
@@ -113,13 +115,13 @@ public class AutoexecGlobalParam2CombopPhaseOperationArgumentParamDependencyHand
                         dependencyInfoConfig.put("combopId", autoexecCombopVo.getId());
                         dependencyInfoConfig.put("versionId", autoexecCombopVersionVo.getId());
                         List<String> pathList = new ArrayList<>();
-                        pathList.add("组合工具(" + combopName + ")");
-                        pathList.add("版本" + autoexecCombopVersionVo.getVersion() + "(" + autoexecCombopVersionVo.getName() + ")");
-                        pathList.add("阶段(" + phaseName + ")");
-                        pathList.add("操作(" + operationName+")");
+                        pathList.add($.t("nmar.dependency.combopprefix") + combopName + ")");
+                        pathList.add($.t("nmar.dependency.versionprefix") + autoexecCombopVersionVo.getVersion() + "(" + autoexecCombopVersionVo.getName() + ")");
+                        pathList.add($.t("nmar.dependency.phaseprefix") + phaseName + ")");
+                        pathList.add($.t("nmar.dependency.operationprefix") + operationName+")");
                         String urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/action-detail?id=${DATA.combopId}&versionId=${DATA.versionId}";
                         String value = id + "_" + System.currentTimeMillis();
-                        return new DependencyInfoVo(value, dependencyInfoConfig, "自由参数", pathList, urlFormat, this.getGroupName());
+                        return new DependencyInfoVo(value, dependencyInfoConfig, $.t("term.autoexec.freeparam"), pathList, urlFormat, this.getGroupName());
                     }
                 }
             }

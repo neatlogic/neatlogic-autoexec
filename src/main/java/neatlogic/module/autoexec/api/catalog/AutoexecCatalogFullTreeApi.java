@@ -35,7 +35,7 @@ public class AutoexecCatalogFullTreeApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取工具目录完整架构树";
+        return "nmaa.autoexeccatalogfulltreeapi.getname";
     }
 
     @Override
@@ -49,7 +49,7 @@ public class AutoexecCatalogFullTreeApi extends PrivateApiComponentBase {
     @Output({
             @Param(name = "Return", type = ApiParamType.JSONOBJECT, explode = AutoexecCatalogVo.class),
     })
-    @Description(desc = "获取工具目录完整架构树")
+    @Description(desc = "nmaa.autoexeccatalogfulltreeapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecCatalogVo root = autoexecCatalogService.buildRootCatalog();

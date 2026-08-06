@@ -45,7 +45,7 @@ public class ListAutoexecJobSqlApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取作业执行sql文件状态列表";
+        return "nmaa.listautoexecjobsqlapi.getname";
     }
 
     @Override
@@ -59,18 +59,18 @@ public class ListAutoexecJobSqlApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id"),
-            @Param(name = "phaseName", type = ApiParamType.STRING, desc = "作业剧本名"),
-            @Param(name = "sysId", type = ApiParamType.LONG, desc = "系统id"),
-            @Param(name = "moduleId", type = ApiParamType.LONG, desc = "模块id"),
-            @Param(name = "envId", type = ApiParamType.LONG, desc = "环境id"),
-            @Param(name = "version", type = ApiParamType.STRING, desc = "版本"),
-            @Param(name = "sqlFiles", type = ApiParamType.JSONARRAY, desc = "sql文件列表"),
-            @Param(name = "operType", type = ApiParamType.ENUM, rule = "auto,deploy", isRequired = true, desc = "来源类型")
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid"),
+            @Param(name = "phaseName", type = ApiParamType.STRING, desc = "term.autoexec.phasename"),
+            @Param(name = "sysId", type = ApiParamType.LONG, desc = "term.autoexec.systemid"),
+            @Param(name = "moduleId", type = ApiParamType.LONG, desc = "term.cmdb.moduleid"),
+            @Param(name = "envId", type = ApiParamType.LONG, desc = "term.cmdb.envid"),
+            @Param(name = "version", type = ApiParamType.STRING, desc = "term.autoexec.version"),
+            @Param(name = "sqlFiles", type = ApiParamType.JSONARRAY, desc = "nmaa.listautoexecjobsqlapi.input.param.desc.sqlfiles"),
+            @Param(name = "operType", type = ApiParamType.ENUM, rule = "auto,deploy", isRequired = true, desc = "term.autoexec.sqlsourcetype")
     })
     @Output({
     })
-    @Description(desc = "获取作业执行sql文件状态列表")
+    @Description(desc = "nmaa.listautoexecjobsqlapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         if (StringUtils.equals(paramObj.getString("operType"), neatlogic.framework.autoexec.constvalue.JobSourceType.AUTOEXEC.getValue())) {

@@ -41,7 +41,7 @@ public class DeleteCustomTemplateApi extends PrivateApiComponentBase {
             @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "id")
 
     })
-    @Description(desc = "删除自定义模板接口")
+    @Description(desc = "nmaa.deletecustomtemplateapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");
@@ -55,7 +55,7 @@ public class DeleteCustomTemplateApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "删除自定义模板";
+        return "nmaa.deletecustomtemplateapi.getname";
     }
 
     @Override

@@ -35,7 +35,7 @@ public class AutoexecProfileGetApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取自动化工具profile";
+        return "nmaa.autoexecprofilegetapi.getname";
     }
 
     @Override
@@ -52,9 +52,9 @@ public class AutoexecProfileGetApi extends PrivateApiComponentBase {
             @Param(name = "id", desc = "profile id", isRequired = true, type = ApiParamType.LONG)
     })
     @Output({
-            @Param(explode = AutoexecProfileVo[].class, desc = "工具profile")
+            @Param(explode = AutoexecProfileVo[].class, desc = "nmaa.autoexecprofilegetapi.output.param.desc.return")
     })
-    @Description(desc = "获取自动化工具profile接口")
+    @Description(desc = "nmaa.autoexecprofilegetapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         Long id = paramObj.getLong("id");

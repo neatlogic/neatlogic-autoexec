@@ -47,7 +47,7 @@ public class AutoexecScriptVersionListApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取脚本版本列表";
+        return "nmaa.autoexecscriptversionlistapi.getname";
     }
 
     @Override
@@ -56,16 +56,16 @@ public class AutoexecScriptVersionListApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "scriptId", type = ApiParamType.LONG, isRequired = true, desc = "脚本ID"),
-            @Param(name = "status", type = ApiParamType.ENUM, rule = "notPassed,passed", isRequired = true, desc = "是否已经审核通过"),
-            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
-            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
-            @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true")
+            @Param(name = "scriptId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.scriptid"),
+            @Param(name = "status", type = ApiParamType.ENUM, rule = "notPassed,passed", isRequired = true, desc = "term.autoexec.reviewstatus"),
+            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "common.currentpage"),
+            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "common.pagesize"),
+            @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "nmaa.common.input.param.desc.needpage")
     })
     @Output({
-            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecScriptVersionVo[].class, desc = "根据status返回未通过版本列表或历史版本列表"),
+            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecScriptVersionVo[].class, desc = "nmaa.autoexecscriptversionlistapi.output.param.desc.tbodylist"),
     })
-    @Description(desc = "获取脚本版本列表")
+    @Description(desc = "nmaa.autoexecscriptversionlistapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();

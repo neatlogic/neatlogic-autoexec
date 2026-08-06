@@ -11,6 +11,8 @@
  */
 package neatlogic.module.autoexec.api.tool;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
@@ -78,7 +80,7 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
 
     @Override
     public String getName() {
-        return "导出工具库工具参数";
+        return "nmaa.exportautoexectoolparamapi.getname";
     }
 
     @Override
@@ -92,10 +94,10 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
     }
 
     @Input({
-            @Param(name = "toolId", type = ApiParamType.LONG, desc = "工具id"),
-            @Param(name = "isAll", type = ApiParamType.INTEGER, isRequired = true, desc = "是否全量（1：全量，0：单个）")
+            @Param(name = "toolId", type = ApiParamType.LONG, desc = "term.autoexec.operationid"),
+            @Param(name = "isAll", type = ApiParamType.INTEGER, isRequired = true, desc = "nmaa.exportautoexectoolparamapi.input.param.desc.isall")
     })
-    @Description(desc = "导出工具库工具参数")
+    @Description(desc = "nmaa.exportautoexectoolparamapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
 
@@ -106,7 +108,7 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
         List<AutoexecToolVo> toolVoList = new ArrayList<>();
         String fileName = "";
         if (isAll == 1) {
-            fileName = "自动化工具库";
+            fileName = $.t("nmar.tooldoc.title");
             toolVoList = autoexecToolMapper.getAllTool();
         } else if (isAll == 0) {
             if (toolId == null) {
@@ -129,14 +131,14 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
             os = response.getOutputStream();
             response.setContentType("application/x-download");
             response.setHeader("Content-Disposition",
-                    " attachment; filename=\"" + FileUtil.getEncodedFileName("[" + fileName + "]参数说明.docx") + "\"");
+                    " attachment; filename=\"" + FileUtil.getEncodedFileName("[" + fileName + $.t("nmar.tooldoc.filenamesuffix")) + "\"");
             WordBuilder wordBuilder = new WordBuilder();
             Map<Integer, String> tableHeaderMap = new HashMap<>();
-            tableHeaderMap.put(1, "参数名");
-            tableHeaderMap.put(2, "控件类型");
-            tableHeaderMap.put(3, "必填/选填");
-            tableHeaderMap.put(4, "默认值");
-            tableHeaderMap.put(5, "描述");
+            tableHeaderMap.put(1, $.t("term.autoexec.paramname"));
+            tableHeaderMap.put(2, $.t("nmar.tooldoc.controltype"));
+            tableHeaderMap.put(3, $.t("nmar.tooldoc.requiredoptional"));
+            tableHeaderMap.put(4, $.t("term.autoexec.defaultvalue"));
+            tableHeaderMap.put(5, $.t("common.description"));
 
             //工具类型分类
             Map<String, List<AutoexecToolVo>> allTypeAutoexecToolListMap = toolVoList.stream().collect(Collectors.groupingBy(e -> e.getTypeName() + "[" + e.getTypeDescription() + "]"));
@@ -171,22 +173,22 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
                     //然后获取从最后一个/所在索引+1开始 至 字符串末尾的字符
                     String showToolName = toolName.substring(index + 1);
                     wordBuilder.addTitle(TitleType.H3, "1." + typeNum + "." + toolNum + "  " + showToolName + "[" + toolVo.getDescription() + "]");
-                    wordBuilder.addParagraph("描述：" + toolVo.getDescription()).setFontSize(12).setFontFamily(FontFamily.REGULAR_SCRIPT.getValue());
-                    wordBuilder.addParagraph("执行方式：" + toolVo.getExecModeText()).setFontSize(12).setFontFamily(FontFamily.REGULAR_SCRIPT.getValue());
+                    wordBuilder.addParagraph($.t("nmar.tooldoc.descriptionprefix") + toolVo.getDescription()).setFontSize(12).setFontFamily(FontFamily.REGULAR_SCRIPT.getValue());
+                    wordBuilder.addParagraph($.t("nmar.tooldoc.execmodeprefix") + toolVo.getExecModeText()).setFontSize(12).setFontFamily(FontFamily.REGULAR_SCRIPT.getValue());
                     if (CollectionUtils.isEmpty(toolVo.getInputParamList())) {
-                        wordBuilder.addParagraph("无参数").setFontSize(12).setFontFamily(FontFamily.REGULAR_SCRIPT.getValue());
+                        wordBuilder.addParagraph($.t("nmar.tooldoc.noparameters")).setFontSize(12).setFontFamily(FontFamily.REGULAR_SCRIPT.getValue());
                         continue;
                     }
-                    wordBuilder.addParagraph("参数：").setFontSize(12).setFontFamily(FontFamily.REGULAR_SCRIPT.getValue());
+                    wordBuilder.addParagraph($.t("nmar.tooldoc.parametersprefix")).setFontSize(12).setFontFamily(FontFamily.REGULAR_SCRIPT.getValue());
                     List<Map<String, String>> list = new ArrayList<>();
                     //表格数据（参数数据）
                     for (AutoexecParamVo paramVo : toolVo.getInputParamList()) {
                         Map<String, String> map = new HashMap<>();
-                        map.put("参数名", paramVo.getName() + "（" + paramVo.getKey() + "）");
-                        map.put("控件类型", paramVo.getTypeText());
-                        map.put("必填/选填", ((paramVo.getIsRequired() != null && paramVo.getIsRequired() == 1) ? "必填" : "选填"));
-                        map.put("默认值", CollectionUtils.isNotEmpty(profileParamKeyList) && profileParamKeyList.contains(paramVo.getKey()) ? "${" + paramVo.getKey() + "}" : new String(getDefaultValue(paramVo)));
-                        map.put("描述", paramVo.getDescription());
+                        map.put($.t("term.autoexec.paramname"), paramVo.getName() + "（" + paramVo.getKey() + "）");
+                        map.put($.t("nmar.tooldoc.controltype"), paramVo.getTypeText());
+                        map.put($.t("nmar.tooldoc.requiredoptional"), ((paramVo.getIsRequired() != null && paramVo.getIsRequired() == 1) ? $.t("common.mustinput") : $.t("nmar.tooldoc.optional")));
+                        map.put($.t("term.autoexec.defaultvalue"), CollectionUtils.isNotEmpty(profileParamKeyList) && profileParamKeyList.contains(paramVo.getKey()) ? "${" + paramVo.getKey() + "}" : new String(getDefaultValue(paramVo)));
+                        map.put($.t("common.description"), paramVo.getDescription());
                         list.add(map);
                     }
                     wordBuilder.addTable(tableHeaderMap, TableColor.GREY).addRows(list);
@@ -299,9 +301,9 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
         } else if (StringUtils.equals(ParamType.SWITCH.getValue(), paramVo.getType())) {
             if (paramDefaultValue != null) {
                 if (StringUtils.equals(paramDefaultValue.toString(), "false")) {
-                    returnDefaultValue = new StringBuilder("否");
+                    returnDefaultValue = new StringBuilder($.t("nmar.common.no"));
                 } else if (StringUtils.equals(paramDefaultValue.toString(), "ture")) {
-                    returnDefaultValue = new StringBuilder("是");
+                    returnDefaultValue = new StringBuilder($.t("nmar.common.yes"));
                 }
             }
         } else {

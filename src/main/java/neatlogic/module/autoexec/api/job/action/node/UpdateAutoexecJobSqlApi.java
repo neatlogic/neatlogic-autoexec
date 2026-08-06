@@ -33,7 +33,7 @@ public class UpdateAutoexecJobSqlApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "更新作业执行sql文件状态";
+        return "nmaa.updateautoexecjobsqlapi.getname";
     }
 
     @Override
@@ -47,14 +47,14 @@ public class UpdateAutoexecJobSqlApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "作业 id"),
-            @Param(name = "phaseName", type = ApiParamType.STRING, isRequired = true, desc = "作业剧本名（执行sql）"),
-            @Param(name = "sqlStatus", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "sql状态"),
-            @Param(name = "operType", type = ApiParamType.ENUM, rule = "auto,deploy", isRequired = true, desc = "来源类型")
+            @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "nmaa.updateautoexecjobsqlapi.input.param.desc.jobid"),
+            @Param(name = "phaseName", type = ApiParamType.STRING, isRequired = true, desc = "nmaa.updateautoexecjobsqlapi.input.param.desc.phasename"),
+            @Param(name = "sqlStatus", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "nmaa.updateautoexecjobsqlapi.input.param.desc.sqlstatus"),
+            @Param(name = "operType", type = ApiParamType.ENUM, rule = "auto,deploy", isRequired = true, desc = "term.autoexec.sqlsourcetype")
     })
     @Output({
     })
-    @Description(desc = "更新作业执行sql文件状态")
+    @Description(desc = "nmaa.updateautoexecjobsqlapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         if (autoexecJobMapper.getJobLockByJobId(paramObj.getLong("jobId")) == null) {

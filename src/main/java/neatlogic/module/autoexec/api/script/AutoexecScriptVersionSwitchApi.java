@@ -53,7 +53,7 @@ public class AutoexecScriptVersionSwitchApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "切换脚本当前版本";
+        return "nmaa.autoexecscriptversionswitchapi.getname";
     }
 
     @Override
@@ -62,11 +62,11 @@ public class AutoexecScriptVersionSwitchApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "versionId", type = ApiParamType.LONG, isRequired = true, desc = "脚本版本ID"),
+            @Param(name = "versionId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.scriptversionid"),
     })
     @Output({
     })
-    @Description(desc = "切换脚本当前版本")
+    @Description(desc = "nmaa.autoexecscriptversionswitchapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long versionId = jsonObj.getLong("versionId");

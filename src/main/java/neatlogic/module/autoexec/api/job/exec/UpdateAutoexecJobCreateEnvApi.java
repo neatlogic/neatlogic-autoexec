@@ -43,7 +43,7 @@ public class UpdateAutoexecJobCreateEnvApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "跟新作业环境变量（出参）";
+        return "nmaa.updateautoexecjobcreateenvapi.getname";
     }
 
     @Override
@@ -52,13 +52,13 @@ public class UpdateAutoexecJobCreateEnvApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业Id", isRequired = true),
-            @Param(name = "envName", type = ApiParamType.STRING, desc = "作业环境变量名", isRequired = true),
-            @Param(name = "envValue", type = ApiParamType.STRING, desc = "作业环境变量值", isRequired = true)
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
+            @Param(name = "envName", type = ApiParamType.STRING, desc = "nmaa.updateautoexecjobcreateenvapi.input.param.desc.envname", isRequired = true),
+            @Param(name = "envValue", type = ApiParamType.STRING, desc = "nmaa.updateautoexecjobcreateenvapi.input.param.desc.envvalue", isRequired = true)
     })
     @Output({
     })
-    @Description(desc = "跟新作业环境变量（出参）接口")
+    @Description(desc = "nmaa.updateautoexecjobcreateenvapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecJobEnvVo jobEnvVo = new AutoexecJobEnvVo(jsonObj.getLong("jobId"), jsonObj.getString("envName"), jsonObj.getString("envValue"));

@@ -45,7 +45,7 @@ public class SearchAutoexecServiceApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "搜索服务目录";
+        return "nmaa.searchautoexecserviceapi.getname";
     }
 
     @Override
@@ -54,15 +54,15 @@ public class SearchAutoexecServiceApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键字，匹配名称"),
-            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页条目"),
-            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页")
+            @Param(name = "keyword", type = ApiParamType.STRING, desc = "nmaa.common.input.param.desc.keywordmatchname"),
+            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "common.pagesize"),
+            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "common.currentpage")
     })
     @Output({
             @Param(explode= BasePageVo.class),
-            @Param(name = "tbodyList", explode = AutoexecServiceVo[].class, desc = "服务目录列表")
+            @Param(name = "tbodyList", explode = AutoexecServiceVo[].class, desc = "term.autoexec.servicelist")
     })
-    @Description(desc = "搜索服务目录")
+    @Description(desc = "nmaa.searchautoexecserviceapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecServiceSearchVo searchVo = paramObj.toJavaObject(AutoexecServiceSearchVo.class);

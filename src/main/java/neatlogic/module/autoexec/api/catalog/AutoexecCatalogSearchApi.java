@@ -31,7 +31,7 @@ public class AutoexecCatalogSearchApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "查询工具目录";
+        return "nmaa.autoexeccatalogsearchapi.getname";
     }
 
     @Override
@@ -40,16 +40,16 @@ public class AutoexecCatalogSearchApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "parentId", desc = "父id", type = ApiParamType.LONG),
-            @Param(name = "keyword", desc = "关键词", type = ApiParamType.STRING),
-            @Param(name = "currentPage", desc = "当前页", type = ApiParamType.INTEGER),
-            @Param(name = "pageSize", desc = "每页最大数", type = ApiParamType.INTEGER)
+            @Param(name = "parentId", desc = "common.parentid", type = ApiParamType.LONG),
+            @Param(name = "keyword", desc = "common.keyword", type = ApiParamType.STRING),
+            @Param(name = "currentPage", desc = "common.currentpage", type = ApiParamType.INTEGER),
+            @Param(name = "pageSize", desc = "common.pagesize", type = ApiParamType.INTEGER)
     })
     @Output({
-            @Param(name = "tbodyList", explode = AutoexecCatalogVo[].class, desc = "目录集合"),
+            @Param(name = "tbodyList", explode = AutoexecCatalogVo[].class, desc = "nmaa.autoexeccatalogsearchapi.output.param.desc.tbodylist"),
             @Param(explode = BasePageVo.class)
     })
-    @Description(desc = "查询工具目录")
+    @Description(desc = "nmaa.autoexeccatalogsearchapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecCatalogVo catalogVo = JSON.toJavaObject(jsonObj, AutoexecCatalogVo.class);

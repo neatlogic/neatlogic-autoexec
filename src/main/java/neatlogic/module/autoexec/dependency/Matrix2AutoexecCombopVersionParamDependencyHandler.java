@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.dependency;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
@@ -76,9 +78,9 @@ public class Matrix2AutoexecCombopVersionParamDependencyHandler extends DefaultD
                 dependencyInfoConfig.put("combopId", autoexecCombopVo.getId());
                 dependencyInfoConfig.put("versionId", autoexecCombopVersionVo.getId());
                 List<String> pathList = new ArrayList<>();
-                pathList.add("组合工具(" + autoexecCombopVo.getName() + ")");
-                pathList.add("版本" + autoexecCombopVersionVo.getVersion() + "(" + autoexecCombopVersionVo.getName() + ")");
-                pathList.add("作业参数");
+                pathList.add($.t("nmar.dependency.combopprefix") + autoexecCombopVo.getName() + ")");
+                pathList.add($.t("nmar.dependency.versionprefix") + autoexecCombopVersionVo.getVersion() + "(" + autoexecCombopVersionVo.getName() + ")");
+                pathList.add($.t("term.autoexec.jobparam"));
                 String lastName = autoexecParamVo.getName();
                 String urlFormat = "/" + TenantContext.get().getTenantUuid() + "/autoexec.html#/action-detail?id=${DATA.combopId}&versionId=${DATA.versionId}";
                 return new DependencyInfoVo(autoexecParamVo.getId(), dependencyInfoConfig, lastName, pathList, urlFormat, this.getGroupName());

@@ -66,7 +66,7 @@ public class AutoexecCombopVersionDeleteApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "删除组合工具版本";
+        return "nmaa.autoexeccombopversiondeleteapi.getname";
     }
 
     @Override
@@ -75,9 +75,9 @@ public class AutoexecCombopVersionDeleteApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "组合工具版本id")
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.combopversionid")
     })
-    @Description(desc = "删除组合工具版本")
+    @Description(desc = "nmaa.autoexeccombopversiondeleteapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");

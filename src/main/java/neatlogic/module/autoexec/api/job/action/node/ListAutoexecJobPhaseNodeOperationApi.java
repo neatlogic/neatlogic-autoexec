@@ -40,7 +40,7 @@ public class ListAutoexecJobPhaseNodeOperationApi extends PrivateApiComponentBas
 
     @Override
     public String getName() {
-        return "获取剧本节点操作列表";
+        return "nmaa.listautoexecjobphasenodeoperationapi.getname";
     }
 
     @Override
@@ -49,13 +49,13 @@ public class ListAutoexecJobPhaseNodeOperationApi extends PrivateApiComponentBas
     }
 
     @Input({
-            @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "作业剧本Id"),
-            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "资源Id"),
-            @Param(name = "status", type = ApiParamType.STRING, isRequired = true, desc = "node status ,用于判断刷新状态")
+            @Param(name = "jobPhaseId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.jobphaseid"),
+            @Param(name = "resourceId", type = ApiParamType.LONG, desc = "term.cmdb.resourceid"),
+            @Param(name = "status", type = ApiParamType.STRING, isRequired = true, desc = "nmaa.common.input.param.desc.refreshstatus")
     })
     @Output({
-            @Param(name = "operationStatusList", explode = AutoexecJobPhaseNodeOperationStatusVo[].class, desc = "作业剧本节点操作状态列表"),
-            @Param(name = "isRefresh", type = ApiParamType.INTEGER, isRequired = true, desc = "是否需要继续定时刷新，1:继续 0:停止")
+            @Param(name = "operationStatusList", explode = AutoexecJobPhaseNodeOperationStatusVo[].class, desc = "nmaa.listautoexecjobphasenodeoperationapi.output.param.desc.operationstatuslist"),
+            @Param(name = "isRefresh", type = ApiParamType.INTEGER, isRequired = true, desc = "nmaa.common.output.param.desc.isrefresh")
     })
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {

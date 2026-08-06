@@ -45,7 +45,7 @@ public class SaveAutoexecServiceUserApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "保存收藏服务";
+        return "nmaa.saveautoexecserviceuserapi.getname";
     }
 
     @Override
@@ -54,9 +54,9 @@ public class SaveAutoexecServiceUserApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "服务id")
+            @Param(name = "id", type = ApiParamType.LONG, isRequired = true, desc = "common.serviceid")
     })
-    @Description(desc = "保存收藏服务接口")
+    @Description(desc = "nmaa.saveautoexecserviceuserapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         autoexecServiceMapper.insertAutoexecServiceUser(paramObj.getLong("id"), UserContext.get().getUserUuid());

@@ -6,16 +6,16 @@ import neatlogic.framework.autoexec.type.IAutoexecType;
 import neatlogic.framework.util.$;
 
 public enum AutoexecType implements IAutoexecType {
-    TEST(3L, "TEST", "测试用工具"),
-    INSTALL(4L, "INSTALL", "软件安装配置"),
-    START_STOP(5L, "START_STOP", "启停操作"),
-    NATIVE(6L, "NATIVE", "调度器内置工具"),
-    BASIC(7L, "BASIC", "基础工具"),
-    TEMP(8L, "TEMP", "临时使用"),
-    BIZ_JOBS(10L, "BIZ_JOBS", "作业调度"),
-    BACKUP(12L, "BACKUP", "备份"),
-    SQL_FILE(13L, "SQL_FILE", "SQL处理"),
-    DR_SWITCH(14L, "DR_SWITCH", "灾备切换"),
+    TEST(3L, "TEST", "nmacv.autoexectype.text.test"),
+    INSTALL(4L, "INSTALL", "nmacv.autoexectype.text.install"),
+    START_STOP(5L, "START_STOP", "nmacv.autoexectype.text.start_stop"),
+    NATIVE(6L, "NATIVE", "nmacv.autoexectype.text.native"),
+    BASIC(7L, "BASIC", "nmacv.autoexectype.text.basic"),
+    TEMP(8L, "TEMP", "nmacv.autoexectype.text.temp"),
+    BIZ_JOBS(10L, "BIZ_JOBS", "nmacv.autoexectype.text.biz_jobs"),
+    BACKUP(12L, "BACKUP", "nmacv.autoexectype.text.backup"),
+    SQL_FILE(13L, "SQL_FILE", "nmacv.autoexectype.text.sql_file"),
+    DR_SWITCH(14L, "DR_SWITCH", "nmacv.autoexectype.text.dr_switch"),
     ;
 
     private final Long id;

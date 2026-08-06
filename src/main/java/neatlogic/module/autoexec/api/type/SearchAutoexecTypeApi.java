@@ -46,7 +46,7 @@ public class SearchAutoexecTypeApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "查询自动化工具分类列表";
+        return "nmaa.searchautoexectypeapi.getname";
     }
 
     @Override
@@ -55,17 +55,17 @@ public class SearchAutoexecTypeApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
-            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
-            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
-            @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true"),
-            @Param(name = "isNeedCheckDataAuth", type = ApiParamType.INTEGER, desc = "是否校验数据权限（1：校验，0：不校验）")
+            @Param(name = "keyword", type = ApiParamType.STRING, desc = "common.keyword", xss = true),
+            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "common.currentpage"),
+            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "common.pagesize"),
+            @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "nmaa.common.input.param.desc.needpage"),
+            @Param(name = "isNeedCheckDataAuth", type = ApiParamType.INTEGER, desc = "nmaa.common.input.param.desc.isneedcheckdataauth")
     })
     @Output({
-            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecTypeVo[].class, desc = "分类列表"),
+            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, explode = AutoexecTypeVo[].class, desc = "nmaa.searchautoexectypeapi.output.param.desc.tbodylist"),
             @Param(explode = BasePageVo.class)
     })
-    @Description(desc = "查询自动化工具分类列表")
+    @Description(desc = "nmaa.searchautoexectypeapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();

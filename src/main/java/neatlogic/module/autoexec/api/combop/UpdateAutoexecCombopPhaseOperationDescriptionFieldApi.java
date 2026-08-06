@@ -53,7 +53,7 @@ public class UpdateAutoexecCombopPhaseOperationDescriptionFieldApi extends Priva
 
     @Override
     public String getName() {
-        return "更新组合工具阶段操作的描述字段值";
+        return "nmaa.updateautoexeccombopphaseoperationdescriptionfieldapi.getname";
     }
 
     @Override
@@ -62,7 +62,7 @@ public class UpdateAutoexecCombopPhaseOperationDescriptionFieldApi extends Priva
     }
 
     @Input({})
-    @Description(desc = "更新组合工具阶段操作的描述字段值")
+    @Description(desc = "nmaa.updateautoexeccombopphaseoperationdescriptionfieldapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         JSONArray resultList = new JSONArray();

@@ -21,39 +21,39 @@ import neatlogic.framework.restful.annotation.EntityField;
 import org.apache.commons.lang3.StringUtils;
 
 public class AutoexecJobBuilder {
-    @EntityField(name = "组合工具id", type = ApiParamType.LONG)
+    @EntityField(name = "term.autoexec.combopid", type = ApiParamType.LONG)
     private final Long combopId;
-    @EntityField(name = "作业名称（唯一标识）", type = ApiParamType.STRING)
+    @EntityField(name = "nfad.autoexecjobbuilder.entityfield.jobname.name", type = ApiParamType.STRING)
     private String jobName;
 
-    @EntityField(name = "场景id", type = ApiParamType.LONG)
+    @EntityField(name = "term.autoexec.scenarioid", type = ApiParamType.LONG)
     private Long scenarioId;
 
-    @EntityField(name = "作业执行参数", type = ApiParamType.JSONOBJECT)
+    @EntityField(name = "term.autoexec.jobexecuteconfig", type = ApiParamType.JSONOBJECT)
     private AutoexecCombopExecuteConfigVo executeConfig;
 
-    @EntityField(name = "如何指定执行目标，（现在指定执行目标、运行时再指定执行目标、运行参数作为执行目标）", type = ApiParamType.STRING)
+    @EntityField(name = "term.autoexec.executetargetspecificationtiming", type = ApiParamType.STRING)
     private String whenToSpecify;
 
-    @EntityField(name = "前置执行目标配置", type = ApiParamType.JSONOBJECT)
+    @EntityField(name = "term.autoexec.precedingexecutetargetconfig", type = ApiParamType.JSONOBJECT)
     private JSONObject preCondition;
 
-    @EntityField(name = "runner执行组", type = ApiParamType.JSONOBJECT)
+    @EntityField(name = "common.runnergroup", type = ApiParamType.JSONOBJECT)
     private ParamMappingVo runnerGroup;
 
-    @EntityField(name = "runner执行组标签", type = ApiParamType.JSONOBJECT)
+    @EntityField(name = "common.runnergrouptag", type = ApiParamType.JSONOBJECT)
     private ParamMappingVo runnerGroupTag;
 
-    @EntityField(name = "分批数", type = ApiParamType.INTEGER)
+    @EntityField(name = "term.autoexec.roundcount", type = ApiParamType.INTEGER)
     private Integer roundCount;
 
-    @EntityField(name = "并发线程数", type = ApiParamType.INTEGER)
+    @EntityField(name = "term.autoexec.parallelcount", type = ApiParamType.INTEGER)
     private Integer parallelCount;
 
-    @EntityField(name = "并发策略", type = ApiParamType.INTEGER)
+    @EntityField(name = "term.autoexec.parallelpolicy", type = ApiParamType.INTEGER)
     private String parallelPolicy;
 
-    @EntityField(name = "作业参数数据", type = ApiParamType.JSONOBJECT)
+    @EntityField(name = "nfad.autoexecjobbuilder.entityfield.param.name", type = ApiParamType.JSONOBJECT)
     private JSONObject param;
 
     private String error;

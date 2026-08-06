@@ -81,7 +81,7 @@ public class GetAutoexecJobPhaseOperationScriptBinaryForAutoexecApi extends Priv
 
     @Override
     public String getName() {
-        return "获取作业剧本操作脚本内容流";
+        return "nmaa.getautoexecjobphaseoperationscriptbinaryforautoexecapi.getname";
     }
 
     @Override
@@ -90,17 +90,17 @@ public class GetAutoexecJobPhaseOperationScriptBinaryForAutoexecApi extends Priv
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id"),
-            @Param(name = "operationType", type = ApiParamType.STRING, desc = "操作类型"),
-            @Param(name = "operationId", type = ApiParamType.STRING, desc = "作业操作id（opName_opId）"),
-            @Param(name = "scriptId", type = ApiParamType.LONG, desc = "工具id"),
-            @Param(name = "lastModified", type = ApiParamType.DOUBLE, desc = "最后修改时间（秒，支持小数位）"),
-            @Param(name = "acceptStream", type = ApiParamType.BOOLEAN, desc = "True: 返回流,false 返回json，默认True")
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid"),
+            @Param(name = "operationType", type = ApiParamType.STRING, desc = "term.autoexec.operationtype"),
+            @Param(name = "operationId", type = ApiParamType.STRING, desc = "term.autoexec.operationid"),
+            @Param(name = "scriptId", type = ApiParamType.LONG, desc = "nmaa.getautoexecjobphaseoperationscriptbinaryforautoexecapi.input.param.desc.scriptid"),
+            @Param(name = "lastModified", type = ApiParamType.DOUBLE, desc = "nmaa.common.input.param.desc.lastmodified"),
+            @Param(name = "acceptStream", type = ApiParamType.BOOLEAN, desc = "nmaa.getautoexecjobphaseoperationscriptbinaryforautoexecapi.input.param.desc.acceptstream")
     })
     @Output({
-            @Param(name = "script", type = ApiParamType.STRING, desc = "脚本内容")
+            @Param(name = "script", type = ApiParamType.STRING, desc = "nmaa.getautoexecjobphaseoperationscriptbinaryforautoexecapi.output.param.desc.script")
     })
-    @Description(desc = "获取操作当前激活版本脚本内容流")
+    @Description(desc = "nmaa.getautoexecjobphaseoperationscriptbinaryforautoexecapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         JSONObject result = new JSONObject();

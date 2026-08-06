@@ -80,7 +80,7 @@ public class SaveAutoexecServiceApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "保存服务目录信息";
+        return "nmaa.saveautoexecserviceapi.getname";
     }
 
     @Override
@@ -89,18 +89,18 @@ public class SaveAutoexecServiceApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "服务id"),
-            @Param(name = "name", type = ApiParamType.STRING, isRequired = true, desc = "服务名"),
-            @Param(name = "type", type = ApiParamType.ENUM, rule = "service,catalog", isRequired = true, desc = "服务/目录"),
-            @Param(name = "isActive", type = ApiParamType.INTEGER, isRequired = true, desc = "是否激活"),
-            @Param(name = "authorityList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "授权列表"),
-            @Param(name = "parentId", type = ApiParamType.LONG, isRequired = true, desc = "父级id"),
-            @Param(name = "combopId", type = ApiParamType.LONG, desc = "组合工具id"),
-            @Param(name = "formUuid", type = ApiParamType.STRING, desc = "表单uuid"),
-            @Param(name = "config", type = ApiParamType.JSONOBJECT, desc = "配置信息"),
-            @Param(name = "description", type = ApiParamType.STRING, desc = "说明")
+            @Param(name = "id", type = ApiParamType.LONG, desc = "common.serviceid"),
+            @Param(name = "name", type = ApiParamType.STRING, isRequired = true, desc = "nmaa.saveautoexecserviceapi.input.param.desc.name"),
+            @Param(name = "type", type = ApiParamType.ENUM, rule = "service,catalog", isRequired = true, desc = "nmaa.saveautoexecserviceapi.input.param.desc.type"),
+            @Param(name = "isActive", type = ApiParamType.INTEGER, isRequired = true, desc = "common.isactive"),
+            @Param(name = "authorityList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "common.authlist"),
+            @Param(name = "parentId", type = ApiParamType.LONG, isRequired = true, desc = "common.parentid"),
+            @Param(name = "combopId", type = ApiParamType.LONG, desc = "term.autoexec.combopid"),
+            @Param(name = "formUuid", type = ApiParamType.STRING, desc = "nmaa.saveautoexecserviceapi.input.param.desc.formuuid"),
+            @Param(name = "config", type = ApiParamType.JSONOBJECT, desc = "common.config"),
+            @Param(name = "description", type = ApiParamType.STRING, desc = "common.description")
     })
-    @Description(desc = "保存服务目录信息接口")
+    @Description(desc = "nmaa.saveautoexecserviceapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj) throws Exception {
         AutoexecServiceVo serviceVo = paramObj.toJavaObject(AutoexecServiceVo.class);

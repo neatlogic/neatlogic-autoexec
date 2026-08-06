@@ -49,7 +49,7 @@ public class CheckAutoexecJobApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "验证作业";
+        return "nmaa.checkautoexecjobapi.getname";
     }
 
     @Override
@@ -57,8 +57,8 @@ public class CheckAutoexecJobApi extends PrivateApiComponentBase {
         return null;
     }
 
-    @Input({@Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),})
-    @Description(desc = "验证作业接口")
+    @Input({@Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),})
+    @Description(desc = "nmaa.checkautoexecjobapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");

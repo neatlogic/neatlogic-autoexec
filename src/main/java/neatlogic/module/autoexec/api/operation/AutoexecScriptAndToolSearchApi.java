@@ -68,7 +68,7 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "查询工具和脚本";
+        return "nmaa.autoexecscriptandtoolsearchapi.getname";
     }
 
     @Override
@@ -77,24 +77,24 @@ public class AutoexecScriptAndToolSearchApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "type", type = ApiParamType.ENUM, rule = "tool,script", desc = "类别(工具；脚本)"),
-            @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sqlfile", desc = "执行方式"),
-            @Param(name = "typeIdList", type = ApiParamType.JSONARRAY, desc = "分类ID列表"),
-            @Param(name = "catalogId", type = ApiParamType.LONG, desc = "工具目录ID"),
-            @Param(name = "riskIdList", type = ApiParamType.JSONARRAY, desc = "操作级别ID列表"),
-            @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "用于回显的工具或脚本ID列表"),
-            @Param(name = "excludeList", type = ApiParamType.JSONARRAY, desc = "用于排除搜索的工具或脚本ID列表"),
-            @Param(name = "keyword", type = ApiParamType.STRING, desc = "关键词", xss = true),
-            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "当前页"),
-            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "每页数据条目"),
-            @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "是否需要分页，默认true"),
-            @Param(name = "isNeedCheckDataAuth", type = ApiParamType.INTEGER, desc = "是否校验数据权限（1：校验，0：不校验）")
+            @Param(name = "type", type = ApiParamType.ENUM, rule = "tool,script", desc = "nmaa.autoexecscriptandtoolsearchapi.input.param.desc.type"),
+            @Param(name = "execMode", type = ApiParamType.ENUM, rule = "runner,target,runner_target,sqlfile", desc = "term.autoexec.execmode"),
+            @Param(name = "typeIdList", type = ApiParamType.JSONARRAY, desc = "term.autoexec.typeidlist"),
+            @Param(name = "catalogId", type = ApiParamType.LONG, desc = "term.autoexec.catalogid"),
+            @Param(name = "riskIdList", type = ApiParamType.JSONARRAY, desc = "term.autoexec.riskidlist"),
+            @Param(name = "defaultValue", type = ApiParamType.JSONARRAY, desc = "nmaa.autoexecscriptandtoolsearchapi.input.param.desc.defaultvalue"),
+            @Param(name = "excludeList", type = ApiParamType.JSONARRAY, desc = "nmaa.autoexecscriptandtoolsearchapi.input.param.desc.excludelist"),
+            @Param(name = "keyword", type = ApiParamType.STRING, desc = "common.keyword", xss = true),
+            @Param(name = "currentPage", type = ApiParamType.INTEGER, desc = "common.currentpage"),
+            @Param(name = "pageSize", type = ApiParamType.INTEGER, desc = "common.pagesize"),
+            @Param(name = "needPage", type = ApiParamType.BOOLEAN, desc = "nmaa.common.input.param.desc.needpage"),
+            @Param(name = "isNeedCheckDataAuth", type = ApiParamType.INTEGER, desc = "nmaa.common.input.param.desc.isneedcheckdataauth")
     })
     @Output({
-            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, desc = "工具/脚本列表"),
+            @Param(name = "tbodyList", type = ApiParamType.JSONARRAY, desc = "nmaa.autoexecscriptandtoolsearchapi.output.param.desc.tbodylist"),
             @Param(explode = AutoexecOperationVo.class),
     })
-    @Description(desc = "查询工具和脚本")
+    @Description(desc = "nmaa.autoexecscriptandtoolsearchapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();

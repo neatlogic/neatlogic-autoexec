@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.script.paramtype;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.ParamType;
@@ -61,7 +63,7 @@ public class ScriptParamTypeRunnerGroup extends ScriptParamTypeBase {
      */
     @Override
     public String getDescription() {
-        return "执行器组";
+        return $.t("nmaspt.scriptparamtyperunnergroup.description");
     }
 
     /**
@@ -84,7 +86,7 @@ public class ScriptParamTypeRunnerGroup extends ScriptParamTypeBase {
         return new JSONObject() {
             {
                 this.put("type", "runnergroup");
-                this.put("placeholder", "请选择");
+                this.put("placeholder", $.t("nmaspt.common.placeholder.select"));
             }
         };
     }

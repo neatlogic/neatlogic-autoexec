@@ -123,7 +123,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
 
     @Override
     public String getName() {
-        return "导入组合工具";
+        return "nmaa.autoexeccombopimportapi.getname";
     }
 
     @Override
@@ -132,12 +132,12 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
     }
 
     @Input({
-            @Param(name = "nameList", type = ApiParamType.STRING, isRequired = true, minSize = 1, desc = "名称列表"),
+            @Param(name = "nameList", type = ApiParamType.STRING, isRequired = true, minSize = 1, desc = "nmaa.autoexeccombopimportapi.input.param.desc.namelist"),
     })
     @Output({
-            @Param(name = "Return", type = ApiParamType.JSONARRAY, desc = "导入结果")
+            @Param(name = "Return", type = ApiParamType.JSONARRAY, desc = "nmaa.autoexeccombopimportapi.output.param.desc.return")
     })
-    @Description(desc = "导入组合工具")
+    @Description(desc = "nmaa.autoexeccombopimportapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
@@ -245,14 +245,14 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         Set<String> warnReasonSet = new HashSet<>();
         Long typeId = autoexecTypeMapper.getTypeIdByName(autoexecCombopVo.getTypeName());
         if (typeId == null) {
-            failureReasonSet.add("缺少引用的工具类型：'" + autoexecCombopVo.getTypeName() + "'");
+            failureReasonSet.add($.t("nmar.combopimport.missingtypeprefix") + autoexecCombopVo.getTypeName() + "'");
         } else {
             autoexecCombopVo.setTypeId(typeId);
         }
 //        if (autoexecCombopVo.getNotifyPolicyName() != null) {
 //            NotifyPolicyVo notifyPolicyVo = notifyMapper.getNotifyPolicyByName(autoexecCombopVo.getNotifyPolicyName());
 //            if (notifyPolicyVo == null) {
-//                failureReasonSet.add("缺少引用的通知策略：'" + autoexecCombopVo.getNotifyPolicyName() + "'");
+//                failureReasonSet.add($.t("nmar.combopimport.missingnotifypolicyprefix") + autoexecCombopVo.getNotifyPolicyName() + "'");
 //            } else {
 //                autoexecCombopVo.setNotifyPolicyId(notifyPolicyVo.getId());
 //            }
@@ -272,7 +272,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
             if (notifyPolicyConfigVo.getPolicyName() != null) {
                 NotifyPolicyVo notifyPolicyVo = notifyMapper.getNotifyPolicyByName(notifyPolicyConfigVo.getPolicyName());
                 if (notifyPolicyVo == null) {
-                    failureReasonSet.add("缺少引用的通知策略：'" + notifyPolicyConfigVo.getPolicyPath() + "'");
+                    failureReasonSet.add($.t("nmar.combopimport.missingnotifypolicyprefix") + notifyPolicyConfigVo.getPolicyPath() + "'");
                 } else {
                     INotifyPolicyHandler notifyPolicyHandler = NotifyPolicyHandlerFactory.getHandler(notifyPolicyVo.getHandler());
                     if (notifyPolicyHandler == null) {
@@ -403,7 +403,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                     }
                 }
                 if (CollectionUtils.isNotEmpty(nameList)) {
-                    warnReasonSet.add("缺少场景'" + String.join("'、'", nameList) + "'场景未导入");
+                    warnReasonSet.add($.t("nmar.combopimport.missingscenarioprefix") + String.join("'、'", nameList) + $.t("nmar.combopimport.missingscenariosuffix"));
                 }
             }
             List<AutoexecCombopPhaseVo> combopPhaseList = versionConfig.getCombopPhaseList();
@@ -591,11 +591,11 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
             }
             autoexecScriptVo = nameKeyScriptMap.get(autoexecCombopPhaseOperationVo.getOperationName());
             if (autoexecScriptVo == null) {
-                failureReasonSet.add("缺少引用的自定义工具：'" + autoexecCombopPhaseOperationVo.getOperationName() + "'");
+                failureReasonSet.add($.t("nmar.combopimport.missingscriptprefix") + autoexecCombopPhaseOperationVo.getOperationName() + "'");
             } else {
                 AutoexecScriptVersionVo autoexecScriptVersionVo = idKeyScriptActiveVersionMap.get(autoexecScriptVo.getId());
                 if (autoexecScriptVersionVo == null) {
-                    failureReasonSet.add("自定义工具：'" + autoexecScriptVo.getName() + "'没有激活版本");
+                    failureReasonSet.add($.t("nmar.combopimport.scriptprefix") + autoexecScriptVo.getName() + $.t("nmar.combopimport.noactiveversionsuffix"));
                 }
                 autoexecCombopPhaseOperationVo.setOperationId(autoexecScriptVo.getId());
             }
@@ -606,9 +606,9 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
             }
             autoexecToolVo = nameKeyToolMap.get(autoexecCombopPhaseOperationVo.getOperationName());
             if (autoexecToolVo == null) {
-                failureReasonSet.add("缺少引用的工具：'" + autoexecCombopPhaseOperationVo.getOperationName() + "'");
+                failureReasonSet.add($.t("nmar.combopimport.missingtoolprefix") + autoexecCombopPhaseOperationVo.getOperationName() + "'");
             } else if (Objects.equals(autoexecToolVo.getIsActive(), 0)) {
-                failureReasonSet.add("工具：'" + autoexecToolVo.getName() + "'未启用");
+                failureReasonSet.add($.t("nmar.combopimport.toolprefix") + autoexecToolVo.getName() + $.t("nmar.combopimport.inactivesuffix"));
             } else {
                 autoexecCombopPhaseOperationVo.setOperationId(autoexecToolVo.getId());
             }
@@ -645,7 +645,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                 } else if (ParamMappingMode.GLOBAL_PARAM.getValue().equals(paramMappingVo.getMappingMode())) {
                     AutoexecGlobalParamVo autoexecGlobalParamVo = globalParamMap.get((String) paramMappingVo.getValue());
                     if (autoexecGlobalParamVo == null) {
-                        warnReasonSet.add("缺少全局参数：'" + paramMappingVo.getValue() + "'");
+                        warnReasonSet.add($.t("nmar.combopimport.missingglobalparamprefix") + paramMappingVo.getValue() + "'");
                         paramMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
                         paramMappingVo.setValue(null);
                     }
@@ -661,7 +661,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                 } else if (ParamMappingMode.GLOBAL_PARAM.getValue().equals(paramMappingVo.getMappingMode())) {
                     AutoexecGlobalParamVo autoexecGlobalParamVo = globalParamMap.get((String) paramMappingVo.getValue());
                     if (autoexecGlobalParamVo == null) {
-                        warnReasonSet.add("缺少全局参数：'" + paramMappingVo.getValue() + "'");
+                        warnReasonSet.add($.t("nmar.combopimport.missingglobalparamprefix") + paramMappingVo.getValue() + "'");
                         paramMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
                         paramMappingVo.setValue(null);
                     }

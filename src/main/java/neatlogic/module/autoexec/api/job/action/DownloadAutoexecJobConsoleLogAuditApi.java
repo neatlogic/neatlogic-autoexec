@@ -42,7 +42,7 @@ import javax.servlet.http.HttpServletResponse;
 public class DownloadAutoexecJobConsoleLogAuditApi extends PrivateBinaryStreamApiComponentBase {
     @Override
     public String getName() {
-        return "下载作业控制台操作记录";
+        return "nmaa.downloadautoexecjobconsolelogauditapi.getname";
     }
 
     @Override
@@ -53,13 +53,13 @@ public class DownloadAutoexecJobConsoleLogAuditApi extends PrivateBinaryStreamAp
     @Resource
     private AutoexecJobMapper autoexecJobMapper;
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "作业Id"),
+            @Param(name = "jobId", type = ApiParamType.LONG, isRequired = true, desc = "term.autoexec.jobid"),
             @Param(name = "runnerId", type = ApiParamType.LONG, isRequired = true, desc = "runner Id"),
-            @Param(name = "startTime", type = ApiParamType.STRING, desc = "执行开始时间", isRequired = true),
-            @Param(name = "execUser", type = ApiParamType.STRING, desc = "执行用户", isRequired = true)
+            @Param(name = "startTime", type = ApiParamType.STRING, desc = "common.starttime", isRequired = true),
+            @Param(name = "execUser", type = ApiParamType.STRING, desc = "term.autoexec.executeuser", isRequired = true)
     })
     @Output({})
-    @Description(desc = "下载作业控制台操作记录")
+    @Description(desc = "nmaa.downloadautoexecjobconsolelogauditapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         Long jobId = paramObj.getLong("jobId");

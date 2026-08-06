@@ -53,7 +53,7 @@ public class GetAutoexecJobCreatePayloadApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "获取创建作业payload";
+        return "nmaa.getautoexecjobcreatepayloadapi.getname";
     }
 
     @Override
@@ -62,12 +62,12 @@ public class GetAutoexecJobCreatePayloadApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true)
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true)
     })
     @Output({
-            @Param(explode = AutoexecJobVo.class, desc = "列表"),
+            @Param(explode = AutoexecJobVo.class, desc = "nmaa.getautoexecjobcreatepayloadapi.output.param.desc.return"),
     })
-    @Description(desc = "获取创建作业payload接口")
+    @Description(desc = "nmaa.getautoexecjobcreatepayloadapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         JSONObject result = new JSONObject();

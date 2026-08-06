@@ -12,6 +12,8 @@
 
 package neatlogic.module.autoexec.api.job;
 
+import neatlogic.framework.util.$;
+
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
@@ -64,7 +66,7 @@ public class ExportAutoexecJobPhaseNodeApi extends PrivateBinaryStreamApiCompone
 
     @Override
     public String getName() {
-        return "导出作业剧本节点";
+        return "nmaa.exportautoexecjobphasenodeapi.getname";
     }
 
     @Override
@@ -73,9 +75,9 @@ public class ExportAutoexecJobPhaseNodeApi extends PrivateBinaryStreamApiCompone
     }
 
     @Input({
-            @Param(name = "jobPhaseId", type = ApiParamType.LONG, desc = "作业剧本id", isRequired = true),
+            @Param(name = "jobPhaseId", type = ApiParamType.LONG, desc = "term.autoexec.jobphaseid", isRequired = true),
     })
-    @Description(desc = "导出作业剧本节点")
+    @Description(desc = "nmaa.exportautoexecjobphasenodeapi.getname")
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         Long jobPhaseId = paramObj.getLong("jobPhaseId");
@@ -118,16 +120,16 @@ public class ExportAutoexecJobPhaseNodeApi extends PrivateBinaryStreamApiCompone
     private List<String> getHeadList(String execMode) {
         List<String> headList = new ArrayList<>();
         if (ExecMode.SQL.getValue().equals(execMode)) {
-            headList.add("文件名");
+            headList.add($.t("nmar.export.filename"));
         }
         headList.add("IP");
-        headList.add("节点名称");
-        headList.add("状态");
-        headList.add("耗时");
-        headList.add("开始时间");
-        headList.add("结束时间");
-        headList.add("执行代理");
-        headList.add("日志");
+        headList.add($.t("term.autoexec.nodename"));
+        headList.add($.t("common.status"));
+        headList.add($.t("common.timecost"));
+        headList.add($.t("common.starttime"));
+        headList.add($.t("common.endtime"));
+        headList.add($.t("nmar.export.runner"));
+        headList.add($.t("nmar.export.log"));
         return headList;
     }
 

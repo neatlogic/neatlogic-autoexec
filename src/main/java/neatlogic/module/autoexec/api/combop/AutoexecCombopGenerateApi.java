@@ -85,7 +85,7 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "脚本/工具发布生成组合工具";
+        return "nmaa.autoexeccombopgenerateapi.getname";
     }
 
     @Override
@@ -94,16 +94,16 @@ public class AutoexecCombopGenerateApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "operationId", type = ApiParamType.LONG, isRequired = true, desc = "脚本/工具主键id"),
-            @Param(name = "operationType", type = ApiParamType.ENUM, rule = "script,tool", isRequired = true, desc = "脚本/工具"),
-            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, isRequired = true, minLength = 1, maxLength = 70, desc = "显示名"),
-            @Param(name = "description", type = ApiParamType.STRING, desc = "描述"),
-            @Param(name = "typeId", type = ApiParamType.LONG, isRequired = true, desc = "类型id")
+            @Param(name = "operationId", type = ApiParamType.LONG, isRequired = true, desc = "nmaa.autoexeccombopgenerateapi.input.param.desc.operationid"),
+            @Param(name = "operationType", type = ApiParamType.ENUM, rule = "script,tool", isRequired = true, desc = "nmaa.autoexeccombopgenerateapi.input.param.desc.operationtype"),
+            @Param(name = "name", type = ApiParamType.REGEX, rule = RegexUtils.NAME, isRequired = true, minLength = 1, maxLength = 70, desc = "term.autoexec.displayname"),
+            @Param(name = "description", type = ApiParamType.STRING, desc = "common.description"),
+            @Param(name = "typeId", type = ApiParamType.LONG, isRequired = true, desc = "common.typeid")
     })
     @Output({
-            @Param(name = "Return", type = ApiParamType.LONG, desc = "主键id")
+            @Param(name = "Return", type = ApiParamType.LONG, desc = "term.autoexec.combopid")
     })
-    @Description(desc = "脚本/工具发布生成组合工具")
+    @Description(desc = "nmaa.autoexeccombopgenerateapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long operationId = jsonObj.getLong("operationId");

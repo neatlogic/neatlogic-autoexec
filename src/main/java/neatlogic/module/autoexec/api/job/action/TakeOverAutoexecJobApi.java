@@ -52,7 +52,7 @@ public class TakeOverAutoexecJobApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "接管作业";
+        return "nmaa.takeoverautoexecjobapi.getname";
     }
 
     @Override
@@ -61,11 +61,11 @@ public class TakeOverAutoexecJobApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "jobId", type = ApiParamType.LONG, desc = "作业id", isRequired = true),
+            @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
     })
     @Output({
     })
-    @Description(desc = "接管作业")
+    @Description(desc = "nmaa.takeoverautoexecjobapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long jobId = jsonObj.getLong("jobId");

@@ -37,7 +37,7 @@ public class AutoexecCatalogDeleteApi extends PrivateApiComponentBase {
 
     @Override
     public String getName() {
-        return "删除工具目录";
+        return "nmaa.autoexeccatalogdeleteapi.getname";
     }
 
     @Override
@@ -46,9 +46,9 @@ public class AutoexecCatalogDeleteApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "id", type = ApiParamType.LONG, desc = "目录id", isRequired = true)
+            @Param(name = "id", type = ApiParamType.LONG, desc = "term.autoexec.catalogid", isRequired = true)
     })
-    @Description(desc = "删除工具目录")
+    @Description(desc = "nmaa.autoexeccatalogdeleteapi.getname")
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         Long id = jsonObj.getLong("id");
