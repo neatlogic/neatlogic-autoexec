@@ -15,6 +15,7 @@ package neatlogic.module.autoexec.api.tool;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
+import neatlogic.framework.autoexec.constvalue.AutoexecOperationIndexAction;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import neatlogic.framework.autoexec.dto.AutoexecToolVo;
 import neatlogic.framework.autoexec.exception.AutoexecToolNotFoundException;
@@ -22,9 +23,11 @@ import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
+import neatlogic.module.autoexec.service.AutoexecOperationChangeDispatcher;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
+import java.util.Objects;
 
 @Service
 @AuthAction(action = AUTOEXEC_SCRIPT_MANAGE.class)
@@ -33,6 +36,9 @@ public class AutoexecToolActiveStatusUpdateApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecToolMapper autoexecToolMapper;
+
+    @Resource
+    private AutoexecOperationChangeDispatcher operationChangeDispatcher;
 
     @Override
     public String getToken() {
@@ -67,6 +73,8 @@ public class AutoexecToolActiveStatusUpdateApi extends PrivateApiComponentBase {
         vo.setId(id);
         vo.setIsActive(isActive);
         autoexecToolMapper.updateActiveStatus(vo);
+        operationChangeDispatcher.notifyAfterCommit("tool", id, Objects.equals(isActive, 1)
+                ? AutoexecOperationIndexAction.UPSERT : AutoexecOperationIndexAction.DELETE);
         return null;
     }
 

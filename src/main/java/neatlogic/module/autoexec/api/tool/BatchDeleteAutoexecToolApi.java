@@ -15,6 +15,7 @@ package neatlogic.module.autoexec.api.tool;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_MODIFY;
+import neatlogic.framework.autoexec.constvalue.AutoexecOperationIndexAction;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.constvalue.systemuser.SystemUser;
@@ -22,6 +23,7 @@ import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.module.autoexec.dao.mapper.AutoexecProfileMapper;
+import neatlogic.module.autoexec.service.AutoexecOperationChangeDispatcher;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -41,6 +43,9 @@ public class BatchDeleteAutoexecToolApi extends PrivateApiComponentBase {
 
     @Resource
     AutoexecProfileMapper autoexecProfileMapper;
+
+    @Resource
+    private AutoexecOperationChangeDispatcher operationChangeDispatcher;
 
     @Override
     public String getName() {
@@ -70,6 +75,7 @@ public class BatchDeleteAutoexecToolApi extends PrivateApiComponentBase {
             for (Long id : idList) {
                 autoexecProfileMapper.deleteProfileOperationByOperationId(id);
             }
+            operationChangeDispatcher.notifyAfterCommit("tool", idList, AutoexecOperationIndexAction.DELETE);
         }
         return null;
     }

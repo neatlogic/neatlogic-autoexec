@@ -18,6 +18,7 @@ package neatlogic.module.autoexec.api.script;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
+import neatlogic.framework.autoexec.constvalue.AutoexecOperationIndexAction;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
 import neatlogic.framework.common.constvalue.ApiParamType;
@@ -26,6 +27,7 @@ import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.framework.transaction.util.TransactionUtil;
 import neatlogic.module.autoexec.service.AutoexecScriptService;
+import neatlogic.module.autoexec.service.AutoexecOperationChangeDispatcher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionStatus;
 
@@ -43,6 +45,9 @@ public class BatchDeleteAutoexecScriptApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptService autoexecScriptService;
+
+    @Resource
+    private AutoexecOperationChangeDispatcher operationChangeDispatcher;
 
     @Override
     public String getToken() {
@@ -75,6 +80,7 @@ public class BatchDeleteAutoexecScriptApi extends PrivateApiComponentBase {
             try {
                 autoexecScriptService.deleteScriptById(id);
                 TransactionUtil.commitTx(tx);
+                operationChangeDispatcher.notifyAfterCommit("script", id, AutoexecOperationIndexAction.DELETE);
             } catch (Exception ex) {
                 TransactionUtil.rollbackTx(tx);
                 if (scriptVo != null) {

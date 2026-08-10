@@ -18,6 +18,7 @@ package neatlogic.module.autoexec.api.script;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_SCRIPT_MODIFY;
+import neatlogic.framework.autoexec.constvalue.AutoexecOperationIndexAction;
 import neatlogic.framework.autoexec.constvalue.ScriptAction;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecScriptMapper;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptAuditVo;
@@ -35,6 +36,7 @@ import neatlogic.framework.restful.core.IValid;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.module.autoexec.dependency.AutoexecScript2ScriptDependencyHandler;
 import neatlogic.module.autoexec.service.AutoexecScriptService;
+import neatlogic.module.autoexec.service.AutoexecOperationChangeDispatcher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -52,6 +54,9 @@ public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptService autoexecScriptService;
+
+    @Resource
+    private AutoexecOperationChangeDispatcher operationChangeDispatcher;
 
     @Override
     public String getToken() {
@@ -84,6 +89,7 @@ public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
                 throw new AutoexecScriptNotFoundException(id);
             }
             autoexecScriptService.deleteScriptById(id);
+            operationChangeDispatcher.notifyAfterCommit("script", id, AutoexecOperationIndexAction.DELETE);
         } else if (versionId != null) { // 删除版本
             AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionIdForUpdate(versionId);
             if (version == null) {
@@ -105,6 +111,8 @@ public class AutoexecScriptDeleteApi extends PrivateApiComponentBase {
             // 只剩一个版本时，直接删除整个脚本
             if (hasOnlyOneVersion) {
                 autoexecScriptMapper.deleteScriptById(version.getScriptId());
+                operationChangeDispatcher.notifyAfterCommit("script", version.getScriptId(),
+                        AutoexecOperationIndexAction.DELETE);
             } else {
                 JSONObject auditContent = new JSONObject();
                 auditContent.put("version", version.getVersion());

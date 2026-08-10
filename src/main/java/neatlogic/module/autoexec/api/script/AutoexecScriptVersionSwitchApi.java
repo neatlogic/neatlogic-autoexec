@@ -15,6 +15,7 @@ package neatlogic.module.autoexec.api.script;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
+import neatlogic.framework.autoexec.constvalue.AutoexecOperationIndexAction;
 import neatlogic.framework.autoexec.constvalue.ScriptAction;
 import neatlogic.framework.autoexec.constvalue.ScriptVersionStatus;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecScriptMapper;
@@ -28,6 +29,7 @@ import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import neatlogic.module.autoexec.service.AutoexecScriptService;
+import neatlogic.module.autoexec.service.AutoexecOperationChangeDispatcher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +47,9 @@ public class AutoexecScriptVersionSwitchApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecScriptService autoexecScriptService;
+
+    @Resource
+    private AutoexecOperationChangeDispatcher operationChangeDispatcher;
 
     @Override
     public String getToken() {
@@ -99,6 +104,8 @@ public class AutoexecScriptVersionSwitchApi extends PrivateApiComponentBase {
                 , ScriptAction.SWITCH_VERSION.getValue()
                 , auditContent);
         autoexecScriptService.audit(auditVo);
+        operationChangeDispatcher.notifyAfterCommit("script", version.getScriptId(),
+                AutoexecOperationIndexAction.UPSERT);
         return null;
     }
 

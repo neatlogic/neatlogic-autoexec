@@ -32,6 +32,7 @@ import neatlogic.framework.restful.core.privateapi.binarystream.PrivateBinaryStr
 import neatlogic.module.autoexec.fulltextindex.AutoexecFullTextIndexType;
 import neatlogic.module.autoexec.service.AutoexecScriptService;
 import neatlogic.module.autoexec.service.AutoexecService;
+import neatlogic.module.autoexec.service.AutoexecOperationChangeDispatcher;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -78,6 +79,9 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
 
     @Resource
     private FileMapper fileMapper;
+
+    @Resource
+    private AutoexecOperationChangeDispatcher operationChangeDispatcher;
 
     @Override
     public String getToken() {
@@ -318,6 +322,8 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
                         }
                     }
                 }
+                operationChangeDispatcher.notifyAfterCommit("script", scriptId,
+                        AutoexecOperationIndexAction.UPSERT);
             } else {
                 JSONObject faultObj = new JSONObject();
                 String item;
