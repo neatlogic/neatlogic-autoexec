@@ -84,6 +84,9 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
     @Resource
     private FileMapper fileMapper;
 
+    @Resource
+    private AutoexecOperationChangeDispatcher operationChangeDispatcher;
+
 
     /**
      * 获取脚本版本详细信息，包括参数与脚本内容
@@ -786,6 +789,10 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
             updateVo.setStatus(ScriptVersionStatus.REJECTED.getValue());
         }
         autoexecScriptMapper.updateScriptVersion(updateVo);
+        if (isPass) {
+            operationChangeDispatcher.notifyAfterCommit("script", version.getScriptId(),
+                    AutoexecOperationIndexAction.UPSERT);
+        }
 
         JSONObject auditContent = new JSONObject();
         auditContent.put("version", version.getVersion());

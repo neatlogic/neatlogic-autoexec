@@ -18,6 +18,7 @@ import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
 import neatlogic.framework.autoexec.constvalue.AutoexecFromType;
+import neatlogic.framework.autoexec.constvalue.AutoexecOperationIndexAction;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecToolMapper;
 import neatlogic.framework.autoexec.dto.AutoexecToolVo;
 import neatlogic.framework.common.constvalue.ApiParamType;
@@ -27,6 +28,7 @@ import neatlogic.framework.dependency.dto.DependencyInfoVo;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
+import neatlogic.module.autoexec.service.AutoexecOperationChangeDispatcher;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Service;
 
@@ -44,6 +46,9 @@ public class AutoexecToolDeleteApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecToolMapper autoexecToolMapper;
+
+    @Resource
+    private AutoexecOperationChangeDispatcher operationChangeDispatcher;
 
     @Override
     public String getToken() {
@@ -90,6 +95,8 @@ public class AutoexecToolDeleteApi extends PrivateApiComponentBase {
         }
         if (canDeleteToolIdList.size() > 0) {
             autoexecToolMapper.deleteToolByIdList(canDeleteToolIdList);
+            operationChangeDispatcher.notifyAfterCommit("tool", canDeleteToolIdList,
+                    AutoexecOperationIndexAction.DELETE);
         }
         if (!canNotDeleteTool.isEmpty()) {
             StringBuilder sb = new StringBuilder();
