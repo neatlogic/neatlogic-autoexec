@@ -227,8 +227,8 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
                 return returnDefaultValue;
             }
             IScriptParamType paramType = ScriptParamTypeFactory.getHandler(paramVo.getType());
-            if (paramType != null) {
-                Object text = paramType.getTextByValue(paramDefaultValue, JSONObject.parseObject(JSONObject.toJSONString(config))).toString();
+            if (paramType != null && paramDefaultValue != null) {
+                Object text = paramType.getTextByValue(paramDefaultValue, JSONObject.parseObject(JSONObject.toJSONString(config)));
                 if (text != null) {
                     returnDefaultValue.append("  ").append(text);
                 }
@@ -240,8 +240,8 @@ public class ExportAutoexecToolParamApi extends PrivateBinaryStreamApiComponentB
                 return returnDefaultValue;
             }
             IScriptParamType paramType = ScriptParamTypeFactory.getHandler(paramVo.getType());
-            if (paramType != null) {
-                Object text = paramType.getTextByValue(paramDefaultValue, JSONObject.parseObject(JSONObject.toJSONString(config))).toString();
+            if (paramType != null && paramDefaultValue != null) {
+                Object text = paramType.getTextByValue(paramDefaultValue, JSONObject.parseObject(JSONObject.toJSONString(config)));
                 if (text != null) {
                     if (text instanceof List) {
                         List textList = (List) text;
