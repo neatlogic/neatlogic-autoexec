@@ -439,9 +439,10 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
     }
 
     /**
-     * 返回所有rule为空 或 满足rule的执行器组
+     * 返回所有未配置规则，或规则与当前会话请求头匹配的执行器组 ID。
+     * execrtool 复用该只读规则匹配结果，确保直接执行与作业使用相同的执行器组规则语义。
      */
-    private List<Long> getMatchRuleRunnerGroupList() {
+    public List<Long> getMatchRuleRunnerGroupList() {
         List<Long> matchRuleRunnerGroupIdList = new ArrayList<>();
         List<RunnerGroupVo> runnerGroups = runnerMapper.getAllRunnerGroupList();
         JSONObject headers = null;
