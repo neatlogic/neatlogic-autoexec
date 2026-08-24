@@ -1401,12 +1401,12 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             for (AutoexecJobVo vo : jobVoList) {
                 vo.setOperationName(operationIdNameMap.get(vo.getOperationId()));
                 IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(vo.getSource());
-                if (jobSource == null) {
-                    throw new AutoexecJobSourceInvalidException(vo.getSource());
-                }
-                IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
-                if (autoexecJobSourceActionHandler != null) {
-                    autoexecJobSourceActionHandler.getJobActionAuth(vo);
+                // 历史作业的来源模块可能已卸载，列表查询时仅跳过该作业的来源专属权限补充，避免影响其他作业展示。
+                if (jobSource != null) {
+                    IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
+                    if (autoexecJobSourceActionHandler != null) {
+                        autoexecJobSourceActionHandler.getJobActionAuth(vo);
+                    }
                 }
                 //补充warnCount和ignore tooltips
 //                AutoexecJobVo jobWarnCountStatus = autoexecJobVoMap.get(vo.getId());
