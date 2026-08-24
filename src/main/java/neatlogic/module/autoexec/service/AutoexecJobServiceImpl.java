@@ -1686,7 +1686,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             if (requestUtil.getResponseCode() != 200 || StringUtils.isNotBlank(requestUtil.getError())) {
                 Long statusLcd = System.currentTimeMillis();
                 runnerMapper.updateStatusById(runner.getId(), RunnerStatus.DISCONNECTED.getValue(), new Date(statusLcd));
-                throw new ApiRuntimeException(String.format("Request to %s failed, result: %s, ResponseCode: %s, ErrorMsg: %s, Exception %s", url, requestUtil.getResult(), requestUtil.getResponseCode(), requestUtil.getErrorMsg(), requestUtil.getError()));
+                throw new ApiRuntimeException(String.format("Request to %s failed, result: %s, ResponseCode: %s, ErrorMsg: %s", url, requestUtil.getResult(), requestUtil.getResponseCode(), requestUtil.getErrorMsg()));
             }
         }
     }

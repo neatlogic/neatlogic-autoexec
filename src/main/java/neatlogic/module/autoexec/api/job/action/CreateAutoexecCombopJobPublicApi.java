@@ -12,45 +12,28 @@
 
 package neatlogic.module.autoexec.api.job.action;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_CREATE_PUBLIC_JOB;
-import neatlogic.framework.autoexec.constvalue.*;
-import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
-import neatlogic.framework.autoexec.dto.AutoexecParamVo;
-import neatlogic.framework.autoexec.dto.combop.*;
+import neatlogic.framework.autoexec.constvalue.AutoexecParallelPolicy;
+import neatlogic.framework.autoexec.constvalue.JobTriggerType;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
-import neatlogic.framework.autoexec.exception.AutoexecCombopActiveVersionNotFoundException;
-import neatlogic.framework.autoexec.exception.AutoexecCombopNotFoundException;
-import neatlogic.framework.autoexec.exception.combop.AutoexecCombopVersionNotFoundEditTargetException;
-import neatlogic.framework.autoexec.script.paramtype.IScriptParamType;
-import neatlogic.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
-import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
-import neatlogic.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
-import neatlogic.framework.cmdb.exception.resourcecenter.ResourceCenterAccountProtocolNotFoundException;
+import neatlogic.framework.autoexec.exception.job.AutoexecJobSyncParamNotSupportedException;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.common.constvalue.systemuser.SystemUser;
-import neatlogic.framework.crossover.CrossoverServiceFactory;
-import neatlogic.framework.dao.mapper.UserMapper;
-import neatlogic.framework.dto.AuthenticationInfoVo;
-import neatlogic.framework.dto.UserVo;
-import neatlogic.framework.exception.user.UserNotFoundException;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
-import neatlogic.framework.service.AuthenticationInfoService;
-import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
-import neatlogic.module.autoexec.service.AutoexecCombopService;
+import neatlogic.module.autoexec.dto.job.AutoexecCombopJobBuildResultVo;
+import neatlogic.module.autoexec.dto.job.AutoexecJobSyncResultVo;
+import neatlogic.module.autoexec.service.AutoexecCombopJobCreateService;
+import neatlogic.module.autoexec.service.AutoexecCombopJobSyncService;
 import neatlogic.module.autoexec.service.AutoexecJobActionService;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
-import java.util.List;
-import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * @author lvzk
@@ -63,22 +46,11 @@ import java.util.stream.Collectors;
 @OperationType(type = OperationTypeEnum.CREATE)
 public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
     @Resource
-    AutoexecJobActionService autoexecJobActionService;
-
+    private AutoexecJobActionService autoexecJobActionService;
     @Resource
-    AutoexecCombopMapper combopMapper;
-
+    private AutoexecCombopJobCreateService autoexecCombopJobCreateService;
     @Resource
-    UserMapper userMapper;
-
-    @Resource
-    AutoexecCombopVersionMapper autoexecCombopVersionMapper;
-
-    @Resource
-    AutoexecCombopService autoexecCombopService;
-
-    @Resource
-    private AuthenticationInfoService authenticationInfoService;
+    private AutoexecCombopJobSyncService autoexecCombopJobSyncService;
 
     @Override
     public String getName() {
@@ -91,110 +63,57 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
     }
 
     @Input({
-            @Param(name = "combopName", type = ApiParamType.STRING, isRequired = true, desc = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.combop"),
-            @Param(name = "name", type = ApiParamType.STRING, isRequired = true, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.name"),
-            @Param(name = "param", type = ApiParamType.JSONOBJECT, isRequired = true, desc = "term.autoexec.executeparam"),
-            @Param(name = "invokeId", type = ApiParamType.LONG, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.invokeid"),
-            @Param(name = "parentId", type = ApiParamType.LONG, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.parentid"),
-            @Param(name = "scenarioName", type = ApiParamType.STRING, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.scenarioname"),
-            @Param(name = "parallelPolicy", type = ApiParamType.ENUM, member = AutoexecParallelPolicy.class, desc = "nmaaja.createautoexeccombopjobapi.input.param.desc.parallelpolicy"),
-            @Param(name = "roundCount", type = ApiParamType.LONG, desc = "term.autoexec.roundcount"),
-            @Param(name = "parallelCount", type = ApiParamType.LONG, desc = "term.autoexec.roundcount"),
-            @Param(name = "executeConfig", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.executeconfig"),
-            @Param(name = "planStartTime", type = ApiParamType.LONG, desc = "common.planstarttime"),
-            @Param(name = "triggerType", type = ApiParamType.ENUM, member = JobTriggerType.class, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.triggertype"),
-            @Param(name = "assignExecUser", type = ApiParamType.STRING, desc = "term.autoexec.assignexecuser"),
-            @Param(name = "runnerGroup", type = ApiParamType.STRING, desc = "common.runnergroup"),
-            @Param(name = "runnerGroupTag", type = ApiParamType.STRING, desc = "common.runnergrouptag")
+            @Param(name = "combopName", type = ApiParamType.STRING, isRequired = true, desc = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.desc.combopname", help = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.help.combopname"),
+            @Param(name = "name", type = ApiParamType.STRING, desc = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.desc.name", help = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.help.name"),
+            @Param(name = "param", type = ApiParamType.JSONOBJECT, desc = "term.autoexec.jobparam", help = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.help.param"),
+            @Param(name = "isSync", type = ApiParamType.BOOLEAN, defaultValue = "false", desc = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.desc.issync", help = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.help.issync"),
+            @Param(name = "invokeId", type = ApiParamType.LONG, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.invokeid", help = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.help.invokeid"),
+            @Param(name = "parentId", type = ApiParamType.LONG, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.parentid", help = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.help.parentid"),
+            @Param(name = "scenarioName", type = ApiParamType.STRING, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.scenarioname", help = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.help.scenarioname"),
+            @Param(name = "ipPortList", type = ApiParamType.JSONARRAY, desc = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.desc.ipportlist", help = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.help.ipportlist"),
+            @Param(name = "protocol", type = ApiParamType.STRING, desc = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.desc.protocol", help = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.help.protocol"),
+            @Param(name = "executeUser", type = ApiParamType.STRING, desc = "term.autoexec.executeuser", help = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.help.executeuser"),
+            @Param(name = "runnerGroup", type = ApiParamType.STRING, desc = "common.runnergroup", help = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.help.runnergroup"),
+            @Param(name = "runnerGroupTag", type = ApiParamType.STRING, desc = "common.runnergrouptag", help = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.help.runnergrouptag"),
+            @Param(name = "parallelPolicy", type = ApiParamType.ENUM, member = AutoexecParallelPolicy.class, desc = "nmaaja.createautoexeccombopjobapi.input.param.desc.parallelpolicy", help = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.help.parallelpolicy"),
+            @Param(name = "roundCount", type = ApiParamType.LONG, desc = "term.autoexec.roundcount", help = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.help.roundcount"),
+            @Param(name = "parallelCount", type = ApiParamType.LONG, desc = "nmaaja.createautoexeccombopjobapi.input.param.desc.parallelcount", help = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.help.parallelcount"),
+            @Param(name = "planStartTime", type = ApiParamType.LONG, desc = "common.planstarttime", help = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.help.planstarttime"),
+            @Param(name = "triggerType", type = ApiParamType.ENUM, member = JobTriggerType.class, desc = "nmaaja.createautoexecjobfromcombopapi.input.param.desc.triggertype", help = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.help.triggertype"),
+            @Param(name = "assignExecUser", type = ApiParamType.STRING, desc = "term.autoexec.assignexecuser", help = "nmaaja.createautoexecjobfromcomboppublicapi.input.param.help.assignexecuser")
     })
     @Output({
+            @Param(explode = AutoexecJobSyncResultVo.class)
     })
     @Description(desc = "nmaaja.createautoexecjobfromcomboppublicapi.description.desc")
-    @ResubmitInterval(value = 2)
+    @Example(example = "{"
+            + "\"combopName\":\"deploy\","
+            + "\"name\":\"deploy-production\","
+            + "\"param\":{\"env\":\"prod\",\"version\":\"1.0.0\"},"
+            + "\"isSync\":true,"
+            + "\"scenarioName\":\"production\","
+            + "\"ipPortList\":[\"192.168.1.10\",\"192.168.1.11:22\",\"192.168.1.12:2222/app\"],"
+            + "\"protocol\":\"ssh\","
+            + "\"executeUser\":\"root\","
+            + "\"runnerGroup\":\"UAT\","
+            + "\"runnerGroupTag\":\"A\","
+            + "\"parallelPolicy\":\"parallel\","
+            + "\"parallelCount\":10"
+            + "}")
+    @ResubmitInterval(value = 5)
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
-        String execUserUuid = jsonObj.getString("assignExecUser");
-        if (StringUtils.isBlank(execUserUuid)) {
-            execUserUuid = UserContext.get().getUserUuid();
+        boolean isSync = jsonObj.getBooleanValue("isSync");
+        initDefaultParam(jsonObj);
+        if (isSync) {
+            validateSyncParam(jsonObj);
+            String requestUserUuid = UserContext.get().getUserUuid();
+            String execUserUuid = autoexecCombopJobCreateService.initExecUserContext(requestUserUuid);
+            return autoexecCombopJobSyncService.createAndWait(jsonObj, execUserUuid);
         }
-        UserVo execUser;
-        AuthenticationInfoVo authenticationInfoVo;
-        if (Objects.equals(SystemUser.SYSTEM.getUserUuid(), execUserUuid)) {
-            execUser = SystemUser.SYSTEM.getUserVo();
-            authenticationInfoVo = SystemUser.SYSTEM.getAuthenticationInfoVo();
-        } else if (Objects.equals(SystemUser.AUTOEXEC.getUserUuid(), execUserUuid)) {
-            //autoexec脚本用的是autoexec虚拟用户
-            execUser = SystemUser.AUTOEXEC.getUserVo();
-            authenticationInfoVo = SystemUser.AUTOEXEC.getAuthenticationInfoVo();
-        } else {
-            execUser = userMapper.getUserByUser(execUserUuid);
-            if (execUser == null) {
-                throw new UserNotFoundException(execUserUuid);
-            }
-            authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(execUserUuid);
-        }
-        UserContext.init(execUser, authenticationInfoVo, SystemUser.SYSTEM.getTimezone());
-        String combopName = jsonObj.getString("combopName");
-        AutoexecCombopVo combopVo = combopMapper.getAutoexecCombopByName(combopName);
-        if (combopVo == null) {
-            throw new AutoexecCombopNotFoundException(combopName);
-        }
-        Long activeVersionId = autoexecCombopVersionMapper.getAutoexecCombopActiveVersionIdByCombopId(combopVo.getId());
-        if (activeVersionId == null) {
-            throw new AutoexecCombopActiveVersionNotFoundException(combopName);
-        }
-        AutoexecCombopVersionVo autoexecCombopVersionVo = autoexecCombopService.getAutoexecCombopVersionById(activeVersionId);
-        if (autoexecCombopVersionVo == null) {
-            throw new AutoexecCombopVersionNotFoundEditTargetException(activeVersionId);
-        }
-        AutoexecCombopVersionConfigVo versionConfig = autoexecCombopVersionVo.getConfig();
-
-        JSONObject param = jsonObj.getJSONObject("param");
-        jsonObj.put("param", initParam(param, versionConfig));
-        jsonObj.put("execUser", execUserUuid);
-        jsonObj.put("operationType", CombopOperationType.COMBOP.getValue());
-        jsonObj.put("source", JobSource.COMBOP.getValue());
-        jsonObj.put("operationId", combopVo.getId());
-        getExecuteConfig(jsonObj);
-        String runnerGroup = jsonObj.getString("runnerGroup");
-        String runnerGroupTag = jsonObj.getString("runnerGroupTag");
-        jsonObj.remove("runnerGroup");
-        jsonObj.remove("runnerGroupTag");
-        AutoexecJobVo autoexecJobParam = JSON.toJavaObject(jsonObj, AutoexecJobVo.class);
-        //runnerGroup
-        if (StringUtils.isNotBlank(runnerGroup)) {
-            ParamMappingVo runnerGroupMappingVo = new ParamMappingVo();
-            runnerGroupMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
-            runnerGroupMappingVo.setValue(runnerGroup);
-            autoexecJobParam.setRunnerGroup(runnerGroupMappingVo);
-        }
-        //runnerGroupTag
-        if (StringUtils.isNotBlank(runnerGroupTag)) {
-            ParamMappingVo runnerGroupTagMappingVo = new ParamMappingVo();
-            runnerGroupTagMappingVo.setMappingMode(ParamMappingMode.CONSTANT.getValue());
-            if (runnerGroupTag.startsWith("[") && runnerGroupTag.endsWith("]")) {
-                runnerGroupTagMappingVo.setValue(runnerGroupTag);
-            } else {
-                runnerGroupTagMappingVo.setValue(String.format("[%s]", runnerGroupTag));
-            }
-            autoexecJobParam.setRunnerGroupTag(runnerGroupTagMappingVo);
-        }
-        AutoexecCombopExecuteConfigVo executeConfigVo = autoexecJobParam.getExecuteConfig();
-        if (executeConfigVo != null && StringUtils.isNotBlank(executeConfigVo.getProtocol())) {
-            IResourceAccountCrossoverMapper accountCrossoverMapper = CrossoverServiceFactory.getApi(IResourceAccountCrossoverMapper.class);
-            AccountProtocolVo accountProtocolVo = accountCrossoverMapper.getAccountProtocolVoByProtocolName(executeConfigVo.getProtocol());
-            if (accountProtocolVo == null) {
-                throw new ResourceCenterAccountProtocolNotFoundException(executeConfigVo.getProtocol());
-            }
-            executeConfigVo.setProtocolId(accountProtocolVo.getId());
-        }
-        if (versionConfig != null) {
-            AutoexecCombopExecuteConfigVo executeConfig = versionConfig.getExecuteConfig();
-            if (executeConfig != null) {
-                autoexecJobParam.setPreCondition(executeConfig.getPreCondition());
-                autoexecJobParam.setWhenToSpecify(executeConfig.getWhenToSpecify());
-            }
-        }
+        String execUserUuid = autoexecCombopJobCreateService.initExecUserContext(jsonObj.getString("assignExecUser"));
+        AutoexecCombopJobBuildResultVo buildResult = autoexecCombopJobCreateService.buildJob(jsonObj, execUserUuid);
+        AutoexecJobVo autoexecJobParam = buildResult.getJobVo();
         autoexecJobActionService.validateAndCreateJobFromCombop(autoexecJobParam);
         autoexecJobActionService.settingJobFireMode(autoexecJobParam);
         JSONObject result = new JSONObject();
@@ -203,50 +122,28 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
     }
 
     /**
-     * 转换补充executeConfig结构
-     *
-     * @param jsonObj 接口如参数
+     * 两种模式统一使用组合工具名称和空JSON作为作业名称、运行参数缺省值。
      */
-    private void getExecuteConfig(JSONObject jsonObj) {
-        if (!jsonObj.containsKey("executeConfig")) {
-            JSONObject executeConfig = new JSONObject();
-            jsonObj.put("executeConfig", executeConfig);
-            executeConfig.put("protocol", jsonObj.getString("protocol"));
-            if(StringUtils.isNotBlank(jsonObj.getString("executeUser"))) {
-                JSONObject executeUser = new JSONObject();
-                executeUser.put("mappingMode", "constant");
-                executeUser.put("value", jsonObj.getString("executeUser"));
-                executeConfig.put("executeUser", executeUser);
-            }
-            JSONObject executeNodeConfig = new JSONObject();
-            executeNodeConfig.put("inputNodeList", jsonObj.getJSONArray("ipPortList"));
-            executeConfig.put("executeNodeConfig", executeNodeConfig);
+    private void initDefaultParam(JSONObject paramObj) {
+        paramObj.put("name", StringUtils.defaultIfBlank(paramObj.getString("name"), paramObj.getString("combopName")));
+        if (paramObj.getJSONObject("param") == null) {
+            paramObj.put("param", new JSONObject());
         }
     }
 
     /**
-     * 初始化作业参数
-     *
-     * @param param         接口入参
-     * @param versionConfig 组合工具版本配置
+     * 同步模式固定当前用户并立即执行，不接受指定发起用户和计划执行参数。
      */
-    private JSONObject initParam(JSONObject param, AutoexecCombopVersionConfigVo versionConfig) {
-        JSONObject newParam = new JSONObject();
-        List<AutoexecParamVo> paramList = versionConfig.getRuntimeParamList().stream().filter(o -> !Objects.equals(ParamType.FILE.getValue(), o.getType())).collect(Collectors.toList());
-        for (AutoexecParamVo paramVo : paramList) {
-            Object value;
-            IScriptParamType paramType = ScriptParamTypeFactory.getHandler(paramVo.getType());
-            if (param.containsKey(paramVo.getKey()) && param.get(paramVo.getKey()) != null) {
-                value = param.get(paramVo.getKey());
-            } else {
-                value = paramVo.getDefaultValue();
-            }
-            if (paramType != null) {
-                value = paramType.getExchangeParamByValue(value);
-            }
-            newParam.put(paramVo.getKey(), value);
+    private void validateSyncParam(JSONObject paramObj) {
+        if (StringUtils.isNotBlank(paramObj.getString("assignExecUser"))) {
+            throw new AutoexecJobSyncParamNotSupportedException("assignExecUser");
         }
-        return newParam;
+        if (paramObj.containsKey("planStartTime")) {
+            throw new AutoexecJobSyncParamNotSupportedException("planStartTime");
+        }
+        if (paramObj.containsKey("triggerType")) {
+            throw new AutoexecJobSyncParamNotSupportedException("triggerType");
+        }
     }
 
     @Override

@@ -17,13 +17,13 @@ import neatlogic.framework.restful.annotation.EntityField;
 
 public class AutoexecJobNodeOutputVo {
 
-    @EntityField(name = "nmaaja.createautoexeccombopjobsyncapi.output.resourceid", type = ApiParamType.LONG)
+    @EntityField(name = "nmaaja.createautoexecjobfromcomboppublicapi.output.resourceid", type = ApiParamType.LONG)
     private Long resourceId;
-    @EntityField(name = "nmaaja.createautoexeccombopjobsyncapi.output.host", type = ApiParamType.STRING)
+    @EntityField(name = "nmaaja.createautoexecjobfromcomboppublicapi.output.host", type = ApiParamType.STRING)
     private String host;
-    @EntityField(name = "nmaaja.createautoexeccombopjobsyncapi.output.port", type = ApiParamType.INTEGER)
+    @EntityField(name = "nmaaja.createautoexecjobfromcomboppublicapi.output.port", type = ApiParamType.INTEGER)
     private Integer port;
-    @EntityField(name = "nmaaja.createautoexeccombopjobsyncapi.output.output", type = ApiParamType.NOAUTH)
+    @EntityField(name = "nmaaja.createautoexecjobfromcomboppublicapi.output.output", type = ApiParamType.NOAUTH)
     private Object output;
 
     public Long getResourceId() {

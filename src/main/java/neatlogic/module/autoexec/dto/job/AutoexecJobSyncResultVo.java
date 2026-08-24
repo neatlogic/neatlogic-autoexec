@@ -27,25 +27,25 @@ public class AutoexecJobSyncResultVo {
     private String status;
     @EntityField(name = "term.autoexec.jobstatusname", type = ApiParamType.STRING)
     private String statusName;
-    @EntityField(name = "nmaaja.createautoexeccombopjobsyncapi.output.terminal", type = ApiParamType.BOOLEAN)
+    @EntityField(name = "nmaaja.createautoexecjobfromcomboppublicapi.output.terminal", type = ApiParamType.BOOLEAN)
     private Boolean terminal;
-    @EntityField(name = "nmaaja.createautoexeccombopjobsyncapi.output.success", type = ApiParamType.BOOLEAN)
+    @EntityField(name = "nmaaja.createautoexecjobfromcomboppublicapi.output.success", type = ApiParamType.BOOLEAN)
     private Boolean success;
-    @EntityField(name = "nmaaja.createautoexeccombopjobsyncapi.output.timedout", type = ApiParamType.BOOLEAN)
+    @EntityField(name = "nmaaja.createautoexecjobfromcomboppublicapi.output.timedout", type = ApiParamType.BOOLEAN)
     private Boolean timedOut;
-    @EntityField(name = "nmaaja.createautoexeccombopjobsyncapi.output.waittimems", type = ApiParamType.LONG)
+    @EntityField(name = "nmaaja.createautoexecjobfromcomboppublicapi.output.waittimems", type = ApiParamType.LONG)
     private Long waitTimeMs;
-    @EntityField(name = "nmaaja.createautoexeccombopjobsyncapi.output.outputtargetcount", type = ApiParamType.INTEGER)
+    @EntityField(name = "nmaaja.createautoexecjobfromcomboppublicapi.output.outputtargetcount", type = ApiParamType.INTEGER)
     private Integer outputTargetCount;
-    @EntityField(name = "nmaaja.createautoexeccombopjobsyncapi.output.returnedoutputtargetcount", type = ApiParamType.INTEGER)
+    @EntityField(name = "nmaaja.createautoexecjobfromcomboppublicapi.output.returnedoutputtargetcount", type = ApiParamType.INTEGER)
     private Integer returnedOutputTargetCount;
-    @EntityField(name = "nmaaja.createautoexeccombopjobsyncapi.output.outputtruncated", type = ApiParamType.BOOLEAN)
+    @EntityField(name = "nmaaja.createautoexecjobfromcomboppublicapi.output.outputtruncated", type = ApiParamType.BOOLEAN)
     private Boolean outputTruncated;
-    @EntityField(name = "nmaaja.createautoexeccombopjobsyncapi.output.outputreadsuccess", type = ApiParamType.BOOLEAN)
+    @EntityField(name = "nmaaja.createautoexecjobfromcomboppublicapi.output.outputreadsuccess", type = ApiParamType.BOOLEAN)
     private Boolean outputReadSuccess;
-    @EntityField(name = "nmaaja.createautoexeccombopjobsyncapi.output.outputreadmessage", type = ApiParamType.STRING)
+    @EntityField(name = "nmaaja.createautoexecjobfromcomboppublicapi.output.outputreadmessage", type = ApiParamType.STRING)
     private String outputReadMessage;
-    @EntityField(name = "nmaaja.createautoexeccombopjobsyncapi.output.nodeoutputlist", type = ApiParamType.JSONARRAY)
+    @EntityField(name = "nmaaja.createautoexecjobfromcomboppublicapi.output.nodeoutputlist", type = ApiParamType.JSONARRAY)
     private List<AutoexecJobNodeOutputVo> nodeOutputList;
 
     public Long getJobId() {
