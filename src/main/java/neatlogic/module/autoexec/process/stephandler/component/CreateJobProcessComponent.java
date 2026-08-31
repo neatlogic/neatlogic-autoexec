@@ -39,6 +39,7 @@ import neatlogic.framework.process.crossover.*;
 import neatlogic.framework.process.dto.*;
 import neatlogic.framework.process.exception.processtask.ProcessTaskException;
 import neatlogic.framework.process.exception.processtask.ProcessTaskNoPermissionException;
+import neatlogic.framework.process.spring.condition.ProcessComponentLoadCondition;
 import neatlogic.framework.process.stephandler.core.*;
 import neatlogic.module.autoexec.constvalue.FailPolicy;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
@@ -57,6 +58,7 @@ import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -68,6 +70,7 @@ import java.util.stream.Collectors;
  * @since 2021/9/2 14:22
  **/
 @Service
+@Conditional(ProcessComponentLoadCondition.class)
 public class CreateJobProcessComponent extends ProcessStepHandlerBase {
 
     private final static Logger logger = LoggerFactory.getLogger(CreateJobProcessComponent.class);

@@ -26,11 +26,13 @@ import neatlogic.framework.process.crossover.IProcessTaskStepDataCrossoverMapper
 import neatlogic.framework.process.dto.ProcessTaskStepDataVo;
 import neatlogic.framework.process.dto.ProcessTaskStepVo;
 import neatlogic.framework.process.operationauth.core.IOperationType;
+import neatlogic.framework.process.spring.condition.ProcessComponentLoadCondition;
 import neatlogic.framework.process.stephandler.core.ProcessStepInternalHandlerBase;
 import neatlogic.module.autoexec.notify.handler.AutoexecNotifyPolicyHandler;
 import neatlogic.module.autoexec.process.constvalue.CreateJobProcessStepHandlerType;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
+import org.springframework.context.annotation.Conditional;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
@@ -44,6 +46,7 @@ import java.util.Map;
  * @since 2021/9/2 14:30
  **/
 @Service
+@Conditional(ProcessComponentLoadCondition.class)
 public class CreateJobProcessUtilHandler extends ProcessStepInternalHandlerBase {
 
     @Resource
