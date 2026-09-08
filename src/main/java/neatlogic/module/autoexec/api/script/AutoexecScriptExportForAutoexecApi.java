@@ -98,6 +98,7 @@ public class AutoexecScriptExportForAutoexecApi extends PrivateBinaryStreamApiCo
     @Output({
     })
     @Description(desc = "nmaa.autoexecscriptexportforautoexecapi.getname")
+    /** Export full tool and library paths, including explicit root-library references. */
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         Set<Long> catalogIdSet = new HashSet<>();
@@ -159,23 +160,13 @@ public class AutoexecScriptExportForAutoexecApi extends PrivateBinaryStreamApiCo
                         }
                     }
                     if (CollectionUtils.isNotEmpty(version.getUseLib())) {
-                        List<AutoexecOperationVo> scriptList = autoexecScriptMapper.getScriptListByIdList(version.getUseLib());
-                        if (CollectionUtils.isNotEmpty(scriptList)) {
-                            Set<Long> scriptCatalogIdSet = scriptList.stream().map(AutoexecOperationVo::getCatalogId).collect(Collectors.toSet());
-                            if (CollectionUtils.isNotEmpty(scriptCatalogIdSet)) {
-                                List<AutoexecCatalogVo> scriptCatalogList = autoexecCatalogMapper.getAutoexecFullCatalogByIdList(new ArrayList<>(scriptCatalogIdSet));
-                                if (CollectionUtils.isNotEmpty(scriptCatalogList)) {
-                                    List<String> scriptNameList = new ArrayList<>();
-                                    Map<Long, String> scriptCatalogMap = scriptCatalogList.stream().collect(Collectors.toMap(AutoexecCatalogVo::getId, AutoexecCatalogVo::getFullCatalogName));
-                                    for (AutoexecOperationVo operationVo : scriptList) {
-                                        if (scriptCatalogMap.containsKey(operationVo.getCatalogId())) {
-                                            scriptNameList.add(scriptCatalogMap.get(operationVo.getCatalogId()) + "/" + operationVo.getName());
-                                        }
-                                        script.setUseLibName(scriptNameList);
-                                    }
-                                }
-                            }
+                        List<AutoexecScriptVo> libraries = autoexecScriptMapper.getAutoexecScriptBaseInfoByIdList(version.getUseLib());
+                        List<String> paths = new ArrayList<>();
+                        for (AutoexecScriptVo library : libraries) {
+                            String directory = library.getFullCatalogName();
+                            paths.add(("/".equals(directory) ? "" : directory) + "/" + library.getName());
                         }
+                        script.setUseLibName(paths);
                     }
                     jsonArray.add(JSONObject.parseObject(JSON.toJSONString(script, SerializerFeature.DisableCircularReferenceDetect)));
                 }

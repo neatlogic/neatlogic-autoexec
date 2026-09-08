@@ -12,6 +12,7 @@
 
 package neatlogic.module.autoexec.api.combop;
 
+import neatlogic.framework.autoexec.exception.AutoexecScriptNameAmbiguousException;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
@@ -54,6 +55,7 @@ import neatlogic.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecProfileMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecScenarioMapper;
 import neatlogic.module.autoexec.service.AutoexecCombopService;
+import neatlogic.module.autoexec.service.AutoexecScriptService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -94,6 +96,9 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
     private AutoexecCombopVersionMapper autoexecCombopVersionMapper;
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
+
+    @Resource
+    private AutoexecScriptService autoexecScriptService;
 
     @Resource
     private AutoexecTypeMapper autoexecTypeMapper;
@@ -332,7 +337,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         Map<Long, AutoexecScenarioVo> idKeyScenarioMap = new HashMap<>();
         Map<String, AutoexecScenarioVo> nameKeyScenarioMap = new HashMap<>();
         Map<Long, AutoexecScriptVo> idKeyScriptMap = new HashMap<>();
-        Map<String, AutoexecScriptVo> nameKeyScriptMap = new HashMap<>();
+        List<AutoexecScriptVo> scriptCandidates = new ArrayList<>();
         Map<Long, AutoexecScriptVersionVo> scriptIdKeyScriptActiveVersionMap = new HashMap<>();
         Map<Long, AutoexecToolVo> idKeyToolMap = new HashMap<>();
         Map<String, AutoexecToolVo> nameKeyToolMap = new HashMap<>();
@@ -352,8 +357,8 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
             idKeyScriptMap = scriptList.stream().collect(Collectors.toMap(e -> e.getId(), e -> e));
         }
         if (CollectionUtils.isNotEmpty(scriptNameList)) {
-            List<AutoexecScriptVo> scriptList = autoexecScriptMapper.getAutoexecScriptByNameList(scriptNameList);
-            nameKeyScriptMap = scriptList.stream().collect(Collectors.toMap(e -> e.getName(), e -> e));
+            List<AutoexecScriptVo> scriptList = autoexecScriptMapper.getAutoexecScriptByNameList(scriptNameList.stream().distinct().collect(Collectors.toList()));
+            scriptCandidates = scriptList;
             List<Long> idList = scriptList.stream().map(AutoexecScriptVo::getId).collect(Collectors.toList());
             idList.removeAll(scriptIdList);
             scriptIdList.addAll(idList);
@@ -412,7 +417,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
                     if (autoexecCombopPhaseVo != null) {
                         autoexecCombopPhaseVo.setId(null);
                         AutoexecCombopPhaseConfigVo phaseConfig = autoexecCombopPhaseVo.getConfig();
-                        checkOperation(phaseConfig.getPhaseOperationList(), failureReasonSet, idKeyScriptMap, nameKeyScriptMap, scriptIdKeyScriptActiveVersionMap, idKeyToolMap, nameKeyToolMap, warnReasonSet, idKeyProfileMap, globalParamMap);
+                        checkOperation(phaseConfig.getPhaseOperationList(), failureReasonSet, idKeyScriptMap, scriptCandidates, scriptIdKeyScriptActiveVersionMap, idKeyToolMap, nameKeyToolMap, warnReasonSet, idKeyProfileMap, globalParamMap);
                     }
                 }
             }
@@ -490,7 +495,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
      * @param operationVos                      指定的操作数据
      * @param failureReasonSet                  收集失败原因集合
      * @param idKeyScriptMap                    自定义工具数据映射列表
-     * @param nameKeyScriptMap                  自定义工具数据映射列表
+     * @param scriptCandidates                  自定义工具数据映射列表
      * @param scriptIdKeyScriptActiveVersionMap 自定义工具激活版本数据映射列表
      * @param idKeyToolMap                      工具数据映射列表
      * @param nameKeyToolMap                    工具数据映射列表
@@ -500,7 +505,7 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
      */
     private void checkOperation(List<AutoexecCombopPhaseOperationVo> operationVos, Set<String> failureReasonSet,
                                 Map<Long, AutoexecScriptVo> idKeyScriptMap,
-                                Map<String, AutoexecScriptVo> nameKeyScriptMap,
+                                List<AutoexecScriptVo> scriptCandidates,
                                 Map<Long, AutoexecScriptVersionVo> scriptIdKeyScriptActiveVersionMap,
                                 Map<Long, AutoexecToolVo> idKeyToolMap,
                                 Map<String, AutoexecToolVo> nameKeyToolMap,
@@ -510,13 +515,13 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
         if (CollectionUtils.isNotEmpty(operationVos)) {
             for (AutoexecCombopPhaseOperationVo operationVo : operationVos) {
                 if (operationVo != null) {
-                    checkOperation(operationVo, failureReasonSet, idKeyScriptMap, nameKeyScriptMap, scriptIdKeyScriptActiveVersionMap, idKeyToolMap, nameKeyToolMap);
+                    checkOperation(operationVo, failureReasonSet, idKeyScriptMap, scriptCandidates, scriptIdKeyScriptActiveVersionMap, idKeyToolMap, nameKeyToolMap);
                     AutoexecCombopPhaseOperationConfigVo operationConfig = operationVo.getConfig();
                     if (operationConfig != null) {
                         checkOperationConfig(operationConfig, warnReasonSet, idKeyProfileMap, globalParamMap);
-                        checkOperation(operationConfig.getIfList(), failureReasonSet, idKeyScriptMap, nameKeyScriptMap, scriptIdKeyScriptActiveVersionMap, idKeyToolMap, nameKeyToolMap, warnReasonSet, idKeyProfileMap, globalParamMap);
-                        checkOperation(operationConfig.getElseList(), failureReasonSet, idKeyScriptMap, nameKeyScriptMap, scriptIdKeyScriptActiveVersionMap, idKeyToolMap, nameKeyToolMap, warnReasonSet, idKeyProfileMap, globalParamMap);
-                        checkOperation(operationConfig.getOperations(), failureReasonSet, idKeyScriptMap, nameKeyScriptMap, scriptIdKeyScriptActiveVersionMap, idKeyToolMap, nameKeyToolMap, warnReasonSet, idKeyProfileMap, globalParamMap);
+                        checkOperation(operationConfig.getIfList(), failureReasonSet, idKeyScriptMap, scriptCandidates, scriptIdKeyScriptActiveVersionMap, idKeyToolMap, nameKeyToolMap, warnReasonSet, idKeyProfileMap, globalParamMap);
+                        checkOperation(operationConfig.getElseList(), failureReasonSet, idKeyScriptMap, scriptCandidates, scriptIdKeyScriptActiveVersionMap, idKeyToolMap, nameKeyToolMap, warnReasonSet, idKeyProfileMap, globalParamMap);
+                        checkOperation(operationConfig.getOperations(), failureReasonSet, idKeyScriptMap, scriptCandidates, scriptIdKeyScriptActiveVersionMap, idKeyToolMap, nameKeyToolMap, warnReasonSet, idKeyProfileMap, globalParamMap);
                     }
                 }
             }
@@ -573,14 +578,14 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
      * @param autoexecCombopPhaseOperationVo 指定的操作数据
      * @param failureReasonSet               收集失败原因集合
      * @param idKeyScriptMap                 自定义工具数据映射列表
-     * @param nameKeyScriptMap               自定义工具数据映射列表
+     * @param scriptCandidates               自定义工具数据映射列表
      * @param idKeyScriptActiveVersionMap    自定义工具激活版本数据映射列表
      * @param idKeyToolMap                   工具数据映射列表
      * @param nameKeyToolMap                 工具数据映射列表
      */
     private void checkOperation(AutoexecCombopPhaseOperationVo autoexecCombopPhaseOperationVo, Set<String> failureReasonSet,
                                 Map<Long, AutoexecScriptVo> idKeyScriptMap,
-                                Map<String, AutoexecScriptVo> nameKeyScriptMap,
+                                List<AutoexecScriptVo> scriptCandidates,
                                 Map<Long, AutoexecScriptVersionVo> idKeyScriptActiveVersionMap,
                                 Map<Long, AutoexecToolVo> idKeyToolMap,
                                 Map<String, AutoexecToolVo> nameKeyToolMap) {
@@ -589,7 +594,15 @@ public class AutoexecCombopImportApi extends PrivateBinaryStreamApiComponentBase
             if (autoexecScriptVo != null) {
                 return;
             }
-            autoexecScriptVo = nameKeyScriptMap.get(autoexecCombopPhaseOperationVo.getOperationName());
+            try {
+                autoexecScriptVo = autoexecScriptService.resolveScriptByName(autoexecCombopPhaseOperationVo.getOperationName(),
+                        autoexecCombopPhaseOperationVo.getFullCatalogName(), scriptCandidates);
+            } catch (AutoexecScriptNameAmbiguousException e) {
+                logger.error("Failed to resolve imported script reference", e);
+                // Preserve all matching directories in the existing per-combination failure report.
+                failureReasonSet.add(e.getMessage());
+                return;
+            }
             if (autoexecScriptVo == null) {
                 failureReasonSet.add($.t("nmar.combopimport.missingscriptprefix") + autoexecCombopPhaseOperationVo.getOperationName() + "'");
             } else {

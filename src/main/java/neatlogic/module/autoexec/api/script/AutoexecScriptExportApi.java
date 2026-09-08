@@ -89,6 +89,7 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
     @Output({
     })
     @Description(desc = "nmaa.autoexecscriptexportapi.getname")
+    /** Export portable base information using ID-based ZIP entries for same-named tools. */
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         List<Long> idList = paramObj.getJSONArray("idList").toJavaList(Long.class);
@@ -147,7 +148,7 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
                     FileVo fileVo = fileVoMap.get(scriptVo.getId());
                     if (fileVo != null) {
                         scriptVo.setPackageFile(fileVo);
-                        zos.putNextEntry(new ZipEntry(scriptVo.getName() + ".json"));
+                        zos.putNextEntry(new ZipEntry(scriptVo.getId() + ".json"));
                         zos.write(JSONObject.toJSONBytes(scriptVo));
                         String userUuid = UserContext.get().getUserUuid();
                         IFileTypeHandler fileTypeHandler = FileTypeHandlerFactory.getHandler(fileVo.getType());
@@ -171,7 +172,7 @@ public class AutoexecScriptExportApi extends PrivateBinaryStreamApiComponentBase
                         throw new FileNotFoundException(scriptVo.getPackageFileId());
                     }
                 } else {
-                    zos.putNextEntry(new ZipEntry(scriptVo.getName() + ".json"));
+                    zos.putNextEntry(new ZipEntry(scriptVo.getId() + ".json"));
                     zos.write(JSONObject.toJSONBytes(scriptVo));
                 }
             }

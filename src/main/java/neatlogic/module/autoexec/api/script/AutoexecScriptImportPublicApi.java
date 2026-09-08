@@ -1,5 +1,6 @@
 package neatlogic.module.autoexec.api.script;
 
+import neatlogic.framework.autoexec.exception.AutoexecScriptNameAmbiguousException;
 import neatlogic.framework.util.$;
 
 import com.alibaba.fastjson.JSONArray;
@@ -99,6 +100,7 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
     }
 
     @Description(desc = "nmaa.autoexecscriptimportpublicapi.getname")
+    /** Import portable script and library identities without discarding their full catalog paths. */
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
 
@@ -143,7 +145,10 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
         int i = 1;
         for (AutoexecScriptVo newScriptVo : importScriptList) {
             List<String> faultMessages = new ArrayList<>();
-            String catalogName = newScriptVo.getCatalogName();
+            String catalogName = newScriptVo.getFullCatalogName();
+            if (catalogName == null) catalogName = newScriptVo.getCatalogPath();
+            if (catalogName == null) catalogName = newScriptVo.getCatalogName();
+            if (catalogName != null && catalogName.isEmpty()) catalogName = "/";
             Long catalogId = null;
             if (StringUtils.isBlank(newScriptVo.getName())) {
                 faultMessages.add($.t("nmar.import.scriptnameempty"));
@@ -177,7 +182,7 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
             }
             // 从外部导入的自定义工具，catalogName可能是路径，也可能只是名称，如果是路径，要根据每一层的名称查询对应的目录
             if (StringUtils.isNotBlank(catalogName)) {
-                catalogId = autoexecScriptService.createCatalogByCatalogPath(catalogName);
+                catalogId = "/".equals(catalogName) ? 0L : autoexecScriptService.createCatalogByCatalogPath(catalogName);
             }
             if (newScriptVo.getIsLib() == 0 && StringUtils.isNotBlank(newScriptVo.getRiskName()) && autoexecRiskMapper.getRiskIdByName(newScriptVo.getRiskName()) == null) {
                 faultMessages.add($.t("nmar.import.risknotfoundprefix") + newScriptVo.getRiskName() + $.t("nmar.import.notfoundsuffix"));
@@ -202,26 +207,25 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
                     faultMessages.add(ex.getMessage());
                 }
             }
-            if (CollectionUtils.isNotEmpty(newScriptVo.getUseLibName())) {
-                Map<String, String> scriptNameMap = new HashMap<>();
-                newScriptVo.getUseLibName().forEach(e -> scriptNameMap.put(e.substring(e.lastIndexOf("/") + 1), e));
-                List<AutoexecScriptVo> scriptList = autoexecScriptMapper.getScriptListByNameList(new ArrayList<>(scriptNameMap.keySet()));
-                if (CollectionUtils.isNotEmpty(scriptList)) {
-                    List<String> notExistNameList = new ArrayList<>();
-                    List<String> existScriptName = scriptList.stream().map(AutoexecScriptVo::getName).collect(toList());
-                    for (Map.Entry<String, String> entry : scriptNameMap.entrySet()) {
-                        if (!existScriptName.contains(entry.getKey())) {
-                            notExistNameList.add(entry.getValue());
+            List<Long> resolvedLibIds = new ArrayList<>();
+            AutoexecScriptVo oldScriptVo = null;
+            try {
+                oldScriptVo = autoexecScriptService.resolveScriptByName(newScriptVo.getName(), catalogName);
+                if (CollectionUtils.isNotEmpty(newScriptVo.getUseLibName())) {
+                    Map<String, AutoexecScriptVo> libraries = autoexecScriptService.resolveScriptByPathList(newScriptVo.getUseLibName());
+                    for (Map.Entry<String, AutoexecScriptVo> library : libraries.entrySet()) {
+                        if (library.getValue() == null || !Objects.equals(library.getValue().getIsLib(), 1)) {
+                            faultMessages.add($.t("nmar.import.missingtools") + library.getKey());
+                        } else {
+                            resolvedLibIds.add(library.getValue().getId());
                         }
                     }
-                    if (CollectionUtils.isNotEmpty(notExistNameList)) {
-                        faultMessages.add($.t("nmar.import.missingtools") + notExistNameList);
-                    }
-                } else {
-                    faultMessages.add($.t("nmar.import.missingtools") + newScriptVo.getUseLibName());
                 }
+            } catch (AutoexecScriptNameAmbiguousException e) {
+                logger.error("Failed to resolve imported script or library", e);
+                faultMessages.add(e.getMessage());
             }
-            if (MapUtils.isNotEmpty(scriptFileNameMap) && StringUtils.equals(newScriptVo.getParser(), ScriptParser.PACKAGE.getValue()) && newScriptVo.getPackageFileName() != null) {
+            if (faultMessages.isEmpty() && MapUtils.isNotEmpty(scriptFileNameMap) && StringUtils.equals(newScriptVo.getParser(), ScriptParser.PACKAGE.getValue()) && newScriptVo.getPackageFileName() != null) {
                 FileVo packageFile = new FileVo();
                 //检验脚本信息
                 if (scriptFileNameMap.containsKey(newScriptVo.getPackageFileName())) {
@@ -246,29 +250,21 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
                 newScriptVo.setRiskId(autoexecRiskMapper.getRiskIdByName(newScriptVo.getRiskName()));
                 newScriptVo.setCatalogId(catalogId);
 
-                AutoexecScriptVo oldScriptVo = autoexecScriptMapper.getScriptBaseInfoByName(newScriptVo.getName());
                 Long scriptId = oldScriptVo != null ? oldScriptVo.getId() : newScriptVo.getId();
                 newScriptVo.setDefaultProfileId(autoexecService.saveProfileOperation(newScriptVo.getDefaultProfileName(), scriptId, ToolType.SCRIPT.getValue()));
                 if (oldScriptVo == null) {
                     newScriptArray.add(newScriptVo.getName());
                     newScriptVo.setFcu(UserContext.get().getUserUuid());
                     AutoexecScriptVersionVo versionVo = getVersionVo(newScriptVo, 1);
-                    autoexecScriptMapper.insertScript(newScriptVo);
+                    autoexecScriptService.persistScriptBaseInfo(newScriptVo, true);
                     autoexecScriptMapper.insertScriptVersion(versionVo);
                     if (versionVo.getArgument() != null) {
                         autoexecScriptMapper.insertScriptVersionArgument(versionVo.getArgument());
                     }
                     autoexecScriptService.saveParamList(versionVo.getId(), versionVo.getParamList());
                     autoexecScriptService.saveLineList(newScriptVo.getId(), versionVo.getId(), versionVo.getLineList());
-                    if (CollectionUtils.isNotEmpty(versionVo.getUseLibName())) {
-                        List<String> scriptNameList = new ArrayList<>();
-                        versionVo.getUseLibName().forEach(e -> scriptNameList.add(e.substring(e.lastIndexOf("/") + 1)));
-                        if (CollectionUtils.isNotEmpty(scriptNameList)) {
-                            List<Long> scriptIdList = autoexecScriptMapper.getScriptIdListByNameList(scriptNameList);
-                            if (CollectionUtils.isNotEmpty(scriptIdList)) {
-                                autoexecScriptMapper.insertScriptVersionUseLib(versionVo.getId(), scriptIdList);
-                            }
-                        }
+                    if (CollectionUtils.isNotEmpty(resolvedLibIds)) {
+                        autoexecScriptMapper.insertScriptVersionUseLib(versionVo.getId(), resolvedLibIds);
                     }
                     IFullTextIndexHandler fullTextIndexHandler = FullTextIndexHandlerFactory.getHandler(AutoexecFullTextIndexType.SCRIPT_DOCUMENT_VERSION);
                     if (fullTextIndexHandler != null) {
@@ -277,7 +273,7 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
                 } else {
                     newScriptVo.setId(oldScriptVo.getId());
                     if (checkBaseInfoHasBeenChanged(newScriptVo, oldScriptVo)) {
-                        autoexecScriptMapper.updateScriptBaseInfo(newScriptVo);
+                        autoexecScriptService.persistScriptBaseInfo(newScriptVo, false);
                         updatedScriptArray.add(newScriptVo.getName());
                     }
                     Integer maxVersion = autoexecScriptMapper.getMaxVersionByScriptId(oldScriptVo.getId());
@@ -306,15 +302,8 @@ public class AutoexecScriptImportPublicApi extends PrivateBinaryStreamApiCompone
                         autoexecScriptService.saveParamList(newVersionVo.getId(), newVersionVo.getParamList());
                         autoexecScriptService.saveLineList(newScriptVo.getId(), newVersionVo.getId(), newVersionVo.getLineList());
                         autoexecScriptMapper.insertScriptVersion(newVersionVo);
-                        if (CollectionUtils.isNotEmpty(newScriptVo.getUseLibName())) {
-                            List<String> scriptNameList = new ArrayList<>();
-                            newScriptVo.getUseLibName().forEach(e -> scriptNameList.add(e.substring(e.lastIndexOf("/") + 1)));
-                            if (CollectionUtils.isNotEmpty(scriptNameList)) {
-                                List<Long> scriptIdList = autoexecScriptMapper.getScriptIdListByNameList(scriptNameList);
-                                if (CollectionUtils.isNotEmpty(scriptIdList)) {
-                                    autoexecScriptMapper.insertScriptVersionUseLib(newVersionVo.getId(), scriptIdList);
-                                }
-                            }
+                        if (CollectionUtils.isNotEmpty(resolvedLibIds)) {
+                            autoexecScriptMapper.insertScriptVersionUseLib(newVersionVo.getId(), resolvedLibIds);
                         }
                         IFullTextIndexHandler fullTextIndexHandler = FullTextIndexHandlerFactory.getHandler(AutoexecFullTextIndexType.SCRIPT_DOCUMENT_VERSION);
                         if (fullTextIndexHandler != null) {

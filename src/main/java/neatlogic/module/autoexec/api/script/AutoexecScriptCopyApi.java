@@ -80,6 +80,7 @@ public class AutoexecScriptCopyApi extends PrivateApiComponentBase {
             @Param(type = ApiParamType.LONG, desc = "nmaa.autoexecscriptcopyapi.output.param.desc.return"),
     })
     @Description(desc = "nmaa.autoexecscriptcopyapi.getname")
+    /** Copy into the requested catalog, rejecting name conflicts in that catalog. */
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecScriptVo targetScript = jsonObj.toJavaObject(AutoexecScriptVo.class);
@@ -90,7 +91,7 @@ public class AutoexecScriptCopyApi extends PrivateApiComponentBase {
         targetScript.setId(null);
         targetScript.setFcu(UserContext.get().getUserUuid());
         autoexecScriptService.validateScriptBaseInfo(targetScript);
-        autoexecScriptMapper.insertScript(targetScript);
+        autoexecScriptService.persistScriptBaseInfo(targetScript, true);
 
         // 复制所有已通过版本-->20251208改成只复制当前版本
         List<AutoexecScriptVersionVo> sourceVersionList = autoexecScriptService

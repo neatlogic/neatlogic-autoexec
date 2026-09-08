@@ -12,6 +12,7 @@
 
 package neatlogic.module.autoexec.api.combop;
 
+import neatlogic.module.autoexec.service.AutoexecCombopService;
 import neatlogic.framework.util.$;
 
 import com.alibaba.fastjson.JSONObject;
@@ -64,6 +65,9 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;
+
+    @Resource
+    private AutoexecCombopService autoexecCombopService;
     @Resource
     private AutoexecCombopVersionMapper autoexecCombopVersionMapper;
     @Resource
@@ -90,6 +94,7 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
             @Param(name = "idList", type = ApiParamType.JSONARRAY, isRequired = true, desc = "nmaa.autoexeccombopexportapi.input.param.desc.idlist")
     })
     @Description(desc = "nmaa.autoexeccombopexportapi.getname")
+    /** Export combinations with portable full catalog paths on script references. */
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         List<Long> idList = paramObj.getJSONArray("idList").toJavaList(Long.class);
@@ -115,6 +120,10 @@ public class AutoexecCombopExportApi extends PrivateBinaryStreamApiComponentBase
         for (Long id : existIdList) {
             AutoexecCombopVo autoexecCombopVo = autoexecCombopMapper.getAutoexecCombopById(id);
             List<AutoexecCombopVersionVo> versionList = autoexecCombopVersionMapper.getAutoexecCombopVersionListByCombopId(id);
+            // Portable reference paths are required when the target tenant has same-named tools.
+            for (AutoexecCombopVersionVo version : versionList) {
+                autoexecCombopService.completeScriptCatalogs(version.getConfig());
+            }
             autoexecCombopVo.setVersionList(versionList);
             typeIdSet.add(autoexecCombopVo.getTypeId());
             autoexecCombopVoList.add(autoexecCombopVo);

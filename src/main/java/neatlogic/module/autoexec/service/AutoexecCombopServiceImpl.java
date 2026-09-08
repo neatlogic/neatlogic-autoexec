@@ -21,6 +21,7 @@ import neatlogic.framework.autoexec.constvalue.*;
 import neatlogic.framework.autoexec.crossover.IAutoexecCombopCrossoverService;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecScriptMapper;
+import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import neatlogic.framework.autoexec.dto.AutoexecOperationBaseVo;
 import neatlogic.framework.autoexec.dto.AutoexecParamConfigVo;
@@ -65,6 +66,40 @@ import java.util.stream.Collectors;
  **/
 @Service
 public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoexecCombopCrossoverService {
+
+    /** Populate both nested and top-level script references without changing their IDs or execution configuration. */
+    @Override
+    public void completeScriptCatalogs(AutoexecCombopVersionConfigVo config) {
+        if (config == null || CollectionUtils.isEmpty(config.getCombopPhaseList())) return;
+        List<AutoexecCombopPhaseOperationVo> references = new ArrayList<>();
+        for (AutoexecCombopPhaseVo phase : config.getCombopPhaseList()) {
+            if (phase.getConfig() != null) collectScriptReferences(phase.getConfig().getPhaseOperationList(), references);
+        }
+        List<Long> ids = references.stream().map(AutoexecCombopPhaseOperationVo::getOperationId)
+                .filter(Objects::nonNull).distinct().collect(Collectors.toList());
+        if (ids.isEmpty()) return;
+        Map<Long, AutoexecScriptVo> scripts = autoexecScriptMapper.getAutoexecScriptBaseInfoByIdList(ids)
+                .stream().collect(Collectors.toMap(AutoexecScriptVo::getId, script -> script));
+        for (AutoexecCombopPhaseOperationVo reference : references) {
+            AutoexecScriptVo script = scripts.get(reference.getOperationId());
+            if (script != null) reference.setFullCatalogName(script.getFullCatalogName());
+        }
+    }
+
+    /** Include conditional and grouped operations using the same configuration tree as import validation. */
+    private void collectScriptReferences(List<AutoexecCombopPhaseOperationVo> operations,
+            List<AutoexecCombopPhaseOperationVo> references) {
+        if (CollectionUtils.isEmpty(operations)) return;
+        for (AutoexecCombopPhaseOperationVo operation : operations) {
+            if ("script".equals(operation.getOperationType())) references.add(operation);
+            AutoexecCombopPhaseOperationConfigVo config = operation.getConfig();
+            if (config != null) {
+                collectScriptReferences(config.getIfList(), references);
+                collectScriptReferences(config.getElseList(), references);
+                collectScriptReferences(config.getOperations(), references);
+            }
+        }
+    }
 
     @Resource
     private AutoexecCombopMapper autoexecCombopMapper;

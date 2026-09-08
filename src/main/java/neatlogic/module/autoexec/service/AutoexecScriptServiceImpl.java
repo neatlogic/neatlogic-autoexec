@@ -51,14 +51,19 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
+import org.springframework.dao.DuplicateKeyException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.DigestUtils;
 
 import javax.annotation.Resource;
 import java.util.*;
 import java.util.stream.Collectors;
 
+/** Coordinates custom-tool identity, validation, persistence and version operations. */
 @Service
 public class AutoexecScriptServiceImpl implements AutoexecScriptService {
+    private static final Logger logger = LoggerFactory.getLogger(AutoexecScriptServiceImpl.class);
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
@@ -87,6 +92,104 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
     @Resource
     private AutoexecOperationChangeDispatcher operationChangeDispatcher;
 
+
+    /** Centralize write-time root normalization and translate concurrent name conflicts into a business error. */
+    @Override
+    public void persistScriptBaseInfo(AutoexecScriptVo scriptVo, boolean insert) {
+        if (scriptVo.getCatalogId() == null) scriptVo.setCatalogId(AutoexecCatalogVo.ROOT_ID);
+        if (autoexecScriptMapper.checkScriptNameIsExists(scriptVo) > 0) {
+            throw new AutoexecScriptNameOrUkRepeatException(scriptVo.getName());
+        }
+        try {
+            if (insert) autoexecScriptMapper.insertScript(scriptVo);
+            else autoexecScriptMapper.updateScriptBaseInfo(scriptVo);
+        } catch (DuplicateKeyException e) {
+            logger.error("Failed to persist script base information, scriptId={}", scriptVo.getId(), e);
+            // Only name-index conflicts have this business meaning; preserve unrelated primary-key failures.
+            String detail = e.getMostSpecificCause().getMessage();
+            if (detail != null && (detail.contains("uk_catalog_name") || detail.contains("uk_name"))) {
+                throw new AutoexecScriptNameOrUkRepeatException(scriptVo.getName());
+            }
+            throw e;
+        }
+    }
+
+
+    /** Resolve all database name matches before choosing a catalog, so ambiguous names never select a random tool. */
+    @Override
+    public AutoexecScriptVo resolveScriptByName(String name, String fullCatalogName) {
+        return selectScriptByCatalog(name, fullCatalogName, autoexecScriptMapper.getScriptCandidatesByName(name));
+    }
+
+    /** Associate batch results with the requested name before applying the common catalog and ambiguity rules. */
+    @Override
+    public AutoexecScriptVo resolveScriptByName(String name, String fullCatalogName, List<AutoexecScriptVo> candidates) {
+        List<AutoexecScriptVo> nameMatches = new ArrayList<>();
+        Set<Long> matchedIds = new HashSet<>();
+        if (candidates != null) {
+            for (AutoexecScriptVo candidate : candidates) {
+                // SQL associates batch rows with their requested names under the existing database collation.
+                boolean matchesName = candidate.getLookupName() == null ? StringUtils.equalsIgnoreCase(name, candidate.getName())
+                        : Objects.equals(name, candidate.getLookupName());
+                if (matchesName && matchedIds.add(candidate.getId())) {
+                    nameMatches.add(candidate);
+                }
+            }
+        }
+        return selectScriptByCatalog(name, fullCatalogName, nameMatches);
+    }
+
+    /** Select within an optional catalog from already name-matched candidates; report all ambiguous directories. */
+    private AutoexecScriptVo selectScriptByCatalog(String name, String fullCatalogName, List<AutoexecScriptVo> candidates) {
+        if (CollectionUtils.isEmpty(candidates)) {
+            return null;
+        }
+        List<AutoexecScriptVo> matches = candidates;
+        if (fullCatalogName != null) {
+            String path = normalizeCatalogPath(fullCatalogName);
+            matches = new ArrayList<>();
+            for (AutoexecScriptVo candidate : candidates) {
+                // Legacy NULL directory IDs are read as root without migrating data; missing non-root joins are not root.
+                String candidatePath = (candidate.getCatalogId() == null || Objects.equals(candidate.getCatalogId(), AutoexecCatalogVo.ROOT_ID))
+                        ? "/" : candidate.getFullCatalogName();
+                if (candidatePath != null && StringUtils.equalsIgnoreCase(path, normalizeCatalogPath(candidatePath))) {
+                    matches.add(candidate);
+                }
+            }
+        }
+        if (matches.size() > 1) {
+            List<String> catalogs = matches.stream().map(vo -> (vo.getCatalogId() == null || Objects.equals(vo.getCatalogId(), AutoexecCatalogVo.ROOT_ID))
+                    ? "/" : vo.getFullCatalogName()).filter(Objects::nonNull)
+                    .map(this::normalizeCatalogPath).distinct().sorted().collect(Collectors.toList());
+            throw new AutoexecScriptNameAmbiguousException(name, catalogs);
+        }
+        return matches.isEmpty() ? null : matches.get(0);
+    }
+
+    /** Preserve full library paths while querying names in bulk; bare legacy names retain ambiguity checks. */
+    @Override
+    public Map<String, AutoexecScriptVo> resolveScriptByPathList(List<String> references) {
+        Map<String, AutoexecScriptVo> result = new LinkedHashMap<>();
+        if (CollectionUtils.isEmpty(references)) {
+            return result;
+        }
+        List<String> names = references.stream().map(ref -> ref.substring(ref.lastIndexOf('/') + 1))
+                .distinct().collect(Collectors.toList());
+        List<AutoexecScriptVo> candidates = autoexecScriptMapper.getAutoexecScriptByNameList(names);
+        for (String reference : references) {
+            int separator = reference.lastIndexOf('/');
+            String name = reference.substring(separator + 1);
+            String path = separator < 0 ? null : reference.substring(0, separator);
+            result.put(reference, resolveScriptByName(name, path, candidates));
+        }
+        return result;
+    }
+
+    /** Normalize existing leading/trailing separators without changing actual catalog names. */
+    private String normalizeCatalogPath(String path) {
+        String normalized = StringUtils.strip(path, "/");
+        return StringUtils.isEmpty(normalized) ? "/" : normalized;
+    }
 
     /**
      * 获取脚本版本详细信息，包括参数与脚本内容
@@ -160,6 +263,10 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
      */
     @Override
     public void validateScriptBaseInfo(AutoexecScriptVo scriptVo) {
+        // Missing directories on legacy write paths mean the existing root catalog.
+        if (scriptVo.getCatalogId() == null) {
+            scriptVo.setCatalogId(AutoexecCatalogVo.ROOT_ID);
+        }
 
         //入参校验：当不是库文件时需要校验执行方式（execMode）、操作级别（riskId）的必填
         if (!Objects.equals(scriptVo.getIsLib(), 1)) {
@@ -549,34 +656,34 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
         return null;
     }
 
+    /** Resolve complete catalog paths from the root; a missing segment never falls back to a global name. */
     @Override
     public Long getCatalogIdByCatalogPath(String catalogPath) {
-        Long catalogId = null;
-        if (catalogPath.contains("/")) {
-            String[] split = catalogPath.split("/");
-            AutoexecCatalogVo catalogVo = null;
-            for (int j = 0; j < split.length; j++) {
-                String name = split[j];
-                if (j == 0) {
-                    catalogVo = autoexecCatalogMapper.getAutoexecCatalogByNameAndParentId(name, AutoexecCatalogVo.ROOT_ID);
-                } else if (catalogVo != null) {
-                    catalogVo = autoexecCatalogMapper.getAutoexecCatalogByNameAndParentId(name, catalogVo.getId());
-                }
-            }
-            if (catalogVo != null) {
-                catalogId = catalogVo.getId();
-            }
-        } else {
-            AutoexecCatalogVo catalog = autoexecCatalogMapper.getAutoexecCatalogByName(catalogPath);
-            if (catalog != null) {
-                catalogId = catalog.getId();
-            }
+        if (catalogPath == null) {
+            return null;
         }
-        return catalogId;
+        String path = normalizeCatalogPath(catalogPath);
+        Long parentId = AutoexecCatalogVo.ROOT_ID;
+        if ("/".equals(path)) {
+            return parentId;
+        }
+        for (String name : path.split("/")) {
+            AutoexecCatalogVo catalog = autoexecCatalogMapper.getAutoexecCatalogByNameAndParentId(name, parentId);
+            if (catalog == null) {
+                return null;
+            }
+            parentId = catalog.getId();
+        }
+        return parentId;
     }
 
+    /** Resolve a complete catalog path from the root and create missing path segments. */
     @Override
     public Long createCatalogByCatalogPath(String catalogPath) {
+        catalogPath = normalizeCatalogPath(StringUtils.defaultString(catalogPath));
+        if ("/".equals(catalogPath)) {
+            return AutoexecCatalogVo.ROOT_ID;
+        }
         Long catalogId;
         if (catalogPath.contains("/")) {
             String[] split = catalogPath.split("/");
@@ -603,7 +710,9 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
             }
             catalogId = catalogVo.getId();
         } else {
-            AutoexecCatalogVo catalog = autoexecCatalogMapper.getAutoexecCatalogByName(catalogPath);
+            // A single path segment names a root child, not a same-named catalog nested elsewhere.
+            AutoexecCatalogVo catalog = autoexecCatalogMapper.getAutoexecCatalogByNameAndParentId(
+                    catalogPath, AutoexecCatalogVo.ROOT_ID);
             if (catalog != null) {
                 catalogId = catalog.getId();
             } else {
@@ -643,13 +752,14 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
         }
     }
 
+    /** Validate base fields and preserve existing no-op update behavior before using the shared write guard. */
     @Override
     public void saveScript(AutoexecScriptVo scriptVo) {
         validateScriptBaseInfo(scriptVo);
         AutoexecScriptVo oldScriptVo = autoexecScriptMapper.getScriptBaseInfoById(scriptVo.getId());
         if (oldScriptVo == null) {
             scriptVo.setFcu(UserContext.get().getUserUuid());
-            autoexecScriptMapper.insertScript(scriptVo);
+            persistScriptBaseInfo(scriptVo, true);
         } else {
             if (Objects.equals(oldScriptVo.getName(), scriptVo.getName())) {
                 if (Objects.equals(oldScriptVo.getTypeId(), scriptVo.getTypeId())) {
@@ -670,7 +780,7 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
                     }
                 }
             }
-            autoexecScriptMapper.updateScriptBaseInfo(scriptVo);
+            persistScriptBaseInfo(scriptVo, false);
         }
     }
 

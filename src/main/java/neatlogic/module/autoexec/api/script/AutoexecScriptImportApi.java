@@ -136,6 +136,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
             @Param(name = "failureReasonList", type = ApiParamType.JSONARRAY, desc = "nmaa.autoexecscriptimportapi.output.param.desc.failurereasonlist")
     })
     @Description(desc = "nmaa.autoexecscriptimportapi.getname")
+    /** Import legacy packages while retaining source IDs and resolving the target catalog before name suffixing. */
     @Override
     public Object myDoService(JSONObject paramObj, HttpServletRequest request, HttpServletResponse response) throws Exception {
         JSONObject resultObj = new JSONObject();
@@ -269,6 +270,7 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
         return resultObj;
     }
 
+    /** Resolve the destination catalog before applying the existing directory-local rename policy. */
     private JSONObject save(AutoexecScriptVo scriptVo, int isReplace) {
         JSONObject result = new JSONObject();
         List<String> failReasonList = new ArrayList<>();
@@ -301,11 +303,6 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
                 return result;
             }
         }
-        int index = 0;
-        while (autoexecScriptMapper.checkScriptNameIsExists(scriptVo) > 0) {
-            index++;
-            scriptVo.setName(name + "_" + index);
-        }
         Long typeId = autoexecTypeMapper.getTypeIdByName(scriptVo.getTypeName());
         scriptVo.setTypeId(typeId);
         if (typeId == null) {
@@ -318,6 +315,12 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
             if (catalog != null) {
                 scriptVo.setCatalogId(catalog.getId());
             }
+        }
+
+        int index = 0;
+        while (autoexecScriptMapper.checkScriptNameIsExists(scriptVo) > 0) {
+            index++;
+            scriptVo.setName(name + "_" + index);
         }
 
         //不是库文件，才需要检验操作级别和执行方式的必填
@@ -345,10 +348,10 @@ public class AutoexecScriptImportApi extends PrivateBinaryStreamApiComponentBase
             AutoexecScriptVo oldScriptVo = autoexecScriptMapper.getScriptBaseInfoById(id);
             if (oldScriptVo != null) {
                 scriptVo.setLcu(UserContext.get().getUserUuid());
-                autoexecScriptMapper.updateScriptBaseInfo(scriptVo);
+                autoexecScriptService.persistScriptBaseInfo(scriptVo, false);
             } else {
                 scriptVo.setFcu(UserContext.get().getUserUuid());
-                autoexecScriptMapper.insertScript(scriptVo);
+                autoexecScriptService.persistScriptBaseInfo(scriptVo, true);
             }
 
             AutoexecScriptArgumentVo argument = scriptVo.getVersionArgument();

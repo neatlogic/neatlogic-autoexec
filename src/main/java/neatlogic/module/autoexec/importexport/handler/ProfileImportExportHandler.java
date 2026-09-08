@@ -33,6 +33,7 @@ import neatlogic.framework.importexport.dto.ImportExportVo;
 import neatlogic.module.autoexec.dao.mapper.AutoexecProfileMapper;
 import neatlogic.module.autoexec.dependency.AutoexecGlobalParamProfileDependencyHandler;
 import neatlogic.module.autoexec.service.AutoexecProfileService;
+import neatlogic.module.autoexec.service.AutoexecScriptService;
 import org.apache.commons.collections4.CollectionUtils;
 import org.springframework.stereotype.Component;
 
@@ -55,6 +56,9 @@ public class ProfileImportExportHandler extends ImportExportHandlerBase {
 
     @Resource
     private AutoexecScriptMapper autoexecScriptMapper;
+
+    @Resource
+    private AutoexecScriptService autoexecScriptService;
 
     @Override
     public ImportExportHandlerType getType() {
@@ -115,7 +119,7 @@ public class ProfileImportExportHandler extends ImportExportHandlerBase {
                 } else {
                     AutoexecScriptVo scriptVo = autoexecScriptMapper.getScriptBaseInfoById(autoexecOperationVo.getId());
                     if (scriptVo == null) {
-                        scriptVo = autoexecScriptMapper.getScriptBaseInfoByName(autoexecOperationVo.getName());
+                        scriptVo = autoexecScriptService.resolveScriptByName(autoexecOperationVo.getName(), autoexecOperationVo.getFullCatalogName());
                         if (scriptVo != null) {
                             autoexecOperationVo.setId(scriptVo.getId());
                         }
@@ -178,6 +182,7 @@ public class ProfileImportExportHandler extends ImportExportHandlerBase {
                     AutoexecScriptVo scriptVo = autoexecScriptMapper.getScriptBaseInfoById(autoexecOperationVo.getId());
                     if (scriptVo != null) {
                         autoexecOperationVo.setName(scriptVo.getName());
+                        autoexecOperationVo.setFullCatalogName(scriptVo.getFullCatalogName());
                     }
                     doExportData(AutoexecImportExportHandlerType.AUTOEXEC_SCRIPT, autoexecOperationVo.getId(), dependencyList, zipOutputStream);
                 } else if (Objects.equals(autoexecOperationVo.getType(), ToolType.TOOL.getValue())) {

@@ -24,6 +24,10 @@ import java.util.List;
  **/
 public interface AutoexecCombopService {
 
+    /** Enrich exported script references with their portable catalog paths using one batch query. */
+    void completeScriptCatalogs(AutoexecCombopVersionConfigVo config);
+
+
     /**
      * 设置当前用户可操作按钮权限列表
      *

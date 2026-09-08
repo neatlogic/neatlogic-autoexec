@@ -69,25 +69,46 @@ public class ScriptImportExportHandler extends ImportExportHandlerBase {
         return true;
     }
 
-    @Override
-    public boolean checkIsExists(ImportExportBaseInfoVo importExportBaseInfoVo) {
-        return autoexecScriptMapper.getScriptBaseInfoByName(importExportBaseInfoVo.getName()) != null;
+    /** Use the existing complete export payload; legacy summaries fall back to unique-name resolution. */
+    private AutoexecScriptVo resolveImportedScript(ImportExportBaseInfoVo info) {
+        String fullCatalogName = null;
+        if (info instanceof ImportExportVo) {
+            JSONObject data = ((ImportExportVo) info).getData();
+            if (data != null) {
+                fullCatalogName = data.getString("fullCatalogName");
+                if (fullCatalogName == null) {
+                    fullCatalogName = data.getString("catalogPath");
+                }
+                if (fullCatalogName == null && Objects.equals(data.getLong("catalogId"), AutoexecCatalogVo.ROOT_ID)) {
+                    fullCatalogName = "/";
+                }
+            }
+        }
+        return autoexecScriptService.resolveScriptByName(info.getName(), fullCatalogName);
     }
 
+    /** Preflight uses the same complete directory identity as the actual import. */
+    @Override
+    public boolean checkIsExists(ImportExportBaseInfoVo importExportBaseInfoVo) {
+        return resolveImportedScript(importExportBaseInfoVo) != null;
+    }
+
+    /** Resolve an existing dependency without losing its portable catalog path. */
     @Override
     public Object getPrimaryByName(ImportExportVo importExportVo) {
-        AutoexecScriptVo oldAutoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoByName(importExportVo.getName());
+        AutoexecScriptVo oldAutoexecScriptVo = resolveImportedScript(importExportVo);
         if (oldAutoexecScriptVo == null) {
             throw new AutoexecScriptNotFoundException(importExportVo.getName());
         }
         return oldAutoexecScriptVo.getId();
     }
 
+    /** Match by portable identity before remapping source-tenant dependencies. */
     @Override
     public Long importData(ImportExportVo importExportVo, List<ImportExportPrimaryChangeVo> primaryChangeList) {
         JSONObject data = importExportVo.getData();
         AutoexecScriptVo autoexecScriptVo = data.toJavaObject(AutoexecScriptVo.class);
-        AutoexecScriptVo oldAutoexecScriptVo = autoexecScriptMapper.getScriptBaseInfoByName(autoexecScriptVo.getName());
+        AutoexecScriptVo oldAutoexecScriptVo = resolveImportedScript(importExportVo);
         if (oldAutoexecScriptVo != null) {
             autoexecScriptVo.setId(oldAutoexecScriptVo.getId());
         } else {
@@ -155,6 +176,7 @@ public class ScriptImportExportHandler extends ImportExportHandlerBase {
         return autoexecScriptVo.getId();
     }
 
+    /** Preserve complete tool data and existing dependency exports for portable identity resolution. */
     @Override
     public ImportExportVo myExportData(Object primaryKey, List<ImportExportBaseInfoVo> dependencyList, ZipOutputStream zipOutputStream) {
         Long id = (Long) primaryKey;

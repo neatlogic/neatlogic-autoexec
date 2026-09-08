@@ -151,6 +151,9 @@ public class CombopImportExportHandler extends ImportExportHandlerBase {
         }
         AutoexecCombopVersionVo version = autoexecCombop.getVersionList().get(0);
         AutoexecCombopVersionConfigVo config = version.getConfig();
+        if (EXPORT.equals(action)) {
+            autoexecCombopService.completeScriptCatalogs(config);
+        }
         if (config != null) {
             // 阶段
             List<AutoexecCombopPhaseVo> combopPhaseList = config.getCombopPhaseList();

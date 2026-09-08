@@ -44,6 +44,20 @@ public interface AutoexecScriptService {
      */
     void validateScriptBaseInfo(AutoexecScriptVo scriptVo);
 
+    /** Writes base information with directory/name uniqueness, preserving the caller's insert/update intent. */
+    void persistScriptBaseInfo(AutoexecScriptVo scriptVo, boolean insert);
+
+
+    /** Resolves a name within an optional full catalog path; missing tools return null, ambiguous names fail. */
+    AutoexecScriptVo resolveScriptByName(String name, String fullCatalogName);
+
+    /** Resolves one reference from a batch of candidates without additional database queries. */
+    AutoexecScriptVo resolveScriptByName(String name, String fullCatalogName, List<AutoexecScriptVo> candidates);
+
+    /** Resolves legacy full-path library references in one batch, preserving the reference as the map key. */
+    Map<String, AutoexecScriptVo> resolveScriptByPathList(List<String> references);
+
+
     /**
      * 根据catalogId穿透查询工具目录id
      *

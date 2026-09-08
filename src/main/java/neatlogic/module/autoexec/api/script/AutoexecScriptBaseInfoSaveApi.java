@@ -75,6 +75,7 @@ public class AutoexecScriptBaseInfoSaveApi extends PrivateApiComponentBase {
     @Output({
     })
     @Description(desc = "nmaa.autoexecscriptbaseinfosaveapi.getname")
+    /** Save base information through the shared directory/name uniqueness guard. */
     @Override
     public Object myDoService(JSONObject jsonObj) throws Exception {
         AutoexecScriptVo scriptVo = JSON.toJavaObject(jsonObj, AutoexecScriptVo.class);
@@ -82,7 +83,7 @@ public class AutoexecScriptBaseInfoSaveApi extends PrivateApiComponentBase {
             throw new AutoexecScriptNotFoundException(scriptVo.getId());
         }
         autoexecScriptService.validateScriptBaseInfo(scriptVo);
-        autoexecScriptMapper.updateScriptBaseInfo(scriptVo);
+        autoexecScriptService.persistScriptBaseInfo(scriptVo, false);
         operationChangeDispatcher.notifyAfterCommit("script", scriptVo.getId(), AutoexecOperationIndexAction.UPSERT);
         return null;
     }
