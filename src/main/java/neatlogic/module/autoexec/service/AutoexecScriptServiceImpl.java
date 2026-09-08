@@ -147,12 +147,12 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
         List<AutoexecScriptVo> matches = candidates;
         if (fullCatalogName != null) {
             String path = normalizeCatalogPath(fullCatalogName);
+            Long catalogId = getCatalogIdByCatalogPath(path);
             matches = new ArrayList<>();
             for (AutoexecScriptVo candidate : candidates) {
-                // Legacy NULL directory IDs are read as root without migrating data; missing non-root joins are not root.
-                String candidatePath = (candidate.getCatalogId() == null || Objects.equals(candidate.getCatalogId(), AutoexecCatalogVo.ROOT_ID))
-                        ? "/" : candidate.getFullCatalogName();
-                if (candidatePath != null && StringUtils.equalsIgnoreCase(path, normalizeCatalogPath(candidatePath))) {
+                // Identity is catalogId + name; cached display paths may be absent and must not decide identity.
+                Long candidateCatalogId = candidate.getCatalogId() == null ? AutoexecCatalogVo.ROOT_ID : candidate.getCatalogId();
+                if (catalogId != null && Objects.equals(catalogId, candidateCatalogId)) {
                     matches.add(candidate);
                 }
             }
@@ -689,11 +689,15 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
             String[] split = catalogPath.split("/");
             AutoexecCatalogVo catalogVo = new AutoexecCatalogVo();
             catalogVo.setId(AutoexecCatalogVo.ROOT_ID);
+            List<String> catalogNames = new ArrayList<>();
+            List<String> catalogIds = new ArrayList<>();
             int index = -1;
             for (String name : split) {
                 AutoexecCatalogVo vo = autoexecCatalogMapper.getAutoexecCatalogByNameAndParentId(name, catalogVo.getId());
                 if (vo != null) {
                     catalogVo = vo;
+                    catalogNames.add(name);
+                    catalogIds.add(String.valueOf(vo.getId()));
                     index++;
                 } else {
                     break;
@@ -704,6 +708,11 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
                     String name = split[i];
                     int lft = LRCodeManager.beforeAddTreeNode("autoexec_catalog", "id", "parent_id", catalogVo.getId());
                     AutoexecCatalogVo vo = new AutoexecCatalogVo(name, catalogVo.getId(), lft, lft + 1);
+                    // Persist complete paths using the traversed parents, not a potentially empty parent cache.
+                    catalogNames.add(name);
+                    catalogIds.add(String.valueOf(vo.getId()));
+                    vo.setUpwardNamePath(String.join("/", catalogNames));
+                    vo.setUpwardIdPath(String.join(",", catalogIds));
                     autoexecCatalogMapper.insertAutoexecCatalog(vo);
                     catalogVo = vo;
                 }
@@ -718,6 +727,8 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
             } else {
                 int lft = LRCodeManager.beforeAddTreeNode("autoexec_catalog", "id", "parent_id", AutoexecCatalogVo.ROOT_ID);
                 AutoexecCatalogVo vo = new AutoexecCatalogVo(catalogPath, AutoexecCatalogVo.ROOT_ID, lft, lft + 1);
+                vo.setUpwardNamePath(catalogPath);
+                vo.setUpwardIdPath(String.valueOf(vo.getId()));
                 autoexecCatalogMapper.insertAutoexecCatalog(vo);
                 catalogId = vo.getId();
             }
