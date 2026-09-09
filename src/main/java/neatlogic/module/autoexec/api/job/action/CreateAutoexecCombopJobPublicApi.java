@@ -86,7 +86,7 @@ public class CreateAutoexecCombopJobPublicApi extends PrivateApiComponentBase {
             @Param(explode = AutoexecJobSyncResultVo.class)
     })
     @Description(desc = "nmaaja.createautoexecjobfromcomboppublicapi.description.desc")
-    @Example(example = "{"
+    @Example(title = "common.example", example = "{"
             + "\"combopName\":\"deploy\","
             + "\"name\":\"deploy-production\","
             + "\"param\":{\"env\":\"prod\",\"version\":\"1.0.0\"},"
