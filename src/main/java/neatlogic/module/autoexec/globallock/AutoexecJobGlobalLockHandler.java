@@ -27,9 +27,28 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import javax.annotation.Resource;
+import neatlogic.framework.autoexec.globallock.AutoexecJobGlobalLockService;
 
 @Service
 public class AutoexecJobGlobalLockHandler extends GlobalLockHandlerBase {
+    @Resource
+    private AutoexecJobGlobalLockService jobLockService;
+
+    /** 在每次获锁事务内，通过作业行锁校验当前作业状态。 */
+    @Override
+    public void validateAcquisition(GlobalLockVo lock) { jobLockService.validate(lock); }
+
+    /** 作业身份和归属规则由自动化业务层统一提供。 */
+    @Override public void validateIdentity(GlobalLockVo existing, GlobalLockVo request) { jobLockService.validateIdentity(existing, request); }
+
+    /** 兼容尚未回填归属字段的历史作业锁。 */
+    @Override public boolean ownsLock(GlobalLockVo lock, String ownerId) { return jobLockService.ownsLock(lock, ownerId); }
+
+    /** 提供作业及执行实例展示信息，不要求框架理解这些字段。 */
+    @Override public JSONObject getLockIdentity(GlobalLockVo lock) { return jobLockService.identity(lock); }
+
+
     @Override
     public String getHandler() {
         return JobSourceType.AUTOEXEC.getValue();
@@ -40,6 +59,7 @@ public class AutoexecJobGlobalLockHandler extends GlobalLockHandlerBase {
         return $.t("nmar.globallock.name");
     }
 
+    /** 检查读写冲突，等待原因同时标明申请锁和阻塞它的持有锁 ID。 */
     @Override
     public boolean getIsCanLock(List<GlobalLockVo> globalLockVoList, GlobalLockVo globalLockVo) {
         String lockMode = globalLockVo.getHandlerParam().getString("lockMode");
@@ -50,11 +70,15 @@ public class AutoexecJobGlobalLockHandler extends GlobalLockHandlerBase {
         if(lockedGlobalLockOptional.isPresent()) {
             GlobalLockVo lockedGlobalLock = lockedGlobalLockOptional.get();
             if (!Objects.equals(lockedGlobalLock.getHandlerParam().getString("lockMode"), lockMode)) {
-                globalLockVo.setWaitReason("your mode is '" + lockMode + "',already has '" + lockedGlobalLock.getHandlerParam().getString("lockMode") + "' lock");
+                globalLockVo.setWaitReason("your mode is '" + lockMode + "' (lockId=" + globalLockVo.getId()
+                        + "), already has '" + lockedGlobalLock.getHandlerParam().getString("lockMode")
+                        + "' lock (lockId=" + lockedGlobalLock.getId() + ")");
                 return false;
             }
             if (StringUtils.isNotBlank(lockMode) && Objects.equals("write", lockMode) && Objects.equals(lockedGlobalLock.getHandlerParam().getString("lockMode"), lockMode)) {
-                globalLockVo.setWaitReason("your mode is '" + lockMode + "',already has '" + lockedGlobalLock.getHandlerParam().getString("lockMode") + "' lock");
+                globalLockVo.setWaitReason("your mode is '" + lockMode + "' (lockId=" + globalLockVo.getId()
+                        + "), already has '" + lockedGlobalLock.getHandlerParam().getString("lockMode")
+                        + "' lock (lockId=" + lockedGlobalLock.getId() + ")");
                 return false;
             }
         }
@@ -97,7 +121,7 @@ public class AutoexecJobGlobalLockHandler extends GlobalLockHandlerBase {
         //预防如果不存在，需重新insert lock
         String jobId = paramJson.getString("jobId");
         GlobalLockVo globalLockVo = new GlobalLockVo(lockId, JobSourceType.AUTOEXEC.getValue(),jobId,paramJson.toJSONString());
-        GlobalLockManager.retryLock(globalLockVo);
+        globalLockVo = GlobalLockManager.retryLock(globalLockVo);
         if (globalLockVo.getIsLock() == 1) {
             jsonObject.put("lockId", globalLockVo.getId());
         } else {
