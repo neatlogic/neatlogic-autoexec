@@ -116,6 +116,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     @Resource
     private AutoexecJobNotSupportedService autoexecJobNotSupportedService;
 
+    @Resource
+    private AutoexecJobOperationAuditStore operationAuditStore;
+
     /**
      * 根据作业参数获取最终参数值
      *
@@ -1282,7 +1285,9 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
     }
 
+    /** 在同一事务内删除作业及关联数据，操作记录清理失败时整体回滚。 */
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public void deleteJob(AutoexecJobVo jobVo) {
         //删除jobContentHash
         Set<String> hashSet = new HashSet<>();
@@ -1321,6 +1326,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         autoexecJobMapper.deleteJobPhaseByJobId(jobId);
         autoexecJobMapper.deleteJobRunnerByJobId(jobId);
         autoexecJobMapper.deleteJobExecByJobId(jobId);
+        operationAuditStore.deleteByJobId(jobId);
         autoexecJobMapper.deleteJobByJobId(jobId);
     }
 

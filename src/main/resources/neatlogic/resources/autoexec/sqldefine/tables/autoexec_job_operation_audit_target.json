@@ -1,0 +1,76 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_job_operation_audit_target",
+  "label": "作业业务操作目标快照",
+  "description": "作业业务操作目标快照",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "记录 ID"
+    },
+    {
+      "name": "audit_id",
+      "type": "bigint",
+      "description": "操作记录 ID"
+    },
+    {
+      "name": "object_id",
+      "type": "bigint",
+      "description": "对象 ID"
+    },
+    {
+      "name": "phase_id",
+      "type": "bigint",
+      "description": "阶段 ID"
+    },
+    {
+      "name": "phase_name",
+      "type": "varchar(255)",
+      "description": "阶段名称"
+    },
+    {
+      "name": "resource_id",
+      "type": "bigint",
+      "description": "资源 ID"
+    },
+    {
+      "name": "node_name",
+      "type": "varchar(255)",
+      "description": "节点名称"
+    },
+    {
+      "name": "host",
+      "type": "varchar(255)",
+      "description": "IP"
+    },
+    {
+      "name": "sql_file",
+      "type": "varchar(1024)",
+      "description": "SQL 文件"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "主键索引"
+    },
+    {
+      "name": "idx_audit_id",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "audit_id",
+        "id"
+      ],
+      "description": "按操作记录分页检索目标"
+    }
+  ]
+}

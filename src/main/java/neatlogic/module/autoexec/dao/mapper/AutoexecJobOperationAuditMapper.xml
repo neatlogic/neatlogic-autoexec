@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="neatlogic.module.autoexec.dao.mapper.AutoexecJobOperationAuditMapper">
+  <delete id="deleteTargetsByJobId">
+    DELETE t FROM autoexec_job_operation_audit_target t
+    INNER JOIN autoexec_job_operation_audit a ON a.id=t.audit_id
+    WHERE a.job_id=#{jobId}
+  </delete>
+  <delete id="deleteAuditsByJobId">
+    DELETE FROM autoexec_job_operation_audit WHERE job_id=#{jobId}
+  </delete>
+  <resultMap id="audit" type="neatlogic.framework.autoexec.dto.job.AutoexecJobOperationAuditVo">
+    <result column="id" property="id"/>
+    <result column="job_id" property="jobId"/>
+    <result column="operate_time" property="operateTime"/>
+    <result column="operator_uuid" property="operatorUuid"/>
+    <result column="action" property="action"/>
+    <result column="object_type" property="objectType"/>
+    <result column="target_name" property="targetName"/>
+    <result column="strategy" property="strategy"/>
+    <result column="previous_exec_user" property="previousExecUser"/>
+    <result column="current_exec_user" property="currentExecUser"/>
+    <result column="interaction_type" property="interactionType"/>
+    <result column="interaction_value" property="interactionValue"/>
+    <result column="target_count" property="targetCount"/>
+  </resultMap>
+  <resultMap id="target" type="neatlogic.framework.autoexec.dto.job.AutoexecJobOperationAuditTargetVo">
+    <result column="id" property="id"/>
+    <result column="audit_id" property="auditId"/>
+    <result column="object_id" property="objectId"/>
+    <result column="phase_id" property="phaseId"/>
+    <result column="phase_name" property="phaseName"/>
+    <result column="resource_id" property="resourceId"/>
+    <result column="node_name" property="nodeName"/>
+    <result column="host" property="host"/>
+    <result column="sql_file" property="sqlFile"/>
+  </resultMap>
+  <insert id="insertAudit">INSERT INTO autoexec_job_operation_audit (id,job_id,operate_time,operator_uuid,action,object_type,target_name,strategy,previous_exec_user,current_exec_user,interaction_type,interaction_value,target_count) VALUES (#{id},#{jobId},#{operateTime},#{operatorUuid},#{action},#{objectType},#{targetName},#{strategy},#{previousExecUser},#{currentExecUser},#{interactionType},#{interactionValue},#{targetCount})</insert>
+  <insert id="insertTargets">INSERT INTO autoexec_job_operation_audit_target (id,audit_id,object_id,phase_id,phase_name,resource_id,node_name,host,sql_file) VALUES <foreach collection="list" item="t" separator=",">(#{t.id},#{t.auditId},#{t.objectId},#{t.phaseId},#{t.phaseName},#{t.resourceId},#{t.nodeName},#{t.host},#{t.sqlFile})</foreach></insert>
+  <update id="updateContext">UPDATE autoexec_job_operation_audit SET current_exec_user=#{currentExecUser}, interaction_type=#{interactionType}, interaction_value=#{interactionValue} WHERE id=#{id}</update>
+  <sql id="filter">
+    WHERE a.job_id=#{jobId}
+    <if test="keyword != null and keyword != ''">AND (a.target_name LIKE CONCAT('%',#{keyword},'%') OR EXISTS
+      (SELECT 1 FROM autoexec_job_operation_audit_target t WHERE t.audit_id=a.id AND
+      (t.phase_name LIKE CONCAT('%',#{keyword},'%') OR t.node_name LIKE CONCAT('%',#{keyword},'%') OR t.host LIKE CONCAT('%',#{keyword},'%') OR t.sql_file LIKE CONCAT('%',#{keyword},'%'))))</if>
+    <if test="objectType != null and objectType != ''">AND a.object_type=#{objectType}</if>
+    <if test="actions != null and actions.size() > 0">AND a.action IN
+      <foreach collection="actions" item="actionCode" open="(" close=")" separator=",">#{actionCode}</foreach>
+    </if>
+    <if test="operatorUuid != null and operatorUuid != ''">AND a.operator_uuid=#{operatorUuid}</if>
+    <if test="startTime != null">AND a.operate_time &gt;= #{startTime}</if>
+    <if test="endTime != null">AND a.operate_time &lt;= #{endTime}</if>
+  </sql>
+  <select id="countAudits" resultType="int">SELECT COUNT(*) FROM autoexec_job_operation_audit a <include refid="filter"/></select>
+  <select id="searchAudits" resultMap="audit">SELECT a.* FROM autoexec_job_operation_audit a <include refid="filter"/> ORDER BY a.operate_time DESC,a.id DESC LIMIT #{startNum},#{pageSize}</select>
+  <select id="getAudit" resultMap="audit">SELECT * FROM autoexec_job_operation_audit WHERE job_id=#{jobId} AND id=#{id}</select>
+  <select id="getTargets" resultMap="target">SELECT * FROM autoexec_job_operation_audit_target WHERE audit_id=#{auditId} ORDER BY id LIMIT #{startNum},#{pageSize}</select>
+</mapper>

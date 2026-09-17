@@ -13,6 +13,7 @@
 package neatlogic.module.autoexec.job.action.handler.node;
 
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.autoexec.job.audit.JobOperationAuditContext;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.autoexec.constvalue.JobAction;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseNodeVo;
@@ -61,6 +62,7 @@ public class AutoexecJobNodeSubmitWaitInputHandler extends AutoexecJobActionHand
     }
 
     @Override
+    /** 提交人工交互，并向审计上下文提供经过白名单处理的选项。 */
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         AutoexecJobPhaseNodeVo nodeVo = jobVo.getCurrentNode();
         AutoexecJobPhaseVo phaseVo = jobVo.getExecutePhase();
@@ -85,6 +87,8 @@ public class AutoexecJobNodeSubmitWaitInputHandler extends AutoexecJobActionHand
         }
         paramObj.put("pipeFile", interactJson.getString("pipeFile"));
         String option = paramObj.getString("option");
+        // 动态按钮只保存服务端定义的选项，自由输入默认脱敏。
+        JobOperationAuditContext.interaction(interactJson, option);
         if (StringUtils.isNotBlank(option)) {
             paramObj.put("option", String.format("[%s]# ", UserContext.get().getUserUuid(true)) + option);
         }

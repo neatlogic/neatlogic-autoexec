@@ -1,0 +1,97 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_job_operation_audit",
+  "label": "作业业务操作记录",
+  "description": "作业业务操作记录",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "记录 ID"
+    },
+    {
+      "name": "job_id",
+      "type": "bigint",
+      "description": "作业 ID"
+    },
+    {
+      "name": "operate_time",
+      "type": "bigint",
+      "description": "操作时间"
+    },
+    {
+      "name": "operator_uuid",
+      "type": "varchar(255)",
+      "description": "操作人 ID"
+    },
+    {
+      "name": "action",
+      "type": "varchar(255)",
+      "description": "操作类型"
+    },
+    {
+      "name": "object_type",
+      "type": "varchar(255)",
+      "description": "对象类型"
+    },
+    {
+      "name": "target_name",
+      "type": "varchar(1024)",
+      "description": "目标对象"
+    },
+    {
+      "name": "strategy",
+      "type": "varchar(255)",
+      "description": "执行策略"
+    },
+    {
+      "name": "previous_exec_user",
+      "type": "varchar(255)",
+      "description": "原执行人"
+    },
+    {
+      "name": "current_exec_user",
+      "type": "varchar(255)",
+      "description": "新执行人"
+    },
+    {
+      "name": "interaction_type",
+      "type": "varchar(255)",
+      "description": "交互类型"
+    },
+    {
+      "name": "interaction_value",
+      "type": "text",
+      "description": "交互选择"
+    },
+    {
+      "name": "target_count",
+      "type": "int",
+      "description": "目标数量"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "主键索引"
+    },
+    {
+      "name": "idx_job_time",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "job_id",
+        "operate_time",
+        "id"
+      ],
+      "description": "按作业和时间分页检索"
+    }
+  ]
+}

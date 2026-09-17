@@ -1,15 +1,13 @@
 package neatlogic.module.autoexec.api.job.action.node;
 
+import neatlogic.framework.autoexec.constvalue.JobAction;
+import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
+
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
-import neatlogic.framework.autoexec.exception.AutoexecJobSourceInvalidException;
-import neatlogic.framework.autoexec.job.source.type.AutoexecJobSourceTypeHandlerFactory;
-import neatlogic.framework.autoexec.job.source.type.IAutoexecJobSourceTypeHandler;
-import neatlogic.framework.autoexec.source.AutoexecJobSourceFactory;
-import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.common.constvalue.ApiParamType;
 import neatlogic.framework.restful.annotation.Input;
 import neatlogic.framework.restful.annotation.OperationType;
@@ -19,6 +17,7 @@ import neatlogic.framework.restful.constvalue.OperationTypeEnum;
 import neatlogic.framework.restful.core.privateapi.PrivateApiComponentBase;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
 
@@ -29,6 +28,7 @@ import javax.annotation.Resource;
 @AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 @Service
+@Transactional
 public class ResetAutoexecJobPhaseSqlStatusApi extends PrivateApiComponentBase {
 
     @Resource
@@ -49,6 +49,7 @@ public class ResetAutoexecJobPhaseSqlStatusApi extends PrivateApiComponentBase {
         return null;
     }
 
+    /** 加载并锁定作业，交给统一动作处理链。 */
     @Input({
             @Param(name = "jobId", type = ApiParamType.LONG, desc = "term.autoexec.jobid", isRequired = true),
             @Param(name = "sqlIdList", type = ApiParamType.JSONARRAY, desc = "term.autoexec.sqlidlist"),
@@ -63,12 +64,8 @@ public class ResetAutoexecJobPhaseSqlStatusApi extends PrivateApiComponentBase {
         if (jobVo == null) {
             throw new AutoexecJobNotFoundException(paramObj.getLong("jobId"));
         }
-        IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
-        if (jobSource == null) {
-            throw new AutoexecJobSourceInvalidException(jobVo.getSource());
-        }
-        IAutoexecJobSourceTypeHandler autoexecJobSourceActionHandler = AutoexecJobSourceTypeHandlerFactory.getAction(jobSource.getType());
-        autoexecJobSourceActionHandler.resetSqlStatus(paramObj, jobVo);
-        return null;
+        jobVo.setAction(JobAction.RESET_SQL.getValue());
+        jobVo.setActionParam(paramObj);
+        return AutoexecJobActionHandlerFactory.getAction(JobAction.RESET_SQL.getValue()).doService(jobVo);
     }
 }
