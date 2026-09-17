@@ -552,7 +552,7 @@ public class AutoexecJobSourceTypeHandler extends AutoexecJobSourceTypeHandlerBa
                 throw new AutoexecJobCanNotCreateException(combopVo.getName());
             }
         } else if (Arrays.asList(CombopOperationType.SCRIPT.getValue(), CombopOperationType.TOOL.getValue()).contains(jobVo.getOperationType())
-                && Boolean.FALSE.equals(AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName()))) {
+                && Boolean.FALSE.equals(AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class))) {
             throw new AutoexecScriptJobCanNotExecuteException(jobVo.getId());
         }
     }

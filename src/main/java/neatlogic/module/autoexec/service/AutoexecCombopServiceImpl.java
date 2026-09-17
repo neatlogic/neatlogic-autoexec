@@ -194,7 +194,7 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         String userUuid = UserContext.get().getUserUuid();
         if (autoexecCombopVo != null) {
             if (Objects.equals(autoexecCombopVo.getOwner(), userUuid) || Objects.equals(userUuid, SystemUser.SYSTEM.getUserUuid())
-                    || AuthActionChecker.checkByUserUuid(userUuid, AUTOEXEC_MODIFY.class.getSimpleName())) {
+                    || AuthActionChecker.check(AUTOEXEC_MODIFY.class)) {
                 return true;
             } else {
                 authenticationInfoVo = UserContext.get().getAuthenticationInfoVo();

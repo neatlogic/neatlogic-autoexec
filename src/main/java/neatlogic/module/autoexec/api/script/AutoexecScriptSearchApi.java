@@ -183,7 +183,7 @@ public class AutoexecScriptSearchApi extends PrivateApiComponentBase {
             this.put("value", ScriptVersionStatus.PASSED.getValue());
             this.put("count", autoexecScriptMapper.searchScriptCount(scriptVo));
         }});
-        if (AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
+        if (AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class)) {
             scriptVo.setVersionStatus(ScriptVersionStatus.DRAFT.getValue());
             statusList.add(new JSONObject() {{
                 this.put("text", ScriptVersionStatus.DRAFT.getText());

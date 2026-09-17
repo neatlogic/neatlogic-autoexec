@@ -14,7 +14,6 @@ package neatlogic.module.autoexec.operate;
 
 import neatlogic.framework.util.$;
 
-import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthActionChecker;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_SCRIPT_MANAGE;
@@ -57,7 +56,7 @@ public class ScriptOperateManager {
 
         operateMap.put(ScriptAndToolOperate.DELETE, (id) -> {
             OperateVo vo = new OperateVo(ScriptAndToolOperate.DELETE.getValue(), ScriptAndToolOperate.DELETE.getText());
-            if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())) {
+            if (!AuthActionChecker.check(AUTOEXEC_SCRIPT_MANAGE.class)) {
                 vo.setDisabled(1);
                 vo.setDisabledReason($.t("nmar.operate.permissiondenied"));
 //            } else if (autoexecScriptMapper.getReferenceCountByScriptId(id) > 0) {
@@ -74,7 +73,7 @@ public class ScriptOperateManager {
             if (version != null) {
                 OperateVo vo = new OperateVo(ScriptAndToolOperate.VERSION_DELETE.getValue(), ScriptAndToolOperate.VERSION_DELETE.getText());
                 int versionCount = autoexecScriptMapper.getVersionCountByScriptId(version.getScriptId());
-                if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())) {
+                if (!AuthActionChecker.check(AUTOEXEC_SCRIPT_MANAGE.class)) {
                     vo.setDisabled(1);
                     vo.setDisabledReason($.t("nmar.operate.permissiondenied"));
                 } else if (versionCount <= 1 || Objects.equals(version.getIsActive(), 1)) {
@@ -88,7 +87,7 @@ public class ScriptOperateManager {
 
         operateMap.put(ScriptAndToolOperate.COPY, (id) -> {
             OperateVo vo = new OperateVo(ScriptAndToolOperate.COPY.getValue(), ScriptAndToolOperate.COPY.getText());
-            if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
+            if (!AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class)) {
                 vo.setDisabled(1);
                 vo.setDisabledReason($.t("nmar.operate.permissiondenied"));
             }
@@ -97,7 +96,7 @@ public class ScriptOperateManager {
 
         operateMap.put(ScriptAndToolOperate.TEST, (id) -> {
             OperateVo vo = new OperateVo(ScriptAndToolOperate.TEST.getValue(), ScriptAndToolOperate.TEST.getText());
-            if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
+            if (!AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class)) {
                 vo.setDisabled(1);
                 vo.setDisabledReason($.t("nmar.operate.permissiondenied"));
             }
@@ -106,7 +105,7 @@ public class ScriptOperateManager {
 
         operateMap.put(ScriptAndToolOperate.COMPARE, (id) -> {
             OperateVo vo = new OperateVo(ScriptAndToolOperate.COMPARE.getValue(), ScriptAndToolOperate.COMPARE.getText());
-            if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_SEARCH.class.getSimpleName())) {
+            if (!AuthActionChecker.check(AUTOEXEC_SCRIPT_SEARCH.class)) {
                 vo.setDisabled(1);
                 vo.setDisabledReason($.t("nmar.operate.permissiondenied"));
             }
@@ -118,7 +117,7 @@ public class ScriptOperateManager {
             AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(id);
             if (version != null) {
                 OperateVo vo = new OperateVo(ScriptAndToolOperate.VALIDATE.getValue(), ScriptAndToolOperate.VALIDATE.getText());
-                if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
+                if (!AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class)) {
                     vo.setDisabled(1);
                     vo.setDisabledReason($.t("nmar.operate.permissiondenied"));
                 } else if (!Objects.equals(ScriptVersionStatus.DRAFT.getValue(), version.getStatus())
@@ -136,7 +135,7 @@ public class ScriptOperateManager {
             AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(id);
             if (version != null) {
                 OperateVo vo = new OperateVo(ScriptAndToolOperate.SAVE.getValue(), ScriptAndToolOperate.SAVE.getText());
-                if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
+                if (!AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class)) {
                     vo.setDisabled(1);
                     vo.setDisabledReason($.t("nmar.operate.permissiondenied"));
                 } else if (!Objects.equals(ScriptVersionStatus.DRAFT.getValue(), version.getStatus())
@@ -154,7 +153,7 @@ public class ScriptOperateManager {
             AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(id);
             if (version != null) {
                 OperateVo vo = new OperateVo(ScriptAndToolOperate.SUBMIT.getValue(), ScriptAndToolOperate.SUBMIT.getText());
-                if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
+                if (!AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class)) {
                     vo.setDisabled(1);
                     vo.setDisabledReason($.t("nmar.operate.permissiondenied"));
                 } else if (!Objects.equals(ScriptVersionStatus.DRAFT.getValue(), version.getStatus())
@@ -172,7 +171,7 @@ public class ScriptOperateManager {
             AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(id);
             if (version != null) {
                 OperateVo vo = new OperateVo(ScriptAndToolOperate.PASS.getValue(), ScriptAndToolOperate.PASS.getText());
-                if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())) {
+                if (!AuthActionChecker.check(AUTOEXEC_SCRIPT_MANAGE.class)) {
                     vo.setDisabled(1);
                     vo.setDisabledReason($.t("nmar.operate.permissiondenied"));
                 } else if (!Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), version.getStatus())) {
@@ -189,7 +188,7 @@ public class ScriptOperateManager {
             AutoexecScriptVersionVo version = autoexecScriptMapper.getVersionByVersionId(id);
             if (version != null) {
                 OperateVo vo = new OperateVo(ScriptAndToolOperate.REJECT.getValue(), ScriptAndToolOperate.REJECT.getText());
-                if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())) {
+                if (!AuthActionChecker.check(AUTOEXEC_SCRIPT_MANAGE.class)) {
                     vo.setDisabled(1);
                     vo.setDisabledReason($.t("nmar.operate.permissiondenied"));
                 } else if (!Objects.equals(ScriptVersionStatus.SUBMITTED.getValue(), version.getStatus())) {
@@ -203,7 +202,7 @@ public class ScriptOperateManager {
 
         operateMap.put(ScriptAndToolOperate.GENERATETOCOMBOP, (id) -> {
             OperateVo vo = new OperateVo(ScriptAndToolOperate.GENERATETOCOMBOP.getValue(), ScriptAndToolOperate.GENERATETOCOMBOP.getText());
-            if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_COMBOP_ADD.class.getSimpleName())) {
+            if (!AuthActionChecker.check(AUTOEXEC_COMBOP_ADD.class)) {
                 vo.setDisabled(1);
                 vo.setDisabledReason($.t("nmar.operate.permissiondenied"));
             } else {
@@ -226,7 +225,7 @@ public class ScriptOperateManager {
 
         operateMap.put(ScriptAndToolOperate.EXPORT, (id) -> {
             OperateVo vo = new OperateVo(ScriptAndToolOperate.EXPORT.getValue(), ScriptAndToolOperate.EXPORT.getText());
-            if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_SEARCH.class.getSimpleName())) {
+            if (!AuthActionChecker.check(AUTOEXEC_SCRIPT_SEARCH.class)) {
                 vo.setDisabled(1);
                 vo.setDisabledReason($.t("nmar.operate.permissiondenied"));
             }
@@ -250,10 +249,10 @@ public class ScriptOperateManager {
             return resultMap;
         }
         List<Long> idList = scriptIdSet.stream().collect(Collectors.toList());
-        Boolean hasManageAuth = AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName());
-        Boolean hasModifyAuth = AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName());
-        Boolean hasSearchAuth = AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_SCRIPT_SEARCH.class.getSimpleName());
-        Boolean hasCombopAddAuth = AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(), AUTOEXEC_COMBOP_ADD.class.getSimpleName());
+        Boolean hasManageAuth = AuthActionChecker.check(AUTOEXEC_SCRIPT_MANAGE.class);
+        Boolean hasModifyAuth = AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class);
+        Boolean hasSearchAuth = AuthActionChecker.check(AUTOEXEC_SCRIPT_SEARCH.class);
+        Boolean hasCombopAddAuth = AuthActionChecker.check(AUTOEXEC_COMBOP_ADD.class);
         // 查询脚本是否被组合工具引用
 //        List<AutoexecScriptVo> referenceCountList = autoexecScriptMapper.getReferenceCountListByScriptIdList(idList);
         // 查询脚本是否已经被发布为组合工具

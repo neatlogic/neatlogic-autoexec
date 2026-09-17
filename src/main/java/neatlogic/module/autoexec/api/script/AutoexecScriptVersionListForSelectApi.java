@@ -76,7 +76,7 @@ public class AutoexecScriptVersionListForSelectApi extends PrivateApiComponentBa
         if (jsonObj.getInteger("pageSize") == null) {
             vo.setPageSize(100);
         }
-        if (!AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
+        if (!AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class)) {
             vo.setStatus(ScriptVersionStatus.PASSED.getValue());
         }
         int rowNum = autoexecScriptMapper.searchVersionCountForSelect(vo);

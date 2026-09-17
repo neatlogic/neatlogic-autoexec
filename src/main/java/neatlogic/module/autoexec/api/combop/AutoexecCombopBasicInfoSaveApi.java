@@ -121,7 +121,7 @@ public class AutoexecCombopBasicInfoSaveApi extends PrivateApiComponentBase {
         config.setInvokeNotifyPolicyConfig(invokeNotifyPolicyConfigVo);
         Long id = jsonObj.getLong("id");
         if (id == null) {
-            if (!AuthActionChecker.checkByUserUuid(UserContext.get().getUserUuid(true), AUTOEXEC_COMBOP_ADD.class.getSimpleName())) {
+            if (!AuthActionChecker.check(AUTOEXEC_COMBOP_ADD.class)) {
                 throw new PermissionDeniedException(AUTOEXEC_COMBOP_ADD.class);
             }
             autoexecCombopVo.setOperationType(CombopOperationType.COMBOP.getValue());

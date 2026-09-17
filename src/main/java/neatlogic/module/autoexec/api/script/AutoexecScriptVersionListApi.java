@@ -76,7 +76,7 @@ public class AutoexecScriptVersionListApi extends PrivateApiComponentBase {
         int rowNum = 0;
         List<AutoexecScriptVersionVo> list = new ArrayList<>();
         // 没有编辑权限，则不显示未审批通过版本列表
-        if (Objects.equals(vo.getStatus(), "notPassed") && AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
+        if (Objects.equals(vo.getStatus(), "notPassed") && AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class)) {
             rowNum = autoexecScriptMapper.searchHistoricalVersionCountByScriptIdAndStatus(vo);
             list = autoexecScriptMapper.searchHistoricalVersionListByScriptIdAndStatus(vo);
         } else if (Objects.equals(vo.getStatus(), "passed")) {

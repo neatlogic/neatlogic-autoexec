@@ -105,7 +105,7 @@ public class AutoexecToolGetApi extends PrivateApiComponentBase {
         operateList.add(test);
         operateList.add(active);
         operateList.add(generateToCombop);
-        if (AuthActionChecker.check(AUTOEXEC_COMBOP_ADD.class.getSimpleName())) {
+        if (AuthActionChecker.check(AUTOEXEC_COMBOP_ADD.class)) {
             if (autoexecToolMapper.checkToolHasBeenGeneratedToCombop(id) > 0) {
                 tool.setHasBeenGeneratedToCombop(1);
                 generateToCombop.setDisabled(1);
@@ -118,11 +118,11 @@ public class AutoexecToolGetApi extends PrivateApiComponentBase {
             generateToCombop.setDisabled(1);
             generateToCombop.setDisabledReason($.t("nmar.operate.permissiondenied"));
         }
-        if (!AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName())) {
+        if (!AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class)) {
             test.setDisabled(1);
             test.setDisabledReason($.t("nmar.operate.permissiondenied"));
         }
-        if (!AuthActionChecker.check(AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName())) {
+        if (!AuthActionChecker.check(AUTOEXEC_SCRIPT_MANAGE.class)) {
             active.setDisabled(1);
             active.setDisabledReason($.t("nmar.operate.permissiondenied"));
         }

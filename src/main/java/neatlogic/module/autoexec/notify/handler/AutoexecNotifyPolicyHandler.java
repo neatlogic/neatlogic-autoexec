@@ -13,6 +13,7 @@
 package neatlogic.module.autoexec.notify.handler;
 
 import com.alibaba.fastjson.JSONObject;
+import neatlogic.framework.auth.core.AuthBase;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_COMBOP_ADD;
 import neatlogic.framework.autoexec.constvalue.AutoexecNotifyParam;
 import neatlogic.framework.autoexec.constvalue.AutoexecNotifyTriggerType;
@@ -37,8 +38,8 @@ public class AutoexecNotifyPolicyHandler extends ProcessTaskNotifyHandlerBase {
      * 绑定权限，每种handler对应不同的权限
      */
     @Override
-    public String getAuthName() {
-        return AUTOEXEC_COMBOP_ADD.class.getSimpleName();
+    public Class<? extends AuthBase> getAuthClass() {
+        return AUTOEXEC_COMBOP_ADD.class;
     }
 
     @Override

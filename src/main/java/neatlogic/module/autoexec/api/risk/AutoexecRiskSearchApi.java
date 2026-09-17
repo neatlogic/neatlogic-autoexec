@@ -80,7 +80,7 @@ public class AutoexecRiskSearchApi extends PrivateApiComponentBase {
         List<AutoexecRiskVo> riskList = autoexecRiskMapper.searchRisk(vo);
         resultObj.put("tbodyList", riskList);
         if (CollectionUtils.isNotEmpty(riskList)) {
-            Boolean hasAuth = AuthActionChecker.check(AUTOEXEC_MODIFY.class.getSimpleName());
+            Boolean hasAuth = AuthActionChecker.check(AUTOEXEC_MODIFY.class);
             List<Long> idList = riskList.stream().map(AutoexecRiskVo::getId).collect(Collectors.toList());
             List<AutoexecRiskVo> referenceCountListForTool = autoexecRiskMapper.getReferenceCountListForTool(idList);
             List<AutoexecRiskVo> referenceCountListForScript = autoexecRiskMapper.getReferenceCountListForScript(idList);

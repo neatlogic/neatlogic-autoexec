@@ -105,9 +105,9 @@ public class AutoexecToolSearchApi extends PrivateApiComponentBase {
 //                hasBeenGeneratedToCombopList.stream().forEach(o -> hasBeenGeneratedToCombopMap.put(o.getId(), o.getHasBeenGeneratedToCombop() > 0 ? true : false));
 //            }
             // 获取操作按钮
-            Boolean hasScriptModifyAuth = AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class.getSimpleName());
-            Boolean hasScriptManageAuth = AuthActionChecker.check(AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName());
-            Boolean hasCombopAddAuth = AuthActionChecker.check(AUTOEXEC_COMBOP_ADD.class.getSimpleName());
+            Boolean hasScriptModifyAuth = AuthActionChecker.check(AUTOEXEC_SCRIPT_MODIFY.class);
+            Boolean hasScriptManageAuth = AuthActionChecker.check(AUTOEXEC_SCRIPT_MANAGE.class);
+            Boolean hasCombopAddAuth = AuthActionChecker.check(AUTOEXEC_COMBOP_ADD.class);
             toolVoList.stream().forEach(o -> {
                 List<OperateVo> operateList = new ArrayList<>();
                 OperateVo test = new OperateVo(ScriptAndToolOperate.TEST.getValue(), ScriptAndToolOperate.TEST.getText());

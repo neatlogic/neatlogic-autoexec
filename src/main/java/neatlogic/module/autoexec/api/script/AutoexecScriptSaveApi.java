@@ -240,7 +240,7 @@ public class AutoexecScriptSaveApi extends PrivateApiComponentBase {
 //        }
         result.put("id", scriptVo.getId());
         result.put("versionId", versionVo.getId());
-        result.put("isReviewable", AuthActionChecker.check(AUTOEXEC_SCRIPT_MANAGE.class.getSimpleName()) ? 1 : 0);
+        result.put("isReviewable", AuthActionChecker.check(AUTOEXEC_SCRIPT_MANAGE.class) ? 1 : 0);
         return result;
     }
 
