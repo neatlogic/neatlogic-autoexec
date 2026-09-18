@@ -1,0 +1,105 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_combop",
+  "label": "Tool Information Table",
+  "description": "The tool information table can be used for enabling state filtering, time dimension statistics, and query association in report scenarios related to automation.",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "If from the tool/script, the combop is directly generated, use the corresponding ID. Otherwise, the ID is automatically generated, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "uk",
+      "type": "varchar(100)",
+      "description": "Unique identifier."
+    },
+    {
+      "name": "name",
+      "type": "varchar(100)",
+      "description": "Name. This value must be unique in the database and is suitable for exact-match queries and duplicate detection."
+    },
+    {
+      "name": "description",
+      "type": "text",
+      "description": "Description."
+    },
+    {
+      "name": "type_id",
+      "type": "bigint",
+      "description": "Type_id."
+    },
+    {
+      "name": "op_type",
+      "type": "varchar(50)",
+      "description": "Operation type."
+    },
+    {
+      "name": "is_active",
+      "type": "tinyint(1)",
+      "description": "Status 1: enabled 0: disabled."
+    },
+    {
+      "name": "operation_type",
+      "type": "enum('script','tool','combop')",
+      "description": "Tools/sketch/sketch."
+    },
+    {
+      "name": "notify_policy_id",
+      "type": "bigint",
+      "description": "Notification strategy ID."
+    },
+    {
+      "name": "owner",
+      "type": "char(32)",
+      "description": "Maintainer."
+    },
+    {
+      "name": "config",
+      "type": "longtext",
+      "description": "Configuration."
+    },
+    {
+      "name": "fcd",
+      "type": "timestamp(3)",
+      "description": "Creation time."
+    },
+    {
+      "name": "fcu",
+      "type": "char(32)",
+      "description": "Create user."
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp(3)",
+      "description": "Last modified time."
+    },
+    {
+      "name": "lcu",
+      "type": "char(32)",
+      "description": "Last modified user."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "Primary key index covering the ID field, suitable for uniquely identifying records and queries that join the primary table."
+    },
+    {
+      "name": "uniq_name",
+      "type": "BTREE",
+      "unique": true,
+      "primary": false,
+      "columns": [
+        "name"
+      ],
+      "description": "Unique index covering the name field, suitable for exact-match retrieval, uniqueness checks, and duplicate detection."
+    }
+  ]
+}

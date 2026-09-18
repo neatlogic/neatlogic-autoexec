@@ -1,0 +1,31 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_job_processtask_step",
+  "label": "Latest Batch Job ID for Automation Steps",
+  "description": "The latest batch job ID for automated steps can be used for related queries and report queries related to automated tasks.",
+  "fields": [
+    {
+      "name": "processtask_step_id",
+      "type": "bigint",
+      "description": "Step ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "job_id",
+      "type": "bigint",
+      "description": "Job ID, used as the primary key or unique identifier for records in this table."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "processtask_step_id",
+        "job_id"
+      ],
+      "description": "Primary key index covering the processtask_step_id, job_id fields, suitable for uniquely identifying records and queries that join the primary table."
+    }
+  ]
+}

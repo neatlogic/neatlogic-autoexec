@@ -1,0 +1,87 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_catalog",
+  "label": "Tool Directory",
+  "description": "The tool directory is designed for automated queries related to association and reporting scenarios.",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "name",
+      "type": "varchar(50)",
+      "description": "Name."
+    },
+    {
+      "name": "parent_id",
+      "type": "bigint",
+      "description": "Parent_id."
+    },
+    {
+      "name": "lft",
+      "type": "int",
+      "description": "Left encoding. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "rht",
+      "type": "int",
+      "description": "Right encoding. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "upward_name_path",
+      "type": "varchar(768)",
+      "description": "All parent node name paths. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "upward_id_path",
+      "type": "varchar(768)",
+      "description": "All parent node IDs."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "Primary key index covering the ID field, suitable for uniquely identifying records and queries that join the primary table."
+    },
+    {
+      "name": "idx_lft_rht",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "lft",
+        "rht"
+      ],
+      "description": "Standard index covering the lft, rht fields, suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "idx_rgtlft",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "rht",
+        "lft"
+      ],
+      "description": "Standard index covering the rht, lft fields, suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "idx_upwardnamepath",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "upward_name_path"
+      ],
+      "description": "Standard index covering the upward_name_path field, suitable for filtering, join, and sort queries."
+    }
+  ]
+}

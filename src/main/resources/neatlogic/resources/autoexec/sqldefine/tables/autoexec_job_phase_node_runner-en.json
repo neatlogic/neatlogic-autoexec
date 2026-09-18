@@ -1,0 +1,51 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_job_phase_node_runner",
+  "label": "Automation Job Stage Nodes Table -- Runner Table",
+  "description": "The automation job phase nodes table, runner table, is used for related queries and report queries related to automation.",
+  "fields": [
+    {
+      "name": "job_id",
+      "type": "bigint",
+      "description": "Job ID."
+    },
+    {
+      "name": "job_phase_id",
+      "type": "bigint",
+      "description": "Job script ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "node_id",
+      "type": "bigint",
+      "description": "Job script node ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "runner_map_id",
+      "type": "bigint",
+      "description": "Job script node runner ID."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "job_phase_id",
+        "node_id"
+      ],
+      "description": "Primary key index covering the job_phase_id, node_id fields, suitable for uniquely identifying records and queries that join the primary table."
+    },
+    {
+      "name": "idx_nodeId",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "node_id"
+      ],
+      "description": "Standard index covering the node_id field, suitable for filtering, join, and sort queries."
+    }
+  ]
+}

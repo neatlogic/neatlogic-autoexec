@@ -1,0 +1,200 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_job",
+  "label": "Automation Job List",
+  "description": "The automated job schedule is designed for tracking automated statuses, time dimension statistics, and query associations. It supports reporting scenarios for automated tasks.",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "name",
+      "type": "varchar(128)",
+      "description": "Name."
+    },
+    {
+      "name": "status",
+      "type": "enum('running','pausing','paused','completed','pending','aborting','aborted','succeed','failed','waitInput','ready','revoked','saved','checked','waiting')",
+      "description": "Job status. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "plan_start_time",
+      "type": "timestamp(3)",
+      "description": "Plan start time."
+    },
+    {
+      "name": "start_time",
+      "type": "timestamp(3)",
+      "description": "Start time."
+    },
+    {
+      "name": "end_time",
+      "type": "timestamp(3)",
+      "description": "End time."
+    },
+    {
+      "name": "operation_id",
+      "type": "bigint",
+      "description": "Script/tool/workflow ID."
+    },
+    {
+      "name": "operation_type",
+      "type": "enum('script','tool','combop','pipeline')",
+      "description": "Script/tool/flow. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "source",
+      "type": "varchar(50)",
+      "description": "Job source. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "round_count",
+      "type": "smallint",
+      "description": "Group count."
+    },
+    {
+      "name": "parallel_count",
+      "type": "int",
+      "description": "Concurrency level."
+    },
+    {
+      "name": "parallel_policy",
+      "type": "varchar(50)",
+      "description": "Concurrency strategy."
+    },
+    {
+      "name": "thread_count",
+      "type": "smallint",
+      "description": "Thread count."
+    },
+    {
+      "name": "param_hash",
+      "type": "char(32)",
+      "description": "Global parameter hash."
+    },
+    {
+      "name": "exec_user",
+      "type": "char(32)",
+      "description": "UUID of the executing user, role, or group."
+    },
+    {
+      "name": "exec_user_type",
+      "type": "enum('team','user','role')",
+      "description": "User type."
+    },
+    {
+      "name": "config",
+      "type": "longtext",
+      "description": "Pipeline configuration."
+    },
+    {
+      "name": "trigger_type",
+      "type": "enum('auto','manual')",
+      "description": "Trigger mode (auto: automatically triggered; manual: manually triggered)."
+    },
+    {
+      "name": "lncd",
+      "type": "timestamp(3)",
+      "description": "Last time of node change."
+    },
+    {
+      "name": "config_hash",
+      "type": "char(32)",
+      "description": "Configuration hash."
+    },
+    {
+      "name": "parent_id",
+      "type": "bigint",
+      "description": "When the parent ID is -1, it indicates that the data is a parent job. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "reviewer",
+      "type": "char(32)",
+      "description": "Reviewer."
+    },
+    {
+      "name": "review_status",
+      "type": "enum('passed','failed','waiting')",
+      "description": "Audit status."
+    },
+    {
+      "name": "review_time",
+      "type": "timestamp(3)",
+      "description": "Audit time."
+    },
+    {
+      "name": "scenario_id",
+      "type": "bigint",
+      "description": "Scene_id."
+    },
+    {
+      "name": "runner_map_id",
+      "type": "bigint",
+      "description": "The `runner` type phase's `runnerId`."
+    },
+    {
+      "name": "fcd",
+      "type": "timestamp(3)",
+      "description": "Creation time."
+    },
+    {
+      "name": "fcu",
+      "type": "char(32)",
+      "description": "Creator."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "Primary key index covering the ID field, suitable for uniquely identifying records and queries that join the primary table."
+    },
+    {
+      "name": "idx_parent_id",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "parent_id"
+      ],
+      "description": "Standard index covering the parent_id field, suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "idx_source",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "source"
+      ],
+      "description": "Standard index covering the source field, suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "idx_status",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "status"
+      ],
+      "description": "Standard index covering the status field, suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "idx_typeid",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "operation_type"
+      ],
+      "description": "Standard index covering the operation_type field, suitable for filtering, join, and sort queries."
+    }
+  ]
+}

@@ -1,0 +1,163 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_job_phase_node",
+  "label": "Automation Job Stage Nodes Table",
+  "description": "The automation job phase node table is designed for tracking automated statuses, time dimension statistics, and association queries, suitable for reporting scenarios.",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "job_id",
+      "type": "bigint",
+      "description": "Job ID. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "job_phase_id",
+      "type": "bigint",
+      "description": "Job stage ID. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "host",
+      "type": "varchar(50)",
+      "description": "Host IP."
+    },
+    {
+      "name": "port",
+      "type": "int",
+      "description": "Service port."
+    },
+    {
+      "name": "user_name",
+      "type": "varchar(50)",
+      "description": "Target account for the execution."
+    },
+    {
+      "name": "resource_id",
+      "type": "bigint",
+      "description": "Resource ID."
+    },
+    {
+      "name": "protocol_id",
+      "type": "varchar(50)",
+      "description": "Protocol."
+    },
+    {
+      "name": "name",
+      "type": "varchar(200)",
+      "description": "Node name (e.g., database name etc.)."
+    },
+    {
+      "name": "type",
+      "type": "varchar(200)",
+      "description": "Node type."
+    },
+    {
+      "name": "start_time",
+      "type": "timestamp(3)",
+      "description": "Start time."
+    },
+    {
+      "name": "end_time",
+      "type": "timestamp(3)",
+      "description": "End time."
+    },
+    {
+      "name": "status",
+      "type": "enum('succeed','pending','failed','ignored','running','aborted','aborting','waitInput','pausing','paused','invalid','waiting')",
+      "description": "Status."
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp(3)",
+      "description": "Last update time."
+    },
+    {
+      "name": "is_delete",
+      "type": "tinyint",
+      "description": "Is it deleted, currently used for retry refresh nodes."
+    },
+    {
+      "name": "warn_count",
+      "type": "int",
+      "description": "Alert count."
+    },
+    {
+      "name": "is_executed",
+      "type": "tinyint(1)",
+      "description": "Was the task executed."
+    },
+    {
+      "name": "runner_map_id",
+      "type": "bigint",
+      "description": "Executor ID."
+    },
+    {
+      "name": "update_tag",
+      "type": "bigint",
+      "description": "Last update timestamp."
+    },
+    {
+      "name": "error_type",
+      "type": "int",
+      "description": "Alert information."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "Primary key index covering the ID field, suitable for uniquely identifying records and queries that join the primary table."
+    },
+    {
+      "name": "idx_jobid",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "job_id"
+      ],
+      "description": "Standard index covering the job_id field, suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "idx_jobphaseid_status",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "job_phase_id",
+        "status"
+      ],
+      "description": "Standard index covering the job_phase_id, status fields, suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "idx_phaseid_resourceid",
+      "type": "BTREE",
+      "unique": true,
+      "primary": false,
+      "columns": [
+        "job_phase_id",
+        "resource_id"
+      ],
+      "description": "Unique index covering the job_phase_id, resource_id fields, suitable for exact-match retrieval, uniqueness checks, and duplicate detection."
+    },
+    {
+      "name": "idx_phaseid_updatetag",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "job_phase_id",
+        "update_tag"
+      ],
+      "description": "Standard index covering the job_phase_id, update_tag fields, suitable for filtering, join, and sort queries."
+    }
+  ]
+}

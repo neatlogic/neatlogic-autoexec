@@ -1,0 +1,31 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_script_version_lib",
+  "label": "Automation Script Dependencies Table",
+  "description": "The automation script dependency table is used for related queries and report queries related to automation.",
+  "fields": [
+    {
+      "name": "script_version_id",
+      "type": "bigint",
+      "description": "Script version ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "lib_script_id",
+      "type": "bigint",
+      "description": "The script ID relied upon, used as the primary key or unique identifier for records in this table."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "script_version_id",
+        "lib_script_id"
+      ],
+      "description": "Primary key index covering the script_version_id, lib_script_id fields, suitable for uniquely identifying records and queries that join the primary table."
+    }
+  ]
+}

@@ -1,0 +1,80 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_risk",
+  "label": "Automation Operation Level Table",
+  "description": "The automation operation level table is used for filtering enabled states in automation-related reports and statistical time dimensions.",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "name",
+      "type": "varchar(50)",
+      "description": "Name. This value must be unique in the database and is suitable for exact-match queries and duplicate detection."
+    },
+    {
+      "name": "color",
+      "type": "varchar(50)",
+      "description": "Color."
+    },
+    {
+      "name": "is_active",
+      "type": "tinyint(1)",
+      "description": "Status: 1 for enabled, 0 for disabled."
+    },
+    {
+      "name": "description",
+      "type": "varchar(255)",
+      "description": "Description."
+    },
+    {
+      "name": "sort",
+      "type": "int",
+      "description": "Sort."
+    },
+    {
+      "name": "fcd",
+      "type": "timestamp(3)",
+      "description": "Creation time."
+    },
+    {
+      "name": "fcu",
+      "type": "char(32)",
+      "description": "Create user."
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp(3)",
+      "description": "Last modified time."
+    },
+    {
+      "name": "lcu",
+      "type": "char(32)",
+      "description": "Last modified user."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "Primary key index covering the ID field, suitable for uniquely identifying records and queries that join the primary table."
+    },
+    {
+      "name": "uk_name",
+      "type": "BTREE",
+      "unique": true,
+      "primary": false,
+      "columns": [
+        "name"
+      ],
+      "description": "Unique index covering the name field, suitable for exact-match retrieval, uniqueness checks, and duplicate detection."
+    }
+  ]
+}

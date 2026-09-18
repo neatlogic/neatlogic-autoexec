@@ -1,0 +1,42 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_combop_authority",
+  "label": "Authorization Table for Combined Tools",
+  "description": "The authorization table for combined tools is designed for automated queries related to association in report scenarios.",
+  "fields": [
+    {
+      "name": "combop_id",
+      "type": "bigint",
+      "description": "Pipeline ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "type",
+      "type": "enum('common','role','user','team')",
+      "description": "Object type."
+    },
+    {
+      "name": "uuid",
+      "type": "varchar(32)",
+      "description": "The unique identifier of the object, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "action",
+      "type": "enum('edit','execute','view')",
+      "description": "Authorization type, used as the primary key or unique identifier for records in this table."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "combop_id",
+        "uuid",
+        "action"
+      ],
+      "description": "Primary key index covering the combop_id, UUID, action fields, suitable for uniquely identifying records and queries that join the primary table."
+    }
+  ]
+}

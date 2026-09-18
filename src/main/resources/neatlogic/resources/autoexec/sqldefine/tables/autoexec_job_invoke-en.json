@@ -1,0 +1,55 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_job_invoke",
+  "label": "Automation Job Source Table",
+  "description": "The automation job source table is designed for use in association queries related to automation and other reporting scenarios.",
+  "fields": [
+    {
+      "name": "job_id",
+      "type": "bigint",
+      "description": "Job ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "invoke_id",
+      "type": "bigint",
+      "description": "Source ID. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "source",
+      "type": "varchar(50)",
+      "description": "SOURCE."
+    },
+    {
+      "name": "type",
+      "type": "enum('auto','deploy')",
+      "description": "Source type."
+    },
+    {
+      "name": "route_id",
+      "type": "varchar(32)",
+      "description": "Configure the route ID."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "job_id"
+      ],
+      "description": "Primary key index covering the job_id field, suitable for uniquely identifying records and queries that join the primary table."
+    },
+    {
+      "name": "idx_invoke_id",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "invoke_id"
+      ],
+      "description": "Standard index covering the invoke_id field, suitable for filtering, join, and sort queries."
+    }
+  ]
+}

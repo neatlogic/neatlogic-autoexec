@@ -1,0 +1,110 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_execrtool_audit",
+  "label": "Execrtool Audit Enforcement",
+  "description": "Execrtool performs audits to facilitate automated state tracking, query association, and report generation for scenarios involving automated tasks.",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "Work order ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "script_version_id",
+      "type": "bigint",
+      "description": "Script activation version ID."
+    },
+    {
+      "name": "runner_id",
+      "type": "bigint",
+      "description": "Executor mapping ID. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "exec_user",
+      "type": "varchar(64)",
+      "description": "The executor is the person or system responsible for executing tasks. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "param_json",
+      "type": "longtext",
+      "description": "Input JSON."
+    },
+    {
+      "name": "return_json",
+      "type": "longtext",
+      "description": "The runner returns JSON."
+    },
+    {
+      "name": "status",
+      "type": "varchar(20)",
+      "description": "Status: pending/running/success/failed. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "error_message",
+      "type": "text",
+      "description": "Error summary."
+    },
+    {
+      "name": "start_time",
+      "type": "datetime(3)",
+      "description": "Start time. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "end_time",
+      "type": "datetime(3)",
+      "description": "End time."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "Primary key index covering the ID field, suitable for uniquely identifying records and queries that join the primary table."
+    },
+    {
+      "name": "idx_exec_user",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "exec_user"
+      ],
+      "description": "Standard index covering the exec_user field, suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "idx_runner_id",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "runner_id"
+      ],
+      "description": "Standard index covering the runner_id field, suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "idx_start_time",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "start_time"
+      ],
+      "description": "Standard index covering the start_time field, suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "idx_status",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "status"
+      ],
+      "description": "Standard index covering the status field, suitable for filtering, join, and sort queries."
+    }
+  ]
+}

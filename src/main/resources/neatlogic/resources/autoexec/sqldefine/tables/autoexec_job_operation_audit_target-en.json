@@ -1,0 +1,76 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_job_operation_audit_target",
+  "label": "Job Business Operation Snapshot",
+  "description": "Job business operation snapshot",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "ID"
+    },
+    {
+      "name": "audit_id",
+      "type": "bigint",
+      "description": "Operation record ID"
+    },
+    {
+      "name": "object_id",
+      "type": "bigint",
+      "description": "Object ID"
+    },
+    {
+      "name": "phase_id",
+      "type": "bigint",
+      "description": "Stage ID"
+    },
+    {
+      "name": "phase_name",
+      "type": "varchar(255)",
+      "description": "Stage name"
+    },
+    {
+      "name": "resource_id",
+      "type": "bigint",
+      "description": "Resource ID"
+    },
+    {
+      "name": "node_name",
+      "type": "varchar(255)",
+      "description": "Node name"
+    },
+    {
+      "name": "host",
+      "type": "varchar(255)",
+      "description": "IP"
+    },
+    {
+      "name": "sql_file",
+      "type": "varchar(1024)",
+      "description": "SQL file"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "Primary key index"
+    },
+    {
+      "name": "idx_audit_id",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "audit_id",
+        "id"
+      ],
+      "description": "Retrieve target by pagination based on operation records."
+    }
+  ]
+}

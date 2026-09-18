@@ -1,0 +1,65 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_customtemplate",
+  "label": "Automate Custom Templates",
+  "description": "The automation of custom templates is designed to facilitate automated queries for enabling state filtering and time dimension statistics in reports.",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "name",
+      "type": "varchar(255)",
+      "description": "Name."
+    },
+    {
+      "name": "is_active",
+      "type": "tinyint",
+      "description": "Indicates whether it is active."
+    },
+    {
+      "name": "template",
+      "type": "longtext",
+      "description": "HTML template."
+    },
+    {
+      "name": "config",
+      "type": "longtext",
+      "description": "Configuration, in JSON format."
+    },
+    {
+      "name": "fcd",
+      "type": "timestamp(3)",
+      "description": "Creation time."
+    },
+    {
+      "name": "fcu",
+      "type": "char(32)",
+      "description": "First creator."
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp(3)",
+      "description": "Last modified time."
+    },
+    {
+      "name": "lcu",
+      "type": "char(32)",
+      "description": "Last modified by."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "Primary key index covering the ID field, suitable for uniquely identifying records and queries that join the primary table."
+    }
+  ]
+}

@@ -1,0 +1,77 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_script_version_param",
+  "label": "Automation Custom Tool Parameter Table",
+  "description": "The automation custom tool parameter table is used for related queries in automated processes and report queries.",
+  "fields": [
+    {
+      "name": "script_version_id",
+      "type": "bigint",
+      "description": "Script version ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "key",
+      "type": "varchar(50)",
+      "description": "Parameter name, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "name",
+      "type": "varchar(50)",
+      "description": "Name."
+    },
+    {
+      "name": "default_value",
+      "type": "text",
+      "description": "Parameter defaults."
+    },
+    {
+      "name": "mode",
+      "type": "enum('output','input')",
+      "description": "Parameter type: output parameter, input parameter, primary key or unique identifier for the current table record."
+    },
+    {
+      "name": "type",
+      "type": "varchar(100)",
+      "description": "Text, password, file, date, node information, global variables, JSON object, file path."
+    },
+    {
+      "name": "mapping_mode",
+      "type": "varchar(255)",
+      "description": "Parameter mapping mode."
+    },
+    {
+      "name": "is_required",
+      "type": "tinyint(1)",
+      "description": "Is mandatory (1: yes; 0: no)."
+    },
+    {
+      "name": "description",
+      "type": "varchar(255)",
+      "description": "Explanation."
+    },
+    {
+      "name": "sort",
+      "type": "int",
+      "description": "Sort."
+    },
+    {
+      "name": "config",
+      "type": "text",
+      "description": "Configuration information."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "script_version_id",
+        "key",
+        "mode"
+      ],
+      "description": "Primary key index covering the script_version_id, key, mode fields, suitable for uniquely identifying records and queries that join the primary table."
+    }
+  ]
+}

@@ -1,0 +1,97 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_job_operation_audit",
+  "label": "Job Business Operation Log",
+  "description": "Job business operation record",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "ID"
+    },
+    {
+      "name": "job_id",
+      "type": "bigint",
+      "description": "Job ID"
+    },
+    {
+      "name": "operate_time",
+      "type": "bigint",
+      "description": "Operation time"
+    },
+    {
+      "name": "operator_uuid",
+      "type": "varchar(255)",
+      "description": "Operation ID"
+    },
+    {
+      "name": "action",
+      "type": "varchar(255)",
+      "description": "Operation type"
+    },
+    {
+      "name": "object_type",
+      "type": "varchar(255)",
+      "description": "Object type"
+    },
+    {
+      "name": "target_name",
+      "type": "varchar(1024)",
+      "description": "Target object"
+    },
+    {
+      "name": "strategy",
+      "type": "varchar(255)",
+      "description": "Execution strategy"
+    },
+    {
+      "name": "previous_exec_user",
+      "type": "varchar(255)",
+      "description": "Original executor"
+    },
+    {
+      "name": "current_exec_user",
+      "type": "varchar(255)",
+      "description": "New executor"
+    },
+    {
+      "name": "interaction_type",
+      "type": "varchar(255)",
+      "description": "Interaction type"
+    },
+    {
+      "name": "interaction_value",
+      "type": "text",
+      "description": "Interactive selection"
+    },
+    {
+      "name": "target_count",
+      "type": "int",
+      "description": "Target quantity"
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "Primary key index"
+    },
+    {
+      "name": "idx_job_time",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "job_id",
+        "operate_time",
+        "id"
+      ],
+      "description": "Retrieve work orders by job and time pagination."
+    }
+  ]
+}

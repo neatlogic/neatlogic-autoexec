@@ -1,0 +1,31 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_profile_cientity",
+  "label": "Profile Configuration Item Relationship Table for Release Tool",
+  "description": "The profile configuration item relationship table for the release tool is used for automated-related association queries and report queries.",
+  "fields": [
+    {
+      "name": "ci_entity_id",
+      "type": "bigint",
+      "description": "Configuration item ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "profile_id",
+      "type": "bigint",
+      "description": "ID, used as the primary key or unique identifier for records in this table."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "ci_entity_id",
+        "profile_id"
+      ],
+      "description": "Primary key index covering the ci_entity_id, profile_id fields, suitable for uniquely identifying records and queries that join the primary table."
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_service_authority",
+  "label": "AutomationServiceAuthority Table",
+  "description": "The automation_service_authority table, belonging to the automation module, is used for related queries and report queries related to automation.",
+  "fields": [
+    {
+      "name": "service_id",
+      "type": "bigint",
+      "description": "Service association ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "type",
+      "type": "varchar(50)",
+      "description": "Type, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "uuid",
+      "type": "char(32)",
+      "description": "Unique UUID, used as the primary key or unique identifier for records in this table."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "service_id",
+        "type",
+        "uuid"
+      ],
+      "description": "Primary key index covering the service_id, type, UUID fields, suitable for uniquely identifying records and queries that join the primary table."
+    }
+  ]
+}

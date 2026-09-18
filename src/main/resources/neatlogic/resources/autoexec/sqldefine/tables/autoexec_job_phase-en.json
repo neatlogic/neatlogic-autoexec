@@ -1,0 +1,223 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_job_phase",
+  "label": "Automation Job Stage Table",
+  "description": "The automation job phase table is designed for tracking automated statuses, time dimension statistics, and association queries, suitable for reporting scenarios involving automated operations.",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "job_id",
+      "type": "bigint",
+      "description": "Job ID. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "name",
+      "type": "varchar(50)",
+      "description": "Script name."
+    },
+    {
+      "name": "status",
+      "type": "enum('pending','running','pausing','paused','completed','failed','waiting','aborted','aborting','waitInput','ignored')",
+      "description": "Job script status."
+    },
+    {
+      "name": "start_time",
+      "type": "timestamp(3)",
+      "description": "Start time."
+    },
+    {
+      "name": "end_time",
+      "type": "timestamp(3)",
+      "description": "End time."
+    },
+    {
+      "name": "exec_user",
+      "type": "char(32)",
+      "description": "The executor."
+    },
+    {
+      "name": "exec_mode",
+      "type": "varchar(50)",
+      "description": "Execution mode target runner."
+    },
+    {
+      "name": "user_name",
+      "type": "varchar(50)",
+      "description": "User executer."
+    },
+    {
+      "name": "protocol",
+      "type": "varchar(50)",
+      "description": "Execution protocol."
+    },
+    {
+      "name": "round_count",
+      "type": "int",
+      "description": "Batch size."
+    },
+    {
+      "name": "parallel_count",
+      "type": "int",
+      "description": "Concurrency level."
+    },
+    {
+      "name": "parallel_policy",
+      "type": "varchar(50)",
+      "description": "Concurrency strategy."
+    },
+    {
+      "name": "sort",
+      "type": "int",
+      "description": "Stage sequencing."
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp(3)",
+      "description": "Last updated time. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "lncd",
+      "type": "timestamp(3)",
+      "description": "Last time of node change."
+    },
+    {
+      "name": "node_from",
+      "type": "varchar(50)",
+      "description": "Node source. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "round_count_from",
+      "type": "varchar(50)",
+      "description": "Batch number source."
+    },
+    {
+      "name": "user_name_from",
+      "type": "varchar(50)",
+      "description": "User source. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "protocol_from",
+      "type": "varchar(50)",
+      "description": "Protocol source. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "runner_group_from",
+      "type": "varchar(50)",
+      "description": "Execution group source."
+    },
+    {
+      "name": "group_id",
+      "type": "bigint",
+      "description": "Group ID."
+    },
+    {
+      "name": "execute_policy",
+      "type": "enum('first','middle','last')",
+      "description": "Execution strategy."
+    },
+    {
+      "name": "warn_count",
+      "type": "int",
+      "description": "Alert count."
+    },
+    {
+      "name": "uuid",
+      "type": "char(32)",
+      "description": "Frontend UUID."
+    },
+    {
+      "name": "is_pre_output_update_node",
+      "type": "tinyint(1)",
+      "description": "Does the upstream parameter update the target execution."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "Primary key index covering the ID field, suitable for uniquely identifying records and queries that join the primary table."
+    },
+    {
+      "name": "idx_jobid_groupid",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "job_id",
+        "group_id"
+      ],
+      "description": "Standard index covering the job_id, group_id fields, suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "idx_jobid_name",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "job_id",
+        "name"
+      ],
+      "description": "Standard index covering the job_id, name fields, suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "idx_jobid_sort",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "job_id",
+        "sort"
+      ],
+      "description": "Standard index covering the job_id, sort fields, suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "idx_lcd",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "lcd"
+      ],
+      "description": "Standard index covering the lcd field, suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "idx_node_from",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "node_from"
+      ],
+      "description": "Standard index covering the node_from field, suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "idx_protocol_from",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "protocol_from"
+      ],
+      "description": "Standard index covering the protocol_from field, suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "idx_user_name_from",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "user_name_from"
+      ],
+      "description": "Standard index covering the user_name_from field, suitable for filtering, join, and sort queries."
+    }
+  ]
+}

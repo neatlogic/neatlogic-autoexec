@@ -1,0 +1,92 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_job_phase_runner",
+  "label": "Automation Job Stage: Runner Table",
+  "description": "The runner table for the automation phase is used for tracking automated statuses, time dimension statistics, and query associations, suitable for reporting scenarios.",
+  "fields": [
+    {
+      "name": "job_id",
+      "type": "bigint",
+      "description": "Job ID. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "job_group_id",
+      "type": "bigint",
+      "description": "Job group ID."
+    },
+    {
+      "name": "job_phase_id",
+      "type": "bigint",
+      "description": "Job script ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "runner_map_id",
+      "type": "bigint",
+      "description": "Job script runner ID maps to ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "status",
+      "type": "enum('pending','completed','failed','paused','aborted','running','aborting','pausing','waitInput','ignored','waiting')",
+      "description": "Status."
+    },
+    {
+      "name": "is_fire_next",
+      "type": "tinyint(1)",
+      "description": "Is firenext activated?"
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp(3)",
+      "description": "Last updated time. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "warn_count",
+      "type": "int",
+      "description": "Alert count."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "job_phase_id",
+        "runner_map_id"
+      ],
+      "description": "Primary key index covering the job_phase_id, runner_map_id fields, suitable for uniquely identifying records and queries that join the primary table."
+    },
+    {
+      "name": "idx_jobid_status",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "job_id",
+        "status"
+      ],
+      "description": "Standard index covering the job_id, status fields, suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "idx_lcd",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "lcd"
+      ],
+      "description": "Standard index covering the lcd field, suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "idx_runner_map_id",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "runner_map_id"
+      ],
+      "description": "Standard index covering the runner_map_id field, suitable for filtering, join, and sort queries."
+    }
+  ]
+}

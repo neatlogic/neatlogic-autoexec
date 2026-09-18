@@ -1,0 +1,76 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_profile_param",
+  "label": "Automation Profile Parameter Table",
+  "description": "The automation profile parameter table is used for related queries and report queries in automated scenarios.",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "Primary key ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "profile_id",
+      "type": "bigint",
+      "description": "Profile ID. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "key",
+      "type": "varchar(50)",
+      "description": "Key."
+    },
+    {
+      "name": "type",
+      "type": "varchar(50)",
+      "description": "Type."
+    },
+    {
+      "name": "default_value",
+      "type": "text",
+      "description": "Default value."
+    },
+    {
+      "name": "operation_id",
+      "type": "bigint",
+      "description": "The tool ID sourced from the key."
+    },
+    {
+      "name": "operation_type",
+      "type": "enum('script','tool')",
+      "description": "The type of tool used to source the key."
+    },
+    {
+      "name": "update_tag",
+      "type": "bigint",
+      "description": "Update the timestamp."
+    },
+    {
+      "name": "mapping_mode",
+      "type": "varchar(50)",
+      "description": "Referential type."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "Primary key index covering the ID field, suitable for uniquely identifying records and queries that join the primary table."
+    },
+    {
+      "name": "idx_profile_id_key",
+      "type": "BTREE",
+      "unique": true,
+      "primary": false,
+      "columns": [
+        "profile_id",
+        "key"
+      ],
+      "description": "Unique index covering the profile_id, key fields, suitable for exact-match retrieval, uniqueness checks, and duplicate detection."
+    }
+  ]
+}

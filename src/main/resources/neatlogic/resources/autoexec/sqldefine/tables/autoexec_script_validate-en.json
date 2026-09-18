@@ -1,0 +1,50 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_script_validate",
+  "label": "Automated Custom Tool for Hazardous Code Table",
+  "description": "The automated custom tool for dangerous code can be used for time dimension statistical queries related to automation.",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "name",
+      "type": "varchar(255)",
+      "description": "Name."
+    },
+    {
+      "name": "code",
+      "type": "varchar(255)",
+      "description": "Dangerous code."
+    },
+    {
+      "name": "level",
+      "type": "enum('warning','critical')",
+      "description": "Level."
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp(3)",
+      "description": "Last modified time."
+    },
+    {
+      "name": "lcu",
+      "type": "char(32)",
+      "description": "Last modified user."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "Primary key index covering the ID field, suitable for uniquely identifying records and queries that join the primary table."
+    }
+  ]
+}

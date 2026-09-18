@@ -1,0 +1,30 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_tag",
+  "label": "Automation Tag Table",
+  "description": "The automation tag table is used for querying, filtering, and presenting data related to automation.",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "name",
+      "type": "varchar(255)",
+      "description": "Label name."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "Primary key index covering the ID field, suitable for uniquely identifying records and queries that join the primary table."
+    }
+  ]
+}

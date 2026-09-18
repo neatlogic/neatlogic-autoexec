@@ -1,0 +1,51 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_job_resource_inspect",
+  "label": "Automated Job Resource Inspection",
+  "description": "The automated job resource inspection can be used for time dimension statistical queries and association queries in report scenarios.",
+  "fields": [
+    {
+      "name": "resource_id",
+      "type": "bigint",
+      "description": "Asset ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "job_id",
+      "type": "bigint",
+      "description": "Job ID. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "phase_id",
+      "type": "bigint",
+      "description": "Job stage ID."
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp(3)",
+      "description": "Inspection time."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "resource_id"
+      ],
+      "description": "Primary key index covering the resource_id field, suitable for uniquely identifying records and queries that join the primary table."
+    },
+    {
+      "name": "index_jobid_phaseId",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "job_id",
+        "phase_id"
+      ],
+      "description": "Standard index covering the job_id, phase_id fields, suitable for filtering, join, and sort queries."
+    }
+  ]
+}

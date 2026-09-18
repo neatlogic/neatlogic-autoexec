@@ -1,0 +1,65 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_scenario",
+  "label": "Automation Scenario Definition Table",
+  "description": "Definition table for automated scenarios, used for time dimension statistical queries related to automation.",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "Primary key ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "name",
+      "type": "varchar(50)",
+      "description": "Name."
+    },
+    {
+      "name": "description",
+      "type": "text",
+      "description": "Description."
+    },
+    {
+      "name": "fcu",
+      "type": "char(32)",
+      "description": "Creator."
+    },
+    {
+      "name": "fcd",
+      "type": "timestamp(3)",
+      "description": "Creation time."
+    },
+    {
+      "name": "lcu",
+      "type": "char(32)",
+      "description": "Updated by."
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp(3)",
+      "description": "Update time. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "Primary key index covering the ID field, suitable for uniquely identifying records and queries that join the primary table."
+    },
+    {
+      "name": "idx_lcd",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "lcd"
+      ],
+      "description": "Standard index covering the lcd field, suitable for filtering, join, and sort queries."
+    }
+  ]
+}

@@ -1,0 +1,71 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_combop_param",
+  "label": "Parameterization of Combination Tools Table",
+  "description": "The tool parameter table is used for automated queries related to association in report scenarios.",
+  "fields": [
+    {
+      "name": "combop_id",
+      "type": "bigint",
+      "description": "Pipeline ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "key",
+      "type": "varchar(70)",
+      "description": "Parameter name, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "name",
+      "type": "varchar(50)",
+      "description": "Name."
+    },
+    {
+      "name": "default_value",
+      "type": "text",
+      "description": "Parameter values."
+    },
+    {
+      "name": "description",
+      "type": "text",
+      "description": "Description."
+    },
+    {
+      "name": "is_required",
+      "type": "tinyint(1)",
+      "description": "Is mandatory: 1 for mandatory, 0 for optional."
+    },
+    {
+      "name": "type",
+      "type": "varchar(100)",
+      "description": "Text, password, file, date, node information, global variables, JSON object."
+    },
+    {
+      "name": "sort",
+      "type": "int",
+      "description": "Sort."
+    },
+    {
+      "name": "config",
+      "type": "text",
+      "description": "Configuration information."
+    },
+    {
+      "name": "editable",
+      "type": "tinyint(1)",
+      "description": "Is edit-able."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "combop_id",
+        "key"
+      ],
+      "description": "Primary key index covering the combop_id, key fields, suitable for uniquely identifying records and queries that join the primary table."
+    }
+  ]
+}

@@ -1,0 +1,56 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_profile_param_value_invoke",
+  "label": "Automation Profile Parameter Value Reference Table",
+  "description": "The automation profile parameter value reference table is used for time dimension statistical queries and association queries related to automation.",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "Primary key ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "profile_param_id",
+      "type": "bigint",
+      "description": "The ID of the parameter in the profile. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "value_invoke_id",
+      "type": "bigint",
+      "description": "Parameter ID (such as: global parameter)."
+    },
+    {
+      "name": "value_invoke_type",
+      "type": "varchar(50)",
+      "description": "Referential type."
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp(3)",
+      "description": "Update the timestamp."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "Primary key index covering the ID field, suitable for uniquely identifying records and queries that join the primary table."
+    },
+    {
+      "name": "idx_profile_param_id_value_invoke_id_value_invoke_type",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "profile_param_id",
+        "value_invoke_id"
+      ],
+      "description": "Standard index covering the profile_param_id, value_invoke_id fields, suitable for filtering, join, and sort queries."
+    }
+  ]
+}

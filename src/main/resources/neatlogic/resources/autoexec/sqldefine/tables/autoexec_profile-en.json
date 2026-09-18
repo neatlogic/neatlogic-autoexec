@@ -1,0 +1,75 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_profile",
+  "label": "Release Tool Profile Table",
+  "description": "The release tool's profile table is used for automated time dimension statistics and query scenarios related to associations.",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "Primary key, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "name",
+      "type": "varchar(50)",
+      "description": "Name."
+    },
+    {
+      "name": "description",
+      "type": "text",
+      "description": "Description."
+    },
+    {
+      "name": "config",
+      "type": "longtext",
+      "description": "Tool parameters."
+    },
+    {
+      "name": "fcd",
+      "type": "timestamp(3)",
+      "description": "Creation time."
+    },
+    {
+      "name": "fcu",
+      "type": "char(32)",
+      "description": "Creator."
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp(3)",
+      "description": "Update the timestamp."
+    },
+    {
+      "name": "lcu",
+      "type": "char(32)",
+      "description": "Updated by."
+    },
+    {
+      "name": "system_id",
+      "type": "bigint",
+      "description": "System_id. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "Primary key index covering the ID field, suitable for uniquely identifying records and queries that join the primary table."
+    },
+    {
+      "name": " idx_system_id",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "system_id"
+      ],
+      "description": "Standard index covering the system_id field, suitable for filtering, join, and sort queries."
+    }
+  ]
+}

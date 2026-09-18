@@ -1,0 +1,45 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_operation_generate_combop",
+  "label": "Table for Associating Tools with Combinations",
+  "description": "The combination tool's association table is used for automated queries related to associations and reporting scenarios.",
+  "fields": [
+    {
+      "name": "combop_id",
+      "type": "bigint",
+      "description": "The ID of the combined tool, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "operation_type",
+      "type": "enum('script','tool')",
+      "description": "Tools or custom tools."
+    },
+    {
+      "name": "operation_id",
+      "type": "bigint",
+      "description": "Tool ID or custom tool ID. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "combop_id"
+      ],
+      "description": "Primary key index covering the combop_id field, suitable for uniquely identifying records and queries that join the primary table."
+    },
+    {
+      "name": "idx_operation_id",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "operation_id"
+      ],
+      "description": "Standard index covering the operation_id field, suitable for filtering, join, and sort queries."
+    }
+  ]
+}

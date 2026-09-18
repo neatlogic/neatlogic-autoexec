@@ -1,0 +1,46 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_service_user",
+  "label": "User Collection Service",
+  "description": "The user's favorite service can be used for automated time dimension statistics and query scenarios related to associations.",
+  "fields": [
+    {
+      "name": "service_id",
+      "type": "bigint",
+      "description": "Service ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "user_uuid",
+      "type": "char(32)",
+      "description": "User UUID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp",
+      "description": "Collection time."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "service_id",
+        "user_uuid"
+      ],
+      "description": "Primary key index covering the service_id, user_uuid fields, suitable for uniquely identifying records and queries that join the primary table."
+    },
+    {
+      "name": "idx_user_uuid",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "user_uuid"
+      ],
+      "description": "Standard index covering the user_uuid field, suitable for filtering, join, and sort queries."
+    }
+  ]
+}

@@ -1,0 +1,43 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_type_authority",
+  "label": "Automation Classification Permission Table",
+  "description": "The automated classification permission table is designed for use in association queries related to automation.",
+  "fields": [
+    {
+      "name": "type_id",
+      "type": "bigint",
+      "description": "Tool type ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "action",
+      "type": "varchar(50)",
+      "description": "Operation type, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "auth_type",
+      "type": "enum('common','user','team','role')",
+      "description": "Permission type, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "auth_uuid",
+      "type": "varbinary(255)",
+      "description": "Permission UUID, used as the primary key or unique identifier for records in this table."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "type_id",
+        "auth_uuid",
+        "auth_type",
+        "action"
+      ],
+      "description": "Primary key index covering the type_id, auth_uuid, auth_type, action fields, suitable for uniquely identifying records and queries that join the primary table."
+    }
+  ]
+}

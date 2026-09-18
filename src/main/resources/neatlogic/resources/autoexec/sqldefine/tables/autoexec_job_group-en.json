@@ -1,0 +1,70 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_job_group",
+  "label": "Automation Job Group",
+  "description": "The automation job group is designed for querying related automated operations and reports.",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "job_id",
+      "type": "bigint",
+      "description": "Job ID."
+    },
+    {
+      "name": "sort",
+      "type": "int",
+      "description": "Serial number."
+    },
+    {
+      "name": "policy",
+      "type": "enum('oneShot','grayScale')",
+      "description": "OneShot: concurrent grayScale: batch polling within phase."
+    },
+    {
+      "name": "lncd",
+      "type": "timestamp(3)",
+      "description": "Last time of node change."
+    },
+    {
+      "name": "config",
+      "type": "text",
+      "description": "Group configuration."
+    },
+    {
+      "name": "round_count",
+      "type": "int",
+      "description": "Batch size."
+    },
+    {
+      "name": "parallel_count",
+      "type": "int",
+      "description": "Concurrency level."
+    },
+    {
+      "name": "parallel_policy",
+      "type": "varchar(50)",
+      "description": "Concurrency strategy."
+    },
+    {
+      "name": "parallel_from",
+      "type": "varchar(50)",
+      "description": "Concurrency strategy is provided."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "Primary key index covering the ID field, suitable for uniquely identifying records and queries that join the primary table."
+    }
+  ]
+}

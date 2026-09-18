@@ -1,0 +1,61 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_script_version_argument",
+  "label": "Custom Tool Library -- Free Parameters",
+  "description": "Custom tool library parameters are available for automated queries related to association and report generation scenarios.",
+  "fields": [
+    {
+      "name": "script_version_id",
+      "type": "bigint",
+      "description": "Script version ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "name",
+      "type": "varchar(50)",
+      "description": "Parameter name, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "default_value",
+      "type": "varchar(200)",
+      "description": "Default value."
+    },
+    {
+      "name": "argument_count",
+      "type": "int",
+      "description": "Quantity limits."
+    },
+    {
+      "name": "description",
+      "type": "varchar(500)",
+      "description": "Description."
+    },
+    {
+      "name": "is_required",
+      "type": "tinyint(1)",
+      "description": "Is mandatory."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "script_version_id",
+        "name"
+      ],
+      "description": "Primary key index covering the script_version_id, name fields, suitable for uniquely identifying records and queries that join the primary table."
+    },
+    {
+      "name": "idx_script_version_id",
+      "type": "BTREE",
+      "unique": true,
+      "primary": false,
+      "columns": [
+        "script_version_id"
+      ],
+      "description": "Unique index covering the script_version_id field, suitable for exact-match retrieval, uniqueness checks, and duplicate detection."
+    }
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_job_exec",
+  "label": "Job Real-Time Execution Records",
+  "description": "Real-time execution records of jobs, used to determine if there are ongoing processes. They can be used for time dimension statistical analysis and query association in automated reporting scenarios.",
+  "fields": [
+    {
+      "name": "job_id",
+      "type": "bigint",
+      "description": "Job ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "runner_map_id",
+      "type": "bigint",
+      "description": "Runner ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "exec_id",
+      "type": "bigint",
+      "description": "Execution ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "action",
+      "type": "varchar(50)",
+      "description": "Execute action."
+    },
+    {
+      "name": "fcd",
+      "type": "timestamp(3)",
+      "description": "Execution time."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "job_id",
+        "runner_map_id",
+        "exec_id"
+      ],
+      "description": "Primary key index covering the job_id, runner_map_id, exec_id fields, suitable for uniquely identifying records and queries that join the primary table."
+    }
+  ]
+}

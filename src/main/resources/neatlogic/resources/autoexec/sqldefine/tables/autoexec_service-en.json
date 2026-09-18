@@ -1,0 +1,100 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_service",
+  "label": "automation_service Table",
+  "description": "The automation service table, which belongs to the automation module, is used for filtering enabled states and performing associated queries for automation-related reporting scenarios.",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "Primary key ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "name",
+      "type": "varchar(200)",
+      "description": "Unique identifier. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "is_active",
+      "type": "tinyint(1)",
+      "description": "Indicates whether it is active."
+    },
+    {
+      "name": "type",
+      "type": "enum('service','catalog')",
+      "description": "Type."
+    },
+    {
+      "name": "parent_id",
+      "type": "bigint",
+      "description": "Parent relationship ID. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "lft",
+      "type": "int",
+      "description": "The lft field in the automation service table. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "rht",
+      "type": "int",
+      "description": "The rht field in the automation service table. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "description",
+      "type": "mediumtext",
+      "description": "Description."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "Primary key index covering the ID field, suitable for uniquely identifying records and queries that join the primary table."
+    },
+    {
+      "name": "idx_lft",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "lft"
+      ],
+      "description": "Standard index covering the lft field, suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "idx_name",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "name"
+      ],
+      "description": "Standard index covering the name field, suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "idx_parent_id",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "parent_id"
+      ],
+      "description": "Standard index covering the parent_id field, suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "idx_rht",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "rht"
+      ],
+      "description": "Standard index covering the rht field, suitable for filtering, join, and sort queries."
+    }
+  ]
+}

@@ -1,0 +1,45 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_combop_group",
+  "label": "Group of Tools for Combining",
+  "description": "The combination of tool groups can be used for automated queries related to associated reports and other reporting scenarios.",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "combop_id",
+      "type": "bigint",
+      "description": "Generate the ID for the combined tool."
+    },
+    {
+      "name": "sort",
+      "type": "int",
+      "description": "Serial number."
+    },
+    {
+      "name": "policy",
+      "type": "enum('oneShot','grayScale')",
+      "description": "OneShot: concurrent grayScale: batch polling within phase."
+    },
+    {
+      "name": "config",
+      "type": "text",
+      "description": "Configuration information."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "Primary key index covering the ID field, suitable for uniquely identifying records and queries that join the primary table."
+    }
+  ]
+}

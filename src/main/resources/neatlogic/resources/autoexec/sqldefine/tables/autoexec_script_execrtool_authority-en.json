@@ -1,0 +1,48 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_script_execrtool_authority",
+  "label": "Execrtool Authorization Script",
+  "description": "The script execrtool is designed for automated queries related to association and reporting scenarios.",
+  "fields": [
+    {
+      "name": "script_id",
+      "type": "bigint",
+      "description": "Script ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "type",
+      "type": "varchar(20)",
+      "description": "Authorization object type: common/user/team/role, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "uuid",
+      "type": "varchar(64)",
+      "description": "Authorizing object UUID, all users are \"alluser\", used as the primary key or unique identifier for records in this table."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "script_id",
+        "type",
+        "uuid"
+      ],
+      "description": "Primary key index covering the script_id, type, UUID fields, suitable for uniquely identifying records and queries that join the primary table."
+    },
+    {
+      "name": "idx_type_uuid",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "type",
+        "uuid"
+      ],
+      "description": "Standard index covering the type, UUID fields, suitable for filtering, join, and sort queries."
+    }
+  ]
+}

@@ -1,0 +1,30 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_scenario_cientity",
+  "label": "Automation Scenario Application Relationship Table",
+  "description": "Automation scenario application relation table used for association queries in automation scenarios.",
+  "fields": [
+    {
+      "name": "scenario_id",
+      "type": "bigint",
+      "description": "Scene ID."
+    },
+    {
+      "name": "ci_entity_id",
+      "type": "bigint",
+      "description": "Application ID, used as the primary key or unique identifier for records in this table."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "ci_entity_id"
+      ],
+      "description": "Primary key index covering the ci_entity_id field, suitable for uniquely identifying records and queries that join the primary table."
+    }
+  ]
+}

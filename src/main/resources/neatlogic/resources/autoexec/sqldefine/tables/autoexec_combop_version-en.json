@@ -1,0 +1,70 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_combop_version",
+  "label": "automation_combop_version",
+  "description": "The combop_version table is for automation modules and is used for tracking automation-related statuses, filtering enabled states, time dimension statistics, and query associations.",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "Primary key ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "combop_id",
+      "type": "bigint",
+      "description": "Generate the tool ID."
+    },
+    {
+      "name": "name",
+      "type": "varchar(200)",
+      "description": "Name."
+    },
+    {
+      "name": "is_active",
+      "type": "tinyint(1)",
+      "description": "Status."
+    },
+    {
+      "name": "version",
+      "type": "int",
+      "description": "Version."
+    },
+    {
+      "name": "status",
+      "type": "enum('draft','rejected','passed','submitted')",
+      "description": "Status."
+    },
+    {
+      "name": "reviewer",
+      "type": "char(32)",
+      "description": "Reviewer."
+    },
+    {
+      "name": "config",
+      "type": "longtext",
+      "description": "Configuration information."
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp",
+      "description": "Last modified time."
+    },
+    {
+      "name": "lcu",
+      "type": "char(32)",
+      "description": "Last modified by."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "Primary key index covering the ID field, suitable for uniquely identifying records and queries that join the primary table."
+    }
+  ]
+}

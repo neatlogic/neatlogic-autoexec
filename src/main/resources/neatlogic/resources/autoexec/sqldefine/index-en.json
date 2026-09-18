@@ -1,0 +1,280 @@
+{
+  "moduleId": "autoexec",
+  "tables": [
+    {
+      "name": "autoexec_catalog",
+      "label": "Tool Directory",
+      "description": "The tool directory is designed for automated queries related to association and reporting scenarios."
+    },
+    {
+      "name": "autoexec_combop",
+      "label": "Tool Information Table",
+      "description": "The tool information table can be used for enabling state filtering, time dimension statistics, and query association in report scenarios related to automation."
+    },
+    {
+      "name": "autoexec_combop_authority",
+      "label": "Authorization Table for Combined Tools",
+      "description": "The authorization table for combined tools is designed for automated queries related to association in report scenarios."
+    },
+    {
+      "name": "autoexec_combop_group",
+      "label": "Group of Tools for Combining",
+      "description": "The combination of tool groups can be used for automated queries related to associated reports and other reporting scenarios."
+    },
+    {
+      "name": "autoexec_combop_param",
+      "label": "Parameterization of Combination Tools Table",
+      "description": "The tool parameter table is used for automated queries related to association in report scenarios."
+    },
+    {
+      "name": "autoexec_combop_param_matrix",
+      "label": "Matrix of Tool Parameter References for Combined Tools",
+      "description": "The reference matrix for combining tool parameters can be used for automated queries and reporting scenarios."
+    },
+    {
+      "name": "autoexec_combop_version",
+      "label": "automation_combop_version",
+      "description": "The combop_version table is for automation modules and is used for tracking automation-related statuses, filtering enabled states, time dimension statistics, and query associations."
+    },
+    {
+      "name": "autoexec_customtemplate",
+      "label": "Automate Custom Templates",
+      "description": "The automation of custom templates is designed to facilitate automated queries for enabling state filtering and time dimension statistics in reports."
+    },
+    {
+      "name": "autoexec_execrtool_audit",
+      "label": "Execrtool Audit Enforcement",
+      "description": "Execrtool performs audits to facilitate automated state tracking, query association, and report generation for scenarios involving automated tasks."
+    },
+    {
+      "name": "autoexec_global_param",
+      "label": "Release Global Parameter Table",
+      "description": "Release the global parameter table for use in automated time dimension statistical queries and other reporting scenarios."
+    },
+    {
+      "name": "autoexec_job",
+      "label": "Automation Job List",
+      "description": "The automated job schedule is designed for tracking automated statuses, time dimension statistics, and query associations. It supports reporting scenarios for automated tasks."
+    },
+    {
+      "name": "autoexec_job_content",
+      "label": "Automation Job Parameter Content Table",
+      "description": "Automation job parameters table used for querying, filtering, and reporting on Automation-Related data."
+    },
+    {
+      "name": "autoexec_job_env",
+      "label": "Job Environment Variables Table",
+      "description": "Job environment variables table is used for automated queries related to association and report queries."
+    },
+    {
+      "name": "autoexec_job_exec",
+      "label": "Job Real-Time Execution Records",
+      "description": "Real-time execution records of jobs, used to determine if there are ongoing processes. They can be used for time dimension statistical analysis and query association in automated reporting scenarios."
+    },
+    {
+      "name": "autoexec_job_group",
+      "label": "Automation Job Group",
+      "description": "The automation job group is designed for querying related automated operations and reports."
+    },
+    {
+      "name": "autoexec_job_invoke",
+      "label": "Automation Job Source Table",
+      "description": "The automation job source table is designed for use in association queries related to automation and other reporting scenarios."
+    },
+    {
+      "name": "autoexec_job_phase",
+      "label": "Automation Job Stage Table",
+      "description": "The automation job phase table is designed for tracking automated statuses, time dimension statistics, and association queries, suitable for reporting scenarios involving automated operations."
+    },
+    {
+      "name": "autoexec_job_phase_node",
+      "label": "Automation Job Stage Nodes Table",
+      "description": "The automation job phase node table is designed for tracking automated statuses, time dimension statistics, and association queries, suitable for reporting scenarios."
+    },
+    {
+      "name": "autoexec_job_phase_node_runner",
+      "label": "Automation Job Stage Nodes Table -- Runner Table",
+      "description": "The automation job phase nodes table, runner table, is used for related queries and report queries related to automation."
+    },
+    {
+      "name": "autoexec_job_phase_operation",
+      "label": "Automation Job Stage Operations Table",
+      "description": "Automation job stage operations table used for associated queries and reporting for automation-related operations."
+    },
+    {
+      "name": "autoexec_job_phase_runner",
+      "label": "Automation Job Stage: Runner Table",
+      "description": "The runner table for the automation phase is used for tracking automated statuses, time dimension statistics, and query associations, suitable for reporting scenarios."
+    },
+    {
+      "name": "autoexec_job_processtask_step",
+      "label": "Latest Batch Job ID for Automation Steps",
+      "description": "The latest batch job ID for automated steps can be used for related queries and report queries related to automated tasks."
+    },
+    {
+      "name": "autoexec_job_resource_inspect",
+      "label": "Automated Job Resource Inspection",
+      "description": "The automated job resource inspection can be used for time dimension statistical queries and association queries in report scenarios."
+    },
+    {
+      "name": "autoexec_job_runner",
+      "label": "Job Runner Status",
+      "description": "The job runner status can be used for automated state tracking, time dimension statistics, and query association scenarios for reporting."
+    },
+    {
+      "name": "autoexec_job_sql_detail",
+      "label": "Automation SQL Details Table",
+      "description": "The automation SQL details table is designed for tracking automated statuses and supporting queries related to associations."
+    },
+    {
+      "name": "autoexec_operation_generate_combop",
+      "label": "Table for Associating Tools with Combinations",
+      "description": "The combination tool's association table is used for automated queries related to associations and reporting scenarios."
+    },
+    {
+      "name": "autoexec_profile",
+      "label": "Release Tool Profile Table",
+      "description": "The release tool's profile table is used for automated time dimension statistics and query scenarios related to associations."
+    },
+    {
+      "name": "autoexec_profile_cientity",
+      "label": "Profile Configuration Item Relationship Table for Release Tool",
+      "description": "The profile configuration item relationship table for the release tool is used for automated-related association queries and report queries."
+    },
+    {
+      "name": "autoexec_profile_operation",
+      "label": "Release Tool Profile and Tool, Script Relationship Table",
+      "description": "The release tool, profile, and tool, script relationship table can be used for automated related queries and report queries."
+    },
+    {
+      "name": "autoexec_profile_param",
+      "label": "Automation Profile Parameter Table",
+      "description": "The automation profile parameter table is used for related queries and report queries in automated scenarios."
+    },
+    {
+      "name": "autoexec_profile_param_value_invoke",
+      "label": "Automation Profile Parameter Value Reference Table",
+      "description": "The automation profile parameter value reference table is used for time dimension statistical queries and association queries related to automation."
+    },
+    {
+      "name": "autoexec_risk",
+      "label": "Automation Operation Level Table",
+      "description": "The automation operation level table is used for filtering enabled states in automation-related reports and statistical time dimensions."
+    },
+    {
+      "name": "autoexec_scenario",
+      "label": "Automation Scenario Definition Table",
+      "description": "Definition table for automated scenarios, used for time dimension statistical queries related to automation."
+    },
+    {
+      "name": "autoexec_scenario_cientity",
+      "label": "Automation Scenario Application Relationship Table",
+      "description": "Automation scenario application relation table used for association queries in automation scenarios."
+    },
+    {
+      "name": "autoexec_schedule",
+      "label": "Scheduled Job Information Table",
+      "description": "The scheduled job information table is used for filtering on the status of automated operations, statistical time dimensions, and association queries for report generation."
+    },
+    {
+      "name": "autoexec_script",
+      "label": "Automation Custom Tool Table",
+      "description": "The automation custom tool table is designed for statistical and query scenarios related to time dimensions in automated reporting."
+    },
+    {
+      "name": "autoexec_script_audit",
+      "label": "Automation Custom Tool Activity Table",
+      "description": "The automation custom tool activity table is designed for statistical and query scenarios related to time dimensions in automated reporting."
+    },
+    {
+      "name": "autoexec_script_audit_detail",
+      "label": "Automation Custom Tool Activity Content Table",
+      "description": "The automation custom tool activity content table is used for querying, filtering, and presenting data related to automation."
+    },
+    {
+      "name": "autoexec_script_execrtool_authority",
+      "label": "Execrtool Authorization Script",
+      "description": "The script execrtool is designed for automated queries related to association and reporting scenarios."
+    },
+    {
+      "name": "autoexec_script_line",
+      "label": "Automation Custom Tool Content Row Table",
+      "description": "The automation custom tool content row is used for related queries in automation scenarios and report queries."
+    },
+    {
+      "name": "autoexec_script_line_content",
+      "label": "Automation Custom Tool Content Table",
+      "description": "The automation custom tool content table is used for querying, filtering, and presenting data related to automation."
+    },
+    {
+      "name": "autoexec_script_validate",
+      "label": "Automated Custom Tool for Hazardous Code Table",
+      "description": "The automated custom tool for dangerous code can be used for time dimension statistical queries related to automation."
+    },
+    {
+      "name": "autoexec_script_validate_type",
+      "label": "Automation Custom Tool Hazard Code Type Table",
+      "description": "The automation custom tool for dangerous code types is designed for association queries related to automation."
+    },
+    {
+      "name": "autoexec_script_version",
+      "label": "Automation Custom Tool Version Table",
+      "description": "The automation custom tool version table is used for tracking automation-related statuses, enabling status filtering, time dimension statistics, and association queries."
+    },
+    {
+      "name": "autoexec_script_version_argument",
+      "label": "Custom Tool Library -- Free Parameters",
+      "description": "Custom tool library parameters are available for automated queries related to association and report generation scenarios."
+    },
+    {
+      "name": "autoexec_script_version_lib",
+      "label": "Automation Script Dependencies Table",
+      "description": "The automation script dependency table is used for related queries and report queries related to automation."
+    },
+    {
+      "name": "autoexec_script_version_param",
+      "label": "Automation Custom Tool Parameter Table",
+      "description": "The automation custom tool parameter table is used for related queries in automated processes and report queries."
+    },
+    {
+      "name": "autoexec_service",
+      "label": "automation_service Table",
+      "description": "The automation service table, which belongs to the automation module, is used for filtering enabled states and performing associated queries for automation-related reporting scenarios."
+    },
+    {
+      "name": "autoexec_service_authority",
+      "label": "AutomationServiceAuthority Table",
+      "description": "The automation_service_authority table, belonging to the automation module, is used for related queries and report queries related to automation."
+    },
+    {
+      "name": "autoexec_service_config",
+      "label": "automation_service_config Table",
+      "description": "The automation_service_config table, which belongs to the automation module, is used for related queries and report queries related to automation."
+    },
+    {
+      "name": "autoexec_service_user",
+      "label": "User Collection Service",
+      "description": "The user's favorite service can be used for automated time dimension statistics and query scenarios related to associations."
+    },
+    {
+      "name": "autoexec_tag",
+      "label": "Automation Tag Table",
+      "description": "The automation tag table is used for querying, filtering, and presenting data related to automation."
+    },
+    {
+      "name": "autoexec_tool",
+      "label": "Automation Tools Table",
+      "description": "The automation tools table is designed for scenarios involving filtering by enabled state, time dimension statistics, and query associations."
+    },
+    {
+      "name": "autoexec_type",
+      "label": "Automation Type Table",
+      "description": "The automation type table is used for statistical reporting scenarios related to time dimensions for automation-related queries."
+    },
+    {
+      "name": "autoexec_type_authority",
+      "label": "Automation Classification Permission Table",
+      "description": "The automated classification permission table is designed for use in association queries related to automation."
+    }
+  ]
+}

@@ -1,0 +1,65 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_script_line",
+  "label": "Automation Custom Tool Content Row Table",
+  "description": "The automation custom tool content row is used for related queries in automation scenarios and report queries.",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "script_id",
+      "type": "bigint",
+      "description": "Script ID. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "script_version_id",
+      "type": "bigint",
+      "description": "Script version ID. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "content_hash",
+      "type": "char(32)",
+      "description": "Script content hash."
+    },
+    {
+      "name": "line_number",
+      "type": "int",
+      "description": "Line number of script content."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "Primary key index covering the ID field, suitable for uniquely identifying records and queries that join the primary table."
+    },
+    {
+      "name": "idx_script_id",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "script_id"
+      ],
+      "description": "Standard index covering the script_id field, suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "idx_version_id",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "script_version_id"
+      ],
+      "description": "Standard index covering the script_version_id field, suitable for filtering, join, and sort queries."
+    }
+  ]
+}

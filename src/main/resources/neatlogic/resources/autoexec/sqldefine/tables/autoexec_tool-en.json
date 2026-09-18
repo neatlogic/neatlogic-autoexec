@@ -1,0 +1,105 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_tool",
+  "label": "Automation Tools Table",
+  "description": "The automation tools table is designed for scenarios involving filtering by enabled state, time dimension statistics, and query associations.",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "name",
+      "type": "varchar(50)",
+      "description": "Name. This value must be unique in the database and is suitable for exact-match queries and duplicate detection."
+    },
+    {
+      "name": "is_active",
+      "type": "tinyint(1)",
+      "description": "Indicates whether it is active."
+    },
+    {
+      "name": "exec_mode",
+      "type": "varchar(50)",
+      "description": "Execution method."
+    },
+    {
+      "name": "type_id",
+      "type": "bigint",
+      "description": "ID."
+    },
+    {
+      "name": "risk_id",
+      "type": "bigint",
+      "description": "Operation level ID."
+    },
+    {
+      "name": "description",
+      "type": "text",
+      "description": "Description."
+    },
+    {
+      "name": "parser",
+      "type": "varchar(50)",
+      "description": "Parser."
+    },
+    {
+      "name": "customtemplate_id",
+      "type": "bigint",
+      "description": "Custom template ID."
+    },
+    {
+      "name": "default_profile_id",
+      "type": "bigint",
+      "description": "Default profile ID."
+    },
+    {
+      "name": "config",
+      "type": "longtext",
+      "description": "Parameter configuration."
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp(3)",
+      "description": "Last modified time."
+    },
+    {
+      "name": "lcu",
+      "type": "char(32)",
+      "description": "Last modified by."
+    },
+    {
+      "name": "is_lib",
+      "type": "tinyint",
+      "description": "Is the file in the library."
+    },
+    {
+      "name": "import_time",
+      "type": "bigint",
+      "description": "The number of seconds since the last import."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "Primary key index covering the ID field, suitable for uniquely identifying records and queries that join the primary table."
+    },
+    {
+      "name": "unique_name",
+      "type": "BTREE",
+      "unique": true,
+      "primary": false,
+      "columns": [
+        "name"
+      ],
+      "description": "Unique index covering the name field, suitable for exact-match retrieval, uniqueness checks, and duplicate detection."
+    }
+  ]
+}

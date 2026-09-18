@@ -1,0 +1,106 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_script_version",
+  "label": "Automation Custom Tool Version Table",
+  "description": "The automation custom tool version table is used for tracking automation-related statuses, enabling status filtering, time dimension statistics, and association queries.",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "script_id",
+      "type": "bigint",
+      "description": "Script ID. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "title",
+      "type": "varchar(50)",
+      "description": "Title."
+    },
+    {
+      "name": "version",
+      "type": "int",
+      "description": "Version."
+    },
+    {
+      "name": "encoding",
+      "type": "enum('UTF-8','GBK')",
+      "description": "Scripting."
+    },
+    {
+      "name": "parser",
+      "type": "varchar(20)",
+      "description": "Script analyzer."
+    },
+    {
+      "name": "status",
+      "type": "enum('draft','rejected','passed','submitted')",
+      "description": "Draft: under review, rejected: rejected, passed: approved, submitted: pending approval. A standard index is defined on this field, making it suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "reviewer",
+      "type": "char(32)",
+      "description": "Approver."
+    },
+    {
+      "name": "is_active",
+      "type": "tinyint(1)",
+      "description": "Indicates whether it is active."
+    },
+    {
+      "name": "config",
+      "type": "longtext",
+      "description": "Script configuration information."
+    },
+    {
+      "name": "lcd",
+      "type": "timestamp(3)",
+      "description": "Last modified time."
+    },
+    {
+      "name": "lcu",
+      "type": "char(32)",
+      "description": "Last modified by."
+    },
+    {
+      "name": "package_file_id",
+      "type": "bigint",
+      "description": "File ID."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "Primary key index covering the ID field, suitable for uniquely identifying records and queries that join the primary table."
+    },
+    {
+      "name": "idx_status",
+      "type": "BTREE",
+      "unique": false,
+      "primary": false,
+      "columns": [
+        "status"
+      ],
+      "description": "Standard index covering the status field, suitable for filtering, join, and sort queries."
+    },
+    {
+      "name": "uniq_scriptid_version",
+      "type": "BTREE",
+      "unique": true,
+      "primary": false,
+      "columns": [
+        "script_id",
+        "version"
+      ],
+      "description": "Unique index covering the script_id, version fields, suitable for exact-match retrieval, uniqueness checks, and duplicate detection."
+    }
+  ]
+}

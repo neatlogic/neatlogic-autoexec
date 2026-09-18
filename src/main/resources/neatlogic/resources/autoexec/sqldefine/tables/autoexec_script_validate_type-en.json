@@ -1,0 +1,35 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_script_validate_type",
+  "label": "Automation Custom Tool Hazard Code Type Table",
+  "description": "The automation custom tool for dangerous code types is designed for association queries related to automation.",
+  "fields": [
+    {
+      "name": "id",
+      "type": "bigint",
+      "description": "ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "validate_id",
+      "type": "bigint",
+      "description": "High-risk code ID."
+    },
+    {
+      "name": "script_type",
+      "type": "enum('xml','python','vbs','shell','perl','powershell','bat')",
+      "description": "Script type."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "id"
+      ],
+      "description": "Primary key index covering the ID field, suitable for uniquely identifying records and queries that join the primary table."
+    }
+  ]
+}

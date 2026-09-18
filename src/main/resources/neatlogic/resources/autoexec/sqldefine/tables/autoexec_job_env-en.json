@@ -1,0 +1,36 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_job_env",
+  "label": "Job Environment Variables Table",
+  "description": "Job environment variables table is used for automated queries related to association and report queries.",
+  "fields": [
+    {
+      "name": "job_id",
+      "type": "bigint",
+      "description": "Job ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "name",
+      "type": "varchar(50)",
+      "description": "Environment variable name, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "value",
+      "type": "text",
+      "description": "Environment variable values."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "job_id",
+        "name"
+      ],
+      "description": "Primary key index covering the job_id, name fields, suitable for uniquely identifying records and queries that join the primary table."
+    }
+  ]
+}

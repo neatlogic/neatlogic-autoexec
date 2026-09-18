@@ -1,0 +1,41 @@
+{
+  "moduleId": "autoexec",
+  "name": "autoexec_profile_operation",
+  "label": "Release Tool Profile and Tool, Script Relationship Table",
+  "description": "The release tool, profile, and tool, script relationship table can be used for automated related queries and report queries.",
+  "fields": [
+    {
+      "name": "operation_id",
+      "type": "bigint",
+      "description": "Tool library/tool ID/tool ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "profile_id",
+      "type": "bigint",
+      "description": "Profile ID, used as the primary key or unique identifier for records in this table."
+    },
+    {
+      "name": "type",
+      "type": "enum('script','tool')",
+      "description": "Tool type."
+    },
+    {
+      "name": "update_tag",
+      "type": "bigint",
+      "description": "Update the timestamp."
+    }
+  ],
+  "indexes": [
+    {
+      "name": "PRIMARY",
+      "type": "BTREE",
+      "unique": true,
+      "primary": true,
+      "columns": [
+        "operation_id",
+        "profile_id"
+      ],
+      "description": "Primary key index covering the operation_id, profile_id fields, suitable for uniquely identifying records and queries that join the primary table."
+    }
+  ]
+}
