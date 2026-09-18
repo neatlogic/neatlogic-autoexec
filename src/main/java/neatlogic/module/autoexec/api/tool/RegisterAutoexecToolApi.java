@@ -40,7 +40,6 @@ import neatlogic.framework.util.I18nUtils;
 import neatlogic.framework.util.RegexUtils;
 import neatlogic.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
 import neatlogic.module.autoexec.service.AutoexecService;
-import neatlogic.module.autoexec.service.AutoexecOperationChangeDispatcher;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -76,9 +75,6 @@ public class RegisterAutoexecToolApi extends PrivateApiComponentBase {
 
     @Resource
     private AutoexecService autoexecService;
-
-    @Resource
-    private AutoexecOperationChangeDispatcher operationChangeDispatcher;
 
     @Override
     public String getToken() {
@@ -166,7 +162,6 @@ public class RegisterAutoexecToolApi extends PrivateApiComponentBase {
             vo.setConfigStr(config.toJSONString());
             autoexecToolMapper.insertTool(vo);
             TransactionUtil.commitTx(tx);
-            operationChangeDispatcher.notifyAfterCommit("tool", vo.getId(), AutoexecOperationIndexAction.UPSERT);
         } catch (ApiRuntimeException ex) {
             TransactionUtil.rollbackTx(tx);
             throw new ApiRuntimeException(ex.getMessage());

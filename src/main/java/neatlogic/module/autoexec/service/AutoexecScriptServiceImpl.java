@@ -89,9 +89,6 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
     @Resource
     private FileMapper fileMapper;
 
-    @Resource
-    private AutoexecOperationChangeDispatcher operationChangeDispatcher;
-
 
     /** Centralize write-time root normalization and translate concurrent name conflicts into a business error. */
     @Override
@@ -910,11 +907,6 @@ public class AutoexecScriptServiceImpl implements AutoexecScriptService {
             updateVo.setStatus(ScriptVersionStatus.REJECTED.getValue());
         }
         autoexecScriptMapper.updateScriptVersion(updateVo);
-        if (isPass) {
-            operationChangeDispatcher.notifyAfterCommit("script", version.getScriptId(),
-                    AutoexecOperationIndexAction.UPSERT);
-        }
-
         JSONObject auditContent = new JSONObject();
         auditContent.put("version", version.getVersion());
         if (StringUtils.isNotBlank(content)) {
