@@ -1,0 +1,1854 @@
+{
+  "autoexec": {
+    "operationaudit": {
+      "currentpage": "当前页",
+      "endtime": "结束时间",
+      "get": "获取作业操作详情",
+      "keyword": "关键字",
+      "pagesize": "每页数量",
+      "paginationhelp": "currentPage 默认为 1；pageSize 默认为 20，范围为 1 至 100。超过末页时返回最后一页。",
+      "records": "操作记录",
+      "redacted": "已脱敏",
+      "search": "查询作业操作记录",
+      "starttime": "开始时间",
+      "targets": "目标明细"
+    }
+  },
+  "nfad": {
+    "autoexecjobbuilder": {
+      "entityfield": {
+        "jobname": {
+          "name": "作业名称（唯一标识）"
+        },
+        "param": {
+          "name": "作业参数数据"
+        }
+      }
+    }
+  },
+  "nmaa": {
+    "abortautoexecjobapi": {
+      "getname": "中止作业"
+    },
+    "allautoexecservicefortreeapi": {
+      "getname": "获取所有服务目录树结构数据"
+    },
+    "allvisibleautoexecservicefortreeapi": {
+      "getname": "获取当前用户可见的服务目录树结构数据",
+      "input": {
+        "param": {
+          "desc": {
+            "needservice": "是否需要服务节点数据"
+          }
+        }
+      }
+    },
+    "autoexeccatalogdeleteapi": {
+      "getname": "删除工具目录"
+    },
+    "autoexeccatalogfulltreeapi": {
+      "getname": "获取工具目录完整架构树"
+    },
+    "autoexeccatalogmoveapi": {
+      "getname": "移动工具目录",
+      "input": {
+        "param": {
+          "desc": {
+            "sort": "sort(目标父级的位置，从0开始)"
+          }
+        }
+      }
+    },
+    "autoexeccatalogsearchapi": {
+      "getname": "查询工具目录",
+      "output": {
+        "param": {
+          "desc": {
+            "tbodylist": "目录集合"
+          }
+        }
+      }
+    },
+    "autoexeccatalogtreeapi": {
+      "getname": "获取工具目录架构树",
+      "output": {
+        "param": {
+          "desc": {
+            "tbodylist": "目录集合"
+          }
+        }
+      }
+    },
+    "autoexeccatalogtreesearchapi": {
+      "getname": "查询工具目录(树结构)",
+      "input": {
+        "param": {
+          "desc": {
+            "id": "主键ID"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "children": "工具目录架构集合"
+          }
+        }
+      }
+    },
+    "autoexeccombopconfigupdatebatchapi": {
+      "getname": "批量更新组合工具配置信息",
+      "input": {
+        "param": {
+          "desc": {
+            "idlist": "ID列表"
+          }
+        }
+      }
+    },
+    "autoexeccombopcopyapi": {
+      "getname": "复制组合工具",
+      "input": {
+        "param": {
+          "desc": {
+            "editauthoritylist": "编辑权限列表",
+            "executeauthoritylist": "执行权限列表",
+            "id": "被复制的组合工具ID",
+            "name": "新组合工具名",
+            "typename": "类型名",
+            "viewauthoritylist": "查看权限列表"
+          }
+        }
+      }
+    },
+    "autoexeccombopdataupdateapi": {
+      "getname": "更新组合工具数据"
+    },
+    "autoexeccombopdeleteapi": {
+      "getname": "删除组合工具",
+      "input": {
+        "param": {
+          "desc": {
+            "id": "主键ID"
+          }
+        }
+      }
+    },
+    "autoexeccombopexportapi": {
+      "getname": "导出组合工具",
+      "input": {
+        "param": {
+          "desc": {
+            "idlist": "组合工具ID列表"
+          }
+        }
+      }
+    },
+    "autoexeccombopgenerateapi": {
+      "getname": "脚本/工具发布生成组合工具",
+      "input": {
+        "param": {
+          "desc": {
+            "operationid": "脚本/工具主键ID",
+            "operationtype": "脚本/工具"
+          }
+        }
+      }
+    },
+    "autoexeccombopimportapi": {
+      "getname": "导入组合工具",
+      "input": {
+        "param": {
+          "desc": {
+            "namelist": "名称列表"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "return": "导入结果"
+          }
+        }
+      }
+    },
+    "autoexeccombopimportlistapi": {
+      "getname": "导入组合工具列表"
+    },
+    "autoexeccomboplistapi": {
+      "getname": "查询组合工具列表",
+      "input": {
+        "param": {
+          "desc": {
+            "keyword": "模糊查询，支持名称或唯一标识"
+          }
+        }
+      }
+    },
+    "autoexeccombopparamlistapi": {
+      "getname": "查询组合工具顶层参数列表"
+    },
+    "autoexeccombopprocessconfiginitapi": {
+      "getname": "组合工具流程自动化节点配置初始化",
+      "output": {
+        "param": {
+          "desc": {
+            "executeparamlist": "执行参数列表",
+            "exportparamlist": "输出参数列表",
+            "runtimeparamlist": "运行参数列表"
+          }
+        }
+      }
+    },
+    "autoexeccombopprofilelistapi": {
+      "getname": "查询组合工具预置参数集列表"
+    },
+    "autoexeccombopversioncountapi": {
+      "getname": "查询组合工具版本列表",
+      "output": {
+        "param": {
+          "desc": {
+            "count": "组合工具版本数量"
+          }
+        }
+      }
+    },
+    "autoexeccombopversiondeleteapi": {
+      "getname": "删除组合工具版本"
+    },
+    "autoexeccombopversionisactiveupdateapi": {
+      "getname": "激活组合工具版本"
+    },
+    "autoexeccombopversionlistapi": {
+      "getname": "查询组合工具版本列表",
+      "output": {
+        "param": {
+          "desc": {
+            "return": "组合工具版本列表"
+          }
+        }
+      }
+    },
+    "autoexeccombopversionparamlistapi": {
+      "getname": "查询组合工具版本作业参数列表"
+    },
+    "autoexeccombopversionstatusupdateapi": {
+      "getname": "更新组合工具版本状态"
+    },
+    "autoexecglobalparamdeleteapi": {
+      "getname": "删除自动化全局参数"
+    },
+    "autoexecglobalparamgetapi": {
+      "getname": "获取自动化全局参数"
+    },
+    "autoexecglobalparamsaveapi": {
+      "getname": "保存自动化全局参数"
+    },
+    "autoexecglobalparamsearchapi": {
+      "getname": "查询自动化全局参数列表",
+      "input": {
+        "param": {
+          "desc": {
+            "typelist": "类型列表"
+          }
+        }
+      }
+    },
+    "autoexecglobalparamupdateforautoexecapi": {
+      "getname": "更新自动化全局参数"
+    },
+    "autoexecjobautofirejob": {
+      "getname": "自动化作业计划启动"
+    },
+    "autoexecjobcombopsearchapi": {
+      "getname": "作业搜索（组合工具视图）",
+      "input": {
+        "param": {
+          "desc": {
+            "combopoperationtypelist": "组合工具类型",
+            "execuser": "操作人"
+          }
+        }
+      }
+    },
+    "autoexecjobmessagehandler": {
+      "getdescription": "实时显示自动化作业相关信息",
+      "getname": "自动化作业"
+    },
+    "autoexecjobphaselistapi": {
+      "getname": "获取作业阶段列表",
+      "input": {
+        "param": {
+          "desc": {
+            "phaseidlist": "作业阶段idList"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "phaselist": "作业阶段list"
+          }
+        }
+      }
+    },
+    "autoexecjobphasenodelistapi": {
+      "getname": "获取作业阶段节点列表",
+      "input": {
+        "param": {
+          "desc": {
+            "jobphasestatus": "作业阶段状态",
+            "nodeidlist": "作业阶段节点idList"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "nodelist": "作业阶段节点list"
+          }
+        }
+      }
+    },
+    "autoexecjobphasenodesearchapi": {
+      "getname": "搜索作业剧本节点",
+      "input": {
+        "param": {
+          "desc": {
+            "nodeidlist": "作业阶段节点idList,用于刷新节点"
+          }
+        }
+      }
+    },
+    "autoexecjobphaserunnergetapi": {
+      "getname": "获取作业Runner执行方式剧本的Runner信息",
+      "output": {
+        "param": {
+          "desc": {
+            "return": "Runner信息"
+          }
+        }
+      }
+    },
+    "autoexecjobphasetopoapi": {
+      "getname": "获取作业阶段流程图",
+      "output": {
+        "param": {
+          "desc": {
+            "return": "Runner 列表"
+          }
+        }
+      }
+    },
+    "autoexecjobrunnerlistapi": {
+      "getname": "获取作业Runner列表",
+      "output": {
+        "param": {
+          "desc": {
+            "return": "Runner 列表"
+          }
+        }
+      }
+    },
+    "autoexecjobruntimeparamgetapi": {
+      "getname": "获取作业运行参数"
+    },
+    "autoexecjobsearchapi": {
+      "getname": "作业搜索（作业执行列表）",
+      "input": {
+        "param": {
+          "desc": {
+            "execuserlist": "操作人",
+            "hasparent": "是否拥有父作业",
+            "idlist": "作业ID列表，用于精确刷新作业状态",
+            "routeid": "来源路由ID",
+            "scheduleid": "组合工具定时作业ID",
+            "typeidlist": "组合工具类型"
+          }
+        }
+      }
+    },
+    "autoexecjobsourcelistapi": {
+      "getname": "获取作业来源"
+    },
+    "autoexecoperationparamlistapi": {
+      "getname": "获取自动化工具参数列表"
+    },
+    "autoexecprofiledeleteapi": {
+      "getname": "删除自动化工具预置参数集"
+    },
+    "autoexecprofilegetapi": {
+      "getname": "获取自动化工具预置参数集",
+      "output": {
+        "param": {
+          "desc": {
+            "return": "工具预置参数集"
+          }
+        }
+      }
+    },
+    "autoexecprofilesearchapi": {
+      "getname": "查询自动化工具预置参数集列表",
+      "input": {
+        "param": {
+          "desc": {
+            "keyword": "关键词（名称、描述）"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "tbodylist": "工具预置参数集列表"
+          }
+        }
+      }
+    },
+    "autoexecriskdeleteapi": {
+      "getname": "删除操作级别"
+    },
+    "autoexecrisklistapi": {
+      "getname": "获取操作级别列表"
+    },
+    "autoexecriskmoveapi": {
+      "getname": "移动操作级别",
+      "input": {
+        "param": {
+          "desc": {
+            "sort": "移动后的序号"
+          }
+        }
+      }
+    },
+    "autoexecrisksearchapi": {
+      "getname": "查询操作级别"
+    },
+    "autoexecscenariodeleteapi": {
+      "getname": "删除场景"
+    },
+    "autoexecscenariogetapi": {
+      "getname": "获取场景"
+    },
+    "autoexecscenariosaveapi": {
+      "getname": "保存场景"
+    },
+    "autoexecscenariosearchapi": {
+      "getname": "查询场景列表"
+    },
+    "autoexecscheduledeleteapi": {
+      "getname": "删除定时作业"
+    },
+    "autoexecscheduleisactiveupdateapi": {
+      "getname": "启用/禁用定时作业"
+    },
+    "autoexecschedulejob": {
+      "getname": "自动化定时作业执行"
+    },
+    "autoexecschedulelistapi": {
+      "getname": "查询定时作业列表",
+      "input": {
+        "param": {
+          "desc": {
+            "currentpage": "当前页码",
+            "keyword": "模糊查询",
+            "pagesize": "页大小"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "tbodylist": "定时作业列表"
+          }
+        }
+      }
+    },
+    "autoexecschedulesaveapi": {
+      "getname": "保存定时作业信息",
+      "input": {
+        "param": {
+          "desc": {
+            "config": "执行配置信息，包含param、executeConfig、roundCount等字段",
+            "cron": "corn表达式",
+            "isactive": "是否激活(0:禁用，1：激活)"
+          }
+        }
+      }
+    },
+    "autoexecscriptandtoolsearchapi": {
+      "getname": "查询工具和脚本",
+      "input": {
+        "param": {
+          "desc": {
+            "defaultvalue": "用于回显的工具或脚本ID列表",
+            "excludelist": "用于排除搜索的工具或脚本ID列表",
+            "type": "类别(工具；脚本)"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "tbodylist": "工具/脚本列表"
+          }
+        }
+      }
+    },
+    "autoexecscriptbaseinfogetapi": {
+      "getname": "查看脚本基本信息",
+      "output": {
+        "param": {
+          "desc": {
+            "return": "脚本内容"
+          }
+        }
+      }
+    },
+    "autoexecscriptbaseinfosaveapi": {
+      "getname": "保存脚本基本信息",
+      "input": {
+        "param": {
+          "desc": {
+            "defaultprofileid": "默认的profileId"
+          }
+        }
+      }
+    },
+    "autoexecscriptcheckapi": {
+      "getname": "校验脚本内容",
+      "input": {
+        "param": {
+          "desc": {
+            "linelist": "脚本内容行数据列表,e.g:[{\\\"content\\\":\\\"#!/usr/bin/env bash\\\"},{\\\"content\\\":\\\"show_ascii_berry()\\\"}]"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "return": "经过校验后的行数据列表"
+          }
+        }
+      }
+    },
+    "autoexecscriptcopyapi": {
+      "getname": "复制脚本",
+      "output": {
+        "param": {
+          "desc": {
+            "return": "复制生成的脚本ID"
+          }
+        }
+      }
+    },
+    "autoexecscriptdeleteapi": {
+      "getname": "删除脚本或版本",
+      "input": {
+        "param": {
+          "desc": {
+            "id": "脚本ID(两个参数二选一)"
+          }
+        }
+      }
+    },
+    "autoexecscriptexportapi": {
+      "getname": "导出脚本"
+    },
+    "autoexecscriptexportforautoexecapi": {
+      "getname": "导出脚本(供外部调用)",
+      "input": {
+        "param": {
+          "desc": {
+            "cataloglist": "目录名称（完整路径）列表",
+            "catalogname": "目录名称（完整路径）"
+          }
+        }
+      }
+    },
+    "autoexecscriptfulltextindexrebuildapi": {
+      "getname": "重建自定义工具版本索引",
+      "input": {
+        "param": {
+          "desc": {
+            "versionidlist": "版本号idList"
+          }
+        }
+      }
+    },
+    "autoexecscriptgetapi": {
+      "input": {
+        "param": {
+          "help": {
+            "id": "表示不指定版本查看，两个参数二选一",
+            "status": "传ID而非versionId时，表示从列表查看脚本，此时必须传status参数",
+            "versionid": "表示指定版本查看"
+          }
+        }
+      }
+    },
+    "autoexecscriptimportapi": {
+      "getname": "导入脚本",
+      "input": {
+        "param": {
+          "desc": {
+            "isreplace": "是否覆盖原来的待审核脚本，默认不覆盖",
+            "scriptidlist": "需要导入的脚本ID列表"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "failurecount": "导入失败数量",
+            "failurereasonlist": "失败原因",
+            "successcount": "导入成功数量"
+          }
+        }
+      }
+    },
+    "autoexecscriptimportpublicapi": {
+      "getname": "导入脚本(通过固定格式JSON文件)"
+    },
+    "autoexecscriptortoolinputparamgetapi": {
+      "getname": "获取工具或自定义工具输入参数",
+      "output": {
+        "param": {
+          "desc": {
+            "inputparamlist": "输入参数"
+          }
+        }
+      }
+    },
+    "autoexecscriptrevokeapi": {
+      "getname": "脚本撤回提交审核"
+    },
+    "autoexecscriptsaveapi": {
+      "input": {
+        "param": {
+          "help": {
+            "id": "没有ID和versionId,表示首次创建脚本;有ID没有versionId,表示新增一个版本;没有ID有versionId,表示编辑某个版本",
+            "islib": "1：是，0：否，默认否"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "help": {
+            "isreviewable": "1:能;0:不能"
+          }
+        }
+      }
+    },
+    "autoexecscriptsearchapi": {
+      "getname": "查询脚本",
+      "input": {
+        "param": {
+          "desc": {
+            "defaultvalue": "用于回显的脚本ID列表",
+            "excludelist": "需要排除的脚本ID列表",
+            "islib": "是否库文件（1：是，0：否，默认不选）"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "statuslist": "已通过、草稿、待审批、已驳回状态的数量",
+            "tbodylist": "脚本列表"
+          }
+        }
+      }
+    },
+    "autoexecscriptsubmitapi": {
+      "getname": "脚本提交审核"
+    },
+    "autoexecscriptversioncompareapi": {
+      "getname": "脚本版本对比",
+      "input": {
+        "param": {
+          "desc": {
+            "needtocompare": "是否需要对比(不传时默认开启对比，值为0时关闭对比，但targetVersionId不为空时，一定会对比)",
+            "sourceversionid": "源版本ID",
+            "targetversionid": "目标版本ID(查看待审核版本时，默认进入对比页，故无需传目标版本ID，只有手动对比时才需要)"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "sourceversion": "源版本",
+            "targetversion": "目标版本"
+          }
+        }
+      }
+    },
+    "autoexecscriptversionlistapi": {
+      "getname": "获取脚本版本列表",
+      "output": {
+        "param": {
+          "desc": {
+            "tbodylist": "根据status返回未通过版本列表或历史版本列表"
+          }
+        }
+      }
+    },
+    "autoexecscriptversionlistforselectapi": {
+      "getname": "获取脚本版本号列表(下拉)",
+      "input": {
+        "param": {
+          "desc": {
+            "excludelist": "需要排除的版本ID列表"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "tbodylist": "版本号列表"
+          }
+        }
+      }
+    },
+    "autoexecscriptversionnumberlistapi": {
+      "getname": "获取脚本版本号列表",
+      "output": {
+        "param": {
+          "desc": {
+            "return": "版本号列表"
+          }
+        }
+      }
+    },
+    "autoexecscriptversionswitchapi": {
+      "getname": "切换脚本当前版本"
+    },
+    "autoexectoolactivestatusupdateapi": {
+      "getname": "激活或禁用工具",
+      "input": {
+        "param": {
+          "desc": {
+            "isactive": "1:激活;0:禁用"
+          }
+        }
+      }
+    },
+    "autoexectoolargumentupdateapi": {
+      "getname": "工具argument结构转换"
+    },
+    "autoexectoolcustomtemplateupdateapi": {
+      "getname": "更新工具绑定的自定义模版"
+    },
+    "autoexectooldeleteapi": {
+      "getname": "删除内置工具",
+      "input": {
+        "param": {
+          "desc": {
+            "namelist": "工具名称列表"
+          }
+        }
+      }
+    },
+    "autoexectoolsearchapi": {
+      "getname": "查询工具",
+      "output": {
+        "param": {
+          "desc": {
+            "tbodylist": "工具列表"
+          }
+        }
+      }
+    },
+    "batchdeleteautoexecscriptapi": {
+      "getname": "批量删除脚本"
+    },
+    "checkautoexecjobapi": {
+      "getname": "验证作业"
+    },
+    "checkinautoexecjobsqlapi": {
+      "getname": "检查作业执行SQL文件状态",
+      "input": {
+        "param": {
+          "desc": {
+            "phasename": "作业剧本名（导入SQL）",
+            "sqlinfolist": "SQL文件列表",
+            "targetphasename": "目标作业剧本名（执行SQL）"
+          }
+        }
+      }
+    },
+    "cleanautoexecjobapi": {
+      "getname": "清除Runner历史作业文件",
+      "input": {
+        "param": {
+          "desc": {
+            "daybefore": "保留天数",
+            "runnernamelist": "执行器名列表"
+          }
+        }
+      }
+    },
+    "common": {
+      "input": {
+        "param": {
+          "desc": {
+            "isdeleted": "是否删除",
+            "islib": "是否库文件（1：是，0：否，默认否）",
+            "isneedcheckdataauth": "是否校验数据权限（1：校验，0：不校验）",
+            "keywordmatchname": "关键字，匹配名称",
+            "lastmodified": "最后修改时间（秒，支持小数位）",
+            "logdirection": "读取方向，up：向上读取，down：向下读取",
+            "needpage": "是否需要分页，默认true",
+            "nodekeyword": "关键字（节点名称或IP）",
+            "refreshstatus": "用于判断是否刷新的节点状态"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "actionlist": "操作按钮列表",
+            "datalist": "数据列表",
+            "isrefresh": "是否需要继续定时刷新，1：继续，0：停止",
+            "logcontent": "日志读取内容",
+            "logendposition": "日志读取结束位置",
+            "logposition": "读取到的位置",
+            "logstartposition": "日志读取开始位置",
+            "tailcontent": "日志末尾内容"
+          }
+        }
+      }
+    },
+    "createautoexecjobfromoperationapi": {
+      "getname": "作业创建（来自 工具库|自定义工具库）",
+      "input": {
+        "param": {
+          "desc": {
+            "argumentmappinglist": "自由参数",
+            "executeconfig": "执行目标",
+            "operationid": "自定义工具库版本ID|工具库ID",
+            "param": "执行参数",
+            "type": "类型 script|tool   自定义工具库|工具库"
+          }
+        }
+      }
+    },
+    "deleteautoexecjobapi": {
+      "getname": "删除作业"
+    },
+    "deleteautoexecserviceapi": {
+      "getname": "删除服务目录信息"
+    },
+    "deleteautoexecserviceuserapi": {
+      "getname": "删除收藏服务"
+    },
+    "deleteautoexectypeapi": {
+      "getname": "删除工具分类",
+      "input": {
+        "param": {
+          "desc": {
+            "id": "类型ID"
+          }
+        }
+      }
+    },
+    "deletecustomtemplateapi": {
+      "getname": "删除自定义模板"
+    },
+    "downloadautoexecjobconsolelogapi": {
+      "getname": "下载作业控制台执行日志"
+    },
+    "downloadautoexecjobconsolelogauditapi": {
+      "getname": "下载作业控制台操作记录"
+    },
+    "downloadautoexecjobdataapi": {
+      "getname": "下载作业data",
+      "input": {
+        "param": {
+          "desc": {
+            "runnername": "执行器名"
+          }
+        }
+      }
+    },
+    "downloadautoexecjobnodeoutputfileapi": {
+      "getname": "下载作业节点输出文件",
+      "input": {
+        "param": {
+          "desc": {
+            "path": "附件出参相对路径",
+            "type": "类型，output、input"
+          }
+        }
+      }
+    },
+    "downloadautoexecjobphasenodeauditapi": {
+      "getname": "下载作业剧本节点操作记录"
+    },
+    "downloadautoexecjobphasenodeinputapi": {
+      "getname": "下载作业剧本节点输入参数"
+    },
+    "downloadautoexecjobphasenodelogapi": {
+      "getname": "下载剧本节点执行日志"
+    },
+    "downloadautoexecjobphasenodeoutputapi": {
+      "getname": "下载作业剧本节点输出参数"
+    },
+    "downloadautoexecjobphasenodesapi": {
+      "getname": "下载作业剧本节点",
+      "input": {
+        "param": {
+          "desc": {
+            "groupno": "组No",
+            "nodefrom": "节点来源 job｜group｜phase"
+          }
+        }
+      }
+    },
+    "downloadautoexecjobphasenodesqlfileapi": {
+      "getname": "下载节点SQL文件"
+    },
+    "executeautoexecjobfromcombopapi": {
+      "getname": "执行作业（来自组合工具）"
+    },
+    "exportautoexecjobapi": {
+      "getname": "导出作业"
+    },
+    "exportautoexecjobphasenodeapi": {
+      "getname": "导出作业剧本节点"
+    },
+    "exportautoexecscriptversionapi": {
+      "getname": "导出某个版本的脚本内容"
+    },
+    "exportautoexectoolparamapi": {
+      "getname": "导出工具库工具参数",
+      "input": {
+        "param": {
+          "desc": {
+            "isall": "是否全量（1：全量，0：单个）"
+          }
+        }
+      }
+    },
+    "fireautoexecjobnextgroupapi": {
+      "getname": "激活作业下一组",
+      "input": {
+        "param": {
+          "desc": {
+            "groupno": "上一个组（排序）序号",
+            "time": "回调时间"
+          }
+        }
+      }
+    },
+    "getautoexecjobcreateparamapi": {
+      "getname": "获取创建作业参数"
+    },
+    "getautoexecjobcreatepayloadapi": {
+      "getname": "获取创建作业payload",
+      "output": {
+        "param": {
+          "desc": {
+            "return": "列表"
+          }
+        }
+      }
+    },
+    "getautoexecjobenvapi": {
+      "getname": "获取作业环境",
+      "output": {
+        "param": {
+          "desc": {
+            "return": "列表"
+          }
+        }
+      }
+    },
+    "getautoexecjobphasenodeinputparamapi": {
+      "getname": "获取作业节点输出参数"
+    },
+    "getautoexecjobphasenodeoutputparamapi": {
+      "getname": "获取作业节点输出参数"
+    },
+    "getautoexecjobphasenodesqlcontentapi": {
+      "getname": "获取作业节点SQL文件内容"
+    },
+    "getautoexecjobphaseoperationcustomdataapi": {
+      "getname": "获取阶段工具个性化数据"
+    },
+    "getautoexecjobphaseoperationscriptapi": {
+      "getname": "获取作业剧本操作脚本内容",
+      "input": {
+        "param": {
+          "desc": {
+            "isactive": "是否获取最新版本的脚本（1：是，0：不是，默认是）"
+          }
+        }
+      }
+    },
+    "getautoexecjobphaseoperationscriptbinaryforautoexecapi": {
+      "getname": "获取作业剧本操作脚本内容流",
+      "input": {
+        "param": {
+          "desc": {
+            "acceptstream": "True: 返回流,false 返回JSON，默认True",
+            "scriptid": "工具ID"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "script": "脚本内容"
+          }
+        }
+      }
+    },
+    "getautoexecscriptactiveversionapi": {
+      "getname": "获取操作当前激活版本脚本内容",
+      "output": {
+        "param": {
+          "desc": {
+            "scriptversionvo": "脚本内容"
+          }
+        }
+      }
+    },
+    "getautoexecscriptortoolargumentapi": {
+      "getname": "获取工具或自定义工具自由参数",
+      "input": {
+        "param": {
+          "desc": {
+            "id": "工具ID或自定义工具版本ID",
+            "type": "工具或自定义工具"
+          }
+        }
+      }
+    },
+    "getautoexectypeapi": {
+      "getname": "获取自动化工具分类",
+      "input": {
+        "param": {
+          "desc": {
+            "id": "工具分类 ID"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "return": "自动化工具分信息"
+          }
+        }
+      }
+    },
+    "getcustomtemplateapi": {
+      "getname": "获取自定义模板"
+    },
+    "ignoreautoexecjobphaseapi": {
+      "getname": "忽略作业阶段"
+    },
+    "ignoreautoexecjobphasenodeapi": {
+      "getname": "忽略作业节点",
+      "input": {
+        "param": {
+          "desc": {
+            "isall": "是否全部忽略,1:是 0:否,则resourceIdList不能为空"
+          }
+        }
+      }
+    },
+    "informautoexecjobphaseroundendapi": {
+      "getname": "激活作业下一阶段round"
+    },
+    "listautoexecjobconsolelogauditapi": {
+      "getname": "获取作业控制台操作记录"
+    },
+    "listautoexecjobphasenodeauditapi": {
+      "getname": "获取作业剧本节点操作记录"
+    },
+    "listautoexecjobphasenodeoperationapi": {
+      "getname": "获取剧本节点操作列表",
+      "output": {
+        "param": {
+          "desc": {
+            "operationstatuslist": "作业剧本节点操作状态列表"
+          }
+        }
+      }
+    },
+    "listautoexecjobphasenodesqlapi": {
+      "getname": "获取作业节点SQL列表",
+      "input": {
+        "param": {
+          "desc": {
+            "status": "当前节点状态"
+          }
+        }
+      }
+    },
+    "listautoexecjobphaseoperationcustomtemplateapi": {
+      "getname": "获取阶段工具引用的自定义模版列表"
+    },
+    "listautoexecjobsqlapi": {
+      "getname": "获取作业执行SQL文件状态列表",
+      "input": {
+        "param": {
+          "desc": {
+            "sqlfiles": "SQL文件列表"
+          }
+        }
+      }
+    },
+    "listautoexecscriptapi": {
+      "getname": "查询脚本列表",
+      "input": {
+        "param": {
+          "desc": {
+            "defaultvalue": "用于回显的脚本ID列表"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "tbodylist": "查询脚本列表"
+          }
+        }
+      }
+    },
+    "moveautoexecserviceapi": {
+      "getname": "移动服务目录信息",
+      "input": {
+        "param": {
+          "desc": {
+            "id": "被移动的服务目录ID",
+            "movetype": "移动类型",
+            "targetid": "目标节点ID"
+          }
+        }
+      }
+    },
+    "pauseautoexecjobapi": {
+      "getname": "暂停作业"
+    },
+    "refireautoexecjobapi": {
+      "getname": "重跑作业",
+      "input": {
+        "param": {
+          "desc": {
+            "type": "重跑类型：   重置并重跑所有：refireResetAll；重跑所有：refireAll"
+          }
+        }
+      }
+    },
+    "refireautoexecjobphaseapi": {
+      "getname": "重跑作业阶段",
+      "input": {
+        "param": {
+          "desc": {
+            "phaseid": "作业阶段ID",
+            "type": "重跑类型：   重置并重跑所有：refireResetAll；重跑所有：refireAll,默认重置并重跑所有"
+          }
+        }
+      }
+    },
+    "refireautoexecjobphasenodeapi": {
+      "getname": "重跑作业节点",
+      "input": {
+        "param": {
+          "desc": {
+            "jobphaseid": "作业phaseId",
+            "resourceidlist": "重跑的节点资产idList"
+          }
+        }
+      }
+    },
+    "refreshcombopexecutenodeconfigfilter": {
+      "getname": "刷新历史执行时再指定执行目标的过滤器"
+    },
+    "registerautoexectoolapi": {
+      "input": {
+        "param": {
+          "help": {
+            "argument": "{\n        \"name\":\"日志路径\",\n        \"help\":\"日志路径，支持通配符和反引号\",\n        \"type\":\"input\",\n        \"isConst\":\"false\",\n        \"defaultValue\":\"\",\n        \"required\":\"true\",\n        \"validate\":\"\"\n    }",
+            "option": "当控件类型为[select,multiselect,radio,checkbox]时，需要在dataSource字段填写数据源，格式如下：[{\\\"text\\\":\\\"否\\\",\\\"value\\\":\\\"0\\\"},{\\\"text\\\":\\\"是\\\",\\\"value\\\":\\\"1\\\"}]，defaultValue字段填写数据源中的value值"
+          }
+        }
+      }
+    },
+    "resetautoexecjobphasenodeapi": {
+      "getname": "重置作业节点",
+      "input": {
+        "param": {
+          "desc": {
+            "isall": "是否全部重置,1:是 0:否,则resourceIdList不能为空"
+          }
+        }
+      }
+    },
+    "resetautoexecjobphasesqlstatusapi": {
+      "getname": "重置SQL文件状态",
+      "input": {
+        "param": {
+          "desc": {
+            "isall": "是否全部重置,1:是 0:否,则sqlIdList不能为空",
+            "phasename": "剧本名称"
+          }
+        }
+      }
+    },
+    "revokeautoexecjobapi": {
+      "getname": "撤销作业"
+    },
+    "saveautoexecserviceapi": {
+      "getname": "保存服务目录信息",
+      "input": {
+        "param": {
+          "desc": {
+            "formuuid": "表单UUID",
+            "name": "服务名",
+            "type": "服务/目录"
+          }
+        }
+      }
+    },
+    "saveautoexecserviceuserapi": {
+      "getname": "保存收藏服务"
+    },
+    "savecustomtemplateapi": {
+      "input": {
+        "param": {
+          "help": {
+            "config": "JSON格式的字符串",
+            "id": "不提供代表新增"
+          }
+        }
+      }
+    },
+    "searchautoexecjobphasesqlapi": {
+      "getname": "搜索作业剧本SQL文件节点",
+      "input": {
+        "param": {
+          "desc": {
+            "statuslist": "SQL文件状态"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "tbodylist": "SQL文件列表"
+          }
+        }
+      }
+    },
+    "searchautoexecserviceapi": {
+      "getname": "搜索服务目录"
+    },
+    "searchautoexecservicebreadcrumbapi": {
+      "getname": "搜索某个服务目录下的当前用户可见的服务目录路径列表",
+      "output": {
+        "param": {
+          "desc": {
+            "tbodylist": "服务目录路径列表"
+          }
+        }
+      }
+    },
+    "searchautoexecserviceuserapi": {
+      "getname": "搜索用户收藏的服务列表",
+      "output": {
+        "param": {
+          "desc": {
+            "tbodylist": "服务列表"
+          }
+        }
+      }
+    },
+    "searchautoexectypeapi": {
+      "getname": "查询自动化工具分类列表",
+      "output": {
+        "param": {
+          "desc": {
+            "tbodylist": "分类列表"
+          }
+        }
+      }
+    },
+    "searchcustomtemplateapi": {
+      "getname": "查询自定义模板"
+    },
+    "searchvisibleautoexecserviceapi": {
+      "getname": "搜索可见服务目录"
+    },
+    "submitautoexecjobphasenodewaitinputapi": {
+      "getname": "提交作业节点waitInput",
+      "input": {
+        "param": {
+          "desc": {
+            "option": "提交选项"
+          }
+        }
+      }
+    },
+    "tailautoexecjobconsolelogapi": {
+      "getname": "获取作业console日志",
+      "input": {
+        "param": {
+          "desc": {
+            "logpos": "日志读取位置,-1:获取最新的数据",
+            "status": "当前作业状态"
+          }
+        }
+      }
+    },
+    "tailautoexecjobphasenodelogapi": {
+      "getname": "获取剧本节点执行日志",
+      "input": {
+        "param": {
+          "desc": {
+            "logpos": "日志读取位置,-1:获取最新的数据。如果是向上读'up'，则每次向上滚动加载传startPos。如果是向下读 'down'，则每次向下加载传endPos"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "interact": "作业节点等待输入渲染JSON"
+          }
+        }
+      }
+    },
+    "takeoverautoexecjobapi": {
+      "getname": "接管作业"
+    },
+    "updateautoexeccombopphaseoperationdescriptionfieldapi": {
+      "getname": "更新组合工具阶段操作的描述字段值"
+    },
+    "updateautoexecjobcreateenvapi": {
+      "getname": "跟新作业环境变量（出参）",
+      "input": {
+        "param": {
+          "desc": {
+            "envname": "作业环境变量名",
+            "envvalue": "作业环境变量值"
+          }
+        }
+      }
+    },
+    "updateautoexecjobfromcombopapi": {
+      "getname": "作业修改（来自组合工具）",
+      "input": {
+        "param": {
+          "desc": {
+            "planstarttime": "计划时间"
+          }
+        }
+      }
+    },
+    "updateautoexecjobphasenodestatusapi": {
+      "getname": "回调更新作业剧本节点状态",
+      "input": {
+        "param": {
+          "desc": {
+            "host": "节点IP",
+            "phase": "作业剧本Name",
+            "port": "节点port"
+          }
+        }
+      }
+    },
+    "updateautoexecjobresourceinspectapi": {
+      "getname": "更新巡检资源作业",
+      "input": {
+        "param": {
+          "desc": {
+            "inspecttime": "巡检时间",
+            "phasename": "阶段名"
+          }
+        }
+      }
+    },
+    "updateautoexecjobsqlapi": {
+      "getname": "更新作业执行SQL文件状态",
+      "input": {
+        "param": {
+          "desc": {
+            "jobid": "作业 ID",
+            "phasename": "作业剧本名（执行SQL）",
+            "sqlstatus": "SQL状态"
+          }
+        }
+      }
+    },
+    "updateautoexecserviceisactiveapi": {
+      "getname": "更新服务目录激活状态"
+    }
+  },
+  "nmaac": {
+    "autoexeccatalogsaveapi": {
+      "getname": "保存工具目录"
+    },
+    "autoexeccombopbasicinfogetapi": {
+      "getname": "查询组合工具基本信息"
+    },
+    "autoexeccombopbasicinfosaveapi": {
+      "getname": "保存组合工具基本信息"
+    },
+    "autoexeccombopdetailgetapi": {
+      "getname": "获取组合工具及激活版本详细信息"
+    },
+    "autoexeccombopexecutablelistapi": {
+      "getname": "查询当前用户可执行的组合工具列表"
+    },
+    "autoexeccombopisactiveupdateapi": {
+      "getname": "启用/禁用组合工具"
+    },
+    "autoexeccombopversiongetapi": {
+      "getname": "查询组合工具版本详情"
+    },
+    "autoexeccombopversionsaveapi": {
+      "getname": "保存组合工具版本信息"
+    },
+    "listautoexeccomboptypeexecutableapi": {
+      "getname": "查询当前用户可执行的组合工具所属分类列表"
+    },
+    "savecustomtemplateapi": {
+      "getname": "保存自定义模板"
+    }
+  },
+  "nmaae": {
+    "processtaskautoexechandlernotenableoperateexception": {
+      "processtaskautoexechandlernotenableoperateexception": "自动化节点不支持“{0}”操作"
+    },
+    "processtaskautoexecjobrunningexception": {
+      "processtaskautoexecjobrunningexception": "自动化作业正在执行，无法人工流转"
+    }
+  },
+  "nmaah": {
+    "autoexecjobcleaner": {
+      "myclean": {
+        "error": "清除作业异常：{0}: {1}"
+      }
+    }
+  },
+  "nmaaj": {
+    "autoexecjobinfogetapi": {
+      "getname": "获取自动化作业详情"
+    },
+    "getautoexeccombopjobsyncapi": {
+      "description": {
+        "desc": "获取当前服务实例中当前租户的组合工具同步创建作业监听信息"
+      },
+      "getname": "获取组合工具同步创建作业监听信息",
+      "output": {
+        "availablecount": "剩余可用数量",
+        "joblist": "正在监听的作业列表",
+        "listeningcount": "正在创建或监听的请求数量",
+        "maxlisteningcount": "最大监听请求数量",
+        "scope": "统计范围",
+        "serverid": "服务实例ID"
+      }
+    },
+    "getautoexecjobqueuestatusapi": {
+      "getname": "获取作业排队状态"
+    },
+    "getautoexecjobstatusapi": {
+      "description": {
+        "desc": "获取作业状态"
+      },
+      "input": {
+        "param": {
+          "desc": {
+            "idlist": "作业idList"
+          }
+        }
+      }
+    },
+    "listautoexecjoblogencodingapi": {
+      "getname": "获取自动化作业日志字符编码集合",
+      "mydoservice": {
+        "error": "autoexec.job.log.encoding格式非JsonArray"
+      }
+    }
+  },
+  "nmaaja": {
+    "createautoexeccombopjobapi": {
+      "getname": "组合工具创建作业",
+      "input": {
+        "param": {
+          "desc": {
+            "parallelcount": "并发数",
+            "parallelpolicy": "并发策略"
+          },
+          "roundcount": "分组数"
+        }
+      }
+    },
+    "createautoexecjobfromcombopapi": {
+      "input": {
+        "param": {
+          "desc": {
+            "name": "作业名",
+            "versionid": "组合工具版本ID"
+          }
+        }
+      }
+    },
+    "createautoexecjobfromcomboppublicapi": {
+      "message": {
+        "outputreadfailed": "读取作业节点输出失败",
+        "outputreadskippednotterminal": "作业尚未终止，因此未读取节点输出"
+      },
+      "output": {
+        "host": "节点主机地址",
+        "nodeoutputlist": "节点输出列表",
+        "output": "节点输出",
+        "outputreadmessage": "节点输出读取信息",
+        "outputreadsuccess": "节点输出是否读取成功",
+        "outputtargetcount": "节点输出总数",
+        "outputtruncated": "节点输出是否被截断",
+        "port": "节点端口",
+        "resourceid": "资源ID",
+        "returnedoutputtargetcount": "实际返回的节点输出数",
+        "success": "作业是否执行成功",
+        "terminal": "作业是否已处于终止状态",
+        "timedout": "监听是否超时",
+        "waittimems": "等待时间（毫秒）"
+      }
+    },
+    "downloadautoexecjoboutputfilebatchapi": {
+      "getname": "批量下载作业输出文件"
+    }
+  },
+  "nmaaje": {
+    "informautoexecjobphaseroundendapi": {
+      "input": {
+        "param": {
+          "desc": {
+            "seqno": "蓝绿批次"
+          }
+        }
+      }
+    },
+    "updateautoexecjobphasestatusapi": {
+      "getname": "回调更新作业阶段状态",
+      "input": {
+        "param": {
+          "desc": "执行id",
+          "needinform": "失败、中止时是否需要inform"
+        }
+      }
+    },
+    "updateautoexecjobstatusapi": {
+      "getname": "回调更新作业状态"
+    }
+  },
+  "nmaap": {
+    "autoexecprofilesaveapi": {
+      "description": {
+        "desc": "自动化工具profile保存接口"
+      },
+      "getname": "保存自动化工具profile",
+      "input": {
+        "param": {
+          "desc": {
+            "argumentlist": "自由参数列表",
+            "fomsystemid": "所属系统id",
+            "operationlist": "关联的工具和脚本列表",
+            "paramlist": "工具参数"
+          }
+        }
+      }
+    },
+    "createjobsteptestapi": {
+      "getname": "测试新自动化节点"
+    }
+  },
+  "nmaar": {
+    "autoexecrisksaveapi": {
+      "getname": "保存操作级别"
+    }
+  },
+  "nmaas": {
+    "autoexecschedulegetapi": {
+      "getname": "获取定时作业信息"
+    },
+    "autoexecscriptgetapi": {
+      "getname": "查看脚本"
+    },
+    "autoexecscriptreviewapi": {
+      "getname": "审核脚本",
+      "input": {
+        "param": {
+          "desc": "通过，驳回"
+        }
+      }
+    },
+    "autoexecscriptsaveapi": {
+      "getname": "保存脚本"
+    },
+    "createautoexecservicejobapi": {
+      "getname": "作业创建（来自服务）"
+    }
+  },
+  "nmaat": {
+    "autoexectoolgetapi": {
+      "getname": "获取工具"
+    },
+    "batchdeleteautoexectoolapi": {
+      "getname": "批量删除内置工具，删除importTime不等于传入参数值的工具"
+    },
+    "registerautoexectoolapi": {
+      "getname": "注册内置工具",
+      "getparamlist": {
+        "array": "需要数组类型"
+      }
+    },
+    "saveautoexectypeapi": {
+      "getname": "保存自动化工具分类"
+    }
+  },
+  "nmacv": {
+    "autoexectype": {
+      "text": {
+        "backup": "备份",
+        "basic": "基础工具",
+        "biz_jobs": "作业调度",
+        "dr_switch": "灾备切换",
+        "install": "软件安装配置",
+        "native": "调度器内置工具",
+        "sql_file": "SQL处理",
+        "start_stop": "启停操作",
+        "temp": "临时使用",
+        "test": "测试用工具"
+      }
+    },
+    "failpolicy": {
+      "text": {
+        "hang": "人工处理",
+        "keep_on": "向后流转"
+      }
+    }
+  },
+  "nmaf": {
+    "autoexecfulltextindextype": {
+      "script_document_version": "自定义工具版本"
+    }
+  },
+  "nmajsa": {
+    "autoexecjobsourcetypehandler": {
+      "getrunnermaplist": "作业"
+    }
+  },
+  "nmar": {
+    "combopimport": {
+      "inactivesuffix": "'未启用",
+      "missingglobalparamprefix": "缺少全局参数：'",
+      "missingnotifypolicyprefix": "缺少引用的通知策略：'",
+      "missingscenarioprefix": "缺少场景'",
+      "missingscenariosuffix": "'场景未导入",
+      "missingscriptprefix": "缺少引用的自定义工具：'",
+      "missingtoolprefix": "缺少引用的工具：'",
+      "missingtypeprefix": "缺少引用的工具类型：'",
+      "noactiveversionsuffix": "'没有激活版本",
+      "scriptprefix": "自定义工具：'",
+      "toolprefix": "工具：'"
+    },
+    "commercial": {
+      "fixedsummaryprompt": "请依据会话中的真实工具结果和 executionLedger 生成最终执行总结，不得调用工具。"
+    },
+    "common": {
+      "no": "否",
+      "yes": "是"
+    },
+    "config": {
+      "concurrency": "并发数量",
+      "precondition": "前置过滤器",
+      "protocol": "连接协议"
+    },
+    "dependency": {
+      "combopprefix": "组合工具(",
+      "combopruntimeparamtitle": "组合工具-${DATA.combopName}-运行参数-${DATA.paramName}",
+      "inputparammapping": "输入参数映射",
+      "operationprefix": "操作(",
+      "phaseprefix": "阶段(",
+      "scriptlibraryprefix": "自定义工具库(",
+      "servicecatalogmanagement": "服务目录管理",
+      "toollibrary": "工具库",
+      "versionprefix": "版本",
+      "workflowmanagement": "流程管理"
+    },
+    "export": {
+      "combopfilename": "组合工具.",
+      "filename": "文件名",
+      "log": "日志",
+      "outputparameters": "输出参数",
+      "runner": "执行代理",
+      "scriptfilename": "自定义工具."
+    },
+    "file": {
+      "displayname": "自动化附件"
+    },
+    "globallock": {
+      "name": "自动化 fileLock"
+    },
+    "import": {
+      "catalogempty": "工具目录为空",
+      "detailprefix": "导入：",
+      "detailsuffix": "时出现如下问题：",
+      "execmodeempty": "执行方式为空",
+      "execmodenotfoundprefix": "执行方式：'",
+      "failed": "失败",
+      "import": "导入",
+      "invalidexecmode": "不存在的执行方式：",
+      "invalidparserprefix": "不存在的脚本解析器[",
+      "invalidrisk": "不存在的操作级别：",
+      "invalidtype": "不存在的工具类型：",
+      "itemprefix": "导入第[",
+      "itemsuffix": "]个失败",
+      "missingpackages": "以下依赖脚本包（tar）未上传：",
+      "missingtools": "以下依赖工具不存在：",
+      "notfoundsuffix": "'不存在",
+      "packagemissing": "脚本依赖包缺失",
+      "packagemustbetar": "脚本依赖包必须是tar文件",
+      "packagenameempty": "脚本依赖包名字为空",
+      "parserempty": "脚本解析器为空",
+      "parsernotfoundprefix": "脚本解析器：'",
+      "riskempty": "操作级别为空",
+      "risknotfoundprefix": "操作级别：'",
+      "scriptcontentempty": "脚本内容为空",
+      "scriptnameempty": "自定义工具名称为空",
+      "typeempty": "工具分类为空",
+      "typenotfoundprefix": "工具分类：'",
+      "versionprefix": "版本-"
+    },
+    "operate": {
+      "inactivetoolcannotpublish": "当前工具未激活，无法发布为组合工具",
+      "librarycannotpublish": "当前自定义工具是库文件，无法发布为组合工具",
+      "librarycannottest": "当前自定义工具是库文件，不能测试",
+      "noactivescriptversion": "当前自定义工具未有激活版本，无法发布为组合工具",
+      "permissiondenied": "无权限，请联系管理员",
+      "publishedascombop": "已发布为组合工具",
+      "riskreferenced": "当前操作级别已被引用，不可删除",
+      "scriptreferenced": "当前自定义工具已被组合工具引用，无法删除",
+      "versioncannotapprove": "版本处于待审核状态才能审核通过",
+      "versioncannotdelete": "只剩一个版本或当前版本处于激活状态时，不可删除",
+      "versioncannotreject": "版本处于待审核状态才能驳回",
+      "versioncannotsave": "版本处于草稿或已驳回状态才能保存",
+      "versioncannotsubmit": "版本处于草稿或已驳回状态才能提交审核",
+      "versioncannotvalidate": "版本处于草稿或已驳回状态才能校验"
+    },
+    "script": {
+      "library": "自定义工具库",
+      "notificationtitle": "自定义工具库-${DATA.scriptName}",
+      "othersubmittedversion": "当前自定义工具已经有其他待审核版本"
+    },
+    "service": {
+      "concurrencyrequired": "并发数量必须设置3",
+      "executeuserrequired": "执行用户(executeUser)必须设置， 请联系管理员重新编辑该服务",
+      "formattributenotfound": "表单”{0}“中找不到“{1}”属性",
+      "formnoactiveversion": "表单：“{0}”没有激活版本",
+      "formnotfound": "表单：“{0}”不存在",
+      "parallelcountrequired": "并发数量(roundCount)必须设置， 请联系管理员重新编辑该服务",
+      "parallelpolicyrequired": "并发策略(parallel)必须设置， 请联系管理员重新编辑该服务",
+      "protocolrequired": "连接协议(protocol)必须设置， 请联系管理员重新编辑该服务",
+      "roundcountrequired": "分批数量(roundCount)必须设置， 请联系管理员重新编辑该服务",
+      "targetrequired": "执行目标(executeNodeConfig)必须设置， 请联系管理员重新编辑该服务"
+    },
+    "testapi": {
+      "usermanagementpermission": "用户管理权限"
+    },
+    "tooldelete": {
+      "combopsprefix": "(关联的组合工具：",
+      "referenced": "以下工具已被组合工具引用，无法删除\n"
+    },
+    "tooldoc": {
+      "controltype": "控件类型",
+      "descriptionprefix": "描述：",
+      "execmodeprefix": "执行方式：",
+      "filenamesuffix": "]参数说明.docx",
+      "noparameters": "无参数",
+      "optional": "选填",
+      "parametersprefix": "参数：",
+      "requiredoptional": "必填/选填",
+      "title": "自动化工具库"
+    },
+    "update": {
+      "invalidformat": "格式不对",
+      "requiredcount": "需要更新个数",
+      "total": "总数",
+      "updatedcount": "已更新个数"
+    }
+  },
+  "nmaspt": {
+    "common": {
+      "description": {
+        "date": "日期选择器",
+        "datetime": "日期时间选择器",
+        "password": "可输入数字或字符串，页面显示为密文",
+        "textoutput": "可输出字符串或数字",
+        "time": "时间选择器"
+      },
+      "placeholder": {
+        "input": "请输入",
+        "select": "请选择"
+      }
+    },
+    "scriptparamtypeaccount": {
+      "description": "服务的连接协议、账号，用户连接主机上的数据库，中间件等服务"
+    },
+    "scriptparamtypecheckbox": {
+      "description": "复选选择器"
+    },
+    "scriptparamtypedate": {
+      "placeholder": "请选择日期"
+    },
+    "scriptparamtypedatetime": {
+      "placeholder": "请选择日期时间"
+    },
+    "scriptparamtypefile": {
+      "description": "支持多个文件同时上传，执行时，自动上传文件到目标主机特定目录下，保留原文件名",
+      "placeholder": "请上传"
+    },
+    "scriptparamtypefilepath": {
+      "description": "可输出文件路径参数"
+    },
+    "scriptparamtypejson": {
+      "description": "支持JSON对象和JSON数组，输入内容需是合法JSON格式"
+    },
+    "scriptparamtypemultiselect": {
+      "description": "多选下拉选择器"
+    },
+    "scriptparamtypenode": {
+      "description": "将节点的相关信息生成脚本变量，但不会分派到该节点执行"
+    },
+    "scriptparamtypephase": {
+      "description": "可选择阶段"
+    },
+    "scriptparamtyperadio": {
+      "description": "单选选择器"
+    },
+    "scriptparamtyperunnergroup": {
+      "description": "执行器组"
+    },
+    "scriptparamtyperunnergrouptag": {
+      "description": "执行器组标签"
+    },
+    "scriptparamtypeselect": {
+      "description": "单选下拉选择器"
+    },
+    "scriptparamtypeswitch": {
+      "description": "开关"
+    },
+    "scriptparamtypetime": {
+      "placeholder": "请选择时间"
+    },
+    "scriptparamtypeuserselect": {
+      "description": "用于选择系统用户、分组、角色"
+    }
+  },
+  "term": {
+    "appsystemidlist": "应用系统ID列表"
+  }
+}

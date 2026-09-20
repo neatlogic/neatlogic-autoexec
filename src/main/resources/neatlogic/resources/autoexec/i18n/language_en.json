@@ -1,0 +1,1854 @@
+{
+  "autoexec": {
+    "operationaudit": {
+      "currentpage": "Current Page",
+      "endtime": "End Time",
+      "get": "Get Job Operation Details",
+      "keyword": "Keyword",
+      "pagesize": "Page Size",
+      "paginationhelp": "currentPage defaults to 1. pageSize defaults to 20 and must be between 1 and 100. Pages beyond the end return the last page.",
+      "records": "Operation Records",
+      "redacted": "Redacted",
+      "search": "Search Job Operation Records",
+      "starttime": "Start Time",
+      "targets": "Target Details"
+    }
+  },
+  "nfad": {
+    "autoexecjobbuilder": {
+      "entityfield": {
+        "jobname": {
+          "name": "Job Name"
+        },
+        "param": {
+          "name": "Parameter"
+        }
+      }
+    }
+  },
+  "nmaa": {
+    "abortautoexecjobapi": {
+      "getname": "Abort Job"
+    },
+    "allautoexecservicefortreeapi": {
+      "getname": "Get Complete Service Catalog Tree"
+    },
+    "allvisibleautoexecservicefortreeapi": {
+      "getname": "Get Service Catalog Tree Visible to Current User",
+      "input": {
+        "param": {
+          "desc": {
+            "needservice": "Need Service"
+          }
+        }
+      }
+    },
+    "autoexeccatalogdeleteapi": {
+      "getname": "Delete Tool Catalog"
+    },
+    "autoexeccatalogfulltreeapi": {
+      "getname": "Get Complete Tool Catalog Tree"
+    },
+    "autoexeccatalogmoveapi": {
+      "getname": "Move Tool Catalog",
+      "input": {
+        "param": {
+          "desc": {
+            "sort": "Sort"
+          }
+        }
+      }
+    },
+    "autoexeccatalogsearchapi": {
+      "getname": "Search Tool Catalog",
+      "output": {
+        "param": {
+          "desc": {
+            "tbodylist": "Data List"
+          }
+        }
+      }
+    },
+    "autoexeccatalogtreeapi": {
+      "getname": "Get Tool Catalog Tree",
+      "output": {
+        "param": {
+          "desc": {
+            "tbodylist": "Data List"
+          }
+        }
+      }
+    },
+    "autoexeccatalogtreesearchapi": {
+      "getname": "Search Tool Catalog Tree",
+      "input": {
+        "param": {
+          "desc": {
+            "id": "ID"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "children": "Children"
+          }
+        }
+      }
+    },
+    "autoexeccombopconfigupdatebatchapi": {
+      "getname": "Batch Update Combination Tool Configuration",
+      "input": {
+        "param": {
+          "desc": {
+            "idlist": "ID List"
+          }
+        }
+      }
+    },
+    "autoexeccombopcopyapi": {
+      "getname": "Copy Combination Tool",
+      "input": {
+        "param": {
+          "desc": {
+            "editauthoritylist": "Edit Authorization List",
+            "executeauthoritylist": "Execute Authorization List",
+            "id": "ID",
+            "name": "Name",
+            "typename": "Type Name",
+            "viewauthoritylist": "View Authorization List"
+          }
+        }
+      }
+    },
+    "autoexeccombopdataupdateapi": {
+      "getname": "Update Combination Tool Data"
+    },
+    "autoexeccombopdeleteapi": {
+      "getname": "Delete Combination Tool",
+      "input": {
+        "param": {
+          "desc": {
+            "id": "ID"
+          }
+        }
+      }
+    },
+    "autoexeccombopexportapi": {
+      "getname": "Export Combination Tool",
+      "input": {
+        "param": {
+          "desc": {
+            "idlist": "ID List"
+          }
+        }
+      }
+    },
+    "autoexeccombopgenerateapi": {
+      "getname": "Generate Combination Tool from Custom Tool or Tool",
+      "input": {
+        "param": {
+          "desc": {
+            "operationid": "Tool ID",
+            "operationtype": "Tool Type"
+          }
+        }
+      }
+    },
+    "autoexeccombopimportapi": {
+      "getname": "Import Combination Tool",
+      "input": {
+        "param": {
+          "desc": {
+            "namelist": "Name List"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "return": "Return"
+          }
+        }
+      }
+    },
+    "autoexeccombopimportlistapi": {
+      "getname": "Import Combination Tool List"
+    },
+    "autoexeccomboplistapi": {
+      "getname": "List Combination Tool",
+      "input": {
+        "param": {
+          "desc": {
+            "keyword": "Keyword"
+          }
+        }
+      }
+    },
+    "autoexeccombopparamlistapi": {
+      "getname": "List Combination Tool Parameter"
+    },
+    "autoexeccombopprocessconfiginitapi": {
+      "getname": "Initialize Combination Tool Workflow Node Configuration",
+      "output": {
+        "param": {
+          "desc": {
+            "executeparamlist": "Execute Parameter List",
+            "exportparamlist": "Export Parameter List",
+            "runtimeparamlist": "Runtime Parameter List"
+          }
+        }
+      }
+    },
+    "autoexeccombopprofilelistapi": {
+      "getname": "List Combination Tool Preset Parameter Set"
+    },
+    "autoexeccombopversioncountapi": {
+      "getname": "Get Combination Tool Version Count",
+      "output": {
+        "param": {
+          "desc": {
+            "count": "Count"
+          }
+        }
+      }
+    },
+    "autoexeccombopversiondeleteapi": {
+      "getname": "Delete Combination Tool Version"
+    },
+    "autoexeccombopversionisactiveupdateapi": {
+      "getname": "Activate Combination Tool Version"
+    },
+    "autoexeccombopversionlistapi": {
+      "getname": "List Combination Tool Version",
+      "output": {
+        "param": {
+          "desc": {
+            "return": "Combination Tool Version List"
+          }
+        }
+      }
+    },
+    "autoexeccombopversionparamlistapi": {
+      "getname": "List Combination Tool Version Parameter"
+    },
+    "autoexeccombopversionstatusupdateapi": {
+      "getname": "Update Combination Tool Version Status"
+    },
+    "autoexecglobalparamdeleteapi": {
+      "getname": "Delete Global Parameter"
+    },
+    "autoexecglobalparamgetapi": {
+      "getname": "Get Global Parameter"
+    },
+    "autoexecglobalparamsaveapi": {
+      "getname": "Save Global Parameter"
+    },
+    "autoexecglobalparamsearchapi": {
+      "getname": "Search Global Parameter",
+      "input": {
+        "param": {
+          "desc": {
+            "typelist": "Type List"
+          }
+        }
+      }
+    },
+    "autoexecglobalparamupdateforautoexecapi": {
+      "getname": "Update Global Parameter for Automation"
+    },
+    "autoexecjobautofirejob": {
+      "getname": "Start Scheduled Job"
+    },
+    "autoexecjobcombopsearchapi": {
+      "getname": "Search Jobs in Combination Tool View",
+      "input": {
+        "param": {
+          "desc": {
+            "combopoperationtypelist": "Combination Tool Tool Type List",
+            "execuser": "Execution User"
+          }
+        }
+      }
+    },
+    "autoexecjobmessagehandler": {
+      "getdescription": "Displays Automation Job information in real time.",
+      "getname": "Job Message"
+    },
+    "autoexecjobphaselistapi": {
+      "getname": "List Job Phase",
+      "input": {
+        "param": {
+          "desc": {
+            "phaseidlist": "Phase ID List"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "phaselist": "Phase List"
+          }
+        }
+      }
+    },
+    "autoexecjobphasenodelistapi": {
+      "getname": "List Job Phase Node",
+      "input": {
+        "param": {
+          "desc": {
+            "jobphasestatus": "Job Phase Status",
+            "nodeidlist": "Node ID List"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "nodelist": "Node List"
+          }
+        }
+      }
+    },
+    "autoexecjobphasenodesearchapi": {
+      "getname": "Search Job Phase Node",
+      "input": {
+        "param": {
+          "desc": {
+            "nodeidlist": "Node ID List"
+          }
+        }
+      }
+    },
+    "autoexecjobphaserunnergetapi": {
+      "getname": "Get Job Phase Runner",
+      "output": {
+        "param": {
+          "desc": {
+            "return": "Runner Information"
+          }
+        }
+      }
+    },
+    "autoexecjobphasetopoapi": {
+      "getname": "Get Job Phase Flowchart",
+      "output": {
+        "param": {
+          "desc": {
+            "return": "Runner List"
+          }
+        }
+      }
+    },
+    "autoexecjobrunnerlistapi": {
+      "getname": "List Job Runner",
+      "output": {
+        "param": {
+          "desc": {
+            "return": "Runner List"
+          }
+        }
+      }
+    },
+    "autoexecjobruntimeparamgetapi": {
+      "getname": "Get Job Runtime Parameters"
+    },
+    "autoexecjobsearchapi": {
+      "getname": "Search Job",
+      "input": {
+        "param": {
+          "desc": {
+            "execuserlist": "Execution User List",
+            "hasparent": "Has Parent",
+            "idlist": "ID List",
+            "routeid": "Route ID",
+            "scheduleid": "Scheduled Job ID",
+            "typeidlist": "Type ID List"
+          }
+        }
+      }
+    },
+    "autoexecjobsourcelistapi": {
+      "getname": "List Job Source"
+    },
+    "autoexecoperationparamlistapi": {
+      "getname": "List Operation Parameter"
+    },
+    "autoexecprofiledeleteapi": {
+      "getname": "Delete Preset Parameter Set"
+    },
+    "autoexecprofilegetapi": {
+      "getname": "Get Preset Parameter Set",
+      "output": {
+        "param": {
+          "desc": {
+            "return": "Tool Preset Parameter Set"
+          }
+        }
+      }
+    },
+    "autoexecprofilesearchapi": {
+      "getname": "Search Preset Parameter Set",
+      "input": {
+        "param": {
+          "desc": {
+            "keyword": "Keyword"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "tbodylist": "Data List"
+          }
+        }
+      }
+    },
+    "autoexecriskdeleteapi": {
+      "getname": "Delete Operation Level"
+    },
+    "autoexecrisklistapi": {
+      "getname": "List Operation Level"
+    },
+    "autoexecriskmoveapi": {
+      "getname": "Move Operation Level",
+      "input": {
+        "param": {
+          "desc": {
+            "sort": "Sort"
+          }
+        }
+      }
+    },
+    "autoexecrisksearchapi": {
+      "getname": "Search Operation Level"
+    },
+    "autoexecscenariodeleteapi": {
+      "getname": "Delete Scenario"
+    },
+    "autoexecscenariogetapi": {
+      "getname": "Get Scenario"
+    },
+    "autoexecscenariosaveapi": {
+      "getname": "Save Scenario"
+    },
+    "autoexecscenariosearchapi": {
+      "getname": "Search Scenario"
+    },
+    "autoexecscheduledeleteapi": {
+      "getname": "Delete Scheduled Job"
+    },
+    "autoexecscheduleisactiveupdateapi": {
+      "getname": "Enable or Disable Scheduled Job"
+    },
+    "autoexecschedulejob": {
+      "getname": "Execute Scheduled Job"
+    },
+    "autoexecschedulelistapi": {
+      "getname": "List Scheduled Job",
+      "input": {
+        "param": {
+          "desc": {
+            "currentpage": "Current Page",
+            "keyword": "Keyword",
+            "pagesize": "Page Size"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "tbodylist": "Data List"
+          }
+        }
+      }
+    },
+    "autoexecschedulesaveapi": {
+      "getname": "Save Scheduled Job",
+      "input": {
+        "param": {
+          "desc": {
+            "config": "Execution configuration, including param, executeConfig, roundCount, and related fields.",
+            "cron": "Cron",
+            "isactive": "Active"
+          }
+        }
+      }
+    },
+    "autoexecscriptandtoolsearchapi": {
+      "getname": "Search Tools and Custom Tools",
+      "input": {
+        "param": {
+          "desc": {
+            "defaultvalue": "Tool or custom tool ID list used to restore the selection.",
+            "excludelist": "Tool or custom tool ID list excluded from the search.",
+            "type": "Type"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "tbodylist": "Data List"
+          }
+        }
+      }
+    },
+    "autoexecscriptbaseinfogetapi": {
+      "getname": "Get Custom Tool Basic Information",
+      "output": {
+        "param": {
+          "desc": {
+            "return": "Return"
+          }
+        }
+      }
+    },
+    "autoexecscriptbaseinfosaveapi": {
+      "getname": "Save Custom Tool Basic Information",
+      "input": {
+        "param": {
+          "desc": {
+            "defaultprofileid": "Default Preset Parameter Set ID"
+          }
+        }
+      }
+    },
+    "autoexecscriptcheckapi": {
+      "getname": "Validate Custom Tool",
+      "input": {
+        "param": {
+          "desc": {
+            "linelist": "Custom tool content line data list in the documented JSON structure."
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "return": "Validated Line Data List"
+          }
+        }
+      }
+    },
+    "autoexecscriptcopyapi": {
+      "getname": "Copy Custom Tool",
+      "output": {
+        "param": {
+          "desc": {
+            "return": "ID of The Copied Custom Tool"
+          }
+        }
+      }
+    },
+    "autoexecscriptdeleteapi": {
+      "getname": "Delete Custom Tool or Version",
+      "input": {
+        "param": {
+          "desc": {
+            "id": "ID"
+          }
+        }
+      }
+    },
+    "autoexecscriptexportapi": {
+      "getname": "Export Custom Tool"
+    },
+    "autoexecscriptexportforautoexecapi": {
+      "getname": "Export Custom Tool for External Use",
+      "input": {
+        "param": {
+          "desc": {
+            "cataloglist": "Catalog List",
+            "catalogname": "Catalog Name"
+          }
+        }
+      }
+    },
+    "autoexecscriptfulltextindexrebuildapi": {
+      "getname": "Rebuild Custom Tool Full-Text Index",
+      "input": {
+        "param": {
+          "desc": {
+            "versionidlist": "Version ID List"
+          }
+        }
+      }
+    },
+    "autoexecscriptgetapi": {
+      "input": {
+        "param": {
+          "help": {
+            "id": "ID",
+            "status": "When id is provided instead of versionId, the custom tool is being viewed from a list and status is required.",
+            "versionid": "Version ID"
+          }
+        }
+      }
+    },
+    "autoexecscriptimportapi": {
+      "getname": "Import Custom Tool",
+      "input": {
+        "param": {
+          "desc": {
+            "isreplace": "Is Replace",
+            "scriptidlist": "Custom Tool ID List"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "failurecount": "Failure Count",
+            "failurereasonlist": "Failure Reason List",
+            "successcount": "Success Count"
+          }
+        }
+      }
+    },
+    "autoexecscriptimportpublicapi": {
+      "getname": "Import Custom Tool from Standard JSON File"
+    },
+    "autoexecscriptortoolinputparamgetapi": {
+      "getname": "Get Custom Tool or Tool Input Parameter",
+      "output": {
+        "param": {
+          "desc": {
+            "inputparamlist": "Input Parameter List"
+          }
+        }
+      }
+    },
+    "autoexecscriptrevokeapi": {
+      "getname": "Withdraw Custom Tool Review Submission"
+    },
+    "autoexecscriptsaveapi": {
+      "input": {
+        "param": {
+          "help": {
+            "id": "If both id and versionId are omitted, create a custom tool; if id is provided without versionId, create a version; if versionId is provided without id, edit that version.",
+            "islib": "1: yes; 0: no. Default: no."
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "help": {
+            "isreviewable": "1: allowed; 0: not allowed."
+          }
+        }
+      }
+    },
+    "autoexecscriptsearchapi": {
+      "getname": "Search Custom Tool",
+      "input": {
+        "param": {
+          "desc": {
+            "defaultvalue": "Custom tool ID list used to restore the selection.",
+            "excludelist": "Exclude List",
+            "islib": "Library file filter (1: yes; 0: no). No default selection."
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "statuslist": "Status List",
+            "tbodylist": "Data List"
+          }
+        }
+      }
+    },
+    "autoexecscriptsubmitapi": {
+      "getname": "Submit Custom Tool for Review"
+    },
+    "autoexecscriptversioncompareapi": {
+      "getname": "Compare Custom Tool Versions",
+      "input": {
+        "param": {
+          "desc": {
+            "needtocompare": "Need To Compare",
+            "sourceversionid": "Source Version ID",
+            "targetversionid": "Target Version ID"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "sourceversion": "Source Version",
+            "targetversion": "Target Version"
+          }
+        }
+      }
+    },
+    "autoexecscriptversionlistapi": {
+      "getname": "List Custom Tool Version",
+      "output": {
+        "param": {
+          "desc": {
+            "tbodylist": "Returns the unapproved or historical version list based on status."
+          }
+        }
+      }
+    },
+    "autoexecscriptversionlistforselectapi": {
+      "getname": "List Custom Tool Versions for Selection",
+      "input": {
+        "param": {
+          "desc": {
+            "excludelist": "Exclude List"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "tbodylist": "Data List"
+          }
+        }
+      }
+    },
+    "autoexecscriptversionnumberlistapi": {
+      "getname": "List Custom Tool Version Number",
+      "output": {
+        "param": {
+          "desc": {
+            "return": "Version Number List"
+          }
+        }
+      }
+    },
+    "autoexecscriptversionswitchapi": {
+      "getname": "Switch Custom Tool Version"
+    },
+    "autoexectoolactivestatusupdateapi": {
+      "getname": "Enable or Disable Tool",
+      "input": {
+        "param": {
+          "desc": {
+            "isactive": "1: active; 0: disabled."
+          }
+        }
+      }
+    },
+    "autoexectoolargumentupdateapi": {
+      "getname": "Convert Tool Argument Structure"
+    },
+    "autoexectoolcustomtemplateupdateapi": {
+      "getname": "Update Custom Template Bound to Tool"
+    },
+    "autoexectooldeleteapi": {
+      "getname": "Delete Tool",
+      "input": {
+        "param": {
+          "desc": {
+            "namelist": "Name List"
+          }
+        }
+      }
+    },
+    "autoexectoolsearchapi": {
+      "getname": "Search Tool",
+      "output": {
+        "param": {
+          "desc": {
+            "tbodylist": "Data List"
+          }
+        }
+      }
+    },
+    "batchdeleteautoexecscriptapi": {
+      "getname": "Batch Delete Custom Tools"
+    },
+    "checkautoexecjobapi": {
+      "getname": "Validate Job"
+    },
+    "checkinautoexecjobsqlapi": {
+      "getname": "Check Job SQL File Status",
+      "input": {
+        "param": {
+          "desc": {
+            "phasename": "Phase Name",
+            "sqlinfolist": "SQL Info List",
+            "targetphasename": "Target Phase Name"
+          }
+        }
+      }
+    },
+    "cleanautoexecjobapi": {
+      "getname": "Clean Up Historical Job Files on Runner",
+      "input": {
+        "param": {
+          "desc": {
+            "daybefore": "Day Before",
+            "runnernamelist": "Runner Name List"
+          }
+        }
+      }
+    },
+    "common": {
+      "input": {
+        "param": {
+          "desc": {
+            "isdeleted": "Deleted",
+            "islib": "Whether this is a library file (1: yes; 0: no). Default: no.",
+            "isneedcheckdataauth": "Whether to validate data permissions (1: validate; 0: do not validate).",
+            "keywordmatchname": "Keyword for Name Matching",
+            "lastmodified": "Last Modified",
+            "logdirection": "Read direction (up: read upward; down: read downward).",
+            "needpage": "Whether pagination is required. Default: true.",
+            "nodekeyword": "Keyword for Node Name or IP Address",
+            "refreshstatus": "Node status used to determine whether to refresh."
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "actionlist": "Action List",
+            "datalist": "Data List",
+            "isrefresh": "Whether polling should continue (1: continue; 0: stop).",
+            "logcontent": "Log Content",
+            "logendposition": "Log End Position",
+            "logposition": "Log Position",
+            "logstartposition": "Log Start Position",
+            "tailcontent": "Tail Content"
+          }
+        }
+      }
+    },
+    "createautoexecjobfromoperationapi": {
+      "getname": "Create Job from Tool",
+      "input": {
+        "param": {
+          "desc": {
+            "argumentmappinglist": "Free-Form Argument Mapping List",
+            "executeconfig": "Execute Configuration",
+            "operationid": "Tool ID",
+            "param": "Parameter",
+            "type": "Type"
+          }
+        }
+      }
+    },
+    "deleteautoexecjobapi": {
+      "getname": "Delete Job"
+    },
+    "deleteautoexecserviceapi": {
+      "getname": "Delete Service Catalog"
+    },
+    "deleteautoexecserviceuserapi": {
+      "getname": "Remove Service Catalog Favorite"
+    },
+    "deleteautoexectypeapi": {
+      "getname": "Delete Tool Classification",
+      "input": {
+        "param": {
+          "desc": {
+            "id": "ID"
+          }
+        }
+      }
+    },
+    "deletecustomtemplateapi": {
+      "getname": "Delete Custom Template"
+    },
+    "downloadautoexecjobconsolelogapi": {
+      "getname": "Download Job Console Log"
+    },
+    "downloadautoexecjobconsolelogauditapi": {
+      "getname": "Download Job Console Log Audit"
+    },
+    "downloadautoexecjobdataapi": {
+      "getname": "Download Job Data",
+      "input": {
+        "param": {
+          "desc": {
+            "runnername": "Runner Name"
+          }
+        }
+      }
+    },
+    "downloadautoexecjobnodeoutputfileapi": {
+      "getname": "Download Job Node Output File",
+      "input": {
+        "param": {
+          "desc": {
+            "path": "Path",
+            "type": "File type: output or input."
+          }
+        }
+      }
+    },
+    "downloadautoexecjobphasenodeauditapi": {
+      "getname": "Download Job Phase Node Audit"
+    },
+    "downloadautoexecjobphasenodeinputapi": {
+      "getname": "Download Job Phase Node Input"
+    },
+    "downloadautoexecjobphasenodelogapi": {
+      "getname": "Download Job Phase Node Log"
+    },
+    "downloadautoexecjobphasenodeoutputapi": {
+      "getname": "Download Job Phase Node Output Parameters"
+    },
+    "downloadautoexecjobphasenodesapi": {
+      "getname": "Download Job Phase Nodes",
+      "input": {
+        "param": {
+          "desc": {
+            "groupno": "Group No",
+            "nodefrom": "Node source: job, group, or phase."
+          }
+        }
+      }
+    },
+    "downloadautoexecjobphasenodesqlfileapi": {
+      "getname": "Download Job Phase Node SQL File"
+    },
+    "executeautoexecjobfromcombopapi": {
+      "getname": "Execute Job from Combination Tool"
+    },
+    "exportautoexecjobapi": {
+      "getname": "Export Job"
+    },
+    "exportautoexecjobphasenodeapi": {
+      "getname": "Export Job Phase Node"
+    },
+    "exportautoexecscriptversionapi": {
+      "getname": "Export Custom Tool Version"
+    },
+    "exportautoexectoolparamapi": {
+      "getname": "Export Tool Parameters",
+      "input": {
+        "param": {
+          "desc": {
+            "isall": "Whether to export all records (1: all; 0: one)."
+          }
+        }
+      }
+    },
+    "fireautoexecjobnextgroupapi": {
+      "getname": "Start Next Job Group",
+      "input": {
+        "param": {
+          "desc": {
+            "groupno": "Group No",
+            "time": "Time"
+          }
+        }
+      }
+    },
+    "getautoexecjobcreateparamapi": {
+      "getname": "Get Job Create Parameter"
+    },
+    "getautoexecjobcreatepayloadapi": {
+      "getname": "Get Job Create Payload",
+      "output": {
+        "param": {
+          "desc": {
+            "return": "List"
+          }
+        }
+      }
+    },
+    "getautoexecjobenvapi": {
+      "getname": "Get Job Environment",
+      "output": {
+        "param": {
+          "desc": {
+            "return": "List"
+          }
+        }
+      }
+    },
+    "getautoexecjobphasenodeinputparamapi": {
+      "getname": "Get Job Node Input Parameters"
+    },
+    "getautoexecjobphasenodeoutputparamapi": {
+      "getname": "Get Job Node Output Parameters"
+    },
+    "getautoexecjobphasenodesqlcontentapi": {
+      "getname": "Get Job Phase Node SQL Content"
+    },
+    "getautoexecjobphaseoperationcustomdataapi": {
+      "getname": "Get Job Phase Operation Custom Data"
+    },
+    "getautoexecjobphaseoperationscriptapi": {
+      "getname": "Get Job Phase Operation Custom Tool",
+      "input": {
+        "param": {
+          "desc": {
+            "isactive": "Whether to retrieve the latest custom tool version (1: yes; 0: no). Default: yes."
+          }
+        }
+      }
+    },
+    "getautoexecjobphaseoperationscriptbinaryforautoexecapi": {
+      "getname": "Get Job Phase Operation Custom Tool Binary for Automation",
+      "input": {
+        "param": {
+          "desc": {
+            "acceptstream": "true: return a stream; false: return JSON. Default: true.",
+            "scriptid": "Custom Tool ID"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "script": "Custom Tool"
+          }
+        }
+      }
+    },
+    "getautoexecscriptactiveversionapi": {
+      "getname": "Get Custom Tool Active Version",
+      "output": {
+        "param": {
+          "desc": {
+            "scriptversionvo": "Custom Tool Version"
+          }
+        }
+      }
+    },
+    "getautoexecscriptortoolargumentapi": {
+      "getname": "Get Custom Tool or Tool Argument",
+      "input": {
+        "param": {
+          "desc": {
+            "id": "ID",
+            "type": "Type"
+          }
+        }
+      }
+    },
+    "getautoexectypeapi": {
+      "getname": "Get Tool Classification",
+      "input": {
+        "param": {
+          "desc": {
+            "id": "ID"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "return": "Automation Tool Classification Information"
+          }
+        }
+      }
+    },
+    "getcustomtemplateapi": {
+      "getname": "Get Custom Template"
+    },
+    "ignoreautoexecjobphaseapi": {
+      "getname": "Ignore Job Phase"
+    },
+    "ignoreautoexecjobphasenodeapi": {
+      "getname": "Ignore Job Phase Node",
+      "input": {
+        "param": {
+          "desc": {
+            "isall": "Whether to ignore all nodes (1: yes; 0: no). If no, resourceIdList cannot be empty."
+          }
+        }
+      }
+    },
+    "informautoexecjobphaseroundendapi": {
+      "getname": "Start Next Job Phase Round"
+    },
+    "listautoexecjobconsolelogauditapi": {
+      "getname": "List Job Console Log Audit"
+    },
+    "listautoexecjobphasenodeauditapi": {
+      "getname": "List Job Phase Node Audit"
+    },
+    "listautoexecjobphasenodeoperationapi": {
+      "getname": "List Job Phase Node Operation",
+      "output": {
+        "param": {
+          "desc": {
+            "operationstatuslist": "Tool Status List"
+          }
+        }
+      }
+    },
+    "listautoexecjobphasenodesqlapi": {
+      "getname": "List Job Phase Node SQL",
+      "input": {
+        "param": {
+          "desc": {
+            "status": "Status"
+          }
+        }
+      }
+    },
+    "listautoexecjobphaseoperationcustomtemplateapi": {
+      "getname": "List Job Phase Operation Custom Template"
+    },
+    "listautoexecjobsqlapi": {
+      "getname": "List Job SQL File Statuses",
+      "input": {
+        "param": {
+          "desc": {
+            "sqlfiles": "SQL Files"
+          }
+        }
+      }
+    },
+    "listautoexecscriptapi": {
+      "getname": "List Custom Tools",
+      "input": {
+        "param": {
+          "desc": {
+            "defaultvalue": "Default Value"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "tbodylist": "Data List"
+          }
+        }
+      }
+    },
+    "moveautoexecserviceapi": {
+      "getname": "Move Service Catalog",
+      "input": {
+        "param": {
+          "desc": {
+            "id": "ID",
+            "movetype": "Move Type",
+            "targetid": "Target ID"
+          }
+        }
+      }
+    },
+    "pauseautoexecjobapi": {
+      "getname": "Pause Job"
+    },
+    "refireautoexecjobapi": {
+      "getname": "Rerun Job",
+      "input": {
+        "param": {
+          "desc": {
+            "type": "Rerun type: refireResetAll resets and reruns all; refireAll reruns all."
+          }
+        }
+      }
+    },
+    "refireautoexecjobphaseapi": {
+      "getname": "Rerun Job Phase",
+      "input": {
+        "param": {
+          "desc": {
+            "phaseid": "Phase ID",
+            "type": "Rerun type: refireResetAll resets and reruns all; refireAll reruns all. Default: refireResetAll."
+          }
+        }
+      }
+    },
+    "refireautoexecjobphasenodeapi": {
+      "getname": "Rerun Job Phase Node",
+      "input": {
+        "param": {
+          "desc": {
+            "jobphaseid": "Job Phase ID",
+            "resourceidlist": "Resource ID List"
+          }
+        }
+      }
+    },
+    "refreshcombopexecutenodeconfigfilter": {
+      "getname": "Refresh Historical Runtime Execution Target Filters"
+    },
+    "registerautoexectoolapi": {
+      "input": {
+        "param": {
+          "help": {
+            "argument": "{\n        \"name\":\"Log Path\",\n        \"help\":\"Log path; wildcards and backticks are supported\",\n        \"type\":\"input\",\n        \"isConst\":\"false\",\n        \"defaultValue\":\"\",\n        \"required\":\"true\",\n        \"validate\":\"\"\n    }",
+            "option": "For select, multiselect, radio, or checkbox controls, provide the data source in dataSource using the documented JSON structure."
+          }
+        }
+      }
+    },
+    "resetautoexecjobphasenodeapi": {
+      "getname": "Reset Job Phase Node",
+      "input": {
+        "param": {
+          "desc": {
+            "isall": "Whether to reset all nodes (1: yes; 0: no). If no, resourceIdList cannot be empty."
+          }
+        }
+      }
+    },
+    "resetautoexecjobphasesqlstatusapi": {
+      "getname": "Reset Job Phase SQL Status",
+      "input": {
+        "param": {
+          "desc": {
+            "isall": "Whether to reset all SQL files (1: yes; 0: no). If no, sqlIdList cannot be empty.",
+            "phasename": "Phase Name"
+          }
+        }
+      }
+    },
+    "revokeautoexecjobapi": {
+      "getname": "Revoke Job"
+    },
+    "saveautoexecserviceapi": {
+      "getname": "Save Service Catalog",
+      "input": {
+        "param": {
+          "desc": {
+            "formuuid": "Form UUID",
+            "name": "Name",
+            "type": "Type"
+          }
+        }
+      }
+    },
+    "saveautoexecserviceuserapi": {
+      "getname": "Add Service Catalog Favorite"
+    },
+    "savecustomtemplateapi": {
+      "input": {
+        "param": {
+          "help": {
+            "config": "Configuration",
+            "id": "ID"
+          }
+        }
+      }
+    },
+    "searchautoexecjobphasesqlapi": {
+      "getname": "Search Job Phase SQL",
+      "input": {
+        "param": {
+          "desc": {
+            "statuslist": "Status List"
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "tbodylist": "Data List"
+          }
+        }
+      }
+    },
+    "searchautoexecserviceapi": {
+      "getname": "Search Service Catalog"
+    },
+    "searchautoexecservicebreadcrumbapi": {
+      "getname": "Search Visible Service Catalog Paths",
+      "output": {
+        "param": {
+          "desc": {
+            "tbodylist": "Data List"
+          }
+        }
+      }
+    },
+    "searchautoexecserviceuserapi": {
+      "getname": "Search Favorite Services",
+      "output": {
+        "param": {
+          "desc": {
+            "tbodylist": "Data List"
+          }
+        }
+      }
+    },
+    "searchautoexectypeapi": {
+      "getname": "Search Tool Classifications",
+      "output": {
+        "param": {
+          "desc": {
+            "tbodylist": "Data List"
+          }
+        }
+      }
+    },
+    "searchcustomtemplateapi": {
+      "getname": "Search Custom Template"
+    },
+    "searchvisibleautoexecserviceapi": {
+      "getname": "Search Visible Service Catalog"
+    },
+    "submitautoexecjobphasenodewaitinputapi": {
+      "getname": "Submit Job Node Input",
+      "input": {
+        "param": {
+          "desc": {
+            "option": "Option"
+          }
+        }
+      }
+    },
+    "tailautoexecjobconsolelogapi": {
+      "getname": "Get Job Console Log",
+      "input": {
+        "param": {
+          "desc": {
+            "logpos": "Log read position. Use -1 to retrieve the latest data.",
+            "status": "Status"
+          }
+        }
+      }
+    },
+    "tailautoexecjobphasenodelogapi": {
+      "getname": "Get Job Phase Node Log",
+      "input": {
+        "param": {
+          "desc": {
+            "logpos": "Log read position. Use -1 to retrieve the latest data. When reading upward with 'up', pass startPos to load the previous segment; when reading downward with 'down', pass endPos to load the next segment."
+          }
+        }
+      },
+      "output": {
+        "param": {
+          "desc": {
+            "interact": "Interactive Input Initialization Data"
+          }
+        }
+      }
+    },
+    "takeoverautoexecjobapi": {
+      "getname": "Take Over Job"
+    },
+    "updateautoexeccombopphaseoperationdescriptionfieldapi": {
+      "getname": "Update Combination Tool Phase Operation Description Field"
+    },
+    "updateautoexecjobcreateenvapi": {
+      "getname": "Update Job Output Environment Variables",
+      "input": {
+        "param": {
+          "desc": {
+            "envname": "Environment Name",
+            "envvalue": "Environment Value"
+          }
+        }
+      }
+    },
+    "updateautoexecjobfromcombopapi": {
+      "getname": "Update Job from Combination Tool",
+      "input": {
+        "param": {
+          "desc": {
+            "planstarttime": "Plan Start Time"
+          }
+        }
+      }
+    },
+    "updateautoexecjobphasenodestatusapi": {
+      "getname": "Update Job Phase Node Status",
+      "input": {
+        "param": {
+          "desc": {
+            "host": "Host",
+            "phase": "Phase",
+            "port": "Port"
+          }
+        }
+      }
+    },
+    "updateautoexecjobresourceinspectapi": {
+      "getname": "Update Resource Inspection Job",
+      "input": {
+        "param": {
+          "desc": {
+            "inspecttime": "Inspect Time",
+            "phasename": "Phase Name"
+          }
+        }
+      }
+    },
+    "updateautoexecjobsqlapi": {
+      "getname": "Update Job SQL",
+      "input": {
+        "param": {
+          "desc": {
+            "jobid": "Job ID",
+            "phasename": "Phase Name",
+            "sqlstatus": "SQL Status"
+          }
+        }
+      }
+    },
+    "updateautoexecserviceisactiveapi": {
+      "getname": "Update Service Catalog Activation Status"
+    }
+  },
+  "nmaac": {
+    "autoexeccatalogsaveapi": {
+      "getname": "Save Tool Catalog"
+    },
+    "autoexeccombopbasicinfogetapi": {
+      "getname": "Basic information of query combination tool"
+    },
+    "autoexeccombopbasicinfosaveapi": {
+      "getname": "Save basic information of the combination tool"
+    },
+    "autoexeccombopdetailgetapi": {
+      "getname": "Obtain detailed information on combination tools and activation versions"
+    },
+    "autoexeccombopexecutablelistapi": {
+      "getname": "Query the list of combination tools that the current user can execute"
+    },
+    "autoexeccombopisactiveupdateapi": {
+      "getname": "Enable/disable combination tool"
+    },
+    "autoexeccombopversiongetapi": {
+      "getname": "Query the version details of the combination tool"
+    },
+    "autoexeccombopversionsaveapi": {
+      "getname": "Save the version information of the combination tool"
+    },
+    "listautoexeccomboptypeexecutableapi": {
+      "getname": "Query the classification list of the combination tools that the current user can execute"
+    },
+    "savecustomtemplateapi": {
+      "getname": "Save Custom Template"
+    }
+  },
+  "nmaae": {
+    "processtaskautoexechandlernotenableoperateexception": {
+      "processtaskautoexechandlernotenableoperateexception": "The Automation node does not support the \"{0}\" action."
+    },
+    "processtaskautoexecjobrunningexception": {
+      "processtaskautoexecjobrunningexception": "The Automation Job is running and cannot be transitioned manually."
+    }
+  },
+  "nmaah": {
+    "autoexecjobcleaner": {
+      "myclean": {
+        "error": "Clearing homework exception: {0}: {1}"
+      }
+    }
+  },
+  "nmaaj": {
+    "autoexecjobinfogetapi": {
+      "getname": "Obtain automation job details"
+    },
+    "getautoexeccombopjobsyncapi": {
+      "description": {
+        "desc": "Get Combination Tool synchronous Job creation monitoring information for the current tenant on this server instance."
+      },
+      "getname": "Get Combination Tool Synchronous Job Creation Monitoring Information",
+      "output": {
+        "availablecount": "Available Request Count",
+        "joblist": "Monitored Job List",
+        "listeningcount": "Requests Being Created or Monitored",
+        "maxlisteningcount": "Maximum Monitoring Request Count",
+        "scope": "Statistics Scope",
+        "serverid": "Server Instance ID"
+      }
+    },
+    "getautoexecjobqueuestatusapi": {
+      "getname": "Get the queue status of homework"
+    },
+    "getautoexecjobstatusapi": {
+      "description": {
+        "desc": "Get Job Status"
+      },
+      "input": {
+        "param": {
+          "desc": {
+            "idlist": "Job idList"
+          }
+        }
+      }
+    },
+    "listautoexecjoblogencodingapi": {
+      "getname": "Get automatic job log Character encoding set",
+      "mydoservice": {
+        "error": "Autoexec. job. log. encoding format is not JsonArray"
+      }
+    }
+  },
+  "nmaaja": {
+    "createautoexeccombopjobapi": {
+      "getname": "Create homework with combination tools",
+      "input": {
+        "param": {
+          "desc": {
+            "parallelcount": "Concurrency Level",
+            "parallelpolicy": "Concurrency Strategy"
+          },
+          "roundcount": "Number of groups"
+        }
+      }
+    },
+    "createautoexecjobfromcombopapi": {
+      "input": {
+        "param": {
+          "desc": {
+            "name": "Job Name",
+            "versionid": "Combination tool version ID"
+          }
+        }
+      }
+    },
+    "createautoexecjobfromcomboppublicapi": {
+      "message": {
+        "outputreadfailed": "Failed to read the Job node output.",
+        "outputreadskippednotterminal": "The Job has not terminated, so its node output was not read."
+      },
+      "output": {
+        "host": "Node Host Address",
+        "nodeoutputlist": "Node Output List",
+        "output": "Node Output",
+        "outputreadmessage": "Node Output Read Message",
+        "outputreadsuccess": "Whether Node Output Was Read Successfully",
+        "outputtargetcount": "Total Node Output Count",
+        "outputtruncated": "Whether Node Output Was Truncated",
+        "port": "Node Port",
+        "resourceid": "Resource ID",
+        "returnedoutputtargetcount": "Returned Node Output Count",
+        "success": "Whether the Job Succeeded",
+        "terminal": "Whether the Job Is in a Terminal State",
+        "timedout": "Whether Monitoring Timed Out",
+        "waittimems": "Wait Time (Milliseconds)"
+      }
+    },
+    "downloadautoexecjoboutputfilebatchapi": {
+      "getname": "Batch download of job output files"
+    }
+  },
+  "nmaaje": {
+    "informautoexecjobphaseroundendapi": {
+      "input": {
+        "param": {
+          "desc": {
+            "seqno": "Blue green batch"
+          }
+        }
+      }
+    },
+    "updateautoexecjobphasestatusapi": {
+      "getname": "Callback Update Job Stage Status",
+      "input": {
+        "param": {
+          "desc": "Execution ID",
+          "needinform": "Do I need to inform during failure or termination"
+        }
+      }
+    },
+    "updateautoexecjobstatusapi": {
+      "getname": "Callback update job status"
+    }
+  },
+  "nmaap": {
+    "autoexecprofilesaveapi": {
+      "description": {
+        "desc": "Automated tool profile saving interface"
+      },
+      "getname": "Save automation tool profile",
+      "input": {
+        "param": {
+          "desc": {
+            "argumentlist": "Free parameter list",
+            "fomsystemid": "System ID",
+            "operationlist": "List of associated tools and scripts",
+            "paramlist": "Tool parameters"
+          }
+        }
+      }
+    },
+    "createjobsteptestapi": {
+      "getname": "Test new automation nodes"
+    }
+  },
+  "nmaar": {
+    "autoexecrisksaveapi": {
+      "getname": "Save Operation Level"
+    }
+  },
+  "nmaas": {
+    "autoexecschedulegetapi": {
+      "getname": "Get Scheduled Job Information"
+    },
+    "autoexecscriptgetapi": {
+      "getname": "View Script"
+    },
+    "autoexecscriptreviewapi": {
+      "getname": "Audit script",
+      "input": {
+        "param": {
+          "desc": "Pass, reject"
+        }
+      }
+    },
+    "autoexecscriptsaveapi": {
+      "getname": "Save Script"
+    },
+    "createautoexecservicejobapi": {
+      "getname": "Homework creation (from service)"
+    }
+  },
+  "nmaat": {
+    "autoexectoolgetapi": {
+      "getname": "Get Tools"
+    },
+    "batchdeleteautoexectoolapi": {
+      "getname": "Batch delete built-in tools, delete tools whose importTime does not equal the passed in parameter values"
+    },
+    "registerautoexectoolapi": {
+      "getname": "Register built-in tools",
+      "getparamlist": {
+        "array": "Array type required"
+      }
+    },
+    "saveautoexectypeapi": {
+      "getname": "Save Automation Tool Classification"
+    }
+  },
+  "nmacv": {
+    "autoexectype": {
+      "text": {
+        "backup": "Backup",
+        "basic": "Basic Tool",
+        "biz_jobs": "Job Scheduling",
+        "dr_switch": "Disaster Recovery Switchover",
+        "install": "Software Installation and Configuration",
+        "native": "Scheduler Built-in Tool",
+        "sql_file": "SQL Processing",
+        "start_stop": "Start/Stop Operation",
+        "temp": "Temporary Use",
+        "test": "Test Tool"
+      }
+    },
+    "failpolicy": {
+      "text": {
+        "hang": "Manual Handling",
+        "keep_on": "Continue to Subsequent Nodes"
+      }
+    }
+  },
+  "nmaf": {
+    "autoexecfulltextindextype": {
+      "script_document_version": "Custom Tool Version"
+    }
+  },
+  "nmajsa": {
+    "autoexecjobsourcetypehandler": {
+      "getrunnermaplist": "school assignment"
+    }
+  },
+  "nmar": {
+    "combopimport": {
+      "inactivesuffix": "' is not enabled.",
+      "missingglobalparamprefix": "Global Parameter is missing: '",
+      "missingnotifypolicyprefix": "Referenced notification policy is missing: '",
+      "missingscenarioprefix": "Scenario '",
+      "missingscenariosuffix": "' was not imported.",
+      "missingscriptprefix": "Referenced Custom Tool is missing: '",
+      "missingtoolprefix": "Referenced Tool is missing: '",
+      "missingtypeprefix": "Referenced Tool Classification is missing: '",
+      "noactiveversionsuffix": "' has no active version.",
+      "scriptprefix": "Custom Tool '",
+      "toolprefix": "Tool '"
+    },
+    "commercial": {
+      "fixedsummaryprompt": "Generate the final execution summary from the actual tool results and executionLedger in the conversation. Do not call tools."
+    },
+    "common": {
+      "no": "No",
+      "yes": "Yes"
+    },
+    "config": {
+      "concurrency": "Concurrency",
+      "precondition": "Preceding Filter",
+      "protocol": "Connection Protocol"
+    },
+    "dependency": {
+      "combopprefix": "Combination Tool (",
+      "combopruntimeparamtitle": "Combination Tool - ${DATA.combopName} - Runtime Parameter - ${DATA.paramName}",
+      "inputparammapping": "Input Parameter Mapping",
+      "operationprefix": "Tool (",
+      "phaseprefix": "Phase (",
+      "scriptlibraryprefix": "Custom Tool Library (",
+      "servicecatalogmanagement": "Service Catalog Management",
+      "toollibrary": "Tool Library",
+      "versionprefix": "Version ",
+      "workflowmanagement": "Workflow Management"
+    },
+    "export": {
+      "combopfilename": "Combination Tool.",
+      "filename": "File Name",
+      "log": "Log",
+      "outputparameters": "Output Parameters",
+      "runner": "Runner",
+      "scriptfilename": "Custom Tool."
+    },
+    "file": {
+      "displayname": "Automation Attachment"
+    },
+    "globallock": {
+      "name": "Automation File Lock"
+    },
+    "import": {
+      "catalogempty": "Tool Catalog is empty.",
+      "detailprefix": "Import ",
+      "detailsuffix": " encountered the following issues: ",
+      "execmodeempty": "Execution Mode is empty.",
+      "execmodenotfoundprefix": "Execution Mode '",
+      "failed": " failed.",
+      "import": "Import ",
+      "invalidexecmode": "Execution Mode does not exist: ",
+      "invalidparserprefix": "Custom Tool parser [",
+      "invalidrisk": "Operation Level does not exist: ",
+      "invalidtype": "Tool Classification does not exist: ",
+      "itemprefix": "Import item [",
+      "itemsuffix": "] failed.",
+      "missingpackages": "The following dependent Custom Tool packages (tar) were not uploaded: ",
+      "missingtools": "The following dependent Tools do not exist: ",
+      "notfoundsuffix": "' does not exist.",
+      "packagemissing": "Custom Tool dependency package is missing.",
+      "packagemustbetar": "The Custom Tool dependency package must be a tar file.",
+      "packagenameempty": "Custom Tool dependency package name is empty.",
+      "parserempty": "Custom Tool parser is empty.",
+      "parsernotfoundprefix": "Custom Tool parser '",
+      "riskempty": "Operation Level is empty.",
+      "risknotfoundprefix": "Operation Level '",
+      "scriptcontentempty": "Custom Tool content is empty.",
+      "scriptnameempty": "Custom Tool name is empty.",
+      "typeempty": "Tool Classification is empty.",
+      "typenotfoundprefix": "Tool Classification '",
+      "versionprefix": "Version - "
+    },
+    "operate": {
+      "inactivetoolcannotpublish": "The Tool is inactive and cannot be published as a Combination Tool.",
+      "librarycannotpublish": "A library Custom Tool cannot be published as a Combination Tool.",
+      "librarycannottest": "A library Custom Tool cannot be tested.",
+      "noactivescriptversion": "The Custom Tool has no active version and cannot be published as a Combination Tool.",
+      "permissiondenied": "You do not have permission. Contact an administrator.",
+      "publishedascombop": "Published as Combination Tool",
+      "riskreferenced": "The Operation Level is referenced and cannot be deleted.",
+      "scriptreferenced": "The Custom Tool is referenced by a Combination Tool and cannot be deleted.",
+      "versioncannotapprove": "Only versions pending review can be approved.",
+      "versioncannotdelete": "A version cannot be deleted when it is the only version or is currently active.",
+      "versioncannotreject": "Only versions pending review can be rejected.",
+      "versioncannotsave": "Only Draft or Rejected versions can be saved.",
+      "versioncannotsubmit": "Only Draft or Rejected versions can be submitted for review.",
+      "versioncannotvalidate": "Only Draft or Rejected versions can be validated."
+    },
+    "script": {
+      "library": "Custom Tool Library",
+      "notificationtitle": "Custom Tool Library - ${DATA.scriptName}",
+      "othersubmittedversion": "The Custom Tool already has another version pending review."
+    },
+    "service": {
+      "concurrencyrequired": "Concurrency is required.",
+      "executeuserrequired": "The execution user (executeUser) is required. Contact an administrator to reconfigure the service.",
+      "formattributenotfound": "In form \"{0}\", attribute \"{1}\" was not found.",
+      "formnoactiveversion": "Form \"{0}\" has no active version.",
+      "formnotfound": "Form \"{0}\" does not exist.",
+      "parallelcountrequired": "Concurrency (parallelCount) is required. Contact an administrator to reconfigure the service.",
+      "parallelpolicyrequired": "The concurrency policy (parallel) is required. Contact an administrator to reconfigure the service.",
+      "protocolrequired": "The connection protocol (protocol) is required. Contact an administrator to reconfigure the service.",
+      "roundcountrequired": "The batch count (roundCount) is required. Contact an administrator to reconfigure the service.",
+      "targetrequired": "The execution target (executeNodeConfig) is required. Contact an administrator to reconfigure the service."
+    },
+    "testapi": {
+      "usermanagementpermission": "User Management Permission"
+    },
+    "tooldelete": {
+      "combopsprefix": " (Referenced Combination Tools: ",
+      "referenced": "The following Tools are referenced by Combination Tools and cannot be deleted:\n"
+    },
+    "tooldoc": {
+      "controltype": "Control Type",
+      "descriptionprefix": "Description: ",
+      "execmodeprefix": "Execution Mode: ",
+      "filenamesuffix": "] Parameter Reference.docx",
+      "noparameters": "No Parameters",
+      "optional": "Optional",
+      "parametersprefix": "Parameters: ",
+      "requiredoptional": "Required/Optional",
+      "title": "Automation Tool Library"
+    },
+    "update": {
+      "invalidformat": "Invalid Format",
+      "requiredcount": "Required Update Count",
+      "total": "Total",
+      "updatedcount": "Updated Count"
+    }
+  },
+  "nmaspt": {
+    "common": {
+      "description": {
+        "date": "Date picker.",
+        "datetime": "Date and time picker.",
+        "password": "Accepts numbers or strings and masks the value in the UI.",
+        "textoutput": "Outputs a string or number.",
+        "time": "Time picker."
+      },
+      "placeholder": {
+        "input": "Enter a value",
+        "select": "Select an option"
+      }
+    },
+    "scriptparamtypeaccount": {
+      "description": "Selects a service connection protocol and account for connecting to databases, middleware, or other services on the host."
+    },
+    "scriptparamtypecheckbox": {
+      "description": "Checkbox selector."
+    },
+    "scriptparamtypedate": {
+      "placeholder": "Select a date"
+    },
+    "scriptparamtypedatetime": {
+      "placeholder": "Select a date and time"
+    },
+    "scriptparamtypefile": {
+      "description": "Supports uploading multiple files. During execution, files are uploaded to the target host directory with their original names preserved.",
+      "placeholder": "Upload files"
+    },
+    "scriptparamtypefilepath": {
+      "description": "Outputs a file path."
+    },
+    "scriptparamtypejson": {
+      "description": "Supports JSON objects and arrays. The input must be valid JSON."
+    },
+    "scriptparamtypemultiselect": {
+      "description": "Multi-select dropdown."
+    },
+    "scriptparamtypenode": {
+      "description": "Generates Custom Tool variables from node information without dispatching execution to the node."
+    },
+    "scriptparamtypephase": {
+      "description": "Selects a phase."
+    },
+    "scriptparamtyperadio": {
+      "description": "Radio selector."
+    },
+    "scriptparamtyperunnergroup": {
+      "description": "Runner Group."
+    },
+    "scriptparamtyperunnergrouptag": {
+      "description": "Runner Group Tag."
+    },
+    "scriptparamtypeselect": {
+      "description": "Single-select dropdown."
+    },
+    "scriptparamtypeswitch": {
+      "description": "Switch."
+    },
+    "scriptparamtypetime": {
+      "placeholder": "Select a time"
+    },
+    "scriptparamtypeuserselect": {
+      "description": "Selects system users, groups, or roles."
+    }
+  },
+  "term": {
+    "appsystemidlist": "Application System ID List"
+  }
+}
