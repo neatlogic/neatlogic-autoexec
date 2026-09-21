@@ -1381,16 +1381,21 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 }
             }
 
+            // 父子作业需要一起补充来源类目，否则展开后的子作业无法展示各自的路由信息。
+            List<AutoexecJobVo> routeJobList = new ArrayList<>(jobVoList);
+            parentJobChildrenListMap.values().forEach(routeJobList::addAll);
+            List<Long> routeJobIdList = routeJobList.stream().map(AutoexecJobVo::getId).filter(Objects::nonNull).distinct().collect(Collectors.toList());
             Map<String, Set<String>> sourceKeyInvokeIdSetMap = new HashMap<>();
-            Map<Long, String> jobIdToRouteIdMap = new HashMap<>();
-            List<AutoexecJobInvokeVo> jobInvokeList = autoexecJobMapper.getJobInvokeListByJobIdList(jobIdList);
+            Map<Long, AutoexecJobInvokeVo> jobIdToInvokeMap = new HashMap<>();
+            List<AutoexecJobInvokeVo> jobInvokeList = autoexecJobMapper.getJobInvokeListByJobIdList(routeJobIdList);
             for (AutoexecJobInvokeVo jobInvokeVo : jobInvokeList) {
                 if (jobInvokeVo.getRouteId() != null) {
                     sourceKeyInvokeIdSetMap.computeIfAbsent(jobInvokeVo.getSource(), key -> new HashSet<>()).add(jobInvokeVo.getRouteId());
                 }
-                jobIdToRouteIdMap.put(jobInvokeVo.getJobId(), jobInvokeVo.getRouteId());
+                jobIdToInvokeMap.put(jobInvokeVo.getJobId(), jobInvokeVo);
             }
-            Map<String, AutoexecJobRouteVo> routeMap = new HashMap<>();
+            // 路由ID只在单个来源内唯一，按来源隔离可避免不同模块的同值ID相互覆盖。
+            Map<String, Map<String, AutoexecJobRouteVo>> sourceRouteMap = new HashMap<>();
             for (Map.Entry<String, Set<String>> entry : sourceKeyInvokeIdSetMap.entrySet()) {
                 IAutoexecJobSource sourceHandler = AutoexecJobSourceFactory.getHandler(entry.getKey());
                 if (sourceHandler == null) {
@@ -1398,9 +1403,23 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
                 }
                 List<AutoexecJobRouteVo> list = sourceHandler.getListByUniqueKeyList(new ArrayList<>(entry.getValue()));
                 if (CollectionUtils.isNotEmpty(list)) {
+                    Map<String, AutoexecJobRouteVo> routeMap = sourceRouteMap.computeIfAbsent(entry.getKey(), key -> new HashMap<>());
                     for (AutoexecJobRouteVo jobRouteVo : list) {
-                        routeMap.put(jobRouteVo.getId().toString(), jobRouteVo);
+                        if (jobRouteVo.getId() != null) {
+                            routeMap.put(jobRouteVo.getId().toString(), jobRouteVo);
+                        }
                     }
+                }
+            }
+            for (AutoexecJobVo routeJobVo : routeJobList) {
+                AutoexecJobInvokeVo invokeVo = jobIdToInvokeMap.get(routeJobVo.getId());
+                if (invokeVo == null || invokeVo.getRouteId() == null) {
+                    continue;
+                }
+                routeJobVo.setRouteId(invokeVo.getRouteId());
+                Map<String, AutoexecJobRouteVo> routeMap = sourceRouteMap.get(invokeVo.getSource());
+                if (routeMap != null) {
+                    routeJobVo.setRoute(routeMap.get(invokeVo.getRouteId()));
                 }
             }
             //补充权限
@@ -1424,14 +1443,6 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
 //                }
                 if (vo.getParentId() != null) {
                     vo.setChildren(parentJobChildrenListMap.get(vo.getId()));
-                }
-                String routeId = jobIdToRouteIdMap.get(vo.getId());
-                if (routeId != null) {
-                    vo.setRouteId(routeId);
-                    AutoexecJobRouteVo routeVo = routeMap.get(routeId);
-                    if (routeVo != null) {
-                        vo.setRoute(routeVo);
-                    }
                 }
             }
         }
