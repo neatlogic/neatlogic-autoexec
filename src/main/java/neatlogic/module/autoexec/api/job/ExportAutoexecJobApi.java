@@ -15,14 +15,22 @@ package neatlogic.module.autoexec.api.job;
 import neatlogic.framework.util.$;
 
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
+import neatlogic.framework.autoexec.constvalue.CombopOperationType;
 import neatlogic.framework.autoexec.constvalue.ExecMode;
+import neatlogic.framework.autoexec.constvalue.OutputParamType;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
+import neatlogic.framework.autoexec.dao.mapper.AutoexecScriptMapper;
+import neatlogic.framework.autoexec.dto.job.AutoexecJobContentVo;
+import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseOperationVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
+import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionParamVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobNotFoundException;
+import neatlogic.framework.autoexec.job.AutoexecJobOutputParamExportConfig;
 import neatlogic.framework.autoexec.job.AutoexecJobPhaseNodeExportHandlerFactory;
 import neatlogic.framework.autoexec.job.IAutoexecJobPhaseNodeExportHandler;
 import neatlogic.framework.common.constvalue.ApiParamType;
@@ -35,6 +43,7 @@ import neatlogic.framework.restful.core.privateapi.binarystream.PrivateBinaryStr
 import neatlogic.framework.util.FileUtil;
 import neatlogic.framework.util.excel.ExcelBuilder;
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.poi.hssf.util.HSSFColor;
 import org.apache.poi.ss.usermodel.Workbook;
@@ -52,9 +61,13 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Service
 @AuthAction(action = AUTOEXEC_BASE.class)
@@ -65,6 +78,9 @@ public class ExportAutoexecJobApi extends PrivateBinaryStreamApiComponentBase {
 
     @Resource
     AutoexecJobMapper autoexecJobMapper;
+
+    @Resource
+    AutoexecScriptMapper autoexecScriptMapper;
 
     @Resource
     MongoTemplate mongoTemplate;
@@ -118,7 +134,8 @@ public class ExportAutoexecJobApi extends PrivateBinaryStreamApiComponentBase {
             for (AutoexecJobPhaseVo phaseVo : phaseVoList) {
                 IAutoexecJobPhaseNodeExportHandler handler = AutoexecJobPhaseNodeExportHandlerFactory.getHandler(phaseVo.getExecMode());
                 if (handler != null) {
-                    handler.exportJobPhaseNodeWithNodeOutputParam(jobVo, phaseVo, phaseOutputParamMap.get(phaseVo.getName()), builder, getHeadList(phaseVo.getExecMode()), getColumnList(phaseVo.getExecMode()));
+                    Map<String, AutoexecJobOutputParamExportConfig> outputParamConfigMap = getOutputParamConfigMap(jobId, phaseVo.getId(), phaseOutputParamMap.get(phaseVo.getName()));
+                    handler.exportJobPhaseNodeWithNodeOutputParam(jobVo, phaseVo, outputParamConfigMap, builder, getHeadList(phaseVo.getExecMode()), getColumnList(phaseVo.getExecMode()));
                 }
             }
             try (Workbook workbook = builder.build();
@@ -134,6 +151,78 @@ public class ExportAutoexecJobApi extends PrivateBinaryStreamApiComponentBase {
             }
         }
         return null;
+    }
+
+    /**
+     * 生成当前阶段的输出参数导出配置；显式报告字段优先，未配置时导出阶段全部实际输出。
+     */
+    Map<String, AutoexecJobOutputParamExportConfig> getOutputParamConfigMap(Long jobId, Long phaseId, Map<String, List<String>> configuredOutputParamMap) {
+        List<AutoexecJobPhaseOperationVo> operationVoList = autoexecJobMapper.getJobPhaseOperationListByJobIdAndPhaseId(jobId, phaseId);
+        if (CollectionUtils.isEmpty(operationVoList)) {
+            return Collections.emptyMap();
+        }
+        boolean hasConfiguredOutputParam = MapUtils.isNotEmpty(configuredOutputParamMap);
+        List<String> toolParamHashList = operationVoList.stream()
+                .filter(operationVo -> CombopOperationType.TOOL.getValue().equals(operationVo.getType()))
+                .map(AutoexecJobPhaseOperationVo::getParamHash)
+                .filter(StringUtils::isNotBlank)
+                .distinct()
+                .collect(Collectors.toList());
+        Map<String, String> toolParamContentMap = new HashMap<>();
+        if (CollectionUtils.isNotEmpty(toolParamHashList)) {
+            List<AutoexecJobContentVo> contentVoList = autoexecJobMapper.getJobContentList(toolParamHashList);
+            if (CollectionUtils.isNotEmpty(contentVoList)) {
+                for (AutoexecJobContentVo contentVo : contentVoList) {
+                    toolParamContentMap.put(contentVo.getHash(), contentVo.getContent());
+                }
+            }
+        }
+        Map<Long, Set<String>> scriptPasswordParamKeyMap = new HashMap<>();
+        Map<String, AutoexecJobOutputParamExportConfig> resultMap = new HashMap<>();
+        for (AutoexecJobPhaseOperationVo operationVo : operationVoList) {
+            String operationKey = operationVo.getName() + "_" + operationVo.getId();
+            if (hasConfiguredOutputParam && !configuredOutputParamMap.containsKey(operationKey)) {
+                continue;
+            }
+            Set<String> passwordParamKeySet = getPasswordParamKeySet(operationVo, toolParamContentMap, scriptPasswordParamKeyMap);
+            List<String> includedParamKeyList = hasConfiguredOutputParam ? configuredOutputParamMap.get(operationKey) : Collections.emptyList();
+            resultMap.put(operationKey, new AutoexecJobOutputParamExportConfig(!hasConfiguredOutputParam, includedParamKeyList, passwordParamKeySet));
+        }
+        return resultMap;
+    }
+
+    /**
+     * 从作业快照中识别工具或脚本操作的密码类型输出参数。
+     */
+    private Set<String> getPasswordParamKeySet(AutoexecJobPhaseOperationVo operationVo, Map<String, String> toolParamContentMap, Map<Long, Set<String>> scriptPasswordParamKeyMap) {
+        Set<String> passwordParamKeySet = new HashSet<>();
+        if (CombopOperationType.TOOL.getValue().equals(operationVo.getType())) {
+            String content = toolParamContentMap.get(operationVo.getParamHash());
+            if (StringUtils.isNotBlank(content)) {
+                JSONArray outputParamList = JSON.parseObject(content).getJSONArray("outputParamList");
+                if (CollectionUtils.isNotEmpty(outputParamList)) {
+                    for (Object outputParam : outputParamList) {
+                        JSONObject outputParamJson = JSON.parseObject(outputParam.toString());
+                        if (OutputParamType.PASSWORD.getValue().equals(outputParamJson.getString("type"))) {
+                            passwordParamKeySet.add(outputParamJson.getString("key"));
+                        }
+                    }
+                }
+            }
+        } else if (CombopOperationType.SCRIPT.getValue().equals(operationVo.getType()) && operationVo.getVersionId() != null) {
+            return scriptPasswordParamKeyMap.computeIfAbsent(operationVo.getVersionId(), versionId -> {
+                Set<String> keySet = new HashSet<>();
+                List<AutoexecScriptVersionParamVo> paramVoList = autoexecScriptMapper.getOutputParamListByVersionId(versionId);
+                if (CollectionUtils.isNotEmpty(paramVoList)) {
+                    paramVoList.stream()
+                            .filter(paramVo -> OutputParamType.PASSWORD.getValue().equals(paramVo.getType()))
+                            .map(AutoexecScriptVersionParamVo::getKey)
+                            .forEach(keySet::add);
+                }
+                return keySet;
+            });
+        }
+        return passwordParamKeySet;
     }
 
     private List<String> getHeadList(String execMode) {
