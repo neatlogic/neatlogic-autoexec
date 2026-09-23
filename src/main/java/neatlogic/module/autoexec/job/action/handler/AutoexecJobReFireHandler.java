@@ -73,6 +73,12 @@ public class AutoexecJobReFireHandler extends AutoexecJobActionHandlerBase {
         return true;
     }
 
+    /** 批量重跑不处理壳父作业和已验证的后代作业。 */
+    @Override
+    public boolean isCanBatchExecute(AutoexecJobVo jobVo, boolean isParent) {
+        return !isParent && !Objects.equals(jobVo.getStatus(), JobStatus.CHECKED.getValue());
+    }
+
     @Override
     public JSONObject doMyService(AutoexecJobVo jobVo) {
         if (Objects.equals(jobVo.getAction(), JobAction.RESET_REFIRE.getValue())) {

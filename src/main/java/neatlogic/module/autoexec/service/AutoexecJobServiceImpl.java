@@ -1864,16 +1864,20 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     public void batchExecuteJobAction(AutoexecJobVo jobVo, JobAction jobAction) throws Exception {
         List<AutoexecJobVo> autoexecJobVos = com.google.common.collect.Lists.newArrayList(Collections.singletonList(jobVo));
         List<Long> subJobIdList = autoexecJobMapper.getJobIdListByParentId(jobVo.getId());
-        if (neatlogic.framework.deploy.constvalue.JobSource.isBatch(jobVo.getSource()) && CollectionUtils.isNotEmpty(subJobIdList)) {
+        IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(jobVo.getSource());
+        IAutoexecJobActionHandler actionHandler = AutoexecJobActionHandlerFactory.getAction(jobAction.getValue());
+        if (jobSource != null && jobSource.isBatch() && CollectionUtils.isNotEmpty(subJobIdList)) {
             getAllSubJobList(jobVo.getId(), autoexecJobVos);
             for (AutoexecJobVo job : autoexecJobVos) {
+                boolean isParent = Objects.equals(job.getId(), jobVo.getId());
+                if (!actionHandler.isCanBatchExecute(job, isParent)) {
+                    continue;
+                }
                 job.setAction(jobVo.getAction());
-                IAutoexecJobActionHandler batchAction = AutoexecJobActionHandlerFactory.getAction(jobAction.getValue());
-                batchAction.doService(job);
+                actionHandler.doService(job);
             }
         } else {
-            IAutoexecJobActionHandler action = AutoexecJobActionHandlerFactory.getAction(jobAction.getValue());
-            action.doService(jobVo);
+            actionHandler.doService(jobVo);
         }
     }
 
