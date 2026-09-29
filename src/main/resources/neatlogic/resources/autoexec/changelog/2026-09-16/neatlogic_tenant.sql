@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS `autoexec_job_operation_audit` (
   `target_count` int DEFAULT NULL COMMENT '目标数量',
   PRIMARY KEY (`id`),
   KEY `idx_job_time` (`job_id`,`operate_time`,`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='作业业务操作记录';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='作业业务操作记录';
 
 CREATE TABLE IF NOT EXISTS `autoexec_job_operation_audit_target` (
   `id` bigint NOT NULL COMMENT '记录 ID',
@@ -28,4 +28,4 @@ CREATE TABLE IF NOT EXISTS `autoexec_job_operation_audit_target` (
   `sql_file` varchar(1024) DEFAULT NULL COMMENT 'SQL 文件',
   PRIMARY KEY (`id`),
   KEY `idx_audit_id` (`audit_id`,`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='作业业务操作目标快照';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='作业业务操作目标快照';
