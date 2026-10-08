@@ -18,7 +18,6 @@ import neatlogic.framework.autoexec.constvalue.JobStatus;
 import neatlogic.framework.autoexec.constvalue.JobTriggerType;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
-import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.dao.mapper.UserMapper;
 import neatlogic.framework.dto.AuthenticationInfoVo;
 import neatlogic.framework.dto.UserVo;
@@ -126,7 +125,8 @@ public class AutoexecJobAutoFireJob extends JobBase {
         UserVo execUser = userMapper.getUserBaseInfoByUuid(jobVo.getExecUser());
         if (execUser != null) {
             AuthenticationInfoVo authenticationInfo = authenticationInfoService.getAuthenticationInfo(execUser.getUuid());
-            UserContext.init(execUser, authenticationInfo, SystemUser.SYSTEM.getTimezone());
+            // 后台任务使用当前租户默认时区初始化。
+            UserContext.init(execUser, authenticationInfo);
             UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(execUser).getCc());
             autoexecJobActionService.getJobDetailAndFireJob(jobVo);
         }

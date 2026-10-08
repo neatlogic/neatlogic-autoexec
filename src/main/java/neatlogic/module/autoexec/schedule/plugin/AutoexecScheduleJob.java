@@ -25,7 +25,6 @@ import neatlogic.framework.autoexec.dto.schedule.AutoexecScheduleVo;
 import neatlogic.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import neatlogic.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
-import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.dao.mapper.UserMapper;
 import neatlogic.framework.dto.AuthenticationInfoVo;
 import neatlogic.framework.dto.UserVo;
@@ -170,7 +169,8 @@ public class AutoexecScheduleJob extends JobBase {
                 return;
             }
             AuthenticationInfoVo authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(autoexecScheduleVo.getFcu());
-            UserContext.init(execUser, authenticationInfoVo, SystemUser.SYSTEM.getTimezone());
+            // 后台任务使用当前租户默认时区初始化。
+            UserContext.init(execUser, authenticationInfoVo);
             UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(execUser).getCc());
             autoexecJobActionService.validateAndCreateJobFromCombop(jobVo);
             jobVo.setAction(JobAction.FIRE.getValue());

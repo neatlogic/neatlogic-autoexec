@@ -55,7 +55,6 @@ import neatlogic.framework.scheduler.dto.JobObject;
 import neatlogic.framework.scheduler.enums.JobLoadTriggerType;
 import neatlogic.framework.scheduler.exception.ScheduleHandlerNotFoundException;
 import neatlogic.framework.service.AuthenticationInfoService;
-import neatlogic.framework.util.TimeUtil;
 import neatlogic.module.autoexec.dao.mapper.AutoexecGlobalParamMapper;
 import neatlogic.module.autoexec.dao.mapper.AutoexecScenarioMapper;
 import neatlogic.module.autoexec.schedule.plugin.AutoexecJobAutoFireJob;
@@ -581,7 +580,8 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             }
             authenticationInfo = authenticationInfoService.getAuthenticationInfo(user.getUuid());
         }
-        UserContext.init(user, authenticationInfo, SystemUser.SYSTEM.getTimezone());
+        // 后台任务使用当前租户默认时区初始化。
+        UserContext.init(user, authenticationInfo);
         jobParam.setAction(JobAction.FIRE.getValue());
         IAutoexecJobActionHandler fireAction = AutoexecJobActionHandlerFactory.getAction(JobAction.FIRE.getValue());
         fireAction.doService(jobParam);
@@ -623,6 +623,7 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
         return result;
     }
 
+    /** 初始化作业执行用户，新上下文的默认时区由 framework 按租户解析。 */
     @Override
     public void initExecuteUserContext(AutoexecJobVo jobVo, JSONObject passThroughEnv) throws Exception {
         if (MapUtils.isEmpty(passThroughEnv)) {
@@ -650,7 +651,8 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(execUserUuid);
         }
 
-        UserContext.init(execUser, authenticationInfoVo, TimeUtil.ZONE_TIME);
+        // 后台新上下文按当前租户默认时区初始化。
+        UserContext.init(execUser, authenticationInfoVo);
         UserContext.get().setToken("GZIP_" + LoginAuthHandlerBase.buildJwt(execUser).getCc());
     }
 

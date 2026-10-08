@@ -102,7 +102,8 @@ public class AutoexecCombopJobCreateServiceImpl implements AutoexecCombopJobCrea
             }
             authenticationInfoVo = authenticationInfoService.getAuthenticationInfo(execUserUuid);
         }
-        UserContext.init(execUser, authenticationInfoVo, SystemUser.SYSTEM.getTimezone());
+        // 切换执行身份时保留当前上下文的时区。
+        UserContext.init(execUser, authenticationInfoVo, UserContext.get().getTimezone());
         return execUserUuid;
     }
 
