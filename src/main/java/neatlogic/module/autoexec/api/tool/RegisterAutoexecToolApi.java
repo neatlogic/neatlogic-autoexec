@@ -27,7 +27,6 @@ import neatlogic.framework.autoexec.dto.script.AutoexecScriptArgumentVo;
 import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.autoexec.script.paramtype.ScriptParamTypeFactory;
 import neatlogic.framework.common.constvalue.ApiParamType;
-import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.exception.core.ApiRuntimeException;
 import neatlogic.framework.exception.type.ParamIrregularException;
 import neatlogic.framework.exception.type.ParamNotExistsException;
@@ -54,7 +53,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 @Service
-@AuthUser(SystemUser.AUTOEXEC)
+
 @AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.OPERATE)
 public class RegisterAutoexecToolApi extends PrivateApiComponentBase {

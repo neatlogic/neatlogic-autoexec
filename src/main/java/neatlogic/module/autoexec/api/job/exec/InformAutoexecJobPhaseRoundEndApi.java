@@ -27,7 +27,6 @@ import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import neatlogic.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
 import neatlogic.framework.common.constvalue.ApiParamType;
-import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.dto.runner.RunnerMapVo;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
@@ -46,7 +45,7 @@ import java.util.*;
  * @since 2021/4/14 14:15
  **/
 @Service
-@AuthUser(SystemUser.AUTOEXEC)
+
 @Transactional
 @AuthAction(action = AUTOEXEC_JOB_MODIFY.class)
 @OperationType(type = OperationTypeEnum.UPDATE)

@@ -18,8 +18,6 @@ import neatlogic.framework.auth.core.AuthAction;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_CREATE_PUBLIC_JOB;
 import neatlogic.framework.common.config.Config;
 import neatlogic.framework.common.constvalue.ApiParamType;
-import neatlogic.framework.common.constvalue.systemuser.SystemUser;
-import neatlogic.framework.restful.annotation.AuthUser;
 import neatlogic.framework.restful.annotation.Description;
 import neatlogic.framework.restful.annotation.OperationType;
 import neatlogic.framework.restful.annotation.Output;
@@ -33,7 +31,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 
 @Service
-@AuthUser(SystemUser.AUTOEXEC)
+
 @AuthAction(action = AUTOEXEC_CREATE_PUBLIC_JOB.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class GetAutoexecCombopJobSyncApi extends PrivateApiComponentBase {

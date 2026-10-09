@@ -7,7 +7,6 @@ import neatlogic.framework.autoexec.constvalue.AutoexecGlobalParamType;
 import neatlogic.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
 import neatlogic.framework.autoexec.exception.AutoexecGlobalParamIsNotFoundException;
 import neatlogic.framework.common.constvalue.ApiParamType;
-import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.common.util.RC4Util;
 import neatlogic.framework.restful.annotation.*;
 import neatlogic.framework.restful.constvalue.OperationTypeEnum;
@@ -20,7 +19,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.Resource;
 
 @Service
-@AuthUser(SystemUser.AUTOEXEC)
+
 @AuthAction(action = AUTOEXEC_MODIFY.class)
 @OperationType(type = OperationTypeEnum.UPDATE)
 public class AutoexecGlobalParamUpdateForAutoexecApi extends PrivateApiComponentBase {

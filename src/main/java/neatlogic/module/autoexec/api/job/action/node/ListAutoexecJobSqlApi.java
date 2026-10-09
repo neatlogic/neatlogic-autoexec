@@ -12,7 +12,6 @@ import neatlogic.framework.cmdb.crossover.ICiEntityCrossoverService;
 import neatlogic.framework.cmdb.dto.ci.AttrVo;
 import neatlogic.framework.cmdb.dto.cientity.CiEntityVo;
 import neatlogic.framework.common.constvalue.ApiParamType;
-import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
 import neatlogic.framework.deploy.constvalue.JobSourceType;
 import neatlogic.framework.deploy.crossover.IDeploySqlCrossoverMapper;
@@ -35,7 +34,7 @@ import java.util.stream.Collectors;
  * @date 2022/4/25 6:33 下午
  */
 @Service
-@AuthUser(SystemUser.AUTOEXEC)
+
 @AuthAction(action = AUTOEXEC_BASE.class)
 @OperationType(type = OperationTypeEnum.SEARCH)
 public class ListAutoexecJobSqlApi extends PrivateApiComponentBase {

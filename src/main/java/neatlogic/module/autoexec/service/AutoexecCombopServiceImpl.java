@@ -37,7 +37,6 @@ import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
 import neatlogic.framework.common.constvalue.GroupSearch;
 import neatlogic.framework.common.constvalue.UserType;
-import neatlogic.framework.common.constvalue.systemuser.SystemUser;
 import neatlogic.framework.common.util.RC4Util;
 import neatlogic.framework.config.ConfigManager;
 import neatlogic.framework.crossover.CrossoverServiceFactory;
@@ -188,12 +187,13 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
         }
     }
 
+    /** 校验组合工具操作：所有者、自动化管理权限或对象授权任一命中即可。 */
     @Override
     public boolean checkOperableButton(AutoexecCombopVo autoexecCombopVo, CombopAuthorityAction action) {
         AuthenticationInfoVo authenticationInfoVo;
         String userUuid = UserContext.get().getUserUuid();
         if (autoexecCombopVo != null) {
-            if (Objects.equals(autoexecCombopVo.getOwner(), userUuid) || Objects.equals(userUuid, SystemUser.SYSTEM.getUserUuid())
+            if (Objects.equals(autoexecCombopVo.getOwner(), userUuid)
                     || AuthActionChecker.check(AUTOEXEC_MODIFY.class)) {
                 return true;
             } else {
