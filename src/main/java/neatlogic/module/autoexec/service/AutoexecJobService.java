@@ -150,7 +150,6 @@ public interface AutoexecJobService {
      */
     AutoexecJobPhaseNodeVo getNodeOperationStatus(JSONObject paramJson, boolean isNeedOperationList);
 
-
     /**
      * 如果ExecMode 不是 local, 则初始化获取执行用户、协议和执行目标
      *

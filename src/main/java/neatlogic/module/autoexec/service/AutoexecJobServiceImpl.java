@@ -1491,6 +1491,7 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         }
     }
 
+    /** 查询 Runner 节点状态，并按需组装操作列表。 */
     @Override
     public AutoexecJobPhaseNodeVo getNodeOperationStatus(JSONObject paramJson, boolean isNeedOperationList) {
         Long jobId = paramJson.getLong("jobId");
@@ -1502,7 +1503,12 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
         autoexecJobVo.setConfigStr(jobContent.getContent());
         List<AutoexecJobPhaseNodeOperationStatusVo> statusList = new ArrayList<>();
         String url = paramJson.getString("runnerUrl") + "/api/rest/job/phase/node/status/get";
-        JSONObject statusJson = JSON.parseObject(AutoexecUtil.requestRunner(url, paramJson));
+        String result = AutoexecUtil.requestRunner(url, paramJson);
+        if (StringUtils.isNotBlank(result) && !JSON.isValidObject(result)) {
+            throw new RunnerHttpRequestException($.t("autoexec.runnerrequest.failed", "job/phase/node/status/get",
+                    $.t("autoexec.runnerrequest.invalidresponse")));
+        }
+        JSONObject statusJson = JSON.parseObject(result);
         AutoexecJobPhaseNodeVo nodeVo = new AutoexecJobPhaseNodeVo(statusJson);
 
         if (isNeedOperationList) {

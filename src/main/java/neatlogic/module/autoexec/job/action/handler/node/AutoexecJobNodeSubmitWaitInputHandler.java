@@ -21,26 +21,22 @@ import neatlogic.framework.autoexec.dto.job.AutoexecJobPhaseVo;
 import neatlogic.framework.autoexec.dto.job.AutoexecJobVo;
 import neatlogic.framework.autoexec.exception.AutoexecJobInteractException;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerBase;
-import neatlogic.framework.common.config.Config;
-import neatlogic.framework.exception.runner.RunnerHttpRequestException;
-import neatlogic.framework.integration.authentication.enums.AuthenticateType;
-import neatlogic.framework.util.HttpRequestUtil;
+import neatlogic.framework.autoexec.util.AutoexecUtil;
+import neatlogic.framework.util.$;
 import neatlogic.module.autoexec.service.AutoexecJobService;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.Resource;
 
 /**
+ * 在作业事务内校验并提交节点交互。
  * @author lvzk
  * @since 2021/11/9 12:18
  **/
 @Service
 public class AutoexecJobNodeSubmitWaitInputHandler extends AutoexecJobActionHandlerBase {
-    private final static Logger logger = LoggerFactory.getLogger(AutoexecJobNodeSubmitWaitInputHandler.class);
     @Resource
     AutoexecJobService autoexecJobService;
 
@@ -76,14 +72,10 @@ public class AutoexecJobNodeSubmitWaitInputHandler extends AutoexecJobActionHand
         paramObj.put("port", nodeVo.getPort());
         paramObj.put("runnerUrl", nodeVo.getRunnerUrl());
         paramObj.put("execMode", phaseVo.getExecMode());
-        //获取pipeFile 路径
         AutoexecJobPhaseNodeVo phaseNodeVo = autoexecJobService.getNodeOperationStatus(paramObj, false);
         JSONObject interactJson = phaseNodeVo.getInteract();
-        if (MapUtils.isEmpty(interactJson)) {
-            throw new AutoexecJobInteractException();
-        }
-        if (StringUtils.isBlank(interactJson.getString("pipeFile"))) {
-            throw new AutoexecJobInteractException("pipeFile is blank");
+        if (MapUtils.isEmpty(interactJson) || StringUtils.isBlank(interactJson.getString("pipeFile"))) {
+            throw new AutoexecJobInteractException("job/phase/node/status/get", paramObj, $.t("autoexec.waitinput.missinginteraction"));
         }
         paramObj.put("pipeFile", interactJson.getString("pipeFile"));
         String option = paramObj.getString("option");
@@ -93,12 +85,7 @@ public class AutoexecJobNodeSubmitWaitInputHandler extends AutoexecJobActionHand
             paramObj.put("option", String.format("[%s]# ", UserContext.get().getUserUuid(true)) + option);
         }
         String url = String.format("%s/api/rest/job/phase/node/submit/waitInput", nodeVo.getRunnerUrl());
-        String result = HttpRequestUtil.post(url)
-                .setPayload(paramObj.toJSONString()).setAuthType(AuthenticateType.BUILDIN).setConnectTimeout(Config.RUNNER_CONNECT_TIMEOUT())
-                .sendRequest().getError();
-        if (StringUtils.isNotBlank(result)) {
-            throw new RunnerHttpRequestException(url + ":" + result);
-        }
+        AutoexecUtil.requestRunner(url, paramObj);
         return null;
     }
 }
