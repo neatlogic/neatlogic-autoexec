@@ -25,6 +25,7 @@ import neatlogic.framework.autoexec.dto.schedule.AutoexecScheduleVo;
 import neatlogic.framework.autoexec.exception.AutoexecCombopNotFoundException;
 import neatlogic.framework.autoexec.job.action.core.AutoexecJobActionHandlerFactory;
 import neatlogic.framework.autoexec.job.action.core.IAutoexecJobActionHandler;
+import neatlogic.framework.common.config.Config;
 import neatlogic.framework.dao.mapper.UserMapper;
 import neatlogic.framework.dto.AuthenticationInfoVo;
 import neatlogic.framework.dto.UserVo;
@@ -117,6 +118,7 @@ public class AutoexecScheduleJob extends JobBase {
     public void initJob(String tenantUuid) {
         AutoexecScheduleVo searchVo = new AutoexecScheduleVo();
         searchVo.setIsActive(1);
+        searchVo.setSourceServerGroup(Config.SCHEDULE_SERVER_GROUP());
         int rowNum = autoexecScheduleMapper.getAutoexecScheduleCount(searchVo);
         searchVo.setPageSize(100);
         searchVo.setRowNum(rowNum);
