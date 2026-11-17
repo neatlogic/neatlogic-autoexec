@@ -55,12 +55,45 @@ public class CreateJobConfigUtil {
      */
     public static List<AutoexecJobBuilder> createAutoexecJobBuilderList(ProcessTaskStepVo currentProcessTaskStepVo, CreateJobConfigConfigVo createJobConfigConfigVo, AutoexecCombopVersionVo autoexecCombopVersionVo) {
         Long processTaskId = currentProcessTaskStepVo.getProcessTaskId();
+        FormMappingData data = loadFormMappingData(processTaskId, createJobConfigConfigVo.getFormTag());
+        List<FormAttributeVo> formAttributeList = data.attributes();
+        Map<String, Object> originalFormAttributeDataMap = data.original();
+        Map<String, Object> formTableComponentDataMap = data.simple();
+        Map<String, Object> formCommonComponentDataMap = data.readable();
+        JSONObject processTaskParam = ProcessTaskConditionFactory.getConditionParamData(Arrays.stream(ProcessTaskParams.values()).map(ProcessTaskParams::getValue).collect(Collectors.toList()), currentProcessTaskStepVo);
+        // 作业策略createJobPolicy为single时表示单次创建作业，createJobPolicy为batch时表示批量创建作业
+        String createPolicy = createJobConfigConfigVo.getCreatePolicy();
+        if (Objects.equals(createPolicy, "single")) {
+            AutoexecJobBuilder builder = createSingleAutoexecJobBuilder(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo, formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, formCommonComponentDataMap, processTaskParam);
+            List<AutoexecJobBuilder> builderList = new ArrayList<>();
+            builderList.add(builder);
+            return builderList;
+        } else if (Objects.equals(createPolicy, "batch")) {
+            List<AutoexecJobBuilder> builderList = createBatchAutoexecJobBuilder(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo, formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, formCommonComponentDataMap, processTaskParam);
+            return builderList;
+        } else {
+            return null;
+        }
+    }
+
+    /** 同一张工单的字段定义、原始值及用于自动化映射的转换值。 */
+    public record FormMappingData(List<FormAttributeVo> attributes, Map<String, Object> original,
+                                  Map<String, Object> simple, Map<String, Object> readable) {
+
+        /** 表格筛选及列提取与自动化节点使用同一实现。 */
+        public JSONArray tableValues(CreateJobConfigMappingVo mapping, JSONObject taskFields) {
+            return parseFormTableComponentMappingMode(mapping, attributes, original, simple, readable, taskFields);
+        }
+    }
+
+    /** 按工单上实际使用的表单版本读取一次，供本次作业的所有参数共用。 */
+    public static FormMappingData loadFormMappingData(Long processTaskId, String formTag) {
         // 如果工单有表单信息，则查询出表单配置及数据
         Map<String, Object> formTableComponentDataMap = new HashMap<>();
         Map<String, Object> formCommonComponentDataMap = new HashMap<>();
         Map<String, Object> originalFormAttributeDataMap = new HashMap<>();
         IProcessTaskCrossoverService processTaskCrossoverService = CrossoverServiceFactory.getApi(IProcessTaskCrossoverService.class);
-        List<FormAttributeVo> formAttributeList = processTaskCrossoverService.getFormAttributeListByProcessTaskIdAngTagNew(processTaskId, createJobConfigConfigVo.getFormTag());
+        List<FormAttributeVo> formAttributeList = processTaskCrossoverService.getFormAttributeListByProcessTaskIdAngTagNew(processTaskId, formTag);
         if (CollectionUtils.isNotEmpty(formAttributeList)) {
             Map<String, FormAttributeVo> formAttributeMap = new HashMap<>();
             for (FormAttributeVo formAttributeVo : formAttributeList) {
@@ -68,7 +101,7 @@ public class CreateJobConfigUtil {
                     formAttributeMap.put(formAttributeVo.getUuid(), formAttributeVo);
                 }
             }
-            List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskIdAndTagNew(processTaskId, createJobConfigConfigVo.getFormTag());
+            List<ProcessTaskFormAttributeDataVo> processTaskFormAttributeDataList = processTaskCrossoverService.getProcessTaskFormAttributeDataListByProcessTaskIdAndTagNew(processTaskId, formTag);
             for (ProcessTaskFormAttributeDataVo attributeDataVo : processTaskFormAttributeDataList) {
                 // 放入表单普通组件数据
                 if (!Objects.equals(attributeDataVo.getHandler(), neatlogic.framework.form.constvalue.FormHandler.FORMTABLEINPUTER.getHandler())
@@ -120,22 +153,10 @@ public class CreateJobConfigUtil {
                     allDownwardFormAttributeList.add(downwardFormAttribute);
                 }
             }
+            formAttributeList = new ArrayList<>(formAttributeList);
             formAttributeList.addAll(allDownwardFormAttributeList);
         }
-        JSONObject processTaskParam = ProcessTaskConditionFactory.getConditionParamData(Arrays.stream(ProcessTaskParams.values()).map(ProcessTaskParams::getValue).collect(Collectors.toList()), currentProcessTaskStepVo);
-        // 作业策略createJobPolicy为single时表示单次创建作业，createJobPolicy为batch时表示批量创建作业
-        String createPolicy = createJobConfigConfigVo.getCreatePolicy();
-        if (Objects.equals(createPolicy, "single")) {
-            AutoexecJobBuilder builder = createSingleAutoexecJobBuilder(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo, formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, formCommonComponentDataMap, processTaskParam);
-            List<AutoexecJobBuilder> builderList = new ArrayList<>();
-            builderList.add(builder);
-            return builderList;
-        } else if (Objects.equals(createPolicy, "batch")) {
-            List<AutoexecJobBuilder> builderList = createBatchAutoexecJobBuilder(currentProcessTaskStepVo, createJobConfigConfigVo, autoexecCombopVersionVo, formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, formCommonComponentDataMap, processTaskParam);
-            return builderList;
-        } else {
-            return null;
-        }
+        return new FormMappingData(formAttributeList, originalFormAttributeDataMap, formTableComponentDataMap, formCommonComponentDataMap);
     }
 
     /**
@@ -439,7 +460,8 @@ public class CreateJobConfigUtil {
         return null;
     }
 
-    private static Long getProtocolId(JSONArray jsonArray) {
+    /** 按协议 ID 或名称解析已配置的连接协议，未匹配时返回空。 */
+    public static Long getProtocolId(JSONArray jsonArray) {
         if (CollectionUtils.isEmpty(jsonArray)) {
             return null;
         }
