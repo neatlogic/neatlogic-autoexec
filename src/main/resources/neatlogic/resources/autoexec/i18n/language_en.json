@@ -12,6 +12,19 @@
       "search": "Search Job Operation Records",
       "starttime": "Start Time",
       "targets": "Target Details"
+    },
+    "quicktool": {
+      "field": {
+        "executeNodeConfig": "Execution Target",
+        "executeUser": "Execution User",
+        "parallelCount": "Concurrency Count",
+        "parallelPolicy": "Concurrency Policy",
+        "protocolId": "Connection Protocol",
+        "roundCount": "Batch Count",
+        "runnerGroup": "Runner Group",
+        "runnerGroupTag": "Runner Group Tags"
+      },
+      "randomRunnerGroup": "Random Assignment"
     }
   },
   "nfad": {

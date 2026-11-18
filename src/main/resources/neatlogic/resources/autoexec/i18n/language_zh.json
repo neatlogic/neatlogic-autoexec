@@ -12,6 +12,19 @@
       "search": "查询作业操作记录",
       "starttime": "开始时间",
       "targets": "目标明细"
+    },
+    "quicktool": {
+      "field": {
+        "executeNodeConfig": "执行目标",
+        "executeUser": "执行用户",
+        "parallelCount": "并发数量",
+        "parallelPolicy": "并发策略",
+        "protocolId": "连接协议",
+        "roundCount": "分批数量",
+        "runnerGroup": "执行器组",
+        "runnerGroupTag": "执行器组标签"
+      },
+      "randomRunnerGroup": "随机分配"
     }
   },
   "nfad": {
