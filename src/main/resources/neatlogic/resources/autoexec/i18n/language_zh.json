@@ -13,18 +13,10 @@
       "starttime": "开始时间",
       "targets": "目标明细"
     },
-    "quicktool": {
-      "field": {
-        "executeNodeConfig": "执行目标",
-        "executeUser": "执行用户",
-        "parallelCount": "并发数量",
-        "parallelPolicy": "并发策略",
-        "protocolId": "连接协议",
-        "roundCount": "分批数量",
-        "runnerGroup": "执行器组",
-        "runnerGroupTag": "执行器组标签"
-      },
-      "randomRunnerGroup": "随机分配"
+    "target": {
+      "ambiguousInputAddress": "输入地址 {0} 匹配多个可执行资源，请显式选择目标资源",
+      "invalidSelectedTarget": "所选节点 {0}（{1}）缺少资源标识或地址与资源记录不匹配，请重新选择",
+      "unavailableTarget": "所选节点 {0}（{1}）不存在或不在当前用户的可执行资源范围内"
     }
   },
   "nfad": {

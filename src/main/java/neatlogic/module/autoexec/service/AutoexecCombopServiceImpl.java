@@ -16,12 +16,12 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
 import neatlogic.framework.auth.core.AuthActionChecker;
+import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.auth.AUTOEXEC_MODIFY;
 import neatlogic.framework.autoexec.constvalue.*;
 import neatlogic.framework.autoexec.crossover.IAutoexecCombopCrossoverService;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecScriptMapper;
-import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecTypeMapper;
 import neatlogic.framework.autoexec.dto.AutoexecOperationBaseVo;
 import neatlogic.framework.autoexec.dto.AutoexecParamConfigVo;
@@ -32,6 +32,7 @@ import neatlogic.framework.autoexec.dto.node.AutoexecNodeVo;
 import neatlogic.framework.autoexec.dto.profile.AutoexecProfileParamVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptLineVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
+import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
 import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
@@ -45,6 +46,7 @@ import neatlogic.framework.dao.mapper.TeamMapper;
 import neatlogic.framework.dao.mapper.UserMapper;
 import neatlogic.framework.dependency.core.DependencyManager;
 import neatlogic.framework.dto.AuthenticationInfoVo;
+import neatlogic.framework.exception.type.ParamIrregularException;
 import neatlogic.framework.notify.dto.InvokeNotifyPolicyConfigVo;
 import neatlogic.framework.util.$;
 import neatlogic.module.autoexec.dao.mapper.AutoexecCombopVersionMapper;
@@ -1734,5 +1736,48 @@ public class AutoexecCombopServiceImpl implements AutoexecCombopService, IAutoex
             autoexecCombopVersionMapper.updateAutoexecCombopVersionById(autoexecCombopVersionVo);
         }
         saveDependency(autoexecCombopVersionVo);
+    }
+
+    /** 基础权限不能由调用方的功能权限替代。 */
+    protected void checkExecutionPermission() {
+        if (!AuthActionChecker.check(AUTOEXEC_BASE.class)) {
+            throw new ParamIrregularException("autoexec permission");
+        }
+    }
+
+    /** 复用组合工具所有者、管理权限和对象授权规则。 */
+    @Override
+    public AutoexecCombopVersionVo getExecutableActiveVersion(Long id) {
+        checkExecutionPermission();
+        AutoexecCombopVo tool = autoexecCombopMapper.getAutoexecCombopById(id);
+        if (tool == null
+                || !Objects.equals(tool.getIsActive(), 1)
+                || !checkOperableButton(tool, CombopAuthorityAction.EXECUTE)) {
+            throw new ParamIrregularException("combop unavailable");
+        }
+        AutoexecCombopVersionVo version = autoexecCombopVersionMapper.getAutoexecCombopActiveVersionByCombopId(id);
+        if (version == null) {
+            throw new ParamIrregularException("active version");
+        }
+        return version;
+    }
+
+    /** 统计应用关键字、编号和执行授权后的版本数。 */
+    @Override
+    public int countExecutableVersions(String keyword, List<Long> ids) {
+        checkExecutionPermission();
+        return autoexecCombopVersionMapper.countExecutableVersions(UserContext.get().getAuthenticationInfoVo(),
+                AuthActionChecker.check(AUTOEXEC_MODIFY.class), keyword, ids);
+    }
+
+    /** 游标限定单批大小，避免按工具逐个查询执行权限。 */
+    @Override
+    public List<AutoexecCombopVersionVo> searchExecutableVersions(String keyword, List<Long> ids, Long beforeId, int size) {
+        checkExecutionPermission();
+        if (size <= 0 || size > 200) {
+            throw new ParamIrregularException("size");
+        }
+        return autoexecCombopVersionMapper.searchExecutableVersions(UserContext.get().getAuthenticationInfoVo(),
+                AuthActionChecker.check(AUTOEXEC_MODIFY.class), keyword, ids, beforeId, size);
     }
 }

@@ -16,9 +16,11 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.asynchronization.thread.NeatLogicThread;
-import neatlogic.framework.asynchronization.threadpool.TransactionSynchronizationPool;
 import neatlogic.framework.asynchronization.threadlocal.TenantContext;
 import neatlogic.framework.asynchronization.threadlocal.UserContext;
+import neatlogic.framework.asynchronization.threadpool.TransactionSynchronizationPool;
+import neatlogic.framework.auth.core.AuthActionChecker;
+import neatlogic.framework.autoexec.auth.AUTOEXEC_BASE;
 import neatlogic.framework.autoexec.constvalue.*;
 import neatlogic.framework.autoexec.crossover.IAutoexecJobCrossoverService;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecCombopMapper;
@@ -30,6 +32,7 @@ import neatlogic.framework.autoexec.dto.AutoexecParamVo;
 import neatlogic.framework.autoexec.dto.AutoexecToolVo;
 import neatlogic.framework.autoexec.dto.combop.*;
 import neatlogic.framework.autoexec.dto.job.*;
+import neatlogic.framework.autoexec.dto.node.AutoexecNodeVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVo;
 import neatlogic.framework.autoexec.exception.*;
@@ -47,6 +50,7 @@ import neatlogic.framework.autoexec.source.IAutoexecJobSource;
 import neatlogic.framework.autoexec.util.AutoexecUtil;
 import neatlogic.framework.cmdb.crossover.IResourceAccountCrossoverMapper;
 import neatlogic.framework.cmdb.crossover.IResourceCenterResourceCrossoverService;
+import neatlogic.framework.cmdb.dto.resourcecenter.AccountBaseVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.AccountProtocolVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceSearchVo;
 import neatlogic.framework.cmdb.dto.resourcecenter.ResourceVo;
@@ -62,8 +66,11 @@ import neatlogic.framework.deploy.crossover.IDeploySqlCrossoverMapper;
 import neatlogic.framework.dto.runner.RunnerMapVo;
 import neatlogic.framework.exception.core.ApiRuntimeException;
 import neatlogic.framework.exception.runner.*;
+import neatlogic.framework.exception.type.ParamIrregularException;
 import neatlogic.framework.filter.core.LoginAuthHandlerBase;
 import neatlogic.framework.integration.authentication.enums.AuthenticateType;
+import neatlogic.framework.tagent.dao.mapper.TagentMapper;
+import neatlogic.framework.tagent.dto.TagentVo;
 import neatlogic.framework.util.$;
 import neatlogic.framework.util.HttpRequestUtil;
 import neatlogic.framework.util.SnowflakeUtil;
@@ -95,6 +102,8 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
     private Random r = new Random();
     @Resource
     AutoexecJobMapper autoexecJobMapper;
+    @Resource
+    private TagentMapper tagentMapper;
     @Resource
     AutoexecScriptMapper autoexecScriptMapper;
     @Resource
@@ -2311,5 +2320,228 @@ public class AutoexecJobServiceImpl implements AutoexecJobService, IAutoexecJobC
             }
         }
         return isHasNode;
+    }
+
+    /** 使用自动化原生选定节点的可执行资源查询，再核对实际地址，防止目标变更。 */
+    @Override
+    public void checkSelectedTargets(Long combopId, JSONObject preCondition, List<AutoexecNodeVo> nodes) {
+        if (nodes.isEmpty()) {
+            return;
+        }
+        Set<Long> ids = new LinkedHashSet<>();
+        for (AutoexecNodeVo node : nodes) {
+            if (node.getId() == null || StringUtils.isBlank(node.getIp())) {
+                throw targetError("autoexec.target.invalidSelectedTarget", node);
+            }
+            ids.add(node.getId());
+        }
+
+        ResourceSearchVo search = targetSearch(combopId, preCondition, nodes.get(0));
+        IResourceCenterResourceCrossoverService resources = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
+        Map<Long, ResourceVo> allowed = new HashMap<>();
+        List<Long> idList = new ArrayList<>(ids);
+        search.setPageSize(idList.size());
+        // 按资源中心允许的分页大小分批核验，避免只检查第一页。
+        int size = search.getPageSize();
+        for (int offset = 0; offset < idList.size(); offset += size) {
+            search.setIdList(idList.subList(offset, Math.min(offset + size, idList.size())));
+            List<Long> authorizedIds = resources.getResourceIdList(search);
+            if (!authorizedIds.isEmpty()) {
+                for (ResourceVo resource : resources.getResourceListByIdList(authorizedIds)) {
+                    allowed.put(resource.getId(), resource);
+                }
+            }
+        }
+
+        for (AutoexecNodeVo node : nodes) {
+            ResourceVo resource = allowed.get(node.getId());
+            if (resource == null) {
+                throw targetError("autoexec.target.unavailableTarget", node);
+            }
+            if (!Objects.equals(node.getIp(), resource.getIp())
+                    || (node.getPort() != null && !Objects.equals(node.getPort(), resource.getPort()))) {
+                throw targetError("autoexec.target.invalidSelectedTarget", node);
+            }
+            node.setPort(resource.getPort());
+            node.setName(resource.getName());
+            node.setTypeId(resource.getTypeId());
+            node.setTypeName(resource.getTypeName());
+            node.setTypeLabel(resource.getTypeLabel());
+        }
+    }
+
+    /** 按输入地址在组合工具执行范围内解析唯一资源。 */
+    @Override
+    public List<AutoexecNodeVo> resolveInputTargets(Long combopId, JSONObject preCondition, String ip) {
+        AutoexecNodeVo source = new AutoexecNodeVo();
+        source.setIp(ip);
+        if (StringUtils.isBlank(ip)) {
+            throw targetError("autoexec.target.invalidSelectedTarget", source);
+        }
+        ResourceSearchVo search = targetSearch(combopId, preCondition, source);
+        search.setInputNodeList(Collections.singletonList(new ResourceVo(ip, null, null)));
+        IResourceCenterResourceCrossoverService resources = CrossoverServiceFactory.getApi(IResourceCenterResourceCrossoverService.class);
+        // 多个授权资源可能使用相同 IP 和空端口，不能自动将一个来源扩展为多个目标。
+        search.setPageSize(2);
+        List<Long> ids = resources.getResourceIdList(search);
+        if (ids.isEmpty()) {
+            throw targetError("autoexec.target.unavailableTarget", source);
+        }
+        if (ids.size() > 1) {
+            throw new ParamIrregularException("node", $.t("autoexec.target.ambiguousInputAddress", ip));
+        }
+        List<ResourceVo> rows = resources.getResourceListByIdList(ids);
+        if (rows.size() != 1 || !ip.equals(rows.get(0).getIp()) || rows.get(0).getPort() != null) {
+            throw targetError("autoexec.target.invalidSelectedTarget", source);
+        }
+        return Collections.singletonList(new AutoexecNodeVo(rows.get(0)));
+    }
+
+    /** 复用作业执行时的模型范围、组合工具操作类型及节点前置条件。 */
+    private ResourceSearchVo targetSearch(Long combopId, JSONObject preCondition, AutoexecNodeVo node) {
+        AutoexecJobVo job = new AutoexecJobVo();
+        job.setOperationType(CombopOperationType.COMBOP.getValue());
+        job.setOperationId(combopId);
+        ResourceSearchVo search = getResourceSearchVoWithCmdbGroupType(job, null, preCondition);
+        if (StringUtils.isBlank(search.getCmdbGroupType())
+                || (!Boolean.TRUE.equals(search.getIsHasAuth())
+                        && (search.getTypeIdList() == null || search.getTypeIdList().isEmpty()))) {
+            // 资源视图或组合工具已变更时，不能按空模型范围执行无约束查询。
+            throw targetError("autoexec.target.unavailableTarget", node);
+        }
+        return search;
+    }
+
+    /** 返回带资源标识与原因的业务错误，执行端可原样展示。 */
+    private ParamIrregularException targetError(String key, AutoexecNodeVo node) {
+        return new ParamIrregularException("node", $.t(key, node.getId(), node.getIp()));
+    }
+
+    /** 校验协议属于 Tagent 连接协议族。 */
+    protected void validateProtocol(Long protocolId) {
+        IResourceAccountCrossoverMapper accounts =
+                CrossoverServiceFactory.tryToGetApi(IResourceAccountCrossoverMapper.class);
+        if (accounts == null) {
+            throw new ParamIrregularException("account capability");
+        }
+        AccountProtocolVo protocol = accounts.getAccountProtocolVoByProtocolId(protocolId);
+        if (protocol == null
+                || protocol.getName() == null
+                || !("tagent".equals(protocol.getName()) || protocol.getName().startsWith("tagent."))) {
+            throw new ParamIrregularException("Tagent protocol");
+        }
+    }
+
+    /** 有效配置已解析后才检查协议、连接凭据及实际路由。 */
+    protected void validateResolvedTarget(AutoexecCombopVersionConfigVo config, String host) {
+        validateProtocol(config.getExecuteConfig().getProtocolId());
+        if (StringUtils.isBlank(host)
+                || !host.equals(host.trim())
+                || "0.0.0.0".equals(host)
+                || "127.0.0.1".equals(host)
+                || "::".equals(host)
+                || "::1".equals(host)) {
+            throw new ParamIrregularException("host");
+        }
+        AutoexecCombopExecuteConfigVo execute = config.getExecuteConfig();
+        List<AccountBaseVo> accounts =
+                tagentMapper.getAccountListByMainIpListAndProtocolId(
+                        Collections.singletonList(host), execute.getProtocolId());
+        if (accounts == null || accounts.isEmpty()) {
+            accounts =
+                    tagentMapper.getAccountListByIncludeIpListAndProtocolId(
+                            Collections.singletonList(host), execute.getProtocolId());
+        }
+        // Tagent 账户保存连接凭据，名称不代表执行脚本时使用的操作系统用户。
+        if (accounts == null || accounts.size() != 1) {
+            throw new ParamIrregularException("unique Tagent account");
+        }
+        List<TagentVo> agents =
+                tagentMapper.getTagentByIpOrTagentIpAndPort(host, accounts.get(0).getProtocolPort());
+        if (agents == null || agents.size() != 1) {
+            throw new ParamIrregularException("unique Tagent route");
+        }
+        validateRunnerRoutes(config, host);
+    }
+
+    /** 与实际目标作业共用规则、标签和网段路由，不读取 Tagent 数据库中的历史 Runner 标识。 */
+    protected void validateRunnerRoutes(AutoexecCombopVersionConfigVo config, String host) {
+        IAutoexecJobSourceTypeHandler handler =
+                AutoexecJobSourceTypeHandlerFactory.getAction(JobSourceType.AUTOEXEC.getValue());
+        if (handler == null) {
+            throw new ParamIrregularException("Tagent runner");
+        }
+        AutoexecJobVo preview = new AutoexecJobVo();
+        AutoexecCombopExecuteConfigVo execute = config.getExecuteConfig();
+        preview.setRunnerGroup(execute.getRunnerGroup());
+        preview.setRunnerGroupTag(execute.getRunnerGroupTag());
+        // 这里只读取参数默认值供路由标签解析，不修改激活版本或创建任何作业数据。
+        List<AutoexecParamVo> parameters = new ArrayList<>();
+        if (config.getRuntimeParamList() != null) {
+            parameters =
+                    JSON.parseArray(JSON.toJSONString(config.getRuntimeParamList()), AutoexecParamVo.class);
+            for (AutoexecParamVo parameter : parameters) {
+                if (parameter.getValue() == null) {
+                    parameter.setValue(parameter.getDefaultValue());
+                }
+            }
+        }
+        preview.setRunTimeParamList(parameters);
+        for (AutoexecCombopPhaseVo phase : config.getCombopPhaseList()) {
+            if (!ExecMode.TARGET.getValue().equals(phase.getExecMode())
+                    && !ExecMode.RUNNER_TARGET.getValue().equals(phase.getExecMode())) {
+                throw new ParamIrregularException("target phase");
+            }
+            AutoexecJobPhaseVo previewPhase = new AutoexecJobPhaseVo();
+            previewPhase.setExecMode(phase.getExecMode());
+            AutoexecJobNodeVo node = new AutoexecJobNodeVo();
+            node.setHost(host);
+            previewPhase.setCurrentNode(node);
+            preview.setExecutePhase(previewPhase);
+            // 预检仅调用目标阶段的候选路由查询。
+            List<RunnerMapVo> candidates = handler.getRunnerMapList(preview, phase.getConfig());
+            boolean available = false;
+            if (candidates != null) {
+                for (RunnerMapVo candidate : candidates) {
+                    if (candidate != null && StringUtils.isNotBlank(candidate.getUrl())) {
+                        available = true;
+                        break;
+                    }
+                }
+            }
+            if (!available) {
+                throw new ParamIrregularException("Tagent runner");
+            }
+        }
+    }
+
+    /** 所有目标先完成预检，失败信息仅含目标与业务原因。 */
+    @Override
+    public void validateTagentRoutes(AutoexecCombopVersionConfigVo config, List<AutoexecNodeVo> nodes) {
+        if (nodes.isEmpty()) {
+            throw new ParamIrregularException("job target");
+        }
+        for (AutoexecNodeVo node : nodes) {
+            try {
+                validateResolvedTarget(config, node.getIp());
+            } catch (ApiRuntimeException ex) {
+                throw new ParamIrregularException(node.getIp(), ex.getMessage());
+            }
+        }
+    }
+
+    /** 按自动化基础查看权限读取原生作业概要，分批避免过长的 IN 查询。 */
+    @Override
+    public List<AutoexecJobVo> getVisibleJobs(List<Long> ids) {
+        if (!AuthActionChecker.check(AUTOEXEC_BASE.class)) {
+            throw new ParamIrregularException("autoexec permission");
+        }
+        List<AutoexecJobVo> jobs = new ArrayList<>();
+        if (CollectionUtils.isNotEmpty(ids)) {
+            for (int offset = 0; offset < ids.size(); offset += 200) {
+                jobs.addAll(autoexecJobMapper.getJobListByIdList(ids.subList(offset, Math.min(offset + 200, ids.size()))));
+            }
+        }
+        return jobs;
     }
 }

@@ -13,18 +13,10 @@
       "starttime": "Start Time",
       "targets": "Target Details"
     },
-    "quicktool": {
-      "field": {
-        "executeNodeConfig": "Execution Target",
-        "executeUser": "Execution User",
-        "parallelCount": "Concurrency Count",
-        "parallelPolicy": "Concurrency Policy",
-        "protocolId": "Connection Protocol",
-        "roundCount": "Batch Count",
-        "runnerGroup": "Runner Group",
-        "runnerGroupTag": "Runner Group Tags"
-      },
-      "randomRunnerGroup": "Random Assignment"
+    "target": {
+      "ambiguousInputAddress": "Input IP {0} matches multiple eligible resources. Select the intended target explicitly.",
+      "invalidSelectedTarget": "Selected target {0} ({1}) has a missing resource identity or an address that differs from the resource record. Select it again.",
+      "unavailableTarget": "Selected target {0} ({1}) does not exist or is outside the resources you may execute on."
     }
   },
   "nfad": {

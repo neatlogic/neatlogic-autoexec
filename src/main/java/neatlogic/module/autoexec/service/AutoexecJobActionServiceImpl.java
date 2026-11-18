@@ -21,11 +21,10 @@ import neatlogic.framework.autoexec.constvalue.*;
 import neatlogic.framework.autoexec.crossover.IAutoexecJobActionCrossoverService;
 import neatlogic.framework.autoexec.dao.mapper.AutoexecJobMapper;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopConfigVo;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
-import neatlogic.framework.autoexec.dto.combop.AutoexecCombopVo;
+import neatlogic.framework.autoexec.dto.combop.*;
 import neatlogic.framework.autoexec.dto.global.param.AutoexecGlobalParamVo;
 import neatlogic.framework.autoexec.dto.job.*;
+import neatlogic.framework.autoexec.dto.node.AutoexecNodeVo;
 import neatlogic.framework.autoexec.dto.scenario.AutoexecScenarioVo;
 import neatlogic.framework.autoexec.exception.*;
 import neatlogic.framework.autoexec.exception.job.*;
@@ -64,6 +63,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import javax.annotation.Resource;
@@ -462,6 +462,11 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
 
     @Override
     public void validateAndCreateJobFromCombop(AutoexecJobVo autoexecJobParam) {
+        validateAndCreateJobFromCombop(autoexecJobParam, false);
+    }
+
+    /** 需要在事务提交后复核路由的作业，将本次采用的执行器组与标签同步写入作业配置快照。 */
+    protected void validateAndCreateJobFromCombop(AutoexecJobVo autoexecJobParam, boolean snapshotRunnerSettings) {
         IAutoexecJobSource jobSource = AutoexecJobSourceFactory.getEnumInstance(autoexecJobParam.getSource());
         if (jobSource == null) {
             throw new AutoexecJobSourceInvalidException(autoexecJobParam.getSource());
@@ -548,6 +553,10 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             //如果作业入参数执行器组标签为null，则使用组合工具中的配置
             if (autoexecJobParam.getRunnerGroupTag() == null) {
                 autoexecJobParam.setRunnerGroupTag(combopExecuteConfigVo.getRunnerGroupTag());
+            }
+            if (snapshotRunnerSettings) {
+                combopExecuteConfigVo.setRunnerGroup(autoexecJobParam.getRunnerGroup());
+                combopExecuteConfigVo.setRunnerGroupTag(autoexecJobParam.getRunnerGroupTag());
             }
             combopExecuteConfigVo.setParallelPolicy(autoexecJobParam.getParallelPolicy());
             combopExecuteConfigVo.setRoundCount(autoexecJobParam.getRoundCount());
@@ -670,6 +679,118 @@ public class AutoexecJobActionServiceImpl implements AutoexecJobActionService, I
             }
             JobObject.Builder jobObjectBuilder = new JobObject.Builder(jobVo.getId().toString(), jobHandler.getGroupName(), jobHandler.getClassName(), TenantContext.get().getTenantUuid());
             jobHandler.reloadJob(jobObjectBuilder.build(), JobLoadTriggerType.INITIAL_CREATE);
+        }
+    }
+
+    /** 创建与业务关联共享调用方事务；只接受带预期激活版本的手动作业。 */
+    @Override
+    @Transactional(propagation = Propagation.MANDATORY)
+    public Long createReadyCombopJob(AutoexecJobVo job) {
+        AutoexecCombopVersionVo version = autoexecCombopService.getExecutableActiveVersion(job.getOperationId());
+        if (!Objects.equals(version.getId(), job.getCombopVersionId()) || !Objects.equals(version.getId(), job.getInvokeId())) {
+            throw new ParamIrregularException("version changed");
+        }
+        if (!JobTriggerType.MANUAL.getValue().equals(job.getTriggerType()) || !JobSource.COMBOP.getValue().equals(job.getSource())
+                || !CombopOperationType.COMBOP.getValue().equals(job.getOperationType())) {
+            throw new ParamIrregularException("manual combop job");
+        }
+        validateAndCreateJobFromCombop(job, true);
+        return job.getId();
+    }
+
+    /** 对就绪作业串行复核版本、执行人、资源权限及连接路由后启动。 */
+    @Override
+    @Transactional
+    public AutoexecJobVo startReadyTagentCombopJob(Long jobId) {
+        AutoexecJobVo job = autoexecJobMapper.getJobLockByJobId(jobId);
+        if (job == null || !JobSource.COMBOP.getValue().equals(job.getSource())
+                || !Objects.equals(job.getExecUser(), UserContext.get().getUserUuid())) {
+            throw new ParamIrregularException("job executor");
+        }
+        AutoexecCombopVersionVo version = autoexecCombopService.getExecutableActiveVersion(job.getOperationId());
+        if (!JobStatus.READY.getValue().equals(job.getStatus())) {
+            return job;
+        }
+        AutoexecJobVo invoke = autoexecJobMapper.getJobInfoWithInvoke(jobId);
+        if (invoke == null || !Objects.equals(invoke.getInvokeId(), version.getId())) {
+            throw new ParamIrregularException("version changed");
+        }
+        AutoexecJobContentVo snapshot = autoexecJobMapper.getJobContent(job.getConfigHash());
+        if (snapshot == null) {
+            throw new AutoexecJobConfigNotFoundException(jobId);
+        }
+        AutoexecCombopVersionConfigVo config = JSON.parseObject(snapshot.getContent(), AutoexecCombopVersionConfigVo.class);
+        // configHash 保存版本与执行配置；paramHash 保存创建时已求值的作业参数。
+        if (StringUtils.isNotBlank(job.getParamHash())) {
+            AutoexecJobContentVo params = autoexecJobMapper.getJobContent(job.getParamHash());
+            if (params == null) {
+                throw new AutoexecJobConfigNotFoundException(jobId);
+            }
+            config.setRuntimeParamList(JSON.parseArray(params.getContent(), AutoexecParamVo.class));
+        }
+        try {
+            checkSnapshotTargets(job.getOperationId(), config);
+        } catch (ParamIrregularException ex) {
+            throw new AutoexecJobTargetInvalidException(ex.getMessage());
+        }
+        job.setActionParam(new JSONObject());
+        try {
+            getJobDetailAndFireJob(job);
+        } catch (RuntimeException ex) {
+            throw ex;
+        } catch (Exception ex) {
+            throw new IllegalStateException("启动就绪作业失败", ex);
+        }
+        return job;
+    }
+
+    /** 从已持久化的快照核对显式目标；动态过滤与上游目标不能作为已确认的主机列表。 */
+    private void checkSnapshotTargets(Long operationId, AutoexecCombopVersionConfigVo config) {
+        if (config == null || config.getExecuteConfig() == null) {
+            throw new ParamIrregularException("execution config");
+        }
+        if (CollectionUtils.isNotEmpty(config.getCombopGroupList())) {
+            for (AutoexecCombopGroupVo group : config.getCombopGroupList()) {
+                if (group.getConfig() != null) {
+                    checkInheritedTarget(group.getConfig().getExecuteConfig());
+                }
+            }
+        }
+        if (CollectionUtils.isNotEmpty(config.getCombopPhaseList())) {
+            for (AutoexecCombopPhaseVo phase : config.getCombopPhaseList()) {
+                if (phase.getConfig() != null && phase.getConfig().getExecuteConfig() != null
+                        && Objects.equals(1, phase.getConfig().getExecuteConfig().getIsPresetExecuteConfig())) {
+                    checkInheritedTarget(phase.getConfig().getExecuteConfig());
+                }
+            }
+        }
+        AutoexecCombopExecuteNodeConfigVo nodes = config.getExecuteConfig().getExecuteNodeConfig();
+        if (nodes == null || MapUtils.isNotEmpty(nodes.getFilter()) || MapUtils.isNotEmpty(nodes.getOtherFilter())
+                || CollectionUtils.isNotEmpty(nodes.getParamList()) || CollectionUtils.isNotEmpty(nodes.getPreOutputList())) {
+            throw new ParamIrregularException("job target");
+        }
+        List<AutoexecNodeVo> selected = nodes.getSelectNodeList();
+        List<AutoexecNodeVo> inputs = nodes.getInputNodeList();
+        if (CollectionUtils.isNotEmpty(selected)) {
+            if (CollectionUtils.isNotEmpty(inputs)) {
+                throw new ParamIrregularException("job target");
+            }
+            autoexecJobService.checkSelectedTargets(operationId, config.getExecuteConfig().getPreCondition(), selected);
+            autoexecJobService.validateTagentRoutes(config, selected);
+        } else {
+            if (CollectionUtils.isEmpty(inputs)) {
+                throw new ParamIrregularException("job target");
+            }
+            autoexecJobService.validateTagentRoutes(config, inputs);
+        }
+    }
+
+    /** 全局目标复核只适用于继承全局节点、路由和协议的阶段与分组。 */
+    private void checkInheritedTarget(AutoexecCombopExecuteConfigVo local) {
+        if (local != null && (local.getExecuteNodeConfig() != null && !local.getExecuteNodeConfig().isNull()
+                || local.getProtocolId() != null || local.getRunnerGroup() != null || local.getRunnerGroupTag() != null
+                || MapUtils.isNotEmpty(local.getPreCondition()))) {
+            throw new ParamIrregularException("local execution target");
         }
     }
 }

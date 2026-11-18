@@ -15,6 +15,7 @@ package neatlogic.module.autoexec.service;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import neatlogic.framework.autoexec.constvalue.JobAction;
+import neatlogic.framework.autoexec.crossover.IAutoexecJobCrossoverService;
 import neatlogic.framework.autoexec.dto.AutoexecParamVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopExecuteConfigVo;
 import neatlogic.framework.autoexec.dto.combop.AutoexecCombopPhaseConfigVo;
@@ -32,7 +33,7 @@ import java.util.List;
 /**
  * @since 2021/4/12 18:44
  **/
-public interface AutoexecJobService {
+public interface AutoexecJobService extends IAutoexecJobCrossoverService {
     /**
      * 通过combopVo保存作业配置
      *

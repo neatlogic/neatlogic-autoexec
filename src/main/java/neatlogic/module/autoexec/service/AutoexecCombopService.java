@@ -13,6 +13,7 @@
 package neatlogic.module.autoexec.service;
 
 import neatlogic.framework.autoexec.constvalue.CombopAuthorityAction;
+import neatlogic.framework.autoexec.crossover.IAutoexecCombopCrossoverService;
 import neatlogic.framework.autoexec.dto.combop.*;
 import neatlogic.framework.autoexec.dto.script.AutoexecScriptVersionVo;
 
@@ -22,7 +23,7 @@ import java.util.List;
  * @author: linbq
  * @date: 2021/4/15 16:13
  **/
-public interface AutoexecCombopService {
+public interface AutoexecCombopService extends IAutoexecCombopCrossoverService {
 
     /** Enrich exported script references with their portable catalog paths using one batch query. */
     void completeScriptCatalogs(AutoexecCombopVersionConfigVo config);
